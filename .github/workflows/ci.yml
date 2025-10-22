@@ -60,19 +60,19 @@ jobs:
       - name: Create test environment file
         run: |
           cd backend
-          {
-            echo "NODE_ENV=test";
-            echo "PORT=3001";
-            echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db";
-            echo "REDIS_URL=redis://localhost:6379";
-            echo "JWT_SECRET=test_jwt_secret_key_for_ci";
-            echo "EMAIL_HOST=localhost";
-            echo "EMAIL_PORT=587";
-            echo "EMAIL_USER=test@example.com";
-            echo "EMAIL_PASSWORD=test_password";
-            echo "EMAIL_FROM=test@example.com";
-            echo "FRONTEND_URL=http://localhost:3000";
-          } > .env.test
+          cat > .env.test << 'EOF'
+          NODE_ENV=test
+          PORT=3001
+          DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL=redis://localhost:6379
+          JWT_SECRET=test_jwt_secret_key_for_ci
+          EMAIL_HOST=localhost
+          EMAIL_PORT=587
+          EMAIL_USER=test@example.com
+          EMAIL_PASSWORD=test_password
+          EMAIL_FROM=test@example.com
+          FRONTEND_URL=http://localhost:3000
+          EOF
 
       - name: Generate Prisma client
         run: |
@@ -96,9 +96,16 @@ jobs:
           cd backend
           npm test
         env:
+          NODE_ENV: test
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379
-          NODE_ENV: test
+          JWT_SECRET: test_jwt_secret_key_for_ci
+          EMAIL_HOST: localhost
+          EMAIL_PORT: 587
+          EMAIL_USER: test@example.com
+          EMAIL_PASSWORD: test_password
+          EMAIL_FROM: test@example.com
+          FRONTEND_URL: http://localhost:3000
 
   # Frontend tests job
   frontend-tests:
