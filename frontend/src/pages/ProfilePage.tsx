@@ -11,6 +11,7 @@ import { AlertCircle } from 'lucide-react';
 import { authService } from '../services/authService';
 import type { User as UserType } from '../services/authService';
 import { TimezoneSelector } from '../components/TimezoneSelector';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -63,19 +64,9 @@ const ProfilePage: React.FC = () => {
       updateUser();
       setSuccess('Profile updated successfully');
       setIsEditing(false);
-    } catch (err: any) {
-      // Handle specific error messages from backend
-      if (err.response?.data?.validationErrors) {
-        // Prioritize validation errors as they are more specific
-        const validationError = err.response.data.validationErrors
-          .map((ve: any) => ve.message)
-          .join(', ');
-        setError(validationError);
-      } else if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError(err.message || 'Failed to update profile');
-      }
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

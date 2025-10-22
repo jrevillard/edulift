@@ -33,7 +33,6 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
       expect(isInPast).toBe(false);
 
       // Verify that using browser timezone would give wrong result
-      const browserNow = nowInTokyo.tz(browserTz);
       const browserSlotTime = tokyoTime.tz(browserTz);
 
       // In UTC: now is Jan 14, 16:00 and slot is Jan 14, 17:00

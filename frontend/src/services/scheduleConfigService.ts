@@ -1,4 +1,5 @@
 import { apiService } from './apiService';
+import type { ApiResponse } from '@/types';
 
 export interface ScheduleHours {
   [key: string]: string[]; // { 'MONDAY': ['07:00', '07:30'], 'TUESDAY': ['08:00'] }
@@ -25,7 +26,11 @@ class ScheduleConfigService {
    */
   async getGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
     const response = await apiService.get(`/groups/${groupId}/schedule-config`);
-    return response.data;
+    const apiResponse = response.data as ApiResponse<GroupScheduleConfig>;
+    if (apiResponse.success && apiResponse.data) {
+      return apiResponse.data;
+    }
+    throw new Error(apiResponse.error || 'Failed to get group schedule config');
   }
 
   /**
@@ -33,7 +38,11 @@ class ScheduleConfigService {
    */
   async getGroupTimeSlots(groupId: string, weekday: string): Promise<GroupTimeSlots> {
     const response = await apiService.get(`/groups/${groupId}/schedule-config/time-slots?weekday=${weekday}`);
-    return response.data;
+    const apiResponse = response.data as ApiResponse<GroupTimeSlots>;
+    if (apiResponse.success && apiResponse.data) {
+      return apiResponse.data;
+    }
+    throw new Error(apiResponse.error || 'Failed to get group time slots');
   }
 
   /**
@@ -43,7 +52,11 @@ class ScheduleConfigService {
     const response = await apiService.put(`/groups/${groupId}/schedule-config`, {
       scheduleHours
     });
-    return response.data;
+    const apiResponse = response.data as ApiResponse<GroupScheduleConfig>;
+    if (apiResponse.success && apiResponse.data) {
+      return apiResponse.data;
+    }
+    throw new Error(apiResponse.error || 'Failed to update group schedule config');
   }
 
   /**
@@ -51,7 +64,11 @@ class ScheduleConfigService {
    */
   async resetGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
     const response = await apiService.post(`/groups/${groupId}/schedule-config/reset`);
-    return response.data;
+    const apiResponse = response.data as ApiResponse<GroupScheduleConfig>;
+    if (apiResponse.success && apiResponse.data) {
+      return apiResponse.data;
+    }
+    throw new Error(apiResponse.error || 'Failed to reset group schedule config');
   }
 
   /**
@@ -59,7 +76,11 @@ class ScheduleConfigService {
    */
   async getDefaultScheduleHours(): Promise<{ scheduleHours: ScheduleHours; isDefault: boolean }> {
     const response = await apiService.get('/groups/schedule-config/default');
-    return response.data;
+    const apiResponse = response.data as ApiResponse<{ scheduleHours: ScheduleHours; isDefault: boolean }>;
+    if (apiResponse.success && apiResponse.data) {
+      return apiResponse.data;
+    }
+    throw new Error(apiResponse.error || 'Failed to get default schedule hours');
   }
 
   /**
@@ -67,7 +88,11 @@ class ScheduleConfigService {
    */
   async initializeDefaultConfigs(): Promise<{ message: string }> {
     const response = await apiService.post('/groups/schedule-config/initialize');
-    return response.data;
+    const apiResponse = response.data as ApiResponse<{ message: string }>;
+    if (apiResponse.success && apiResponse.data) {
+      return apiResponse.data;
+    }
+    throw new Error(apiResponse.error || 'Failed to initialize default configurations');
   }
 }
 

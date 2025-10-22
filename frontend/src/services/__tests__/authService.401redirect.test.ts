@@ -50,9 +50,9 @@ Object.defineProperty(window, 'location', {
 
 describe('AuthService 401 Redirect', () => {
   let authChangeCallback: (user: unknown) => void;
-  let authService: any;
-  let requestInterceptor: any;
-  let responseErrorInterceptor: any;
+  let authService: unknown;
+  let requestInterceptor: unknown;
+  let responseErrorInterceptor: unknown;
 
   beforeEach(async () => {
     vi.clearAllMocks();

@@ -1,11 +1,31 @@
 import { apiService } from './apiService';
-import type { 
-  UserGroup, 
+import type { ApiResponse } from '@/types';
+import type {
+  UserGroup,
   GroupFamily,
   GroupInvitation,
   FamilySearchResult,
   GroupInvitationEligibility
 } from './apiService';
+
+interface GroupValidationResponse {
+  valid: boolean;
+  group?: UserGroup;
+  invitation?: GroupInvitation;
+  error?: string;
+}
+
+interface GroupValidationAuthResponse extends GroupValidationResponse {
+  userStatus?: string;
+  familyInfo?: {
+    id: string;
+    name: string;
+    role: 'OWNER' | 'ADMIN' | 'MEMBER';
+  };
+  canAccept?: boolean;
+  message?: string;
+  actionRequired?: string;
+}
 
 /**
  * Group-specific API service
@@ -13,27 +33,29 @@ import type {
  */
 export class GroupApiService {
   // Group validation using public endpoint
-  async validateGroupInviteCode(inviteCode: string): Promise<{valid: boolean; group?: any; invitation?: any; error?: string}> {
+  async validateGroupInviteCode(inviteCode: string): Promise<GroupValidationResponse> {
     try {
       const response = await apiService.post('/groups/validate-invite', { inviteCode });
-      
+
       // Backend returns { success: true, data: { valid, group, invitation } }
-      if (response.data.success) {
-        return response.data.data;
+      const apiResponse = response.data as ApiResponse<GroupValidationResponse>;
+      if (apiResponse.success && apiResponse.data) {
+        return apiResponse.data;
       } else {
         return {
           valid: false,
-          error: response.data.error || 'Invalid invitation code'
+          error: apiResponse.error || 'Invalid invitation code'
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error validating group invite code:', error);
-      
+
       // Handle specific error responses
-      if (error.response?.data) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: string } } };
         return {
           valid: false,
-          error: error.response.data.error || 'Failed to validate invitation code'
+          error: axiosError.response?.data?.error || 'Failed to validate invitation code'
         };
       }
 
@@ -45,18 +67,27 @@ export class GroupApiService {
   }
 
   // Group validation with authenticated user context
-  async validateGroupInviteCodeWithAuth(inviteCode: string): Promise<{valid: boolean; group?: any; invitation?: any; error?: string; userStatus?: string; familyInfo?: any; canAccept?: boolean; message?: string; actionRequired?: string}> {
+  async validateGroupInviteCodeWithAuth(inviteCode: string): Promise<GroupValidationAuthResponse> {
     try {
       const response = await apiService.post('/groups/validate-invite-auth', { inviteCode });
-      return response.data;
-    } catch (error: any) {
-      console.error('Error validating group invite code with auth:', error);
-      
-      // Handle specific error responses
-      if (error.response?.data) {
+      const apiResponse = response.data as ApiResponse<GroupValidationAuthResponse>;
+      if (apiResponse.success && apiResponse.data) {
+        return apiResponse.data;
+      } else {
         return {
           valid: false,
-          error: error.response.data.error || 'Failed to validate invitation code'
+          error: apiResponse.error || 'Failed to validate invitation code'
+        };
+      }
+    } catch (error: unknown) {
+      console.error('Error validating group invite code with auth:', error);
+
+      // Handle specific error responses
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: string } } };
+        return {
+          valid: false,
+          error: axiosError.response?.data?.error || 'Failed to validate invitation code'
         };
       }
 

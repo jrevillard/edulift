@@ -13,7 +13,7 @@ describe('dateFormatting', () => {
     
     // Mock current time to June 25, 2025 10:00:00 UTC for consistent tests
     const mockCurrentTime = new Date('2025-06-25T10:00:00.000Z');
-    vi.spyOn(globalThis, 'Date').mockImplementation((...args: any[]) => {
+    vi.spyOn(globalThis, 'Date').mockImplementation((...args: unknown[]) => {
       if (args.length === 0) {
         return new originalDate(mockCurrentTime);
       }

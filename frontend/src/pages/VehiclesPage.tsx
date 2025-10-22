@@ -16,6 +16,7 @@ import { PageLayout, PageHeader, ModernButton, ModernCard } from '@/components/u
 import { Plus, Edit2, Trash2, Car, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
+import { isApiError } from '../types/errors';
 
 const VehiclesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -48,16 +49,16 @@ const VehiclesPage: React.FC = () => {
       setFormData({ name: '', capacity: '' });
       setFormError('');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error creating vehicle:', error);
       
       // Handle specific permission errors
-      if (error?.response?.status === 403) {
+      if (isApiError(error) && error.response?.status === 403) {
         setFormError('You do not have permission to add vehicles. Only family admins can add vehicles.');
-      } else if (error?.response?.status === 401) {
+      } else if (isApiError(error) && error.response?.status === 401) {
         setFormError('You must be logged in to add vehicles.');
       } else {
-        setFormError(error?.response?.data?.error || error?.message || 'Failed to add vehicle. Please try again.');
+        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to add vehicle. Please try again.' : 'Failed to add vehicle. Please try again.');
       }
     },
   });
@@ -75,16 +76,16 @@ const VehiclesPage: React.FC = () => {
       setFormData({ name: '', capacity: '' });
       setFormError('');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error updating vehicle:', error);
       
       // Handle specific permission errors
-      if (error?.response?.status === 403) {
+      if (isApiError(error) && error.response?.status === 403) {
         setFormError('You do not have permission to edit vehicles. Only family admins can edit vehicles.');
-      } else if (error?.response?.status === 401) {
+      } else if (isApiError(error) && error.response?.status === 401) {
         setFormError('You must be logged in to edit vehicles.');
       } else {
-        setFormError(error?.response?.data?.error || error?.message || 'Failed to update vehicle. Please try again.');
+        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to update vehicle. Please try again.' : 'Failed to update vehicle. Please try again.');
       }
     },
   });

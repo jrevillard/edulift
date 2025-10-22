@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 
 // Mock axios
 vi.mock('axios');
-const mockedAxios = axios as any;
+const mockedAxios = vi.mocked(axios);
 
 describe('GroupApiService - Pending Invitations', () => {
   beforeEach(() => {

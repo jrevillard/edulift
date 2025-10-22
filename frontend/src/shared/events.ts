@@ -75,6 +75,7 @@ export type SocketEventName = typeof SOCKET_EVENTS[keyof typeof SOCKET_EVENTS];
 export interface GroupEventData {
   groupId: string;
   userId?: string;
+  familyId?: string;
 }
 
 export interface ScheduleEventData {
@@ -86,12 +87,13 @@ export interface ScheduleEventData {
 export interface UserEventData {
   userId: string;
   groupId: string;
+  familyId?: string;
 }
 
 export interface NotificationEventData {
   type: 'SCHEDULE_PUBLISHED' | 'MEMBER_JOINED' | 'MEMBER_LEFT';
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export interface ErrorEventData {
@@ -104,6 +106,34 @@ export interface ConflictEventData {
   conflictType: 'DRIVER_DOUBLE_BOOKING' | 'VEHICLE_DOUBLE_BOOKING' | 'CAPACITY_EXCEEDED';
   affectedUsers: string[];
   message?: string;
+}
+
+export interface ChildEventData {
+  groupId?: string;
+  familyId?: string;
+  childId?: string;
+  userId?: string;
+}
+
+export interface VehicleEventData {
+  groupId?: string;
+  familyId?: string;
+  vehicleId?: string;
+  userId?: string;
+}
+
+export interface FamilyEventData {
+  familyId: string;
+  userId?: string;
+  memberId?: string;
+}
+
+export interface CapacityEventData {
+  scheduleSlotId: string;
+  groupId: string;
+  currentCapacity: number;
+  maxCapacity: number;
+  warningType: 'WARNING' | 'FULL';
 }
 
 // All events now use modern colon-separated format only

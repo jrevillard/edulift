@@ -4,10 +4,10 @@ This file provides specific instructions for AI coding agents working on the Edu
 
 ## 🏗️ Project Structure
 
-EduLift is a monorepo containing three main components:
+EduLift is a monorepo containing two main components:
 
-- `/frontend` - Web frontend application (React/TypeScript/Vite)
-- `/backend` - Backend services (Node.js/Express/TypeScript)
+- `frontend/` - Web frontend application (React/TypeScript/Vite)
+- `backend/` - Backend services (Node.js/Express/TypeScript)
 
 ## 🎯 Project Overview
 

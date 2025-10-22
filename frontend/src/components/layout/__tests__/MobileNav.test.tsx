@@ -12,7 +12,7 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useNavigate: () => vi.fn(),
-    Link: ({ to, children, onClick, className, ...props }: any) => (
+    Link: ({ to, children, onClick, className, ...props }: unknown) => (
       <a href={to} onClick={onClick} className={className} {...props}>
         {children}
       </a>

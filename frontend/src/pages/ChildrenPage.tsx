@@ -18,6 +18,7 @@ import { LoadingState, ErrorState, EmptyChildren } from '@/components/ui/empty-s
 import { PageLayout, PageHeader, ModernButton, ModernCard } from '@/components/ui/page-layout';
 import { Plus, Edit2, Trash2, Users, Baby, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { isApiError } from '../types/errors';
 
 const ChildrenPage: React.FC = () => {
   const navigate = useNavigate();
@@ -73,16 +74,16 @@ const ChildrenPage: React.FC = () => {
       setSelectedGroupForAdding('');
       setFormError('');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error creating child:', error);
       
       // Handle specific permission errors
-      if (error?.response?.status === 403) {
+      if (isApiError(error) && error.response?.status === 403) {
         setFormError('You do not have permission to add children. Only family admins can add children.');
-      } else if (error?.response?.status === 401) {
+      } else if (isApiError(error) && error.response?.status === 401) {
         setFormError('You must be logged in to add children.');
       } else {
-        setFormError(error?.response?.data?.error || error?.message || 'Failed to add child. Please try again.');
+        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to add child. Please try again.' : 'Failed to add child. Please try again.');
       }
     },
   });
@@ -101,16 +102,16 @@ const ChildrenPage: React.FC = () => {
       setFormData({ name: '', age: '' });
       setFormError('');
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error updating child:', error);
       
       // Handle specific permission errors
-      if (error?.response?.status === 403) {
+      if (isApiError(error) && error.response?.status === 403) {
         setFormError('You do not have permission to edit children. Only family admins can edit children.');
-      } else if (error?.response?.status === 401) {
+      } else if (isApiError(error) && error.response?.status === 401) {
         setFormError('You must be logged in to edit children.');
       } else {
-        setFormError(error?.response?.data?.error || error?.message || 'Failed to update child. Please try again.');
+        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to update child. Please try again.' : 'Failed to update child. Please try again.');
       }
     },
   });

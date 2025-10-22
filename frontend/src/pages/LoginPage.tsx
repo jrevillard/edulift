@@ -130,7 +130,7 @@ const LoginPage: React.FC = () => {
       try {
         decodedRedirectTo = decodeURIComponent(redirectTo);
         console.log('🔍 DEBUG: Decoded URL:', decodedRedirectTo);
-      } catch (error) {
+      } catch {
         console.log('🔍 DEBUG: URL decoding failed, using original');
       }
       
@@ -145,7 +145,7 @@ const LoginPage: React.FC = () => {
           inviteCode = redirectUrl.searchParams.get('code') || undefined;
           console.log('🔍 DEBUG: Extracted invite code from /groups/join:', inviteCode);
         }
-      } catch (error) {
+      } catch {
         console.log('🔍 DEBUG: URL parsing failed, trying regex patterns...');
         // If redirectTo is not a valid URL, it might be a relative path - try both original and decoded
         const urlToCheck = decodedRedirectTo || redirectTo;

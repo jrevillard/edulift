@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -236,7 +236,6 @@ describe('GroupScheduleConfigModal', () => {
   });
 
   it('should filter out existing time slots from options', async () => {
-    const user = userEvent.setup();
     const { TestWrapper } = createTestWrapper();
     
     render(
@@ -324,7 +323,7 @@ describe('GroupScheduleConfigModal', () => {
       expect(mockToast.error).toHaveBeenCalledWith(
         'Failed to update schedule configuration',
         expect.objectContaining({
-          description: 'Please try again'
+          description: 'Network error'
         })
       );
     });
@@ -567,7 +566,6 @@ describe('GroupScheduleConfigModal', () => {
   });
 
   it('should enforce maximum time slots limit', async () => {
-    const user = userEvent.setup();
     const { TestWrapper } = createTestWrapper();
     
     // Create config with 20 time slots (maximum)

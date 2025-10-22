@@ -127,7 +127,7 @@ export const getDateFromISOWeek = (
 ): Date => {
   // Create a date in the target year, in the user's timezone
   // We start with January 4th which is always in week 1
-  let localDt = dayjs.tz(`${year}-01-04`, timezone);
+  const localDt = dayjs.tz(`${year}-01-04`, timezone);
 
   // Get the Monday of week 1
   const week1Monday = localDt.startOf('isoWeek');

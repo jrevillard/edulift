@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../services/authService';
-import type { User } from '../services/authService';
+import type { User, AuthResponse } from '../services/authService';
 
 interface Family {
   id: string;
@@ -26,7 +26,7 @@ interface AuthContextType {
   isLoading: boolean;
   family: Family | null;
   login: (email: string, name?: string, inviteCode?: string) => Promise<void>;
-  verifyMagicLink: (token: string, inviteCode?: string) => Promise<any>;
+  verifyMagicLink: (token: string, inviteCode?: string) => Promise<AuthResponse>;
   logout: () => Promise<void>;
   refreshToken: () => Promise<void>;
   updateUser: () => void;
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const verifyMagicLink = async (token: string, inviteCode?: string): Promise<any> => {
+  const verifyMagicLink = async (token: string, inviteCode?: string): Promise<AuthResponse> => {
     setIsLoading(true);
     try {
       const authData = await authService.verifyMagicLink(token, inviteCode);

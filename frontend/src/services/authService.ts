@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
+import type { ApiResponse } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
@@ -24,15 +25,6 @@ export interface AuthResponse {
   };
 }
 
-export interface ApiResponse<T = unknown> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  validationErrors?: Array<{
-    field: string;
-    message: string;
-  }>;
-}
 
 class AuthService {
   private token: string | null = null;
@@ -152,7 +144,7 @@ class AuthService {
     );
   }
 
-  async requestMagicLink(email: string, context?: { name?: string; inviteCode?: string; [key: string]: any }): Promise<{ success: boolean; userExists?: boolean; message?: string }> {
+  async requestMagicLink(email: string, context?: { name?: string; inviteCode?: string; [key: string]: unknown }): Promise<{ success: boolean; userExists?: boolean; message?: string }> {
     try {
       // Import PKCE utilities
       const { generateAndStorePKCEPair, isPKCESupported, PKCEError } = await import('../utils/pkceUtils');
@@ -184,7 +176,7 @@ class AuthService {
       };
       console.log('🔍 DEBUG: Frontend authService sending request body:', JSON.stringify({ ...requestBody, code_challenge: '[REDACTED]' }, null, 2));
       
-      const response = await axios.post<ApiResponse>(`${API_BASE_URL}/auth/magic-link`, requestBody);
+      const response = await axios.post<ApiResponse<{ userExists?: boolean; message?: string }>>(`${API_BASE_URL}/auth/magic-link`, requestBody);
 
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to send magic link');
@@ -544,7 +536,7 @@ class AuthService {
         // Pass through validation errors
         if (error.response?.data?.validationErrors) {
           const validationError = error.response.data.validationErrors
-            .map((ve: any) => ve.message)
+            .map((ve: { message: string }) => ve.message)
             .join(', ');
           throw new Error(validationError);
         }

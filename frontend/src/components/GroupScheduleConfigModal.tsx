@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter
@@ -36,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { convertScheduleHoursToLocal, convertScheduleHoursToUtc } from '@/utils/timezoneUtils';
+import { getErrorMessage } from '@/utils/errorUtils';
 
 interface GroupScheduleConfigModalProps {
   isOpen: boolean;
@@ -114,7 +116,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
     },
     onError: (error: Error) => {
       toast.error('Failed to update schedule configuration', {
-        description: (error as any).response?.data?.message || 'Please try again'
+        description: getErrorMessage(error)
       });
     }
   });
@@ -131,7 +133,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
     },
     onError: (error: Error) => {
       toast.error('Failed to reset schedule configuration', {
-        description: (error as any).response?.data?.message || 'Please try again'
+        description: getErrorMessage(error)
       });
     }
   });
@@ -265,6 +267,9 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
             <Clock className="h-5 w-5" />
             <span className="truncate">Schedule Configuration - {groupName}</span>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Configure time slots for each weekday for the {groupName} group schedule
+          </DialogDescription>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm md:text-base text-muted-foreground">
             <div className="flex items-center gap-1" data-testid="GroupScheduleConfigModal-Text-description">
               <Info className="h-4 w-4" />

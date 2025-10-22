@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -16,8 +16,7 @@ import {
   formatWeekRange,
   getCurrentWeek,
   generateWeekdays,
-  navigateWeek,
-  isTimeSlotInPast
+  navigateWeek
 } from '../weekCalculations';
 
 // Helper function to create timezone-independent UTC dates

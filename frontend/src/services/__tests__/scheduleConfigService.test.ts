@@ -29,7 +29,12 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.get.mockResolvedValue({ data: mockConfig });
+      mockApiService.get.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockConfig
+        }
+      });
 
       const result = await scheduleConfigService.getGroupScheduleConfig('group-1');
 
@@ -56,7 +61,12 @@ describe('ScheduleConfigService', () => {
         timeSlots: ['07:00', '07:30', '08:00']
       };
 
-      mockApiService.get.mockResolvedValue({ data: mockTimeSlots });
+      mockApiService.get.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockTimeSlots
+        }
+      });
 
       const result = await scheduleConfigService.getGroupTimeSlots('group-1', 'MONDAY');
 
@@ -94,7 +104,12 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.put.mockResolvedValue({ data: mockUpdatedConfig });
+      mockApiService.put.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockUpdatedConfig
+        }
+      });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', scheduleHours);
 
@@ -144,7 +159,12 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.put.mockResolvedValue({ data: mockUpdatedConfig });
+      mockApiService.put.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockUpdatedConfig
+        }
+      });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', emptyScheduleHours);
 
@@ -169,7 +189,12 @@ describe('ScheduleConfigService', () => {
         isDefault: true
       };
 
-      mockApiService.post.mockResolvedValue({ data: mockDefaultConfig });
+      mockApiService.post.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockDefaultConfig
+        }
+      });
 
       const result = await scheduleConfigService.resetGroupScheduleConfig('group-1');
 
@@ -202,7 +227,12 @@ describe('ScheduleConfigService', () => {
         isDefault: true
       };
 
-      mockApiService.get.mockResolvedValue({ data: mockDefaultHours });
+      mockApiService.get.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockDefaultHours
+        }
+      });
 
       const result = await scheduleConfigService.getDefaultScheduleHours();
 
@@ -218,7 +248,12 @@ describe('ScheduleConfigService', () => {
         message: 'Default configurations initialized successfully'
       };
 
-      mockApiService.post.mockResolvedValue({ data: mockResponse });
+      mockApiService.post.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockResponse
+        }
+      });
 
       const result = await scheduleConfigService.initializeDefaultConfigs();
 
@@ -270,8 +305,7 @@ describe('ScheduleConfigService', () => {
     });
 
     it('should handle unauthorized access', async () => {
-      const unauthorizedError = new Error('Unauthorized');
-      (unauthorizedError as any).status = 401;
+      const unauthorizedError = Object.assign(new Error('Unauthorized'), { status: 401 });
       mockApiService.put.mockRejectedValue(unauthorizedError);
 
       await expect(scheduleConfigService.updateGroupScheduleConfig('group-1', {}))
@@ -279,8 +313,7 @@ describe('ScheduleConfigService', () => {
     });
 
     it('should handle server errors', async () => {
-      const serverError = new Error('Internal Server Error');
-      (serverError as any).status = 500;
+      const serverError = Object.assign(new Error('Internal Server Error'), { status: 500 });
       mockApiService.get.mockRejectedValue(serverError);
 
       await expect(scheduleConfigService.getGroupScheduleConfig('group-1'))
@@ -305,7 +338,12 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.get.mockResolvedValue({ data: mockConfig });
+      mockApiService.get.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockConfig
+        }
+      });
 
       // Make multiple rapid calls
       const promises = Array.from({ length: 5 }, () => 
@@ -352,7 +390,12 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.put.mockResolvedValue({ data: mockConfig });
+      mockApiService.put.mockResolvedValue({
+        data: {
+          success: true,
+          data: mockConfig
+        }
+      });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', largeScheduleHours);
 

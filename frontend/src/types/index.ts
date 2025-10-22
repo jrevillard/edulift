@@ -59,7 +59,16 @@ export interface Group {
 // Modern schedule types are now defined in apiService.ts
 // This file only contains shared types and legacy compatibility types if needed
 
-export interface ApiResponse<T = unknown> {
+export interface ApiResponse<T> {
+  success?: boolean;
+  status?: number;
+  message?: string;
+  data?: T;
+  error?: string;
+}
+
+// Legacy type for backward compatibility - USE ONLY IN TESTS OR SPECIFIC CASES
+export interface ApiResponseLegacy<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

@@ -107,7 +107,7 @@ const VerifyMagicLinkPage: React.FC = () => {
     if (!authLoading) {
       handleVerification();
     }
-  }, [token, verifyMagicLink, isAuthenticated, authLoading]);
+  }, [token, inviteCode, navigate, verifyMagicLink, isAuthenticated, authLoading]);
 
   // Handle accepting the family invitation
   const handleAcceptInvitation = async () => {

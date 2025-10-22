@@ -452,8 +452,8 @@ const ManageFamilyPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-medium">{member.user.name}</p>
-                      <p className="text-sm text-muted-foreground">{member.user.email}</p>
+                      <p className="font-medium">{member.user?.name || 'Unknown User'}</p>
+                      <p className="text-sm text-muted-foreground">{member.user?.email || 'No email'}</p>
                     </div>
                   </div>
                   
@@ -689,7 +689,7 @@ const ManageFamilyPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle data-testid="ManageFamilyPage-Heading-changeRoleDialogTitle">Change Member Role</DialogTitle>
             <DialogDescription>
-              Are you sure you want to change {memberToChangeRole?.member.user.name}'s role to {memberToChangeRole?.newRole}?
+              Are you sure you want to change {memberToChangeRole?.member.user?.name || 'this member'}'s role to {memberToChangeRole?.newRole}?
               {memberToChangeRole?.newRole === 'ADMIN' && ' This will give them full administrative privileges including managing children and vehicles.'}
               {memberToChangeRole?.newRole === 'MEMBER' && ' This will limit their access to basic family features.'}
             </DialogDescription>

@@ -1,6 +1,6 @@
 /**
  * Unified Invitation Service - Frontend Client
- * 
+ *
  * This service interfaces with the backend UnifiedInvitationService
  * and provides methods for handling family and group invitations
  */
@@ -86,10 +86,10 @@ class UnifiedInvitationService {
         try {
           const error = await response.json();
           errorMessage = error.error || error.message || errorMessage;
-        } catch (jsonError) {
+        } catch {
           // Use default error message if JSON parsing fails
         }
-        
+
         return {
           valid: false,
           error: errorMessage
@@ -98,7 +98,7 @@ class UnifiedInvitationService {
 
       const result = await response.json();
       return result.data;
-    } catch (error) {
+    } catch {
       return {
         valid: false,
         error: 'Network error: Failed to validate invitation'
@@ -175,9 +175,9 @@ class UnifiedInvitationService {
 
       const result = await response.json();
       return result.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accepting family invitation:', error);
-      if (error.status) {
+      if (error && typeof error === 'object' && 'status' in error) {
         throw error;
       }
       throw new Error('Network error');
@@ -212,9 +212,10 @@ class UnifiedInvitationService {
 
       const result = await response.json();
       return result.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error accepting group invitation:', error);
-      throw new Error(error.message || 'Network error');
+      const errorMessage = error instanceof Error ? error.message : 'Network error';
+      throw new Error(errorMessage);
     }
   }
 

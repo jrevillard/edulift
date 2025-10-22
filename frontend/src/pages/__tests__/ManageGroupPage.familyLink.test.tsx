@@ -1,9 +1,8 @@
 import { render, screen, waitFor } from '../../test/test-utils';
-import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import ManageGroupPage from '../ManageGroupPage';
 import * as apiService from '../../services/apiService';
-import type { GroupFamily } from '../../services/apiService';
+import type { GroupFamily, ApiService } from '../../services/apiService';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -41,7 +40,7 @@ vi.mock('@/stores/connectionStore', () => ({
   })),
 }));
 
-const mockApiService = apiService.apiService as any;
+const mockApiService = apiService.apiService as Partial<ApiService>;
 
 const mockUserGroups = [
   {
@@ -84,7 +83,6 @@ const mockFamilies: GroupFamily[] = [
 ];
 
 describe('ManageGroupPage - Family Link', () => {
-  const user = userEvent.setup();
 
   beforeEach(() => {
     vi.clearAllMocks();

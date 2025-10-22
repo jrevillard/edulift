@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { SOCKET_EVENTS } from '../shared/events';
+import { SOCKET_EVENTS, type ScheduleEventData, type GroupEventData, type UserEventData, type NotificationEventData, type ConflictEventData, type ChildEventData, type VehicleEventData, type FamilyEventData, type CapacityEventData } from '../shared/events';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -126,14 +126,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       // Real-time event handlers - CENTRALIZED HANDLING
       
       // Schedule-related events (new standardized names)
-      newSocket.on(SOCKET_EVENTS.SCHEDULE_UPDATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_UPDATED, (data: ScheduleEventData) => {
         console.log('🔄 SCHEDULE_UPDATED:', data);
         queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
         queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
         queryClient.invalidateQueries({ queryKey: ['timeslots', data.groupId] });
       });
       
-      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, (data: ScheduleEventData) => {
         console.log('🔄 SCHEDULE_SLOT_UPDATED:', data);
         queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
         queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
@@ -142,13 +142,13 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
       
-      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CREATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CREATED, (data: ScheduleEventData) => {
         console.log('🔄 SCHEDULE_SLOT_CREATED:', data);
         queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
         queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
       });
       
-      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_DELETED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_DELETED, (data: ScheduleEventData) => {
         console.log('🔄 SCHEDULE_SLOT_DELETED:', data);
         queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
         queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
@@ -159,7 +159,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
 
       // Child management events
-      newSocket.on(SOCKET_EVENTS.CHILD_ADDED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.CHILD_ADDED, (data: ChildEventData) => {
         console.log('🔄 CHILD_ADDED:', data);
         if (data.userId === user.id) {
           queryClient.invalidateQueries({ queryKey: ['children'] });
@@ -171,7 +171,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
 
-      newSocket.on(SOCKET_EVENTS.CHILD_UPDATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.CHILD_UPDATED, (data: ChildEventData) => {
         console.log('🔄 CHILD_UPDATED:', data);
         if (data.userId === user.id) {
           queryClient.invalidateQueries({ queryKey: ['children'] });
@@ -183,7 +183,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
 
-      newSocket.on(SOCKET_EVENTS.CHILD_DELETED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.CHILD_DELETED, (data: ChildEventData) => {
         console.log('🔄 CHILD_DELETED:', data);
         if (data.userId === user.id) {
           queryClient.invalidateQueries({ queryKey: ['children'] });
@@ -196,7 +196,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       });
 
       // Vehicle management events  
-      newSocket.on(SOCKET_EVENTS.VEHICLE_ADDED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.VEHICLE_ADDED, (data: VehicleEventData) => {
         console.log('🔄 VEHICLE_ADDED:', data);
         if (data.userId === user.id) {
           queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -208,7 +208,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
 
-      newSocket.on(SOCKET_EVENTS.VEHICLE_UPDATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.VEHICLE_UPDATED, (data: VehicleEventData) => {
         console.log('🔄 VEHICLE_UPDATED:', data);
         if (data.userId === user.id) {
           queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -220,7 +220,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
 
-      newSocket.on(SOCKET_EVENTS.VEHICLE_DELETED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.VEHICLE_DELETED, (data: VehicleEventData) => {
         console.log('🔄 VEHICLE_DELETED:', data);
         if (data.userId === user.id) {
           queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -233,43 +233,43 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       });
 
       // Notification events
-      newSocket.on(SOCKET_EVENTS.NOTIFICATION, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.NOTIFICATION, (data: NotificationEventData) => {
         console.log('🔔 NOTIFICATION:', data);
         // Here you could show toast notifications or update a notification center
         // For now, we'll just log it
       });
       
       // Conflict detection events
-      newSocket.on(SOCKET_EVENTS.CONFLICT_DETECTED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.CONFLICT_DETECTED, (data: ConflictEventData) => {
         console.log('⚠️ CONFLICT_DETECTED:', data);
         // Could show toast warning about conflicts
       });
       
       // Capacity warning events
-      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING, (data: CapacityEventData) => {
         console.log('⚠️ CAPACITY_WARNING:', data);
         // Could show toast about approaching capacity
       });
       
-      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_FULL, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_FULL, (data: CapacityEventData) => {
         console.log('🚫 CAPACITY_FULL:', data);
         // Could show toast about full capacity
       });
 
       // Family activity events - invalidate activity feed for real-time updates
-      newSocket.on(SOCKET_EVENTS.FAMILY_MEMBER_JOINED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.FAMILY_MEMBER_JOINED, (data: FamilyEventData) => {
         console.log('🔄 FAMILY_MEMBER_JOINED:', data);
         queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
         queryClient.invalidateQueries({ queryKey: ['families'] });
       });
 
-      newSocket.on(SOCKET_EVENTS.FAMILY_MEMBER_LEFT, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.FAMILY_MEMBER_LEFT, (data: FamilyEventData) => {
         console.log('🔄 FAMILY_MEMBER_LEFT:', data);
         queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
         queryClient.invalidateQueries({ queryKey: ['families'] });
       });
 
-      newSocket.on(SOCKET_EVENTS.FAMILY_UPDATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.FAMILY_UPDATED, (data: FamilyEventData) => {
         console.log('🔄 FAMILY_UPDATED:', data);
         queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
         queryClient.invalidateQueries({ queryKey: ['families'] });
@@ -280,7 +280,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
       // Invalidate activity feed for existing events that affect family activity
       // Group management events
-      newSocket.on(SOCKET_EVENTS.GROUP_UPDATED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.GROUP_UPDATED, (data: GroupEventData) => {
         console.log('🔄 GROUP_UPDATED:', data);
         queryClient.invalidateQueries({ queryKey: ['groups'] });
         queryClient.invalidateQueries({ queryKey: ['user-groups'] });
@@ -294,7 +294,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
 
-      newSocket.on(SOCKET_EVENTS.MEMBER_JOINED, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.MEMBER_JOINED, (data: UserEventData) => {
         console.log('🔄 MEMBER_JOINED:', data);
         queryClient.invalidateQueries({ queryKey: ['groups'] });
         queryClient.invalidateQueries({ queryKey: ['user-groups'] });
@@ -308,7 +308,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         }
       });
 
-      newSocket.on(SOCKET_EVENTS.MEMBER_LEFT, (data: any) => {
+      newSocket.on(SOCKET_EVENTS.MEMBER_LEFT, (data: UserEventData) => {
         console.log('🔄 MEMBER_LEFT:', data);
         queryClient.invalidateQueries({ queryKey: ['groups'] });
         queryClient.invalidateQueries({ queryKey: ['user-groups'] });
@@ -338,7 +338,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setIsConnected(false);
       }
     }
-  }, [isAuthenticated, user, authToken, queryClient, setWsStatus]);
+  }, [socket, isAuthenticated, user, authToken, queryClient, setWsStatus]);
 
   const value: SocketContextType = {
     socket,

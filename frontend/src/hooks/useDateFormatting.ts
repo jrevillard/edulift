@@ -33,7 +33,7 @@ export function useDateFormatting() {
 /**
  * Hook specifically for relative time that updates periodically
  */
-export function useRelativeTime(isoDateTime: string, _updateInterval: number = 60000) {
+export function useRelativeTime(isoDateTime: string, /* _updateInterval: number = 60000 */) {
   const { formatRelative } = useDateFormatting();
   
   // For now, just return the formatted time

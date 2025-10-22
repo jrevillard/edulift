@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { authService } from '../services/authService';
 import { unifiedInvitationService } from '../services/unifiedInvitationService';
+import type { FamilyMember } from '../types/family';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Button } from './ui/button';
@@ -426,7 +427,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
             </div>
           )}
 
-          {isAuthenticated && currentFamily && user?.id && currentFamily.members?.some((member: any) => member.userId === user.id && member.role === 'ADMIN') && !acceptResult && (
+          {isAuthenticated && currentFamily && user?.id && currentFamily.members?.some((member: FamilyMember) => member.userId === user.id && member.role === 'ADMIN') && !acceptResult && (
             <div className="space-y-4">
               <Alert>
                 <CheckCircle className="h-4 w-4" />
@@ -440,13 +441,13 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                 <p className="text-sm text-gray-600 mb-2">All family members will join the group:</p>
                 {currentFamily.members && (
                   <div className="space-y-1" data-testid="GroupInvitationPage-List-familyMembers">
-                    {currentFamily.members.map((member: any, index: number) => (
+                    {currentFamily.members.map((member: FamilyMember, index: number) => (
                       <div 
                         key={member.id || index}
                         className="text-sm text-gray-700"
                         data-testid={`GroupInvitationPage-ListItem-${member.id || `member-${index}`}`}
                       >
-                        • {member.user?.name || member.name || `Member ${index + 1}`} {member.user?.id === user?.id ? '(you)' : ''}
+                        • {member.user?.name || `Member ${index + 1}`} {member.user?.id === user?.id ? '(you)' : ''}
                       </div>
                     ))}
                   </div>
@@ -471,7 +472,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
             </div>
           )}
 
-          {isAuthenticated && currentFamily && user?.id && !currentFamily.members?.some((member: any) => member.userId === user.id && member.role === 'ADMIN') && (
+          {isAuthenticated && currentFamily && user?.id && !currentFamily.members?.some((member: FamilyMember) => member.userId === user.id && member.role === 'ADMIN') && (
             <div className="space-y-4">
               <Alert>
                 <AlertCircle className="h-4 w-4" />
@@ -485,10 +486,10 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                 {currentFamily.members && (
                   <div className="space-y-1">
                     {currentFamily.members
-                      .filter((member: any) => member.role === 'ADMIN')
-                      .map((admin: any, index: number) => (
+                      .filter((member: FamilyMember) => member.role === 'ADMIN')
+                      .map((admin: FamilyMember, index: number) => (
                         <div key={admin.id || index} className="text-sm font-medium" data-testid="GroupInvitationPage-Text-adminContact">
-                          • {admin.user?.name || admin.name || `Admin ${index + 1}`}
+                          • {admin.user?.name || `Admin ${index + 1}`}
                         </div>
                       ))
                     }

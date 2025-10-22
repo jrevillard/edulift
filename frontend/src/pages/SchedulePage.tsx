@@ -27,6 +27,16 @@ import {
   getTimeInTimezone,
   convertScheduleHoursToLocal
 } from '../utils/timezoneUtils';
+import { getErrorMessage } from '../utils/errorUtils';
+
+interface WeekdayInfo {
+  key: string;
+  shortLabel: string;
+  dayOfMonth: number;
+  month: number;
+  date: Date;
+}
+
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -88,7 +98,7 @@ const SchedulePage: React.FC = () => {
     const weekString = `${year}-${weekNumber.toString().padStart(2, '0')}`;
     console.log(`🔍 DEBUG: Setting current week to: ${weekString} (now: ${now.toISOString()}, timezone: ${userTimezone})`);
     setCurrentWeek(weekString);
-  }, [searchParams]);
+  }, [searchParams, user?.timezone]);
 
   // Socket room management for real-time updates
   useEffect(() => {
@@ -414,12 +424,12 @@ const SchedulePage: React.FC = () => {
     } catch (error) {
       console.error('Failed to attach vehicle:', error);
       toast.error("Failed to attach vehicle", {
-        description: (error as Error).message
+        description: getErrorMessage(error)
       });
     }
   }, [scheduleByDay, selectedGroup, currentWeek, user, socket, queryClient, createScheduleSlotWithVehicleMutation]);
 
-  const renderTimeSlot = useCallback((weekday: any, time: string) => {
+  const renderTimeSlot = useCallback((weekday: WeekdayInfo, time: string) => {
     // Check if this time slot is configured for this weekday
     // IMPORTANT: Convert UTC scheduleHours to local timezone for comparison
     if (!scheduleConfig?.scheduleHours || !user?.timezone) {
@@ -719,7 +729,7 @@ const SchedulePage: React.FC = () => {
         )}
       </div>
     );
-  }, [scheduleByDay, selectedGroup, currentWeek, vehicles.length, handleManageChildren, handleManageVehicles, handleVehicleDrop, scheduleConfig]);
+  }, [scheduleByDay, selectedGroup, currentWeek, vehicles.length, handleManageChildren, handleManageVehicles, handleVehicleDrop, scheduleConfig, user?.timezone]);
 
   // Show loading when groups are loading
   if (shouldShowLoading) {

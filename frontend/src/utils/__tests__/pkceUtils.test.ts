@@ -332,7 +332,7 @@ describe('PKCE Utils', () => {
 
     it('should return false when crypto is missing', () => {
       const originalCrypto = window.crypto;
-      // @ts-ignore - intentionally setting to undefined for testing
+      // @ts-expect-error - intentionally setting to undefined for testing
       delete window.crypto;
 
       expect(isPKCESupported()).toBe(false);
@@ -373,7 +373,7 @@ describe('PKCE Utils', () => {
       });
 
       const originalLocalStorage = window.localStorage;
-      // @ts-ignore - intentionally setting to undefined for testing
+      // @ts-expect-error - intentionally setting to undefined for testing
       delete window.localStorage;
 
       expect(isPKCESupported()).toBe(false);

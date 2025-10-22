@@ -7,6 +7,7 @@ import userEvent from '@testing-library/user-event';
 import ProfilePage from '../ProfilePage';
 import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services/authService';
+import type { ApiError } from '../../types/errors';
 
 // Mock the AuthContext
 vi.mock('../../contexts/AuthContext');
@@ -158,7 +159,11 @@ describe('ProfilePage', () => {
   describe('Profile Update', () => {
     it('should call authService.updateProfile with correct data', async () => {
       const user = userEvent.setup();
-      vi.mocked(authService.updateProfile).mockResolvedValue({} as any);
+      vi.mocked(authService.updateProfile).mockResolvedValue({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
       renderProfilePage();
 
       // Enter edit mode
@@ -188,7 +193,11 @@ describe('ProfilePage', () => {
 
     it('should exit edit mode after successful update', async () => {
       const user = userEvent.setup();
-      vi.mocked(authService.updateProfile).mockResolvedValue({} as any);
+      vi.mocked(authService.updateProfile).mockResolvedValue({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
       renderProfilePage();
 
       // Enter edit mode and save
@@ -206,7 +215,11 @@ describe('ProfilePage', () => {
 
     it('should show success message after update', async () => {
       const user = userEvent.setup();
-      vi.mocked(authService.updateProfile).mockResolvedValue({} as any);
+      vi.mocked(authService.updateProfile).mockResolvedValue({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
       renderProfilePage();
 
       // Enter edit mode and save
@@ -224,7 +237,11 @@ describe('ProfilePage', () => {
 
     it('should call updateUser after successful update', async () => {
       const user = userEvent.setup();
-      vi.mocked(authService.updateProfile).mockResolvedValue({} as any);
+      vi.mocked(authService.updateProfile).mockResolvedValue({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
       renderProfilePage();
 
       // Enter edit mode and save
@@ -322,7 +339,11 @@ describe('ProfilePage', () => {
 
     it('should trim whitespace from email and name', async () => {
       const user = userEvent.setup();
-      vi.mocked(authService.updateProfile).mockResolvedValue({} as any);
+      vi.mocked(authService.updateProfile).mockResolvedValue({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
       renderProfilePage();
 
       // Enter edit mode
@@ -400,16 +421,15 @@ describe('ProfilePage', () => {
 
     it('should handle backend validation errors', async () => {
       const user = userEvent.setup();
-      const axiosError = {
-        response: {
-          status: 400,
-          data: {
-            success: false,
-            error: 'Invalid input data',
-            validationErrors: [
-              { field: 'email', message: 'Valid email required' }
-            ]
-          }
+      const axiosError: ApiError = new Error('Request failed') as ApiError;
+      axiosError.response = {
+        status: 400,
+        data: {
+          success: false,
+          error: 'Invalid input data',
+          validationErrors: [
+            { field: 'email', message: 'Valid email required' }
+          ]
         }
       };
       vi.mocked(authService.updateProfile).mockRejectedValue(axiosError);
@@ -434,13 +454,12 @@ describe('ProfilePage', () => {
 
     it('should handle duplicate email error from backend', async () => {
       const user = userEvent.setup();
-      const axiosError = {
-        response: {
-          status: 400,
-          data: {
-            success: false,
-            error: 'Email is already in use by another account'
-          }
+      const axiosError: ApiError = new Error('Request failed') as ApiError;
+      axiosError.response = {
+        status: 400,
+        data: {
+          success: false,
+          error: 'Email is already in use by another account'
         }
       };
       vi.mocked(authService.updateProfile).mockRejectedValue(axiosError);
@@ -658,7 +677,11 @@ describe('ProfilePage', () => {
 
     it('should keep success message when entering edit mode again', async () => {
       const user = userEvent.setup();
-      vi.mocked(authService.updateProfile).mockResolvedValue({} as any);
+      vi.mocked(authService.updateProfile).mockResolvedValue({
+        id: 'test-user-id',
+        email: 'test@example.com',
+        name: 'Test User'
+      });
       renderProfilePage();
 
       // Save successfully

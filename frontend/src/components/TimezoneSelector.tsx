@@ -152,7 +152,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
           toast.success('Auto-sync enabled', {
             description: `Timezone updated to ${browserTz}`
           });
-        } catch (error) {
+        } catch {
           toast.error('Auto-sync enabled but timezone update failed', {
             description: 'Will retry automatically'
           });

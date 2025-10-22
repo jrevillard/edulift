@@ -46,8 +46,8 @@ const mockIo = vi.mocked(io)
 
 describe('SocketContext', () => {
   let queryClient: QueryClient
-  let mockSetWsStatus: any
-  let eventHandlers: Record<string, any>
+  let mockSetWsStatus: unknown
+  let eventHandlers: Record<string, (...args: unknown[]) => void>
 
   beforeEach(() => {
     // Create a new QueryClient for each test
@@ -75,7 +75,7 @@ describe('SocketContext', () => {
 
     // Reset event handlers
     eventHandlers = {}
-    mockSocket.on.mockImplementation((event: string, handler: any) => {
+    mockSocket.on.mockImplementation((event: string, handler: unknown) => {
       eventHandlers[event] = handler
     })
 

@@ -10,6 +10,7 @@ import { AuthProvider } from '../../contexts/AuthContext'
 import { SocketProvider } from '../../contexts/SocketContext'
 import { FamilyProvider } from '../../contexts/FamilyContext'
 import * as authService from '../../services/authService'
+import type { AuthService } from '../../services/authService'
 
 // Mock the auth service
 vi.mock('../../services/authService', () => ({
@@ -24,10 +25,10 @@ vi.mock('../../services/authService', () => ({
     logout: vi.fn(),
     requestPasswordReset: vi.fn(),
     resetPassword: vi.fn(),
-  },
+  } as Partial<AuthService>
 }))
 
-const mockAuthService = authService.authService as any;
+const mockAuthService = authService.authService as Partial<AuthService>;
 
 // Mock family API service
 vi.mock('../../services/familyApiService', () => ({

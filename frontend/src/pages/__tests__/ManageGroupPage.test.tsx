@@ -632,7 +632,7 @@ describe('ManageGroupPage', () => {
         role: 'MEMBER',
         isMyFamily: false,
         canManage: true,
-        admins: undefined as any, // Simulate missing admins
+        admins: [], // Simulate missing admins with empty array
       };
 
       mockApiService.getGroupFamilies.mockResolvedValue([familyWithMissingAdmins]);

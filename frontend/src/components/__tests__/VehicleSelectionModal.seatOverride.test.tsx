@@ -107,7 +107,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load and select one to show seat override input
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     // Select a vehicle to show the seat override input
@@ -142,7 +142,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load and select one
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     const vehicleOption = screen.getByTestId('vehicle-option-vehicle-1');
@@ -178,7 +178,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     // Select a vehicle
@@ -244,7 +244,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     // Select a vehicle
@@ -293,7 +293,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     // Select a vehicle
@@ -397,7 +397,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load and select one
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     const vehicleOption = screen.getByTestId('vehicle-option-vehicle-1');
@@ -441,7 +441,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Wait for vehicles to load again and select vehicle
     await waitFor(() => {
-      expect(screen.getByText((content, element) => content.includes('Bus 1'))).toBeInTheDocument();
+      expect(screen.getByText((content) => content.includes('Bus 1'))).toBeInTheDocument();
     });
 
     const vehicleOptionReopen = screen.getByTestId('vehicle-option-vehicle-1');

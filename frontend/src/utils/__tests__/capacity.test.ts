@@ -39,7 +39,7 @@ describe('capacity utils', () => {
 
     it('should return vehicle capacity when seat override is null', () => {
       const assignment = createMockVehicleAssignment({
-        seatOverride: null as any,
+        seatOverride: undefined,
         vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 }
       });
 
@@ -92,7 +92,7 @@ describe('capacity utils', () => {
 
     it('should return false when seat override is null', () => {
       const assignment = createMockVehicleAssignment({
-        seatOverride: null as any
+        seatOverride: undefined
       });
 
       expect(hasSeatOverride(assignment)).toBe(false);

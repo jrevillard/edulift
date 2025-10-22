@@ -14,6 +14,7 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 import ManageGroupPage from '../ManageGroupPage';
 import * as apiService from '../../services/apiService';
 import { Group, GroupMember } from '../../types/api';
+import type { ApiService } from '../../services/apiService';
 
 // Mock API service with Vitest
 vi.mock('../../services/apiService', () => ({
@@ -90,13 +91,16 @@ vi.mock('@/stores/connectionStore', () => ({
 
 // TestWrapper is now handled by test-utils.tsx
 
+// Import the mocked apiService
+import { apiService } from '../../services/apiService';
+
 // Get the mocked functions
-const mockApiService = apiService.apiService as any;
-const mockGetGroup = vi.mocked(apiService.apiService.getGroup);
-const mockGetGroupFamilies = vi.mocked(apiService.apiService.getGroupFamilies);
-const mockGetGroupPendingInvitations = vi.mocked(apiService.apiService.getGroupPendingInvitations);
-const mockGetGroupInvitations = vi.mocked(apiService.apiService.getGroupInvitations);
-const mockUpdateGroup = vi.mocked(apiService.apiService.updateGroup);
+const mockApiService = apiService as Partial<ApiService>;
+const mockGetGroup = vi.mocked(mockApiService.getGroup!);
+const mockGetGroupFamilies = vi.mocked(mockApiService.getGroupFamilies!);
+const mockGetGroupPendingInvitations = vi.mocked(mockApiService.getGroupPendingInvitations!);
+const mockGetGroupInvitations = vi.mocked(mockApiService.getGroupInvitations!);
+const mockUpdateGroup = vi.mocked(mockApiService.updateGroup!);
 
 describe('ManageGroupPage - Group Update Functionality', () => {
   const mockGroup: Group = {

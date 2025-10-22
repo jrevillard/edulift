@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingState, ErrorState, EmptyGroups } from '@/components/ui/empty-states';
 import { PageLayout, PageHeader, ModernButton } from '@/components/ui/page-layout';
 import { Plus, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import { isApiError } from '../types/errors';
 
 const GroupsPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -37,16 +38,16 @@ const GroupsPage: React.FC = () => {
       setErrorMessage('');
       setTimeout(() => setSuccessMessage(''), 5000);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error creating group:', error);
       
       // Handle specific permission errors
-      if (error?.response?.status === 403) {
+      if (isApiError(error) && error.response?.status === 403) {
         setErrorMessage('You do not have permission to create groups. Only family admins can create groups.');
-      } else if (error?.response?.status === 401) {
+      } else if (isApiError(error) && error.response?.status === 401) {
         setErrorMessage('You must be logged in to create groups.');
       } else {
-        setErrorMessage(error?.response?.data?.error || error?.message || 'Failed to create group. Please try again.');
+        setErrorMessage(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to create group. Please try again.' : 'Failed to create group. Please try again.');
       }
       setSuccessMessage('');
       setTimeout(() => setErrorMessage(''), 8000);
@@ -61,18 +62,18 @@ const GroupsPage: React.FC = () => {
       setErrorMessage('');
       setTimeout(() => setSuccessMessage(''), 5000);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('Error joining group:', error);
       
       // Handle specific errors
-      if (error?.response?.status === 403) {
+      if (isApiError(error) && error.response?.status === 403) {
         setErrorMessage('You do not have permission to join this group.');
-      } else if (error?.response?.status === 401) {
+      } else if (isApiError(error) && error.response?.status === 401) {
         setErrorMessage('You must be logged in to join groups.');
-      } else if (error?.response?.status === 404) {
+      } else if (isApiError(error) && error.response?.status === 404) {
         setErrorMessage('Invalid invite code. Please check the code and try again.');
       } else {
-        setErrorMessage(error?.response?.data?.error || error?.message || 'Failed to join group. Please try again.');
+        setErrorMessage(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to join group. Please try again.' : 'Failed to join group. Please try again.');
       }
       setSuccessMessage('');
       setTimeout(() => setErrorMessage(''), 8000);

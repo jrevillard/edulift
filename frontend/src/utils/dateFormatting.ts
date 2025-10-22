@@ -51,7 +51,7 @@ export function formatDate(
         }).format(date);
 
       case 'RELATIVE':
-        return formatRelativeTime(isoDateTime, locale, timezone);
+        return formatRelativeTime(isoDateTime, locale);
 
       case 'FULL':
       default:
@@ -71,8 +71,7 @@ export function formatDate(
  */
 export function formatRelativeTime(
   isoDateTime: string,
-  locale: string = 'en-US',
-  _timezone: string = 'UTC'
+  locale: string = 'en-US'
 ): string {
   try {
     const date = new Date(isoDateTime);

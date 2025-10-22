@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse } from './authService';
+import type { ApiResponse } from '@/types';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -273,6 +273,47 @@ export interface PendingGroupInvitation {
   };
 }
 
+export interface GroupInvitationEligibility {
+  canJoin?: boolean;
+  requiresAccountCreation?: boolean;
+  requiresFamilyCreation?: boolean;
+  cannotJoin?: boolean;
+  reason?: string;
+  redirectTo?: string;
+  userFamily?: {
+    id: string;
+    name: string;
+  };
+  groupInfo?: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface FamilyInvitationResult {
+  id: string;
+  email: string;
+  familyId: string;
+  groupId: string;
+  role: 'MEMBER' | 'ADMIN';
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
+  personalMessage?: string;
+  invitedBy: string;
+  inviteCode: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface GroupJoinResult {
+  userGroup: UserGroup;
+  familyRole: 'OWNER' | 'ADMIN' | 'MEMBER';
+  joinedFamilies?: Array<{
+    id: string;
+    name: string;
+    role: 'OWNER' | 'ADMIN' | 'MEMBER';
+  }>;
+}
+
 class ApiService {
   // Group Management
   async createGroup(name: string): Promise<UserGroup> {
@@ -352,7 +393,7 @@ class ApiService {
   }
 
   async updateFamilyRole(groupId: string, familyId: string, role: 'ADMIN' | 'MEMBER'): Promise<void> {
-    const response = await axios.patch<ApiResponse>(
+    const response = await axios.patch<ApiResponse<void>>(
       `${API_BASE_URL}/groups/${groupId}/families/${familyId}/role`,
       { role }
     );
@@ -363,7 +404,7 @@ class ApiService {
   }
 
   async removeFamilyFromGroup(groupId: string, familyId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(`${API_BASE_URL}/groups/${groupId}/families/${familyId}`);
+    const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/groups/${groupId}/families/${familyId}`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to remove family from group');
@@ -391,7 +432,7 @@ class ApiService {
   }
 
   async deleteGroup(groupId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(`${API_BASE_URL}/groups/${groupId}`);
+    const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/groups/${groupId}`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to delete group');
@@ -399,7 +440,7 @@ class ApiService {
   }
 
   async leaveGroup(groupId: string): Promise<void> {
-    const response = await axios.post<ApiResponse>(`${API_BASE_URL}/groups/${groupId}/leave`);
+    const response = await axios.post<ApiResponse<void>>(`${API_BASE_URL}/groups/${groupId}/leave`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to leave group');
@@ -437,7 +478,7 @@ class ApiService {
   }
 
   async cancelGroupInvitation(groupId: string, invitationId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(
+    const response = await axios.delete<ApiResponse<void>>(
       `${API_BASE_URL}/groups/${groupId}/invitations/${invitationId}`
     );
 
@@ -481,7 +522,7 @@ class ApiService {
   }
 
   async deleteChild(childId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(`${API_BASE_URL}/children/${childId}`);
+    const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/children/${childId}`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to delete child');
@@ -523,7 +564,7 @@ class ApiService {
   }
 
   async deleteVehicle(vehicleId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(`${API_BASE_URL}/vehicles/${vehicleId}`);
+    const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/vehicles/${vehicleId}`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to delete vehicle');
@@ -673,7 +714,7 @@ class ApiService {
 
   async assignChildToScheduleSlot(scheduleSlotId: string, childId: string, vehicleAssignmentId: string): Promise<void> {
     try {
-      const response = await axios.post<ApiResponse>(`${API_BASE_URL}/schedule-slots/${scheduleSlotId}/children`, {
+      const response = await axios.post<ApiResponse<void>>(`${API_BASE_URL}/schedule-slots/${scheduleSlotId}/children`, {
         childId,
         vehicleAssignmentId
       });
@@ -693,7 +734,7 @@ class ApiService {
   }
 
   async removeChildFromScheduleSlot(scheduleSlotId: string, childId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(`${API_BASE_URL}/schedule-slots/${scheduleSlotId}/children/${childId}`);
+    const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/schedule-slots/${scheduleSlotId}/children/${childId}`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to remove child from schedule slot');
@@ -742,7 +783,7 @@ class ApiService {
   }
 
   async removeChildFromGroup(childId: string, groupId: string): Promise<void> {
-    const response = await axios.delete<ApiResponse>(`${API_BASE_URL}/children/${childId}/groups/${groupId}`);
+    const response = await axios.delete<ApiResponse<void>>(`${API_BASE_URL}/children/${childId}/groups/${groupId}`);
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Failed to remove child from group');
@@ -802,7 +843,7 @@ class ApiService {
 
   // Pending Group Invitation Management
   async storePendingGroupInvitation(email: string, groupId: string, inviteCode: string): Promise<void> {
-    const response = await axios.post<ApiResponse<any>>(`${API_BASE_URL}/groups/pending-invitation`, {
+    const response = await axios.post<ApiResponse<null>>(`${API_BASE_URL}/groups/pending-invitation`, {
       email,
       groupId,
       inviteCode
@@ -815,14 +856,14 @@ class ApiService {
 
   async getPendingGroupInvitationByEmail(email: string): Promise<PendingGroupInvitation | null> {
     try {
-      const response = await axios.get<ApiResponse<any>>(
+      const response = await axios.get<ApiResponse<PendingGroupInvitation>>(
         `${API_BASE_URL}/groups/pending-invitation/${encodeURIComponent(email)}`
       );
 
-      if (response.data.success && response.status === 200) {
+      if (response.data.success && response.status === 200 && response.data.data) {
         return response.data.data;
       }
-      
+
       return null;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -833,7 +874,7 @@ class ApiService {
   }
 
   async searchFamiliesForInvitation(groupId: string, searchTerm: string): Promise<FamilySearchResult[]> {
-    const response = await axios.post<ApiResponse<any[]>>(
+    const response = await axios.post<ApiResponse<FamilySearchResult[]>>(
       `${API_BASE_URL}/groups/${groupId}/search-families`,
       { searchTerm }
     );
@@ -845,8 +886,8 @@ class ApiService {
     return response.data.data;
   }
 
-  async inviteFamilyToGroup(groupId: string, familyId: string, role: 'MEMBER' | 'ADMIN', personalMessage?: string): Promise<any> {
-    const response = await axios.post<ApiResponse<any>>(
+  async inviteFamilyToGroup(groupId: string, familyId: string, role: 'MEMBER' | 'ADMIN', personalMessage?: string): Promise<FamilyInvitationResult> {
+    const response = await axios.post<ApiResponse<FamilyInvitationResult>>(
       `${API_BASE_URL}/groups/${groupId}/invite`,
       { familyId, role, personalMessage }
     );
@@ -859,7 +900,7 @@ class ApiService {
   }
 
   async validateGroupInvitationEligibility(groupId: string, inviteCode: string): Promise<GroupInvitationEligibility> {
-    const response = await axios.post<ApiResponse<any>>(
+    const response = await axios.post<ApiResponse<GroupInvitationEligibility>>(
       `${API_BASE_URL}/groups/${groupId}/validate-invitation`,
       { inviteCode }
     );
@@ -871,8 +912,8 @@ class ApiService {
     return response.data.data;
   }
 
-  async joinGroupWithFamily(groupId: string, inviteCode: string): Promise<any> {
-    const response = await axios.post<ApiResponse<any>>(
+  async joinGroupWithFamily(groupId: string, inviteCode: string): Promise<GroupJoinResult> {
+    const response = await axios.post<ApiResponse<GroupJoinResult>>(
       `${API_BASE_URL}/groups/${groupId}/join-with-family`,
       { inviteCode }
     );
@@ -885,22 +926,22 @@ class ApiService {
   }
 
   // Generic HTTP methods for other services
-  async post<T = any>(endpoint: string, data?: any): Promise<{ data: T }> {
+  async post<T = unknown>(endpoint: string, data?: unknown): Promise<{ data: T }> {
     const response = await axios.post<T>(`${API_BASE_URL}${endpoint}`, data);
     return { data: response.data };
   }
 
-  async get<T = any>(endpoint: string): Promise<{ data: T }> {
+  async get<T = unknown>(endpoint: string): Promise<{ data: T }> {
     const response = await axios.get<T>(`${API_BASE_URL}${endpoint}`);
     return { data: response.data };
   }
 
-  async put<T = any>(endpoint: string, data?: any): Promise<{ data: T }> {
+  async put<T = unknown>(endpoint: string, data?: unknown): Promise<{ data: T }> {
     const response = await axios.put<T>(`${API_BASE_URL}${endpoint}`, data);
     return { data: response.data };
   }
 
-  async delete<T = any>(endpoint: string): Promise<{ data: T }> {
+  async delete<T = unknown>(endpoint: string): Promise<{ data: T }> {
     const response = await axios.delete<T>(`${API_BASE_URL}${endpoint}`);
     return { data: response.data };
   }
