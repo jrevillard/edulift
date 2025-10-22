@@ -20,6 +20,16 @@ import {
   isTimeSlotInPast
 } from '../weekCalculations';
 
+// Helper function to create timezone-independent UTC dates
+const createUTCDate = (year: number, month: number, day: number): Date => {
+  return new Date(Date.UTC(year, month, day));
+};
+
+// Helper function to create UTC date from ISO string (timezone-independent)
+const createUTCDateFromISO = (isoString: string): Date => {
+  return new Date(isoString + 'T00:00:00.000Z');
+};
+
 // Extend dayjs with required plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -436,27 +446,28 @@ describe('Week Calculations Utilities - Legacy Functions', () => {
     });
 
     it('should handle edge cases correctly', () => {
-      // January 1, 2024 is a Monday - in ISO 8601, this is week 2 of 2024
-      expect(getISOWeekNumberLegacy(new Date('2024-01-01'))).toBe(2);
-      // January 7, 2024 is a Sunday - should be week 2
-      expect(getISOWeekNumberLegacy(new Date('2024-01-07'))).toBe(2);
+      // Test with corrected ISO 8601 calculations
+      // January 1, 2024 - ISO Week 1 of 2024 (Monday)
+      expect(getISOWeekNumberLegacy(createUTCDate(2024, 0, 1))).toBe(1);
+      // January 7, 2024 - ISO Week 1 of 2024 (Sunday)
+      expect(getISOWeekNumberLegacy(createUTCDate(2024, 0, 7))).toBe(1);
 
-      // December 31, 2023 is Sunday - should be week 53 of 2023
-      expect(getISOWeekNumberLegacy(new Date('2023-12-31'))).toBe(53);
+      // December 31, 2023 - ISO Week 53 of 2023 (Sunday)
+      expect(getISOWeekNumberLegacy(createUTCDate(2023, 11, 31))).toBe(53);
 
       // Test week 53 edge case - December 31, 2020 should be week 53
-      expect(getISOWeekNumberLegacy(new Date('2020-12-31'))).toBe(53);
+      expect(getISOWeekNumberLegacy(createUTCDate(2020, 11, 31))).toBe(53);
     });
 
     it('should handle different days of the week consistently', () => {
-      // All days in the same week should return the same week number
-      const mondayDate = new Date('2025-06-23'); // Monday
-      const tuesdayDate = new Date('2025-06-24'); // Tuesday
-      const wednesdayDate = new Date('2025-06-25'); // Wednesday
-      const thursdayDate = new Date('2025-06-26'); // Thursday
-      const fridayDate = new Date('2025-06-27'); // Friday
-      const saturdayDate = new Date('2025-06-28'); // Saturday
-      const sundayDate = new Date('2025-06-29'); // Sunday
+      // All days in the same ISO week should return the same week number
+      const mondayDate = createUTCDateFromISO('2025-06-23'); // Monday
+      const tuesdayDate = createUTCDateFromISO('2025-06-24'); // Tuesday
+      const wednesdayDate = createUTCDateFromISO('2025-06-25'); // Wednesday
+      const thursdayDate = createUTCDateFromISO('2025-06-26'); // Thursday
+      const fridayDate = createUTCDateFromISO('2025-06-27'); // Friday
+      const saturdayDate = createUTCDateFromISO('2025-06-28'); // Saturday
+      const sundayDate = createUTCDateFromISO('2025-06-29'); // Sunday
 
       const expectedWeek = 26;
       expect(getISOWeekNumberLegacy(mondayDate)).toBe(expectedWeek);
@@ -510,12 +521,13 @@ describe('Week Calculations Utilities - Legacy Functions', () => {
     });
 
     it('should handle year boundaries correctly', () => {
-      // Test January 1, 2024 (week 2)
-      const jan1 = getCurrentWeek(new Date('2024-01-01'));
-      expect(jan1).toBe('2024-02');
+      // Test with corrected ISO 8601 calculations
+      // Test January 1, 2024 - ISO Week 1 of 2024
+      const jan1 = getCurrentWeek(createUTCDate(2024, 0, 1));
+      expect(jan1).toBe('2024-01');
 
-      // Test December 31, 2023 (week 53 of 2023)
-      const dec31 = getCurrentWeek(new Date('2023-12-31'));
+      // Test December 31, 2023 - ISO Week 53 of 2023
+      const dec31 = getCurrentWeek(createUTCDate(2023, 11, 31));
       expect(dec31).toBe('2023-53');
     });
   });
@@ -547,15 +559,15 @@ describe('Week Calculations Utilities - Legacy Functions', () => {
   describe('Integration tests', () => {
     it('should handle the original bug case correctly', () => {
       // Original bug: June 25, 2025 was calculating wrong week range
-      const testDate = new Date('2025-06-25');
+      const testDate = createUTCDateFromISO('2025-06-25');
       const weekString = getCurrentWeek(testDate);
       const weekdays = generateWeekdays(weekString);
       const formatted = formatWeekRange(weekString);
 
-      // Should be week 26: Based on actual ISO 8601 calculation
+      // Should be week 26: Based on corrected ISO 8601 calculation
       expect(weekString).toBe('2025-26');
-      expect(weekdays[0].dateString).toBe('2025-06-22'); // Monday (current implementation)
-      expect(weekdays[4].dateString).toBe('2025-06-26'); // Friday (current implementation)
+      expect(weekdays[0].dateString).toBe('2025-06-23'); // Monday (corrected)
+      expect(weekdays[4].dateString).toBe('2025-06-27'); // Friday (corrected)
       expect(formatted).toMatch(/Jun.*23.*Jun.*27/); // formatWeekRange correctly shows business week
     });
   });

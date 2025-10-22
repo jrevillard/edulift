@@ -235,9 +235,9 @@ export const isSameISOWeek = (
  */
 export const getISOWeekNumberLegacy = (date: Date): number => {
   const target = new Date(date.valueOf());
-  const dayNr = (date.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
-  target.setDate(target.getDate() - dayNr + 3); // Set to Thursday of the week
-  const jan4 = new Date(target.getFullYear(), 0, 4);
+  const dayNr = (date.getUTCDay() + 6) % 7; // Convert Sunday=0 to Monday=0 (use UTC for ISO 8601)
+  target.setUTCDate(target.getUTCDate() - dayNr + 3); // Set to Thursday of the week (use UTC)
+  const jan4 = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
   const dayDiff = (target.getTime() - jan4.getTime()) / 86400000;
   return 1 + Math.ceil(dayDiff / 7);
 };
@@ -252,16 +252,16 @@ export const getWeekStartDate = (weekString: string): Date => {
 
   // ISO 8601: Week 1 is the first week that has at least 4 days in the new year
   // This means Week 1 contains January 4th
-  const jan4 = new Date(year, 0, 4); // January 4th
-  const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+  const jan4 = new Date(Date.UTC(year, 0, 4)); // January 4th in UTC
+  const jan4DayOfWeek = (jan4.getUTCDay() + 6) % 7; // Convert Sunday=0 to Monday=0 (use UTC)
 
-  // Find the Monday of week 1
+  // Find the Monday of week 1 (use UTC calculations)
   const week1Monday = new Date(jan4);
-  week1Monday.setDate(jan4.getDate() - jan4DayOfWeek);
+  week1Monday.setUTCDate(jan4.getUTCDate() - jan4DayOfWeek);
 
-  // Calculate the Monday of the target week
+  // Calculate the Monday of the target week (use UTC calculations)
   const targetMonday = new Date(week1Monday);
-  targetMonday.setDate(week1Monday.getDate() + (week - 1) * 7);
+  targetMonday.setUTCDate(week1Monday.getUTCDate() + (week - 1) * 7);
 
   return targetMonday;
 };

@@ -18,9 +18,9 @@ import type { UserGroup, ScheduleSlot, ScheduleSlotVehicle } from '../services/a
 import { getEffectiveCapacity, hasSeatOverride } from '../utils/capacity';
 import { SOCKET_EVENTS } from '../shared/events';
 import {
-  generateWeekdays,
-  getISOWeekNumberLegacy,
-  formatWeekRange
+  getISOWeekNumber,
+  getISOWeekYear,
+  getDateFromISOWeek
 } from '../utils/weekCalculations';
 import {
   getWeekdayInTimezone,
@@ -82,9 +82,11 @@ const SchedulePage: React.FC = () => {
 
     // Set current week (ISO week format YYYY-WW)
     const now = new Date();
-    const weekNumber = getISOWeekNumberLegacy(now);
-    const weekString = `${now.getFullYear()}-${weekNumber.toString().padStart(2, '0')}`;
-    console.log(`🔍 DEBUG: Setting current week to: ${weekString} (now: ${now.toISOString()})`);
+    const userTimezone = user?.timezone || dayjs.tz.guess();
+    const weekNumber = getISOWeekNumber(now, userTimezone);
+    const year = getISOWeekYear(now, userTimezone);
+    const weekString = `${year}-${weekNumber.toString().padStart(2, '0')}`;
+    console.log(`🔍 DEBUG: Setting current week to: ${weekString} (now: ${now.toISOString()}, timezone: ${userTimezone})`);
     setCurrentWeek(weekString);
   }, [searchParams]);
 
@@ -128,10 +130,36 @@ const SchedulePage: React.FC = () => {
     enabled: !!selectedGroup && !!currentWeek,
   });
 
-  // Generate weekdays for current week
+  // Generate weekdays for current week (timezone-aware)
   const weekdays = useMemo(() => {
-    return currentWeek ? generateWeekdays(currentWeek) : [];
-  }, [currentWeek]);
+    if (!currentWeek) return [];
+
+    const userTimezone = user?.timezone || dayjs.tz.guess();
+    const [year, week] = currentWeek.split('-').map(Number);
+
+    // Get Monday of the ISO week using timezone-aware function
+    const weekStart = getDateFromISOWeek(year, week, userTimezone);
+    const weekdays = [];
+
+    for (let i = 0; i < 5; i++) { // Monday to Friday
+      const date = new Date(weekStart);
+      date.setUTCDate(weekStart.getUTCDate() + i);
+
+      // Use browser locale instead of hardcoded 'en-US'
+      const locale = navigator.language || 'fr-FR';
+      weekdays.push({
+        key: date.toLocaleDateString(locale, { weekday: 'long' }).toUpperCase(),
+        label: date.toLocaleDateString(locale, { weekday: 'long' }),
+        shortLabel: date.toLocaleDateString(locale, { weekday: 'short' }),
+        date: date,
+        dayOfMonth: date.getUTCDate(),
+        month: date.getUTCMonth(),
+        dateString: date.toISOString().split('T')[0] // YYYY-MM-DD
+      });
+    }
+
+    return weekdays;
+  }, [currentWeek, user?.timezone]);
 
   // Fetch schedule configuration for the selected group
   const { data: scheduleConfig, error: scheduleConfigError, isLoading: scheduleConfigLoading } = useQuery({
@@ -282,25 +310,42 @@ const SchedulePage: React.FC = () => {
   }, [dayOffset, daysToShow, canNavigateNext, canNavigatePrev, weekdays.length]);
 
   const navigateWeek = (direction: 'prev' | 'next') => {
+    const userTimezone = user?.timezone || dayjs.tz.guess();
     const [year, week] = currentWeek.split('-').map(Number);
-    let newYear = year;
-    let newWeek = week;
 
-    if (direction === 'next') {
-      newWeek += 1;
-      if (newWeek > 52) {
-        newWeek = 1;
-        newYear += 1;
-      }
-    } else {
-      newWeek -= 1;
-      if (newWeek < 1) {
-        newWeek = 52;
-        newYear -= 1;
-      }
-    }
+    // Use timezone-aware navigation
+    const currentWeekDate = getDateFromISOWeek(year, week, userTimezone);
+    const offset = direction === 'next' ? 7 : -7;
+    const newDate = new Date(currentWeekDate);
+    newDate.setUTCDate(currentWeekDate.getUTCDate() + offset);
 
-    setCurrentWeek(`${newYear}-${newWeek.toString().padStart(2, '0')}`);
+    const newWeekNumber = getISOWeekNumber(newDate, userTimezone);
+    const newYear = getISOWeekYear(newDate, userTimezone);
+    const newWeekString = `${newYear}-${newWeekNumber.toString().padStart(2, '0')}`;
+
+    console.log(`🔍 DEBUG: Navigating from ${currentWeek} to ${newWeekString} (${direction}, timezone: ${userTimezone})`);
+    setCurrentWeek(newWeekString);
+  };
+
+  // Format week range for display (timezone-aware)
+  const formatWeekRangeDisplay = (weekString: string) => {
+    if (!weekString) return '';
+
+    const userTimezone = user?.timezone || dayjs.tz.guess();
+    const [year, week] = weekString.split('-').map(Number);
+
+    // Get Monday and Friday of the ISO week
+    const monday = getDateFromISOWeek(year, week, userTimezone);
+    const friday = new Date(monday);
+    friday.setUTCDate(monday.getUTCDate() + 4);
+
+    const formatOptions: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    };
+
+    return `${monday.toLocaleDateString(navigator.language || 'fr-FR', formatOptions)} - ${friday.toLocaleDateString(navigator.language || 'fr-FR', formatOptions)}`;
   };
 
   const handleManageVehicles = useCallback((scheduleSlot: ScheduleSlot) => {
@@ -886,7 +931,7 @@ const SchedulePage: React.FC = () => {
             
             <div className="text-center">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100" data-testid="week-range-header">
-                {formatWeekRange(currentWeek)}
+                {formatWeekRangeDisplay(currentWeek)}
               </h2>
             </div>
             

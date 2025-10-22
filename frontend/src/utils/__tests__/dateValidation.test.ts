@@ -77,24 +77,24 @@ describe('Date Validation Utils', () => {
   describe('getDateValidationMessage', () => {
     it('should return appropriate message for past dates', () => {
       const yesterday = new Date('2024-01-14T10:00:00Z');
-      const message = getDateValidationMessage(yesterday);
-      
+      const message = getDateValidationMessage(yesterday, 'America/New_York');
+
       expect(message).toContain('past');
       expect(message.toLowerCase()).toContain('cannot');
     });
 
     it('should return null for valid dates', () => {
       const tomorrow = new Date('2024-01-16T10:00:00Z');
-      const message = getDateValidationMessage(tomorrow);
-      
+      const message = getDateValidationMessage(tomorrow, 'Europe/London');
+
       expect(message).toBeNull();
     });
 
     it('should provide consistent message for past dates', () => {
       const yesterday = new Date('2024-01-14T10:00:00Z');
-      
-      const message = getDateValidationMessage(yesterday);
-      
+
+      const message = getDateValidationMessage(yesterday, 'Asia/Tokyo');
+
       expect(message).toContain('Cannot schedule trips in the past');
     });
   });
