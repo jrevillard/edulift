@@ -1,0 +1,51 @@
+{
+  "name": "edulift-e2e",
+  "version": "1.0.0",
+  "description": "EduLift E2E Testing Suite",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "e2e:install": "npm install && npx playwright install",
+    "e2e:setup": "docker compose -f docker-compose.yml up -d --build",
+    "e2e:teardown": "docker compose -f docker-compose.yml down -v",
+    "e2e:start-backend": "docker compose -f docker-compose.yml up backend-e2e -d && sleep 30",
+    "e2e:start-frontend": "docker compose -f docker-compose.yml up frontend-e2e -d && sleep 20",
+    "e2e:test": "npx playwright test",
+    "e2e:test:docker": "docker compose --profile test run --rm playwright-e2e npm run e2e:test",
+    "e2e:test:headed": "npx playwright test --headed",
+    "e2e:test:debug": "npx playwright test --debug",
+    "e2e:test:ui": "npx playwright test --ui",
+    "e2e:test:no-cleanup": "NO_TEARDOWN=true npx playwright test --reporter=html",
+    "e2e:report": "npx playwright show-report",
+    "e2e:clean": "docker system prune -f && docker volume prune -f",
+    "test:unit:backend": "cd ../backend && npm run test:coverage",
+    "test:unit:frontend": "cd ../frontend && npm run test:coverage",
+    "test:all": "npm run test:unit:backend && npm run test:unit:frontend && npm run e2e:test",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "lint:check": "eslint . --ext .ts,.js --max-warnings 0",
+    "dev:backend": "cd ../backend && npm run dev",
+    "dev:frontend": "cd ../frontend && npm run dev",
+    "dev:docker": "cd .. && docker compose -f docker-compose.dev.yml up --build",
+    "build": "cd ../backend && npm run build && cd ../frontend && npm run build"
+  },
+  "keywords": [
+    "e2e",
+    "testing",
+    "playwright",
+    "edulift"
+  ],
+  "author": "EduLift Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.53.1",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

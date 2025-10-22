@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "serena": {
+        "command": "uvx",
+        "args": ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "ide-assistant"],
+      "env": {
+        "PATH": "/home/node/.local/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin"
+      }
+    }
+  }
+}

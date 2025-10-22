@@ -1,0 +1,184 @@
+🚀 Starting E2E environment setup...
+🧹 Cleaning up existing containers...
+ Container edulift-frontend-e2e  Stopping
+ Container edulift-frontend-e2e  Stopped
+ Container edulift-frontend-e2e  Removing
+ Container edulift-frontend-e2e  Removed
+ Container edulift-backend-e2e  Stopping
+ Container edulift-backend-e2e  Stopped
+ Container edulift-backend-e2e  Removing
+ Container edulift-backend-e2e  Removed
+ Container edulift-redis-e2e  Stopping
+ Container edulift-postgres-e2e  Stopping
+ Container edulift-mailhog-e2e  Stopping
+ Container edulift-redis-e2e  Stopped
+ Container edulift-redis-e2e  Removing
+ Container edulift-postgres-e2e  Stopped
+ Container edulift-postgres-e2e  Removing
+ Container edulift-mailhog-e2e  Stopped
+ Container edulift-mailhog-e2e  Removing
+ Container edulift-redis-e2e  Removed
+ Container edulift-mailhog-e2e  Removed
+ Container edulift-postgres-e2e  Removed
+ Network e2e_edulift-e2e  Removing
+ Network e2e_edulift-e2e  Removed
+📦 Starting Docker containers...
+#1 [internal] load local bake definitions
+#1 reading from stdin 626B done
+#1 DONE 0.0s
+
+#2 [backend-e2e internal] load build definition from Dockerfile.dev
+#2 transferring dockerfile: 1.12kB done
+#2 DONE 0.0s
+
+#3 [frontend-e2e internal] load build definition from Dockerfile.dev
+#3 transferring dockerfile: 818B done
+#3 DONE 0.0s
+
+#4 [frontend-e2e internal] load metadata for docker.io/library/node:18-alpine
+#4 DONE 0.0s
+
+#5 [backend-e2e internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [frontend-e2e internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
+
+#7 [frontend-e2e  1/13] FROM docker.io/library/node:18-alpine
+#7 DONE 0.0s
+
+#8 [backend-e2e internal] load build context
+#8 transferring context: 8.18kB 0.1s done
+#8 DONE 0.1s
+
+#9 [backend-e2e  4/13] COPY package*.json ./
+#9 CACHED
+
+#10 [backend-e2e  6/13] COPY nodemon.json ./
+#10 CACHED
+
+#11 [backend-e2e 11/13] RUN mkdir -p uploads && chown -R node:node /app
+#11 CACHED
+
+#12 [backend-e2e 12/13] COPY entrypoint-dev.sh /app/entrypoint-dev.sh
+#12 CACHED
+
+#13 [backend-e2e 10/13] COPY src ./src/
+#13 CACHED
+
+#14 [backend-e2e  9/13] RUN npx prisma generate
+#14 CACHED
+
+#15 [backend-e2e  8/13] COPY prisma ./prisma/
+#15 CACHED
+
+#16 [backend-e2e  5/13] COPY tsconfig.json ./
+#16 CACHED
+
+#17 [backend-e2e  3/13] WORKDIR /app
+#17 CACHED
+
+#18 [backend-e2e  2/13] RUN apk add --no-cache python3 make g++ openssl dumb-init wget netcat-openbsd
+#18 CACHED
+
+#19 [backend-e2e  7/13] RUN npm ci && npm cache clean --force
+#19 CACHED
+
+#20 [backend-e2e 13/13] RUN chmod +x /app/entrypoint-dev.sh
+#20 CACHED
+
+#21 [frontend-e2e internal] load build context
+#21 transferring context: 11.16kB 0.1s done
+#21 DONE 0.2s
+
+#22 [backend-e2e] exporting to image
+#22 exporting layers done
+#22 writing image sha256:99a424ef168a55b73b1ab00b1f676092dcb516b9bbaafe138b8a4a7c63ae3d23 done
+#22 naming to docker.io/library/e2e-backend-e2e done
+#22 DONE 0.0s
+
+#23 [backend-e2e] resolving provenance for metadata file
+#23 DONE 0.0s
+
+#24 [frontend-e2e  7/13] COPY postcss.config.js ./
+#24 CACHED
+
+#25 [frontend-e2e 11/13] COPY src/ ./src/
+#25 CACHED
+
+#26 [frontend-e2e  9/13] COPY components.json ./
+#26 CACHED
+
+#27 [frontend-e2e  3/13] COPY package*.json ./
+#27 CACHED
+
+#28 [frontend-e2e 10/13] RUN npm ci && npm cache clean --force
+#28 CACHED
+
+#29 [frontend-e2e 12/13] COPY public/ ./public/
+#29 CACHED
+
+#30 [frontend-e2e  4/13] COPY tsconfig*.json ./
+#30 CACHED
+
+#31 [frontend-e2e  8/13] COPY eslint.config.js ./
+#31 CACHED
+
+#32 [frontend-e2e  5/13] COPY vite.config.ts ./
+#32 CACHED
+
+#33 [frontend-e2e  6/13] COPY tailwind.config.js ./
+#33 CACHED
+
+#34 [frontend-e2e  2/13] WORKDIR /app
+#34 CACHED
+
+#35 [frontend-e2e 13/13] COPY index.html ./
+#35 CACHED
+
+#36 [frontend-e2e] exporting to image
+#36 exporting layers done
+#36 writing image sha256:c03e458d800f940b73198b9226e5c19c4d646d8d0709e904bb5e47f37933261c done
+#36 naming to docker.io/library/e2e-frontend-e2e done
+#36 DONE 0.0s
+
+#37 [frontend-e2e] resolving provenance for metadata file
+#37 DONE 0.0s
+ backend-e2e  Built
+ frontend-e2e  Built
+ Network e2e_edulift-e2e  Creating
+ Network e2e_edulift-e2e  Created
+ Container edulift-mailhog-e2e  Creating
+ Container edulift-postgres-e2e  Creating
+ Container edulift-redis-e2e  Creating
+ Container edulift-postgres-e2e  Created
+ Container edulift-mailhog-e2e  Created
+ Container edulift-redis-e2e  Created
+ Container edulift-backend-e2e  Creating
+ Container edulift-backend-e2e  Created
+ Container edulift-frontend-e2e  Creating
+ Container edulift-frontend-e2e  Created
+ Container edulift-postgres-e2e  Starting
+ Container edulift-redis-e2e  Starting
+ Container edulift-mailhog-e2e  Starting
+ Container edulift-redis-e2e  Started
+ Container edulift-postgres-e2e  Started
+ Container edulift-mailhog-e2e  Started
+ Container edulift-redis-e2e  Waiting
+ Container edulift-mailhog-e2e  Waiting
+ Container edulift-postgres-e2e  Waiting
+ Container edulift-redis-e2e  Healthy
+ Container edulift-mailhog-e2e  Healthy
+ Container edulift-postgres-e2e  Healthy
+ Container edulift-backend-e2e  Starting
+ Container edulift-backend-e2e  Started
+ Container edulift-frontend-e2e  Starting
+ Container edulift-frontend-e2e  Started
+⏳ Waiting for services to be ready...
+✅ Container edulift-mailhog-e2e is healthy
+✅ Container edulift-backend-e2e is healthy
+✅ Container edulift-frontend-e2e is healthy
+🗄️ Skipping global test data setup - using file-specific data only
+✅ E2E environment ready!

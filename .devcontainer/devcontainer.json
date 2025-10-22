@@ -1,0 +1,91 @@
+{
+  "name": "Claude Code Sandbox",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "${localEnv:TZ:Europe/Paris}"
+    }
+  },
+  "runArgs": [
+    "--device=/dev/kvm",
+    "--device=/dev/dri",
+    "--env=DISPLAY=${env:DISPLAY}",
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW",
+    "--network=host"
+  ],
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "RooVeterinaryInc.roo-cline",
+        "ms-playwright.playwright",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "ms-vscode.test-adapter-converter",
+        "bierner.markdown-mermaid"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          },
+          "zsh": {
+            "path": "zsh"
+          }
+        },
+        "playwright.reuseBrowser": true,
+        "playwright.showTrace": true,
+      }
+    }
+  },
+  "containerUser": "node",
+  "remoteUser": "node",
+  "mounts": [
+    "source=/dev/kvm,target=/dev/kvm,type=bind",
+    "source=/dev/dri,target=/dev/dri,type=bind",
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind",
+    "source=edulift-claude-code-bashhistory,target=/commandhistory,type=volume",
+    "source=edulift-claude-code-config,target=/home/node/.claude,type=volume",
+    "source=edulift-claude-code-router,target=/home/node/.claude-code-router,type=volume",
+    "source=edulift-claude-code-gradle,target=/home/node/.gradle/,type=volume"
+  ],
+  "remoteEnv": {
+    "NODE_OPTIONS": "--max-old-space-size=4096 --dns-result-order=ipv4first",
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
+    "NODE_ENV": "development",
+    "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright",
+    "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
+    "CHROME_EXECUTABLE": "/usr/bin/chromium",
+    "LANG": "en_US.UTF-8",
+    "LC_ALL": "en_US.UTF-8"
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "sudo /usr/local/bin/setup-edulift-sudo.sh && /usr/local/bin/setup-edulift-node.sh",
+  "portsAttributes": {
+    // Dev
+    "3000": { "onAutoForward": "ignore" , "label": "Dev Frontend" },
+    "3001": { "onAutoForward": "ignore" , "label": "Dev Backend" },
+    "5432": { "onAutoForward": "ignore" , "label": "Dev PostgreSQL" },
+    // Playwright E2E
+    "8001": { "onAutoForward": "ignore", "label": "Playwright E2E Frontend" },
+    "8002": { "onAutoForward": "ignore", "label": "Playwright E2E Backend" },
+    "5435": { "onAutoForward": "ignore", "label": "Playwright E2E PostgreSQL" },
+    "9323": { "onAutoForward": "ignore", "label": "Playwright Report Server" }
+  }
+}

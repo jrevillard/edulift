@@ -1,0 +1,353 @@
+import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { io, Socket } from 'socket.io-client';
+import { useAuth } from './AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
+import { useConnectionStore } from '@/stores/connectionStore';
+import { SOCKET_EVENTS } from '../shared/events';
+
+interface SocketContextType {
+  socket: Socket | null;
+  isConnected: boolean;
+}
+
+const SocketContext = createContext<SocketContextType | undefined>(undefined);
+
+export const useSocket = () => {
+  const context = useContext(SocketContext);
+  if (context === undefined) {
+    throw new Error('useSocket must be used within a SocketProvider');
+  }
+  return context;
+};
+
+interface SocketProviderProps {
+  children: ReactNode;
+}
+
+export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const { isAuthenticated, user } = useAuth();
+  const queryClient = useQueryClient();
+  const { setWsStatus } = useConnectionStore();
+
+  // Track auth token changes
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    setAuthToken(token);
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    if (isAuthenticated && user && authToken) {
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
+      
+      console.log('Creating new socket connection with fresh token');
+      
+      const newSocket = io(socketUrl, {
+        auth: {
+          token: authToken
+        },
+        autoConnect: true,
+        reconnection: true,
+        reconnectionDelay: 3000,    // Start with 3 seconds
+        reconnectionDelayMax: 30000, // Max 30 seconds
+        reconnectionAttempts: 3,     // Reduced to 3 attempts
+        timeout: 10000,             // 10 second connection timeout
+        // Configurable transport method via environment variable
+        // Set VITE_SOCKET_FORCE_POLLING=true to force polling only (useful for proxy issues)
+        transports: import.meta.env.VITE_SOCKET_FORCE_POLLING === 'true' 
+          ? ['polling'] 
+          : ['websocket', 'polling']
+      });
+
+      // Update connection status to connecting
+      setWsStatus('connecting');
+
+      // Connection event handlers
+      newSocket.on('connect', () => {
+        console.log('Socket connected:', newSocket.id);
+        setIsConnected(true);
+        setWsStatus('connected');
+      });
+
+      newSocket.on('disconnect', (reason) => {
+        console.log('Socket disconnected:', reason);
+        setIsConnected(false);
+        
+        // Different handling based on disconnect reason
+        if (reason === 'io server disconnect') {
+          // Server initiated disconnect
+          setWsStatus('disconnected', 'Server disconnected the connection');
+        } else if (reason === 'io client disconnect') {
+          // Client initiated disconnect (e.g., user logout)
+          setWsStatus('disconnected');
+        } else {
+          // Connection lost
+          setWsStatus('disconnected', 'Connection lost. Attempting to reconnect...');
+        }
+      });
+
+      newSocket.on('connect_error', (error) => {
+        console.error('Socket connection error:', error);
+        setIsConnected(false);
+        
+        // Provide user-friendly error messages
+        let errorMessage = 'Unable to connect to real-time updates';
+        
+        if (error.message.includes('ECONNREFUSED')) {
+          errorMessage = 'Cannot connect to server. Please ensure the backend is running.';
+        } else if (error.message.includes('Unauthorized')) {
+          errorMessage = 'Authentication failed. Please try logging in again.';
+        } else if (error.message.includes('timeout')) {
+          errorMessage = 'Connection timeout. Please check your internet connection.';
+        }
+        
+        setWsStatus('error', errorMessage);
+      });
+
+      // Reconnection events
+      newSocket.on('reconnect_attempt', (attemptNumber) => {
+        console.log('Attempting to reconnect...', attemptNumber);
+        setWsStatus('connecting', `Reconnecting... (attempt ${attemptNumber})`);
+      });
+
+      newSocket.on('reconnect', (attemptNumber) => {
+        console.log('Reconnected after', attemptNumber, 'attempts');
+        setIsConnected(true);
+        setWsStatus('connected');
+      });
+
+      newSocket.on('reconnect_failed', () => {
+        console.error('Failed to reconnect after maximum attempts');
+        setWsStatus('error', 'Failed to reconnect. Please refresh the page to try again.');
+      });
+
+      // Real-time event handlers - CENTRALIZED HANDLING
+      
+      // Schedule-related events (new standardized names)
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_UPDATED, (data: any) => {
+        console.log('🔄 SCHEDULE_UPDATED:', data);
+        queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
+        queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
+        queryClient.invalidateQueries({ queryKey: ['timeslots', data.groupId] });
+      });
+      
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, (data: any) => {
+        console.log('🔄 SCHEDULE_SLOT_UPDATED:', data);
+        queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
+        queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
+        if (data.scheduleSlotId) {
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot', data.scheduleSlotId] });
+        }
+      });
+      
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CREATED, (data: any) => {
+        console.log('🔄 SCHEDULE_SLOT_CREATED:', data);
+        queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
+        queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
+      });
+      
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_DELETED, (data: any) => {
+        console.log('🔄 SCHEDULE_SLOT_DELETED:', data);
+        queryClient.invalidateQueries({ queryKey: ['schedule', data.groupId] });
+        queryClient.invalidateQueries({ queryKey: ['weekly-schedule', data.groupId] });
+        if (data.scheduleSlotId) {
+          queryClient.removeQueries({ queryKey: ['schedule-slot', data.scheduleSlotId] });
+        }
+      });
+
+
+      // Child management events
+      newSocket.on(SOCKET_EVENTS.CHILD_ADDED, (data: any) => {
+        console.log('🔄 CHILD_ADDED:', data);
+        if (data.userId === user.id) {
+          queryClient.invalidateQueries({ queryKey: ['children'] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+          if (data.familyId) {
+            queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+          }
+        }
+      });
+
+      newSocket.on(SOCKET_EVENTS.CHILD_UPDATED, (data: any) => {
+        console.log('🔄 CHILD_UPDATED:', data);
+        if (data.userId === user.id) {
+          queryClient.invalidateQueries({ queryKey: ['children'] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+          if (data.familyId) {
+            queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+          }
+        }
+      });
+
+      newSocket.on(SOCKET_EVENTS.CHILD_DELETED, (data: any) => {
+        console.log('🔄 CHILD_DELETED:', data);
+        if (data.userId === user.id) {
+          queryClient.invalidateQueries({ queryKey: ['children'] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+          if (data.familyId) {
+            queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+          }
+        }
+      });
+
+      // Vehicle management events  
+      newSocket.on(SOCKET_EVENTS.VEHICLE_ADDED, (data: any) => {
+        console.log('🔄 VEHICLE_ADDED:', data);
+        if (data.userId === user.id) {
+          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+          if (data.familyId) {
+            queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+          }
+        }
+      });
+
+      newSocket.on(SOCKET_EVENTS.VEHICLE_UPDATED, (data: any) => {
+        console.log('🔄 VEHICLE_UPDATED:', data);
+        if (data.userId === user.id) {
+          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+          if (data.familyId) {
+            queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+          }
+        }
+      });
+
+      newSocket.on(SOCKET_EVENTS.VEHICLE_DELETED, (data: any) => {
+        console.log('🔄 VEHICLE_DELETED:', data);
+        if (data.userId === user.id) {
+          queryClient.invalidateQueries({ queryKey: ['vehicles'] });
+          queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
+          queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+          if (data.familyId) {
+            queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+          }
+        }
+      });
+
+      // Notification events
+      newSocket.on(SOCKET_EVENTS.NOTIFICATION, (data: any) => {
+        console.log('🔔 NOTIFICATION:', data);
+        // Here you could show toast notifications or update a notification center
+        // For now, we'll just log it
+      });
+      
+      // Conflict detection events
+      newSocket.on(SOCKET_EVENTS.CONFLICT_DETECTED, (data: any) => {
+        console.log('⚠️ CONFLICT_DETECTED:', data);
+        // Could show toast warning about conflicts
+      });
+      
+      // Capacity warning events
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING, (data: any) => {
+        console.log('⚠️ CAPACITY_WARNING:', data);
+        // Could show toast about approaching capacity
+      });
+      
+      newSocket.on(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_FULL, (data: any) => {
+        console.log('🚫 CAPACITY_FULL:', data);
+        // Could show toast about full capacity
+      });
+
+      // Family activity events - invalidate activity feed for real-time updates
+      newSocket.on(SOCKET_EVENTS.FAMILY_MEMBER_JOINED, (data: any) => {
+        console.log('🔄 FAMILY_MEMBER_JOINED:', data);
+        queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+        queryClient.invalidateQueries({ queryKey: ['families'] });
+      });
+
+      newSocket.on(SOCKET_EVENTS.FAMILY_MEMBER_LEFT, (data: any) => {
+        console.log('🔄 FAMILY_MEMBER_LEFT:', data);
+        queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+        queryClient.invalidateQueries({ queryKey: ['families'] });
+      });
+
+      newSocket.on(SOCKET_EVENTS.FAMILY_UPDATED, (data: any) => {
+        console.log('🔄 FAMILY_UPDATED:', data);
+        queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+        queryClient.invalidateQueries({ queryKey: ['families'] });
+        if (data.familyId) {
+          queryClient.invalidateQueries({ queryKey: ['family', data.familyId] });
+        }
+      });
+
+      // Invalidate activity feed for existing events that affect family activity
+      // Group management events
+      newSocket.on(SOCKET_EVENTS.GROUP_UPDATED, (data: any) => {
+        console.log('🔄 GROUP_UPDATED:', data);
+        queryClient.invalidateQueries({ queryKey: ['groups'] });
+        queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['group-members', data.groupId] });
+        if (data.groupId) {
+          queryClient.invalidateQueries({ queryKey: ['group', data.groupId] });
+          queryClient.invalidateQueries({ queryKey: ['group-families', data.groupId] });
+        }
+        if (data.familyId) {
+          queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+        }
+      });
+
+      newSocket.on(SOCKET_EVENTS.MEMBER_JOINED, (data: any) => {
+        console.log('🔄 MEMBER_JOINED:', data);
+        queryClient.invalidateQueries({ queryKey: ['groups'] });
+        queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['group-members', data.groupId] });
+        if (data.groupId) {
+          queryClient.invalidateQueries({ queryKey: ['group', data.groupId] });
+          queryClient.invalidateQueries({ queryKey: ['group-families', data.groupId] });
+        }
+        if (data.familyId) {
+          queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+        }
+      });
+
+      newSocket.on(SOCKET_EVENTS.MEMBER_LEFT, (data: any) => {
+        console.log('🔄 MEMBER_LEFT:', data);
+        queryClient.invalidateQueries({ queryKey: ['groups'] });
+        queryClient.invalidateQueries({ queryKey: ['user-groups'] });
+        queryClient.invalidateQueries({ queryKey: ['group-members', data.groupId] });
+        if (data.groupId) {
+          queryClient.invalidateQueries({ queryKey: ['group', data.groupId] });
+          queryClient.invalidateQueries({ queryKey: ['group-families', data.groupId] });
+        }
+        if (data.familyId) {
+          queryClient.invalidateQueries({ queryKey: ['recent-activity', data.familyId] });
+        }
+      });
+
+      setSocket(newSocket);
+
+      return () => {
+        console.log('Cleaning up socket connection');
+        newSocket.close();
+        setSocket(null);
+        setIsConnected(false);
+      };
+    } else {
+      // User is not authenticated, cleanup any existing socket
+      if (socket) {
+        socket.close();
+        setSocket(null);
+        setIsConnected(false);
+      }
+    }
+  }, [isAuthenticated, user, authToken, queryClient, setWsStatus]);
+
+  const value: SocketContextType = {
+    socket,
+    isConnected
+  };
+
+  return (
+    <SocketContext.Provider value={value}>
+      {children}
+    </SocketContext.Provider>
+  );
+};

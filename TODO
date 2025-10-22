@@ -1,0 +1,100 @@
+Avoir les membres des familles en dehors de la chaine famille est inutile....
+VehicleFormState -> pourquoi pas toute la famille de gérée de cette facon ?
+
+Il faut un cache local pour les datas group et schedule et il faut les clear au logout comme domain data
+ErrorHandlerService doit géré tous les messages d'erreur utilisteur: voir docs/CLEAN_ERROR_HANDLING_ARCHITECTURE.md
+
+family_remote_datasource_impl.dart:
+  - getFamilyPermissions is FAKE!!
+  - get/update/create/delete child vérifie les drois coté server ? fonctions utilisées ?
+
+family_repository_imple.dart:
+  - getChild({required String childId}) .. pas besoin de la famille ? est-ce que le endpoint vérifie que je peux avoir l'info ?
+  - same: addChildFromRequest, updateChildFromRequest
+
+
+
+
+
+
+
+
+
+
+
+- firebase_crashlytics bien utlisé partout ?
+- Migrer de mokito à Mocktail
+- Lorsque l'on update un vehicule ou un enfant, on refait une query des vehicules et des enfants mais on refait aussi une query sur la famille courente qui retourne deja ces informations... redondant ?
+-------------------------------------------
+
+hide/show, UnimplementedError, getInstance vs Riverpod, vehicule_providers vs vehicules_providers
+_StubComprehensiveFamilyDataService ?
+_StubGroupScheduleRepository ? FamilyRepositoryImpl
+
+FamilyRepositoryCoreImpl vs 
+
+Il faut le bouton logout sur l'onboarding.
+Capture d'ecran: quand on quite une famille, on doit se retrouver sur l'onboarding...
+
+------------------------------------------------------------------------------
+
+----------------------------------
+
+- Invitation famille: le bouton "ajouter un membre" dans la tab famille affiche un message "Invitation envoyée" mais il ne fait rien concrètement. Ce bouton est en doublon du bouton "Inviter" sur la même page. Le bouton affiche la bonne interface d'invitation
+qui permet de choisir le role et d'écrir un message. Suprimer ce bouton "Inviter" et déplacer la logique/l'interface au niveau du bouton "ajouter un membre". Suprimer l'interface actuelle associée à "ajouter un membre"
+
+
+
+---------------------------------------
+
+- Seat Override is not a vehicule action... this is only for specific schedule slots.
+
+---------------------------------------
+
+Lorsque le backend n'est as accessible ou ne fonctionne pas, j'ai cette erreur dans l'UI: auth.errors.network_error.... il faut un meilleur message pour le user.
+
+---------------------------------------
+
+- [Violation] 'setTimeout' handler took 103ms / [Violation] 'click' handler took 176ms
+- Timeout cookie d'authentification.... bonnes pratiques ?
+- S'assurer que tous les endpoints sont bien sécurisés (authentification nécéssaire)
+- Une adresse pour une famille ?
+- Dans l'activité du Dashboard je dois savoir qui a fait l'action. Je dois voir l'activité de la famille, pas l'activité individuelle
+  L'activité n'est pas mis à jour si je ne rafraichie pas la page.
+- lors que j'arrive dan l'interface d'admin des groupes et des familles, un token d'invite doit exister ?
+- Manage familly doit etre dans le menu principale ?
+- Revoir le dashboard
+- Pour un groupe, il faut pouvoir sélectionner les jours de la semaine concernés par les schedules et pour chaque jour, les créneaux horaires concernés
+- Retirer gmail dans la fenetre apres l'envoit du magic link
+- Search famille pour invitation = 404 (POST /api/v1/groups/cmc4kf43k000ajyy6d5jddwlq/search-families 404)
+- join group par invite code 404:
+
+edulift-backend-dev  | POST /api/v1/groups/join 404 13.694 ms - 79
+edulift-backend-dev  | Error: {
+edulift-backend-dev  |   message: 'Invalid or expired invitation code',
+edulift-backend-dev  |   stack: 'Error: Invalid or expired invitation code\n' +
+edulift-backend-dev  |     '    at GroupService.joinGroupByInviteCode (/app/src/services/GroupService.ts:262:15)\n' +
+edulift-backend-dev  |     '    at async GroupController.joinGroup (/app/src/controllers/GroupController.ts:91:26)',
+edulift-backend-dev  |   url: '/api/v1/groups/join',
+edulift-backend-dev  |   method: 'POST',
+edulift-backend-dev  |   statusCode: 404
+edulift-backend-dev  | }
+
+
+All the work that has been done for the Groups must be done for the familly invitation.
+
+Suprimer getByText getByRole dans les tests
+
+en-US dans le Frontend ?
+
+I can still remove vehicules from time slots and time slots in the past ... the backend must prevent any modification in the past.
+
+Supprimer "❌ RED:"
+
+Edit group description does not work.
+
+-------------
+
+- Groupe invitation avec un utilisateur qui existe deja affiche tout de même la page "Create Account & Join" alors qu'il ne devrait pas.
+- La page de groupe invitaion et familly invitation ne doit demander que le nom de l'utilisateur et pas son email car le mail est déja connu (celui de l'invitation)  
+

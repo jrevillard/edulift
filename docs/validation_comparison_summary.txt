@@ -1,0 +1,63 @@
+================================================================================
+GROUP vs FAMILY INVITATION VALIDATION - QUICK REFERENCE
+================================================================================
+
+ENDPOINT COMPARISON:
+  Family: GET /api/v1/invitations/family/:code/validate
+  Group:  GET /api/v1/invitations/group/:code/validate
+
+HTTP STATUS CODES:
+┌─────────────────────────┬────────┬────────┐
+│ Scenario                │ Family │ Group  │
+├─────────────────────────┼────────┼────────┤
+│ Valid invitation        │  200   │  200   │
+│ Invalid code            │  200   │  200   │
+│ Expired                 │  200   │  200   │
+│ EMAIL_MISMATCH          │  200   │  200   │
+│ Server error            │  500   │  500   │
+└─────────────────────────┴────────┴────────┘
+
+RESPONSE STRUCTURE:
+  Both return: { success: true, data: { valid, error?, errorCode? } }
+  ✅ IDENTICAL PATTERN
+
+EMAIL_MISMATCH HANDLING:
+┌──────────────────────┬─────────────────────────────────────────┐
+│ Field                │ Value (Both Family & Group)              │
+├──────────────────────┼─────────────────────────────────────────┤
+│ valid                │ false                                    │
+│ errorCode            │ "EMAIL_MISMATCH"                         │
+│ error                │ "This invitation was sent to a           │
+│                      │ different email address. Please log in   │
+│                      │ with the correct account or sign up."    │
+└──────────────────────┴─────────────────────────────────────────┘
+  ✅ IDENTICAL LOGIC, MESSAGE, AND CODE
+
+VALIDATION FLOW:
+  1. Find invitation (PENDING only)       [SAME]
+  2. Check expiration                     [SAME]
+  3. EMAIL_MISMATCH security check        [SAME]
+  4. Build contextual response            [DIFFERENT CONTEXT]
+  5. Return HTTP 200                      [SAME]
+
+KEY FINDING:
+  ✅ Group invitations use IDENTICAL validation logic to family invitations
+  ✅ All errors return HTTP 200 with valid: false
+  ✅ EMAIL_MISMATCH handled identically
+  ✅ UnifiedInvitationService handles both types
+  ✅ NO CHANGES NEEDED - Already has parity
+
+DIFFERENCES (Context Only):
+  Family Response Includes:
+    - role, personalMessage
+    - userCurrentFamily, canLeaveCurrentFamily
+  
+  Group Response Includes:
+    - groupName, requiresAuth
+
+SOURCE:
+  - UnifiedInvitationService.validateFamilyInvitation() (line 226)
+  - UnifiedInvitationService.validateGroupInvitation() (line 719)
+  - /backend/src/routes/invitations.ts (lines 107, 241)
+
+================================================================================

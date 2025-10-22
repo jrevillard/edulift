@@ -1,0 +1,152 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Production builds
+dist/
+build/
+dist-ssr/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# IDE
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+ehthumbs.db
+Desktop.ini
+*~
+.roomodes
+.roo/
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+
+# Uploads
+uploads/
+
+# Coverage reports
+coverage/
+/.nyc_output
+
+# Backup files
+backups/
+*.backup
+
+# Temporary files
+*.tmp
+*.temp
+*.class
+*.pyc
+
+# Docker volumes
+/data/
+postgres-data/
+
+# ESLint cache
+.eslintcache
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Parcel cache
+.cache
+.parcel-cache
+
+# Build outputs
+.next
+.nuxt
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# E2E Testing artifacts
+e2e/playwright-report/
+e2e/test-results/
+e2e/test-results.json
+e2e/test-results.xml
+e2e/*.png
+
+# Serena mcp indexes
+backend/.serena/cache/
+frontend/.serena/cache/
+mobile_app/.serena/cache/
+.serena/
+
+#Quick todo
+TODO
+
+
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+
+# Claude Flow generated files
+.claude/settings.local.json
+.mcp.json*
+claude-flow.config.json
+.swarm/
+.hive-mind/
+.claude-flow/
+memory/
+coordination/
+memory/claude-flow-data.json
+memory/sessions/*
+!memory/sessions/README.md
+memory/agents/*
+!memory/agents/README.md
+coordination/memory_bank/*
+coordination/subtasks/*
+coordination/orchestration/*
+*.db
+*.db-journal
+*.db-wal
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+claude-flow
+# Removed Windows wrapper files per user request
+hive-mind-prompt-*.txt
+

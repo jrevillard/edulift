@@ -1,0 +1,82 @@
+# Development Docker Compose Configuration
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: edulift-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: edulift_dev
+      POSTGRES_USER: edulift
+      POSTGRES_PASSWORD: edulift_password
+    volumes:
+      - edulift_postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - edulift-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edulift -d edulift_dev"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: edulift-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - edulift_redis_dev_data:/data
+    networks:
+      - edulift-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend API (Development with hot reload)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    image: edulift-backend-dev
+    container_name: edulift-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://edulift:edulift_password@postgres:5432/edulift_dev
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: development-jwt-secret-key
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USER: ""
+      EMAIL_PASSWORD: ""
+      EMAIL_FROM: noreply@edulift-dev.com
+      FRONTEND_URL: http://localhost:3000
+      CORS_ORIGIN: "*"
+    volumes:
+      # Allow write access to uploads directory  
+      - ./backend/uploads:/app/uploads
+    ports:
+      - "3001:3001"
+    networks:
+      - edulift-dev-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  edulift_postgres_dev_data:
+    driver: local
+  edulift_redis_dev_data:
+    driver: local
+
+networks:
+  edulift-dev-network:
+    driver: bridge

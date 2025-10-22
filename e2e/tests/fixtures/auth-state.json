@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:8001",
+      "localStorage": [
+        {
+          "name": "auth-storage",
+          "value": "{\"state\":{\"user\":{\"id\":\"test-admin-id\",\"email\":\"admin.test@edulift.com\",\"name\":\"Admin Test User\"},\"isAuthenticated\":true,\"accessToken\":\"test-jwt-token\",\"refreshToken\":\"test-refresh-token\"},\"version\":0}"
+        }
+      ]
+    }
+  ]
+}

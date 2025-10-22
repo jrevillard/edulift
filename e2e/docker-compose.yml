@@ -1,0 +1,127 @@
+services:
+  postgres-e2e:
+    image: postgres:15-alpine
+    container_name: edulift-postgres-e2e
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: edulift_e2e
+      POSTGRES_USER: edulift_user
+      POSTGRES_PASSWORD: edulift_password
+    networks:
+      - edulift-e2e
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edulift_user -d edulift_e2e"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis-e2e:
+    image: redis:7-alpine
+    container_name: edulift-redis-e2e
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    networks:
+      - edulift-e2e
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mailhog-e2e:
+    image: mailhog/mailhog:v1.0.1
+    container_name: edulift-mailhog-e2e
+    restart: unless-stopped
+    ports:
+      - "8025:8025"  # Web UI
+      - "1025:1025"  # SMTP Server
+    networks:
+      - edulift-e2e
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend-e2e:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.dev
+    container_name: edulift-backend-e2e
+    ports:
+      - "8002:3001"
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://edulift_user:edulift_password@postgres-e2e:5432/edulift_e2e
+      REDIS_URL: redis://redis-e2e:6379
+      JWT_SECRET: e2e-test-access-secret-key-very-long
+      JWT_ACCESS_SECRET: e2e-test-access-secret-key-very-long
+      JWT_REFRESH_SECRET: e2e-test-refresh-secret-key-very-long
+      # Email configuration for MailHog
+      EMAIL_HOST: mailhog-e2e
+      EMAIL_PORT: 1025
+      EMAIL_ENCRYPTION: NONE
+      EMAIL_USER: e2e-test@edulift.com
+      EMAIL_PASSWORD: test-password
+      FRONTEND_URL: http://localhost:8001
+      CORS_ORIGIN: "http://localhost:8001,http://frontend-e2e:3000"
+      PORT: 3001
+    networks:
+      - edulift-e2e
+    depends_on:
+      postgres-e2e:
+        condition: service_healthy
+      redis-e2e:
+        condition: service_healthy
+      mailhog-e2e:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        while ! nc -z postgres-e2e 5432; do sleep 1; done &&
+        echo 'PostgreSQL is ready!' &&
+        echo 'Running Prisma migrations...' &&
+        npx prisma db push --skip-generate &&
+        echo 'Database ready!' &&
+        npm run dev
+      "
+
+  frontend-e2e:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile.dev
+    container_name: edulift-frontend-e2e
+    ports:
+      - "8001:3000"
+    environment:
+      VITE_API_URL: http://localhost:8002/api/v1
+      VITE_SOCKET_URL: http://localhost:8002
+      VITE_HMR_CLIENT_PORT: 8001
+      NODE_ENV: test
+    depends_on:
+      - backend-e2e
+    networks:
+      - edulift-e2e
+
+  playwright-e2e:
+    image: mcr.microsoft.com/playwright:v1.40.0-jammy
+    container_name: edulift-playwright-e2e
+    working_dir: /e2e
+    volumes:
+      - .:/e2e
+    ports:
+      - "9323:9323"
+    environment:
+      E2E_BASE_URL: http://localhost:8001
+      CI: true
+    networks:
+      - edulift-e2e
+    depends_on:
+      - frontend-e2e
+      - backend-e2e
+    profiles:
+      - test
+
+networks:
+  edulift-e2e:
+    driver: bridge
