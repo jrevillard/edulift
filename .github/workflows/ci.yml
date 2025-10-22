@@ -11,6 +11,7 @@ env:
   NODE_VERSION: '20'
 
 jobs:
+  # Backend tests job
   backend-tests:
     name: Backend Tests
     runs-on: ubuntu-latest
@@ -106,6 +107,7 @@ jobs:
           EMAIL_FROM: test@example.com
           FRONTEND_URL: http://localhost:3000
 
+  # Frontend tests job
   frontend-tests:
     name: Frontend Tests
     runs-on: ubuntu-latest
@@ -131,11 +133,12 @@ jobs:
           cd frontend
           npx tsc -b --noEmit
 
-      # ESLint temporarily disabled per request
-      - name: Skip ESLint (temporarily)
-        run: echo "Skipping ESLint step for now"
+      - name: Run ESLint
+        run: |
+          cd frontend
+          npm run lint
 
-      - name: Run frontend unit tests
+      - name: Run frontend tests
         run: |
           cd frontend
           npm run test:run
