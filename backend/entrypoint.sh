@@ -11,5 +11,5 @@ echo "Starting backend..."
 echo "🔄 Applying database migrations..."
 npx prisma migrate deploy
 
-echo "✅ Database ready, starting server..."
-exec node dist/server.js
+echo "✅ Database ready, starting server with tsx..."
+exec npm start

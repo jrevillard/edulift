@@ -1,30 +1,4 @@
-# Backend Dockerfile
-FROM node:18-alpine AS builder
-
-# Install build dependencies
-RUN apk add --no-cache python3 make g++
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-COPY tsconfig.json ./
-
-# Install all dependencies (including dev dependencies for build)
-RUN npm ci && npm cache clean --force
-
-# Copy source code
-COPY src/ ./src/
-COPY prisma/ ./prisma/
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build the application
-RUN npm run build
-
-# Production stage
+# Backend Dockerfile - Modern ESM with tsx bundler
 FROM node:18-alpine AS production
 
 # Install runtime dependencies
@@ -36,17 +10,16 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies (tsx is needed for runtime)
+RUN npm ci && npm cache clean --force
 
-# Copy built application and prisma
-COPY --from=builder --chown=node:node /app/dist ./dist
-COPY --from=builder --chown=node:node /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=node:node /app/prisma ./prisma
+# Copy source code and prisma
+COPY src/ ./src/
+COPY prisma/ ./prisma/
+COPY tsconfig.json ./
 
-# Ensure correct ownership of node_modules
-RUN chown -R node:node node_modules
+# Generate Prisma client
+RUN npx prisma generate
 
 # Create uploads directory
 RUN mkdir -p uploads && chown node:node uploads

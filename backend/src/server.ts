@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import { createServer } from 'http';
-import app from './app.js';
-import { SocketHandler } from './socket/socketHandler.js';
-import { setGlobalSocketHandler } from './utils/socketEmitter.js';
-import { logger } from './utils/logger.js';
+import app from './app';
+import { SocketHandler } from './socket/socketHandler';
+import { setGlobalSocketHandler } from './utils/socketEmitter';
+import { logger } from './utils/logger';
 
 const PORT = Number(process.env.PORT) || 3001;
 
