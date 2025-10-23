@@ -44,10 +44,10 @@ router.get('/my-groups', asyncHandler(groupController.getUserGroups));
 // Group-specific routes (group membership required)
 
 // Get group families (family-based group management)
-router.get('/:groupId/families', 
-  validateParams(GroupParamsSchema), 
-  requireGroupMembership, 
-  asyncHandler(groupController.getFamilies),
+router.get('/:groupId/families',
+  validateParams(GroupParamsSchema),
+  requireGroupMembership,
+  asyncHandler(groupController.getGroupFamilies),
 );
 
 // NOTE: Schedule slot creation moved to scheduleSlots.ts for better organization

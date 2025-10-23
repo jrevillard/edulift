@@ -26,7 +26,7 @@ const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED !== 'false'; // Default:
 const rateLimitStore = new Map();
 
 if (rateLimitEnabled) {
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
     const ip = req.ip || req.socket?.remoteAddress || 'unknown';
     const now = Date.now();
     const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'); // Default: 1 minute
@@ -51,10 +51,11 @@ if (rateLimitEnabled) {
         max: maxRequests,
         window: `${windowMs}ms`,
       });
-      return res.status(429).json({
+      res.status(429).json({
         success: false,
         error: 'Too many requests, please try again later',
       });
+      return;
     }
     
     clientData.count++;
