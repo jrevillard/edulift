@@ -3,7 +3,6 @@ import { UserRepository } from '../repositories/UserRepository';
 import { MagicLinkRepository } from '../repositories/MagicLinkRepository';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { CreateUserData, UpdateProfileData } from '../types';
-// @ts-expect-error - pkce-challenge doesn't have TypeScript definitions
 import { verifyChallenge } from 'pkce-challenge';
 import crypto from 'crypto';
 import { RefreshTokenService } from './RefreshTokenService';

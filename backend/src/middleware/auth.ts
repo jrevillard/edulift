@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import * as jwt from 'jsonwebtoken';
-import { TokenExpiredError } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '../types';
 
@@ -78,7 +77,7 @@ export const authenticateToken = async (
     next();
   } catch (error) {
     // ✅ NEW: Grace period for expired tokens (5 minutes)
-    if (error instanceof TokenExpiredError) {
+    if (error instanceof Error && error.name === 'TokenExpiredError') {
       try {
         const decoded = jwt.decode(token) as JwtPayload & { exp?: number };
 

@@ -91,12 +91,49 @@ jobs:
           cd backend
           npm run typecheck
 
-      - name: Run backend tests
+      - name: Validate TypeScript build (producibility check)
         run: |
           cd backend
-          npm test
+          npx tsc --outDir /tmp/tsc-validate
+
+      - name: Run backend tests (with tsx runtime)
+        run: |
+          cd backend
+          npm run test:ci
         env:
           NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test_jwt_secret_key_for_ci
+          EMAIL_HOST: localhost
+          EMAIL_PORT: 587
+          EMAIL_USER: test@example.com
+          EMAIL_PASSWORD: test_password
+          EMAIL_FROM: test@example.com
+          FRONTEND_URL: http://localhost:3000
+
+      - name: Test tsx server startup (production mode)
+        run: |
+          cd backend
+          # Start server with tsx in background
+          npm start &
+          SERVER_PID=$!
+
+          # Wait for server to start (max 30 seconds)
+          for i in {1..30}; do
+            if curl -s http://localhost:3001/health > /dev/null; then
+              echo "✅ Server started successfully with tsx"
+              kill $SERVER_PID
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "❌ Server failed to start with tsx"
+          kill $SERVER_PID || true
+          exit 1
+        env:
+          NODE_ENV: production
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test_jwt_secret_key_for_ci
