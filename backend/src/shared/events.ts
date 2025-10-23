@@ -91,7 +91,7 @@ export interface UserEventData {
 export interface NotificationEventData {
   type: 'SCHEDULE_PUBLISHED' | 'MEMBER_JOINED' | 'MEMBER_LEFT';
   message: string;
-  data?: any;
+  data?: Record<string, unknown>;
 }
 
 export interface ErrorEventData {

@@ -16,13 +16,13 @@ export class UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
   }
 
   async findById(id: string): Promise<User | null> {
     return this.prisma.user.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -33,15 +33,15 @@ export class UserRepository {
     return this.prisma.user.create({
       data: {
         ...data,
-        timezone: validatedTimezone
-      }
+        timezone: validatedTimezone,
+      },
     });
   }
 
   async update(id: string, data: Partial<CreateUserData> | UpdateProfileData): Promise<User> {
     // Filter out undefined values
     const updateData = Object.fromEntries(
-      Object.entries(data).filter(([_, value]) => value !== undefined)
+      Object.entries(data).filter(([_, value]) => value !== undefined),
     );
 
     // Validate timezone if provided
@@ -51,13 +51,13 @@ export class UserRepository {
 
     return this.prisma.user.update({
       where: { id },
-      data: updateData
+      data: updateData,
     });
   }
 
   async delete(id: string): Promise<void> {
     await this.prisma.user.delete({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -69,36 +69,36 @@ export class UserRepository {
         ownerFamily: {
           include: {
             members: {
-              include: { user: true }
-            }
-          }
+              include: { user: true },
+            },
+          },
         },
         familyMembers: {
           include: {
             family: {
               include: {
                 members: {
-                  include: { user: true }
-                }
-              }
-            }
-          }
-        }
-      }
+                  include: { user: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!group) return [];
 
     const users: User[] = [];
-    
+
     // Add owner family members
-    group.ownerFamily.members.forEach((member: any) => {
+    group.ownerFamily.members.forEach((member: { user: User }) => {
       users.push(member.user);
     });
 
     // Add participating family members
-    group.familyMembers.forEach((familyMember: any) => {
-      familyMember.family.members.forEach((member: any) => {
+    group.familyMembers.forEach((familyMember: { family: { members: { user: User }[] } }) => {
+      familyMember.family.members.forEach((member: { user: User }) => {
         users.push(member.user);
       });
     });
@@ -106,11 +106,11 @@ export class UserRepository {
     return users;
   }
 
-  async getUserGroups(userId: string) {
+  async getUserGroups(userId: string): Promise<unknown> {
     // Get user's family first
     const userFamily = await this.prisma.familyMember.findFirst({
       where: { userId },
-      select: { familyId: true }
+      select: { familyId: true },
     });
 
     if (!userFamily) return [];
@@ -122,38 +122,38 @@ export class UserRepository {
           { familyId: userFamily.familyId }, // Groups owned by the family
           {
             familyMembers: {
-              some: { familyId: userFamily.familyId } // Groups the family participates in
-            }
-          }
-        ]
+              some: { familyId: userFamily.familyId }, // Groups the family participates in
+            },
+          },
+        ],
       },
       include: {
         ownerFamily: true,
         _count: {
           select: { 
             familyMembers: true,
-            scheduleSlots: true
-          }
-        }
-      }
+            scheduleSlots: true,
+          },
+        },
+      },
     });
   }
 
   // TODO: Remove this method once NotificationService is refactored to use family-based approach
-  async getGroupMembers(groupId: string) {
+  async getGroupMembers(groupId: string): Promise<unknown> {
     // Temporary implementation for backward compatibility
     // Use the findGroupMembers method and transform to match expected format
     const users = await this.findGroupMembers(groupId);
-    return users.map((user: any) => ({
+    return users.map((user: unknown) => ({
       user,
       // Note: This is a simplified mapping - role information is at family level now
-      role: 'MEMBER' // Default role, actual role checking should be done at family level
+      role: 'MEMBER', // Default role, actual role checking should be done at family level
     }));
   }
 
-  async getGroupById(groupId: string) {
+  async getGroupById(groupId: string): Promise<unknown> {
     return this.prisma.group.findUnique({
-      where: { id: groupId }
+      where: { id: groupId },
     });
   }
 }

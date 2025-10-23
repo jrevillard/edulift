@@ -39,38 +39,38 @@ const schedules = [
     datetime: new Date('2023-12-31T14:59:00.000Z'),
     localTime: 'Sunday 2023-12-31 23:59 JST',
     included: false,
-    reason: 'Before week boundary (Sunday of previous week)'
+    reason: 'Before week boundary (Sunday of previous week)',
   },
   {
     datetime: new Date('2023-12-31T15:00:00.000Z'),
     localTime: 'Monday 2024-01-01 00:00 JST',
     included: true,
-    reason: 'At week start boundary'
+    reason: 'At week start boundary',
   },
   {
     datetime: new Date('2024-01-01T05:00:00.000Z'),
     localTime: 'Monday 2024-01-01 14:00 JST',
     included: true,
-    reason: 'Within week (Monday afternoon)'
+    reason: 'Within week (Monday afternoon)',
   },
   {
     datetime: new Date('2024-01-07T10:00:00.000Z'),
     localTime: 'Sunday 2024-01-07 19:00 JST',
     included: true,
-    reason: 'Within week (Sunday evening)'
+    reason: 'Within week (Sunday evening)',
   },
   {
     datetime: new Date('2024-01-07T14:59:59.999Z'),
     localTime: 'Sunday 2024-01-07 23:59:59.999 JST',
     included: true,
-    reason: 'At week end boundary'
+    reason: 'At week end boundary',
   },
   {
     datetime: new Date('2024-01-07T15:00:00.000Z'),
     localTime: 'Monday 2024-01-08 00:00 JST',
     included: false,
-    reason: 'After week boundary (Monday of next week)'
-  }
+    reason: 'After week boundary (Monday of next week)',
+  },
 ];
 
 schedules.forEach((schedule) => {

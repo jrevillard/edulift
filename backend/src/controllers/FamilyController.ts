@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { FamilyService } from '../services/FamilyService';
 import { FamilyAuthService } from '../services/FamilyAuthService';
 import { FamilyRole } from '../types/family';
+import { Logger } from '../utils/logger';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -14,7 +15,8 @@ interface AuthenticatedRequest extends Request {
 export class FamilyController {
   constructor(
     private familyService: FamilyService,
-    private familyAuthService: FamilyAuthService
+    private familyAuthService: FamilyAuthService,
+    private logger: Logger,
   ) {}
 
   async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -24,7 +26,7 @@ export class FamilyController {
       if (!name || name.trim().length === 0) {
         res.status(400).json({
           success: false,
-          error: 'Family name is required'
+          error: 'Family name is required',
         });
         return;
       }
@@ -33,13 +35,13 @@ export class FamilyController {
 
       res.status(201).json({
         success: true,
-        data: family
+        data: family,
       });
     } catch (error) {
       console.error('Family creation error:', error);
       res.status(400).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -51,7 +53,7 @@ export class FamilyController {
       if (!inviteCode) {
         res.status(400).json({
           success: false,
-          error: 'Invite code is required'
+          error: 'Invite code is required',
         });
         return;
       }
@@ -60,12 +62,12 @@ export class FamilyController {
 
       res.status(200).json({
         success: true,
-        data: family
+        data: family,
       });
     } catch (error) {
       res.status(400).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -77,19 +79,19 @@ export class FamilyController {
       if (!family) {
         res.status(404).json({
           success: false,
-          error: 'User is not part of any family'
+          error: 'User is not part of any family',
         });
         return;
       }
 
       res.status(200).json({
         success: true,
-        data: family
+        data: family,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -104,7 +106,7 @@ export class FamilyController {
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
-          error: 'Access denied: not a member of this family'
+          error: 'Access denied: not a member of this family',
         });
         return;
       }
@@ -113,12 +115,12 @@ export class FamilyController {
 
       res.status(200).json({
         success: true,
-        data: permissions
+        data: permissions,
       });
     } catch (error) {
       res.status(500).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -132,7 +134,7 @@ export class FamilyController {
       if (!Object.values(FamilyRole).includes(role)) {
         res.status(400).json({
           success: false,
-          error: 'Invalid role'
+          error: 'Invalid role',
         });
         return;
       }
@@ -144,13 +146,13 @@ export class FamilyController {
 
       res.status(200).json({
         success: true,
-        message: 'Member role updated successfully'
+        message: 'Member role updated successfully',
       });
     } catch (error) {
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -166,7 +168,7 @@ export class FamilyController {
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -180,7 +182,7 @@ export class FamilyController {
       if (!email) {
         res.status(400).json({
           success: false,
-          error: 'Email is required'
+          error: 'Email is required',
         });
         return;
       }
@@ -189,7 +191,7 @@ export class FamilyController {
       if (role && !Object.values(FamilyRole).includes(role)) {
         res.status(400).json({
           success: false,
-          error: 'Invalid role'
+          error: 'Invalid role',
         });
         return;
       }
@@ -200,7 +202,7 @@ export class FamilyController {
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
-          error: 'Access denied: not a member of this family'
+          error: 'Access denied: not a member of this family',
         });
         return;
       }
@@ -211,20 +213,20 @@ export class FamilyController {
       const invitation = await this.familyService.inviteMember(familyId, {
         email,
         role: role || FamilyRole.MEMBER,
-        personalMessage
+        personalMessage,
       }, req.user.id, platform || 'web');
 
       res.status(201).json({
         success: true,
         data: invitation,
-        message: 'Invitation sent successfully'
+        message: 'Invitation sent successfully',
       });
     } catch (error) {
       console.error('Family invitation error:', error);
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -239,7 +241,7 @@ export class FamilyController {
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
-          error: 'Access denied: not a member of this family'
+          error: 'Access denied: not a member of this family',
         });
         return;
       }
@@ -248,13 +250,13 @@ export class FamilyController {
 
       res.status(200).json({
         success: true,
-        data: invitations
+        data: invitations,
       });
     } catch (error) {
       console.error('Get pending invitations error:', error);
       res.status(500).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -269,7 +271,7 @@ export class FamilyController {
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
-          error: 'Access denied: not a member of this family'
+          error: 'Access denied: not a member of this family',
         });
         return;
       }
@@ -281,14 +283,14 @@ export class FamilyController {
 
       res.status(200).json({
         success: true,
-        message: 'Invitation cancelled successfully'
+        message: 'Invitation cancelled successfully',
       });
     } catch (error) {
       console.error('Cancel invitation error:', error);
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -296,45 +298,48 @@ export class FamilyController {
   async updateFamilyName(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { name } = req.body;
-      console.log(`FamilyController.updateFamilyName called with name: "${name}" by user: ${req.user.id}`);
+      this.logger.debug('updateFamilyName called', { name, userId: req.user.id });
 
       if (!name || name.trim().length === 0) {
-        console.log('Validation failed: Family name is required');
+        this.logger.warn('Validation failed: Family name is required', { userId: req.user.id });
         res.status(400).json({
           success: false,
-          error: 'Family name is required'
+          error: 'Family name is required',
         });
         return;
       }
 
       if (name.trim().length > 100) {
-        console.log(`Validation failed: Family name too long (${name.trim().length} characters)`);
+        this.logger.warn('Validation failed: Family name too long', {
+          length: name.trim().length,
+          userId: req.user.id,
+        });
         res.status(400).json({
           success: false,
-          error: 'Family name must be 100 characters or less'
+          error: 'Family name must be 100 characters or less',
         });
         return;
       }
 
-      console.log('Controller validation passed, checking permissions...');
+      this.logger.debug('Controller validation passed, checking permissions', { userId: req.user.id });
       // Check permissions (only admins can update family name)
       await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-      console.log('Permissions check passed, calling service...');
+      this.logger.debug('Permissions check passed, calling service', { userId: req.user.id });
 
       const updatedFamily = await this.familyService.updateFamilyName(req.user.id, name.trim());
-      console.log('Service call successful, sending response');
+      this.logger.debug('Service call successful, sending response', { userId: req.user.id });
 
       res.status(200).json({
         success: true,
         data: updatedFamily,
-        message: 'Family name updated successfully'
+        message: 'Family name updated successfully',
       });
     } catch (error) {
       console.error('FamilyController.updateFamilyName error:', error);
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -349,7 +354,7 @@ export class FamilyController {
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
-          error: 'Access denied: not a member of this family'
+          error: 'Access denied: not a member of this family',
         });
         return;
       }
@@ -361,14 +366,14 @@ export class FamilyController {
 
       res.status(200).json({
         success: true,
-        message: 'Member removed successfully'
+        message: 'Member removed successfully',
       });
     } catch (error) {
       console.error('Remove member error:', error);
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -380,7 +385,7 @@ export class FamilyController {
       if (!inviteCode || typeof inviteCode !== 'string') {
         res.status(400).json({
           success: false,
-          error: 'Invite code is required'
+          error: 'Invite code is required',
         });
         return;
       }
@@ -395,17 +400,17 @@ export class FamilyController {
             valid: true,
             family: {
               id: family.id,
-              name: family.name
-            }
-          }
+              name: family.name,
+            },
+          },
         });
       } else {
         res.status(400).json({
           success: false,
           data: {
-            valid: false
+            valid: false,
           },
-          error: 'Invalid or expired invite code'
+          error: 'Invalid or expired invite code',
         });
       }
     } catch (error) {
@@ -413,9 +418,9 @@ export class FamilyController {
       res.status(400).json({
         success: false,
         data: {
-          valid: false
+          valid: false,
         },
-        error: (error as Error).message
+        error: (error as Error).message,
       });
     }
   }
@@ -427,8 +432,8 @@ export class FamilyController {
       res.status(200).json({
         success: true,
         data: {
-          message: 'Successfully left the family'
-        }
+          message: 'Successfully left the family',
+        },
       });
     } catch (error) {
       console.error('Leave family error:', error);
@@ -437,7 +442,7 @@ export class FamilyController {
       if (error instanceof Error && error.message.includes('LAST_ADMIN')) {
         res.status(400).json({
           success: false,
-          error: 'Cannot leave family as you are the last administrator. Please appoint another admin first.'
+          error: 'Cannot leave family as you are the last administrator. Please appoint another admin first.',
         });
         return;
       }
@@ -445,14 +450,14 @@ export class FamilyController {
       if (error instanceof Error && error.message.includes('NOT_FAMILY_MEMBER')) {
         res.status(400).json({
           success: false,
-          error: 'You are not a member of any family'
+          error: 'You are not a member of any family',
         });
         return;
       }
 
       res.status(500).json({
         success: false,
-        error: 'Failed to leave family'
+        error: 'Failed to leave family',
       });
     }
   }

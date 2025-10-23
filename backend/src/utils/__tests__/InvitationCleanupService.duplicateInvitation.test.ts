@@ -14,7 +14,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
       familyInvitation: {
         findFirst: jest.fn(),
         delete: jest.fn(),
-      }
+      },
     };
 
     mockLogger = {
@@ -34,7 +34,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
         id: 'invitation-123',
         groupId: 'group-123',
         email: 'test@example.com',
-        status: 'CANCELLED'
+        status: 'CANCELLED',
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(existingInvitation);
@@ -47,14 +47,14 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
         where: {
           groupId: 'group-123',
           email: 'test@example.com',
-          status: { in: ['CANCELLED', 'EXPIRED'] }
-        }
+          status: { in: ['CANCELLED', 'EXPIRED'] },
+        },
       });
       expect(mockPrisma.groupInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'invitation-123' }
+        where: { id: 'invitation-123' },
       });
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Removed old CANCELLED group invitation for test@example.com to allow re-invitation'
+        'Removed old CANCELLED group invitation for test@example.com to allow re-invitation',
       );
     });
 
@@ -63,7 +63,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
         id: 'invitation-123',
         groupId: 'group-123',
         email: 'test@example.com',
-        status: 'EXPIRED'
+        status: 'EXPIRED',
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(existingInvitation);
@@ -73,7 +73,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
 
       expect(result).toBe(true);
       expect(mockPrisma.groupInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'invitation-123' }
+        where: { id: 'invitation-123' },
       });
     });
 
@@ -82,7 +82,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
         id: 'invitation-123',
         groupId: 'group-123',
         email: 'test@example.com',
-        status: 'CANCELLED'
+        status: 'CANCELLED',
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(existingInvitation);
@@ -92,7 +92,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
 
       expect(result).toBe(true);
       expect(mockPrisma.groupInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'invitation-123' }
+        where: { id: 'invitation-123' },
       });
     });
 
@@ -110,7 +110,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
         id: 'invitation-123',
         familyId: 'family-123',
         email: 'test@example.com',
-        status: 'PENDING'
+        status: 'PENDING',
       };
 
       mockPrisma.familyInvitation.findFirst.mockResolvedValue(existingInvitation);
@@ -120,7 +120,7 @@ describe('InvitationCleanupService - Duplicate Invitation Fix', () => {
 
       expect(result).toBe(true);
       expect(mockPrisma.familyInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'invitation-123' }
+        where: { id: 'invitation-123' },
       });
     });
   });

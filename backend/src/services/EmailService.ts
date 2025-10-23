@@ -25,10 +25,10 @@ export class EmailService extends BaseEmailService {
   protected async _send(to: string, subject: string, html: string): Promise<void> {
     const mailOptions = {
       from: this.fromEmail,
-      to: to,
-      subject: subject,
-      html: html,
-      encoding: 'utf8'
+      to,
+      subject,
+      html,
+      encoding: 'utf8',
     };
 
     try {

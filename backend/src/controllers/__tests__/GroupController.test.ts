@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { GroupController } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
+import { AppError } from '../../middleware/errorHandler';
+
 
 // Mock the GroupService
 jest.mock('../../services/GroupService');
@@ -24,12 +26,12 @@ describe('GroupController', () => {
       userId: 'user-1',
       body: {},
       params: {},
-      query: {}
+      query: {},
     };
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis()
+      json: jest.fn().mockReturnThis(),
     };
 
     jest.clearAllMocks();
@@ -44,7 +46,7 @@ describe('GroupController', () => {
         adminId: 'user-1',
         inviteCode: 'ABC123',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.body = groupData;
@@ -52,25 +54,25 @@ describe('GroupController', () => {
       // Mock getUserFamily to return a family
       mockGroupService.getUserFamily = jest.fn().mockResolvedValue({
         familyId: 'family-1',
-        family: { id: 'family-1', name: 'Test Family' }
+        family: { id: 'family-1', name: 'Test Family' },
       });
       
       mockGroupService.createGroup = jest.fn().mockResolvedValue(createdGroup);
 
       await groupController.createGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.createGroup).toHaveBeenCalledWith({
         name: groupData.name,
         familyId: 'family-1',
-        createdBy: 'user-1'
+        createdBy: 'user-1',
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: createdGroup
+        data: createdGroup,
       });
     });
 
@@ -81,15 +83,14 @@ describe('GroupController', () => {
       // Mock getUserFamily to return a family
       mockGroupService.getUserFamily = jest.fn().mockResolvedValue({
         familyId: 'family-1',
-        family: { id: 'family-1', name: 'Test Family' }
+        family: { id: 'family-1', name: 'Test Family' },
       });
       
-      const { AppError } = require('../../middleware/errorHandler');
-      mockGroupService.createGroup = jest.fn().mockRejectedValue(new AppError('Failed to create group', 500));
+        mockGroupService.createGroup = jest.fn().mockRejectedValue(new AppError('Failed to create group', 500));
 
       await expect(groupController.createGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       )).rejects.toThrow('Failed to create group');
     });
   });
@@ -108,25 +109,25 @@ describe('GroupController', () => {
             admin: {
               id: 'user-1',
               name: 'Test User',
-              email: 'test@example.com'
+              email: 'test@example.com',
             },
-            _count: { members: 1 }
-          }
-        }
+            _count: { members: 1 },
+          },
+        },
       ];
 
       mockGroupService.getUserGroups = jest.fn().mockResolvedValue(userGroups);
 
       await groupController.getUserGroups(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.getUserGroups).toHaveBeenCalledWith('user-1');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: userGroups
+        data: userGroups,
       });
     });
   });
@@ -145,10 +146,10 @@ describe('GroupController', () => {
           admin: {
             id: 'user-2',
             name: 'Admin User',
-            email: 'admin@example.com'
+            email: 'admin@example.com',
           },
-          _count: { members: 2 }
-        }
+          _count: { members: 2 },
+        },
       };
 
       mockRequest.body = joinData;
@@ -156,14 +157,14 @@ describe('GroupController', () => {
 
       await groupController.joinGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.joinGroupByInviteCode).toHaveBeenCalledWith('ABC123', 'user-1');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: membership
+        data: membership,
       });
     });
   });
@@ -181,9 +182,9 @@ describe('GroupController', () => {
             id: 'user-1',
             name: 'Admin User',
             email: 'admin@example.com',
-            createdAt: new Date()
-          }
-        }
+            createdAt: new Date(),
+          },
+        },
       ];
 
       mockRequest.params = { groupId };
@@ -191,14 +192,14 @@ describe('GroupController', () => {
 
       await groupController.getGroupFamilies(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.getGroupFamilies).toHaveBeenCalledWith(groupId, 'user-1');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: groupMembers
+        data: groupMembers,
       });
     });
   });
@@ -215,8 +216,8 @@ describe('GroupController', () => {
         role: 'ADMIN' as const,
         family: {
           id: 'family-2',
-          name: 'Test Family'
-        }
+          name: 'Test Family',
+        },
       };
 
       const mockGroupFamilies = [
@@ -225,11 +226,11 @@ describe('GroupController', () => {
           name: 'Test Family',
           role: 'ADMIN',
           admins: [
-            { id: 'user-1', name: 'Admin User', email: 'admin@test.com' }
+            { id: 'user-1', name: 'Admin User', email: 'admin@test.com' },
           ],
           memberCount: 5,
-          isPending: false
-        }
+          isPending: false,
+        },
       ];
 
       mockRequest.params = { groupId, familyId };
@@ -239,23 +240,23 @@ describe('GroupController', () => {
 
       await groupController.updateFamilyRole(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.updateFamilyRole).toHaveBeenCalledWith(
         groupId,
         familyId,
         'ADMIN',
-        'user-1'
+        'user-1',
       );
       expect(mockGroupService.getGroupFamilies).toHaveBeenCalledWith(
         groupId,
-        'user-1'
+        'user-1',
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockGroupFamilies[0]
+        data: mockGroupFamilies[0],
       });
     });
   });
@@ -270,14 +271,14 @@ describe('GroupController', () => {
 
       await groupController.removeFamilyFromGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.removeFamilyFromGroup).toHaveBeenCalledWith(groupId, familyId, 'user-1');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: { message: 'Family removed from group successfully' }
+        data: { message: 'Family removed from group successfully' },
       });
     });
   });
@@ -292,7 +293,7 @@ describe('GroupController', () => {
         description: null,
         inviteCode: 'ABC123',
         ownerFamily: { id: 'family-1', name: 'Test Family' },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.params = { groupId };
@@ -301,14 +302,14 @@ describe('GroupController', () => {
 
       await groupController.updateGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, 'user-1', updateData);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -321,7 +322,7 @@ describe('GroupController', () => {
         description: 'Updated description',
         inviteCode: 'ABC123',
         ownerFamily: { id: 'family-1', name: 'Test Family' },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.params = { groupId };
@@ -330,14 +331,14 @@ describe('GroupController', () => {
 
       await groupController.updateGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, 'user-1', updateData);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -350,7 +351,7 @@ describe('GroupController', () => {
         description: 'New description',
         inviteCode: 'ABC123',
         ownerFamily: { id: 'family-1', name: 'Test Family' },
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockRequest.params = { groupId };
@@ -359,14 +360,14 @@ describe('GroupController', () => {
 
       await groupController.updateGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, 'user-1', updateData);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -378,13 +379,13 @@ describe('GroupController', () => {
 
       await groupController.updateGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        error: 'No update data provided'
+        error: 'No update data provided',
       });
       expect(mockGroupService.updateGroup).not.toHaveBeenCalled();
     });
@@ -397,15 +398,15 @@ describe('GroupController', () => {
 
       await groupController.updateGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Invalid input data'
-        })
+          error: 'Invalid input data',
+        }),
       );
       expect(mockGroupService.updateGroup).not.toHaveBeenCalled();
     });
@@ -420,14 +421,14 @@ describe('GroupController', () => {
 
       await groupController.deleteGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.deleteGroup).toHaveBeenCalledWith(groupId, 'user-1');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: { success: true }
+        data: { success: true },
       });
     });
   });
@@ -439,14 +440,14 @@ describe('GroupController', () => {
         familyId: 'family-1',
         role: 'MEMBER',
         personalMessage: 'Welcome to our group!',
-        platform: 'native'
+        platform: 'native',
       };
       const mockResult = {
         invitationId: 'invitation-123',
         familyId: 'family-1',
         groupId: 'group-1',
         role: 'MEMBER',
-        status: 'PENDING'
+        status: 'PENDING',
       };
 
       mockRequest.params = { groupId };
@@ -455,7 +456,7 @@ describe('GroupController', () => {
 
       await groupController.inviteFamilyToGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.inviteFamilyById).toHaveBeenCalledWith(
@@ -463,15 +464,15 @@ describe('GroupController', () => {
         {
           familyId: 'family-1',
           role: 'MEMBER',
-          personalMessage: 'Welcome to our group!'
+          personalMessage: 'Welcome to our group!',
         },
         'user-1',
-        'native' // Platform parameter should be passed
+        'native', // Platform parameter should be passed
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockResult
+        data: mockResult,
       });
     });
 
@@ -479,7 +480,7 @@ describe('GroupController', () => {
       const groupId = 'group-1';
       const inviteData = {
         familyId: 'family-1',
-        role: 'ADMIN'
+        role: 'ADMIN',
       };
       const mockResult = { invitationId: 'invitation-123' };
 
@@ -489,17 +490,17 @@ describe('GroupController', () => {
 
       await groupController.inviteFamilyToGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockGroupService.inviteFamilyById).toHaveBeenCalledWith(
         groupId,
         {
           familyId: 'family-1',
-          role: 'ADMIN'
+          role: 'ADMIN',
         },
         'user-1',
-        'web' // Should default to 'web'
+        'web', // Should default to 'web'
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
     });
@@ -509,7 +510,7 @@ describe('GroupController', () => {
       const inviteData = {
         familyId: 'family-1',
         role: 'MEMBER',
-        platform: 'invalid' // Invalid platform
+        platform: 'invalid', // Invalid platform
       };
 
       mockRequest.params = { groupId };
@@ -517,14 +518,14 @@ describe('GroupController', () => {
 
       await groupController.inviteFamilyToGroup(
         mockRequest as AuthenticatedRequest,
-        mockResponse as Response
+        mockResponse as Response,
       );
 
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'Validation failed',
-        details: expect.any(Array)
+        details: expect.any(Array),
       });
       expect(mockGroupService.inviteFamilyById).not.toHaveBeenCalled();
     });

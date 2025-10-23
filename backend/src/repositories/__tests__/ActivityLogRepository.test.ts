@@ -197,7 +197,7 @@ describe('ActivityLogRepository', () => {
           entityName: 'Honda Civic',
           metadata: null,
           createdAt: new Date('2023-01-02'),
-        }
+        },
       ];
 
       // Mock the activityLog.findMany call
@@ -232,7 +232,7 @@ describe('ActivityLogRepository', () => {
           entityName: 'Maple Street Families',
           metadata: null,
           createdAt: new Date('2023-01-01'),
-        }
+        },
       ];
 
       // Mock the activityLog.findMany call
@@ -277,7 +277,7 @@ describe('ActivityLogRepository', () => {
           entityName: 'Soccer Club',
           metadata: null,
           createdAt: new Date('2023-01-02'),
-        }
+        },
       ];
 
       // Mock the activityLog.findMany call

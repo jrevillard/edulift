@@ -25,7 +25,7 @@ export class PushNotificationServiceFactory {
       const firebaseConfig: FirebaseConfig = {
         projectId: process.env.FIREBASE_PROJECT_ID!,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY!
+        privateKey: process.env.FIREBASE_PRIVATE_KEY!,
       };
 
       console.log(`🔔 PushNotificationServiceFactory: Using Firebase push notifications for project: ${firebaseConfig.projectId}`);

@@ -1,5 +1,5 @@
 
-import { EmailServiceInterface, ScheduleSlotNotificationData, GroupInvitationData, FamilyInvitationData } from '../../types/EmailServiceInterface';
+import { EmailServiceInterface, ScheduleSlotNotificationData, GroupInvitationData, FamilyInvitationData, DailyReminderSlot } from '../../types/EmailServiceInterface';
 
 export abstract class BaseEmailService implements EmailServiceInterface {
   protected abstract _send(to: string, subject: string, html: string, from?: string): Promise<void>;
@@ -66,7 +66,7 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     await this._send(email, subject, html);
   }
 
-  async sendDailyReminder(email: string, groupName: string, tomorrowTrips: any[], platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[], platform: 'web' | 'native' = 'web'): Promise<void> {
     const subject = `EduLift - Reminder for tomorrow's trips (${groupName})`;
     const html = this.generateDailyReminderEmail(groupName, tomorrowTrips, platform);
     await this._send(email, subject, html);
@@ -215,7 +215,7 @@ export abstract class BaseEmailService implements EmailServiceInterface {
   private generateScheduleSlotNotificationEmail(data: ScheduleSlotNotificationData, platform: 'web' | 'native' = 'web'): string {
     const vehiclesHtml = data.vehicles && data.vehicles.length > 0 
       ? data.vehicles.map(vehicle => 
-          `<p><strong>Vehicle:</strong> ${vehicle.name} (${vehicle.capacity} seats)${vehicle.driverName ? ` - Driver: ${vehicle.driverName}` : ''}</p>`
+          `<p><strong>Vehicle:</strong> ${vehicle.name} (${vehicle.capacity} seats)${vehicle.driverName ? ` - Driver: ${vehicle.driverName}` : ''}</p>`,
         ).join('')
       : '';
     
@@ -253,8 +253,8 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     `;
   }
 
-  private generateDailyReminderEmail(groupName: string, tomorrowSlots: any[], platform: 'web' | 'native' = 'web'): string {
-    const slotsHtml = tomorrowSlots.map(slot => {
+  private generateDailyReminderEmail(groupName: string, tomorrowSlots: DailyReminderSlot[], platform: 'web' | 'native' = 'web'): string {
+    const slotsHtml = tomorrowSlots.map((slot: DailyReminderSlot) => {
       const timeDisplay = slot.datetime 
         ? new Date(slot.datetime).toISOString().slice(0, 16).replace('T', ' ')
         : `${slot.day} - ${slot.time}`;
@@ -266,7 +266,7 @@ export abstract class BaseEmailService implements EmailServiceInterface {
           </h3>
           ${slot.driverName ? `<p style="margin: 5px 0;"><strong>Driver:</strong> ${slot.driverName}</p>` : ''}
           ${slot.vehicleName ? `<p style="margin: 5px 0;"><strong>Vehicle:</strong> ${slot.vehicleName}</p>` : ''}
-          ${slot.children?.length > 0 ? `<p style="margin: 5px 0;"><strong>Children:</strong> ${slot.children.join(', ')}</p>` : ''}
+          ${slot.children && slot.children.length > 0 ? `<p style="margin: 5px 0;"><strong>Children:</strong> ${slot.children.join(', ')}</p>` : ''}
         </div>
       `;
     }).join('');

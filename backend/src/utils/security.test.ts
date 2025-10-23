@@ -101,49 +101,51 @@ describe('Security Utils', () => {
 
     it('should log security events with redacted sensitive data in production', () => {
       process.env.NODE_ENV = 'production';
-      
-      logSecurityEvent('AUTH_FAILED', { 
+
+      logSecurityEvent('AUTH_FAILED', {
         error: 'Invalid credentials',
         email: 'user@example.com',
-        password: 'secret123'
+        password: 'secret123',
       });
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(
-        '⚠️ SECURITY WARNING:',
-        expect.stringContaining('"sensitive": "[REDACTED]"')
+        expect.stringContaining('⚠️ SECURITY WARNING'),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('"sensitive":"[REDACTED]"'),
       );
     });
 
     it('should log full details in development', () => {
       process.env.NODE_ENV = 'development';
-      
-      logSecurityEvent('AUTH_FAILED', { 
+
+      logSecurityEvent('AUTH_FAILED', {
         error: 'Invalid credentials',
-        email: 'user@example.com'
+        email: 'user@example.com',
       });
-      
+
       expect(consoleSpy).toHaveBeenCalledWith(
-        '⚠️ SECURITY WARNING:',
-        expect.stringContaining('user@example.com')
+        expect.stringContaining('⚠️ SECURITY WARNING'),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('user@example.com'),
       );
     });
 
     it('should support different log levels', () => {
       const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const infoSpy = jest.spyOn(console, 'log').mockImplementation();
-      
+      const infoSpy = jest.spyOn(console, 'info').mockImplementation();
+
       logSecurityEvent('CRITICAL_EVENT', { error: 'Critical issue' }, 'error');
       logSecurityEvent('INFO_EVENT', { info: 'Information' }, 'info');
-      
+
       expect(errorSpy).toHaveBeenCalledWith(
-        '🚨 SECURITY EVENT:',
-        expect.any(String)
+        expect.stringContaining('🚨 SECURITY EVENT'),
       );
       expect(infoSpy).toHaveBeenCalledWith(
-        'ℹ️ SECURITY INFO:',
-        expect.any(String)
+        expect.stringContaining('ℹ️ SECURITY INFO'),
       );
-      
+
       errorSpy.mockRestore();
       infoSpy.mockRestore();
     });

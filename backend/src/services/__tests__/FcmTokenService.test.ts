@@ -11,8 +11,8 @@ const mockPrismaClient = {
     updateMany: jest.fn(),
     deleteMany: jest.fn(),
     count: jest.fn(),
-    groupBy: jest.fn()
-  }
+    groupBy: jest.fn(),
+  },
 };
 
 describe('FcmTokenService', () => {
@@ -28,7 +28,7 @@ describe('FcmTokenService', () => {
       userId: 'user-1',
       token: 'fcm-token-123',
       deviceId: 'device-1',
-      platform: 'android'
+      platform: 'android',
     };
 
     it('should create new token when token does not exist', async () => {
@@ -42,7 +42,7 @@ describe('FcmTokenService', () => {
         isActive: true,
         lastUsed: new Date(),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       const result = await fcmTokenService.saveToken(mockTokenData);
@@ -55,15 +55,15 @@ describe('FcmTokenService', () => {
           token: 'fcm-token-123',
           deviceId: 'device-1',
           platform: 'android',
-          isActive: true
-        })
+          isActive: true,
+        }),
       });
     });
 
     it('should update existing token', async () => {
       mockPrismaClient.fcmToken.findUnique.mockResolvedValueOnce({
         id: 'existing-token-id',
-        token: 'fcm-token-123'
+        token: 'fcm-token-123',
       });
       mockPrismaClient.fcmToken.update.mockResolvedValueOnce({
         id: 'existing-token-id',
@@ -74,7 +74,7 @@ describe('FcmTokenService', () => {
         isActive: true,
         lastUsed: new Date(),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       const result = await fcmTokenService.saveToken(mockTokenData);
@@ -86,8 +86,8 @@ describe('FcmTokenService', () => {
           userId: 'user-1',
           deviceId: 'device-1',
           platform: 'android',
-          isActive: true
-        })
+          isActive: true,
+        }),
       });
     });
 
@@ -107,7 +107,7 @@ describe('FcmTokenService', () => {
           token: 'fcm-token-1',
           platform: 'android',
           isActive: true,
-          lastUsed: new Date()
+          lastUsed: new Date(),
         },
         {
           id: 'token-2',
@@ -115,8 +115,8 @@ describe('FcmTokenService', () => {
           token: 'fcm-token-2',
           platform: 'ios',
           isActive: true,
-          lastUsed: new Date()
-        }
+          lastUsed: new Date(),
+        },
       ];
 
       mockPrismaClient.fcmToken.findMany.mockResolvedValueOnce(mockTokens);
@@ -128,7 +128,7 @@ describe('FcmTokenService', () => {
       expect(result[1].platform).toBe('ios');
       expect(mockPrismaClient.fcmToken.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1', isActive: true },
-        orderBy: { lastUsed: 'desc' }
+        orderBy: { lastUsed: 'desc' },
       });
     });
 
@@ -151,7 +151,7 @@ describe('FcmTokenService', () => {
     it('should return tokens for multiple users', async () => {
       const mockTokens = [
         { id: 'token-1', userId: 'user-1', token: 'fcm-token-1', platform: 'android' },
-        { id: 'token-2', userId: 'user-2', token: 'fcm-token-2', platform: 'ios' }
+        { id: 'token-2', userId: 'user-2', token: 'fcm-token-2', platform: 'ios' },
       ];
 
       mockPrismaClient.fcmToken.findMany.mockResolvedValueOnce(mockTokens);
@@ -161,7 +161,7 @@ describe('FcmTokenService', () => {
       expect(result).toHaveLength(2);
       expect(mockPrismaClient.fcmToken.findMany).toHaveBeenCalledWith({
         where: { userId: { in: ['user-1', 'user-2'] }, isActive: true },
-        orderBy: { lastUsed: 'desc' }
+        orderBy: { lastUsed: 'desc' },
       });
     });
 
@@ -183,8 +183,8 @@ describe('FcmTokenService', () => {
         where: { token: 'fcm-token-123' },
         data: { 
           isActive: false,
-          updatedAt: expect.any(Date)
-        }
+          updatedAt: expect.any(Date),
+        },
       });
     });
 
@@ -205,8 +205,8 @@ describe('FcmTokenService', () => {
         where: { token: { in: ['token-1', 'token-2'] } },
         data: { 
           isActive: false,
-          updatedAt: expect.any(Date)
-        }
+          updatedAt: expect.any(Date),
+        },
       });
     });
 
@@ -224,7 +224,7 @@ describe('FcmTokenService', () => {
       await fcmTokenService.deleteToken('fcm-token-123');
 
       expect(mockPrismaClient.fcmToken.deleteMany).toHaveBeenCalledWith({
-        where: { token: 'fcm-token-123' }
+        where: { token: 'fcm-token-123' },
       });
     });
 
@@ -246,9 +246,9 @@ describe('FcmTokenService', () => {
         where: {
           OR: [
             { isActive: false },
-            { lastUsed: { lt: expect.any(Date) } }
-          ]
-        }
+            { lastUsed: { lt: expect.any(Date) } },
+          ],
+        },
       });
     });
 
@@ -275,7 +275,7 @@ describe('FcmTokenService', () => {
 
       expect(mockPrismaClient.fcmToken.updateMany).toHaveBeenCalledWith({
         where: { token: 'fcm-token-123', isActive: true },
-        data: { lastUsed: expect.any(Date) }
+        data: { lastUsed: expect.any(Date) },
       });
     });
 
@@ -296,7 +296,7 @@ describe('FcmTokenService', () => {
 
       mockPrismaClient.fcmToken.groupBy.mockResolvedValueOnce([
         { platform: 'android', _count: 5 },
-        { platform: 'ios', _count: 3 }
+        { platform: 'ios', _count: 3 },
       ]);
 
       const stats = await fcmTokenService.getTokenStats();
@@ -306,7 +306,7 @@ describe('FcmTokenService', () => {
       expect(stats.inactiveTokens).toBe(2);
       expect(stats.tokensByPlatform).toEqual({
         android: 5,
-        ios: 3
+        ios: 3,
       });
     });
 

@@ -8,16 +8,16 @@ const mockScheduleSlotRepository = {
   create: jest.fn(),
   update: jest.fn(),
   delete: jest.fn(),
-  findByGroupAndDateTime: jest.fn()
+  findByGroupAndDateTime: jest.fn(),
 } as unknown as ScheduleSlotRepository;
 
 const mockPrisma = {
   vehicle: {
-    findUnique: jest.fn()
+    findUnique: jest.fn(),
   },
   child: {
-    findUnique: jest.fn()
-  }
+    findUnique: jest.fn(),
+  },
 } as unknown as PrismaClient;
 
 describe('SchedulingService - Family Based Conflict Detection', () => {
@@ -45,12 +45,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'Family Car',
-                capacity: 5
-              }
-            }
+                capacity: 5,
+              },
+            },
           ],
-          childAssignments: []
-        }
+          childAssignments: [],
+        },
       ];
 
       const mockVehicleWithFamily = {
@@ -59,9 +59,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1', role: 'ADMIN' }
-          ]
-        }
+            { userId: 'user-1', role: 'ADMIN' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -79,11 +79,11 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             include: {
               members: {
                 where: { userId: parentId },
-                select: { userId: true, role: true }
-              }
-            }
-          }
-        }
+                select: { userId: true, role: true },
+              },
+            },
+          },
+        },
       });
 
       expect(conflicts).toContain('Vehicle Family Car from your family is already assigned to schedule slot slot-1');
@@ -104,12 +104,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'Other Family Car',
-                capacity: 5
-              }
-            }
+                capacity: 5,
+              },
+            },
           ],
-          childAssignments: []
-        }
+          childAssignments: [],
+        },
       ];
 
       const mockVehicleWithFamily = {
@@ -117,8 +117,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         name: 'Other Family Car',
         family: {
           id: 'family-2',
-          members: [] // Parent not in this family
-        }
+          members: [], // Parent not in this family
+        },
       };
 
       // Setup mocks
@@ -147,12 +147,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'Any Car',
-                capacity: 5
-              }
-            }
+                capacity: 5,
+              },
+            },
           ],
-          childAssignments: []
-        }
+          childAssignments: [],
+        },
       ];
 
       // Setup mocks
@@ -182,11 +182,11 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               child: {
                 id: 'child-1',
-                name: 'Alice'
-              }
-            }
-          ]
-        }
+                name: 'Alice',
+              },
+            },
+          ],
+        },
       ];
 
       const mockChildWithFamily = {
@@ -195,9 +195,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1', role: 'PARENT' }
-          ]
-        }
+            { userId: 'user-1', role: 'PARENT' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -215,11 +215,11 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             include: {
               members: {
                 where: { userId: parentId },
-                select: { userId: true, role: true }
-              }
-            }
-          }
-        }
+                select: { userId: true, role: true },
+              },
+            },
+          },
+        },
       });
 
       expect(conflicts).toContain('Child Alice from your family is already assigned to schedule slot slot-1');
@@ -239,11 +239,11 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               child: {
                 id: 'child-1',
-                name: 'Bob'
-              }
-            }
-          ]
-        }
+                name: 'Bob',
+              },
+            },
+          ],
+        },
       ];
 
       const mockChildWithFamily = {
@@ -251,8 +251,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         name: 'Bob',
         family: {
           id: 'family-2',
-          members: [] // Parent not in this family
-        }
+          members: [], // Parent not in this family
+        },
       };
 
       // Setup mocks
@@ -281,25 +281,25 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'Family Car',
-                capacity: 5
-              }
-            }
+                capacity: 5,
+              },
+            },
           ],
           childAssignments: [
             {
               child: {
                 id: 'child-1',
-                name: 'Alice'
-              }
+                name: 'Alice',
+              },
             },
             {
               child: {
                 id: 'child-2',
-                name: 'Bob'
-              }
-            }
-          ]
-        }
+                name: 'Bob',
+              },
+            },
+          ],
+        },
       ];
 
       const mockVehicleWithFamily = {
@@ -308,9 +308,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1', role: 'ADMIN' }
-          ]
-        }
+            { userId: 'user-1', role: 'ADMIN' },
+          ],
+        },
       };
 
       const mockChildWithFamily1 = {
@@ -319,9 +319,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1', role: 'PARENT' }
-          ]
-        }
+            { userId: 'user-1', role: 'PARENT' },
+          ],
+        },
       };
 
       const mockChildWithFamily2 = {
@@ -330,9 +330,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1', role: 'PARENT' }
-          ]
-        }
+            { userId: 'user-1', role: 'PARENT' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -368,10 +368,10 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               child: {
                 id: 'child-1',
-                name: 'Alice'
-              }
-            }
-          ]
+                name: 'Alice',
+              },
+            },
+          ],
         },
         {
           id: 'slot-2',
@@ -384,12 +384,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'School Bus',
-                capacity: 20
-              }
-            }
+                capacity: 20,
+              },
+            },
           ],
-          childAssignments: []
-        }
+          childAssignments: [],
+        },
       ];
 
       const mockChildWithFamily = {
@@ -398,9 +398,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1', role: 'PARENT' }
-          ]
-        }
+            { userId: 'user-1', role: 'PARENT' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -449,19 +449,19 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'Other Car',
-                capacity: 5
-              }
-            }
+                capacity: 5,
+              },
+            },
           ],
           childAssignments: [
             {
               child: {
                 id: 'child-1',
-                name: 'Other Child'
-              }
-            }
-          ]
-        }
+                name: 'Other Child',
+              },
+            },
+          ],
+        },
       ];
 
       // Setup mocks - parent not in any families
@@ -507,12 +507,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
               vehicle: {
                 id: 'vehicle-1',
                 name: 'Missing Vehicle',
-                capacity: 5
-              }
-            }
+                capacity: 5,
+              },
+            },
           ],
-          childAssignments: []
-        }
+          childAssignments: [],
+        },
       ];
 
       // Setup mocks - vehicle not found
@@ -540,11 +540,11 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               child: {
                 id: 'child-1',
-                name: 'Missing Child'
-              }
-            }
-          ]
-        }
+                name: 'Missing Child',
+              },
+            },
+          ],
+        },
       ];
 
       // Setup mocks - child not found

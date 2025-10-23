@@ -26,11 +26,11 @@ export interface UpdateScheduleConfigData {
 
 // Default schedule configuration template
 const DEFAULT_SCHEDULE_HOURS: ScheduleHours = {
-  'MONDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-  'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-  'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-  'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-  'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
+  MONDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+  TUESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+  WEDNESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+  THURSDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+  FRIDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
 };
 
 export class GroupScheduleConfigService {
@@ -73,7 +73,7 @@ export class GroupScheduleConfigService {
     if (startMinutes >= endMinutes) {
       throw new AppError(
         `Operating hours start_hour (${operatingHours.start_hour}) must be before end_hour (${operatingHours.end_hour})`,
-        400
+        400,
       );
     }
   }
@@ -109,7 +109,7 @@ export class GroupScheduleConfigService {
   private validateScheduleHours(
     scheduleHours: ScheduleHours,
     operatingHours?: OperatingHours | null,
-    timezone: string = 'UTC'
+    timezone: string = 'UTC',
   ): void {
     const validWeekdays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
 
@@ -129,7 +129,7 @@ export class GroupScheduleConfigService {
       }
 
       if (times.length > 20) {
-        throw new AppError(`Maximum 20 time slots allowed per weekday`, 400);
+        throw new AppError('Maximum 20 time slots allowed per weekday', 400);
       }
 
       // Check for duplicates
@@ -149,7 +149,7 @@ export class GroupScheduleConfigService {
           const tzAbbr = timezone === 'UTC' ? 'UTC' : timezone.split('/').pop() || timezone;
           throw new AppError(
             `Schedule time ${time} on ${weekday} is outside operating hours (${operatingHours.start_hour}-${operatingHours.end_hour} ${tzAbbr}). All times must be within the group's operating hours.`,
-            400
+            400,
           );
         }
       }
@@ -162,7 +162,7 @@ export class GroupScheduleConfigService {
         const diffMinutes = (nextTime.getTime() - currentTime.getTime()) / (1000 * 60);
 
         if (diffMinutes < 15) {
-          throw new AppError(`Minimum 15-minute interval required between time slots`, 400);
+          throw new AppError('Minimum 15-minute interval required between time slots', 400);
         }
       }
     }
@@ -187,10 +187,10 @@ export class GroupScheduleConfigService {
           group: {
             select: {
               id: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
 
       return config;
@@ -217,7 +217,7 @@ export class GroupScheduleConfigService {
       }
 
       const config = await this.prisma.groupScheduleConfig.findUnique({
-        where: { groupId }
+        where: { groupId },
       });
 
       if (!config) {
@@ -242,7 +242,7 @@ export class GroupScheduleConfigService {
     groupId: string,
     scheduleHours: ScheduleHours,
     userId: string,
-    timezone: string = 'UTC'
+    timezone: string = 'UTC',
   ): Promise<GroupScheduleConfig> {
     try {
       // Verify user has admin permissions for the group
@@ -258,8 +258,8 @@ export class GroupScheduleConfigService {
           id: true,
           name: true,
           timezone: true,
-          operatingHours: true
-        }
+          operatingHours: true,
+        },
       });
 
       if (!group) {
@@ -281,20 +281,20 @@ export class GroupScheduleConfigService {
         where: { groupId },
         update: {
           scheduleHours,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           groupId,
-          scheduleHours
+          scheduleHours,
         },
         include: {
           group: {
             select: {
               id: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
 
       // Log the activity
@@ -307,8 +307,8 @@ export class GroupScheduleConfigService {
         entityName: config.group.name,
         metadata: {
           configId: config.id,
-          scheduleHours
-        }
+          scheduleHours,
+        },
       });
 
       return config;
@@ -337,20 +337,20 @@ export class GroupScheduleConfigService {
         where: { groupId },
         update: {
           scheduleHours: DEFAULT_SCHEDULE_HOURS,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         },
         create: {
           groupId,
-          scheduleHours: DEFAULT_SCHEDULE_HOURS
+          scheduleHours: DEFAULT_SCHEDULE_HOURS,
         },
         include: {
           group: {
             select: {
               id: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
 
       // Log the activity
@@ -362,8 +362,8 @@ export class GroupScheduleConfigService {
         entityId: groupId,
         entityName: config.group.name,
         metadata: {
-          configId: config.id
-        }
+          configId: config.id,
+        },
       });
 
       return config;
@@ -385,24 +385,24 @@ export class GroupScheduleConfigService {
   private async validateNoConflictsWithExistingSlots(
     groupId: string,
     proposedScheduleHours: ScheduleHours,
-    _timezone: string = 'UTC'
+    _timezone: string = 'UTC',
   ): Promise<void> {
     const existingSlots = await this.prisma.scheduleSlot.findMany({
       where: {
         groupId,
         datetime: {
-          gte: new Date() // Only check future slots
-        }
+          gte: new Date(), // Only check future slots
+        },
       },
       select: {
         id: true,
         datetime: true,
         _count: {
           select: {
-            childAssignments: true
-          }
-        }
-      }
+            childAssignments: true,
+          },
+        },
+      },
     });
 
     const conflicts: string[] = [];
@@ -425,7 +425,7 @@ export class GroupScheduleConfigService {
     if (conflicts.length > 0) {
       throw new AppError(
         `Cannot remove time slots with existing bookings: ${conflicts.join(', ')}`, 
-        400
+        400,
       );
     }
   }
@@ -438,12 +438,12 @@ export class GroupScheduleConfigService {
       // Get all groups without schedule configurations
       const groupsWithoutConfig = await this.prisma.group.findMany({
         where: {
-          scheduleConfig: null
+          scheduleConfig: null,
         },
         select: {
           id: true,
-          name: true
-        }
+          name: true,
+        },
       });
 
       console.log(`Initializing required schedule configurations for ${groupsWithoutConfig.length} groups`);
@@ -452,8 +452,8 @@ export class GroupScheduleConfigService {
         await this.prisma.groupScheduleConfig.create({
           data: {
             groupId: group.id,
-            scheduleHours: DEFAULT_SCHEDULE_HOURS
-          }
+            scheduleHours: DEFAULT_SCHEDULE_HOURS,
+          },
         });
         
         console.log(`✓ Initialized configuration for group: ${group.name}`);

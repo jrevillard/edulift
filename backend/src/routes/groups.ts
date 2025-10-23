@@ -12,13 +12,13 @@ const router = Router();
 
 // Validation schemas
 const GroupParamsSchema = z.object({
-  groupId: z.string().cuid('Invalid group ID format')
+  groupId: z.string().cuid('Invalid group ID format'),
 });
 
 
 const InvitationParamsSchema = z.object({
   groupId: z.string().cuid('Invalid group ID format'),
-  invitationId: z.string().cuid('Invalid invitation ID format')
+  invitationId: z.string().cuid('Invalid invitation ID format'),
 });
 
 // Public routes (no authentication required)
@@ -47,7 +47,7 @@ router.get('/my-groups', asyncHandler(groupController.getUserGroups));
 router.get('/:groupId/families', 
   validateParams(GroupParamsSchema), 
   requireGroupMembership, 
-  asyncHandler(groupController.getFamilies)
+  asyncHandler(groupController.getFamilies),
 );
 
 // NOTE: Schedule slot creation moved to scheduleSlots.ts for better organization
@@ -61,7 +61,7 @@ router.post(
   '/:groupId/leave',
   validateParams(GroupParamsSchema),
   requireGroupMembership,
-  asyncHandler(groupController.leaveGroup)
+  asyncHandler(groupController.leaveGroup),
 );
 
 // Admin-only routes
@@ -71,10 +71,10 @@ router.patch(
   '/:groupId/families/:familyId/role',
   validateParams(z.object({
     groupId: z.string().cuid(),
-    familyId: z.string().cuid()
+    familyId: z.string().cuid(),
   })),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.updateFamilyRole)
+  asyncHandler(groupController.updateFamilyRole),
 );
 
 // Remove family from group (admin only)
@@ -82,10 +82,10 @@ router.delete(
   '/:groupId/families/:familyId',
   validateParams(z.object({
     groupId: z.string().cuid(),
-    familyId: z.string().cuid()
+    familyId: z.string().cuid(),
   })),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.removeFamilyFromGroup)
+  asyncHandler(groupController.removeFamilyFromGroup),
 );
 
 
@@ -93,14 +93,14 @@ router.delete(
 router.patch('/:groupId', 
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.updateGroup)
+  asyncHandler(groupController.updateGroup),
 );
 
 // Delete group (admin only)
 router.delete('/:groupId', 
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.deleteGroup)
+  asyncHandler(groupController.deleteGroup),
 );
 
 // Group invitation routes (admin only)
@@ -110,7 +110,7 @@ router.post(
   '/:groupId/search-families',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.searchFamilies)
+  asyncHandler(groupController.searchFamilies),
 );
 
 // Invite family to group
@@ -118,7 +118,7 @@ router.post(
   '/:groupId/invite',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.inviteFamilyToGroup)
+  asyncHandler(groupController.inviteFamilyToGroup),
 );
 
 // Get pending invitations
@@ -126,7 +126,7 @@ router.get(
   '/:groupId/invitations',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.getPendingInvitations)
+  asyncHandler(groupController.getPendingInvitations),
 );
 
 // Cancel invitation
@@ -134,47 +134,47 @@ router.delete(
   '/:groupId/invitations/:invitationId',
   validateParams(InvitationParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupController.cancelInvitation)
+  asyncHandler(groupController.cancelInvitation),
 );
 
 // Group Schedule Configuration routes
 
 // Get default schedule hours (public for authenticated users)
 router.get('/schedule-config/default', 
-  asyncHandler(groupScheduleConfigController.getDefaultScheduleHours)
+  asyncHandler(groupScheduleConfigController.getDefaultScheduleHours),
 );
 
 // Initialize default configurations for all groups (admin utility)
 router.post('/schedule-config/initialize', 
-  asyncHandler(groupScheduleConfigController.initializeDefaultConfigs)
+  asyncHandler(groupScheduleConfigController.initializeDefaultConfigs),
 );
 
 // Get group schedule configuration (group member access)
 router.get('/:groupId/schedule-config', 
   validateParams(GroupParamsSchema),
   requireGroupMembership,
-  asyncHandler(groupScheduleConfigController.getGroupScheduleConfig)
+  asyncHandler(groupScheduleConfigController.getGroupScheduleConfig),
 );
 
 // Get time slots for specific weekday (group member access)
 router.get('/:groupId/schedule-config/time-slots', 
   validateParams(GroupParamsSchema),
   requireGroupMembership,
-  asyncHandler(groupScheduleConfigController.getGroupTimeSlots)
+  asyncHandler(groupScheduleConfigController.getGroupTimeSlots),
 );
 
 // Update group schedule configuration (admin only)
 router.put('/:groupId/schedule-config', 
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupScheduleConfigController.updateGroupScheduleConfig)
+  asyncHandler(groupScheduleConfigController.updateGroupScheduleConfig),
 );
 
 // Reset group schedule configuration to default (admin only)
 router.post('/:groupId/schedule-config/reset', 
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
-  asyncHandler(groupScheduleConfigController.resetGroupScheduleConfig)
+  asyncHandler(groupScheduleConfigController.resetGroupScheduleConfig),
 );
 
 export default router;

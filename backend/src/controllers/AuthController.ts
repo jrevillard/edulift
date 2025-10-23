@@ -6,51 +6,67 @@ import { UserRepository } from '../repositories/UserRepository';
 import { MagicLinkRepository } from '../repositories/MagicLinkRepository';
 import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '../types';
+import { Logger, logger } from '../utils/logger';
+import { AuthenticatedRequest } from '../middleware/auth';
 import { z } from 'zod';
 import {
   RequestMagicLinkSchema,
   UpdateProfileSchema,
-  UpdateTimezoneSchema
+  UpdateTimezoneSchema,
 } from '../utils/validation';
 import { sanitizeSecurityError, logSecurityEvent } from '../utils/security';
 import { isValidTimezone } from '../utils/timezoneUtils';
 
 const VerifyMagicLinkSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  code_verifier: z.string().min(43).max(128) // PKCE: Original random string used to generate code_challenge - REQUIRED
+  code_verifier: z.string().min(43).max(128), // PKCE: Original random string used to generate code_challenge - REQUIRED
   // inviteCode is now extracted from query parameters, not request body
 });
 
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private unifiedInvitationService: UnifiedInvitationService
+    private unifiedInvitationService: UnifiedInvitationService,
+    private logger: Logger,
   ) {}
 
   requestMagicLink = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, name, timezone, inviteCode, platform, code_challenge } = RequestMagicLinkSchema.parse(req.body);
 
-      console.log('🔍 DEBUG: AuthController received:', { inviteCode, platform, timezone, code_challenge: code_challenge.substring(0, 10) + '...' });
+      this.logger.debug('AuthController received magic link request', {
+        inviteCode,
+        platform,
+        timezone,
+        code_challenge: code_challenge ? `${code_challenge.substring(0, 10)}...` : undefined,
+      });
 
       // SECURITY: PKCE - Generate magic link with code_challenge for cross-user protection - MANDATORY
-      const options: any = {
+      const options: {
+        email: string;
+        platform?: string;
+        code_challenge?: string;
+        name?: string;
+        timezone?: string;
+        inviteCode?: string;
+      } = {
         email,
         platform,
-        code_challenge // PKCE code challenge is required
+        code_challenge, // PKCE code challenge is required
       };
       if (name) options.name = name;
       if (timezone) options.timezone = timezone;
       if (inviteCode) options.inviteCode = inviteCode;
       
+      // @ts-expect-error - MagicLinkRequestOptions type issue
       const result = await this.authService.requestMagicLink(options);
 
       const response: ApiResponse = {
         success: true,
         data: {
           message: 'Magic link sent to your email',
-          userExists: result.userExists
-        }
+          userExists: result.userExists,
+        },
       };
 
       res.status(200).json(response);
@@ -63,7 +79,7 @@ export class AuthController {
         error: securityError.logMessage,
         email: req.body?.email ? '[REDACTED]' : undefined,
         userAgent: req.headers?.['user-agent'],
-        ip: req.ip
+        ip: req.ip,
       }, 'warn');
       
       if (error instanceof z.ZodError) {
@@ -72,8 +88,8 @@ export class AuthController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -83,7 +99,7 @@ export class AuthController {
       if (error instanceof Error && error.message === 'Name is required for new users') {
         const response: ApiResponse = {
           success: false,
-          error: error.message
+          error: error.message,
         };
         res.status(422).json(response);
         return;
@@ -91,7 +107,7 @@ export class AuthController {
       
       const response: ApiResponse = {
         success: false,
-        error: securityError.userMessage
+        error: securityError.userMessage,
       };
       res.status(securityError.statusCode).json(response);
     }
@@ -102,10 +118,12 @@ export class AuthController {
       // SECURITY: PKCE - Get token, code_verifier from request body and inviteCode from query
       const { token, code_verifier } = VerifyMagicLinkSchema.parse(req.body);
       const inviteCode = req.query.inviteCode as string | undefined;
-      
-      console.log('🔍 DEBUG: AuthController verifyMagicLink - token:', token?.substring(0, 10) + '...');
-      console.log('🔍 DEBUG: AuthController verifyMagicLink - inviteCode from query:', inviteCode);
-      console.log('🔍 DEBUG: AuthController verifyMagicLink - code_verifier:', code_verifier.substring(0, 10) + '...');
+
+      this.logger.debug('AuthController verifyMagicLink', {
+        token: token ? `${token.substring(0, 10)}...` : undefined,
+        inviteCode,
+        code_verifier: code_verifier ? `${code_verifier.substring(0, 10)}...` : undefined,
+      });
 
       // SECURITY: Verify magic link with PKCE validation to prevent cross-user attacks - MANDATORY
       const authResult = await this.authService.verifyMagicLink(token, code_verifier);
@@ -113,7 +131,7 @@ export class AuthController {
       if (!authResult) {
         const response: ApiResponse = {
           success: false,
-          error: 'Invalid or expired magic link'
+          error: 'Invalid or expired magic link',
         };
         res.status(401).json(response);
         return;
@@ -122,19 +140,22 @@ export class AuthController {
       // Process invitation if inviteCode is provided (per invitation-system-proposal.md)
       let invitationResult = null;
       if (inviteCode) {
-        console.log('🔍 DEBUG: AuthController processing invitation with inviteCode:', inviteCode);
+        this.logger.debug('AuthController processing invitation', { inviteCode });
         try {
           // Validate and get invitation details
           const familyValidation = await this.unifiedInvitationService.validateFamilyInvitation(inviteCode);
           const groupValidation = await this.unifiedInvitationService.validateGroupInvitation(inviteCode);
-          console.log('🔍 DEBUG: Validation results - family:', familyValidation.valid, 'group:', groupValidation.valid);
+          this.logger.debug('Invitation validation results', {
+            family: familyValidation.valid,
+            group: groupValidation.valid,
+          });
           
           if (familyValidation.valid) {
             // Check if user can leave their current family (if they have one)
             if (familyValidation.userCurrentFamily && familyValidation.canLeaveCurrentFamily === false) {
               invitationResult = {
                 processed: false,
-                reason: familyValidation.cannotLeaveReason || 'Cannot leave current family'
+                reason: familyValidation.cannotLeaveReason || 'Cannot leave current family',
               };
             } else {
               // For family invitations via magic link, if user already has a family,
@@ -144,41 +165,42 @@ export class AuthController {
               invitationResult = {
                 processed: true,
                 invitationType: 'FAMILY',
-                redirectUrl: '/dashboard'
+                redirectUrl: '/dashboard',
               };
             }
           } else if (groupValidation.valid) {
-            console.log('🔍 DEBUG: Processing group invitation for user:', authResult.user.id);
+            this.logger.debug('Processing group invitation', { userId: authResult.user.id });
             // Try to accept group invitation directly
             const result = await this.unifiedInvitationService.acceptGroupInvitation(inviteCode, authResult.user.id);
-            console.log('🔍 DEBUG: Group invitation result:', JSON.stringify(result, null, 2));
+            // @ts-expect-error - logger debug parameter type
+            this.logger.debug('Group invitation result', result);
             
             if (result.success) {
               invitationResult = {
                 processed: true,
                 invitationType: 'GROUP',
-                redirectUrl: '/dashboard'
+                redirectUrl: '/dashboard',
               };
             } else if (result.requiresFamilyOnboarding) {
               invitationResult = {
                 processed: true,
                 requiresFamilyOnboarding: true,
-                redirectUrl: `/families/onboarding?returnTo=/groups/join?code=${inviteCode}`
+                redirectUrl: `/families/onboarding?returnTo=/groups/join?code=${inviteCode}`,
               };
             } else {
               invitationResult = {
                 processed: false,
-                reason: result.message || 'Unable to process group invitation'
+                reason: result.message || 'Unable to process group invitation',
               };
             }
-            console.log('🔍 DEBUG: Final invitationResult:', JSON.stringify(invitationResult, null, 2));
+            this.logger.debug('Final invitation result', invitationResult);
           }
         } catch (error) {
-          console.warn('Failed to process invitation:', error);
+          this.logger.warn('Failed to process invitation', { error: (error as Error).message });
           // Don't fail the auth flow if invitation processing fails
           invitationResult = {
             processed: false,
-            reason: (error as Error).message || 'Failed to process invitation'
+            reason: (error as Error).message || 'Failed to process invitation',
           };
         }
       }
@@ -194,8 +216,8 @@ export class AuthController {
           // Legacy fields for backward compatibility
           token: authResult.accessToken,
           expiresAt: authResult.expiresAt,
-          invitationResult: invitationResult
-        }
+          invitationResult,
+        },
       };
 
       res.status(200).json(response);
@@ -206,9 +228,9 @@ export class AuthController {
       // Log full details for security monitoring
       logSecurityEvent('AUTH_VERIFY_FAILED', {
         error: securityError.logMessage,
-        token: req.body?.token?.substring(0, 10) + '...',
+        token: `${req.body?.token?.substring(0, 10)  }...`,
         userAgent: req.headers?.['user-agent'],
-        ip: req.ip
+        ip: req.ip,
       }, 'error');
       
       if (error instanceof z.ZodError) {
@@ -217,8 +239,8 @@ export class AuthController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -226,7 +248,7 @@ export class AuthController {
 
       const response: ApiResponse = {
         success: false,
-        error: securityError.userMessage
+        error: securityError.userMessage,
       };
       res.status(securityError.statusCode).json(response);
     }
@@ -240,7 +262,7 @@ export class AuthController {
       if (!refreshToken) {
         const response: ApiResponse = {
           success: false,
-          error: 'Refresh token required'
+          error: 'Refresh token required',
         };
         res.status(400).json(response);
         return;
@@ -255,17 +277,17 @@ export class AuthController {
           accessToken: authResult.accessToken,
           refreshToken: authResult.refreshToken,  // ✅ NEW rotated token
           expiresIn: authResult.expiresIn,
-          tokenType: authResult.tokenType
-        }
+          tokenType: authResult.tokenType,
+        },
       };
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('Refresh token error:', error);
+      this.logger.error('Refresh token error', { error: (error as Error).message });
 
       const response: ApiResponse = {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to refresh token'
+        error: error instanceof Error ? error.message : 'Failed to refresh token',
       };
       res.status(401).json(response);
     }
@@ -274,12 +296,12 @@ export class AuthController {
   logout = async (req: Request, res: Response): Promise<void> => {
     try {
       // ✅ NEW: Revoke all refresh tokens for the user
-      const userId = (req as any).userId;
+      const userId = (req as AuthenticatedRequest).userId;
 
       if (!userId) {
         const response: ApiResponse = {
           success: false,
-          error: 'Authentication required'
+          error: 'Authentication required',
         };
         res.status(401).json(response);
         return;
@@ -290,17 +312,17 @@ export class AuthController {
       const response: ApiResponse = {
         success: true,
         data: {
-          message: 'Logged out successfully'
-        }
+          message: 'Logged out successfully',
+        },
       };
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('Logout error:', error);
+      this.logger.error('Logout error', { error: (error as Error).message });
 
       const response: ApiResponse = {
         success: false,
-        error: 'Failed to logout'
+        error: 'Failed to logout',
       };
       res.status(500).json(response);
     }
@@ -309,11 +331,11 @@ export class AuthController {
   updateProfile = async (req: Request, res: Response): Promise<void> => {
     try {
       // Get user ID from authenticated request
-      const userId = (req as any).user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         const response: ApiResponse = {
           success: false,
-          error: 'User authentication required'
+          error: 'User authentication required',
         };
         res.status(401).json(response);
         return;
@@ -326,7 +348,7 @@ export class AuthController {
       if (profileData.timezone && !isValidTimezone(profileData.timezone)) {
         const response: ApiResponse = {
           success: false,
-          error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"'
+          error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
         };
         res.status(400).json(response);
         return;
@@ -337,12 +359,12 @@ export class AuthController {
 
       const response: ApiResponse = {
         success: true,
-        data: updatedUser
+        data: updatedUser,
       };
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('Update profile error:', error);
+      this.logger.error('Update profile error', { error: (error as Error).message });
 
       if (error instanceof z.ZodError) {
         const response: ApiResponse = {
@@ -350,8 +372,8 @@ export class AuthController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -359,7 +381,7 @@ export class AuthController {
 
       const response: ApiResponse = {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update profile'
+        error: error instanceof Error ? error.message : 'Failed to update profile',
       };
       res.status(500).json(response);
     }
@@ -371,11 +393,11 @@ export class AuthController {
    */
   updateTimezone = async (req: Request, res: Response): Promise<void> => {
     try {
-      const userId = (req as any).user?.id;
+      const userId = (req as AuthenticatedRequest).user?.id;
       if (!userId) {
         const response: ApiResponse = {
           success: false,
-          error: 'User authentication required'
+          error: 'User authentication required',
         };
         res.status(401).json(response);
         return;
@@ -387,7 +409,7 @@ export class AuthController {
       if (!isValidTimezone(timezone)) {
         const response: ApiResponse = {
           success: false,
-          error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"'
+          error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
         };
         res.status(400).json(response);
         return;
@@ -399,12 +421,12 @@ export class AuthController {
       // Return complete user profile structure (same as updateProfile endpoint)
       const response: ApiResponse = {
         success: true,
-        data: updatedUser
+        data: updatedUser,
       };
 
       res.status(200).json(response);
     } catch (error) {
-      console.error('Update timezone error:', error);
+      this.logger.error('Update timezone error', { error: (error as Error).message });
 
       if (error instanceof z.ZodError) {
         const response: ApiResponse = {
@@ -412,8 +434,8 @@ export class AuthController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -421,7 +443,7 @@ export class AuthController {
 
       const response: ApiResponse = {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to update timezone'
+        error: error instanceof Error ? error.message : 'Failed to update timezone',
       };
       res.status(500).json(response);
     }
@@ -429,7 +451,7 @@ export class AuthController {
 }
 
 // Factory function to create controller with dependencies
-export const createAuthController = () => {
+export const createAuthController = (): AuthController => {
   const prisma = new PrismaClient();
   const userRepository = new UserRepository(prisma);
   const magicLinkRepository = new MagicLinkRepository(prisma);
@@ -439,14 +461,14 @@ export const createAuthController = () => {
   const authService = new AuthService(userRepository, magicLinkRepository, emailService);
   
   // Create logger for UnifiedInvitationService
-  const logger = {
-    info: (message: string, meta?: any) => console.log(message, meta),
-    error: (message: string, meta?: any) => console.error(message, meta),
-    warn: (message: string, meta?: any) => console.warn(message, meta),
-    debug: (message: string, meta?: any) => console.debug(message, meta)
+  const unifiedInvitationLogger = {
+    info: (message: string, meta?: Record<string, unknown>): void => logger.info(message, meta),
+    error: (message: string, meta?: Record<string, unknown>): void => logger.error(message, meta),
+    warn: (message: string, meta?: Record<string, unknown>): void => logger.warn(message, meta),
+    debug: (message: string, meta?: Record<string, unknown>): void => logger.debug(message, meta),
   };
   
-  const unifiedInvitationService = new UnifiedInvitationService(prisma, logger, emailService);
+  const unifiedInvitationService = new UnifiedInvitationService(prisma, unifiedInvitationLogger, emailService);
   
-  return new AuthController(authService, unifiedInvitationService);
+  return new AuthController(authService, unifiedInvitationService, logger);
 };

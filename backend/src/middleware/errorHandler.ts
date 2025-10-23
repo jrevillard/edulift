@@ -14,7 +14,7 @@ export class AppError extends Error {
   }
 }
 
-export const createError = (message: string, statusCode: number) => {
+export const createError = (message: string, statusCode: number): AppError => {
   return new AppError(message, statusCode);
 };
 
@@ -22,8 +22,8 @@ export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  _: NextFunction
-) => {
+  _: NextFunction,
+): void => {
   let statusCode = 500;
   let message = 'Internal server error';
 
@@ -38,30 +38,32 @@ export const errorHandler = (
     stack: err.stack,
     url: req.url,
     method: req.method,
-    statusCode
+    statusCode,
   });
 
   const response: ApiResponse = {
     success: false,
     error: message,
-    statusCode
+    statusCode,
   };
 
   res.status(statusCode).json(response);
 };
 
-export const notFoundHandler = (req: Request, res: Response) => {
+export const notFoundHandler = (req: Request, res: Response): void => {
   const response: ApiResponse = {
     success: false,
     error: `Route ${req.originalUrl} not found`,
-    statusCode: 404
+    statusCode: 404,
   };
 
   res.status(404).json(response);
 };
 
-export const asyncHandler = (fn: Function) => {
+export const asyncHandler = <T extends Request = Request>(
+  fn: (req: T, res: Response, next: NextFunction) => Promise<void>,
+): (req: Request, res: Response, next: NextFunction) => void => {
   return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+    Promise.resolve(fn(req as T, res, next)).catch(next);
   };
 };

@@ -16,7 +16,7 @@ export class AuthorizationService {
       // Get user's family
       const userFamily = await this.prisma.familyMember.findFirst({
         where: { userId },
-        select: { familyId: true }
+        select: { familyId: true },
       });
 
       if (!userFamily) {
@@ -29,10 +29,10 @@ export class AuthorizationService {
         include: {
           familyMembers: {
             where: {
-              familyId: userFamily.familyId
-            }
-          }
-        }
+              familyId: userFamily.familyId,
+            },
+          },
+        },
       });
 
       if (!group) {
@@ -61,7 +61,7 @@ export class AuthorizationService {
       // Get the schedule slot and its group
       const scheduleSlot = await this.prisma.scheduleSlot.findUnique({
         where: { id: scheduleSlotId },
-        select: { groupId: true }
+        select: { groupId: true },
       });
 
       if (!scheduleSlot) {
@@ -84,8 +84,8 @@ export class AuthorizationService {
       const familyMember = await this.prisma.familyMember.findFirst({
         where: {
           userId,
-          familyId
-        }
+          familyId,
+        },
       });
 
       return !!familyMember;
@@ -104,7 +104,7 @@ export class AuthorizationService {
       // Get user's family
       const userFamily = await this.prisma.familyMember.findFirst({
         where: { userId },
-        select: { familyId: true }
+        select: { familyId: true },
       });
 
       if (!userFamily) {
@@ -118,12 +118,12 @@ export class AuthorizationService {
             { familyId: userFamily.familyId }, // Groups owned by the family
             {
               familyMembers: {
-                some: { familyId: userFamily.familyId } // Groups the family participates in
-              }
-            }
-          ]
+                some: { familyId: userFamily.familyId }, // Groups the family participates in
+              },
+            },
+          ],
         },
-        select: { id: true }
+        select: { id: true },
       });
 
       return accessibleGroups.map(group => group.id);

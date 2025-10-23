@@ -29,17 +29,17 @@ export class SocketHandler {
 
   constructor(server: HTTPServer) {
     // Initialize Socket.io with CORS configuration
-    const corsOrigins = process.env.CORS_ORIGIN === "*"
-      ? "*"
+    const corsOrigins = process.env.CORS_ORIGIN === '*'
+      ? '*'
       : process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim());
     
     this.io = new SocketIOServer(server, {
       cors: {
         origin: corsOrigins,
         methods: ['GET', 'POST'],
-        credentials: true
+        credentials: true,
       },
-      transports: ['websocket', 'polling']
+      transports: ['websocket', 'polling'],
     });
 
     // Initialize services
@@ -59,8 +59,8 @@ export class SocketHandler {
           secure: process.env.EMAIL_ENCRYPTION === 'SSL',
           auth: {
             user: process.env.EMAIL_USER!,
-            pass: process.env.EMAIL_PASSWORD!
-          }
+            pass: process.env.EMAIL_PASSWORD!,
+          },
         })
       : new MockEmailService();
     
@@ -161,7 +161,7 @@ export class SocketHandler {
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated'
+              message: 'User not authenticated',
             });
             return;
           }
@@ -171,7 +171,7 @@ export class SocketHandler {
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
-              message: 'Not authorized to access this schedule slot'
+              message: 'Not authorized to access this schedule slot',
             });
             return;
           }
@@ -193,7 +193,7 @@ export class SocketHandler {
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated'
+              message: 'User not authenticated',
             });
             return;
           }
@@ -203,7 +203,7 @@ export class SocketHandler {
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
-              message: 'Not authorized to access this group'
+              message: 'Not authorized to access this group',
             });
             return;
           }
@@ -211,7 +211,7 @@ export class SocketHandler {
           await socket.join(data.groupId);
           socket.to(data.groupId).emit(SOCKET_EVENTS.USER_JOINED, {
             userId: socket.userId,
-            groupId: data.groupId
+            groupId: data.groupId,
           });
         });
 
@@ -219,7 +219,7 @@ export class SocketHandler {
           await socket.leave(data.groupId);
           socket.to(data.groupId).emit(SOCKET_EVENTS.USER_LEFT, {
             userId: socket.userId,
-            groupId: data.groupId
+            groupId: data.groupId,
           });
         });
 
@@ -229,7 +229,7 @@ export class SocketHandler {
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated'
+              message: 'User not authenticated',
             });
             return;
           }
@@ -239,7 +239,7 @@ export class SocketHandler {
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
-              message: 'Not authorized to access this group schedule'
+              message: 'Not authorized to access this group schedule',
             });
             return;
           }
@@ -257,7 +257,7 @@ export class SocketHandler {
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated'
+              message: 'User not authenticated',
             });
             return;
           }
@@ -267,14 +267,14 @@ export class SocketHandler {
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
-              message: 'Not authorized to access this schedule slot'
+              message: 'Not authorized to access this schedule slot',
             });
             return;
           }
 
           socket.to(`scheduleSlot-${data.scheduleSlotId}`).emit(SOCKET_EVENTS.USER_TYPING, {
             userId: socket.userId,
-            scheduleSlotId: data.scheduleSlotId
+            scheduleSlotId: data.scheduleSlotId,
           });
         });
 
@@ -283,7 +283,7 @@ export class SocketHandler {
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated'
+              message: 'User not authenticated',
             });
             return;
           }
@@ -293,14 +293,14 @@ export class SocketHandler {
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
-              message: 'Not authorized to access this schedule slot'
+              message: 'Not authorized to access this schedule slot',
             });
             return;
           }
 
           socket.to(`scheduleSlot-${data.scheduleSlotId}`).emit(SOCKET_EVENTS.USER_STOPPED_TYPING, {
             userId: socket.userId,
-            scheduleSlotId: data.scheduleSlotId
+            scheduleSlotId: data.scheduleSlotId,
           });
         });
 
@@ -346,7 +346,7 @@ export class SocketHandler {
         console.error('Error in socket connection handling:', error);
         socket.emit(SOCKET_EVENTS.ERROR, {
           type: 'CONNECTION_ERROR',
-          message: 'Failed to establish connection'
+          message: 'Failed to establish connection',
         });
         socket.disconnect();
       }
@@ -370,14 +370,14 @@ export class SocketHandler {
       // Use SocketService to handle connection
       await this.socketService.handleConnection(socket, {
         userId: socket.userId,
-        groupIds
+        groupIds,
       });
 
       // Send connection success
       socket.emit(SOCKET_EVENTS.CONNECTED, {
         userId: socket.userId,
         groups: groupIds,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
     } catch (error) {
@@ -387,11 +387,11 @@ export class SocketHandler {
   }
 
   // Public methods for external use
-  public broadcastToGroup(groupId: string, event: string, data: any): void {
+  public broadcastToGroup(groupId: string, event: string, data: unknown): void {
     this.io.to(groupId).emit(event, data);
   }
 
-  public broadcastToUser(userId: string, event: string, data: any): void {
+  public broadcastToUser(userId: string, event: string, data: unknown): void {
     this.io.to(userId).emit(event, data);
   }
 

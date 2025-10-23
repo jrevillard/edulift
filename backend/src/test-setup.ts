@@ -17,7 +17,7 @@ const mockSocketHandler = {
   getConnectedUsers: jest.fn().mockReturnValue(0),
   forceDisconnectUser: jest.fn(),
   getIO: jest.fn(),
-  cleanup: jest.fn()
+  cleanup: jest.fn(),
 };
 
 // Set up global mock SocketHandler before any tests run

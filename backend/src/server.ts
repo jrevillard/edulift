@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import app from './app';
 import { SocketHandler } from './socket/socketHandler';
 import { setGlobalSocketHandler } from './utils/socketEmitter';
+import { logger } from './utils/logger';
 
 const PORT = Number(process.env.PORT) || 3001;
 
@@ -17,24 +18,25 @@ setGlobalSocketHandler(socketHandler);
 
 // Start server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-  console.log(`⚡ Socket.io enabled for real-time collaboration`);
+  logger.info(`🚀 Server running on port ${PORT}`, {
+    environment: process.env.NODE_ENV || 'development',
+    healthCheck: `http://localhost:${PORT}/health`,
+    socketEnabled: true,
+  });
 });
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully');
   server.close(() => {
-    console.log('Process terminated');
+    logger.info('Process terminated');
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  logger.info('SIGINT received, shutting down gracefully');
   server.close(() => {
-    console.log('Process terminated');
+    logger.info('Process terminated');
   });
 });
 

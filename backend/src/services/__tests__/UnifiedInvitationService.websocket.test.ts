@@ -1,4 +1,5 @@
 // @ts-nocheck
+/* tslint:disable */
 import { jest } from '@jest/globals';
 
 // Mock Prisma with explicit typing to avoid inference issues
@@ -39,19 +40,19 @@ const FamilyInvitationStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
   CANCELLED: 'CANCELLED',
-  EXPIRED: 'EXPIRED'
+  EXPIRED: 'EXPIRED',
 };
 
 const GroupInvitationStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
   CANCELLED: 'CANCELLED',
-  EXPIRED: 'EXPIRED'
+  EXPIRED: 'EXPIRED',
 };
 
 const FamilyRole = {
   ADMIN: 'ADMIN',
-  MEMBER: 'MEMBER'
+  MEMBER: 'MEMBER',
 };
 
 jest.mock('@prisma/client', () => ({
@@ -68,7 +69,7 @@ jest.mock('../../utils/socketEmitter', () => ({
   setGlobalSocketHandler: jest.fn(),
   getGlobalSocketHandler: jest.fn(() => mockSocketHandler),
   SocketEmitter: {
-    broadcastFamilyUpdate: jest.fn((...args: any[]) => mockSocketEmitter.broadcastFamilyUpdate(...args)),
+    broadcastFamilyUpdate: jest.fn((...args: unknown[]) => mockSocketEmitter.broadcastFamilyUpdate(...args)),
     broadcastGroupUpdate: jest.fn(),
     broadcastScheduleUpdate: jest.fn(),
     broadcastChildUpdate: jest.fn(),
@@ -115,14 +116,14 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() + 86400000), // 24 hours from now
         family: {
           id: familyId,
-          name: 'Test Family'
-        }
+          name: 'Test Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
       const mockFamily = {
@@ -130,16 +131,16 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         name: 'Test Family',
         members: [{ userId, role: 'MEMBER' }],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const txMock = {
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockInvitation),
             update: jest.fn().mockResolvedValue({
               ...mockInvitation,
-              status: 'ACCEPTED'
+              status: 'ACCEPTED',
             }),
           },
           user: {
@@ -150,12 +151,12 @@ describe('UnifiedInvitationService WebSocket Events', () => {
             create: jest.fn().mockResolvedValue({
               userId,
               familyId,
-              role: 'MEMBER'
+              role: 'MEMBER',
             }),
           },
           family: {
             findUnique: jest.fn().mockResolvedValue(mockFamily),
-          }
+          },
         } as any;
         return await callback(txMock);
       });
@@ -170,8 +171,8 @@ describe('UnifiedInvitationService WebSocket Events', () => {
           userId,
           action: 'invitationAccepted',
           invitationId: mockInvitation.id,
-          role: 'MEMBER'
-        })
+          role: 'MEMBER',
+        }),
       );
     });
 
@@ -190,21 +191,21 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() + 86400000),
         family: {
           id: newFamilyId,
-          name: 'New Family'
-        }
+          name: 'New Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
       const mockExistingMembership = {
         id: 'membership-456',
         userId,
         familyId: oldFamilyId,
-        role: 'MEMBER'
+        role: 'MEMBER',
       };
 
       const mockNewFamily = {
@@ -212,16 +213,16 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         name: 'New Family',
         members: [{ userId, role: 'MEMBER' }],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockInvitation),
             update: jest.fn().mockResolvedValue({
               ...mockInvitation,
-              status: 'ACCEPTED'
+              status: 'ACCEPTED',
             }),
           },
           user: {
@@ -233,20 +234,20 @@ describe('UnifiedInvitationService WebSocket Events', () => {
             create: jest.fn().mockResolvedValue({
               userId,
               familyId: newFamilyId,
-              role: 'MEMBER'
+              role: 'MEMBER',
             }),
             count: jest.fn().mockResolvedValue(2), // Not last admin
           },
           family: {
             findUnique: jest.fn().mockResolvedValue(mockNewFamily),
-          }
+          },
         }) as any;
       });
 
       const result = await invitationService.acceptFamilyInvitation(
         inviteCode, 
         userId, 
-        { leaveCurrentFamily: true }
+        { leaveCurrentFamily: true },
       );
 
       expect(result.success).toBe(true);
@@ -261,8 +262,8 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expect.objectContaining({
           userId,
           action: 'leftForNewFamily',
-          leftTo: newFamilyId
-        })
+          leftTo: newFamilyId,
+        }),
       );
 
       expect(mockSocketEmitter.broadcastFamilyUpdate).toHaveBeenNthCalledWith(
@@ -273,8 +274,8 @@ describe('UnifiedInvitationService WebSocket Events', () => {
           userId,
           action: 'invitationAccepted',
           invitationId: mockInvitation.id,
-          role: 'MEMBER'
-        })
+          role: 'MEMBER',
+        }),
       );
     });
 
@@ -282,7 +283,7 @@ describe('UnifiedInvitationService WebSocket Events', () => {
       const inviteCode = 'invalid-invite';
       const userId = 'user-456';
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(null), // No invitation found
@@ -316,17 +317,17 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() - 86400000), // Expired 24 hours ago
         family: {
           id: 'family-789',
-          name: 'Test Family'
-        }
+          name: 'Test Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockExpiredInvitation),
@@ -362,24 +363,24 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() + 86400000),
         family: {
           id: newFamilyId,
-          name: 'New Family'
-        }
+          name: 'New Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
       const mockExistingMembership = {
         id: 'membership-456',
         userId,
         familyId: currentFamilyId,
-        role: 'ADMIN'
+        role: 'ADMIN',
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -397,7 +398,7 @@ describe('UnifiedInvitationService WebSocket Events', () => {
       const result = await invitationService.acceptFamilyInvitation(
         inviteCode, 
         userId, 
-        { leaveCurrentFamily: true }
+        { leaveCurrentFamily: true },
       );
 
       expect(result.success).toBe(false);
@@ -423,14 +424,14 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() + 86400000),
         family: {
           id: familyId,
-          name: 'Test Family'
-        }
+          name: 'Test Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
       const mockFamily = {
@@ -438,16 +439,16 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         name: 'Test Family',
         members: [{ userId, role }],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockInvitation),
             update: jest.fn().mockResolvedValue({
               ...mockInvitation,
-              status: 'ACCEPTED'
+              status: 'ACCEPTED',
             }),
           },
           user: {
@@ -458,12 +459,12 @@ describe('UnifiedInvitationService WebSocket Events', () => {
             create: jest.fn().mockResolvedValue({
               userId,
               familyId,
-              role
+              role,
             }),
           },
           family: {
             findUnique: jest.fn().mockResolvedValue(mockFamily),
-          }
+          },
         }) as any;
       });
 
@@ -476,8 +477,8 @@ describe('UnifiedInvitationService WebSocket Events', () => {
           userId,
           action: 'invitationAccepted',
           invitationId,
-          role
-        }
+          role,
+        },
       );
     });
 
@@ -496,21 +497,21 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() + 86400000),
         family: {
           id: newFamilyId,
-          name: 'New Family'
-        }
+          name: 'New Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
       const mockExistingMembership = {
         id: 'membership-456',
         userId,
         familyId: oldFamilyId,
-        role: 'MEMBER'
+        role: 'MEMBER',
       };
 
       const mockNewFamily = {
@@ -518,16 +519,16 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         name: 'New Family',
         members: [{ userId, role: 'MEMBER' }],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockInvitation),
             update: jest.fn().mockResolvedValue({
               ...mockInvitation,
-              status: 'ACCEPTED'
+              status: 'ACCEPTED',
             }),
           },
           user: {
@@ -539,20 +540,20 @@ describe('UnifiedInvitationService WebSocket Events', () => {
             create: jest.fn().mockResolvedValue({
               userId,
               familyId: newFamilyId,
-              role: 'MEMBER'
+              role: 'MEMBER',
             }),
             count: jest.fn().mockResolvedValue(2),
           },
           family: {
             findUnique: jest.fn().mockResolvedValue(mockNewFamily),
-          }
+          },
         }) as any;
       });
 
       await invitationService.acceptFamilyInvitation(
         inviteCode, 
         userId, 
-        { leaveCurrentFamily: true }
+        { leaveCurrentFamily: true },
       );
 
       expect(mockSocketEmitter.broadcastFamilyUpdate).toHaveBeenNthCalledWith(
@@ -562,8 +563,8 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         {
           userId,
           action: 'leftForNewFamily',
-          leftTo: newFamilyId
-        }
+          leftTo: newFamilyId,
+        },
       );
     });
   });
@@ -585,14 +586,14 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         expiresAt: new Date(Date.now() + 86400000),
         family: {
           id: familyId,
-          name: 'Test Family'
-        }
+          name: 'Test Family',
+        },
       };
 
       const mockUser = {
         id: userId,
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       };
 
       const mockFamily = {
@@ -600,16 +601,16 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         name: 'Test Family',
         members: [{ userId, role: 'MEMBER' }],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         return await callback({
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(mockInvitation),
             update: jest.fn().mockResolvedValue({
               ...mockInvitation,
-              status: 'ACCEPTED'
+              status: 'ACCEPTED',
             }),
           },
           user: {
@@ -620,12 +621,12 @@ describe('UnifiedInvitationService WebSocket Events', () => {
             create: jest.fn().mockResolvedValue({
               userId,
               familyId,
-              role: 'MEMBER'
+              role: 'MEMBER',
             }),
           },
           family: {
             findUnique: jest.fn().mockResolvedValue(mockFamily),
-          }
+          },
         }) as any;
       });
 

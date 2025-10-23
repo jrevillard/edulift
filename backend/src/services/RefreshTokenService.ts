@@ -67,7 +67,7 @@ export class RefreshTokenService {
 
     // Fetch token from database
     const refreshToken = await prisma.refreshToken.findUnique({
-      where: { token: hashedToken }
+      where: { token: hashedToken },
     });
 
     // Validation checks
@@ -97,14 +97,14 @@ export class RefreshTokenService {
     // Mark token as used (for reuse detection)
     await prisma.refreshToken.update({
       where: { id: refreshToken.id },
-      data: { usedAt: new Date() }
+      data: { usedAt: new Date() },
     });
 
     // Generate NEW refresh token (rotation for security)
     // Pass the tokenFamily to link the new token with the old one
     const { token: newToken, expiresAt } = await this.generateRefreshToken(
       refreshToken.userId,
-      refreshToken.tokenFamily // ✅ Inherit token family for reuse detection
+      refreshToken.tokenFamily, // ✅ Inherit token family for reuse detection
     );
 
     // After successful rotation, revoke the old token
@@ -112,7 +112,7 @@ export class RefreshTokenService {
     // it will have usedAt set (caught at line 82), not isRevoked
     await prisma.refreshToken.update({
       where: { id: refreshToken.id },
-      data: { isRevoked: true }
+      data: { isRevoked: true },
     });
 
     return {
@@ -129,7 +129,7 @@ export class RefreshTokenService {
   private async revokeTokenFamily(tokenFamily: string): Promise<void> {
     await prisma.refreshToken.updateMany({
       where: { tokenFamily },
-      data: { isRevoked: true }
+      data: { isRevoked: true },
     });
   }
 
@@ -140,7 +140,7 @@ export class RefreshTokenService {
   public async revokeAllUserTokens(userId: string): Promise<void> {
     await prisma.refreshToken.updateMany({
       where: { userId },
-      data: { isRevoked: true }
+      data: { isRevoked: true },
     });
   }
 
@@ -154,8 +154,8 @@ export class RefreshTokenService {
 
     const result = await prisma.refreshToken.deleteMany({
       where: {
-        expiresAt: { lt: cutoffDate }
-      }
+        expiresAt: { lt: cutoffDate },
+      },
     });
 
     return result.count;

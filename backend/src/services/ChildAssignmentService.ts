@@ -30,11 +30,11 @@ export class ChildAssignmentService {
           family: {
             include: {
               members: {
-                where: { userId }
-              }
-            }
-          }
-        }
+                where: { userId },
+              },
+            },
+          },
+        },
       });
 
       if (!child || !child.family || child.family.members.length === 0) {
@@ -44,7 +44,7 @@ export class ChildAssignmentService {
       // 2. Verify user's family has group access
       const userFamily = await this.prisma.familyMember.findFirst({
         where: { userId },
-        select: { familyId: true }
+        select: { familyId: true },
       });
 
       if (!userFamily) {
@@ -58,11 +58,11 @@ export class ChildAssignmentService {
             { familyId: userFamily.familyId }, // User's family owns the group
             {
               familyMembers: {
-                some: { familyId: userFamily.familyId } // User's family is a member
-              }
-            }
-          ]
-        }
+                some: { familyId: userFamily.familyId }, // User's family is a member
+              },
+            },
+          ],
+        },
       });
 
       if (!group) {
@@ -74,9 +74,9 @@ export class ChildAssignmentService {
         where: {
           childId_groupId: {
             childId,
-            groupId
-          }
-        }
+            groupId,
+          },
+        },
       });
 
       if (existingMembership) {
@@ -88,12 +88,12 @@ export class ChildAssignmentService {
         data: {
           childId,
           groupId,
-          addedBy: userId
+          addedBy: userId,
         },
         include: {
           child: true,
-          group: true
-        }
+          group: true,
+        },
       });
 
       // Log the activity
@@ -126,11 +126,11 @@ export class ChildAssignmentService {
           family: {
             include: {
               members: {
-                where: { userId }
-              }
-            }
-          }
-        }
+                where: { userId },
+              },
+            },
+          },
+        },
       });
 
       if (!child || !child.family || child.family.members.length === 0) {
@@ -142,9 +142,9 @@ export class ChildAssignmentService {
         where: {
           childId_groupId: {
             childId,
-            groupId
-          }
-        }
+            groupId,
+          },
+        },
       });
 
       return { success: true };
@@ -170,16 +170,16 @@ export class ChildAssignmentService {
                 family: {
                   include: {
                     members: {
-                      where: { userId }
-                    }
-                  }
-                }
-              }
+                      where: { userId },
+                    },
+                  },
+                },
+              },
             }),
             tx.user.findUnique({
               where: { id: userId },
-              select: { timezone: true }
-            })
+              select: { timezone: true },
+            }),
           ]);
 
           if (!child || !child.family || child.family.members.length === 0) {
@@ -188,7 +188,7 @@ export class ChildAssignmentService {
 
           // 2. Get schedule slot and verify group membership
           const scheduleSlot = await tx.scheduleSlot.findUnique({
-            where: { id: scheduleSlotId }
+            where: { id: scheduleSlotId },
           });
 
           if (!scheduleSlot) {
@@ -204,7 +204,7 @@ export class ChildAssignmentService {
           // Verify user's family has group access
           const userFamily = await tx.familyMember.findFirst({
             where: { userId },
-            select: { familyId: true }
+            select: { familyId: true },
           });
 
           if (!userFamily) {
@@ -218,11 +218,11 @@ export class ChildAssignmentService {
                 { familyId: userFamily.familyId }, // User's family owns the group
                 {
                   familyMembers: {
-                    some: { familyId: userFamily.familyId } // User's family is a member
-                  }
-                }
-              ]
-            }
+                    some: { familyId: userFamily.familyId }, // User's family is a member
+                  },
+                },
+              ],
+            },
           });
 
           if (!group) {
@@ -234,10 +234,10 @@ export class ChildAssignmentService {
             where: { id: vehicleAssignmentId },
             include: {
               vehicle: {
-                select: { id: true, name: true, capacity: true }
+                select: { id: true, name: true, capacity: true },
               },
-              childAssignments: true
-            }
+              childAssignments: true,
+            },
           });
 
           if (!vehicleAssignment || vehicleAssignment.scheduleSlotId !== scheduleSlotId) {
@@ -252,7 +252,7 @@ export class ChildAssignmentService {
           if (currentOccupancy >= effectiveCapacity) {
             throw new AppError(
               `Vehicle ${vehicleAssignment.vehicle.name} is at full capacity (${currentOccupancy}/${effectiveCapacity})`,
-              409 // Status code for conflict
+              409, // Status code for conflict
             );
           }
 
@@ -261,9 +261,9 @@ export class ChildAssignmentService {
             where: {
               scheduleSlotId_childId: {
                 scheduleSlotId,
-                childId
-              }
-            }
+                childId,
+              },
+            },
           });
 
           if (existingAssignment) {
@@ -275,15 +275,15 @@ export class ChildAssignmentService {
             data: {
               scheduleSlotId,
               childId,
-              vehicleAssignmentId
+              vehicleAssignmentId,
             },
             include: {
               child: true,
               scheduleSlot: true,
               vehicleAssignment: {
-                include: { vehicle: true }
-              }
-            }
+                include: { vehicle: true },
+              },
+            },
           });
 
           return assignment;
@@ -292,7 +292,7 @@ export class ChildAssignmentService {
           // ✅ SERIALIZABLE = Maximum isolation - prevents race conditions
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
           timeout: 10000, // 10s timeout to avoid deadlocks
-        }
+        },
       );
     } catch (error) {
       if (error instanceof AppError) {
@@ -315,11 +315,11 @@ export class ChildAssignmentService {
               family: {
                 include: {
                   members: {
-                    where: { userId }
-                  }
-                }
-              }
-            }
+                    where: { userId },
+                  },
+                },
+              },
+            },
           });
 
           if (!child || !child.family || child.family.members.length === 0) {
@@ -331,9 +331,9 @@ export class ChildAssignmentService {
             where: {
               scheduleSlotId_childId: {
                 scheduleSlotId,
-                childId
-              }
-            }
+                childId,
+              },
+            },
           });
 
           return { success: true };
@@ -341,7 +341,7 @@ export class ChildAssignmentService {
         {
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
           timeout: 10000,
-        }
+        },
       );
     } catch (error) {
       if (error instanceof AppError) {
@@ -356,7 +356,7 @@ export class ChildAssignmentService {
     try {
       // Get schedule slot
       const scheduleSlot = await this.prisma.scheduleSlot.findUnique({
-        where: { id: scheduleSlotId }
+        where: { id: scheduleSlotId },
       });
 
       if (!scheduleSlot) {
@@ -368,31 +368,31 @@ export class ChildAssignmentService {
         where: {
           family: {
             members: {
-              some: { userId }
-            }
+              some: { userId },
+            },
           },
           groupMemberships: {
             some: {
-              groupId: scheduleSlot.groupId
-            }
-          }
+              groupId: scheduleSlot.groupId,
+            },
+          },
         },
         include: {
-          groupMemberships: true
-        }
+          groupMemberships: true,
+        },
       });
 
       // Get already assigned children
       const assignedChildren = await this.prisma.scheduleSlotChild.findMany({
         where: { scheduleSlotId },
-        select: { childId: true }
+        select: { childId: true },
       });
 
       const assignedChildIds = assignedChildren.map(a => a.childId);
 
       // Filter out already assigned children
       const availableChildren = children.filter(
-        child => !assignedChildIds.includes(child.id)
+        child => !assignedChildIds.includes(child.id),
       );
 
       return availableChildren;
@@ -414,11 +414,11 @@ export class ChildAssignmentService {
           family: {
             include: {
               members: {
-                where: { userId }
-              }
-            }
-          }
-        }
+                where: { userId },
+              },
+            },
+          },
+        },
       });
 
       if (!child || !child.family || child.family.members.length === 0) {
@@ -429,9 +429,9 @@ export class ChildAssignmentService {
         where: { childId },
         include: {
           group: {
-            select: { id: true, name: true }
-          }
-        }
+            select: { id: true, name: true },
+          },
+        },
       });
 
       return memberships;

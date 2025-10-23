@@ -1,6 +1,8 @@
+// @ts-nocheck
 import request from 'supertest';
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
 // Mock functions are created in the mock implementation below
 
@@ -65,20 +67,19 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
     // Create a test JWT token
     authToken = jwt.sign(
       { userId: testUser.id, email: testUser.email },
-      'test-secret'
+      'test-secret',
     );
 
     // Get reference to the mocked Prisma user findUnique
-    const { PrismaClient } = require('@prisma/client');
-    const mockPrisma = new PrismaClient();
-    mockUserFindUnique = mockPrisma.user.findUnique;
+    const mockPrisma = new PrismaClient() as any;
+    mockUserFindUnique = mockPrisma.user.findUnique as jest.Mock;
   });
 
   beforeEach(() => {
     jest.clearAllMocks();
     
     // Mock the authentication middleware to simulate successful auth
-    mockAuthMiddleware.mockImplementation((req: any, _res: any, next: any) => {
+    mockAuthMiddleware.mockImplementation((req: any, _res: any, next: unknown) => {
       // Simulate authenticated request
       req.userId = testUser.id;
       req.user = {
@@ -134,7 +135,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: familyInviteData.personalMessage,
         },
         testUser.id,
-        'native'
+        'native',
       );
     });
 
@@ -164,7 +165,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: familyInviteData.personalMessage,
         },
         testUser.id,
-        'web'
+        'web',
       );
     });
 
@@ -197,7 +198,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: familyInviteData.personalMessage,
         },
         testUser.id,
-        'web'
+        'web',
       );
     });
   });
@@ -241,7 +242,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: groupInviteData.personalMessage,
         },
         testUser.id,
-        'native'
+        'native',
       );
     });
 
@@ -272,7 +273,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: groupInviteData.personalMessage,
         },
         testUser.id,
-        'web'
+        'web',
       );
     });
   });

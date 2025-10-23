@@ -5,7 +5,7 @@ import {
   getDateFromISOWeek,
   getWeekBoundaries,
   formatISOWeek,
-  isSameISOWeek
+  isSameISOWeek,
 } from '../isoWeekUtils';
 
 describe('ISO Week Utilities - Timezone Aware', () => {
@@ -122,7 +122,7 @@ describe('ISO Week Utilities - Timezone Aware', () => {
 
       const expected = DateTime.fromObject(
         { year: 2024, month: 1, day: 1, hour: 0, minute: 0 },
-        { zone: 'Europe/Paris' }
+        { zone: 'Europe/Paris' },
       ).toUTC().toJSDate();
 
       expect(date.toISOString()).toBe(expected.toISOString());
@@ -135,7 +135,7 @@ describe('ISO Week Utilities - Timezone Aware', () => {
 
       const expected = DateTime.fromObject(
         { year: 2024, month: 1, day: 1, hour: 0, minute: 0 },
-        { zone: 'Asia/Tokyo' }
+        { zone: 'Asia/Tokyo' },
       ).toUTC().toJSDate();
 
       expect(date.toISOString()).toBe(expected.toISOString());
@@ -148,7 +148,7 @@ describe('ISO Week Utilities - Timezone Aware', () => {
 
       const expected = DateTime.fromObject(
         { year: 2023, month: 12, day: 25, hour: 0, minute: 0 },
-        { zone: 'America/Los_Angeles' }
+        { zone: 'America/Los_Angeles' },
       ).toUTC().toJSDate();
 
       expect(date.toISOString()).toBe(expected.toISOString());
@@ -161,7 +161,7 @@ describe('ISO Week Utilities - Timezone Aware', () => {
       // Week 11 starts on Monday 2024-03-11
       const expected = DateTime.fromObject(
         { year: 2024, month: 3, day: 11, hour: 0, minute: 0 },
-        { zone: 'America/New_York' }
+        { zone: 'America/New_York' },
       ).toUTC().toJSDate();
 
       expect(date.toISOString()).toBe(expected.toISOString());
@@ -193,13 +193,13 @@ describe('ISO Week Utilities - Timezone Aware', () => {
       // Week should start on Monday 2024-01-01 00:00 CET
       const expectedStart = DateTime.fromObject(
         { year: 2024, month: 1, day: 1, hour: 0, minute: 0 },
-        { zone: 'Europe/Paris' }
+        { zone: 'Europe/Paris' },
       ).toUTC().toJSDate();
 
       // Week should end on Sunday 2024-01-07 23:59:59.999 CET
       const expectedEnd = DateTime.fromObject(
         { year: 2024, month: 1, day: 7, hour: 23, minute: 59, second: 59, millisecond: 999 },
-        { zone: 'Europe/Paris' }
+        { zone: 'Europe/Paris' },
       ).toUTC().toJSDate();
 
       expect(boundaries.weekStart.toISOString()).toBe(expectedStart.toISOString());
@@ -214,13 +214,13 @@ describe('ISO Week Utilities - Timezone Aware', () => {
       // Week should start on Monday 2024-12-30 00:00 JST
       const expectedStart = DateTime.fromObject(
         { year: 2024, month: 12, day: 30, hour: 0, minute: 0 },
-        { zone: 'Asia/Tokyo' }
+        { zone: 'Asia/Tokyo' },
       ).toUTC().toJSDate();
 
       // Week should end on Sunday 2025-01-05 23:59:59.999 JST
       const expectedEnd = DateTime.fromObject(
         { year: 2025, month: 1, day: 5, hour: 23, minute: 59, second: 59, millisecond: 999 },
-        { zone: 'Asia/Tokyo' }
+        { zone: 'Asia/Tokyo' },
       ).toUTC().toJSDate();
 
       expect(boundaries.weekStart.toISOString()).toBe(expectedStart.toISOString());
@@ -235,13 +235,13 @@ describe('ISO Week Utilities - Timezone Aware', () => {
       // Week should start on Monday 2023-12-25 00:00 PST (Week 52)
       const expectedStart = DateTime.fromObject(
         { year: 2023, month: 12, day: 25, hour: 0, minute: 0 },
-        { zone: 'America/Los_Angeles' }
+        { zone: 'America/Los_Angeles' },
       ).toUTC().toJSDate();
 
       // Week should end on Sunday 2023-12-31 23:59:59.999 PST
       const expectedEnd = DateTime.fromObject(
         { year: 2023, month: 12, day: 31, hour: 23, minute: 59, second: 59, millisecond: 999 },
-        { zone: 'America/Los_Angeles' }
+        { zone: 'America/Los_Angeles' },
       ).toUTC().toJSDate();
 
       expect(boundaries.weekStart.toISOString()).toBe(expectedStart.toISOString());

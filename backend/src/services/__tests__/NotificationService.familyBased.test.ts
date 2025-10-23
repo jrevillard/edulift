@@ -12,7 +12,7 @@ const mockEmailService = {
   sendDailyReminder: jest.fn().mockResolvedValue(undefined),
   sendWeeklySchedule: jest.fn().mockResolvedValue(undefined),
   sendFamilyInvitation: jest.fn().mockResolvedValue(undefined),
-  verifyConnection: jest.fn().mockResolvedValue(true)
+  verifyConnection: jest.fn().mockResolvedValue(true),
 };
 
 const mockUserRepository = {
@@ -23,7 +23,7 @@ const mockUserRepository = {
   delete: jest.fn(),
   // TODO: Replace getGroupMembers with family-based notifications
   getGroupMembers: jest.fn(),
-  getGroupById: jest.fn()
+  getGroupById: jest.fn(),
 } as unknown as UserRepository;
 
 const mockScheduleSlotRepository = {
@@ -31,16 +31,16 @@ const mockScheduleSlotRepository = {
   findConflictingSlotsForParentByDateTime: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
-  delete: jest.fn()
+  delete: jest.fn(),
 } as unknown as ScheduleSlotRepository;
 
 const mockPrisma = {
   child: {
-    findUnique: jest.fn()
+    findUnique: jest.fn(),
   },
   vehicle: {
-    findUnique: jest.fn()
-  }
+    findUnique: jest.fn(),
+  },
 } as unknown as PrismaClient;
 
 describe('NotificationService - Family Based Notifications', () => {
@@ -53,7 +53,7 @@ describe('NotificationService - Family Based Notifications', () => {
       mockEmailService,
       mockUserRepository,
       mockScheduleSlotRepository,
-      mockPrisma
+      mockPrisma,
     );
   });
 
@@ -67,25 +67,25 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
-          }
+            child: { id: 'child-1', name: 'Alice' },
+          },
         ],
-        vehicleAssignments: []
+        vehicleAssignments: [],
       };
 
       const mockGroupMembers = [
         {
           userId: 'user-1',
-          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' }
+          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' },
         },
         {
           userId: 'user-2', 
-          user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' }
-        }
+          user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' },
+        },
       ];
 
       const mockChildWithFamily = {
@@ -95,9 +95,9 @@ describe('NotificationService - Family Based Notifications', () => {
           id: 'family-1',
           members: [
             { userId: 'user-1' },
-            { userId: 'user-2' }
-          ]
-        }
+            { userId: 'user-2' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -115,29 +115,29 @@ describe('NotificationService - Family Based Notifications', () => {
           family: {
             include: {
               members: {
-                select: { userId: true }
-              }
-            }
-          }
-        }
+                select: { userId: true },
+              },
+            },
+          },
+        },
       });
 
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
         expect.objectContaining({
           changeType: 'VEHICLE_ASSIGNED',
-          assignedChildren: ['Alice']
+          assignedChildren: ['Alice'],
         }),
-        'web'
+        'web',
       );
 
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent2@example.com',
         expect.objectContaining({
           changeType: 'VEHICLE_ASSIGNED',
-          assignedChildren: ['Alice']
+          assignedChildren: ['Alice'],
         }),
-        'web'
+        'web',
       );
     });
 
@@ -149,42 +149,42 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
-          }
+            child: { id: 'child-1', name: 'Alice' },
+          },
         ],
         vehicleAssignments: [
           {
             vehicle: {
               id: 'vehicle-1',
               name: 'Test Vehicle',
-              capacity: 4
+              capacity: 4,
             },
-            driver: { id: 'driver-1', name: 'Driver' }
-          }
-        ]
+            driver: { id: 'driver-1', name: 'Driver' },
+          },
+        ],
       };
 
       const mockGroupMembers = [
         {
           userId: 'user-1',
-          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' }
+          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' },
         },
         {
           userId: 'user-2',
-          user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' }
+          user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' },
         },
         {
           userId: 'driver-1',
-          user: { id: 'driver-1', email: 'driver@example.com', name: 'Driver' }
+          user: { id: 'driver-1', email: 'driver@example.com', name: 'Driver' },
         },
         {
           userId: 'other-user',
-          user: { id: 'other-user', email: 'other@example.com', name: 'Other User' }
-        }
+          user: { id: 'other-user', email: 'other@example.com', name: 'Other User' },
+        },
       ];
 
       const mockChildWithFamily = {
@@ -194,9 +194,9 @@ describe('NotificationService - Family Based Notifications', () => {
           id: 'family-1',
           members: [
             { userId: 'user-1' },
-            { userId: 'user-2' }
-          ]
-        }
+            { userId: 'user-2' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -212,22 +212,22 @@ describe('NotificationService - Family Based Notifications', () => {
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent2@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'driver@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
       expect(mockEmailService.sendScheduleSlotNotification).not.toHaveBeenCalledWith(
         'other@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
     });
   });
@@ -241,21 +241,21 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
-          }
+            child: { id: 'child-1', name: 'Alice' },
+          },
         ],
-        vehicleAssignments: []
+        vehicleAssignments: [],
       };
 
       const mockGroupMembers = [
         {
           userId: 'user-1',
-          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' }
-        }
+          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' },
+        },
       ];
 
       const mockChildWithFamily = {
@@ -264,9 +264,9 @@ describe('NotificationService - Family Based Notifications', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1' }
-          ]
-        }
+            { userId: 'user-1' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -282,9 +282,9 @@ describe('NotificationService - Family Based Notifications', () => {
         'parent1@example.com',
         expect.objectContaining({
           changeType: 'CHILD_ADDED',
-          assignedChildren: ['Alice']
+          assignedChildren: ['Alice'],
         }),
-        'web'
+        'web',
       );
     });
 
@@ -296,32 +296,32 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
+            child: { id: 'child-1', name: 'Alice' },
           },
           {
-            child: { id: 'child-2', name: 'Bob' }
-          }
+            child: { id: 'child-2', name: 'Bob' },
+          },
         ],
-        vehicleAssignments: []
+        vehicleAssignments: [],
       };
 
       const mockGroupMembers = [
         {
           userId: 'user-1',
-          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' }
+          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' },
         },
         {
           userId: 'user-2',
-          user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' }
+          user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' },
         },
         {
           userId: 'user-3',
-          user: { id: 'user-3', email: 'parent3@example.com', name: 'Parent 3' }
-        }
+          user: { id: 'user-3', email: 'parent3@example.com', name: 'Parent 3' },
+        },
       ];
 
       // Setup mocks for different children from different families
@@ -334,9 +334,9 @@ describe('NotificationService - Family Based Notifications', () => {
             id: 'family-1',
             members: [
               { userId: 'user-1' },
-              { userId: 'user-2' }
-            ]
-          }
+              { userId: 'user-2' },
+            ],
+          },
         })
         .mockResolvedValueOnce({
           id: 'child-2',
@@ -344,9 +344,9 @@ describe('NotificationService - Family Based Notifications', () => {
           family: {
             id: 'family-2',
             members: [
-              { userId: 'user-3' }
-            ]
-          }
+              { userId: 'user-3' },
+            ],
+          },
         });
       (mockUserRepository.getGroupMembers as jest.Mock).mockResolvedValue(mockGroupMembers);
 
@@ -358,17 +358,17 @@ describe('NotificationService - Family Based Notifications', () => {
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent2@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent3@example.com',
         expect.anything(),
-        'web'
+        'web',
       );
     });
   });
@@ -382,34 +382,34 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
-          }
+            child: { id: 'child-1', name: 'Alice' },
+          },
         ],
         vehicleAssignments: [
           {
             vehicle: {
               id: 'vehicle-1',
               name: 'Test Vehicle',
-              capacity: 4
+              capacity: 4,
             },
-            driver: { id: 'driver-1', name: 'Driver' }
-          }
-        ]
+            driver: { id: 'driver-1', name: 'Driver' },
+          },
+        ],
       };
 
       const mockGroupMembers = [
         {
           userId: 'user-1',
-          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' }
+          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' },
         },
         {
           userId: 'driver-1',
-          user: { id: 'driver-1', email: 'driver@example.com', name: 'Driver' }
-        }
+          user: { id: 'driver-1', email: 'driver@example.com', name: 'Driver' },
+        },
       ];
 
       const mockChildWithFamily = {
@@ -418,9 +418,9 @@ describe('NotificationService - Family Based Notifications', () => {
         family: {
           id: 'family-1',
           members: [
-            { userId: 'user-1' }
-          ]
-        }
+            { userId: 'user-1' },
+          ],
+        },
       };
 
       // Setup mocks
@@ -436,16 +436,16 @@ describe('NotificationService - Family Based Notifications', () => {
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
         expect.objectContaining({
-          changeType: 'SLOT_CANCELLED'
+          changeType: 'SLOT_CANCELLED',
         }),
-        'web'
+        'web',
       );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'driver@example.com',
         expect.objectContaining({
-          changeType: 'SLOT_CANCELLED'
+          changeType: 'SLOT_CANCELLED',
         }),
-        'web'
+        'web',
       );
     });
   });
@@ -459,21 +459,21 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
-          }
+            child: { id: 'child-1', name: 'Alice' },
+          },
         ],
-        vehicleAssignments: []
+        vehicleAssignments: [],
       };
 
       const mockGroupMembers = [
         {
           userId: 'user-1',
-          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' }
-        }
+          user: { id: 'user-1', email: 'parent1@example.com', name: 'Parent 1' },
+        },
       ];
 
       // Setup mocks - child has no family
@@ -498,14 +498,14 @@ describe('NotificationService - Family Based Notifications', () => {
         datetime: new Date('2025-06-23T08:00:00.000Z'),
         group: {
           id: 'group-1',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         childAssignments: [
           {
-            child: { id: 'child-1', name: 'Alice' }
-          }
+            child: { id: 'child-1', name: 'Alice' },
+          },
         ],
-        vehicleAssignments: []
+        vehicleAssignments: [],
       };
 
       // Setup mocks

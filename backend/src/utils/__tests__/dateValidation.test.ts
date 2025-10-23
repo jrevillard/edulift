@@ -9,7 +9,7 @@ import {
   validateScheduleSlotCreation,
   validateScheduleSlotCreationWithTimezone,
   validateScheduleSlotModification,
-  validateScheduleSlotModificationWithTimezone
+  validateScheduleSlotModificationWithTimezone,
 } from '../dateValidation';
 
 // Mock current date for consistent testing
@@ -18,7 +18,7 @@ const mockToday = new Date('2024-01-15T10:00:00Z'); // Monday
 // Mock Date constructor to ensure consistent testing
 const originalDate = Date;
 beforeAll(() => {
-  global.Date = function(dateString?: any, month?: any, day?: any, ...args: any[]) {
+  global.Date = function(dateString?: any, month?: any, day?: any, ...args: unknown[]) {
     if (arguments.length === 0) {
       // new Date() without arguments should return mockToday
       return mockToday;
@@ -28,7 +28,7 @@ beforeAll(() => {
       return new originalDate(dateString);
     }
     // new Date(year, month, day, ...) should pass through to original
-    return new originalDate(dateString, month, day, ...args);
+    return new originalDate(dateString as number, month as number, day as number, ...(args as number[]));
   } as any;
   global.Date.now = jest.fn(() => mockToday.getTime());
   
@@ -227,7 +227,7 @@ describe('Date Validation Utils', () => {
       // Simulate data that would come from the database
       const scheduleSlotFromDB = {
         id: 'slot-123',
-        datetime: '2024-01-17T08:30:00.000Z' // Wednesday at 8:30 AM UTC
+        datetime: '2024-01-17T08:30:00.000Z', // Wednesday at 8:30 AM UTC
       };
 
       // This should not throw for future datetime
@@ -239,7 +239,7 @@ describe('Date Validation Utils', () => {
 
     it('should handle past schedule slot correctly', () => {
       const pastScheduleSlot = {
-        datetime: '2024-01-08T08:30:00.000Z' // Past Monday
+        datetime: '2024-01-08T08:30:00.000Z', // Past Monday
       };
 
       expect(() => {
@@ -250,7 +250,7 @@ describe('Date Validation Utils', () => {
 
     it('should handle current week schedule slot', () => {
       const currentWeekSlot = {
-        datetime: '2024-01-16T08:30:00.000Z' // Tuesday (later than mock current time)
+        datetime: '2024-01-16T08:30:00.000Z', // Tuesday (later than mock current time)
       };
 
       expect(() => {
@@ -341,8 +341,8 @@ describe('Date Validation Utils', () => {
           validateTripDateWithTimezone(pastDate, 'Europe/Paris', 'create', mockToday);
           fail('Should have thrown an error');
         } catch (error: any) {
-          expect(error.message).toContain('Europe/Paris');
-          expect(error.message).toContain('2024-01-14');
+          expect((error as Error).message).toContain('Europe/Paris');
+          expect((error as Error).message).toContain('2024-01-14');
         }
       });
 
@@ -373,7 +373,7 @@ describe('Date Validation Utils', () => {
           validateScheduleSlotCreationWithTimezone('2024-01-14T15:30:00.000Z', 'Asia/Tokyo', mockToday);
           fail('Should have thrown an error');
         } catch (error: any) {
-          expect(error.message).toContain('Asia/Tokyo');
+          expect((error as Error).message).toContain('Asia/Tokyo');
         }
       });
     });
@@ -394,7 +394,7 @@ describe('Date Validation Utils', () => {
           validateScheduleSlotModificationWithTimezone('2024-01-14T15:30:00.000Z', 'Asia/Tokyo', mockToday);
           fail('Should have thrown an error');
         } catch (error: any) {
-          expect(error.message).toContain('Asia/Tokyo');
+          expect((error as Error).message).toContain('Asia/Tokyo');
         }
       });
     });

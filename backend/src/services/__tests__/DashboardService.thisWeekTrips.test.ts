@@ -10,36 +10,36 @@ jest.mock('../VehicleService');
 const mockPrisma = {
   scheduleSlot: {
     count: jest.fn(),
-    findMany: jest.fn()
+    findMany: jest.fn(),
   },
   family: {
-    findUnique: jest.fn()
+    findUnique: jest.fn(),
   },
   activityLog: {
-    findMany: jest.fn()
-  }
+    findMany: jest.fn(),
+  },
 } as unknown as PrismaClient;
 
 // Mock the other services methods
 const mockGroupService = {
-  getUserGroups: jest.fn().mockResolvedValue([])
+  getUserGroups: jest.fn().mockResolvedValue([]),
 };
 const mockChildService = {
-  getChildrenByUser: jest.fn().mockResolvedValue([])
+  getChildrenByUser: jest.fn().mockResolvedValue([]),
 };
 const mockVehicleService = {
-  getVehiclesByUser: jest.fn().mockResolvedValue([])
+  getVehiclesByUser: jest.fn().mockResolvedValue([]),
 };
 
 // Mock the required service dependencies
 jest.mock('../GroupService', () => ({
-  GroupService: jest.fn().mockImplementation(() => mockGroupService)
+  GroupService: jest.fn().mockImplementation(() => mockGroupService),
 }));
 jest.mock('../ChildService', () => ({
-  ChildService: jest.fn().mockImplementation(() => mockChildService)
+  ChildService: jest.fn().mockImplementation(() => mockChildService),
 }));
 jest.mock('../VehicleService', () => ({
-  VehicleService: jest.fn().mockImplementation(() => mockVehicleService)
+  VehicleService: jest.fn().mockImplementation(() => mockVehicleService),
 }));
 
 describe('DashboardService - This Week Trips TDD Tests', () => {
@@ -115,9 +115,9 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
         where: expect.objectContaining({
           datetime: expect.objectContaining({
             gte: expect.any(Date),
-            lte: expect.any(Date)
-          })
-        })
+            lte: expect.any(Date),
+          }),
+        }),
       });
       
       // Get the actual query parameters

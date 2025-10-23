@@ -78,10 +78,10 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const adminId = 'admin-123';
         const publicInviteData = {
           role: FamilyRole.MEMBER,
-          personalMessage: 'Public invitation link'
+          personalMessage: 'Public invitation link',
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
@@ -89,9 +89,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 familyId,
                 role: FamilyRole.ADMIN,
                 family: { id: familyId, name: 'Test Family' },
-                user: { name: 'Admin User' }
+                user: { name: 'Admin User' },
               }),
-              count: jest.fn().mockResolvedValue(1)
+              count: jest.fn().mockResolvedValue(1),
             },
             familyInvitation: {
               create: jest.fn().mockResolvedValue({
@@ -104,9 +104,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 status: FamilyInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 createdBy: adminId,
-                invitedBy: adminId
-              })
-            }
+                invitedBy: adminId,
+              }),
+            },
           };
           return await callback(tx);
         });
@@ -123,11 +123,11 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const adminId = 'admin-123';
         const inviteData = {
           email: 'test@example.com',
-          role: FamilyRole.MEMBER
+          role: FamilyRole.MEMBER,
           // No personalMessage
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
@@ -135,12 +135,12 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 familyId,
                 role: FamilyRole.ADMIN,
                 family: { id: familyId, name: 'Test Family' },
-                user: { name: 'Admin User' }
+                user: { name: 'Admin User' },
               }),
-              count: jest.fn().mockResolvedValue(1)
+              count: jest.fn().mockResolvedValue(1),
             },
             user: {
-              findUnique: jest.fn().mockResolvedValue(null)
+              findUnique: jest.fn().mockResolvedValue(null),
             },
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue(null),
@@ -154,9 +154,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 status: FamilyInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                 createdBy: adminId,
-                invitedBy: adminId
-              })
-            }
+                invitedBy: adminId,
+              }),
+            },
           };
           return await callback(tx);
         });
@@ -183,11 +183,11 @@ describe('Invitation Edge Cases and Security Tests', () => {
           personalMessage: null,
           family: {
             id: 'family-456',
-            name: 'Public Family'
+            name: 'Public Family',
           },
           createdByUser: {
-            name: 'Public Admin'
-          }
+            name: 'Public Admin',
+          },
         };
 
         mockPrisma.familyInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -233,11 +233,11 @@ describe('Invitation Edge Cases and Security Tests', () => {
 
       it('should handle special characters in invite codes', async () => {
         const specialCodes = [
-          "'; DROP TABLE families; --", // SQL injection attempt
+          '\'; DROP TABLE families; --', // SQL injection attempt
           '<script>alert("xss")</script>', // XSS attempt
           '../../etc/passwd', // Path traversal attempt
           '%00%00%00', // Null byte injection
-          'NORMAL123' // Normal code for comparison
+          'NORMAL123', // Normal code for comparison
         ];
 
         for (const code of specialCodes) {
@@ -258,7 +258,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const inviteCode = 'PUBLIC123';
         const userId = 'user-456';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue({
@@ -269,20 +269,20 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 status: FamilyInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
                 role: FamilyRole.MEMBER,
-                family: { name: 'Public Family' }
+                family: { name: 'Public Family' },
               }),
-              update: jest.fn().mockResolvedValue({})
+              update: jest.fn().mockResolvedValue({}),
             },
             user: {
               findUnique: jest.fn().mockResolvedValue({
                 id: userId,
                 email: 'anyone@example.com',
-                name: 'Any User'
-              })
+                name: 'Any User',
+              }),
             },
             familyMember: {
               findFirst: jest.fn().mockResolvedValue(null), // No existing family
-              create: jest.fn().mockResolvedValue({})
+              create: jest.fn().mockResolvedValue({}),
             },
             family: {
               findUnique: jest.fn().mockResolvedValue({
@@ -290,9 +290,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 name: 'Public Family',
                 members: [],
                 children: [],
-                vehicles: []
-              })
-            }
+                vehicles: [],
+              }),
+            },
           };
           return await callback(tx);
         });
@@ -306,7 +306,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const inviteCode = 'FAIL123';
         const userId = 'user-456';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue({
@@ -317,20 +317,20 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 status: FamilyInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
                 role: FamilyRole.MEMBER,
-                family: { name: 'Fail Family' }
+                family: { name: 'Fail Family' },
               }),
-              update: jest.fn().mockRejectedValue(new Error('Database constraint violation'))
+              update: jest.fn().mockRejectedValue(new Error('Database constraint violation')),
             },
             user: {
               findUnique: jest.fn().mockResolvedValue({
                 id: userId,
-                email: 'fail@example.com'
-              })
+                email: 'fail@example.com',
+              }),
             },
             familyMember: {
               findFirst: jest.fn().mockResolvedValue(null),
-              create: jest.fn().mockRejectedValue(new Error('Database constraint violation'))
-            }
+              create: jest.fn().mockRejectedValue(new Error('Database constraint violation')),
+            },
           };
           return await callback(tx);
         });
@@ -349,31 +349,31 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const adminId = 'admin-456';
         const inviteData = {
           targetFamilyId: 'non-existent-family',
-          role: GroupRole.MEMBER
+          role: GroupRole.MEMBER,
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue({
                 id: groupId,
                 name: 'Test Group',
-                familyId: 'admin-family'
-              })
+                familyId: 'admin-family',
+              }),
             },
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
                 userId: adminId,
                 familyId: 'admin-family',
-                role: FamilyRole.ADMIN
-              })
+                role: FamilyRole.ADMIN,
+              }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null)
+              findFirst: jest.fn().mockResolvedValue(null),
             },
             family: {
-              findUnique: jest.fn().mockResolvedValue(null) // Family not found
-            }
+              findUnique: jest.fn().mockResolvedValue(null), // Family not found
+            },
           };
           return await callback(tx);
         });
@@ -386,32 +386,32 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const groupId = 'group-123';
         const adminId = 'admin-456';
         const invalidData = {
-          role: GroupRole.MEMBER
+          role: GroupRole.MEMBER,
           // Neither targetFamilyId nor email provided
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue({
                 id: groupId,
                 name: 'Test Group',
-                familyId: 'admin-family'
-              })
+                familyId: 'admin-family',
+              }),
             },
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
                 userId: adminId,
                 familyId: 'admin-family',
-                role: FamilyRole.ADMIN
-              })
+                role: FamilyRole.ADMIN,
+              }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null)
+              findFirst: jest.fn().mockResolvedValue(null),
             },
             groupInvitation: {
-              create: jest.fn()
-            }
+              create: jest.fn(),
+            },
           };
           return await callback(tx);
         });
@@ -426,7 +426,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const inviteCode = 'GROUP123';
         const userId = 'user-orphan';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue({
@@ -435,18 +435,18 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 inviteCode,
                 status: GroupInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-                group: { name: 'Orphan Group' }
-              })
+                group: { name: 'Orphan Group' },
+              }),
             },
             user: {
               findUnique: jest.fn().mockResolvedValue({
                 id: userId,
-                email: 'orphan@example.com'
-              })
+                email: 'orphan@example.com',
+              }),
             },
             familyMember: {
-              findFirst: jest.fn().mockResolvedValue(null) // No family membership
-            }
+              findFirst: jest.fn().mockResolvedValue(null), // No family membership
+            },
           };
           return await callback(tx);
         });
@@ -461,7 +461,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const inviteCode = 'EXISTING1';
         const userId = 'user-existing';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue({
@@ -470,29 +470,29 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 inviteCode,
                 status: GroupInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-                group: { id: 'group-existing', name: 'Existing Group' }
-              })
+                group: { id: 'group-existing', name: 'Existing Group' },
+              }),
             },
             user: {
               findUnique: jest.fn().mockResolvedValue({
                 id: userId,
-                email: 'existing@example.com'
-              })
+                email: 'existing@example.com',
+              }),
             },
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
                 userId,
                 familyId: 'family-existing',
-                role: FamilyRole.ADMIN
-              })
+                role: FamilyRole.ADMIN,
+              }),
             },
             groupFamilyMember: {
               findFirst: jest.fn().mockResolvedValue({
                 familyId: 'family-existing',
                 groupId: 'group-existing',
-                joinedAt: new Date('2024-01-01')
-              })
-            }
+                joinedAt: new Date('2024-01-01'),
+              }),
+            },
           };
           return await callback(tx);
         });
@@ -507,7 +507,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         const inviteCode = 'MEMBER123';
         const userId = 'user-member';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue({
@@ -515,14 +515,14 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 groupId: 'group-member',
                 inviteCode,
                 status: GroupInvitationStatus.PENDING,
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-              })
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              }),
             },
             user: {
               findUnique: jest.fn().mockResolvedValue({
                 id: userId,
-                email: 'member@example.com'
-              })
+                email: 'member@example.com',
+              }),
             },
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
@@ -532,14 +532,14 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 family: {
                   members: [{
                     role: FamilyRole.ADMIN,
-                    user: { name: 'Family Admin' }
-                  }]
-                }
-              })
+                    user: { name: 'Family Admin' },
+                  }],
+                },
+              }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null)
-            }
+              findFirst: jest.fn().mockResolvedValue(null),
+            },
           };
           return await callback(tx);
         });
@@ -558,12 +558,12 @@ describe('Invitation Edge Cases and Security Tests', () => {
       const adminId = 'admin-race';
       const inviteData = {
         email: 'race@example.com',
-        role: FamilyRole.MEMBER
+        role: FamilyRole.MEMBER,
       };
 
       // Simulate race condition where first request creates, second finds existing
       let callCount = 0;
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
         callCount++;
         const tx = {
           familyMember: {
@@ -572,12 +572,12 @@ describe('Invitation Edge Cases and Security Tests', () => {
               familyId,
               role: FamilyRole.ADMIN,
               family: { id: familyId, name: 'Race Family' },
-              user: { name: 'Race Admin' }
+              user: { name: 'Race Admin' },
             }),
-            count: jest.fn().mockResolvedValue(1)
+            count: jest.fn().mockResolvedValue(1),
           },
           user: {
-            findUnique: jest.fn().mockResolvedValue(null)
+            findUnique: jest.fn().mockResolvedValue(null),
           },
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(
@@ -585,8 +585,8 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 id: 'existing-race',
                 email: 'race@example.com',
                 status: FamilyInvitationStatus.PENDING,
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-              }
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+              },
             ),
             create: jest.fn().mockResolvedValue({
               id: `race-invite-${callCount}`,
@@ -597,9 +597,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
               status: FamilyInvitationStatus.PENDING,
               expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
               createdBy: adminId,
-              invitedBy: adminId
-            })
-          }
+              invitedBy: adminId,
+            }),
+          },
         };
         return await callback(tx);
       });
@@ -618,7 +618,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
       const userId = 'user-racer';
 
       let acceptCount = 0;
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
         acceptCount++;
         const tx = {
           familyInvitation: {
@@ -631,20 +631,20 @@ describe('Invitation Edge Cases and Security Tests', () => {
                 status: FamilyInvitationStatus.PENDING,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
                 role: FamilyRole.MEMBER,
-                family: { name: 'Race Family' }
-              } : null // Second attempt finds null (already processed)
+                family: { name: 'Race Family' },
+              } : null, // Second attempt finds null (already processed)
             ),
-            update: jest.fn()
+            update: jest.fn(),
           },
           user: {
             findUnique: jest.fn().mockResolvedValue({
               id: userId,
-              email: 'racer@example.com'
-            })
+              email: 'racer@example.com',
+            }),
           },
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
-            create: jest.fn()
+            create: jest.fn(),
           },
           family: {
             findUnique: jest.fn().mockResolvedValue({
@@ -652,9 +652,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
               name: 'Race Family',
               members: [],
               children: [],
-              vehicles: []
-            })
-          }
+              vehicles: [],
+            }),
+          },
         };
         return await callback(tx);
       });
@@ -686,8 +686,8 @@ describe('Invitation Edge Cases and Security Tests', () => {
           user: {
             id: `user-${i}`,
             email: `user${i}@largefamily.com`,
-            name: `User ${i}`
-          }
+            name: `User ${i}`,
+          },
         })),
         children: Array(50).fill(null).map((_, i) => ({
           id: `child-${i}`,
@@ -695,7 +695,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
           name: `Child ${i}`,
           age: 5 + (i % 15),
           grade: `${1 + (i % 12)}th Grade`,
-          school: `School ${i % 5}`
+          school: `School ${i % 5}`,
         })),
         vehicles: Array(20).fill(null).map((_, i) => ({
           id: `vehicle-${i}`,
@@ -704,11 +704,11 @@ describe('Invitation Edge Cases and Security Tests', () => {
           model: `Model ${i}`,
           year: 2010 + i,
           capacity: 4 + (i % 4),
-          licensePlate: `PLATE${i.toString().padStart(3, '0')}`
-        }))
+          licensePlate: `PLATE${i.toString().padStart(3, '0')}`,
+        })),
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
         const tx = {
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue({
@@ -719,23 +719,23 @@ describe('Invitation Edge Cases and Security Tests', () => {
               status: FamilyInvitationStatus.PENDING,
               expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
               role: FamilyRole.MEMBER,
-              family: { name: 'Large Family' }
+              family: { name: 'Large Family' },
             }),
-            update: jest.fn()
+            update: jest.fn(),
           },
           user: {
             findUnique: jest.fn().mockResolvedValue({
               id: userId,
-              email: 'bigfam@example.com'
-            })
+              email: 'bigfam@example.com',
+            }),
           },
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
-            create: jest.fn()
+            create: jest.fn(),
           },
           family: {
-            findUnique: jest.fn().mockResolvedValue(largeFamily)
-          }
+            findUnique: jest.fn().mockResolvedValue(largeFamily),
+          },
         };
         return await callback(tx);
       });
@@ -766,7 +766,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
             expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
             role: FamilyRole.MEMBER,
             family: { id: `family-${index}`, name: `Rapid Family ${index}` },
-            createdByUser: { name: `Admin ${index}` }
+            createdByUser: { name: `Admin ${index}` },
           });
         }
         return Promise.resolve(null);
@@ -799,10 +799,10 @@ describe('Invitation Edge Cases and Security Tests', () => {
       const unicodeData = {
         email: 'unicode@example.com',
         role: FamilyRole.MEMBER,
-        personalMessage: '¡Bienvenido! 🎉 欢迎加入我们的家庭 👨‍👩‍👧‍👦'
+        personalMessage: '¡Bienvenido! 🎉 欢迎加入我们的家庭 👨‍👩‍👧‍👦',
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
         const tx = {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue({
@@ -811,14 +811,14 @@ describe('Invitation Edge Cases and Security Tests', () => {
               role: FamilyRole.ADMIN,
               family: { 
                 id: familyId, 
-                name: 'Família José 李家庭 🏠' 
+                name: 'Família José 李家庭 🏠', 
               },
-              user: { name: 'José María 李明' }
+              user: { name: 'José María 李明' },
             }),
-            count: jest.fn().mockResolvedValue(1)
+            count: jest.fn().mockResolvedValue(1),
           },
           user: {
-            findUnique: jest.fn().mockResolvedValue(null)
+            findUnique: jest.fn().mockResolvedValue(null),
           },
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(null),
@@ -832,9 +832,9 @@ describe('Invitation Edge Cases and Security Tests', () => {
               status: FamilyInvitationStatus.PENDING,
               expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
               createdBy: adminId,
-              invitedBy: adminId
-            })
-          }
+              invitedBy: adminId,
+            }),
+          },
         };
         return await callback(tx);
       });
@@ -848,23 +848,23 @@ describe('Invitation Edge Cases and Security Tests', () => {
         expect.objectContaining({
           familyName: 'Família José 李家庭 🏠',
           inviterName: 'José María 李明',
-          personalMessage: unicodeData.personalMessage
-        })
+          personalMessage: unicodeData.personalMessage,
+        }),
       );
     });
 
     it('should handle very long unicode strings', async () => {
-      const longUnicodeMessage = '🎉'.repeat(1000) + 'Welcome to our family! ' + '欢迎'.repeat(500);
+      const longUnicodeMessage = `${'🎉'.repeat(1000)  }Welcome to our family! ${  '欢迎'.repeat(500)}`;
       
       const familyId = 'long-unicode';
       const adminId = 'long-admin';
       const longData = {
         email: 'long@example.com',
         role: FamilyRole.MEMBER,
-        personalMessage: longUnicodeMessage
+        personalMessage: longUnicodeMessage,
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: any) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: any) => Promise<any>) => {
         const tx = {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue({
@@ -872,20 +872,20 @@ describe('Invitation Edge Cases and Security Tests', () => {
               familyId,
               role: FamilyRole.ADMIN,
               family: { id: familyId, name: 'Long Unicode Family' },
-              user: { name: 'Long Admin' }
+              user: { name: 'Long Admin' },
             }),
-            count: jest.fn().mockResolvedValue(1)
+            count: jest.fn().mockResolvedValue(1),
           },
           user: {
-            findUnique: jest.fn().mockResolvedValue(null)
+            findUnique: jest.fn().mockResolvedValue(null),
           },
           familyInvitation: {
             findFirst: jest.fn().mockResolvedValue(null),
             create: jest.fn().mockResolvedValue({
               id: 'long-unicode-invite',
-              personalMessage: longUnicodeMessage
-            })
-          }
+              personalMessage: longUnicodeMessage,
+            }),
+          },
         };
         return await callback(tx);
       });
@@ -893,7 +893,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
       const result = await invitationService.createFamilyInvitation(familyId, longData, adminId);
 
       expect(result.personalMessage).toBe(longUnicodeMessage);
-      expect(result.personalMessage!.length).toBeGreaterThan(2000);
+      expect(result.personalMessage?.length).toBeGreaterThan(2000);
     });
   });
 });

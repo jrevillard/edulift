@@ -27,7 +27,7 @@ interface JwtPayload {
 export const authenticateToken = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -35,7 +35,7 @@ export const authenticateToken = async (
   if (!token) {
     const response: ApiResponse = {
       success: false,
-      error: 'Access token required'
+      error: 'Access token required',
     };
     res.status(401).json(response);
     return;
@@ -53,7 +53,7 @@ export const authenticateToken = async (
     // Fetch user details from database to ensure user still exists
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, name: true, timezone: true }
+      select: { id: true, email: true, name: true, timezone: true },
     });
 
     // ✅ User not found = token is invalid (user was deleted)
@@ -63,7 +63,7 @@ export const authenticateToken = async (
     if (!user) {
       const response: ApiResponse = {
         success: false,
-        error: 'Invalid token - user not found'
+        error: 'Invalid token - user not found',
       };
       res.status(401).json(response);  // ✅ 401 = auth issue
       return;
@@ -91,7 +91,7 @@ export const authenticateToken = async (
             // Token expired but within grace period - accept it
             const user = await prisma.user.findUnique({
               where: { id: decoded.userId },
-              select: { id: true, email: true, name: true, timezone: true }
+              select: { id: true, email: true, name: true, timezone: true },
             });
 
             if (user) {
@@ -111,7 +111,7 @@ export const authenticateToken = async (
       // Token expired beyond grace period - return 401 to trigger refresh flow
       const response: ApiResponse = {
         success: false,
-        error: 'Token expired'
+        error: 'Token expired',
       };
       res.status(401).json(response);
       return;
@@ -123,7 +123,7 @@ export const authenticateToken = async (
     // Could be malformed, wrong signature, etc. - all auth issues, not permissions
     const response: ApiResponse = {
       success: false,
-      error: 'Invalid or expired token'
+      error: 'Invalid or expired token',
     };
     res.status(401).json(response);
   }
@@ -136,7 +136,7 @@ export const requireGroupMembership = (req: Request, res: Response, next: NextFu
   if (!authReq.userId) {
     const response: ApiResponse = {
       success: false,
-      error: 'Authentication required'
+      error: 'Authentication required',
     };
     res.status(401).json(response);
     return;
@@ -160,7 +160,7 @@ export const requireGroupMembership = (req: Request, res: Response, next: NextFu
 export const authenticateTokenForRevocation = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
@@ -169,7 +169,7 @@ export const authenticateTokenForRevocation = async (
   if (!token) {
     const response: ApiResponse = {
       success: false,
-      error: 'Access token required'
+      error: 'Access token required',
     };
     res.status(401).json(response);
     return;
@@ -185,8 +185,8 @@ export const authenticateTokenForRevocation = async (
       const response: ApiResponse = {
         success: true,
         data: {
-          message: 'Logged out successfully'
-        }
+          message: 'Logged out successfully',
+        },
       };
       res.status(200).json(response);
       return;
@@ -200,7 +200,7 @@ export const authenticateTokenForRevocation = async (
     try {
       const user = await prisma.user.findUnique({
         where: { id: decoded.userId },
-        select: { id: true, email: true, name: true, timezone: true }
+        select: { id: true, email: true, name: true, timezone: true },
       });
 
       if (user) {
@@ -220,8 +220,8 @@ export const authenticateTokenForRevocation = async (
     const response: ApiResponse = {
       success: true,
       data: {
-        message: 'Logged out successfully'
-      }
+        message: 'Logged out successfully',
+      },
     };
     res.status(200).json(response);
   }
@@ -230,7 +230,7 @@ export const authenticateTokenForRevocation = async (
 export const requireGroupAdmin = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   // Cast to AuthenticatedRequest since this middleware should be used after authenticateToken
   const authReq = req as AuthenticatedRequest;
@@ -238,7 +238,7 @@ export const requireGroupAdmin = async (
   if (!authReq.userId) {
     const response: ApiResponse = {
       success: false,
-      error: 'Authentication required'
+      error: 'Authentication required',
     };
     res.status(401).json(response);
     return;
@@ -248,7 +248,7 @@ export const requireGroupAdmin = async (
   if (!groupId) {
     const response: ApiResponse = {
       success: false,
-      error: 'Group ID required'
+      error: 'Group ID required',
     };
     res.status(400).json(response);
     return;
@@ -258,13 +258,13 @@ export const requireGroupAdmin = async (
     // Get user's family first
     const userFamily = await prisma.familyMember.findFirst({
       where: { userId: authReq.userId },
-      select: { familyId: true, role: true }
+      select: { familyId: true, role: true },
     });
 
     if (!userFamily) {
       const response: ApiResponse = {
         success: false,
-        error: 'User must be part of a family'
+        error: 'User must be part of a family',
       };
       res.status(403).json(response);
       return;
@@ -277,22 +277,22 @@ export const requireGroupAdmin = async (
         ownerFamily: {
           include: {
             members: {
-              where: { userId: authReq.userId }
-            }
-          }
+              where: { userId: authReq.userId },
+            },
+          },
         },
         familyMembers: {
           where: {
-            familyId: userFamily.familyId
-          }
-        }
-      }
+            familyId: userFamily.familyId,
+          },
+        },
+      },
     });
 
     if (!group) {
       const response: ApiResponse = {
         success: false,
-        error: 'Group not found'
+        error: 'Group not found',
       };
       res.status(404).json(response);
       return;
@@ -319,7 +319,7 @@ export const requireGroupAdmin = async (
     if (!hasAdminPermissions) {
       const response: ApiResponse = {
         success: false,
-        error: 'Admin privileges required'
+        error: 'Admin privileges required',
       };
       res.status(403).json(response);
       return;
@@ -331,7 +331,7 @@ export const requireGroupAdmin = async (
     
     const response: ApiResponse = {
       success: false,
-      error: 'Failed to verify admin privileges'
+      error: 'Failed to verify admin privileges',
     };
     res.status(500).json(response);
   }

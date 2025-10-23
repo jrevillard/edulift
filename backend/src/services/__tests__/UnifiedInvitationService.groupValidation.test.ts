@@ -43,15 +43,15 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: 'user@example.com',
         group: { 
           id: 'group-123',
-          name: 'Test Carpool Group' 
-        }
+          name: 'Test Carpool Group', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'user-123',
         email: 'user@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
 
       // Act
@@ -87,7 +87,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Expired 24 hours ago
-        group: { name: 'Test Group' }
+        group: { name: 'Test Group' },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(expiredInvitation);
@@ -111,8 +111,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: null, // Public invitation
         group: { 
           id: 'group-123',
-          name: 'Public Group' 
-        }
+          name: 'Public Group', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -144,14 +144,14 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: invitationEmail,
         group: { 
           id: 'group-123',
-          name: 'Collège Carpool' 
-        }
+          name: 'Collège Carpool', 
+        },
       };
 
       const mockCurrentUser = {
         id: currentUserId,
         email: invitationEmail, // Same email as invitation
-        name: 'Jerome Revillard'
+        name: 'Jerome Revillard',
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -185,14 +185,14 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: invitationEmail,
         group: { 
           id: 'group-123',
-          name: 'Collège Carpool' 
-        }
+          name: 'Collège Carpool', 
+        },
       };
 
       const mockCurrentUser = {
         id: currentUserId,
         email: wrongUserEmail, // Different email from invitation
-        name: 'Wrong User'
+        name: 'Wrong User',
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -219,15 +219,15 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: 'jerome.revillard@be-ys-software.com',
         group: { 
           id: 'group-123',
-          name: 'Collège Carpool' 
-        }
+          name: 'Collège Carpool', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'existing-user',
         email: 'jerome.revillard@be-ys-software.com',
-        name: 'Jerome Revillard'
+        name: 'Jerome Revillard',
       });
 
       // Act - No currentUserId provided (unauthenticated)
@@ -253,8 +253,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: null, // No specific email (public invitation)
         group: { 
           id: 'group-123',
-          name: 'Public Group' 
-        }
+          name: 'Public Group', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -282,8 +282,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: 'jerome.revillard@be-ys-software.com',
         group: { 
           id: 'group-123',
-          name: 'Test Group' 
-        }
+          name: 'Test Group', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -292,7 +292,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         .mockResolvedValueOnce({ // But invitation email user exists
           id: 'invited-user',
           email: 'jerome.revillard@be-ys-software.com',
-          name: 'Jerome Revillard'
+          name: 'Jerome Revillard',
         });
 
       // Act
@@ -322,15 +322,15 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: 'existing.user@example.com',
         group: { 
           id: 'group-123',
-          name: 'Test Group' 
-        }
+          name: 'Test Group', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
       mockPrisma.user.findUnique.mockResolvedValue({
         id: 'user-123',
         email: 'existing.user@example.com',
-        name: 'Existing User'
+        name: 'Existing User',
       });
 
       // Act
@@ -353,8 +353,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         email: 'new.user@example.com',
         group: { 
           id: 'group-123',
-          name: 'Test Group' 
-        }
+          name: 'Test Group', 
+        },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -381,7 +381,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        group: { name: 'Test Group' }
+        group: { name: 'Test Group' },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -393,12 +393,12 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
       expect(mockPrisma.groupInvitation.findFirst).toHaveBeenCalledWith({
         where: {
           inviteCode,
-          status: GroupInvitationStatus.PENDING
+          status: GroupInvitationStatus.PENDING,
         },
         include: {
           group: true,
-          invitedByUser: true
-        }
+          invitedByUser: true,
+        },
       });
     });
 
@@ -412,7 +412,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         email: invitationEmail,
-        group: { name: 'Test Group' }
+        group: { name: 'Test Group' },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
@@ -423,7 +423,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
 
       // Assert
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { email: invitationEmail }
+        where: { email: invitationEmail },
       });
     });
 
@@ -438,14 +438,14 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         email: invitationEmail,
-        group: { name: 'Test Group' }
+        group: { name: 'Test Group' },
       };
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
       mockPrisma.user.findUnique.mockResolvedValue({
         id: currentUserId,
         email: invitationEmail,
-        name: 'Test User'
+        name: 'Test User',
       });
 
       // Act
@@ -453,7 +453,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
 
       // Assert
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: currentUserId }
+        where: { id: currentUserId },
       });
     });
   });

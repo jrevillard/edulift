@@ -1,5 +1,6 @@
 import { EmailService } from './EmailService';
 import { MockEmailService } from './MockEmailService';
+import { logger } from '../utils/logger';
 
 export class EmailServiceFactory {
   private static instance: EmailService | MockEmailService | null = null;
@@ -16,13 +17,15 @@ export class EmailServiceFactory {
     const hasEmailConfig = !!(process.env.EMAIL_HOST && process.env.EMAIL_PORT);
     const emailEncryption = process.env.EMAIL_ENCRYPTION || 'STARTTLS';
 
-    console.log('🔍 EmailServiceFactory configuration check:');
-    console.log(`EMAIL_HOST: ${process.env.EMAIL_HOST || 'NOT SET'}`);
-    console.log(`EMAIL_PORT: ${process.env.EMAIL_PORT || 'NOT SET'}`);  
-    console.log(`EMAIL_ENCRYPTION: ${emailEncryption}`);
-    console.log(`EMAIL_USER: ${process.env.EMAIL_USER || 'NOT SET'}`);
-    console.log(`EMAIL_PASSWORD: ${process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET'}`);
-    console.log(`hasEmailConfig: ${hasEmailConfig}, hasEmailCredentials: ${hasEmailCredentials}`);
+    logger.info('EmailServiceFactory configuration check', {
+      EMAIL_HOST: process.env.EMAIL_HOST || 'NOT SET',
+      EMAIL_PORT: process.env.EMAIL_PORT || 'NOT SET',
+      EMAIL_ENCRYPTION: emailEncryption,
+      EMAIL_USER: process.env.EMAIL_USER || 'NOT SET',
+      EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? 'SET' : 'NOT SET',
+      hasEmailConfig,
+      hasEmailCredentials,
+    });
 
     if (hasEmailConfig && hasEmailCredentials) {
       const emailConfig: any = {
@@ -30,8 +33,8 @@ export class EmailServiceFactory {
         port: parseInt(process.env.EMAIL_PORT!),
         auth: {
           user: process.env.EMAIL_USER!,
-          pass: process.env.EMAIL_PASSWORD!
-        }
+          pass: process.env.EMAIL_PASSWORD!,
+        },
       };
 
       // Configure encryption based on EMAIL_ENCRYPTION setting
@@ -52,14 +55,18 @@ export class EmailServiceFactory {
           // Default to STARTTLS for backward compatibility
           emailConfig.secure = false;
           emailConfig.requireTLS = true;
-          console.warn(`⚠️ EmailServiceFactory: Unknown EMAIL_ENCRYPTION value: ${emailEncryption}. Defaulting to STARTTLS.`);
+          logger.warn(`EmailServiceFactory: Unknown EMAIL_ENCRYPTION value: ${emailEncryption}. Defaulting to STARTTLS.`);
       }
 
       const emailService = new EmailService(emailConfig);
-      console.log(`📧 EmailServiceFactory: Using EmailService with host: ${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT} (${emailEncryption} encryption)`);
+      logger.info('EmailServiceFactory: Using EmailService', {
+        host: process.env.EMAIL_HOST,
+        port: process.env.EMAIL_PORT,
+        encryption: emailEncryption,
+      });
       return emailService;
     } else {
-      console.log('📧 EmailServiceFactory: Using MockEmailService (missing EMAIL_HOST, EMAIL_PORT, or credentials)');
+      logger.info('EmailServiceFactory: Using MockEmailService (missing EMAIL_HOST, EMAIL_PORT, or credentials)');
       return new MockEmailService();
     }
   }

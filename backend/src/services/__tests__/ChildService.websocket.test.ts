@@ -61,14 +61,14 @@ describe('ChildService WebSocket Events', () => {
       const childData: CreateChildData = {
         name: 'Alice Smith',
         age: 8,
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       const mockCreatedChild = {
         id: 'child-456',
         name: 'Alice Smith',
         age: 8,
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
@@ -82,15 +82,15 @@ describe('ChildService WebSocket Events', () => {
         'added', // event type
         expect.objectContaining({
           child: mockCreatedChild,
-          familyId: 'family-123'
-        })
+          familyId: 'family-123',
+        }),
       );
     });
 
     it('should handle undefined age correctly and emit event', async () => {
       const childData: CreateChildData = {
         name: 'Bob Johnson',
-        familyId: 'family-789'
+        familyId: 'family-789',
         // age is undefined
       };
 
@@ -98,7 +98,7 @@ describe('ChildService WebSocket Events', () => {
         id: 'child-999',
         name: 'Bob Johnson',
         age: null,
-        familyId: 'family-789'
+        familyId: 'family-789',
       };
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
@@ -109,8 +109,8 @@ describe('ChildService WebSocket Events', () => {
         data: {
           name: 'Bob Johnson',
           age: null, // undefined converted to null
-          familyId: 'family-789'
-        }
+          familyId: 'family-789',
+        },
       });
 
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
@@ -119,15 +119,15 @@ describe('ChildService WebSocket Events', () => {
         'added',
         expect.objectContaining({
           child: mockCreatedChild,
-          familyId: 'family-789'
-        })
+          familyId: 'family-789',
+        }),
       );
     });
 
     it('should not emit event when child creation fails', async () => {
       const childData: CreateChildData = {
         name: 'Failed Child',
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       mockPrisma.child.create.mockRejectedValue(new Error('Database error'));
@@ -145,7 +145,7 @@ describe('ChildService WebSocket Events', () => {
 
       const updateData: UpdateChildData = {
         name: 'Updated Alice',
-        age: 9
+        age: 9,
       };
 
       const mockUserFamily = { id: familyId, name: 'Test Family' };
@@ -155,7 +155,7 @@ describe('ChildService WebSocket Events', () => {
         age: 8,
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedChild = {
         id: childId,
@@ -163,13 +163,13 @@ describe('ChildService WebSocket Events', () => {
         age: 9,
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Mock getUserFamily
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
 
       // Mock canUserModifyFamilyChildren
@@ -191,8 +191,8 @@ describe('ChildService WebSocket Events', () => {
         expect.objectContaining({
           child: mockUpdatedChild,
           familyId,
-          previousData: mockExistingChild
-        })
+          previousData: mockExistingChild,
+        }),
       );
     });
 
@@ -202,7 +202,7 @@ describe('ChildService WebSocket Events', () => {
       const familyId = 'family-789';
 
       const updateData: UpdateChildData = {
-        name: 'Only Name Updated'
+        name: 'Only Name Updated',
         // age is undefined - should not be included in update
       };
 
@@ -213,7 +213,7 @@ describe('ChildService WebSocket Events', () => {
         age: 8,
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedChild = {
         id: childId,
@@ -221,13 +221,13 @@ describe('ChildService WebSocket Events', () => {
         age: 8, // unchanged
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Setup mocks
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
@@ -238,9 +238,9 @@ describe('ChildService WebSocket Events', () => {
       expect(mockPrisma.child.update).toHaveBeenCalledWith({
         where: { id: childId },
         data: {
-          name: 'Only Name Updated'
+          name: 'Only Name Updated',
           // age should not be in the data object
-        }
+        },
       });
 
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
@@ -250,8 +250,8 @@ describe('ChildService WebSocket Events', () => {
         expect.objectContaining({
           child: mockUpdatedChild,
           familyId,
-          previousData: mockExistingChild
-        })
+          previousData: mockExistingChild,
+        }),
       );
     });
 
@@ -261,21 +261,21 @@ describe('ChildService WebSocket Events', () => {
       const familyId = 'family-789';
 
       const updateData: UpdateChildData = {
-        name: 'Unauthorized Update'
+        name: 'Unauthorized Update',
       };
 
       const mockUserFamily = { id: familyId, name: 'Test Family' };
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
 
       // User lacks permission
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(false);
 
       await expect(childService.updateChild(childId, userId, updateData)).rejects.toThrow(
-        'Insufficient permissions to modify children in family'
+        'Insufficient permissions to modify children in family',
       );
 
       expect(mockSocketEmitter.broadcastChildUpdate).not.toHaveBeenCalled();
@@ -295,13 +295,13 @@ describe('ChildService WebSocket Events', () => {
         age: 8,
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Setup mocks
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
@@ -317,8 +317,8 @@ describe('ChildService WebSocket Events', () => {
         expect.objectContaining({
           childId,
           familyId,
-          deletedChild: mockExistingChild
-        })
+          deletedChild: mockExistingChild,
+        }),
       );
     });
 
@@ -334,13 +334,13 @@ describe('ChildService WebSocket Events', () => {
         age: 8,
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Setup mocks
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
@@ -359,13 +359,13 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(null as any); // Child not found
 
       await expect(childService.deleteChild(childId, userId)).rejects.toThrow(
-        'Child not found or access denied'
+        'Child not found or access denied',
       );
 
       expect(mockSocketEmitter.broadcastChildUpdate).not.toHaveBeenCalled();
@@ -377,14 +377,14 @@ describe('ChildService WebSocket Events', () => {
       const childData: CreateChildData = {
         name: 'Test Child',
         age: 5,
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       const mockCreatedChild = {
         id: 'child-456',
         name: 'Test Child',
         age: 5,
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
@@ -397,8 +397,8 @@ describe('ChildService WebSocket Events', () => {
         'added',
         {
           child: mockCreatedChild,
-          familyId: 'family-123'
-        }
+          familyId: 'family-123',
+        },
       );
     });
 
@@ -415,7 +415,7 @@ describe('ChildService WebSocket Events', () => {
         age: 8, 
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedChild = { 
         id: childId, 
@@ -423,13 +423,13 @@ describe('ChildService WebSocket Events', () => {
         age: 8, 
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Setup mocks
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
@@ -444,8 +444,8 @@ describe('ChildService WebSocket Events', () => {
         {
           child: mockUpdatedChild,
           familyId,
-          previousData: mockExistingChild
-        }
+          previousData: mockExistingChild,
+        },
       );
     });
 
@@ -461,13 +461,13 @@ describe('ChildService WebSocket Events', () => {
         age: 8, 
         familyId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Setup mocks
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         userId,
-        family: mockUserFamily
+        family: mockUserFamily,
       });
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
@@ -482,8 +482,8 @@ describe('ChildService WebSocket Events', () => {
         {
           childId,
           familyId,
-          deletedChild: mockExistingChild
-        }
+          deletedChild: mockExistingChild,
+        },
       );
     });
   });
@@ -494,14 +494,14 @@ describe('ChildService WebSocket Events', () => {
 
       const childData: CreateChildData = {
         name: 'Test Child',
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       const mockCreatedChild = {
         id: 'child-456',
         name: 'Test Child',
         age: null,
-        familyId: 'family-123'
+        familyId: 'family-123',
       };
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
@@ -523,7 +523,7 @@ describe('ChildService WebSocket Events', () => {
       mockPrisma.familyMember.findFirst.mockResolvedValue(null);
 
       await expect(childService.updateChild(childId, userId, updateData)).rejects.toThrow(
-        'User must belong to a family to modify children'
+        'User must belong to a family to modify children',
       );
 
       expect(mockSocketEmitter.broadcastChildUpdate).not.toHaveBeenCalled();

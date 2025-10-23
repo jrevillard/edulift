@@ -80,11 +80,11 @@ describe('FamilyService WebSocket Events', () => {
         name: familyName,
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       // Mock transaction behavior
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null), // No existing family
@@ -106,8 +106,8 @@ describe('FamilyService WebSocket Events', () => {
         'updated',
         expect.objectContaining({
           action: 'created',
-          family: mockFamily
-        })
+          family: mockFamily,
+        }),
       );
     });
 
@@ -133,7 +133,7 @@ describe('FamilyService WebSocket Events', () => {
         name: 'Test Family',
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       // Mock UnifiedInvitationService
@@ -162,7 +162,7 @@ describe('FamilyService WebSocket Events', () => {
         .mockResolvedValue(null);
 
       await expect(familyService.joinFamily(inviteCode, userId)).rejects.toThrow(
-        'Failed to retrieve family after joining'
+        'Failed to retrieve family after joining',
       );
     });
 
@@ -176,7 +176,7 @@ describe('FamilyService WebSocket Events', () => {
         .mockResolvedValue({ success: false, error: specificError });
 
       await expect(familyService.joinFamily(inviteCode, userId)).rejects.toThrow(
-        specificError
+        specificError,
       );
       expect(mockSocketEmitter.broadcastFamilyUpdate).not.toHaveBeenCalled();
     });
@@ -189,7 +189,7 @@ describe('FamilyService WebSocket Events', () => {
       const familyId = 'family-789';
       const newRole = 'ADMIN';
 
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn()
@@ -212,8 +212,8 @@ describe('FamilyService WebSocket Events', () => {
           userId: 'user-456',
           oldRole: 'MEMBER',
           newRole,
-          changedBy: adminId
-        })
+          changedBy: adminId,
+        }),
       );
     });
   });
@@ -225,7 +225,7 @@ describe('FamilyService WebSocket Events', () => {
       const targetUserId = 'user-789';
       const familyId = 'family-999';
 
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn()
@@ -247,8 +247,8 @@ describe('FamilyService WebSocket Events', () => {
           action: 'memberRemoved',
           memberId,
           userId: targetUserId,
-          removedBy: adminId
-        })
+          removedBy: adminId,
+        }),
       );
     });
 
@@ -257,7 +257,7 @@ describe('FamilyService WebSocket Events', () => {
       const memberId = 'member-456';
       const familyId = 'family-999';
 
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn()
@@ -269,7 +269,7 @@ describe('FamilyService WebSocket Events', () => {
       });
 
       await expect(familyService.removeMember(adminId, memberId)).rejects.toThrow(
-        'Admin cannot remove themselves'
+        'Admin cannot remove themselves',
       );
       expect(mockSocketEmitter.broadcastFamilyUpdate).not.toHaveBeenCalled();
     });
@@ -281,13 +281,13 @@ describe('FamilyService WebSocket Events', () => {
       const familyId = 'family-456';
       const memberId = 'member-789';
 
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue({
               id: memberId,
               familyId,
-              role: 'MEMBER'
+              role: 'MEMBER',
             }),
             delete: jest.fn().mockResolvedValue({}),
             count: jest.fn().mockResolvedValue(2), // Not last admin
@@ -304,8 +304,8 @@ describe('FamilyService WebSocket Events', () => {
         expect.objectContaining({
           action: 'memberLeft',
           userId,
-          memberId
-        })
+          memberId,
+        }),
       );
     });
 
@@ -313,12 +313,12 @@ describe('FamilyService WebSocket Events', () => {
       const userId = 'user-123';
       const familyId = 'family-456';
 
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue({
               familyId,
-              role: 'ADMIN'
+              role: 'ADMIN',
             }),
             count: jest.fn().mockResolvedValue(1), // Last admin
           },
@@ -327,7 +327,7 @@ describe('FamilyService WebSocket Events', () => {
       });
 
       await expect(familyService.leaveFamily(userId)).rejects.toThrow(
-        'Cannot leave family as you are the last administrator'
+        'Cannot leave family as you are the last administrator',
       );
       expect(mockSocketEmitter.broadcastFamilyUpdate).not.toHaveBeenCalled();
     });
@@ -357,10 +357,10 @@ describe('FamilyService WebSocket Events', () => {
         name: familyName,
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: Function) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
@@ -385,8 +385,8 @@ describe('FamilyService WebSocket Events', () => {
         'updated',
         expect.objectContaining({
           action: 'created',
-          family: mockFamily
-        })
+          family: mockFamily,
+        }),
       );
     });
   });

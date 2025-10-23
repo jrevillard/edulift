@@ -45,8 +45,8 @@ const mockPrisma = {
 // Mock ActivityLogRepository
 jest.mock('../../repositories/ActivityLogRepository', () => ({
   ActivityLogRepository: jest.fn().mockImplementation(() => ({
-    createActivity: jest.fn().mockResolvedValue({ id: 'activity-id' })
-  }))
+    createActivity: jest.fn().mockResolvedValue({ id: 'activity-id' }),
+  })),
 }));
 
 describe('ChildAssignmentService', () => {
@@ -63,12 +63,12 @@ describe('ChildAssignmentService', () => {
       mockPrisma.child.findUnique.mockResolvedValue({
         id: 'child-id',
         family: {
-          members: [] // User not in family
-        }
+          members: [], // User not in family
+        },
       });
 
       await expect(
-        service.addChildToGroup('child-id', 'group-id', 'user-id')
+        service.addChildToGroup('child-id', 'group-id', 'user-id'),
       ).rejects.toThrow('Child not found or permission denied');
     });
 
@@ -77,21 +77,21 @@ describe('ChildAssignmentService', () => {
         id: 'child-id',
         family: {
           id: 'family-id',
-          members: [{ userId: 'user-id' }] // User is family member
-        }
+          members: [{ userId: 'user-id' }], // User is family member
+        },
       });
       
       // Mock user's family membership
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         familyId: 'family-id',
-        userId: 'user-id'
+        userId: 'user-id',
       });
       
       // Mock group without family access
       mockPrisma.group.findFirst.mockResolvedValue(null);
 
       await expect(
-        service.addChildToGroup('child-id', 'group-id', 'user-id')
+        service.addChildToGroup('child-id', 'group-id', 'user-id'),
       ).rejects.toThrow('User\'s family must have access to group');
     });
 
@@ -100,8 +100,8 @@ describe('ChildAssignmentService', () => {
         id: 'child-id',
         family: {
           id: 'family-id',
-          members: [{ userId: 'user-id' }]
-        }
+          members: [{ userId: 'user-id' }],
+        },
       };
       const mockFamilyMember = { familyId: 'family-id', userId: 'user-id' };
       const mockGroup = { id: 'group-id', familyId: 'family-id' };
@@ -109,7 +109,7 @@ describe('ChildAssignmentService', () => {
         childId: 'child-id',
         groupId: 'group-id',
         child: { name: 'Test Child' },
-        group: { name: 'Test Group' }
+        group: { name: 'Test Group' },
       };
 
       mockPrisma.child.findUnique.mockResolvedValue(mockChild);
@@ -125,12 +125,12 @@ describe('ChildAssignmentService', () => {
         data: {
           childId: 'child-id',
           groupId: 'group-id',
-          addedBy: 'user-id'
+          addedBy: 'user-id',
         },
         include: {
           child: true,
-          group: true
-        }
+          group: true,
+        },
       });
     });
   });
@@ -146,13 +146,13 @@ describe('ChildAssignmentService', () => {
         id: 'child-id',
         family: {
           id: 'family-id',
-          members: [{ userId: 'user-id' }]
-        }
+          members: [{ userId: 'user-id' }],
+        },
       };
       const mockScheduleSlot = {
         id: 'slot-id',
         groupId: 'group-id',
-        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000) // Tomorrow - future date
+        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow - future date
       };
       const mockFamilyMember = { familyId: 'family-id', userId: 'user-id' };
       const mockGroup = { id: 'group-id', familyId: 'family-id' };
@@ -165,8 +165,8 @@ describe('ChildAssignmentService', () => {
           { id: 'assignment1' },
           { id: 'assignment2' },
           { id: 'assignment3' },
-          { id: 'assignment4' }
-        ] // Already 4 children
+          { id: 'assignment4' },
+        ], // Already 4 children
       };
 
       mockPrisma.child.findUnique.mockResolvedValue(mockChild);
@@ -176,7 +176,7 @@ describe('ChildAssignmentService', () => {
       mockPrisma.scheduleSlotVehicle.findUnique.mockResolvedValue(mockVehicleAssignment);
 
       await expect(
-        service.assignChildToScheduleSlot('slot-id', 'child-id', 'vehicle-assignment-id', 'user-id')
+        service.assignChildToScheduleSlot('slot-id', 'child-id', 'vehicle-assignment-id', 'user-id'),
       ).rejects.toThrow('Vehicle Test Vehicle is at full capacity (4/4)');
     });
 
@@ -190,13 +190,13 @@ describe('ChildAssignmentService', () => {
         id: 'child-id',
         family: {
           id: 'family-id',
-          members: [{ userId: 'user-id' }]
-        }
+          members: [{ userId: 'user-id' }],
+        },
       };
       const mockScheduleSlot = {
         id: 'slot-id',
         groupId: 'group-id',
-        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000),
       };
       const mockFamilyMember = { familyId: 'family-id', userId: 'user-id' };
       const mockGroup = { id: 'group-id', familyId: 'family-id' };
@@ -210,8 +210,8 @@ describe('ChildAssignmentService', () => {
           { id: 'assignment2' },
           { id: 'assignment3' },
           { id: 'assignment4' },
-          { id: 'assignment5' }
-        ] // 5 children assigned
+          { id: 'assignment5' },
+        ], // 5 children assigned
       };
       const mockAssignment = {
         scheduleSlotId: 'slot-id',
@@ -219,7 +219,7 @@ describe('ChildAssignmentService', () => {
         vehicleAssignmentId: 'vehicle-assignment-id',
         child: { name: 'Test Child' },
         scheduleSlot: mockScheduleSlot,
-        vehicleAssignment: mockVehicleAssignment
+        vehicleAssignment: mockVehicleAssignment,
       };
 
       mockPrisma.child.findUnique.mockResolvedValue(mockChild);
@@ -246,20 +246,20 @@ describe('ChildAssignmentService', () => {
         id: 'child-id',
         family: {
           id: 'family-id',
-          members: [{ userId: 'user-id' }]
-        }
+          members: [{ userId: 'user-id' }],
+        },
       };
       const mockScheduleSlot = {
         id: 'slot-id',
         groupId: 'group-id',
-        datetime: new Date('2023-01-01T08:00:00.000Z') // Past date
+        datetime: new Date('2023-01-01T08:00:00.000Z'), // Past date
       };
 
       mockPrisma.child.findUnique.mockResolvedValue(mockChild);
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockScheduleSlot);
 
       await expect(
-        service.assignChildToScheduleSlot('slot-id', 'child-id', 'vehicle-assignment-id', 'user-id')
+        service.assignChildToScheduleSlot('slot-id', 'child-id', 'vehicle-assignment-id', 'user-id'),
       ).rejects.toThrow('Cannot assign children to schedule slots in the past');
     });
 
@@ -273,13 +273,13 @@ describe('ChildAssignmentService', () => {
         id: 'child-id',
         family: {
           id: 'family-id',
-          members: [{ userId: 'user-id' }]
-        }
+          members: [{ userId: 'user-id' }],
+        },
       };
       const mockScheduleSlot = {
         id: 'slot-id',
         groupId: 'group-id',
-        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000) // Tomorrow - future date
+        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow - future date
       };
       const mockFamilyMember = { familyId: 'family-id', userId: 'user-id' };
       const mockGroup = { id: 'group-id', familyId: 'family-id' };
@@ -288,7 +288,7 @@ describe('ChildAssignmentService', () => {
         scheduleSlotId: 'slot-id',
         seatOverride: null,
         vehicle: { capacity: 4, name: 'Test Vehicle' },
-        childAssignments: [{ id: 'assignment1' }, { id: 'assignment2' }] // 2 children
+        childAssignments: [{ id: 'assignment1' }, { id: 'assignment2' }], // 2 children
       };
       const mockAssignment = {
         scheduleSlotId: 'slot-id',
@@ -296,7 +296,7 @@ describe('ChildAssignmentService', () => {
         vehicleAssignmentId: 'vehicle-assignment-id',
         child: { name: 'Test Child' },
         scheduleSlot: mockScheduleSlot,
-        vehicleAssignment: mockVehicleAssignment
+        vehicleAssignment: mockVehicleAssignment,
       };
 
       mockPrisma.child.findUnique.mockResolvedValue(mockChild);
@@ -314,15 +314,15 @@ describe('ChildAssignmentService', () => {
         data: {
           scheduleSlotId: 'slot-id',
           childId: 'child-id',
-          vehicleAssignmentId: 'vehicle-assignment-id'
+          vehicleAssignmentId: 'vehicle-assignment-id',
         },
         include: {
           child: true,
           scheduleSlot: true,
           vehicleAssignment: {
-            include: { vehicle: true }
-          }
-        }
+            include: { vehicle: true },
+          },
+        },
       });
     });
   });
@@ -332,11 +332,11 @@ describe('ChildAssignmentService', () => {
       const mockScheduleSlot = { 
         id: 'slot-id', 
         groupId: 'group-id',
-        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000) // Tomorrow - future date
+        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow - future date
       };
       const mockChildren = [
         { id: 'child1', name: 'Child 1', groupMemberships: [{ groupId: 'group-id' }] },
-        { id: 'child2', name: 'Child 2', groupMemberships: [{ groupId: 'group-id' }] }
+        { id: 'child2', name: 'Child 2', groupMemberships: [{ groupId: 'group-id' }] },
       ];
       const mockAssignedChildren = [{ childId: 'child1' }];
 
@@ -354,18 +354,18 @@ describe('ChildAssignmentService', () => {
         where: {
           family: {
             members: {
-              some: { userId: 'user-id' }
-            }
+              some: { userId: 'user-id' },
+            },
           },
           groupMemberships: {
             some: {
-              groupId: 'group-id'
-            }
-          }
+              groupId: 'group-id',
+            },
+          },
         },
         include: {
-          groupMemberships: true
-        }
+          groupMemberships: true,
+        },
       });
     });
   });
@@ -423,7 +423,7 @@ describe('ChildAssignmentService', () => {
             const snapshotCount = assignmentCount;
             const currentAssignments = Array.from(
               { length: snapshotCount },
-              (_, i) => ({ id: `assignment-${i + 1}`, childId: `child-${i + 1}` })
+              (_, i) => ({ id: `assignment-${i + 1}`, childId: `child-${i + 1}` }),
             );
 
             const vehicleAssignmentInTransaction = {
@@ -470,7 +470,7 @@ describe('ChildAssignmentService', () => {
                   if (snapshotCount >= effectiveCapacity) {
                     throw new AppError(
                       `Vehicle ${vehicleAssignmentInTransaction.vehicle.name} is at full capacity (${snapshotCount}/${effectiveCapacity})`,
-                      409
+                      409,
                     );
                   }
 
@@ -613,7 +613,7 @@ describe('ChildAssignmentService', () => {
                   if (snapshotCount >= effectiveCapacity) {
                     throw new AppError(
                       `Vehicle ${vehicleInTx.vehicle.name} is at full capacity (${snapshotCount}/${effectiveCapacity})`,
-                      409
+                      409,
                     );
                   }
 

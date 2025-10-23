@@ -5,6 +5,7 @@ import { SchedulingService } from '../../services/SchedulingService';
 import { AuthenticatedRequest } from '../../middleware/auth';
 // import { createError } from '../../utils/errorHandler';
 
+
 // Mock services
 jest.mock('../../services/GroupService');
 jest.mock('../../services/SchedulingService');
@@ -24,12 +25,12 @@ describe('GroupController.updateGroup', () => {
     mockRequest = {
       userId: 'user123',
       params: { groupId: 'group123' },
-      body: {}
+      body: {},
     };
 
     mockResponse = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis()
+      json: jest.fn().mockReturnThis(),
     };
   });
 
@@ -50,11 +51,11 @@ describe('GroupController.updateGroup', () => {
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
         'group123',
         'user123',
-        { name: 'New Group Name' }
+        { name: 'New Group Name' },
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -70,11 +71,11 @@ describe('GroupController.updateGroup', () => {
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
         'group123',
         'user123',
-        { description: 'New description' }
+        { description: 'New description' },
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -90,11 +91,11 @@ describe('GroupController.updateGroup', () => {
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
         'group123',
         'user123',
-        { name: 'New Name', description: 'New description' }
+        { name: 'New Name', description: 'New description' },
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -110,11 +111,11 @@ describe('GroupController.updateGroup', () => {
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
         'group123',
         'user123',
-        { description: '' }
+        { description: '' },
       );
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: updatedGroup
+        data: updatedGroup,
       });
     });
 
@@ -130,7 +131,7 @@ describe('GroupController.updateGroup', () => {
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
         'group123',
         'user123',
-        { name: 'Trimmed Name', description: 'Trimmed description' }
+        { name: 'Trimmed Name', description: 'Trimmed description' },
       );
     });
   });
@@ -140,7 +141,7 @@ describe('GroupController.updateGroup', () => {
       delete mockRequest.userId;
 
       await expect(
-        groupController.updateGroup(mockRequest as Request, mockResponse as Response)
+        groupController.updateGroup(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow('Authentication required');
     });
 
@@ -152,7 +153,7 @@ describe('GroupController.updateGroup', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        error: 'No update data provided'
+        error: 'No update data provided',
       });
     });
 
@@ -164,7 +165,7 @@ describe('GroupController.updateGroup', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(400);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        error: 'No update data provided'
+        error: 'No update data provided',
       });
     });
 
@@ -181,9 +182,9 @@ describe('GroupController.updateGroup', () => {
         validationErrors: expect.arrayContaining([
           expect.objectContaining({
             field: 'name',
-            message: 'Group name too long'
-          })
-        ])
+            message: 'Group name too long',
+          }),
+        ]),
       });
     });
 
@@ -200,9 +201,9 @@ describe('GroupController.updateGroup', () => {
         validationErrors: expect.arrayContaining([
           expect.objectContaining({
             field: 'description',
-            message: 'Description too long'
-          })
-        ])
+            message: 'Description too long',
+          }),
+        ]),
       });
     });
   });
@@ -217,7 +218,7 @@ describe('GroupController.updateGroup', () => {
       mockGroupService.updateGroup.mockRejectedValue(error);
 
       await expect(
-        groupController.updateGroup(mockRequest as Request, mockResponse as Response)
+        groupController.updateGroup(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow('Group not found');
     });
 
@@ -230,7 +231,7 @@ describe('GroupController.updateGroup', () => {
       mockGroupService.updateGroup.mockRejectedValue(error);
 
       await expect(
-        groupController.updateGroup(mockRequest as Request, mockResponse as Response)
+        groupController.updateGroup(mockRequest as Request, mockResponse as Response),
       ).rejects.toThrow('Only administrators of the owner family can update group settings');
     });
   });
@@ -248,7 +249,7 @@ describe('GroupController.updateGroup', () => {
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
         'group123',
         'user123',
-        { name: 'New Name' }
+        { name: 'New Name' },
       );
     });
 
@@ -267,9 +268,9 @@ describe('GroupController.updateGroup', () => {
         validationErrors: expect.arrayContaining([
           expect.objectContaining({
             field: 'description',
-            message: expect.any(String)
-          })
-        ])
+            message: expect.any(String),
+          }),
+        ]),
       });
     });
   });

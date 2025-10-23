@@ -113,7 +113,7 @@ describe('Error Handler Middleware', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith('Error:', expect.objectContaining({
         message: 'Test error for logging',
-        statusCode: 500
+        statusCode: 500,
       }));
     });
 
@@ -124,7 +124,7 @@ describe('Error Handler Middleware', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith('Error:', expect.objectContaining({
         message: 'App error for logging',
-        statusCode: 422
+        statusCode: 422,
       }));
     });
   });

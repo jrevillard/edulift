@@ -22,14 +22,14 @@ export class ChildService {
         data: {
           name: data.name,
           age: data.age ?? null,  // Convert undefined to null for Prisma
-          familyId: data.familyId
-        }
+          familyId: data.familyId,
+        },
       });
 
       // Emit WebSocket event for child creation
       SocketEmitter.broadcastChildUpdate('system', data.familyId, 'added', {
         child,
-        familyId: data.familyId
+        familyId: data.familyId,
       });
 
       return child;
@@ -44,8 +44,8 @@ export class ChildService {
       const familyMember = await this.prisma.familyMember.findFirst({
         where: { userId },
         include: {
-          family: true
-        }
+          family: true,
+        },
       });
       
       return familyMember?.family || null;
@@ -60,8 +60,8 @@ export class ChildService {
       const familyMember = await this.prisma.familyMember.findFirst({
         where: { 
           userId,
-          familyId
-        }
+          familyId,
+        },
       });
 
       // Only Admins can modify children
@@ -88,15 +88,15 @@ export class ChildService {
               group: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
-            }
-          }
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: [
-          { name: 'asc' }
-        ]
+          { name: 'asc' },
+        ],
       });
 
       return children;
@@ -117,8 +117,8 @@ export class ChildService {
       const child = await this.prisma.child.findFirst({
         where: {
           id: childId,
-          familyId: userFamily.id // Ensure child belongs to user's family
-        }
+          familyId: userFamily.id, // Ensure child belongs to user's family
+        },
       });
 
       if (!child) {
@@ -160,15 +160,15 @@ export class ChildService {
         where: { id: childId },
         data: {
           ...(data.name !== undefined && { name: data.name }),
-          ...(data.age !== undefined && { age: data.age ?? null })
-        }
+          ...(data.age !== undefined && { age: data.age ?? null }),
+        },
       });
 
       // Emit WebSocket event for child update
       SocketEmitter.broadcastChildUpdate(userId, userFamily.id, 'updated', {
         child: updatedChild,
         familyId: userFamily.id,
-        previousData: existingChild
+        previousData: existingChild,
       });
 
       return updatedChild;
@@ -206,14 +206,14 @@ export class ChildService {
       // For now, allow deletion without checking assignments
 
       await this.prisma.child.delete({
-        where: { id: childId }
+        where: { id: childId },
       });
 
       // Emit WebSocket event for child deletion
       SocketEmitter.broadcastChildUpdate(userId, userFamily.id, 'deleted', {
         childId,
         familyId: userFamily.id,
-        deletedChild: existingChild
+        deletedChild: existingChild,
       });
 
       return { success: true };

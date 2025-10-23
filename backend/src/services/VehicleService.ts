@@ -26,8 +26,8 @@ export class VehicleService {
       const familyMember = await this.prisma.familyMember.findFirst({
         where: { userId },
         include: {
-          family: true
-        }
+          family: true,
+        },
       });
       
       return familyMember?.family || null;
@@ -42,8 +42,8 @@ export class VehicleService {
       const familyMember = await this.prisma.familyMember.findFirst({
         where: { 
           userId,
-          familyId
-        }
+          familyId,
+        },
       });
 
       // Only Admins can modify vehicles
@@ -65,13 +65,13 @@ export class VehicleService {
         data: {
           name: data.name,
           capacity: data.capacity,
-          familyId: data.familyId
-        }
+          familyId: data.familyId,
+        },
       });
 
       // Log the activity
       await this.activityLogRepo.createActivity({
-        userId: userId,
+        userId,
         actionType: 'VEHICLE_ADD',
         actionDescription: `Added vehicle "${data.name}"`,
         entityType: 'vehicle',
@@ -101,8 +101,8 @@ export class VehicleService {
       const vehicles = await this.prisma.vehicle.findMany({
         where: { familyId: userFamily.id },
         orderBy: [
-          { name: 'asc' }
-        ]
+          { name: 'asc' },
+        ],
       });
 
       return vehicles;
@@ -123,8 +123,8 @@ export class VehicleService {
       const vehicle = await this.prisma.vehicle.findFirst({
         where: {
           id: vehicleId,
-          familyId: userFamily.id // Ensure vehicle belongs to user's family
-        }
+          familyId: userFamily.id, // Ensure vehicle belongs to user's family
+        },
       });
 
       if (!vehicle) {
@@ -174,7 +174,7 @@ export class VehicleService {
         if (tripsWithTooManyAssignments.length > 0) {
           throw new AppError(
             `Cannot reduce capacity: ${tripsWithTooManyAssignments.length} trip(s) exceed new capacity. Please reassign children first.`,
-            400
+            400,
           );
         }
       }
@@ -183,8 +183,8 @@ export class VehicleService {
         where: { id: vehicleId },
         data: {
           ...(data.name && { name: data.name }),
-          ...(data.capacity !== undefined && { capacity: data.capacity })
-        }
+          ...(data.capacity !== undefined && { capacity: data.capacity }),
+        },
       });
 
       return updatedVehicle;
@@ -222,7 +222,7 @@ export class VehicleService {
       // For now, allow deletion without checking assignments
 
       await this.prisma.vehicle.delete({
-        where: { id: vehicleId }
+        where: { id: vehicleId },
       });
 
       return { success: true };
@@ -272,10 +272,10 @@ export class VehicleService {
           ownerFamily: true,
           familyMembers: {
             include: {
-              family: true
-            }
-          }
-        }
+              family: true,
+            },
+          },
+        },
       });
 
       if (!group) {
@@ -284,24 +284,24 @@ export class VehicleService {
 
       // Collect all family IDs that have access to the group
       const familyIds = [group.familyId]; // Owner family
-      group.familyMembers.forEach((fm: any) => {
+      group.familyMembers.forEach((fm: { familyId: string }) => {
         familyIds.push(fm.familyId);
       });
 
       // Find vehicles owned by families of group members
       const availableVehicles = await this.prisma.vehicle.findMany({
         where: {
-          familyId: { in: familyIds }
+          familyId: { in: familyIds },
         },
         include: {
           family: {
-            select: { id: true, name: true }
-          }
+            select: { id: true, name: true },
+          },
         },
         orderBy: [
           { capacity: 'desc' },
-          { name: 'asc' }
-        ]
+          { name: 'asc' },
+        ],
       });
 
       return availableVehicles;

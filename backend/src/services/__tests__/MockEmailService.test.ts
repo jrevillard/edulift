@@ -64,8 +64,8 @@ describe('MockEmailService', () => {
         await mockEmailService.sendGroupInvitation({
             to: 'new.member@example.com',
             groupName: 'The Cool Kids Club',
-            inviteCode: inviteCode,
-            role: 'MEMBER'
+            inviteCode,
+            role: 'MEMBER',
         });
 
         expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('👥 DEVELOPMENT MODE - Group Invitation'));

@@ -10,16 +10,16 @@ const router = Router();
 
 // Validation schemas
 const VehicleParamsSchema = z.object({
-  vehicleId: z.string().cuid('Invalid vehicle ID format')
+  vehicleId: z.string().cuid('Invalid vehicle ID format'),
 });
 
 const AvailableVehiclesParamsSchema = z.object({
   groupId: z.string().cuid('Invalid group ID format'),
-  timeSlotId: z.string().cuid('Invalid time slot ID format')
+  timeSlotId: z.string().cuid('Invalid time slot ID format'),
 });
 
 const WeekQuerySchema = z.object({
-  week: z.string().optional()
+  week: z.string().optional(),
 });
 
 // All routes require authentication
@@ -34,32 +34,32 @@ router.get('/', asyncHandler(vehicleController.getVehicles));
 // Get available vehicles for a specific time slot
 router.get('/available/:groupId/:timeSlotId',
   validateParams(AvailableVehiclesParamsSchema),
-  asyncHandler(vehicleController.getAvailableVehicles)
+  asyncHandler(vehicleController.getAvailableVehicles),
 );
 
 // Get specific vehicle
 router.get('/:vehicleId', 
   validateParams(VehicleParamsSchema),
-  asyncHandler(vehicleController.getVehicle)
+  asyncHandler(vehicleController.getVehicle),
 );
 
 // Update vehicle
 router.patch('/:vehicleId', 
   validateParams(VehicleParamsSchema),
-  asyncHandler(vehicleController.updateVehicle)
+  asyncHandler(vehicleController.updateVehicle),
 );
 
 // Delete vehicle
 router.delete('/:vehicleId', 
   validateParams(VehicleParamsSchema),
-  asyncHandler(vehicleController.deleteVehicle)
+  asyncHandler(vehicleController.deleteVehicle),
 );
 
 // Get vehicle's schedule
 router.get('/:vehicleId/schedule', 
   validateParams(VehicleParamsSchema),
   validateQuery(WeekQuerySchema),
-  asyncHandler(vehicleController.getVehicleSchedule)
+  asyncHandler(vehicleController.getVehicleSchedule),
 );
 
 export default router;

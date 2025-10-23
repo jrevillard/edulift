@@ -5,7 +5,7 @@ import { getWeekBoundaries, getDateFromISOWeek } from '../utils/isoWeekUtils';
 export class ScheduleSlotRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(data: CreateScheduleSlotData) {
+  async create(data: CreateScheduleSlotData): Promise<unknown> {
     return this.prisma.scheduleSlot.create({
       data,
       include: {
@@ -13,20 +13,20 @@ export class ScheduleSlotRepository {
         vehicleAssignments: {
           include: {
             vehicle: { select: { id: true, name: true, capacity: true } },
-            driver: { select: { id: true, name: true } }
-          }
+            driver: { select: { id: true, name: true } },
+          },
         },
         childAssignments: {
           include: {
-            child: { select: { id: true, name: true } }
-          }
-        }
-      }
+            child: { select: { id: true, name: true } },
+          },
+        },
+      },
     });
   }
 
 
-  async findById(id: string) {
+  async findById(id: string): Promise<unknown> {
     return this.prisma.scheduleSlot.findUnique({
       where: { id },
       include: {
@@ -34,20 +34,20 @@ export class ScheduleSlotRepository {
         vehicleAssignments: {
           include: {
             vehicle: { select: { id: true, name: true, capacity: true } },
-            driver: { select: { id: true, name: true } }
-          }
+            driver: { select: { id: true, name: true } },
+          },
         },
         childAssignments: {
           select: {
             vehicleAssignmentId: true,
-            child: { select: { id: true, name: true } }
-          }
-        }
-      }
+            child: { select: { id: true, name: true } },
+          },
+        },
+      },
     });
   }
 
-  async findByIdWithDetails(id: string) {
+  async findByIdWithDetails(id: string): Promise<unknown> {
     return this.prisma.scheduleSlot.findUnique({
       where: { id },
       include: {
@@ -55,8 +55,8 @@ export class ScheduleSlotRepository {
         vehicleAssignments: {
           include: {
             vehicle: { select: { id: true, name: true, capacity: true } },
-            driver: { select: { id: true, name: true } }
-          }
+            driver: { select: { id: true, name: true } },
+          },
         },
         childAssignments: {
           select: {
@@ -64,48 +64,48 @@ export class ScheduleSlotRepository {
             child: { 
               select: { 
                 id: true, 
-                name: true
-              } 
-            }
-          }
-        }
-      }
+                name: true,
+              }, 
+            },
+          },
+        },
+      },
     });
   }
 
-  async findByGroupAndDateTime(groupId: string, datetime: Date) {
+  async findByGroupAndDateTime(groupId: string, datetime: Date): Promise<unknown> {
     return this.prisma.scheduleSlot.findUnique({
       where: {
         groupId_datetime: {
           groupId,
-          datetime
-        }
+          datetime,
+        },
       },
       include: {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
             vehicle: { select: { id: true, name: true, capacity: true } },
-            driver: { select: { id: true, name: true } }
-          }
+            driver: { select: { id: true, name: true } },
+          },
         },
         childAssignments: {
           include: {
-            child: { select: { id: true, name: true } }
-          }
-        }
-      }
+            child: { select: { id: true, name: true } },
+          },
+        },
+      },
     });
   }
 
-  async assignVehicleToSlot(scheduleSlotId: string, vehicleId: string, driverId?: string, seatOverride?: number) {
+  async assignVehicleToSlot(scheduleSlotId: string, vehicleId: string, driverId?: string, seatOverride?: number): Promise<unknown> {
     // ✅ PRODUCTION: Use SERIALIZABLE transaction to prevent race conditions
     return await this.prisma.$transaction(
       async (tx) => {
         // Validate schedule slot exists
         const scheduleSlot = await tx.scheduleSlot.findUnique({
           where: { id: scheduleSlotId },
-          include: { group: true }
+          include: { group: true },
         });
         if (!scheduleSlot) {
           throw new Error('Schedule slot not found');
@@ -114,7 +114,7 @@ export class ScheduleSlotRepository {
         // Validate vehicle exists
         const vehicle = await tx.vehicle.findUnique({
           where: { id: vehicleId },
-          select: { id: true, name: true, capacity: true, familyId: true }
+          select: { id: true, name: true, capacity: true, familyId: true },
         });
         if (!vehicle) {
           throw new Error('Vehicle not found');
@@ -133,9 +133,9 @@ export class ScheduleSlotRepository {
           where: {
             scheduleSlotId_vehicleId: {
               scheduleSlotId,
-              vehicleId
-            }
-          }
+              vehicleId,
+            },
+          },
         });
 
         if (existingAssignment) {
@@ -149,14 +149,14 @@ export class ScheduleSlotRepository {
             groupId: scheduleSlot.groupId,
             datetime: scheduleSlot.datetime,
             vehicleAssignments: {
-              some: { vehicleId }
-            }
-          }
+              some: { vehicleId },
+            },
+          },
         });
 
         if (conflictingSlots.length > 0) {
           throw new Error(
-            `Vehicle is already assigned to another schedule slot at ${scheduleSlot.datetime.toISOString()}`
+            `Vehicle is already assigned to another schedule slot at ${scheduleSlot.datetime.toISOString()}`,
           );
         }
 
@@ -166,16 +166,16 @@ export class ScheduleSlotRepository {
             scheduleSlotId,
             vehicleId,
             driverId: driverId || null,
-            seatOverride: seatOverride || null
+            seatOverride: seatOverride || null,
           },
           include: {
             vehicle: {
-              select: { id: true, name: true, capacity: true }
+              select: { id: true, name: true, capacity: true },
             },
             driver: {
-              select: { id: true, name: true }
-            }
-          }
+              select: { id: true, name: true },
+            },
+          },
         });
 
         return result;
@@ -184,11 +184,11 @@ export class ScheduleSlotRepository {
         // ✅ SERIALIZABLE = Maximum isolation - prevents race conditions
         isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
         timeout: 10000,
-      }
+      },
     );
   }
 
-  async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string) {
+  async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string): Promise<unknown> {
     // Use transaction to ensure atomicity
     return await this.prisma.$transaction(async (tx) => {
       // Remove the vehicle assignment
@@ -196,14 +196,14 @@ export class ScheduleSlotRepository {
         where: {
           scheduleSlotId_vehicleId: {
             scheduleSlotId,
-            vehicleId
-          }
-        }
+            vehicleId,
+          },
+        },
       });
 
       // Check remaining vehicle assignments after removal
       const remainingVehicleCount = await tx.scheduleSlotVehicle.count({ 
-        where: { scheduleSlotId } 
+        where: { scheduleSlotId }, 
       });
 
       // Business rule: ScheduleSlot must have at least one vehicle
@@ -211,7 +211,7 @@ export class ScheduleSlotRepository {
       let slotDeleted = false;
       if (remainingVehicleCount === 0) {
         await tx.scheduleSlot.delete({
-          where: { id: scheduleSlotId }
+          where: { id: scheduleSlotId },
         });
         slotDeleted = true;
       }
@@ -220,27 +220,27 @@ export class ScheduleSlotRepository {
     });
   }
 
-  async updateVehicleDriver(scheduleSlotId: string, vehicleId: string, driverId: string | null) {
+  async updateVehicleDriver(scheduleSlotId: string, vehicleId: string, driverId: string | null): Promise<unknown> {
     return this.prisma.scheduleSlotVehicle.update({
       where: {
         scheduleSlotId_vehicleId: {
           scheduleSlotId,
-          vehicleId
-        }
+          vehicleId,
+        },
       },
-      data: { driverId }
+      data: { driverId },
     });
   }
 
 
-  async removeChildFromSlot(scheduleSlotId: string, childId: string) {
+  async removeChildFromSlot(scheduleSlotId: string, childId: string): Promise<unknown> {
     return this.prisma.scheduleSlotChild.delete({
       where: {
         scheduleSlotId_childId: {
           scheduleSlotId,
-          childId
-        }
-      }
+          childId,
+        },
+      },
     });
   }
 
@@ -250,38 +250,38 @@ export class ScheduleSlotRepository {
    * @deprecated Use getScheduleByWeek with timezone parameter instead
    * This method uses raw UTC dates which may not align with user's week boundaries
    */
-  async getWeeklyScheduleByDateRange(groupId: string, weekStart: Date, weekEnd: Date) {
+  async getWeeklyScheduleByDateRange(groupId: string, weekStart: Date, weekEnd: Date): Promise<unknown> {
     return this.prisma.scheduleSlot.findMany({
       where: {
         groupId,
         datetime: {
           gte: weekStart,
-          lte: weekEnd
-        }
+          lte: weekEnd,
+        },
       },
       include: {
         vehicleAssignments: {
           include: {
             vehicle: {
-              select: { id: true, name: true, capacity: true }
+              select: { id: true, name: true, capacity: true },
             },
             driver: {
-              select: { id: true, name: true }
-            }
-          }
+              select: { id: true, name: true },
+            },
+          },
         },
         childAssignments: {
           select: {
             vehicleAssignmentId: true,
             child: {
-              select: { id: true, name: true, familyId: true }
-            }
-          }
-        }
+              select: { id: true, name: true, familyId: true },
+            },
+          },
+        },
       },
       orderBy: [
-        { datetime: 'asc' }
-      ]
+        { datetime: 'asc' },
+      ],
     });
   }
 
@@ -308,8 +308,8 @@ export class ScheduleSlotRepository {
     groupId: string,
     year: number,
     week: number,
-    timezone: string
-  ) {
+    timezone: string,
+  ): Promise<unknown> {
     // Get the Monday 00:00 in user's timezone for this ISO week
     const weekStartDate = getDateFromISOWeek(year, week, timezone);
 
@@ -322,32 +322,32 @@ export class ScheduleSlotRepository {
         groupId,
         datetime: {
           gte: weekStart,
-          lte: weekEnd
-        }
+          lte: weekEnd,
+        },
       },
       include: {
         vehicleAssignments: {
           include: {
             vehicle: {
-              select: { id: true, name: true, capacity: true }
+              select: { id: true, name: true, capacity: true },
             },
             driver: {
-              select: { id: true, name: true }
-            }
-          }
+              select: { id: true, name: true },
+            },
+          },
         },
         childAssignments: {
           select: {
             vehicleAssignmentId: true,
             child: {
-              select: { id: true, name: true, familyId: true }
-            }
-          }
-        }
+              select: { id: true, name: true, familyId: true },
+            },
+          },
+        },
       },
       orderBy: [
-        { datetime: 'asc' }
-      ]
+        { datetime: 'asc' },
+      ],
     });
   }
 
@@ -373,8 +373,8 @@ export class ScheduleSlotRepository {
   async getScheduleByWeekFromDate(
     groupId: string,
     datetime: Date | string,
-    timezone: string
-  ) {
+    timezone: string,
+  ): Promise<unknown> {
     // Calculate week boundaries in user's timezone
     const { weekStart, weekEnd } = getWeekBoundaries(datetime, timezone);
 
@@ -384,40 +384,40 @@ export class ScheduleSlotRepository {
         groupId,
         datetime: {
           gte: weekStart,
-          lte: weekEnd
-        }
+          lte: weekEnd,
+        },
       },
       include: {
         vehicleAssignments: {
           include: {
             vehicle: {
-              select: { id: true, name: true, capacity: true }
+              select: { id: true, name: true, capacity: true },
             },
             driver: {
-              select: { id: true, name: true }
-            }
-          }
+              select: { id: true, name: true },
+            },
+          },
         },
         childAssignments: {
           select: {
             vehicleAssignmentId: true,
             child: {
-              select: { id: true, name: true, familyId: true }
-            }
-          }
-        }
+              select: { id: true, name: true, familyId: true },
+            },
+          },
+        },
       },
       orderBy: [
-        { datetime: 'asc' }
-      ]
+        { datetime: 'asc' },
+      ],
     });
   }
 
   async findConflictingSlotsForParentByDateTime(
-    parentId: string, 
+    parentId: string,
     groupId: string,
-    datetime: Date
-  ) {
+    datetime: Date,
+  ): Promise<unknown> {
     return this.prisma.scheduleSlot.findMany({
       where: {
         groupId,
@@ -426,9 +426,9 @@ export class ScheduleSlotRepository {
           { 
             vehicleAssignments: {
               some: {
-                driverId: parentId
-              }
-            }
+                driverId: parentId,
+              },
+            },
           },
           { 
             vehicleAssignments: {
@@ -436,12 +436,12 @@ export class ScheduleSlotRepository {
                 vehicle: { 
                   family: {
                     members: {
-                      some: { userId: parentId }
-                    }
-                  }
-                }
-              }
-            }
+                      some: { userId: parentId },
+                    },
+                  },
+                },
+              },
+            },
           },
           {
             childAssignments: {
@@ -449,35 +449,36 @@ export class ScheduleSlotRepository {
                 child: { 
                   family: {
                     members: {
-                      some: { userId: parentId }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
+                      some: { userId: parentId },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
       },
       include: {
         vehicleAssignments: {
           include: {
             vehicle: {
-              select: { id: true, name: true }
-            }
-          }
+              select: { id: true, name: true },
+            },
+          },
         },
         childAssignments: {
           include: {
             child: {
-              select: { id: true, name: true }
-            }
-          }
-        }
-      }
+              select: { id: true, name: true },
+            },
+          },
+        },
+      },
     });
   }
 
-  async bulkUpdateSlots(updates: Array<{ id: string; data: any }>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async bulkUpdateSlots(updates: Array<{ id: string; data: any }>): Promise<unknown> {
     // Validate each update before executing
     for (const update of updates) {
       // If updating datetime, check it's not in the past
@@ -496,7 +497,7 @@ export class ScheduleSlotRepository {
       if (!update.data.datetime) {
         const existingSlot = await this.prisma.scheduleSlot.findUnique({
           where: { id: update.id },
-          select: { datetime: true }
+          select: { datetime: true },
         });
         
         if (!existingSlot) {
@@ -513,63 +514,63 @@ export class ScheduleSlotRepository {
     const transactions = updates.map(update =>
       this.prisma.scheduleSlot.update({
         where: { id: update.id },
-        data: update.data
-      })
+        data: update.data,
+      }),
     );
 
     return this.prisma.$transaction(transactions);
   }
 
-  async findSlotsByDateTimeRange(groupId: string, startDate: Date, endDate: Date) {
+  async findSlotsByDateTimeRange(groupId: string, startDate: Date, endDate: Date): Promise<unknown> {
     return this.prisma.scheduleSlot.findMany({
       where: {
         groupId,
         datetime: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       include: {
         vehicleAssignments: {
           include: {
             vehicle: {
-              select: { id: true, name: true, capacity: true }
+              select: { id: true, name: true, capacity: true },
             },
             driver: {
-              select: { id: true, name: true }
-            }
-          }
+              select: { id: true, name: true },
+            },
+          },
         },
         childAssignments: {
           include: {
             child: {
-              select: { id: true, name: true }
-            }
-          }
-        }
+              select: { id: true, name: true },
+            },
+          },
+        },
       },
       orderBy: [
-        { datetime: 'asc' }
-      ]
+        { datetime: 'asc' },
+      ],
     });
   }
 
-  async updateSeatOverride(vehicleAssignmentId: string, seatOverride?: number) {
+  async updateSeatOverride(vehicleAssignmentId: string, seatOverride?: number): Promise<unknown> {
     return this.prisma.scheduleSlotVehicle.update({
       where: { id: vehicleAssignmentId },
       data: { seatOverride: seatOverride || null },
       include: {
         vehicle: {
-          select: { id: true, name: true, capacity: true }
+          select: { id: true, name: true, capacity: true },
         },
         driver: {
-          select: { id: true, name: true }
-        }
-      }
+          select: { id: true, name: true },
+        },
+      },
     });
   }
 
-  async findVehicleAssignmentById(vehicleAssignmentId: string) {
+  async findVehicleAssignmentById(vehicleAssignmentId: string): Promise<unknown> {
     return this.prisma.scheduleSlotVehicle.findUnique({
       where: { id: vehicleAssignmentId },
       select: {
@@ -577,8 +578,8 @@ export class ScheduleSlotRepository {
         scheduleSlotId: true,
         vehicleId: true,
         driverId: true,
-        seatOverride: true
-      }
+        seatOverride: true,
+      },
     });
   }
 }

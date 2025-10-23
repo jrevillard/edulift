@@ -10,7 +10,7 @@ export type DateInput = Date | string;
  * Format a date for consistent comparison (returns YYYY-MM-DD)
  * @deprecated This function is not used in production code. Consider using Luxon's formatting instead.
  */
-export function formatDateForComparison(date: DateInput): string {
+export const formatDateForComparison = (date: DateInput): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
 
   // Check if the date is valid
@@ -19,14 +19,14 @@ export function formatDateForComparison(date: DateInput): string {
   }
 
   return dateObj.toISOString().split('T')[0];
-}
+};
 
 /**
  * Check if a date is in the past (before current time)
  * DEPRECATED: Use isDateInPastWithTimezone for timezone-aware validation
  * @deprecated Use isDateInPastWithTimezone instead
  */
-export function isDateInPast(date: DateInput): boolean {
+export const isDateInPast = (date: DateInput): boolean => {
   const now = new Date();
   const checkDate = typeof date === 'string' ? new Date(date) : date;
 
@@ -36,7 +36,7 @@ export function isDateInPast(date: DateInput): boolean {
   }
 
   return checkDate.getTime() < now.getTime();
-}
+};
 
 /**
  * Check if a date is in the past using user's timezone
@@ -45,11 +45,11 @@ export function isDateInPast(date: DateInput): boolean {
  * @param nowOverride - Optional current time override (for testing)
  * @returns true if the date is in the past in the user's timezone
  */
-export function isDateInPastWithTimezone(
+export const isDateInPastWithTimezone = (
   date: DateInput,
   timezone: string,
-  nowOverride?: Date
-): boolean {
+  nowOverride?: Date,
+): boolean => {
   // Convert input date to UTC DateTime
   const checkDateTime = typeof date === 'string'
     ? DateTime.fromISO(date, { zone: 'utc' })
@@ -73,7 +73,7 @@ export function isDateInPastWithTimezone(
 
   // Compare timestamps
   return checkDateInUserTimezone.toMillis() < nowInUserTimezone.toMillis();
-}
+};
 
 /**
  * Validate if a date is allowed for trip operations
@@ -81,12 +81,12 @@ export function isDateInPastWithTimezone(
  * DEPRECATED: Use validateTripDateWithTimezone for timezone-aware validation
  * @deprecated Use validateTripDateWithTimezone instead
  */
-export function validateTripDate(date: DateInput, context: 'create' | 'modify' = 'create'): void {
+export const validateTripDate = (date: DateInput, context: 'create' | 'modify' = 'create'): void => {
   if (isDateInPast(date)) {
     const action = context === 'create' ? 'create' : 'modify';
     throw new Error(`Cannot ${action} trips in the past`);
   }
-}
+};
 
 /**
  * Validate if a date is allowed for trip operations (timezone-aware)
@@ -96,12 +96,12 @@ export function validateTripDate(date: DateInput, context: 'create' | 'modify' =
  * @param context - Operation context ('create' or 'modify')
  * @param nowOverride - Optional current time override (for testing)
  */
-export function validateTripDateWithTimezone(
+export const validateTripDateWithTimezone = (
   date: DateInput,
   timezone: string,
   context: 'create' | 'modify' = 'create',
-  nowOverride?: Date
-): void {
+  nowOverride?: Date,
+): void => {
   if (isDateInPastWithTimezone(date, timezone, nowOverride)) {
     const action = context === 'create' ? 'create' : 'modify';
 
@@ -113,12 +113,12 @@ export function validateTripDateWithTimezone(
 
     throw new Error(`Cannot ${action} trips in the past (${userLocalTime} in ${timezone})`);
   }
-}
+};
 
 /**
  * Parse a datetime string for validation
  */
-export function parseScheduleSlotDate(datetime: string): Date {
+export const parseScheduleSlotDate = (datetime: string): Date => {
   if (!datetime) {
     throw new Error('DateTime parameter is required for date validation');
   }
@@ -135,17 +135,17 @@ export function parseScheduleSlotDate(datetime: string): Date {
   }
 
   return date;
-}
+};
 
 /**
  * Validate a schedule slot datetime for creation
  * DEPRECATED: Use validateScheduleSlotCreationWithTimezone instead
  * @deprecated Use validateScheduleSlotCreationWithTimezone instead
  */
-export function validateScheduleSlotCreation(datetime: string): void {
+export const validateScheduleSlotCreation = (datetime: string): void => {
   const date = parseScheduleSlotDate(datetime);
   validateTripDate(date, 'create');
-}
+};
 
 /**
  * Validate a schedule slot datetime for creation (timezone-aware)
@@ -153,24 +153,24 @@ export function validateScheduleSlotCreation(datetime: string): void {
  * @param timezone - User's IANA timezone
  * @param nowOverride - Optional current time override (for testing)
  */
-export function validateScheduleSlotCreationWithTimezone(
+export const validateScheduleSlotCreationWithTimezone = (
   datetime: string,
   timezone: string,
-  nowOverride?: Date
-): void {
+  nowOverride?: Date,
+): void => {
   const date = parseScheduleSlotDate(datetime);
   validateTripDateWithTimezone(date, timezone, 'create', nowOverride);
-}
+};
 
 /**
  * Validate a schedule slot datetime for modification
  * DEPRECATED: Use validateScheduleSlotModificationWithTimezone instead
  * @deprecated Use validateScheduleSlotModificationWithTimezone instead
  */
-export function validateScheduleSlotModification(datetime: string): void {
+export const validateScheduleSlotModification = (datetime: string): void => {
   const date = parseScheduleSlotDate(datetime);
   validateTripDate(date, 'modify');
-}
+};
 
 /**
  * Validate a schedule slot datetime for modification (timezone-aware)
@@ -178,11 +178,11 @@ export function validateScheduleSlotModification(datetime: string): void {
  * @param timezone - User's IANA timezone
  * @param nowOverride - Optional current time override (for testing)
  */
-export function validateScheduleSlotModificationWithTimezone(
+export const validateScheduleSlotModificationWithTimezone = (
   datetime: string,
   timezone: string,
-  nowOverride?: Date
-): void {
+  nowOverride?: Date,
+): void => {
   const date = parseScheduleSlotDate(datetime);
   validateTripDateWithTimezone(date, timezone, 'modify', nowOverride);
-}
+};

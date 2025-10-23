@@ -8,13 +8,13 @@ const mockPrisma = {
   family: {
     create: jest.fn(),
     findFirst: jest.fn(),
-    findUniqueOrThrow: jest.fn()
+    findUniqueOrThrow: jest.fn(),
   },
   familyMember: {
     create: jest.fn(),
     findFirst: jest.fn(),
-    count: jest.fn()
-  }
+    count: jest.fn(),
+  },
 } as any;
 
 // Mock NotificationService
@@ -31,7 +31,7 @@ const mockNotificationService = {
   handleEmail: jest.fn(),
   handlePush: jest.fn(),
   handleSms: jest.fn(),
-  createNotificationLog: jest.fn()
+  createNotificationLog: jest.fn(),
 } as any;
 
 // Mock Logger
@@ -39,7 +39,7 @@ const mockLogger = {
   info: jest.fn(),
   error: jest.fn(),
   warn: jest.fn(),
-  debug: jest.fn()
+  debug: jest.fn(),
 };
 
 describe('FamilyService', () => {
@@ -50,7 +50,7 @@ describe('FamilyService', () => {
     familyService = new FamilyService(
       mockPrisma as PrismaClient,
       mockLogger,
-      mockNotificationService
+      mockNotificationService,
     );
   });
 
@@ -65,7 +65,7 @@ describe('FamilyService', () => {
         name: familyName,
         inviteCode: 'TEST1234',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const mockFamilyWithMembers = {
@@ -76,10 +76,10 @@ describe('FamilyService', () => {
           userId,
           role: FamilyRole.ADMIN,
           joinedAt: new Date(),
-          user: { id: userId, name: 'Test User', email: 'test@example.com' }
+          user: { id: userId, name: 'Test User', email: 'test@example.com' },
         }],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       // Mock transaction
@@ -88,12 +88,12 @@ describe('FamilyService', () => {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
             create: jest.fn().mockResolvedValue({}),
-            count: jest.fn().mockResolvedValue(1)
+            count: jest.fn().mockResolvedValue(1),
           },
           family: {
             create: jest.fn().mockResolvedValue(mockFamily),
-            findUniqueOrThrow: jest.fn().mockResolvedValue(mockFamilyWithMembers)
-          }
+            findUniqueOrThrow: jest.fn().mockResolvedValue(mockFamilyWithMembers),
+          },
         });
       });
 
@@ -111,7 +111,7 @@ describe('FamilyService', () => {
       expect(result.members[0].userId).toBe(userId);
       expect(mockLogger.info).toHaveBeenCalledWith(
         `Creating family for user ${userId}`,
-        { name: familyName }
+        { name: familyName },
       );
     });
 
@@ -121,8 +121,8 @@ describe('FamilyService', () => {
         return callback({
           familyMember: {
             findFirst: jest.fn().mockResolvedValue({ id: 'existing-membership' }),
-            count: jest.fn().mockResolvedValue(1)
-          }
+            count: jest.fn().mockResolvedValue(1),
+          },
         });
       });
 
@@ -143,13 +143,13 @@ describe('FamilyService', () => {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
             create: jest.fn().mockResolvedValue({}),
-            count: jest.fn().mockResolvedValue(1)
+            count: jest.fn().mockResolvedValue(1),
           },
           family: {
             create: jest.fn().mockResolvedValue({
               id: 'family-123',
               name: 'Famille Test', // trimmed
-              inviteCode: 'TEST1234'
+              inviteCode: 'TEST1234',
             }),
             findUniqueOrThrow: jest.fn().mockResolvedValue({
               id: 'family-123',
@@ -157,9 +157,9 @@ describe('FamilyService', () => {
               inviteCode: 'TEST1234',
               members: [],
               children: [],
-              vehicles: []
-            })
-          }
+              vehicles: [],
+            }),
+          },
         });
       });
 
@@ -170,7 +170,7 @@ describe('FamilyService', () => {
         inviteCode: 'TEST1234',
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       });
 
       // Execute
@@ -243,7 +243,7 @@ describe('FamilyService', () => {
 
       // Assertions
       expect(result).toEqual(mockFamilyWithNewMember);
-      expect(result.members.find((m: any) => m.userId === userId)?.role).toBe(FamilyRole.MEMBER);
+      expect(result.members.find((m: unknown) => m.userId === userId)?.role).toBe(FamilyRole.MEMBER);
     });
 
     it('should throw error for invalid invite code', async () => {
@@ -313,16 +313,16 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target member
                 id: memberId,
                 familyId,
                 userId: 'target-user-123',
-                role: FamilyRole.MEMBER
+                role: FamilyRole.MEMBER,
               }),
-            delete: jest.fn().mockResolvedValue({})
-          }
+            delete: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -341,8 +341,8 @@ describe('FamilyService', () => {
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           familyMember: {
-            findFirst: jest.fn().mockResolvedValue(null) // No admin found
-          }
+            findFirst: jest.fn().mockResolvedValue(null), // No admin found
+          },
         });
       });
 
@@ -364,10 +364,10 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
-              .mockResolvedValueOnce(null) // Target member not found
-          }
+              .mockResolvedValueOnce(null), // Target member not found
+          },
         });
       });
 
@@ -391,15 +391,15 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target member (same as admin)
                 id: selfMemberId,
                 familyId,
                 userId: adminId, // Same user ID as admin
-                role: FamilyRole.ADMIN
-              })
-          }
+                role: FamilyRole.ADMIN,
+              }),
+          },
         });
       });
 
@@ -421,16 +421,16 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target member (regular member)
                 id: memberId,
                 familyId,
                 userId: 'regular-user-456',
-                role: FamilyRole.MEMBER
+                role: FamilyRole.MEMBER,
               }),
-            delete: jest.fn().mockResolvedValue({})
-          }
+            delete: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -453,17 +453,17 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target admin to be removed
                 id: memberId,
                 familyId,
                 userId: 'other-admin-456',
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               }),
             count: jest.fn().mockResolvedValue(2), // 2 admins in family
-            delete: jest.fn().mockResolvedValue({})
-          }
+            delete: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -486,17 +486,17 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target admin to be removed (last admin)
                 id: memberId,
                 familyId,
                 userId: 'other-admin-456',
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               }),
             count: jest.fn().mockResolvedValue(1), // Only 1 admin in family
-            delete: jest.fn().mockResolvedValue({})
-          }
+            delete: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -526,15 +526,15 @@ describe('FamilyService', () => {
                 id: adminMemberId,
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target member (same admin)
                 id: adminMemberId,
                 familyId,
                 userId: adminId, // Same user as admin
-                role: FamilyRole.ADMIN
-              })
-          }
+                role: FamilyRole.ADMIN,
+              }),
+          },
         });
       });
 
@@ -556,17 +556,17 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target admin to be demoted
                 id: memberId,
                 familyId,
                 userId: 'other-admin-456',
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               }),
             count: jest.fn().mockResolvedValue(1), // Only 1 admin in family
-            update: jest.fn().mockResolvedValue({})
-          }
+            update: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -588,17 +588,17 @@ describe('FamilyService', () => {
                 id: 'admin-member-123',
                 familyId,
                 userId: adminId,
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               })
               .mockResolvedValueOnce({ // Target admin to be demoted
                 id: memberId,
                 familyId,
                 userId: 'other-admin-456',
-                role: FamilyRole.ADMIN
+                role: FamilyRole.ADMIN,
               }),
             count: jest.fn().mockResolvedValue(2), // 2 admins in family
-            update: jest.fn().mockResolvedValue({})
-          }
+            update: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -621,7 +621,7 @@ describe('FamilyService', () => {
         inviteCode: 'CODE123',
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       mockPrisma.family.findFirst = jest.fn().mockResolvedValue(mockFamily);
@@ -632,16 +632,16 @@ describe('FamilyService', () => {
       expect(mockPrisma.family.findFirst).toHaveBeenCalledWith({
         where: {
           members: {
-            some: { userId }
-          }
+            some: { userId },
+          },
         },
         include: {
           members: {
-            include: { user: true }
+            include: { user: true },
           },
           children: true,
-          vehicles: true
-        }
+          vehicles: true,
+        },
       });
     });
 
@@ -662,7 +662,7 @@ describe('FamilyService', () => {
         id: 'member-456',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.MEMBER
+        role: FamilyRole.MEMBER,
       };
 
       // Mock transaction
@@ -671,8 +671,8 @@ describe('FamilyService', () => {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(memberRecord),
             count: jest.fn().mockResolvedValue(2), // Not relevant for members
-            delete: jest.fn().mockResolvedValue({})
-          }
+            delete: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -691,7 +691,7 @@ describe('FamilyService', () => {
         id: 'member-456',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       };
 
       // Mock transaction
@@ -700,8 +700,8 @@ describe('FamilyService', () => {
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(adminRecord),
             count: jest.fn().mockResolvedValue(2), // 2 admins, safe to leave
-            delete: jest.fn().mockResolvedValue({})
-          }
+            delete: jest.fn().mockResolvedValue({}),
+          },
         });
       });
 
@@ -720,7 +720,7 @@ describe('FamilyService', () => {
         id: 'member-456',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       };
 
       // Mock transaction
@@ -728,8 +728,8 @@ describe('FamilyService', () => {
         return callback({
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(lastAdminRecord),
-            count: jest.fn().mockResolvedValue(1) // Only 1 admin
-          }
+            count: jest.fn().mockResolvedValue(1), // Only 1 admin
+          },
         });
       });
 
@@ -746,8 +746,8 @@ describe('FamilyService', () => {
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           familyMember: {
-            findFirst: jest.fn().mockResolvedValue(null) // No membership found
-          }
+            findFirst: jest.fn().mockResolvedValue(null), // No membership found
+          },
         });
       });
 

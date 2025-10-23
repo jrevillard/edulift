@@ -24,12 +24,12 @@ describe('ScheduleSlotService', () => {
     datetime: new Date('2050-01-08T08:00:00.000Z'), // Use future date to avoid "Cannot create trips in the past" error
     group: {
       id: 'group-1',
-      name: 'Group 1'
+      name: 'Group 1',
     },
     vehicleAssignments: [],
     childAssignments: [],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   };
 
   beforeEach(() => {
@@ -79,7 +79,7 @@ describe('ScheduleSlotService', () => {
       mockRepository,
       mockNotificationService,
       mockValidationService,
-      mockPrisma
+      mockPrisma,
     );
   });
 
@@ -87,7 +87,7 @@ describe('ScheduleSlotService', () => {
     it('should create a schedule slot with vehicle successfully', async () => {
       const slotData: CreateScheduleSlotData = {
         groupId: 'group-1',
-        datetime: '2050-01-08T08:00:00.000Z'
+        datetime: '2050-01-08T08:00:00.000Z',
       };
 
       // Mock user lookup
@@ -97,7 +97,7 @@ describe('ScheduleSlotService', () => {
         name: 'Test User',
         timezone: 'Europe/Paris',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       mockRepository.create.mockResolvedValue(mockScheduleSlot);
@@ -111,12 +111,12 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
         driver: {
           id: 'driver-1',
-          name: 'John Doe'
-        }
+          name: 'John Doe',
+        },
       });
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
 
@@ -124,24 +124,24 @@ describe('ScheduleSlotService', () => {
         slotData,
         'vehicle-1',
         'user-1', // Pass userId instead of timezone
-        'driver-1'
+        'driver-1',
       );
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: 'user-1' },
-        select: { timezone: true }
+        select: { timezone: true },
       });
       expect(mockValidationService.validateScheduleTime).toHaveBeenCalledWith(
         'group-1',
         new Date('2050-01-08T08:00:00.000Z'),
-        'Europe/Paris' // Timezone from user DB
+        'Europe/Paris', // Timezone from user DB
       );
       expect(mockRepository.create).toHaveBeenCalledWith(slotData);
       expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(
         'slot-1',
         'vehicle-1',
         'driver-1',
-        undefined
+        undefined,
       );
       expect(mockRepository.findById).toHaveBeenCalledWith('slot-1');
       expect(result).toEqual(mockScheduleSlot);
@@ -153,7 +153,7 @@ describe('ScheduleSlotService', () => {
       const assignmentData: AssignVehicleToSlotData = {
         scheduleSlotId: 'slot-1',
         vehicleId: 'vehicle-1',
-        driverId: 'driver-1'
+        driverId: 'driver-1',
       };
 
       const mockVehicleAssignment = {
@@ -166,12 +166,12 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
         driver: {
           id: 'driver-1',
-          name: 'John Doe'
-        }
+          name: 'John Doe',
+        },
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -184,22 +184,22 @@ describe('ScheduleSlotService', () => {
 
       expect(mockValidationService.validateVehicleAssignment).toHaveBeenCalledWith(
         'vehicle-1',
-        'slot-1'
+        'slot-1',
       );
       expect(mockValidationService.validateDriverAvailability).toHaveBeenCalledWith(
         'driver-1',
-        'slot-1'
+        'slot-1',
       );
       expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(
         'slot-1',
         'vehicle-1',
         'driver-1',
-        undefined
+        undefined,
       );
       expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith('slot-1');
       expect(mockNotificationService.notifyScheduleSlotChange).toHaveBeenCalledWith(
         'slot-1',
-        'VEHICLE_ASSIGNED'
+        'VEHICLE_ASSIGNED',
       );
       expect(result).toEqual(mockVehicleAssignment);
     });
@@ -207,12 +207,12 @@ describe('ScheduleSlotService', () => {
     it('should handle validation errors', async () => {
       const assignmentData: AssignVehicleToSlotData = {
         scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1'
+        vehicleId: 'vehicle-1',
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
       mockValidationService.validateVehicleAssignment.mockRejectedValue(
-        new Error('Vehicle not available')
+        new Error('Vehicle not available'),
       );
 
       await expect(scheduleSlotService.assignVehicleToSlot(assignmentData))
@@ -229,9 +229,9 @@ describe('ScheduleSlotService', () => {
           scheduleSlotId: 'slot-1',
           vehicleId: 'vehicle-1',
           driverId: null,
-        seatOverride: null
+        seatOverride: null,
         },
-        slotDeleted: false
+        slotDeleted: false,
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -244,7 +244,7 @@ describe('ScheduleSlotService', () => {
       expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith('slot-1');
       expect(mockNotificationService.notifyScheduleSlotChange).toHaveBeenCalledWith(
         'slot-1',
-        'VEHICLE_REMOVED'
+        'VEHICLE_REMOVED',
       );
       expect(result).toEqual(mockResult);
     });
@@ -257,9 +257,9 @@ describe('ScheduleSlotService', () => {
           scheduleSlotId: 'slot-1',
           vehicleId: 'vehicle-1',
           driverId: null,
-        seatOverride: null
+        seatOverride: null,
         },
-        slotDeleted: true
+        slotDeleted: true,
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -287,8 +287,8 @@ describe('ScheduleSlotService', () => {
             driverId: 'driver-1' as string | null,
         seatOverride: null,
             vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 20 },
-            driver: { id: 'driver-1', name: 'John Doe' }
-          }
+            driver: { id: 'driver-1', name: 'John Doe' },
+          },
         ],
         childAssignments: [
           { 
@@ -296,9 +296,9 @@ describe('ScheduleSlotService', () => {
             childId: 'child-1',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' } 
-          }
-        ]
+            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }, 
+          },
+        ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithDetails);
@@ -326,8 +326,8 @@ describe('ScheduleSlotService', () => {
             driverId: 'driver-1' as string | null,
         seatOverride: null,
             vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 20 },
-            driver: { id: 'driver-1', name: 'John Doe' }
-          }
+            driver: { id: 'driver-1', name: 'John Doe' },
+          },
         ],
         childAssignments: [
           { 
@@ -335,23 +335,23 @@ describe('ScheduleSlotService', () => {
             childId: 'child-1',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' } 
+            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }, 
           },
           { 
             scheduleSlotId: 'slot-1',
             childId: 'child-2',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-2', name: 'Bob', familyId: 'family-2' } 
+            child: { id: 'child-2', name: 'Bob', familyId: 'family-2' }, 
           },
           { 
             scheduleSlotId: 'slot-1',
             childId: 'child-3',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-3', name: 'Charlie', userId: 'parent-3' } 
-          }
-        ]
+            child: { id: 'child-3', name: 'Charlie', userId: 'parent-3' }, 
+          },
+        ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithValidAssignments);
@@ -375,7 +375,7 @@ describe('ScheduleSlotService', () => {
             driverId: 'driver-1' as string | null,
         seatOverride: null,
             vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 10 },
-            driver: { id: 'driver-1', name: 'John Doe' }
+            driver: { id: 'driver-1', name: 'John Doe' },
           },
           {
             id: 'assignment-2',
@@ -385,8 +385,8 @@ describe('ScheduleSlotService', () => {
             driverId: 'driver-2',
         seatOverride: null,
             vehicle: { id: 'vehicle-2', name: 'Bus 2', capacity: 15 },
-            driver: { id: 'driver-2', name: 'Jane Smith' }
-          }
+            driver: { id: 'driver-2', name: 'Jane Smith' },
+          },
         ],
         childAssignments: [
           { 
@@ -394,23 +394,23 @@ describe('ScheduleSlotService', () => {
             childId: 'child-1',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' } 
+            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }, 
           },
           { 
             scheduleSlotId: 'slot-1',
             childId: 'child-2',
             vehicleAssignmentId: 'assignment-2',
             assignedAt: new Date(),
-            child: { id: 'child-2', name: 'Bob', familyId: 'family-2' } 
+            child: { id: 'child-2', name: 'Bob', familyId: 'family-2' }, 
           },
           { 
             scheduleSlotId: 'slot-1',
             childId: 'child-3',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-3', name: 'Charlie', userId: 'parent-3' } 
-          }
-        ]
+            child: { id: 'child-3', name: 'Charlie', userId: 'parent-3' }, 
+          },
+        ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithMultipleVehicles);
@@ -447,7 +447,7 @@ describe('ScheduleSlotService', () => {
       // Mock group lookup for timezone
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: 'group-1',
-        timezone: 'Europe/Paris'
+        timezone: 'Europe/Paris',
       });
 
       mockRepository.getWeeklyScheduleByDateRange.mockResolvedValue(mockSlots);
@@ -476,8 +476,8 @@ describe('ScheduleSlotService', () => {
             driverId: 'driver-1' as string | null,
         seatOverride: null,
             vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 20 },
-            driver: { id: 'driver-1', name: 'John Doe' }
-          }
+            driver: { id: 'driver-1', name: 'John Doe' },
+          },
         ],
         childAssignments: [
           {
@@ -485,15 +485,15 @@ describe('ScheduleSlotService', () => {
             childId: 'child-1',
             vehicleAssignmentId: 'assignment-1',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }
-          }
-        ]
+            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' },
+          },
+        ],
       };
 
       // Mock group lookup for timezone
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: 'group-1',
-        timezone: 'Europe/Paris'
+        timezone: 'Europe/Paris',
       });
 
       mockRepository.getWeeklyScheduleByDateRange.mockResolvedValue([mockSlotWithAssignments]);
@@ -523,10 +523,10 @@ describe('ScheduleSlotService', () => {
             vehicle: { 
               id: 'vehicle-1',
               name: 'Bus 1',
-              capacity: 2 
+              capacity: 2, 
             },
-            driver: null
-          }
+            driver: null,
+          },
         ],
         childAssignments: [
           { 
@@ -537,8 +537,8 @@ describe('ScheduleSlotService', () => {
             child: { 
               id: 'child-1',
               name: 'Child 1',
-              familyId: 'family-1'
-            } 
+              familyId: 'family-1',
+            }, 
           },
           { 
             scheduleSlotId: 'slot-1',
@@ -548,8 +548,8 @@ describe('ScheduleSlotService', () => {
             child: { 
               id: 'child-2',
               name: 'Child 2',
-              familyId: 'family-2'
-            } 
+              familyId: 'family-2',
+            }, 
           },
           { 
             scheduleSlotId: 'slot-1',
@@ -559,10 +559,10 @@ describe('ScheduleSlotService', () => {
             child: { 
               id: 'child-3',
               name: 'Child 3',
-              userId: 'parent-3'
-            } 
-          } // More children than capacity
-        ]
+              userId: 'parent-3',
+            }, 
+          }, // More children than capacity
+        ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithConflict);
@@ -586,14 +586,14 @@ describe('ScheduleSlotService', () => {
             vehicle: { 
               id: 'vehicle-1',
               name: 'Bus 1',
-              capacity: 30 
+              capacity: 30, 
             },
             driver: { 
               id: 'driver-1',
-              name: 'John Doe'
-            }
-          }
-        ]
+              name: 'John Doe',
+            },
+          },
+        ],
       };
 
       const conflictingSlots = [
@@ -613,11 +613,11 @@ describe('ScheduleSlotService', () => {
         seatOverride: null,
               vehicle: { 
                 id: 'vehicle-1',
-                name: 'Bus 1'
-              }
-            }
+                name: 'Bus 1',
+              },
+            },
           ],
-          childAssignments: []
+          childAssignments: [],
         },
         { 
           id: 'slot-2',
@@ -635,12 +635,12 @@ describe('ScheduleSlotService', () => {
         seatOverride: null,
               vehicle: { 
                 id: 'vehicle-2',
-                name: 'Bus 2'
-              }
-            }
+                name: 'Bus 2',
+              },
+            },
           ],
-          childAssignments: []
-        } // Two slots with same driver
+          childAssignments: [],
+        }, // Two slots with same driver
       ];
 
       mockRepository.findById.mockResolvedValue(mockSlotWithDriver);
@@ -664,14 +664,14 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
-        driver: null
+        driver: null,
       };
 
       const updateData = {
         vehicleAssignmentId: 'assignment-1',
-        seatOverride: 15
+        seatOverride: 15,
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -697,13 +697,13 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
-        driver: null
+        driver: null,
       };
 
       const updateData: { vehicleAssignmentId: string, seatOverride?: number } = {
-        vehicleAssignmentId: 'assignment-1'
+        vehicleAssignmentId: 'assignment-1',
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -728,13 +728,13 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
-        driver: null
+        driver: null,
       };
 
       const updateData = {
-        vehicleAssignmentId: 'assignment-1'
+        vehicleAssignmentId: 'assignment-1',
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -757,14 +757,14 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
-        driver: null
+        driver: null,
       };
 
       const updateData = {
         vehicleAssignmentId: 'assignment-1',
-        seatOverride: 15
+        seatOverride: 15,
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -783,7 +783,7 @@ describe('ScheduleSlotService', () => {
         scheduleSlotId: 'slot-1',
         vehicleId: 'vehicle-1',
         driverId: 'driver-1',
-        seatOverride: 15
+        seatOverride: 15,
       };
 
       const mockResult = { 
@@ -796,12 +796,12 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
         driver: {
           id: 'driver-1',
-          name: 'John Doe'
-        }
+          name: 'John Doe',
+        },
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -821,7 +821,7 @@ describe('ScheduleSlotService', () => {
       const assignmentData: AssignVehicleToSlotData = {
         scheduleSlotId: 'slot-1',
         vehicleId: 'vehicle-1',
-        driverId: 'driver-1'
+        driverId: 'driver-1',
       };
 
       const mockResult = { 
@@ -834,12 +834,12 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
         driver: {
           id: 'driver-1',
-          name: 'John Doe'
-        }
+          name: 'John Doe',
+        },
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -859,13 +859,13 @@ describe('ScheduleSlotService', () => {
     it('should pass seat override to assignVehicleToSlot when creating slot', async () => {
       const slotData: CreateScheduleSlotData = {
         groupId: 'group-1',
-        datetime: '2050-01-08T08:00:00.000Z'
+        datetime: '2050-01-08T08:00:00.000Z',
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user-1',
-        timezone: 'Europe/Paris'
+        timezone: 'Europe/Paris',
       });
 
       mockRepository.create.mockResolvedValue(mockScheduleSlot);
@@ -879,12 +879,12 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
         driver: {
           id: 'driver-1',
-          name: 'John Doe'
-        }
+          name: 'John Doe',
+        },
       });
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
       mockValidationService.validateScheduleTime.mockResolvedValue(undefined);
@@ -899,13 +899,13 @@ describe('ScheduleSlotService', () => {
     it('should call validateScheduleTime when creating a schedule slot', async () => {
       const slotData: CreateScheduleSlotData = {
         groupId: 'group-1',
-        datetime: '2050-01-13T07:30:00.000Z' // Monday, 07:30 UTC
+        datetime: '2050-01-13T07:30:00.000Z', // Monday, 07:30 UTC
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user-1',
-        timezone: 'UTC'
+        timezone: 'UTC',
       });
 
       mockRepository.create.mockResolvedValue(mockScheduleSlot);
@@ -919,12 +919,12 @@ describe('ScheduleSlotService', () => {
         vehicle: {
           id: 'vehicle-1',
           name: 'Bus 1',
-          capacity: 30
+          capacity: 30,
         },
         driver: {
           id: 'driver-1',
-          name: 'John Doe'
-        }
+          name: 'John Doe',
+        },
       });
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
       mockValidationService.validateScheduleTime.mockResolvedValue(undefined);
@@ -934,7 +934,7 @@ describe('ScheduleSlotService', () => {
       expect(mockValidationService.validateScheduleTime).toHaveBeenCalledWith(
         'group-1',
         new Date('2050-01-13T07:30:00.000Z'),
-        'UTC'
+        'UTC',
       );
       expect(mockRepository.create).toHaveBeenCalledWith(slotData);
     });
@@ -942,27 +942,27 @@ describe('ScheduleSlotService', () => {
     it('should reject slot creation when time is not configured', async () => {
       const slotData: CreateScheduleSlotData = {
         groupId: 'group-1',
-        datetime: '2050-01-13T05:30:00.000Z' // Invalid time
+        datetime: '2050-01-13T05:30:00.000Z', // Invalid time
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user-1',
-        timezone: 'Europe/Paris'
+        timezone: 'Europe/Paris',
       });
 
       mockValidationService.validateScheduleTime.mockRejectedValue(
-        new Error('Time 05:30 is not configured for MONDAY in this group')
+        new Error('Time 05:30 is not configured for MONDAY in this group'),
       );
 
       await expect(
-        scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1')
+        scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1'),
       ).rejects.toThrow('Time 05:30 is not configured for MONDAY in this group');
 
       expect(mockValidationService.validateScheduleTime).toHaveBeenCalledWith(
         'group-1',
         new Date('2050-01-13T05:30:00.000Z'),
-        'Europe/Paris'
+        'Europe/Paris',
       );
       expect(mockRepository.create).not.toHaveBeenCalled();
     });
@@ -970,21 +970,21 @@ describe('ScheduleSlotService', () => {
     it('should reject slot creation when group has no schedule config', async () => {
       const slotData: CreateScheduleSlotData = {
         groupId: 'group-1',
-        datetime: '2050-01-13T07:30:00.000Z'
+        datetime: '2050-01-13T07:30:00.000Z',
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
         id: 'user-1',
-        timezone: 'Europe/Paris'
+        timezone: 'Europe/Paris',
       });
 
       mockValidationService.validateScheduleTime.mockRejectedValue(
-        new Error('Group has no schedule configuration')
+        new Error('Group has no schedule configuration'),
       );
 
       await expect(
-        scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1')
+        scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1'),
       ).rejects.toThrow('Group has no schedule configuration');
 
       expect(mockRepository.create).not.toHaveBeenCalled();

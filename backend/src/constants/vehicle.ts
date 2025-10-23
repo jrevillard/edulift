@@ -12,5 +12,5 @@ export const VEHICLE_CONSTRAINTS = {
   /**
    * Minimum number of seats required for any vehicle
    */
-  MIN_CAPACITY: 1
+  MIN_CAPACITY: 1,
 } as const;

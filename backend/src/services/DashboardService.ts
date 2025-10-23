@@ -119,7 +119,7 @@ export class DashboardService {
         destination: this.determineDestination(slot.time, slot.group?.name),
         type: this.determineType(slot.time),
         date: 'Today',
-        children: slot.childAssignments?.map((assignment: any) => ({
+        children: slot.childAssignments?.map((assignment: { child: { id: string; name: string } }) => ({
           id: assignment.child.id,
           name: assignment.child.name,
         })) || [],
@@ -161,7 +161,7 @@ export class DashboardService {
         destination: this.determineDestination(this.formatTimeFromDatetime(slot.datetime), slot.group?.name),
         type: this.determineType(this.formatTimeFromDatetime(slot.datetime)),
         date: this.formatDateFromDatetime(slot.datetime),
-        children: slot.childAssignments?.map((assignment: any) => ({
+        children: slot.childAssignments?.map((assignment: { child: { id: string; name: string } }) => ({
           id: assignment.child.id,
           name: assignment.child.name,
         })) || [],
@@ -246,10 +246,10 @@ export class DashboardService {
           familyMemberships: {
             select: {
               familyId: true,
-              role: true
-            }
-          }
-        }
+              role: true,
+            },
+          },
+        },
       });
     } catch (error) {
       console.error('Error getting user with family:', error);
@@ -327,7 +327,7 @@ export class DashboardService {
         where: {
           datetime: {
             gte: weekStart,
-            lte: weekEnd
+            lte: weekEnd,
           },
           OR: [
             // User's family has access to the group
@@ -339,10 +339,10 @@ export class DashboardService {
                     ownerFamily: {
                       members: {
                         some: {
-                          userId: userId
-                        }
-                      }
-                    }
+                          userId,
+                        },
+                      },
+                    },
                   },
                   // User's family is a member of the group
                   {
@@ -351,23 +351,23 @@ export class DashboardService {
                         family: {
                           members: {
                             some: {
-                              userId: userId
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
+                              userId,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
             },
             // User is driving a vehicle in this slot
             {
               vehicleAssignments: {
                 some: {
-                  driverId: userId
-                }
-              }
+                  driverId: userId,
+                },
+              },
             },
             // User's family children are assigned to this slot
             {
@@ -377,16 +377,16 @@ export class DashboardService {
                     family: {
                       members: {
                         some: {
-                          userId: userId
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        }
+                          userId,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
       });
 
       return tripCount;
@@ -415,7 +415,7 @@ export class DashboardService {
         where: {
           datetime: {
             gte: todayStart,
-            lte: todayEnd
+            lte: todayEnd,
           },
           OR: [
             // User's family has access to the group
@@ -427,10 +427,10 @@ export class DashboardService {
                     ownerFamily: {
                       members: {
                         some: {
-                          userId: userId
-                        }
-                      }
-                    }
+                          userId,
+                        },
+                      },
+                    },
                   },
                   // User's family is a member of the group
                   {
@@ -439,23 +439,23 @@ export class DashboardService {
                         family: {
                           members: {
                             some: {
-                              userId: userId
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
+                              userId,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
             },
             // User is driving a vehicle in this slot
             {
               vehicleAssignments: {
                 some: {
-                  driverId: userId
-                }
-              }
+                  driverId: userId,
+                },
+              },
             },
             // User's family children are assigned to this slot
             {
@@ -465,22 +465,22 @@ export class DashboardService {
                     family: {
                       members: {
                         some: {
-                          userId: userId
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ]
+                          userId,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
         include: {
           group: {
             select: {
               id: true,
-              name: true
-            }
+              name: true,
+            },
           },
           vehicleAssignments: {
             include: {
@@ -488,42 +488,42 @@ export class DashboardService {
                 select: {
                   id: true,
                   name: true,
-                  capacity: true
-                }
+                  capacity: true,
+                },
               },
               driver: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
-            }
+                  name: true,
+                },
+              },
+            },
           },
           childAssignments: {
             include: {
               child: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
+                  name: true,
+                },
+              },
             },
             where: {
               child: {
                 family: {
                   members: {
                     some: {
-                      userId: userId // Only include user's family children
-                    }
-                  }
-                }
-              }
-            }
-          }
+                      userId, // Only include user's family children
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         orderBy: {
-          datetime: 'asc'
-        }
+          datetime: 'asc',
+        },
       });
 
       return scheduleSlots;
@@ -564,7 +564,7 @@ export class DashboardService {
         where: {
           datetime: {
             gte: weekStart,
-            lte: weekEnd
+            lte: weekEnd,
           },
           OR: [
             // User's family has access to the group
@@ -576,10 +576,10 @@ export class DashboardService {
                     ownerFamily: {
                       members: {
                         some: {
-                          userId: userId
-                        }
-                      }
-                    }
+                          userId,
+                        },
+                      },
+                    },
                   },
                   // User's family is a member of the group
                   {
@@ -588,23 +588,23 @@ export class DashboardService {
                         family: {
                           members: {
                             some: {
-                              userId: userId
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
+                              userId,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
             },
             // User is driving a vehicle in this slot
             {
               vehicleAssignments: {
                 some: {
-                  driverId: userId
-                }
-              }
+                  driverId: userId,
+                },
+              },
             },
             // User's family children are assigned to this slot
             {
@@ -614,22 +614,22 @@ export class DashboardService {
                     family: {
                       members: {
                         some: {
-                          userId: userId
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ]
+                          userId,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
         include: {
           group: {
             select: {
               id: true,
-              name: true
-            }
+              name: true,
+            },
           },
           vehicleAssignments: {
             include: {
@@ -637,42 +637,42 @@ export class DashboardService {
                 select: {
                   id: true,
                   name: true,
-                  capacity: true
-                }
+                  capacity: true,
+                },
               },
               driver: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
-            }
+                  name: true,
+                },
+              },
+            },
           },
           childAssignments: {
             include: {
               child: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
+                  name: true,
+                },
+              },
             },
             where: {
               child: {
                 family: {
                   members: {
                     some: {
-                      userId: userId // Only include user's family children
-                    }
-                  }
-                }
-              }
-            }
-          }
+                      userId, // Only include user's family children
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
         orderBy: [
-          { datetime: 'asc' }
-        ]
+          { datetime: 'asc' },
+        ],
       });
 
       return scheduleSlots;

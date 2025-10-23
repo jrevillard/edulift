@@ -11,16 +11,23 @@ const mockFamilyService = {
   updateMemberRole: jest.fn(),
   removeMember: jest.fn(),
   generateNewInviteCode: jest.fn(),
-  leaveFamily: jest.fn()
+  leaveFamily: jest.fn(),
 } as any;
 
 const mockFamilyAuthService = {
   getUserPermissions: jest.fn(),
-  requireFamilyRole: jest.fn()
+  requireFamilyRole: jest.fn(),
 } as any;
 
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+};
+
 // Mock auth middleware
-const mockAuthMiddleware = (req: any, _res: any, next: any) => {
+const mockAuthMiddleware = (req: any, _res: any, next: () => void): void => {
   req.user = { id: 'user-123' };
   next();
 };
@@ -31,10 +38,11 @@ describe('FamilyController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     familyController = new FamilyController(
       mockFamilyService,
-      mockFamilyAuthService
+      mockFamilyAuthService,
+      mockLogger,
     );
 
     app = express();
@@ -54,7 +62,7 @@ describe('FamilyController', () => {
   describe('POST /families', () => {
     it('should create family successfully', async () => {
       const familyData = {
-        name: 'Test Family'
+        name: 'Test Family',
       };
 
       const mockFamily = {
@@ -63,7 +71,7 @@ describe('FamilyController', () => {
         inviteCode: 'INV123',
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       mockFamilyService.createFamily.mockResolvedValue(mockFamily);
@@ -75,7 +83,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        data: mockFamily
+        data: mockFamily,
       });
 
       expect(mockFamilyService.createFamily).toHaveBeenCalledWith('user-123', 'Test Family');
@@ -89,13 +97,13 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Family name is required'
+        error: 'Family name is required',
       });
     });
 
     it('should handle service errors', async () => {
       mockFamilyService.createFamily.mockRejectedValue(
-        new Error('USER_ALREADY_IN_FAMILY')
+        new Error('USER_ALREADY_IN_FAMILY'),
       );
 
       const response = await request(app)
@@ -105,7 +113,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'USER_ALREADY_IN_FAMILY'
+        error: 'USER_ALREADY_IN_FAMILY',
       });
     });
   });
@@ -113,7 +121,7 @@ describe('FamilyController', () => {
   describe('POST /families/join', () => {
     it('should join family successfully', async () => {
       const joinData = {
-        inviteCode: 'INV123'
+        inviteCode: 'INV123',
       };
 
       const mockFamily = {
@@ -122,7 +130,7 @@ describe('FamilyController', () => {
         inviteCode: 'INV123',
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       mockFamilyService.joinFamily.mockResolvedValue(mockFamily);
@@ -134,7 +142,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        data: mockFamily
+        data: mockFamily,
       });
 
       expect(mockFamilyService.joinFamily).toHaveBeenCalledWith('INV123', 'user-123');
@@ -148,13 +156,13 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Invite code is required'
+        error: 'Invite code is required',
       });
     });
 
     it('should handle invalid invite code', async () => {
       mockFamilyService.joinFamily.mockRejectedValue(
-        new Error('INVALID_INVITE_CODE')
+        new Error('INVALID_INVITE_CODE'),
       );
 
       const response = await request(app)
@@ -164,7 +172,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'INVALID_INVITE_CODE'
+        error: 'INVALID_INVITE_CODE',
       });
     });
   });
@@ -177,7 +185,7 @@ describe('FamilyController', () => {
         inviteCode: 'INV123',
         members: [],
         children: [],
-        vehicles: []
+        vehicles: [],
       };
 
       mockFamilyService.getUserFamily.mockResolvedValue(mockFamily);
@@ -188,7 +196,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        data: mockFamily
+        data: mockFamily,
       });
 
       expect(mockFamilyService.getUserFamily).toHaveBeenCalledWith('user-123');
@@ -203,7 +211,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'User is not part of any family'
+        error: 'User is not part of any family',
       });
     });
   });
@@ -211,7 +219,7 @@ describe('FamilyController', () => {
   describe('PUT /families/members/:memberId/role', () => {
     it('should update member role successfully', async () => {
       const updateData = {
-        role: FamilyRole.MEMBER
+        role: FamilyRole.MEMBER,
       };
 
       mockFamilyAuthService.requireFamilyRole.mockResolvedValue(undefined);
@@ -224,7 +232,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        message: 'Member role updated successfully'
+        message: 'Member role updated successfully',
       });
 
       expect(mockFamilyAuthService.requireFamilyRole).toHaveBeenCalledWith('user-123', FamilyRole.ADMIN);
@@ -239,13 +247,13 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Invalid role'
+        error: 'Invalid role',
       });
     });
 
     it('should return 403 for insufficient permissions', async () => {
       mockFamilyAuthService.requireFamilyRole.mockRejectedValue(
-        new Error('INSUFFICIENT_PERMISSIONS')
+        new Error('INSUFFICIENT_PERMISSIONS'),
       );
 
       const response = await request(app)
@@ -255,7 +263,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'INSUFFICIENT_PERMISSIONS'
+        error: 'INSUFFICIENT_PERMISSIONS',
       });
     });
   });
@@ -265,7 +273,7 @@ describe('FamilyController', () => {
       // Mock the getUserFamily call for family access verification
       mockFamilyService.getUserFamily.mockResolvedValue({
         id: 'family-123',
-        name: 'Test Family'
+        name: 'Test Family',
       });
     });
 
@@ -279,7 +287,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        message: 'Member removed successfully'
+        message: 'Member removed successfully',
       });
 
       expect(mockFamilyService.getUserFamily).toHaveBeenCalledWith('user-123');
@@ -290,7 +298,7 @@ describe('FamilyController', () => {
     it('should return 403 if user is not a member of the family', async () => {
       mockFamilyService.getUserFamily.mockResolvedValue({
         id: 'different-family-123',
-        name: 'Different Family'
+        name: 'Different Family',
       });
 
       const response = await request(app)
@@ -299,7 +307,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Access denied: not a member of this family'
+        error: 'Access denied: not a member of this family',
       });
     });
 
@@ -312,13 +320,13 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Access denied: not a member of this family'
+        error: 'Access denied: not a member of this family',
       });
     });
 
     it('should return 403 for non-admin users', async () => {
       mockFamilyAuthService.requireFamilyRole.mockRejectedValue(
-        new Error('INSUFFICIENT_PERMISSIONS')
+        new Error('INSUFFICIENT_PERMISSIONS'),
       );
 
       const response = await request(app)
@@ -327,14 +335,14 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'INSUFFICIENT_PERMISSIONS'
+        error: 'INSUFFICIENT_PERMISSIONS',
       });
     });
 
     it('should handle business rule errors (cannot remove self)', async () => {
       mockFamilyAuthService.requireFamilyRole.mockResolvedValue(undefined);
       mockFamilyService.removeMember.mockRejectedValue(
-        new Error('Admin cannot remove themselves')
+        new Error('Admin cannot remove themselves'),
       );
 
       const response = await request(app)
@@ -343,14 +351,14 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Admin cannot remove themselves'
+        error: 'Admin cannot remove themselves',
       });
     });
 
     it('should handle member not found error', async () => {
       mockFamilyAuthService.requireFamilyRole.mockResolvedValue(undefined);
       mockFamilyService.removeMember.mockRejectedValue(
-        new Error('Member not found in family')
+        new Error('Member not found in family'),
       );
 
       const response = await request(app)
@@ -359,14 +367,14 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Member not found in family'
+        error: 'Member not found in family',
       });
     });
 
     it('should handle last admin removal error', async () => {
       mockFamilyAuthService.requireFamilyRole.mockResolvedValue(undefined);
       mockFamilyService.removeMember.mockRejectedValue(
-        new Error('Cannot remove the last admin from family')
+        new Error('Cannot remove the last admin from family'),
       );
 
       const response = await request(app)
@@ -375,7 +383,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Cannot remove the last admin from family'
+        error: 'Cannot remove the last admin from family',
       });
     });
 
@@ -389,7 +397,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        message: 'Member removed successfully'
+        message: 'Member removed successfully',
       });
 
       expect(mockFamilyService.removeMember).toHaveBeenCalledWith('user-123', 'admin-member-456');
@@ -406,7 +414,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Permanent invite codes are no longer supported. Use invitation system instead.'
+        error: 'Permanent invite codes are no longer supported. Use invitation system instead.',
       });
 
       expect(mockFamilyAuthService.requireFamilyRole).toHaveBeenCalledWith('user-123', FamilyRole.ADMIN);
@@ -414,7 +422,7 @@ describe('FamilyController', () => {
 
     it('should return 403 for non-admin users', async () => {
       mockFamilyAuthService.requireFamilyRole.mockRejectedValue(
-        new Error('INSUFFICIENT_PERMISSIONS')
+        new Error('INSUFFICIENT_PERMISSIONS'),
       );
 
       const response = await request(app)
@@ -423,7 +431,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'INSUFFICIENT_PERMISSIONS'
+        error: 'INSUFFICIENT_PERMISSIONS',
       });
     });
   });
@@ -441,8 +449,8 @@ describe('FamilyController', () => {
       expect(response.body).toEqual({
         success: true,
         data: {
-          message: 'Successfully left the family'
-        }
+          message: 'Successfully left the family',
+        },
       });
 
       expect(mockFamilyService.leaveFamily).toHaveBeenCalledWith('user-123');
@@ -458,7 +466,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Cannot leave family as you are the last administrator. Please appoint another admin first.'
+        error: 'Cannot leave family as you are the last administrator. Please appoint another admin first.',
       });
     });
 
@@ -472,7 +480,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'You are not a member of any family'
+        error: 'You are not a member of any family',
       });
     });
 
@@ -486,7 +494,7 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Failed to leave family'
+        error: 'Failed to leave family',
       });
     });
   });

@@ -33,7 +33,6 @@
       ],
       "settings": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.codeActionsOnSave": {
           "source.fixAll.eslint": "explicit"
         },
@@ -48,7 +47,7 @@
           }
         },
         "playwright.reuseBrowser": true,
-        "playwright.showTrace": true,
+        "playwright.showTrace": true
       }
     }
   },

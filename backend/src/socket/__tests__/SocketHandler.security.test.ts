@@ -23,7 +23,7 @@ jest.mock('../../services/EmailServiceFactory');
 const originalConsole = {
   log: console.log,
   error: console.error,
-  warn: console.warn
+  warn: console.warn,
 };
 
 // Global console mocks for clean test output
@@ -75,18 +75,18 @@ describe('SocketHandler Security', () => {
 
     // Setup default mock responses for database queries
     (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-      familyId: 'test-family-123'
+      familyId: 'test-family-123',
     });
     
     (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
       { id: TEST_GROUP_ID, familyId: 'test-family-123' },
-      { id: 'another-group-id', familyId: 'test-family-123' }
+      { id: 'another-group-id', familyId: 'test-family-123' },
     ]);
 
     (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
       id: TEST_GROUP_ID,
       familyId: 'test-family-123',
-      familyMembers: [{ familyId: 'test-family-123' }]
+      familyMembers: [{ familyId: 'test-family-123' }],
     });
 
     (mockPrisma.scheduleSlot.findUnique as jest.Mock).mockResolvedValue({
@@ -94,8 +94,8 @@ describe('SocketHandler Security', () => {
       group: {
         id: TEST_GROUP_ID,
         familyId: 'test-family-123',
-        familyMembers: [{ familyId: 'test-family-123' }]
-      }
+        familyMembers: [{ familyId: 'test-family-123' }],
+      },
     });
 
     // Setup JWT secret
@@ -153,12 +153,11 @@ describe('SocketHandler Security', () => {
       
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token }
+        auth: { token },
       });
       
-      let timeoutId: NodeJS.Timeout;
       let testCompleted = false;
-      
+
       clientSocket.on('connect', () => {
         // Try to join unauthorized group
         clientSocket.emit(SOCKET_EVENTS.GROUP_JOIN, { groupId: UNAUTHORIZED_GROUP_ID });
@@ -176,7 +175,7 @@ describe('SocketHandler Security', () => {
       });
 
       // If no error is received, fail the test
-      timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (!testCompleted) {
           testCompleted = true;
           if (clientSocket && clientSocket.connected) {
@@ -195,7 +194,7 @@ describe('SocketHandler Security', () => {
       
       const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token }
+        auth: { token },
       });
       
       let joinedSuccessfully = false;
@@ -209,7 +208,7 @@ describe('SocketHandler Security', () => {
           if (!joinedSuccessfully) {
             expect(mockAuthService.canUserAccessGroup).toHaveBeenCalledWith(
               TEST_USER_ID, 
-              TEST_GROUP_ID
+              TEST_GROUP_ID,
             );
             joinedSuccessfully = true;
             clientSocket.disconnect();
@@ -233,13 +232,13 @@ describe('SocketHandler Security', () => {
       
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token }
+        auth: { token },
       });
       
       clientSocket.on('connect', () => {
         // Try to join unauthorized schedule slot
         clientSocket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_JOIN, { 
-          scheduleSlotId: UNAUTHORIZED_SCHEDULE_SLOT_ID 
+          scheduleSlotId: UNAUTHORIZED_SCHEDULE_SLOT_ID, 
         });
       });
 
@@ -248,7 +247,7 @@ describe('SocketHandler Security', () => {
         expect(error.message).toBe('Not authorized to access this schedule slot');
         expect(mockAuthService.canUserAccessScheduleSlot).toHaveBeenCalledWith(
           UNAUTHORIZED_USER_ID, 
-          UNAUTHORIZED_SCHEDULE_SLOT_ID
+          UNAUTHORIZED_SCHEDULE_SLOT_ID,
         );
         clientSocket.disconnect();
         done();
@@ -263,17 +262,16 @@ describe('SocketHandler Security', () => {
       
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token }
+        auth: { token },
       });
       
-      let timeoutId: NodeJS.Timeout;
       let testCompleted = false;
-      
+
       clientSocket.on('connect', () => {
         // Try to subscribe to unauthorized group schedule
-        clientSocket.emit(SOCKET_EVENTS.SCHEDULE_SUBSCRIBE, { 
+        clientSocket.emit(SOCKET_EVENTS.SCHEDULE_SUBSCRIBE, {
           groupId: UNAUTHORIZED_GROUP_ID,
-          week: '2024-01-01'
+          week: '2024-01-01',
         });
       });
 
@@ -289,7 +287,7 @@ describe('SocketHandler Security', () => {
       });
 
       // If no error is received, fail the test
-      timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         if (!testCompleted) {
           testCompleted = true;
           if (clientSocket && clientSocket.connected) {
@@ -308,13 +306,13 @@ describe('SocketHandler Security', () => {
       
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token }
+        auth: { token },
       });
       
       clientSocket.on('connect', () => {
         // Try to start typing in unauthorized schedule slot
         clientSocket.emit('typing:start', { 
-          scheduleSlotId: UNAUTHORIZED_SCHEDULE_SLOT_ID 
+          scheduleSlotId: UNAUTHORIZED_SCHEDULE_SLOT_ID, 
         });
       });
 
@@ -343,7 +341,7 @@ describe('SocketHandler Security', () => {
 
     it('should reject connections with invalid token', (done) => {
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token: 'invalid-token' }
+        auth: { token: 'invalid-token' },
       });
       
       clientSocket.on('connect_error', (error) => {
@@ -359,7 +357,7 @@ describe('SocketHandler Security', () => {
     it('should reject tokens without userId', (done) => {
       const token = jwt.sign({ someOtherField: 'value' }, JWT_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-        auth: { token }
+        auth: { token },
       });
       
       clientSocket.on('connect_error', (error) => {
@@ -381,14 +379,12 @@ describe('SocketHandler Security', () => {
       let connectionCount = 0;
       let rateLimitTriggered = false;
       const maxConnections = 101; // Test with 101 connections to exceed the limit of 100
-      const connections: any[] = [];
-      
-      let timeoutId: NodeJS.Timeout;
-      
+      const connections: unknown[] = [];
+
       // Function to clean up all connections
-      const cleanup = () => {
+      const cleanup = (): void => {
         if (timeoutId) clearTimeout(timeoutId);
-        connections.forEach(socket => {
+        connections.forEach((socket: any): void => {
           if (socket && socket.connected) {
             socket.disconnect();
           }
@@ -400,7 +396,7 @@ describe('SocketHandler Security', () => {
         const clientSocket = Client(`http://localhost:${serverPort}`, {
           auth: { token },
           timeout: 500,
-          forceNew: true
+          forceNew: true,
         });
         
         connections.push(clientSocket);
@@ -423,7 +419,7 @@ describe('SocketHandler Security', () => {
       }
       
       // Timeout fallback - if rate limit isn't triggered within reasonable time
-      timeoutId = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         cleanup();
         if (rateLimitTriggered) {
           done(); // Rate limit was triggered
@@ -449,7 +445,7 @@ describe('SocketHandler Security', () => {
       
       return new Promise<void>((resolve, reject) => {
         const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
-          auth: { token }
+          auth: { token },
         });
 
         clientSocket.on(SOCKET_EVENTS.CONNECTED, (data) => {
@@ -473,13 +469,13 @@ describe('SocketHandler Security', () => {
         
         // Clear timeout on successful completion
         const originalResolve = resolve;
-        resolve = (value?: any) => {
+        resolve = (value?: void | PromiseLike<void>): void => {
           clearTimeout(timeoutId);
           originalResolve(value);
         };
-        
+
         const originalReject = reject;
-        reject = (reason?: any) => {
+        reject = (reason?: unknown): void => {
           clearTimeout(timeoutId);
           originalReject(reason);
         };

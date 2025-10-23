@@ -28,7 +28,14 @@ describe('AuthController', () => {
       acceptGroupInvitation: jest.fn(),
     } as any;
 
-    authController = new AuthController(mockAuthService, mockUnifiedInvitationService);
+    const mockLogger = {
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+      debug: jest.fn(),
+    };
+
+    authController = new AuthController(mockAuthService, mockUnifiedInvitationService, mockLogger);
 
     mockRequest = {
       body: {},
@@ -53,7 +60,7 @@ describe('AuthController', () => {
 
       const mockResult = {
         success: true,
-        userExists: false
+        userExists: false,
       };
 
       mockAuthService.requestMagicLink.mockResolvedValue(mockResult);
@@ -66,8 +73,8 @@ describe('AuthController', () => {
         success: true,
         data: {
           message: 'Magic link sent to your email',
-          userExists: false
-        }
+          userExists: false,
+        },
       });
     });
 
@@ -82,7 +89,7 @@ describe('AuthController', () => {
         expect.objectContaining({
           success: false,
           error: 'Invalid input data',
-        })
+        }),
       );
     });
 
@@ -112,7 +119,7 @@ describe('AuthController', () => {
         expect.objectContaining({
           success: false,
           error: 'Service error',
-        })
+        }),
       );
     });
 
@@ -132,7 +139,7 @@ describe('AuthController', () => {
         expect.objectContaining({
           success: false,
           error: 'Name is required for new users',
-        })
+        }),
       );
     });
     // PKCE Security Tests - Code challenge validation
@@ -144,7 +151,7 @@ describe('AuthController', () => {
 
       const mockResult = {
         success: true,
-        userExists: false
+        userExists: false,
       };
 
       mockAuthService.requestMagicLink.mockResolvedValue(mockResult);
@@ -155,15 +162,15 @@ describe('AuthController', () => {
         email, 
         name, 
         platform: 'web',
-        code_challenge: codeChallenge 
+        code_challenge: codeChallenge, 
       });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         data: {
           message: 'Magic link sent to your email',
-          userExists: false
-        }
+          userExists: false,
+        },
       });
     });
 
@@ -180,8 +187,8 @@ describe('AuthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Invalid input data'
-        })
+          error: 'Invalid input data',
+        }),
       );
     });
   });
@@ -199,7 +206,7 @@ describe('AuthController', () => {
         expiresIn: 900,
         tokenType: 'Bearer',
         token: 'jwt-access-token', // Legacy field
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       };
 
       mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
@@ -212,8 +219,8 @@ describe('AuthController', () => {
         success: true,
         data: {
           ...mockResult,
-          invitationResult: null
-        }
+          invitationResult: null,
+        },
       });
     });
 
@@ -253,7 +260,7 @@ describe('AuthController', () => {
         expiresIn: 900,
         tokenType: 'Bearer',
         token: 'jwt-access-token', // Legacy field
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000)
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       };
 
       mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
@@ -266,8 +273,8 @@ describe('AuthController', () => {
         success: true,
         data: {
           ...mockResult,
-          invitationResult: null
-        }
+          invitationResult: null,
+        },
       });
     });
 
@@ -286,8 +293,8 @@ describe('AuthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: expect.stringContaining('SECURITY')
-        })
+          error: expect.stringContaining('SECURITY'),
+        }),
       );
     });
 
@@ -303,8 +310,8 @@ describe('AuthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Invalid input data'
-        })
+          error: 'Invalid input data',
+        }),
       );
     });
   });
@@ -318,7 +325,7 @@ describe('AuthController', () => {
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
         expiresIn: 900,
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
       };
 
       mockAuthService.refreshAccessToken.mockResolvedValue(mockResult);
@@ -329,7 +336,7 @@ describe('AuthController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockResult
+        data: mockResult,
       });
     });
 
@@ -359,9 +366,9 @@ describe('AuthController', () => {
         id: userId,
         email: 'test@example.com',
         name: 'Test',
-        timezone: timezone,
+        timezone,
         createdAt: new Date('2024-01-01'),
-        updatedAt: new Date('2024-01-02')
+        updatedAt: new Date('2024-01-02'),
       };
 
       mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
@@ -372,7 +379,7 @@ describe('AuthController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockUpdatedUser
+        data: mockUpdatedUser,
       });
     });
 
@@ -386,7 +393,7 @@ describe('AuthController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(401);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        error: 'User authentication required'
+        error: 'User authentication required',
       });
     });
 
@@ -405,9 +412,9 @@ describe('AuthController', () => {
         validationErrors: [
           {
             field: 'timezone',
-            message: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"'
-          }
-        ]
+            message: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
+          },
+        ],
       });
     });
 
@@ -423,8 +430,8 @@ describe('AuthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Invalid input data'
-        })
+          error: 'Invalid input data',
+        }),
       );
     });
 
@@ -444,7 +451,7 @@ describe('AuthController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Database connection failed'
+        error: 'Database connection failed',
       });
     });
 
@@ -455,7 +462,7 @@ describe('AuthController', () => {
         'Europe/Paris',
         'Asia/Tokyo',
         'Australia/Sydney',
-        'UTC'
+        'UTC',
       ];
 
       for (const timezone of validTimezones) {
@@ -468,9 +475,9 @@ describe('AuthController', () => {
           id: userId,
           email: 'test@example.com',
           name: 'Test',
-          timezone: timezone,
+          timezone,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
@@ -481,7 +488,7 @@ describe('AuthController', () => {
         expect(mockResponse.status).toHaveBeenCalledWith(200);
         expect(mockResponse.json).toHaveBeenCalledWith({
           success: true,
-          data: mockUpdatedUser
+          data: mockUpdatedUser,
         });
       }
     });
@@ -497,9 +504,9 @@ describe('AuthController', () => {
         id: userId,
         email: 'user@example.com',
         name: 'John',
-        timezone: timezone,
+        timezone,
         createdAt: new Date('2024-01-01T00:00:00Z'),
-        updatedAt: new Date('2024-01-02T00:00:00Z')
+        updatedAt: new Date('2024-01-02T00:00:00Z'),
       };
 
       mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
@@ -512,10 +519,10 @@ describe('AuthController', () => {
           id: userId,
           email: 'user@example.com',
           name: 'John',
-          timezone: timezone,
+          timezone,
           createdAt: expect.any(Date),
-          updatedAt: expect.any(Date)
-        })
+          updatedAt: expect.any(Date),
+        }),
       });
     });
   });

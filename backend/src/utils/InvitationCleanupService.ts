@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 
 interface Logger {
-  info(message: string, meta?: any): void;
-  error(message: string, meta?: any): void;
-  warn(message: string, meta?: any): void;
-  debug(message: string, meta?: any): void;
+  info(message: string, meta?: unknown): void;
+  error(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  debug(message: string, meta?: unknown): void;
 }
 
 export interface InvitationCleanupConfig {
@@ -17,7 +17,7 @@ export class InvitationCleanupService {
   constructor(
     private prisma: PrismaClient,
     private logger: Logger,
-    private config: InvitationCleanupConfig = { retentionDays: InvitationCleanupService.DEFAULT_RETENTION_DAYS }
+    private config: InvitationCleanupConfig = { retentionDays: InvitationCleanupService.DEFAULT_RETENTION_DAYS },
   ) {}
 
   /**
@@ -34,9 +34,9 @@ export class InvitationCleanupService {
           familyId,
           status: 'PENDING',
           expiresAt: {
-            lte: now
-          }
-        }
+            lte: now,
+          },
+        },
       });
 
       // Clean up old CANCELLED invitations
@@ -45,9 +45,9 @@ export class InvitationCleanupService {
           familyId,
           status: 'CANCELLED',
           createdAt: {
-            lte: retentionPeriod
-          }
-        }
+            lte: retentionPeriod,
+          },
+        },
       });
 
       const totalDeleted = expiredCount.count + oldCancelledCount.count;
@@ -77,9 +77,9 @@ export class InvitationCleanupService {
           groupId,
           status: 'PENDING',
           expiresAt: {
-            lte: now
-          }
-        }
+            lte: now,
+          },
+        },
       });
 
       // Clean up old CANCELLED invitations
@@ -88,9 +88,9 @@ export class InvitationCleanupService {
           groupId,
           status: 'CANCELLED',
           createdAt: {
-            lte: retentionPeriod
-          }
-        }
+            lte: retentionPeriod,
+          },
+        },
       });
 
       const totalDeleted = expiredCount.count + oldCancelledCount.count;
@@ -121,9 +121,9 @@ export class InvitationCleanupService {
         where: {
           status: 'PENDING',
           expiresAt: {
-            lte: now
-          }
-        }
+            lte: now,
+          },
+        },
       });
 
       // Clean up old CANCELLED invitations
@@ -131,9 +131,9 @@ export class InvitationCleanupService {
         where: {
           status: 'CANCELLED',
           createdAt: {
-            lte: retentionPeriod
-          }
-        }
+            lte: retentionPeriod,
+          },
+        },
       });
 
       this.logger.info(`Global family cleanup completed: removed ${expiredCount.count} expired and ${oldCancelledCount.count} old cancelled invitations`);
@@ -160,9 +160,9 @@ export class InvitationCleanupService {
         where: {
           status: 'PENDING',
           expiresAt: {
-            lte: now
-          }
-        }
+            lte: now,
+          },
+        },
       });
 
       // Clean up old CANCELLED invitations
@@ -170,9 +170,9 @@ export class InvitationCleanupService {
         where: {
           status: 'CANCELLED',
           createdAt: {
-            lte: retentionPeriod
-          }
-        }
+            lte: retentionPeriod,
+          },
+        },
       });
 
       this.logger.info(`Global group cleanup completed: removed ${expiredCount.count} expired and ${oldCancelledCount.count} old cancelled invitations`);
@@ -203,7 +203,7 @@ export class InvitationCleanupService {
 
     return {
       families: familyResults,
-      groups: groupResults
+      groups: groupResults,
     };
   }
 
@@ -219,14 +219,14 @@ export class InvitationCleanupService {
         const existingInvitation = await this.prisma.familyInvitation.findFirst({
           where: {
             familyId: entityId,
-            email: email,
-            status: { in: ['CANCELLED', 'EXPIRED'] }
-          }
+            email,
+            status: { in: ['CANCELLED', 'EXPIRED'] },
+          },
         });
 
         if (existingInvitation) {
           await this.prisma.familyInvitation.delete({
-            where: { id: existingInvitation.id }
+            where: { id: existingInvitation.id },
           });
           deletedInvitation = existingInvitation;
         }
@@ -234,14 +234,14 @@ export class InvitationCleanupService {
         const existingInvitation = await this.prisma.groupInvitation.findFirst({
           where: {
             groupId: entityId,
-            email: email,
-            status: { in: ['CANCELLED', 'EXPIRED'] }
-          }
+            email,
+            status: { in: ['CANCELLED', 'EXPIRED'] },
+          },
         });
 
         if (existingInvitation) {
           await this.prisma.groupInvitation.delete({
-            where: { id: existingInvitation.id }
+            where: { id: existingInvitation.id },
           });
           deletedInvitation = existingInvitation;
         }
@@ -270,9 +270,9 @@ export class InvitationCleanupService {
         include: {
           members: {
             where: { role: 'ADMIN' },
-            include: { user: true }
-          }
-        }
+            include: { user: true },
+          },
+        },
       });
 
       if (!family) {
@@ -288,8 +288,8 @@ export class InvitationCleanupService {
           where: {
             groupId,
             email,
-            status: { in: ['CANCELLED', 'EXPIRED'] }
-          }
+            status: { in: ['CANCELLED', 'EXPIRED'] },
+          },
         });
         deletedCount += existingInvitations.count;
       }

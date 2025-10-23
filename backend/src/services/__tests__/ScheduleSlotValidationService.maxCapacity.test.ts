@@ -34,19 +34,19 @@ describe('ScheduleSlotValidationService - Max Capacity Tests', () => {
 
     it('should reject seat override of 11', async () => {
       await expect(validationService.validateSeatOverride(11)).rejects.toThrow(
-        `Seat override cannot exceed ${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats (application limit)`
+        `Seat override cannot exceed ${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats (application limit)`,
       );
     });
 
     it('should reject seat override of 50 (old limit)', async () => {
       await expect(validationService.validateSeatOverride(50)).rejects.toThrow(
-        `Seat override cannot exceed ${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats (application limit)`
+        `Seat override cannot exceed ${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats (application limit)`,
       );
     });
 
     it('should reject negative seat override', async () => {
       await expect(validationService.validateSeatOverride(-1)).rejects.toThrow(
-        'Seat override cannot be negative'
+        'Seat override cannot be negative',
       );
     });
   });

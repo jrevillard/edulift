@@ -12,13 +12,13 @@ export const validateBody = (schema: z.ZodSchema) => {
       if (error instanceof z.ZodError) {
         const validationErrors: ValidationError[] = error.errors.map(err => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
 
         const response: ApiResponse = {
           success: false,
           error: 'Validation failed',
-          validationErrors
+          validationErrors,
         };
 
         res.status(400).json(response);
@@ -39,13 +39,13 @@ export const validateParams = (schema: z.ZodSchema) => {
       if (error instanceof z.ZodError) {
         const validationErrors: ValidationError[] = error.errors.map(err => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
 
         const response: ApiResponse = {
           success: false,
           error: 'Invalid parameters',
-          validationErrors
+          validationErrors,
         };
 
         res.status(400).json(response);
@@ -66,13 +66,13 @@ export const validateQuery = (schema: z.ZodSchema) => {
       if (error instanceof z.ZodError) {
         const validationErrors: ValidationError[] = error.errors.map(err => ({
           field: err.path.join('.'),
-          message: err.message
+          message: err.message,
         }));
 
         const response: ApiResponse = {
           success: false,
           error: 'Invalid query parameters',
-          validationErrors
+          validationErrors,
         };
 
         res.status(400).json(response);

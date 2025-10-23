@@ -10,7 +10,7 @@ describe('Date Validation - Past Date TDD Tests', () => {
     const mockCurrentDate = new Date('2025-06-24T10:00:00.000Z'); // June 24, 2025 10:00 AM UTC
     
     global.Date = class extends Date {
-      constructor(...args: any[]) {
+      constructor(...args: unknown[]) {
         if (args.length === 0) {
           super(mockCurrentDate);
         } else {

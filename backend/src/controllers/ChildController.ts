@@ -5,33 +5,34 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { createError } from '../middleware/errorHandler';
 import { z } from 'zod';
+import { PrismaClient } from '@prisma/client';
 
 const CreateChildSchema = z.object({
   name: z.string().min(1, 'Child name is required').max(100, 'Name too long'),
-  age: z.number().int().min(0).max(18).optional()
+  age: z.number().int().min(0).max(18).optional(),
 });
 
 const UpdateChildSchema = z.object({
   name: z.string().min(1, 'Child name is required').max(100, 'Name too long').optional(),
-  age: z.number().int().min(0).max(18).optional()
+  age: z.number().int().min(0).max(18).optional(),
 });
 
 const ChildParamsSchema = z.object({
-  childId: z.string().cuid('Invalid child ID format')
+  childId: z.string().cuid('Invalid child ID format'),
 });
 
 const WeekQuerySchema = z.object({
-  week: z.string().optional()
+  week: z.string().optional(),
 });
 
 const GroupParamsSchema = z.object({
-  groupId: z.string().cuid('Invalid group ID format')
+  groupId: z.string().cuid('Invalid group ID format'),
 });
 
 export class ChildController {
   constructor(
     private childService: ChildService,
-    private childAssignmentService: ChildAssignmentService
+    private childAssignmentService: ChildAssignmentService,
   ) {}
 
   createChild = async (req: Request, res: Response): Promise<void> => {
@@ -55,11 +56,15 @@ export class ChildController {
         throw createError('Insufficient permissions to add children to family', 403);
       }
 
-      const childData: any = {
+      const childData: {
+        name: string;
+        familyId: string;
+        age?: number;
+      } = {
         name,
-        familyId: userFamily.id
+        familyId: userFamily.id,
       };
-      
+
       if (age !== undefined) {
         childData.age = age;
       }
@@ -68,7 +73,7 @@ export class ChildController {
 
       const response: ApiResponse = {
         success: true,
-        data: child
+        data: child,
       };
 
       res.status(201).json(response);
@@ -79,8 +84,8 @@ export class ChildController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -90,23 +95,19 @@ export class ChildController {
   };
 
   getChildren = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      if (!authReq.userId) {
-        throw createError('Authentication required', 401);
-      }
-
-      const children = await this.childService.getChildrenByUser(authReq.userId);
-
-      const response: ApiResponse = {
-        success: true,
-        data: children
-      };
-
-      res.status(200).json(response);
-    } catch (error) {
-      throw error;
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.userId) {
+      throw createError('Authentication required', 401);
     }
+
+    const children = await this.childService.getChildrenByUser(authReq.userId);
+
+    const response: ApiResponse = {
+      success: true,
+      data: children,
+    };
+
+    res.status(200).json(response);
   };
 
   getChild = async (req: Request, res: Response): Promise<void> => {
@@ -122,7 +123,7 @@ export class ChildController {
 
       const response: ApiResponse = {
         success: true,
-        data: child
+        data: child,
       };
 
       res.status(200).json(response);
@@ -133,8 +134,8 @@ export class ChildController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -154,7 +155,10 @@ export class ChildController {
       }
 
       // Filter out undefined values for exactOptionalPropertyTypes compatibility
-      const updateData: any = {};
+      const updateData: {
+        name?: string;
+        age?: number;
+      } = {};
       if (rawUpdateData.name !== undefined) {
         updateData.name = rawUpdateData.name;
       }
@@ -170,7 +174,7 @@ export class ChildController {
 
       const response: ApiResponse = {
         success: true,
-        data: updatedChild
+        data: updatedChild,
       };
 
       res.status(200).json(response);
@@ -181,8 +185,8 @@ export class ChildController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -204,7 +208,7 @@ export class ChildController {
 
       const response: ApiResponse = {
         success: true,
-        data: result
+        data: result,
       };
 
       res.status(200).json(response);
@@ -215,8 +219,8 @@ export class ChildController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -239,7 +243,7 @@ export class ChildController {
 
       const response: ApiResponse = {
         success: true,
-        data: assignments
+        data: assignments,
       };
 
       res.status(200).json(response);
@@ -250,8 +254,8 @@ export class ChildController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -274,12 +278,12 @@ export class ChildController {
       const membership = await this.childAssignmentService.addChildToGroup(
         childId, 
         groupId, 
-        authReq.userId
+        authReq.userId,
       );
 
       const response: ApiResponse = {
         success: true,
-        data: membership
+        data: membership,
       };
 
       res.status(201).json(response);
@@ -290,8 +294,8 @@ export class ChildController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -313,12 +317,12 @@ export class ChildController {
       const result = await this.childAssignmentService.removeChildFromGroup(
         childId, 
         groupId, 
-        authReq.userId
+        authReq.userId,
       );
 
       const response: ApiResponse = {
         success: true,
-        data: result
+        data: result,
       };
 
       res.status(200).json(response);
@@ -329,8 +333,8 @@ export class ChildController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -350,12 +354,12 @@ export class ChildController {
 
       const memberships = await this.childAssignmentService.getChildGroupMemberships(
         childId, 
-        authReq.userId
+        authReq.userId,
       );
 
       const response: ApiResponse = {
         success: true,
-        data: memberships
+        data: memberships,
       };
 
       res.status(200).json(response);
@@ -366,8 +370,8 @@ export class ChildController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -378,8 +382,7 @@ export class ChildController {
 }
 
 // Factory function to create controller with dependencies
-export const createChildController = () => {
-  const { PrismaClient } = require('@prisma/client');
+export const createChildController = (): ChildController => {
   
   const prisma = new PrismaClient();
   const childService = new ChildService(prisma);

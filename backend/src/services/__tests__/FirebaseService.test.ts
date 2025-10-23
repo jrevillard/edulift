@@ -1,21 +1,22 @@
 import { FirebaseService, FirebaseConfig } from '../FirebaseService';
 import { PushNotificationData } from '../../types/PushNotificationInterface';
+import * as admin from 'firebase-admin';
 
 // Mock firebase-admin
 jest.mock('firebase-admin', () => ({
   apps: [],
   initializeApp: jest.fn().mockReturnValue({
-    name: 'test-app'
+    name: 'test-app',
   }),
   credential: {
-    cert: jest.fn().mockReturnValue({})
+    cert: jest.fn().mockReturnValue({}),
   },
   messaging: jest.fn().mockReturnValue({
     send: jest.fn(),
     sendEachForMulticast: jest.fn(),
     subscribeToTopic: jest.fn(),
-    unsubscribeFromTopic: jest.fn()
-  })
+    unsubscribeFromTopic: jest.fn(),
+  }),
 }));
 
 describe('FirebaseService', () => {
@@ -24,19 +25,19 @@ describe('FirebaseService', () => {
   const mockConfig: FirebaseConfig = {
     projectId: 'test-project',
     clientEmail: 'test@test-project.iam.gserviceaccount.com',
-    privateKey: '-----BEGIN PRIVATE KEY-----\ntest-key\n-----END PRIVATE KEY-----'
+    privateKey: '-----BEGIN PRIVATE KEY-----\ntest-key\n-----END PRIVATE KEY-----',
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    const admin = require('firebase-admin');
-    mockMessaging = {
+        mockMessaging = {
       send: jest.fn(),
       sendEachForMulticast: jest.fn(),
       subscribeToTopic: jest.fn(),
-      unsubscribeFromTopic: jest.fn()
+      unsubscribeFromTopic: jest.fn(),
     };
+    // @ts-expect-error - mock of Firebase admin
     admin.messaging.mockReturnValue(mockMessaging);
     
     firebaseService = new FirebaseService(mockConfig);
@@ -48,8 +49,8 @@ describe('FirebaseService', () => {
     });
 
     it('should handle initialization errors gracefully', () => {
-      const admin = require('firebase-admin');
-      admin.initializeApp.mockImplementationOnce(() => {
+            // @ts-expect-error - mock of Firebase admin
+            admin.initializeApp.mockImplementationOnce(() => {
         throw new Error('Init error');
       });
 
@@ -62,7 +63,7 @@ describe('FirebaseService', () => {
     const mockNotification: PushNotificationData = {
       title: 'Test Title',
       body: 'Test Body',
-      data: { test: 'data' }
+      data: { test: 'data' },
     };
 
     it('should send notification to a single token successfully', async () => {
@@ -77,16 +78,16 @@ describe('FirebaseService', () => {
           token: 'test-token',
           notification: {
             title: 'Test Title',
-            body: 'Test Body'
+            body: 'Test Body',
           },
-          data: { test: 'data' }
-        })
+          data: { test: 'data' },
+        }),
       );
     });
 
     it('should handle invalid token errors', async () => {
       mockMessaging.send.mockRejectedValueOnce(
-        new Error('registration-token-not-registered')
+        new Error('registration-token-not-registered'),
       );
 
       const result = await firebaseService.sendToToken('invalid-token', mockNotification);
@@ -97,7 +98,7 @@ describe('FirebaseService', () => {
 
     it('should handle general send errors', async () => {
       mockMessaging.send.mockRejectedValueOnce(
-        new Error('Network error')
+        new Error('Network error'),
       );
 
       const result = await firebaseService.sendToToken('test-token', mockNotification);
@@ -111,7 +112,7 @@ describe('FirebaseService', () => {
   describe('sendToTokens', () => {
     const mockNotification: PushNotificationData = {
       title: 'Batch Test',
-      body: 'Batch Body'
+      body: 'Batch Body',
     };
 
     it('should send notifications to multiple tokens successfully', async () => {
@@ -120,8 +121,8 @@ describe('FirebaseService', () => {
         failureCount: 0,
         responses: [
           { success: true, messageId: 'msg-1' },
-          { success: true, messageId: 'msg-2' }
-        ]
+          { success: true, messageId: 'msg-2' },
+        ],
       };
       mockMessaging.sendEachForMulticast.mockResolvedValueOnce(mockResponse);
 
@@ -143,10 +144,10 @@ describe('FirebaseService', () => {
             success: false, 
             error: { 
               code: 'messaging/registration-token-not-registered',
-              message: 'Token not registered'
-            }
-          }
-        ]
+              message: 'Token not registered',
+            },
+          },
+        ],
       };
       mockMessaging.sendEachForMulticast.mockResolvedValueOnce(mockResponse);
 
@@ -170,7 +171,7 @@ describe('FirebaseService', () => {
   describe('sendToTopic', () => {
     const mockNotification: PushNotificationData = {
       title: 'Topic Test',
-      body: 'Topic Body'
+      body: 'Topic Body',
     };
 
     it('should send notification to topic successfully', async () => {
@@ -182,8 +183,8 @@ describe('FirebaseService', () => {
       expect(result.messageId).toBe('topic-message-id');
       expect(mockMessaging.send).toHaveBeenCalledWith(
         expect.objectContaining({
-          topic: 'test-topic'
-        })
+          topic: 'test-topic',
+        }),
       );
     });
 
@@ -208,15 +209,15 @@ describe('FirebaseService', () => {
         expect.objectContaining({
           token: 'valid-token',
           data: expect.objectContaining({
-            type: 'token_validation'
-          })
-        })
+            type: 'token_validation',
+          }),
+        }),
       );
     });
 
     it('should return false for invalid token', async () => {
       mockMessaging.send.mockRejectedValueOnce(
-        new Error('registration-token-not-registered')
+        new Error('registration-token-not-registered'),
       );
 
       const result = await firebaseService.validateToken('invalid-token');
@@ -271,8 +272,8 @@ describe('FirebaseService', () => {
 
   describe('Service availability', () => {
     it('should throw error when service is not available', () => {
-      const admin = require('firebase-admin');
-      admin.initializeApp.mockImplementationOnce(() => {
+            // @ts-expect-error - mock of Firebase admin
+            admin.initializeApp.mockImplementationOnce(() => {
         throw new Error('Init error');
       });
 

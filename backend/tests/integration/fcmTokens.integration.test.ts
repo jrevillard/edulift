@@ -1,28 +1,29 @@
 import request from 'supertest';
 import { PrismaClient } from '@prisma/client';
 import app from '../../src/app';
+import * as firebaseAdmin from 'firebase-admin';
 
 // Mock Firebase Admin SDK
 jest.mock('firebase-admin', () => ({
   apps: [],
   initializeApp: jest.fn().mockReturnValue({
-    name: 'test-app'
+    name: 'test-app',
   }),
   credential: {
-    cert: jest.fn().mockReturnValue({})
+    cert: jest.fn().mockReturnValue({}),
   },
   messaging: jest.fn().mockReturnValue({
     send: jest.fn(),
     sendEachForMulticast: jest.fn(),
     subscribeToTopic: jest.fn(),
-    unsubscribeFromTopic: jest.fn()
-  })
+    unsubscribeFromTopic: jest.fn(),
+  }),
 }));
 
 describe('FCM Tokens API Integration Tests', () => {
   let prisma: PrismaClient;
   let testUser: any;
-  let authToken: string;
+  let _authToken: string;
 
   beforeAll(async () => {
     prisma = new PrismaClient();
@@ -39,16 +40,16 @@ describe('FCM Tokens API Integration Tests', () => {
     testUser = await prisma.user.create({
       data: {
         email: 'testuser@example.com',
-        name: 'Test User'
-      }
+        name: 'Test User',
+      },
     });
 
     // Mock authentication middleware
     jest.doMock('../../src/middleware/auth', () => ({
-      requireAuth: (req: any, res: any, next: any) => {
+      requireAuth: (req: any, _res: any, _next: any) => {
         req.user = { id: testUser.id, email: testUser.email };
         next();
-      }
+      },
     }));
   });
 
@@ -68,7 +69,7 @@ describe('FCM Tokens API Integration Tests', () => {
       const tokenData = {
         token: 'fcm-token-123',
         deviceId: 'device-123',
-        platform: 'android'
+        platform: 'android',
       };
 
       const response = await request(app)
@@ -82,7 +83,7 @@ describe('FCM Tokens API Integration Tests', () => {
 
       // Verify token was saved in database
       const savedToken = await prisma.fcmToken.findUnique({
-        where: { token: 'fcm-token-123' }
+        where: { token: 'fcm-token-123' },
       });
       expect(savedToken).toBeTruthy();
       expect(savedToken!.userId).toBe(testUser.id);
@@ -94,14 +95,14 @@ describe('FCM Tokens API Integration Tests', () => {
         data: {
           userId: testUser.id,
           token: 'fcm-token-123',
-          platform: 'android'
-        }
+          platform: 'android',
+        },
       });
 
       const updateData = {
         token: 'fcm-token-123',
         deviceId: 'new-device-123',
-        platform: 'ios'
+        platform: 'ios',
       };
 
       const response = await request(app)
@@ -114,7 +115,7 @@ describe('FCM Tokens API Integration Tests', () => {
 
       // Verify token was updated in database
       const updatedToken = await prisma.fcmToken.findUnique({
-        where: { token: 'fcm-token-123' }
+        where: { token: 'fcm-token-123' },
       });
       expect(updatedToken!.platform).toBe('ios');
       expect(updatedToken!.deviceId).toBe('new-device-123');
@@ -123,7 +124,7 @@ describe('FCM Tokens API Integration Tests', () => {
     it('should reject invalid platform', async () => {
       const tokenData = {
         token: 'fcm-token-123',
-        platform: 'invalid-platform'
+        platform: 'invalid-platform',
       };
 
       const response = await request(app)
@@ -138,14 +139,14 @@ describe('FCM Tokens API Integration Tests', () => {
     it('should require authentication', async () => {
       // Remove auth mock temporarily
       jest.doMock('../../src/middleware/auth', () => ({
-        requireAuth: (req: any, res: any, next: any) => {
+        requireAuth: (req: any, res: any, _next: any) => {
           res.status(401).json({ error: 'Authentication required' });
-        }
+        },
       }));
 
       const tokenData = {
         token: 'fcm-token-123',
-        platform: 'android'
+        platform: 'android',
       };
 
       await request(app)
@@ -165,22 +166,22 @@ describe('FCM Tokens API Integration Tests', () => {
             token: 'token-1',
             platform: 'android',
             deviceId: 'device-1',
-            isActive: true
+            isActive: true,
           },
           {
             userId: testUser.id,
             token: 'token-2',
             platform: 'ios',
             deviceId: 'device-2',
-            isActive: true
+            isActive: true,
           },
           {
             userId: testUser.id,
             token: 'token-3',
             platform: 'web',
-            isActive: false // Inactive token
-          }
-        ]
+            isActive: false, // Inactive token
+          },
+        ],
       });
     });
 
@@ -199,7 +200,7 @@ describe('FCM Tokens API Integration Tests', () => {
       // Deactivate all tokens
       await prisma.fcmToken.updateMany({
         where: { userId: testUser.id },
-        data: { isActive: false }
+        data: { isActive: false },
       });
 
       const response = await request(app)
@@ -212,15 +213,15 @@ describe('FCM Tokens API Integration Tests', () => {
   });
 
   describe('DELETE /api/v1/fcm-tokens/:token', () => {
-    let testToken: any;
+    let _testToken: any;
 
     beforeEach(async () => {
-      testToken = await prisma.fcmToken.create({
+      _testToken = await prisma.fcmToken.create({
         data: {
           userId: testUser.id,
           token: 'token-to-delete',
-          platform: 'android'
-        }
+          platform: 'android',
+        },
       });
     });
 
@@ -234,7 +235,7 @@ describe('FCM Tokens API Integration Tests', () => {
 
       // Verify token was deleted
       const deletedToken = await prisma.fcmToken.findUnique({
-        where: { token: 'token-to-delete' }
+        where: { token: 'token-to-delete' },
       });
       expect(deletedToken).toBeNull();
     });
@@ -244,8 +245,8 @@ describe('FCM Tokens API Integration Tests', () => {
       const otherUser = await prisma.user.create({
         data: {
           email: 'other@example.com',
-          name: 'Other User'
-        }
+          name: 'Other User',
+        },
       });
 
       // Create token for other user
@@ -253,8 +254,8 @@ describe('FCM Tokens API Integration Tests', () => {
         data: {
           userId: otherUser.id,
           token: 'other-user-token',
-          platform: 'android'
-        }
+          platform: 'android',
+        },
       });
 
       const response = await request(app)
@@ -278,19 +279,19 @@ describe('FCM Tokens API Integration Tests', () => {
   });
 
   describe('POST /api/v1/fcm-tokens/validate', () => {
-    let testToken: any;
+    let _testToken: any;
 
     beforeEach(async () => {
-      testToken = await prisma.fcmToken.create({
+      _testToken = await prisma.fcmToken.create({
         data: {
           userId: testUser.id,
           token: 'token-to-validate',
-          platform: 'android'
-        }
+          platform: 'android',
+        },
       });
 
       // Mock Firebase validation
-      const admin = require('firebase-admin');
+      const admin = firebaseAdmin;
       const mockMessaging = admin.messaging();
       mockMessaging.send.mockResolvedValue('validation-message-id');
     });
@@ -327,20 +328,20 @@ describe('FCM Tokens API Integration Tests', () => {
   });
 
   describe('POST /api/v1/fcm-tokens/subscribe', () => {
-    let testToken: any;
+    let _testToken: any;
 
     beforeEach(async () => {
-      testToken = await prisma.fcmToken.create({
+      _testToken = await prisma.fcmToken.create({
         data: {
           userId: testUser.id,
           token: 'token-to-subscribe',
           platform: 'android',
-          isActive: true
-        }
+          isActive: true,
+        },
       });
 
       // Mock Firebase subscription
-      const admin = require('firebase-admin');
+      const admin = firebaseAdmin;
       const mockMessaging = admin.messaging();
       mockMessaging.subscribeToTopic.mockResolvedValue(undefined);
     });
@@ -350,7 +351,7 @@ describe('FCM Tokens API Integration Tests', () => {
         .post('/api/v1/fcm-tokens/subscribe')
         .send({ 
           token: 'token-to-subscribe',
-          topic: 'test-topic'
+          topic: 'test-topic',
         })
         .expect(200);
 
@@ -363,14 +364,14 @@ describe('FCM Tokens API Integration Tests', () => {
       // Deactivate token
       await prisma.fcmToken.update({
         where: { token: 'token-to-subscribe' },
-        data: { isActive: false }
+        data: { isActive: false },
       });
 
       const response = await request(app)
         .post('/api/v1/fcm-tokens/subscribe')
         .send({ 
           token: 'token-to-subscribe',
-          topic: 'test-topic'
+          topic: 'test-topic',
         })
         .expect(404);
 
@@ -388,20 +389,20 @@ describe('FCM Tokens API Integration Tests', () => {
   });
 
   describe('POST /api/v1/fcm-tokens/unsubscribe', () => {
-    let testToken: any;
+    let _testToken: any;
 
     beforeEach(async () => {
-      testToken = await prisma.fcmToken.create({
+      _testToken = await prisma.fcmToken.create({
         data: {
           userId: testUser.id,
           token: 'token-to-unsubscribe',
           platform: 'android',
-          isActive: true
-        }
+          isActive: true,
+        },
       });
 
       // Mock Firebase unsubscription
-      const admin = require('firebase-admin');
+      const admin = firebaseAdmin;
       const mockMessaging = admin.messaging();
       mockMessaging.unsubscribeFromTopic.mockResolvedValue(undefined);
     });
@@ -411,7 +412,7 @@ describe('FCM Tokens API Integration Tests', () => {
         .post('/api/v1/fcm-tokens/unsubscribe')
         .send({ 
           token: 'token-to-unsubscribe',
-          topic: 'test-topic'
+          topic: 'test-topic',
         })
         .expect(200);
 
@@ -428,19 +429,19 @@ describe('FCM Tokens API Integration Tests', () => {
           userId: testUser.id,
           token: 'test-notification-token',
           platform: 'android',
-          isActive: true
-        }
+          isActive: true,
+        },
       });
 
       // Mock Firebase test notification
-      const admin = require('firebase-admin');
+      const admin = firebaseAdmin;
       const mockMessaging = admin.messaging();
       mockMessaging.sendEachForMulticast.mockResolvedValue({
         successCount: 1,
         failureCount: 0,
         responses: [
-          { success: true, messageId: 'test-msg-id' }
-        ]
+          { success: true, messageId: 'test-msg-id' },
+        ],
       });
     });
 
@@ -450,7 +451,7 @@ describe('FCM Tokens API Integration Tests', () => {
         .send({ 
           title: 'Test Title',
           body: 'Test Body',
-          priority: 'high'
+          priority: 'high',
         })
         .expect(200);
 
@@ -477,7 +478,7 @@ describe('FCM Tokens API Integration Tests', () => {
         .post('/api/v1/fcm-tokens/test')
         .send({ 
           title: 'Test Title',
-          body: 'Test Body'
+          body: 'Test Body',
         })
         .expect(503);
 
@@ -496,15 +497,15 @@ describe('FCM Tokens API Integration Tests', () => {
             userId: testUser.id,
             token: 'android-token',
             platform: 'android',
-            isActive: true
+            isActive: true,
           },
           {
             userId: testUser.id,
             token: 'ios-token',
             platform: 'ios',
-            isActive: true
-          }
-        ]
+            isActive: true,
+          },
+        ],
       });
     });
 

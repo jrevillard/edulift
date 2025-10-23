@@ -6,16 +6,16 @@ import { DateTime } from 'luxon';
  * @param timezone - IANA timezone string (e.g., "Europe/Paris")
  * @returns DateTime in user's local timezone
  */
-export function convertUtcToTimezone(
+export const convertUtcToTimezone = (
   utcDatetime: Date | string,
-  timezone: string
-): DateTime {
+  timezone: string,
+): DateTime => {
   const dt = typeof utcDatetime === 'string'
     ? DateTime.fromISO(utcDatetime, { zone: 'utc' })
     : DateTime.fromJSDate(utcDatetime, { zone: 'utc' });
 
   return dt.setZone(timezone);
-}
+};
 
 /**
  * Extract weekday from UTC datetime in user's timezone
@@ -23,13 +23,13 @@ export function convertUtcToTimezone(
  * @param timezone - User's IANA timezone
  * @returns Weekday name in uppercase (e.g., "MONDAY")
  */
-export function getWeekdayInTimezone(
+export const getWeekdayInTimezone = (
   utcDatetime: Date | string,
-  timezone: string
-): string {
+  timezone: string,
+): string => {
   const localDt = convertUtcToTimezone(utcDatetime, timezone);
   return localDt.toFormat('EEEE').toUpperCase(); // "MONDAY", "TUESDAY", etc.
-}
+};
 
 /**
  * Extract time (HH:mm) from UTC datetime in user's timezone
@@ -37,20 +37,20 @@ export function getWeekdayInTimezone(
  * @param timezone - User's IANA timezone
  * @returns Time string in HH:mm format (e.g., "07:30")
  */
-export function getTimeInTimezone(
+export const getTimeInTimezone = (
   utcDatetime: Date | string,
-  timezone: string
-): string {
+  timezone: string,
+): string => {
   const localDt = convertUtcToTimezone(utcDatetime, timezone);
   return localDt.toFormat('HH:mm'); // "07:30", "15:00", etc.
-}
+};
 
 /**
  * Validate if a timezone string is valid IANA timezone
  * @param timezone - IANA timezone string (e.g., "Europe/Paris", not "CET")
  * @returns true if valid IANA timezone, false otherwise
  */
-export function isValidTimezone(timezone: string): boolean {
+export const isValidTimezone = (timezone: string): boolean => {
   if (!timezone || timezone.trim() === '') {
     return false;
   }
@@ -68,7 +68,7 @@ export function isValidTimezone(timezone: string): boolean {
   } catch {
     return false;
   }
-}
+};
 
 /**
  * List of common timezones for validation/autocomplete
@@ -132,7 +132,7 @@ export const COMMON_TIMEZONES = [
  * @param timezone - Timezone string to validate
  * @returns Validated timezone or 'UTC' if invalid
  */
-export function getValidatedTimezone(timezone: string | undefined | null): string {
+export const getValidatedTimezone = (timezone: string | undefined | null): string => {
   if (!timezone) {
     return 'UTC';
   }
@@ -150,7 +150,7 @@ export function getValidatedTimezone(timezone: string | undefined | null): strin
   // Default to UTC if invalid
   console.warn(`Invalid timezone "${timezone}" provided, defaulting to UTC`);
   return 'UTC';
-}
+};
 
 /**
  * Format datetime in user's timezone for error messages
@@ -158,10 +158,10 @@ export function getValidatedTimezone(timezone: string | undefined | null): strin
  * @param timezone - User's IANA timezone
  * @returns Formatted string (e.g., "Monday 07:30")
  */
-export function formatDateTimeForUser(
+export const formatDateTimeForUser = (
   utcDatetime: Date | string,
-  timezone: string
-): string {
+  timezone: string,
+): string => {
   const localDt = convertUtcToTimezone(utcDatetime, timezone);
   return localDt.toFormat('EEEE HH:mm'); // "Monday 07:30"
-}
+};

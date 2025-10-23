@@ -53,16 +53,16 @@ describe('GroupScheduleConfigService', () => {
         id: 'config1',
         groupId,
         scheduleHours: {
-          'MONDAY': ['07:00', '08:00'],
-          'TUESDAY': ['07:00', '08:00']
+          MONDAY: ['07:00', '08:00'],
+          TUESDAY: ['07:00', '08:00'],
         },
         createdAt: new Date(),
         updatedAt: new Date(),
-        group: { id: groupId, name: 'Test Group' }
+        group: { id: groupId, name: 'Test Group' },
       };
 
       (mockGroupService.getUserGroups as jest.Mock).mockResolvedValue([
-        { id: groupId, name: 'Test Group' }
+        { id: groupId, name: 'Test Group' },
       ]);
       (mockPrisma.groupScheduleConfig.findUnique as jest.Mock).mockResolvedValue(mockConfig);
 
@@ -76,10 +76,10 @@ describe('GroupScheduleConfigService', () => {
           group: {
             select: {
               id: true,
-              name: true
-            }
-          }
-        }
+              name: true,
+            },
+          },
+        },
       });
     });
 
@@ -92,7 +92,7 @@ describe('GroupScheduleConfigService', () => {
 
     it('should return null if no configuration exists', async () => {
       (mockGroupService.getUserGroups as jest.Mock).mockResolvedValue([
-        { id: groupId, name: 'Test Group' }
+        { id: groupId, name: 'Test Group' },
       ]);
       (mockPrisma.groupScheduleConfig.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -106,13 +106,13 @@ describe('GroupScheduleConfigService', () => {
     it('should return time slots for specific weekday from configuration', async () => {
       const mockConfig = {
         scheduleHours: {
-          'MONDAY': ['07:00', '08:00', '15:00'],
-          'TUESDAY': ['07:00', '16:00']
-        }
+          MONDAY: ['07:00', '08:00', '15:00'],
+          TUESDAY: ['07:00', '16:00'],
+        },
       };
 
       (mockGroupService.getUserGroups as jest.Mock).mockResolvedValue([
-        { id: groupId, name: 'Test Group' }
+        { id: groupId, name: 'Test Group' },
       ]);
       (mockPrisma.groupScheduleConfig.findUnique as jest.Mock).mockResolvedValue(mockConfig);
 
@@ -123,7 +123,7 @@ describe('GroupScheduleConfigService', () => {
 
     it('should throw error when no configuration exists', async () => {
       (mockGroupService.getUserGroups as jest.Mock).mockResolvedValue([
-        { id: groupId, name: 'Test Group' }
+        { id: groupId, name: 'Test Group' },
       ]);
       (mockPrisma.groupScheduleConfig.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -134,12 +134,12 @@ describe('GroupScheduleConfigService', () => {
     it('should return empty array for invalid weekday', async () => {
       const mockConfig = {
         scheduleHours: {
-          'MONDAY': ['07:00', '08:00']
-        }
+          MONDAY: ['07:00', '08:00'],
+        },
       };
 
       (mockGroupService.getUserGroups as jest.Mock).mockResolvedValue([
-        { id: groupId, name: 'Test Group' }
+        { id: groupId, name: 'Test Group' },
       ]);
       (mockPrisma.groupScheduleConfig.findUnique as jest.Mock).mockResolvedValue(mockConfig);
 
@@ -151,8 +151,8 @@ describe('GroupScheduleConfigService', () => {
 
   describe('updateGroupScheduleConfig', () => {
     const validScheduleHours: ScheduleHours = {
-      'MONDAY': ['07:00', '08:00', '15:00'],
-      'TUESDAY': ['07:00', '16:00']
+      MONDAY: ['07:00', '08:00', '15:00'],
+      TUESDAY: ['07:00', '16:00'],
     };
 
     it('should update configuration for authorized admin', async () => {
@@ -160,7 +160,7 @@ describe('GroupScheduleConfigService', () => {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
       const mockConfig = {
         id: 'config1',
@@ -168,7 +168,7 @@ describe('GroupScheduleConfigService', () => {
         scheduleHours: validScheduleHours,
         createdAt: new Date(),
         updatedAt: new Date(),
-        group: mockGroup
+        group: mockGroup,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -189,8 +189,8 @@ describe('GroupScheduleConfigService', () => {
         entityName: 'Test Group',
         metadata: {
           configId: 'config1',
-          scheduleHours: validScheduleHours
-        }
+          scheduleHours: validScheduleHours,
+        },
       });
     });
 
@@ -203,13 +203,13 @@ describe('GroupScheduleConfigService', () => {
 
     it('should throw error for invalid weekday', async () => {
       const invalidScheduleHours = {
-        'INVALID_DAY': ['07:00', '08:00']
+        INVALID_DAY: ['07:00', '08:00'],
       };
       const mockGroup = {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -221,13 +221,13 @@ describe('GroupScheduleConfigService', () => {
 
     it('should throw error for invalid time format', async () => {
       const invalidScheduleHours = {
-        'MONDAY': ['25:00', '08:00'] // Invalid hour
+        MONDAY: ['25:00', '08:00'], // Invalid hour
       };
       const mockGroup = {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -239,13 +239,13 @@ describe('GroupScheduleConfigService', () => {
 
     it('should throw error for duplicate time slots', async () => {
       const invalidScheduleHours = {
-        'MONDAY': ['07:00', '08:00', '07:00'] // Duplicate
+        MONDAY: ['07:00', '08:00', '07:00'], // Duplicate
       };
       const mockGroup = {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -257,16 +257,16 @@ describe('GroupScheduleConfigService', () => {
 
     it('should throw error for too many time slots', async () => {
       const tooManySlots = Array.from({ length: 21 }, (_, i) =>
-        `${String(i).padStart(2, '0')}:00`
+        `${String(i).padStart(2, '0')}:00`,
       );
       const invalidScheduleHours = {
-        'MONDAY': tooManySlots
+        MONDAY: tooManySlots,
       };
       const mockGroup = {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -278,13 +278,13 @@ describe('GroupScheduleConfigService', () => {
 
     it('should throw error for intervals less than 15 minutes', async () => {
       const invalidScheduleHours = {
-        'MONDAY': ['07:00', '07:10'] // 10 minute interval
+        MONDAY: ['07:00', '07:10'], // 10 minute interval
       };
       const mockGroup = {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -299,14 +299,14 @@ describe('GroupScheduleConfigService', () => {
         {
           id: 'slot1',
           datetime: new Date('2024-01-01T07:00:00.000Z'),
-          _count: { childAssignments: 2 }
-        }
+          _count: { childAssignments: 2 },
+        },
       ];
       const mockGroup = {
         id: groupId,
         name: 'Test Group',
         timezone: 'UTC',
-        operatingHours: null
+        operatingHours: null,
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -314,7 +314,7 @@ describe('GroupScheduleConfigService', () => {
       (mockPrisma.scheduleSlot.findMany as jest.Mock).mockResolvedValue(existingSlots);
 
       const scheduleHoursWithoutExistingSlot = {
-        'MONDAY': ['08:00', '15:00'] // Missing 07:00 which has bookings
+        MONDAY: ['08:00', '15:00'], // Missing 07:00 which has bookings
       };
 
       await expect(service.updateGroupScheduleConfig(groupId, scheduleHoursWithoutExistingSlot, userId))
@@ -330,7 +330,7 @@ describe('GroupScheduleConfigService', () => {
         scheduleHours: GroupScheduleConfigService.getDefaultScheduleHours(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        group: { id: groupId, name: 'Test Group' }
+        group: { id: groupId, name: 'Test Group' },
       };
 
       (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -347,8 +347,8 @@ describe('GroupScheduleConfigService', () => {
         entityId: groupId,
         entityName: 'Test Group',
         metadata: {
-          configId: 'config1'
-        }
+          configId: 'config1',
+        },
       });
     });
 
@@ -364,7 +364,7 @@ describe('GroupScheduleConfigService', () => {
     it('should initialize default configurations for groups without configs', async () => {
       const groupsWithoutConfig = [
         { id: 'group1', name: 'Group 1' },
-        { id: 'group2', name: 'Group 2' }
+        { id: 'group2', name: 'Group 2' },
       ];
 
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue(groupsWithoutConfig);
@@ -376,7 +376,7 @@ describe('GroupScheduleConfigService', () => {
 
       expect(mockPrisma.group.findMany).toHaveBeenCalledWith({
         where: { scheduleConfig: null },
-        select: { id: true, name: true }
+        select: { id: true, name: true },
       });
 
       expect(mockPrisma.groupScheduleConfig.create).toHaveBeenCalledTimes(2);
@@ -392,11 +392,11 @@ describe('GroupScheduleConfigService', () => {
       const defaultHours = GroupScheduleConfigService.getDefaultScheduleHours();
 
       expect(defaultHours).toEqual({
-        'MONDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
+        MONDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        TUESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        WEDNESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        THURSDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        FRIDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
       });
     });
   });
@@ -423,8 +423,8 @@ describe('GroupScheduleConfigService', () => {
     describe('validateScheduleHours with operating hours', () => {
       it('should validate schedule hours within operating hours in user timezone', () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['08:00', '09:00', '15:00'],
-          'TUESDAY': ['10:00', '16:00']
+          MONDAY: ['08:00', '09:00', '15:00'],
+          TUESDAY: ['10:00', '16:00'],
         };
         const operatingHours = { start_hour: '08:00', end_hour: '20:00' };
         const timezone = 'Asia/Tokyo';
@@ -437,7 +437,7 @@ describe('GroupScheduleConfigService', () => {
 
       it('should reject schedule outside operating hours in user timezone', () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['07:00', '09:00'], // 07:00 is before 08:00 operating hours start
+          MONDAY: ['07:00', '09:00'], // 07:00 is before 08:00 operating hours start
         };
         const operatingHours = { start_hour: '08:00', end_hour: '20:00' };
         const timezone = 'Asia/Tokyo';
@@ -449,7 +449,7 @@ describe('GroupScheduleConfigService', () => {
 
       it('should reject schedule after operating hours end', () => {
         const scheduleHours: ScheduleHours = {
-          'FRIDAY': ['15:00', '20:30'], // 20:30 is after 20:00 operating hours end
+          FRIDAY: ['15:00', '20:30'], // 20:30 is after 20:00 operating hours end
         };
         const operatingHours = { start_hour: '08:00', end_hour: '20:00' };
         const timezone = 'Europe/Paris';
@@ -461,7 +461,7 @@ describe('GroupScheduleConfigService', () => {
 
       it('should validate schedule at exact operating hours boundaries', () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['08:00', '20:00'], // Exact boundaries
+          MONDAY: ['08:00', '20:00'], // Exact boundaries
         };
         const operatingHours = { start_hour: '08:00', end_hour: '20:00' };
         const timezone = 'America/New_York';
@@ -474,7 +474,7 @@ describe('GroupScheduleConfigService', () => {
 
       it('should include timezone abbreviation in error message', () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['07:00'],
+          MONDAY: ['07:00'],
         };
         const operatingHours = { start_hour: '08:00', end_hour: '20:00' };
         const timezone = 'Asia/Tokyo';
@@ -486,7 +486,7 @@ describe('GroupScheduleConfigService', () => {
 
       it('should work without operating hours (backward compatibility)', () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['07:00', '08:00', '15:00'],
+          MONDAY: ['07:00', '08:00', '15:00'],
         };
 
         // Should not throw when no operating hours provided
@@ -560,13 +560,13 @@ describe('GroupScheduleConfigService', () => {
     describe('updateGroupScheduleConfig with timezone and operating hours', () => {
       it('should fetch group and validate with group timezone and operating hours', async () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['09:00', '10:00'],
+          MONDAY: ['09:00', '10:00'],
         };
         const mockGroup = {
           id: groupId,
           name: 'Tokyo Group',
           timezone: 'Asia/Tokyo',
-          operatingHours: { start_hour: '08:00', end_hour: '20:00' }
+          operatingHours: { start_hour: '08:00', end_hour: '20:00' },
         };
         const mockConfig = {
           id: 'config1',
@@ -574,7 +574,7 @@ describe('GroupScheduleConfigService', () => {
           scheduleHours,
           createdAt: new Date(),
           updatedAt: new Date(),
-          group: mockGroup
+          group: mockGroup,
         };
 
         (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -590,21 +590,21 @@ describe('GroupScheduleConfigService', () => {
             id: true,
             name: true,
             timezone: true,
-            operatingHours: true
-          }
+            operatingHours: true,
+          },
         });
         expect(result).toEqual(mockConfig);
       });
 
       it('should reject schedule outside group operating hours', async () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['07:00', '09:00'], // 07:00 is before 08:00 start
+          MONDAY: ['07:00', '09:00'], // 07:00 is before 08:00 start
         };
         const mockGroup = {
           id: groupId,
           name: 'Tokyo Group',
           timezone: 'Asia/Tokyo',
-          operatingHours: { start_hour: '08:00', end_hour: '20:00' }
+          operatingHours: { start_hour: '08:00', end_hour: '20:00' },
         };
 
         (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -616,13 +616,13 @@ describe('GroupScheduleConfigService', () => {
 
       it('should handle group without operating hours', async () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['07:00', '09:00'],
+          MONDAY: ['07:00', '09:00'],
         };
         const mockGroup = {
           id: groupId,
           name: 'No Restrictions Group',
           timezone: 'UTC',
-          operatingHours: null // No operating hours set
+          operatingHours: null, // No operating hours set
         };
         const mockConfig = {
           id: 'config1',
@@ -630,7 +630,7 @@ describe('GroupScheduleConfigService', () => {
           scheduleHours,
           createdAt: new Date(),
           updatedAt: new Date(),
-          group: mockGroup
+          group: mockGroup,
         };
 
         (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);
@@ -646,7 +646,7 @@ describe('GroupScheduleConfigService', () => {
 
       it('should throw error if group not found', async () => {
         const scheduleHours: ScheduleHours = {
-          'MONDAY': ['09:00'],
+          MONDAY: ['09:00'],
         };
 
         (mockGroupService.hasGroupAdminPermissions as jest.Mock).mockResolvedValue(true);

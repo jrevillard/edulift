@@ -32,10 +32,10 @@ import { DateTime } from 'luxon';
  * getISOWeekNumber(new Date('2024-01-01T07:00:00Z'), 'America/Los_Angeles')
  * // Returns: 52 (because it's still Sunday in LA, which is Week 52 of 2023)
  */
-export function getISOWeekNumber(
+export const getISOWeekNumber = (
   datetime: Date | string,
-  timezone: string
-): number {
+  timezone: string,
+): number => {
   const dt = typeof datetime === 'string'
     ? DateTime.fromISO(datetime, { zone: 'utc' })
     : DateTime.fromJSDate(datetime, { zone: 'utc' });
@@ -45,7 +45,7 @@ export function getISOWeekNumber(
 
   // Get ISO week number in user's timezone
   return localDt.weekNumber;
-}
+};
 
 /**
  * Get ISO week year for a datetime in the user's timezone
@@ -69,10 +69,10 @@ export function getISOWeekNumber(
  * getISOWeekYear(new Date('2024-01-01T07:00:00Z'), 'America/Los_Angeles')
  * // Returns: 2023 (because it's still Week 52 of 2023 in LA)
  */
-export function getISOWeekYear(
+export const getISOWeekYear = (
   datetime: Date | string,
-  timezone: string
-): number {
+  timezone: string,
+): number => {
   const dt = typeof datetime === 'string'
     ? DateTime.fromISO(datetime, { zone: 'utc' })
     : DateTime.fromJSDate(datetime, { zone: 'utc' });
@@ -82,7 +82,7 @@ export function getISOWeekYear(
 
   // Get ISO week year in user's timezone
   return localDt.weekYear;
-}
+};
 
 /**
  * Get the date from ISO week and year in the user's timezone
@@ -105,20 +105,20 @@ export function getISOWeekYear(
  * getDateFromISOWeek(2023, 52, 'America/Los_Angeles')
  * // Returns: Monday 2023-12-25 00:00 PST = Monday 2023-12-25 08:00 UTC
  */
-export function getDateFromISOWeek(
+export const getDateFromISOWeek = (
   year: number,
   week: number,
-  timezone: string
-): Date {
+  timezone: string,
+): Date => {
   // Create DateTime for the given ISO week in the user's timezone
   const localDt = DateTime.fromObject(
     { weekYear: year, weekNumber: week, weekday: 1 }, // Monday = 1
-    { zone: timezone }
+    { zone: timezone },
   ).startOf('day'); // Start of day (00:00) in user's timezone
 
   // Convert to UTC and return as JS Date
   return localDt.toUTC().toJSDate();
-}
+};
 
 /**
  * Get week boundaries (Monday 00:00 to Sunday 23:59:59.999) in user's timezone
@@ -137,10 +137,10 @@ export function getDateFromISOWeek(
  * //   weekEnd:   Sunday 2024-01-07 23:59:59.999 JST = Sunday 2024-01-07 14:59:59.999 UTC
  * // }
  */
-export function getWeekBoundaries(
+export const getWeekBoundaries = (
   datetime: Date | string,
-  timezone: string
-): { weekStart: Date; weekEnd: Date } {
+  timezone: string,
+): { weekStart: Date; weekEnd: Date } => {
   const dt = typeof datetime === 'string'
     ? DateTime.fromISO(datetime, { zone: 'utc' })
     : DateTime.fromJSDate(datetime, { zone: 'utc' });
@@ -156,9 +156,9 @@ export function getWeekBoundaries(
 
   return {
     weekStart: weekStart.toUTC().toJSDate(),
-    weekEnd: weekEnd.toUTC().toJSDate()
+    weekEnd: weekEnd.toUTC().toJSDate(),
   };
-}
+};
 
 /**
  * Format ISO week for display
@@ -167,14 +167,14 @@ export function getWeekBoundaries(
  * @param timezone - IANA timezone string
  * @returns Formatted string "Week W, YYYY" (e.g., "Week 1, 2024")
  */
-export function formatISOWeek(
+export const formatISOWeek = (
   datetime: Date | string,
-  timezone: string
-): string {
+  timezone: string,
+): string => {
   const week = getISOWeekNumber(datetime, timezone);
   const year = getISOWeekYear(datetime, timezone);
   return `Week ${week}, ${year}`;
-}
+};
 
 /**
  * Check if two datetimes are in the same ISO week in the user's timezone
@@ -184,15 +184,15 @@ export function formatISOWeek(
  * @param timezone - IANA timezone string
  * @returns true if both datetimes are in the same ISO week
  */
-export function isSameISOWeek(
+export const isSameISOWeek = (
   datetime1: Date | string,
   datetime2: Date | string,
-  timezone: string
-): boolean {
+  timezone: string,
+): boolean => {
   const week1 = getISOWeekNumber(datetime1, timezone);
   const year1 = getISOWeekYear(datetime1, timezone);
   const week2 = getISOWeekNumber(datetime2, timezone);
   const year2 = getISOWeekYear(datetime2, timezone);
 
   return week1 === week2 && year1 === year2;
-}
+};

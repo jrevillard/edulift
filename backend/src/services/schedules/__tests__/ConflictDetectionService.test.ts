@@ -48,7 +48,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -89,7 +89,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(false);
@@ -129,7 +129,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Europe/Paris'
+        'Europe/Paris',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -169,7 +169,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -205,7 +205,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(false);
@@ -242,7 +242,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -265,7 +265,7 @@ describe('ConflictDetectionService', () => {
         'group-1',
         newSlot,
         'Asia/Tokyo',
-        'slot-to-update' // Exclude this slot
+        'slot-to-update', // Exclude this slot
       );
 
       expect(result.hasConflict).toBe(false);
@@ -274,7 +274,7 @@ describe('ConflictDetectionService', () => {
           where: expect.objectContaining({
             id: { not: 'slot-to-update' },
           }),
-        })
+        }),
       );
     });
 
@@ -307,7 +307,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.conflicts[0].message).toContain('10:00'); // JST time
@@ -345,7 +345,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -383,7 +383,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       await expect(
-        conflictService.validateNoConflicts('group-1', newSlot, 'Asia/Tokyo')
+        conflictService.validateNoConflicts('group-1', newSlot, 'Asia/Tokyo'),
       ).rejects.toThrow(/Cannot assign to schedule slot due to conflicts/);
     });
 
@@ -397,7 +397,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        conflictService.validateNoConflicts('group-1', newSlot, 'Asia/Tokyo')
+        conflictService.validateNoConflicts('group-1', newSlot, 'Asia/Tokyo'),
       ).resolves.not.toThrow();
     });
   });
@@ -434,7 +434,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Europe/Paris'
+        'Europe/Paris',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -470,7 +470,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(true);
@@ -506,7 +506,7 @@ describe('ConflictDetectionService', () => {
       const result = await conflictService.detectConflicts(
         'group-1',
         newSlot,
-        'Asia/Tokyo'
+        'Asia/Tokyo',
       );
 
       expect(result.hasConflict).toBe(false); // Different times in JST

@@ -3,42 +3,44 @@ import { UserRepository } from '../repositories/UserRepository';
 import { MagicLinkRepository } from '../repositories/MagicLinkRepository';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { CreateUserData, UpdateProfileData } from '../types';
-const { verifyChallenge } = require('pkce-challenge');
+// @ts-expect-error - pkce-challenge doesn't have TypeScript definitions
+import { verifyChallenge } from 'pkce-challenge';
 import crypto from 'crypto';
 import { RefreshTokenService } from './RefreshTokenService';
+import { logger } from '../utils/logger';
 
 /**
  * SECURITY: Timing-safe comparison for PKCE verification
  * Prevents timing attacks by ensuring constant-time comparison
  */
-function timingSafeVerifyChallenge(codeVerifier: string, codeChallenge: string): boolean {
+const timingSafeVerifyChallenge = async (codeVerifier: string, codeChallenge: string): Promise<boolean> => {
   try {
     // Use the library's verifyChallenge to compute expected challenge
-    const isValid = verifyChallenge(codeVerifier, codeChallenge);
-    
+    const isValid = await verifyChallenge(codeVerifier, codeChallenge);
+
     // For additional security, we use timing-safe comparison
     // Convert boolean to buffer for timing-safe comparison
     const actualBuffer = Buffer.from(isValid ? '1' : '0', 'utf8');
     const expectedBuffer = Buffer.from('1', 'utf8');
-    
+
     // If library verification passed, do timing-safe comparison with success value
     if (isValid) {
       return crypto.timingSafeEqual(actualBuffer, expectedBuffer);
     }
-    
+
     // For failed verification, still do timing-safe comparison to prevent timing attacks
     const failBuffer = Buffer.from('0', 'utf8');
     crypto.timingSafeEqual(actualBuffer, failBuffer); // Always false, but constant time
     return false;
-    
-  } catch (error) {
+
+  } catch {
     // Ensure timing consistency even on errors
     const errorBuffer = Buffer.from('0', 'utf8');
     const falseBuffer = Buffer.from('0', 'utf8');
     crypto.timingSafeEqual(errorBuffer, falseBuffer);
     return false;
   }
-}
+};
 
 export interface MagicLinkRequestResult {
   success: boolean;
@@ -62,7 +64,7 @@ export class AuthService {
   constructor(
     private userRepository: UserRepository,
     private magicLinkRepository: MagicLinkRepository,
-    private emailService: EmailServiceInterface
+    private emailService: EmailServiceInterface,
   ) {
     // Legacy JWT_SECRET for backward compatibility
     this.jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key';
@@ -93,7 +95,7 @@ export class AuthService {
       const userData: CreateUserData = {
         email,
         name: userName,
-        ...(timezone && { timezone }) // Only include timezone if provided
+        ...(timezone && { timezone }), // Only include timezone if provided
       };
       user = await this.userRepository.create(userData);
       userExists = false;
@@ -104,20 +106,20 @@ export class AuthService {
     const magicLink = await this.magicLinkRepository.create({
       userId: user.id,
       expiresAt,
-      codeChallenge: code_challenge // Store PKCE challenge for later verification - REQUIRED
+      codeChallenge: code_challenge, // Store PKCE challenge for later verification - REQUIRED
     });
 
     // Generate magic link URL based on platform
     const magicLinkUrl = this.generateMagicLinkUrl(magicLink.token, platform, inviteCode);
     
     // Send magic link email with platform-specific URL
-    console.log('🔍 DEBUG: AuthService sending magic link:', { platform, inviteCode, url: magicLinkUrl });
+    logger.debug('🔍 DEBUG: AuthService sending magic link:', { platform, inviteCode, url: magicLinkUrl });
     await this.emailService.sendMagicLink(email, magicLink.token, inviteCode, magicLinkUrl);
 
     return { success: true, userExists };
   }
 
-  async verifyMagicLink(token: string, code_verifier?: string) {
+  async verifyMagicLink(token: string, code_verifier?: string): Promise<any | null> {
     const magicLink = await this.magicLinkRepository.findValidToken(token);
 
     if (!magicLink) {
@@ -130,10 +132,10 @@ export class AuthService {
     }
 
     // SECURITY: Use timing-safe PKCE validation to prevent timing attacks
-    const isValid = timingSafeVerifyChallenge(code_verifier, magicLink.codeChallenge);
+    const isValid = await timingSafeVerifyChallenge(code_verifier, magicLink.codeChallenge);
     if (!isValid) {
       // Invalid PKCE validation - potential cross-user attack
-      console.warn(`🚨 SECURITY: Invalid PKCE validation for token ${token} - potential cross-user attack`);
+      logger.warn(`🚨 SECURITY: Invalid PKCE validation for token ${token} - potential cross-user attack`);
       throw new Error('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
     }
 
@@ -162,7 +164,7 @@ export class AuthService {
         name: user.name,
         timezone: user.timezone,
         createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+        updatedAt: user.updatedAt,
       },
       accessToken,      // New: Short-lived access token (15 min)
       refreshToken,     // New: Long-lived refresh token (60 days)
@@ -170,7 +172,7 @@ export class AuthService {
       tokenType: 'Bearer',
       // Legacy fields for backward compatibility
       token: accessToken,
-      expiresAt: new Date(Date.now() + expiresIn * 1000)
+      expiresAt: new Date(Date.now() + expiresIn * 1000),
     };
   }
 
@@ -179,35 +181,31 @@ export class AuthService {
    * @param refreshToken - Refresh token to verify and rotate
    * @returns New access token and new refresh token
    */
-  async refreshAccessToken(refreshToken: string) {
-    try {
-      // Verify and rotate refresh token
-      const {
-        userId,
-        newRefreshToken,
-      } = await this.refreshTokenService.verifyAndRotateRefreshToken(refreshToken);
+  async refreshAccessToken(refreshToken: string): Promise<any> {
+    // Verify and rotate refresh token
+    const {
+      userId,
+      newRefreshToken,
+    } = await this.refreshTokenService.verifyAndRotateRefreshToken(refreshToken);
 
-      // Get user data
-      const user = await this.userRepository.findById(userId);
+    // Get user data
+    const user = await this.userRepository.findById(userId);
 
-      if (!user) {
-        throw new Error('User not found');
-      }
-
-      // Generate new access token (15 minutes)
-      const accessToken = this.generateAccessToken(user);
-      const accessExpiryMinutes = parseInt(process.env.JWT_ACCESS_EXPIRY?.replace('m', '') || '15', 10);
-      const expiresIn = accessExpiryMinutes * 60; // Convert to seconds
-
-      return {
-        accessToken,
-        refreshToken: newRefreshToken,  // ✅ Rotated token
-        expiresIn,
-        tokenType: 'Bearer',
-      };
-    } catch (error) {
-      throw error;
+    if (!user) {
+      throw new Error('User not found');
     }
+
+    // Generate new access token (15 minutes)
+    const accessToken = this.generateAccessToken(user);
+    const accessExpiryMinutes = parseInt(process.env.JWT_ACCESS_EXPIRY?.replace('m', '') || '15', 10);
+    const expiresIn = accessExpiryMinutes * 60; // Convert to seconds
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,  // ✅ Rotated token
+      expiresIn,
+      tokenType: 'Bearer',
+    };
   }
 
   /**
@@ -228,16 +226,16 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       name: user.name,
-      jti: crypto.randomBytes(16).toString('hex') // Unique JWT ID for each token
+      jti: crypto.randomBytes(16).toString('hex'), // Unique JWT ID for each token
     };
 
     // Use environment variable or default to 15 minutes
     const expiresIn = process.env.JWT_ACCESS_EXPIRY || '15m';
 
-    // @ts-ignore - jwt.sign expiresIn accepts string values like '15m'
+    // @ts-expect-error - jwt.sign expiresIn accepts string values like '15m' (TypeScript definition issue)
     return jwt.sign(payload, this.jwtAccessSecret, {
       expiresIn,
-      issuer: 'edulift-api'
+      issuer: 'edulift-api',
     });
   }
 
@@ -249,19 +247,19 @@ export class AuthService {
     const payload = {
       userId: user.id,
       email: user.email,
-      name: user.name
+      name: user.name,
     };
 
     return jwt.sign(payload, this.jwtSecret, {
       expiresIn: '24h',
-      issuer: 'edulift-api'
+      issuer: 'edulift-api',
     });
   }
 
-  verifyJWTToken(token: string) {
+  verifyJWTToken(token: string): any {
     try {
       return jwt.verify(token, this.jwtSecret) as any;
-    } catch (error) {
+    } catch {
       throw new Error('Invalid or expired token');
     }
   }
@@ -301,11 +299,11 @@ export class AuthService {
         name: updatedUser.name,
         timezone: updatedUser.timezone,
         createdAt: updatedUser.createdAt,
-        updatedAt: updatedUser.updatedAt
+        updatedAt: updatedUser.updatedAt,
       };
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Profile update failed:', error);
+        logger.error('Profile update failed:', error instanceof Error ? { message: error.message, stack: error.stack } : { error });
       }
       throw error;
     }

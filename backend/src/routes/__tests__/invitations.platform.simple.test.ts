@@ -3,6 +3,9 @@
  * This test focuses on verifying the code compiles and the platform parameter is extracted
  */
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 describe('Platform Parameter Fix Verification', () => {
   it('should extract platform parameter from request body', () => {
     // Mock request body with platform parameter
@@ -46,18 +49,16 @@ describe('Platform Parameter Fix Verification', () => {
 
   it('should verify the fix is properly implemented in the routes file', () => {
     // Read the actual routes file to verify our fix
-    const fs = require('fs');
-    const path = require('path');
     const routesFile = fs.readFileSync(
       path.join(__dirname, '..', 'invitations.ts'), 
-      'utf8'
+      'utf8',
     );
 
     // Verify the platform parameter is extracted from req.body
     expect(routesFile).toContain('const { familyId, email, role, personalMessage, platform } = req.body;');
     
     // Verify the platform validation is present
-    expect(routesFile).toContain("const validPlatform = platform === 'native' ? 'native' : 'web';");
+    expect(routesFile).toContain('const validPlatform = platform === \'native\' ? \'native\' : \'web\';');
     
     // Verify the platform is passed to the service
     expect(routesFile).toContain('validPlatform');

@@ -6,7 +6,7 @@ import {
   UserEventData,
   NotificationEventData,
   ErrorEventData,
-  ConflictEventData
+  ConflictEventData,
 } from '../events';
 
 describe('Event Registry', () => {
@@ -113,7 +113,7 @@ describe('Event Registry', () => {
         SOCKET_EVENTS.CONFLICT_DETECTED,
         SOCKET_EVENTS.FAMILY_MEMBER_JOINED,
         SOCKET_EVENTS.FAMILY_MEMBER_LEFT,
-        SOCKET_EVENTS.FAMILY_UPDATED
+        SOCKET_EVENTS.FAMILY_UPDATED,
       ];
 
       modernEvents.forEach(event => {
@@ -125,7 +125,7 @@ describe('Event Registry', () => {
       const familyEvents = [
         SOCKET_EVENTS.FAMILY_MEMBER_JOINED,
         SOCKET_EVENTS.FAMILY_MEMBER_LEFT,
-        SOCKET_EVENTS.FAMILY_UPDATED
+        SOCKET_EVENTS.FAMILY_UPDATED,
       ];
 
       familyEvents.forEach(event => {
@@ -140,7 +140,7 @@ describe('Event Registry', () => {
     it('should validate GroupEventData interface', () => {
       const groupData: GroupEventData = {
         groupId: 'test-group-123',
-        userId: 'test-user-456'
+        userId: 'test-user-456',
       };
 
       expect(groupData.groupId).toBe('test-group-123');
@@ -148,7 +148,7 @@ describe('Event Registry', () => {
 
       // userId should be optional
       const groupDataWithoutUser: GroupEventData = {
-        groupId: 'test-group-123'
+        groupId: 'test-group-123',
       };
       expect(groupDataWithoutUser.groupId).toBe('test-group-123');
       expect(groupDataWithoutUser.userId).toBeUndefined();
@@ -158,7 +158,7 @@ describe('Event Registry', () => {
       const scheduleData: ScheduleEventData = {
         groupId: 'test-group-123',
         scheduleSlotId: 'test-slot-456',
-        week: '2024-03'
+        week: '2024-03',
       };
 
       expect(scheduleData.groupId).toBe('test-group-123');
@@ -167,7 +167,7 @@ describe('Event Registry', () => {
 
       // Optional fields
       const minimalScheduleData: ScheduleEventData = {
-        groupId: 'test-group-123'
+        groupId: 'test-group-123',
       };
       expect(minimalScheduleData.groupId).toBe('test-group-123');
     });
@@ -175,7 +175,7 @@ describe('Event Registry', () => {
     it('should validate UserEventData interface', () => {
       const userData: UserEventData = {
         userId: 'test-user-123',
-        groupId: 'test-group-456'
+        groupId: 'test-group-456',
       };
 
       expect(userData.userId).toBe('test-user-123');
@@ -186,7 +186,7 @@ describe('Event Registry', () => {
       const notificationData: NotificationEventData = {
         type: 'SCHEDULE_PUBLISHED',
         message: 'Schedule has been published',
-        data: { scheduleId: 'schedule-123' }
+        data: { scheduleId: 'schedule-123' },
       };
 
       expect(notificationData.type).toBe('SCHEDULE_PUBLISHED');
@@ -197,13 +197,13 @@ describe('Event Registry', () => {
       const validTypes: NotificationEventData['type'][] = [
         'SCHEDULE_PUBLISHED',
         'MEMBER_JOINED',
-        'MEMBER_LEFT'
+        'MEMBER_LEFT',
       ];
 
       validTypes.forEach(type => {
         const data: NotificationEventData = {
           type,
-          message: `Test message for ${type}`
+          message: `Test message for ${type}`,
         };
         expect(data.type).toBe(type);
       });
@@ -212,7 +212,7 @@ describe('Event Registry', () => {
     it('should validate ErrorEventData interface', () => {
       const errorData: ErrorEventData = {
         type: 'VALIDATION_ERROR',
-        message: 'Invalid input provided'
+        message: 'Invalid input provided',
       };
 
       expect(errorData.type).toBe('VALIDATION_ERROR');
@@ -224,7 +224,7 @@ describe('Event Registry', () => {
         scheduleSlotId: 'slot-123',
         conflictType: 'DRIVER_DOUBLE_BOOKING',
         affectedUsers: ['user-123', 'user-456'],
-        message: 'Driver is already assigned to another slot'
+        message: 'Driver is already assigned to another slot',
       };
 
       expect(conflictData.scheduleSlotId).toBe('slot-123');
@@ -236,14 +236,14 @@ describe('Event Registry', () => {
       const validConflictTypes: ConflictEventData['conflictType'][] = [
         'DRIVER_DOUBLE_BOOKING',
         'VEHICLE_DOUBLE_BOOKING',
-        'CAPACITY_EXCEEDED'
+        'CAPACITY_EXCEEDED',
       ];
 
       validConflictTypes.forEach(conflictType => {
         const data: ConflictEventData = {
           scheduleSlotId: 'slot-123',
           conflictType,
-          affectedUsers: ['user-123']
+          affectedUsers: ['user-123'],
         };
         expect(data.conflictType).toBe(conflictType);
       });
@@ -270,7 +270,7 @@ describe('Event Registry', () => {
     it('should categorize connection events correctly', () => {
       const connectionEvents = [
         SOCKET_EVENTS.CONNECTED,
-        SOCKET_EVENTS.DISCONNECTED
+        SOCKET_EVENTS.DISCONNECTED,
       ];
 
       connectionEvents.forEach(event => {
@@ -284,7 +284,7 @@ describe('Event Registry', () => {
         SOCKET_EVENTS.USER_TYPING,
         SOCKET_EVENTS.USER_STOPPED_TYPING,
         SOCKET_EVENTS.HEARTBEAT,
-        SOCKET_EVENTS.HEARTBEAT_ACK
+        SOCKET_EVENTS.HEARTBEAT_ACK,
       ];
 
       collaborationEvents.forEach(event => {
@@ -302,7 +302,7 @@ describe('Event Registry', () => {
         SOCKET_EVENTS.VEHICLE_UPDATED,
         SOCKET_EVENTS.VEHICLE_DELETED,
         SOCKET_EVENTS.GROUP_UPDATED,
-        SOCKET_EVENTS.FAMILY_UPDATED
+        SOCKET_EVENTS.FAMILY_UPDATED,
       ];
 
       managementEvents.forEach(event => {
@@ -346,7 +346,7 @@ describe('Event Registry', () => {
         event === 'notification' || 
         event === 'error' || 
         event === 'heartbeat' || 
-        event === 'heartbeat-ack'
+        event === 'heartbeat-ack',
       );
       
       // All events should be in modern format or acceptable single-word format
@@ -360,7 +360,7 @@ describe('Event Registry', () => {
         /^[a-z][a-zA-Z]*$/.test(event) && !event.includes(':') && 
         event !== 'connected' && event !== 'disconnected' && 
         event !== 'notification' && event !== 'error' && 
-        event !== 'heartbeat'
+        event !== 'heartbeat',
       );
       
       expect(legacyCamelCaseEvents).toHaveLength(0);

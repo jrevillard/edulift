@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { GroupController } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
 
+
 // Mock GroupService
 jest.mock('../../services/GroupService');
 const MockedGroupService = GroupService as jest.MockedClass<typeof GroupService>;
@@ -24,12 +25,12 @@ describe('GroupController - validateInviteCode', () => {
     (groupController as any).groupService = mockGroupService;
 
     mockReq = {
-      body: {}
+      body: {},
     };
 
     mockRes = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis()
+      json: jest.fn().mockReturnThis(),
     };
 
     jest.clearAllMocks();
@@ -48,13 +49,13 @@ describe('GroupController - validateInviteCode', () => {
         valid: true,
         group: {
           id: 'group-123',
-          name: 'Test Group'
+          name: 'Test Group',
         },
         invitation: {
           id: 'invitation-123',
           expiresAt: new Date('2025-12-31'),
-          role: 'MEMBER' as const
-        }
+          role: 'MEMBER' as const,
+        },
       };
 
       mockReq.body = { inviteCode: 'VALID123' };
@@ -66,14 +67,14 @@ describe('GroupController - validateInviteCode', () => {
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: true,
-        data: validationResult
+        data: validationResult,
       });
     });
 
     it('should return error response when invitation code is invalid', async () => {
       const validationResult = {
         valid: false,
-        error: 'Invalid or expired invitation code'
+        error: 'Invalid or expired invitation code',
       };
 
       mockReq.body = { inviteCode: 'INVALID123' };
@@ -85,7 +86,7 @@ describe('GroupController - validateInviteCode', () => {
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Invalid or expired invitation code'
+        error: 'Invalid or expired invitation code',
       });
     });
 
@@ -98,7 +99,7 @@ describe('GroupController - validateInviteCode', () => {
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Invitation code is required'
+        error: 'Invitation code is required',
       });
     });
 
@@ -111,7 +112,7 @@ describe('GroupController - validateInviteCode', () => {
       expect(mockRes.status).toHaveBeenCalledWith(500);
       expect(mockRes.json).toHaveBeenCalledWith({
         success: false,
-        error: 'Failed to validate invitation code'
+        error: 'Failed to validate invitation code',
       });
     });
   });

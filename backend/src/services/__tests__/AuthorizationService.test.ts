@@ -33,14 +33,14 @@ describe('AuthorizationService', () => {
     it('should allow access when user family owns the group', async () => {
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
 
       // Mock group with user's family as owner
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: TEST_GROUP_ID,
         familyId: TEST_FAMILY_ID,
-        familyMembers: []
+        familyMembers: [],
       });
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, TEST_GROUP_ID);
@@ -50,14 +50,14 @@ describe('AuthorizationService', () => {
     it('should allow access when user family is a member of the group', async () => {
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
 
       // Mock group with user's family as member (not owner)
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: TEST_GROUP_ID,
         familyId: 'different-family-id',
-        familyMembers: [{ familyId: TEST_FAMILY_ID }]
+        familyMembers: [{ familyId: TEST_FAMILY_ID }],
       });
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, TEST_GROUP_ID);
@@ -67,14 +67,14 @@ describe('AuthorizationService', () => {
     it('should deny access when user family has no relation to group', async () => {
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
 
       // Mock group with no relationship to user's family
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: UNAUTHORIZED_GROUP_ID,
         familyId: 'different-family-id',
-        familyMembers: []
+        familyMembers: [],
       });
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, UNAUTHORIZED_GROUP_ID);
@@ -90,7 +90,7 @@ describe('AuthorizationService', () => {
 
     it('should deny access when group does not exist', async () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -111,17 +111,17 @@ describe('AuthorizationService', () => {
       // Mock schedule slot
       (mockPrisma.scheduleSlot.findUnique as jest.Mock).mockResolvedValue({
         id: TEST_SCHEDULE_SLOT_ID,
-        groupId: TEST_GROUP_ID
+        groupId: TEST_GROUP_ID,
       });
 
       // Mock user's family and group access
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: TEST_GROUP_ID,
         familyId: TEST_FAMILY_ID,
-        familyMembers: []
+        familyMembers: [],
       });
 
       const canAccess = await authService.canUserAccessScheduleSlot(TEST_USER_ID, TEST_SCHEDULE_SLOT_ID);
@@ -139,17 +139,17 @@ describe('AuthorizationService', () => {
       // Mock schedule slot
       (mockPrisma.scheduleSlot.findUnique as jest.Mock).mockResolvedValue({
         id: TEST_SCHEDULE_SLOT_ID,
-        groupId: UNAUTHORIZED_GROUP_ID
+        groupId: UNAUTHORIZED_GROUP_ID,
       });
 
       // Mock user's family but no group access
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
         id: UNAUTHORIZED_GROUP_ID,
         familyId: 'different-family-id',
-        familyMembers: []
+        familyMembers: [],
       });
 
       const canAccess = await authService.canUserAccessScheduleSlot(TEST_USER_ID, TEST_SCHEDULE_SLOT_ID);
@@ -161,7 +161,7 @@ describe('AuthorizationService', () => {
     it('should allow access when user is part of the family', async () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId: TEST_USER_ID,
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
 
       const canAccess = await authService.canUserAccessFamily(TEST_USER_ID, TEST_FAMILY_ID);
@@ -180,14 +180,14 @@ describe('AuthorizationService', () => {
     it('should return groups owned by user family', async () => {
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
 
       // Mock groups accessible to the family
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
         { id: 'group-1' },
         { id: 'group-2' },
-        { id: 'group-3' }
+        { id: 'group-3' },
       ]);
 
       const groupIds = await authService.getUserAccessibleGroupIds(TEST_USER_ID);
@@ -203,7 +203,7 @@ describe('AuthorizationService', () => {
 
     it('should return empty array when family has no groups', async () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([]);
 
@@ -218,13 +218,13 @@ describe('AuthorizationService', () => {
       
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
-        familyId: TEST_FAMILY_ID
+        familyId: TEST_FAMILY_ID,
       });
 
       // Mock accessible groups (only first two)
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
         { id: 'group-1' },
-        { id: 'group-2' }
+        { id: 'group-2' },
       ]);
 
       const results = await authService.canUserAccessGroups(TEST_USER_ID, groupIds);
@@ -232,7 +232,7 @@ describe('AuthorizationService', () => {
       expect(results).toEqual({
         'group-1': true,
         'group-2': true,
-        'unauthorized-group': false
+        'unauthorized-group': false,
       });
     });
   });

@@ -9,16 +9,17 @@ import { asyncHandler } from '../middleware/errorHandler';
 
 // Mock cache service for now
 const mockCacheService = {
-  async get(_key: string) { return null; },
-  async set(_key: string, _value: any, _ttl: number) { return; }
+  async get(_key: string): Promise<null> { return null; },
+   
+  async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
 };
 
 // Mock logger for now
 const mockLogger = {
-  info: console.log,
+  info: (...args: unknown[]): void => console.info(...args),
   error: console.error,
   warn: console.warn,
-  debug: console.debug
+  debug: console.debug,
 };
 
 const prisma = new PrismaClient();
@@ -27,7 +28,7 @@ const prisma = new PrismaClient();
 const emailService = EmailServiceFactory.getInstance();
 const familyService = new FamilyService(prisma, mockLogger, undefined, emailService);
 const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
-const familyController = new FamilyController(familyService, familyAuthService);
+const familyController = new FamilyController(familyService, familyAuthService, mockLogger);
 
 const router = Router();
 

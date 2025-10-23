@@ -37,7 +37,7 @@ export class ConflictDetectionService {
     groupId: string,
     newSlot: TimeSlot,
     userTimezone: string,
-    excludeSlotId?: string
+    excludeSlotId?: string,
   ): Promise<ConflictResult> {
     const conflicts: ConflictDetail[] = [];
 
@@ -75,7 +75,7 @@ export class ConflictDetectionService {
         // Check for vehicle conflicts
         if (newSlot.vehicleId) {
           const vehicleConflict = existingSlot.vehicleAssignments.find(
-            (va) => va.vehicleId === newSlot.vehicleId
+            (va) => va.vehicleId === newSlot.vehicleId,
           );
 
           if (vehicleConflict) {
@@ -83,7 +83,7 @@ export class ConflictDetectionService {
               type: 'VEHICLE_DOUBLE_BOOKING',
               message: `Vehicle is already assigned to another schedule slot at ${formatDateTimeForUser(
                 existingSlot.datetime,
-                userTimezone
+                userTimezone,
               )}`,
               conflictingSlotId: existingSlot.id,
               datetime: existingSlot.datetime,
@@ -95,7 +95,7 @@ export class ConflictDetectionService {
         // Check for driver conflicts
         if (newSlot.driverId) {
           const driverConflict = existingSlot.vehicleAssignments.find(
-            (va) => va.driverId === newSlot.driverId
+            (va) => va.driverId === newSlot.driverId,
           );
 
           if (driverConflict) {
@@ -103,7 +103,7 @@ export class ConflictDetectionService {
               type: 'DRIVER_DOUBLE_BOOKING',
               message: `Driver is already assigned to another schedule slot at ${formatDateTimeForUser(
                 existingSlot.datetime,
-                userTimezone
+                userTimezone,
               )}`,
               conflictingSlotId: existingSlot.id,
               datetime: existingSlot.datetime,
@@ -131,7 +131,7 @@ export class ConflictDetectionService {
    */
   private checkTimeOverlap(
     time1: DateTime,
-    time2: DateTime
+    time2: DateTime,
   ): boolean {
     // For schedule slots, we consider them overlapping if they occur at the same
     // local time on the same local date (year, month, day, hour, minute)
@@ -171,14 +171,14 @@ export class ConflictDetectionService {
     groupId: string,
     newSlot: TimeSlot,
     userTimezone: string,
-    excludeSlotId?: string
+    excludeSlotId?: string,
   ): Promise<void> {
     const result = await this.detectConflicts(groupId, newSlot, userTimezone, excludeSlotId);
 
     if (result.hasConflict) {
       const errorMessages = result.conflicts.map((c) => c.message);
       throw new Error(
-        `Cannot assign to schedule slot due to conflicts:\n${errorMessages.join('\n')}`
+        `Cannot assign to schedule slot due to conflicts:\n${errorMessages.join('\n')}`,
       );
     }
   }

@@ -43,7 +43,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 3, oldCancelled: 2 });
       expect(prisma.familyInvitation.deleteMany).toHaveBeenCalledTimes(2);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cleaned up 3 expired and 2 old cancelled family invitations for family family-1'
+        'Cleaned up 3 expired and 2 old cancelled family invitations for family family-1',
       );
     });
 
@@ -56,7 +56,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 0, oldCancelled: 0 });
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to cleanup family invitations for family family-1:',
-        error
+        error,
       );
     });
 
@@ -84,7 +84,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 1, oldCancelled: 4 });
       expect(prisma.groupInvitation.deleteMany).toHaveBeenCalledTimes(2);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cleaned up 1 expired and 4 old cancelled group invitations for group group-1'
+        'Cleaned up 1 expired and 4 old cancelled group invitations for group group-1',
       );
     });
 
@@ -97,7 +97,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 0, oldCancelled: 0 });
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to cleanup group invitations for group group-1:',
-        error
+        error,
       );
     });
   });
@@ -116,7 +116,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 5, oldCancelled: 3 });
       expect(mockLogger.info).toHaveBeenCalledWith('Starting global family invitation cleanup');
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Global family cleanup completed: removed 5 expired and 3 old cancelled invitations'
+        'Global family cleanup completed: removed 5 expired and 3 old cancelled invitations',
       );
     });
 
@@ -127,7 +127,7 @@ describe('InvitationCleanupService', () => {
       await expect(cleanupService.cleanupAllFamilyInvitations()).rejects.toThrow(error);
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to perform global family invitation cleanup:',
-        error
+        error,
       );
     });
   });
@@ -146,7 +146,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 2, oldCancelled: 1 });
       expect(mockLogger.info).toHaveBeenCalledWith('Starting global group invitation cleanup');
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Global group cleanup completed: removed 2 expired and 1 old cancelled invitations'
+        'Global group cleanup completed: removed 2 expired and 1 old cancelled invitations',
       );
     });
   });
@@ -162,13 +162,13 @@ describe('InvitationCleanupService', () => {
 
       expect(result).toEqual({
         families: { expired: 3, oldCancelled: 3 },
-        groups: { expired: 2, oldCancelled: 2 }
+        groups: { expired: 2, oldCancelled: 2 },
       });
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Starting comprehensive invitation cleanup for all families and groups'
+        'Starting comprehensive invitation cleanup for all families and groups',
       );
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Comprehensive cleanup completed: 5 expired and 5 old cancelled invitations removed across all families and groups'
+        'Comprehensive cleanup completed: 5 expired and 5 old cancelled invitations removed across all families and groups',
       );
     });
   });
@@ -178,7 +178,7 @@ describe('InvitationCleanupService', () => {
       const mockInvitation = {
         id: 'inv-1',
         status: 'CANCELLED',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
       
       (prisma.familyInvitation.findFirst as jest.Mock).mockResolvedValue(mockInvitation);
@@ -191,14 +191,14 @@ describe('InvitationCleanupService', () => {
         where: { 
           familyId: 'family-1', 
           email: 'test@example.com',
-          status: { in: ['CANCELLED', 'EXPIRED'] }
-        }
+          status: { in: ['CANCELLED', 'EXPIRED'] },
+        },
       });
       expect(prisma.familyInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'inv-1' }
+        where: { id: 'inv-1' },
       });
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Removed old CANCELLED family invitation for test@example.com to allow re-invitation'
+        'Removed old CANCELLED family invitation for test@example.com to allow re-invitation',
       );
     });
 
@@ -206,7 +206,7 @@ describe('InvitationCleanupService', () => {
       const mockInvitation = {
         id: 'inv-2',
         status: 'EXPIRED',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
       
       (prisma.groupInvitation.findFirst as jest.Mock).mockResolvedValue(mockInvitation);
@@ -219,14 +219,14 @@ describe('InvitationCleanupService', () => {
         where: { 
           groupId: 'group-1', 
           email: 'test@example.com',
-          status: { in: ['CANCELLED', 'EXPIRED'] }
-        }
+          status: { in: ['CANCELLED', 'EXPIRED'] },
+        },
       });
       expect(prisma.groupInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'inv-2' }
+        where: { id: 'inv-2' },
       });
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Removed old EXPIRED group invitation for test@example.com to allow re-invitation'
+        'Removed old EXPIRED group invitation for test@example.com to allow re-invitation',
       );
     });
 
@@ -234,7 +234,7 @@ describe('InvitationCleanupService', () => {
       const mockInvitation = {
         id: 'inv-3',
         status: 'PENDING',
-        email: 'test@example.com'
+        email: 'test@example.com',
       };
       
       (prisma.familyInvitation.findFirst as jest.Mock).mockResolvedValue(mockInvitation);
@@ -244,10 +244,10 @@ describe('InvitationCleanupService', () => {
 
       expect(result).toBe(true);
       expect(prisma.familyInvitation.delete).toHaveBeenCalledWith({
-        where: { id: 'inv-3' }
+        where: { id: 'inv-3' },
       });
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Removed old PENDING family invitation for test@example.com to allow re-invitation'
+        'Removed old PENDING family invitation for test@example.com to allow re-invitation',
       );
     });
 
@@ -269,7 +269,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toBe(false);
       expect(mockLogger.error).toHaveBeenCalledWith(
         'Failed to cleanup old family invitation for test@example.com:',
-        error
+        error,
       );
     });
   });
@@ -279,7 +279,7 @@ describe('InvitationCleanupService', () => {
       const customService = new InvitationCleanupService(
         prisma,
         mockLogger,
-        { retentionDays: 60 }
+        { retentionDays: 60 },
       );
 
       expect(customService).toBeDefined();

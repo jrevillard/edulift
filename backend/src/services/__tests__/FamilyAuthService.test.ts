@@ -5,20 +5,20 @@ import { PrismaClient } from '@prisma/client';
 // Mock Prisma
 const mockPrisma = {
   familyMember: {
-    findFirst: jest.fn()
+    findFirst: jest.fn(),
   },
   child: {
-    findUnique: jest.fn()
+    findUnique: jest.fn(),
   },
   vehicle: {
-    findUnique: jest.fn()
-  }
+    findUnique: jest.fn(),
+  },
 } as any;
 
 // Mock Cache Service
 const mockCacheService = {
   get: jest.fn(),
-  set: jest.fn()
+  set: jest.fn(),
 };
 
 describe('FamilyAuthService', () => {
@@ -28,7 +28,7 @@ describe('FamilyAuthService', () => {
     jest.clearAllMocks();
     familyAuthService = new FamilyAuthService(
       mockPrisma as PrismaClient,
-      mockCacheService
+      mockCacheService,
     );
   });
 
@@ -43,7 +43,7 @@ describe('FamilyAuthService', () => {
         userId,
         familyId: 'family-123',
         role: FamilyRole.ADMIN,
-        family: { id: 'family-123', name: 'Test Family' }
+        family: { id: 'family-123', name: 'Test Family' },
       });
 
       const permissions = await familyAuthService.getUserPermissions(userId);
@@ -52,13 +52,13 @@ describe('FamilyAuthService', () => {
         canManageMembers: true,
         canModifyChildren: true,
         canModifyVehicles: true,
-        canViewFamily: true
+        canViewFamily: true,
       });
 
       expect(mockCacheService.set).toHaveBeenCalledWith(
         `family_permissions:${userId}`,
         permissions,
-        300
+        300,
       );
     });
 
@@ -69,7 +69,7 @@ describe('FamilyAuthService', () => {
         userId,
         familyId: 'family-123',
         role: FamilyRole.MEMBER,
-        family: { id: 'family-123', name: 'Test Family' }
+        family: { id: 'family-123', name: 'Test Family' },
       });
 
       const permissions = await familyAuthService.getUserPermissions(userId);
@@ -78,7 +78,7 @@ describe('FamilyAuthService', () => {
         canManageMembers: false,
         canModifyChildren: false,
         canModifyVehicles: false,
-        canViewFamily: true
+        canViewFamily: true,
       });
     });
 
@@ -87,7 +87,7 @@ describe('FamilyAuthService', () => {
         canManageMembers: true,
         canModifyChildren: true,
         canModifyVehicles: true,
-        canViewFamily: true
+        canViewFamily: true,
       };
 
       mockCacheService.get.mockResolvedValue(cachedPermissions);
@@ -115,13 +115,13 @@ describe('FamilyAuthService', () => {
     it('should return true if child belongs to user family', async () => {
       mockPrisma.child.findUnique.mockResolvedValue({
         id: childId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       const result = await familyAuthService.canAccessChild(userId, childId);
@@ -129,7 +129,7 @@ describe('FamilyAuthService', () => {
       expect(result).toBe(true);
       expect(mockPrisma.child.findUnique).toHaveBeenCalledWith({
         where: { id: childId },
-        select: { familyId: true }
+        select: { familyId: true },
       });
     });
 
@@ -144,7 +144,7 @@ describe('FamilyAuthService', () => {
     it('should return false if user not in same family as child', async () => {
       mockPrisma.child.findUnique.mockResolvedValue({
         id: childId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue(null);
@@ -163,14 +163,14 @@ describe('FamilyAuthService', () => {
       // Setup child access
       mockPrisma.child.findUnique.mockResolvedValue({
         id: childId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       });
 
       const result = await familyAuthService.canModifyChild(userId, childId);
@@ -181,14 +181,14 @@ describe('FamilyAuthService', () => {
     it('should return true if user is ADMIN and can access child', async () => {
       mockPrisma.child.findUnique.mockResolvedValue({
         id: childId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       });
 
       const result = await familyAuthService.canModifyChild(userId, childId);
@@ -199,14 +199,14 @@ describe('FamilyAuthService', () => {
     it('should return false if user is MEMBER', async () => {
       mockPrisma.child.findUnique.mockResolvedValue({
         id: childId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.MEMBER
+        role: FamilyRole.MEMBER,
       });
 
       const result = await familyAuthService.canModifyChild(userId, childId);
@@ -230,13 +230,13 @@ describe('FamilyAuthService', () => {
     it('should return true if vehicle belongs to user family', async () => {
       mockPrisma.vehicle.findUnique.mockResolvedValue({
         id: vehicleId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       const result = await familyAuthService.canAccessVehicle(userId, vehicleId);
@@ -260,14 +260,14 @@ describe('FamilyAuthService', () => {
     it('should return true if user is ADMIN and can access vehicle', async () => {
       mockPrisma.vehicle.findUnique.mockResolvedValue({
         id: vehicleId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       });
 
       const result = await familyAuthService.canModifyVehicle(userId, vehicleId);
@@ -278,14 +278,14 @@ describe('FamilyAuthService', () => {
     it('should return false if user is MEMBER', async () => {
       mockPrisma.vehicle.findUnique.mockResolvedValue({
         id: vehicleId,
-        familyId: 'family-123'
+        familyId: 'family-123',
       });
 
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.MEMBER
+        role: FamilyRole.MEMBER,
       });
 
       const result = await familyAuthService.canModifyVehicle(userId, vehicleId);
@@ -302,7 +302,7 @@ describe('FamilyAuthService', () => {
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       });
 
       await expect(familyAuthService.requireFamilyRole(userId, FamilyRole.ADMIN))
@@ -315,7 +315,7 @@ describe('FamilyAuthService', () => {
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.ADMIN
+        role: FamilyRole.ADMIN,
       });
 
       await expect(familyAuthService.requireFamilyRole(userId, FamilyRole.MEMBER))
@@ -328,7 +328,7 @@ describe('FamilyAuthService', () => {
         id: 'member-123',
         userId,
         familyId: 'family-123',
-        role: FamilyRole.MEMBER
+        role: FamilyRole.MEMBER,
       });
 
       await expect(familyAuthService.requireFamilyRole(userId, FamilyRole.ADMIN))

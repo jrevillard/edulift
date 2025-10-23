@@ -37,7 +37,7 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Small Bus',
         capacity: 10,
-        familyId: 'family-1'
+        familyId: 'family-1',
       };
       const userId = 'user-1';
 
@@ -45,7 +45,7 @@ describe('VehicleService - Max Capacity Tests', () => {
         ...vehicleData, 
         id: 'vehicle-1',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       
       mockPrisma.vehicle.create.mockResolvedValue(mockCreatedVehicle);
@@ -54,7 +54,7 @@ describe('VehicleService - Max Capacity Tests', () => {
       const result = await vehicleService.createVehicle(vehicleData, userId);
 
       expect(mockPrisma.vehicle.create).toHaveBeenCalledWith({
-        data: vehicleData
+        data: vehicleData,
       });
       expect(result).toEqual(mockCreatedVehicle);
     });
@@ -63,12 +63,12 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Too Big Bus',
         capacity: 11,
-        familyId: 'family-1'
+        familyId: 'family-1',
       };
       const userId = 'user-1';
 
       await expect(vehicleService.createVehicle(vehicleData, userId)).rejects.toThrow(
-        `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`
+        `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
       );
       expect(mockPrisma.vehicle.create).not.toHaveBeenCalled();
     });
@@ -77,12 +77,12 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Old Big Bus',
         capacity: 50,
-        familyId: 'family-1'
+        familyId: 'family-1',
       };
       const userId = 'user-1';
 
       await expect(vehicleService.createVehicle(vehicleData, userId)).rejects.toThrow(
-        `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`
+        `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
       );
       expect(mockPrisma.vehicle.create).not.toHaveBeenCalled();
     });
@@ -95,7 +95,7 @@ describe('VehicleService - Max Capacity Tests', () => {
         userId: 'user-1',
         familyId: 'family-1',
         role: 'ADMIN',
-        family: { id: 'family-1', name: 'Test Family' }
+        family: { id: 'family-1', name: 'Test Family' },
       });
     });
 
@@ -109,11 +109,11 @@ describe('VehicleService - Max Capacity Tests', () => {
         capacity: 8,
         familyId: 'family-1',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedVehicle = { 
         ...existingVehicle,
-        ...updateData
+        ...updateData,
       };
 
       mockPrisma.vehicle.findFirst.mockResolvedValue(existingVehicle);
@@ -124,7 +124,7 @@ describe('VehicleService - Max Capacity Tests', () => {
 
       expect(mockPrisma.vehicle.update).toHaveBeenCalledWith({
         where: { id: vehicleId },
-        data: updateData
+        data: updateData,
       });
       expect(result).toEqual(mockUpdatedVehicle);
     });
@@ -139,13 +139,13 @@ describe('VehicleService - Max Capacity Tests', () => {
         capacity: 8,
         familyId: 'family-1',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockPrisma.vehicle.findFirst.mockResolvedValue(existingVehicle);
 
       await expect(vehicleService.updateVehicle(vehicleId, userId, updateData)).rejects.toThrow(
-        `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`
+        `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
       );
       expect(mockPrisma.vehicle.update).not.toHaveBeenCalled();
     });

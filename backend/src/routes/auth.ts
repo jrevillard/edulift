@@ -13,8 +13,8 @@ router.get('/test-config', asyncHandler(async (_req: Request, res: Response) => 
       nodeEnv: process.env.NODE_ENV,
       emailUser: process.env.EMAIL_USER ? 'SET' : 'EMPTY',
       hasCredentials: !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD),
-      mockServiceTest: 'Working v2'
-    }
+      mockServiceTest: 'Working v2',
+    },
   });
 }));
 
@@ -43,7 +43,7 @@ router.get('/profile', authenticateToken, asyncHandler(async (req: Request, res:
   const user = (req as any).user;
   res.json({
     success: true,
-    data: user
+    data: user,
   });
 }));
 

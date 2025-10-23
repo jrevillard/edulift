@@ -4,28 +4,29 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { createError } from '../middleware/errorHandler';
 import { z } from 'zod';
+import { PrismaClient } from '@prisma/client';
 
 const CreateVehicleSchema = z.object({
   name: z.string().min(1, 'Vehicle name is required').max(100, 'Name too long'),
-  capacity: z.number().int().min(1, 'Capacity must be at least 1').max(50, 'Capacity cannot exceed 50')
+  capacity: z.number().int().min(1, 'Capacity must be at least 1').max(50, 'Capacity cannot exceed 50'),
 });
 
 const UpdateVehicleSchema = z.object({
   name: z.string().min(1, 'Vehicle name is required').max(100, 'Name too long').optional(),
-  capacity: z.number().int().min(1, 'Capacity must be at least 1').max(50, 'Capacity cannot exceed 50').optional()
+  capacity: z.number().int().min(1, 'Capacity must be at least 1').max(50, 'Capacity cannot exceed 50').optional(),
 });
 
 const VehicleParamsSchema = z.object({
-  vehicleId: z.string().cuid('Invalid vehicle ID format')
+  vehicleId: z.string().cuid('Invalid vehicle ID format'),
 });
 
 const WeekQuerySchema = z.object({
-  week: z.string().optional()
+  week: z.string().optional(),
 });
 
 const AvailableVehiclesParamsSchema = z.object({
   groupId: z.string().cuid('Invalid group ID format'),
-  timeSlotId: z.string().cuid('Invalid time slot ID format')
+  timeSlotId: z.string().cuid('Invalid time slot ID format'),
 });
 
 export class VehicleController {
@@ -55,12 +56,12 @@ export class VehicleController {
       const vehicle = await this.vehicleService.createVehicle({
         name,
         capacity,
-        familyId: userFamily.id
+        familyId: userFamily.id,
       }, authReq.userId);
 
       const response: ApiResponse = {
         success: true,
-        data: vehicle
+        data: vehicle,
       };
 
       res.status(201).json(response);
@@ -71,8 +72,8 @@ export class VehicleController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -82,23 +83,19 @@ export class VehicleController {
   };
 
   getVehicles = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      if (!authReq.userId) {
-        throw createError('Authentication required', 401);
-      }
-
-      const vehicles = await this.vehicleService.getVehiclesByUser(authReq.userId);
-
-      const response: ApiResponse = {
-        success: true,
-        data: vehicles
-      };
-
-      res.status(200).json(response);
-    } catch (error) {
-      throw error;
+    const authReq = req as AuthenticatedRequest;
+    if (!authReq.userId) {
+      throw createError('Authentication required', 401);
     }
+
+    const vehicles = await this.vehicleService.getVehiclesByUser(authReq.userId);
+
+    const response: ApiResponse = {
+      success: true,
+      data: vehicles,
+    };
+
+    res.status(200).json(response);
   };
 
   getVehicle = async (req: Request, res: Response): Promise<void> => {
@@ -114,7 +111,7 @@ export class VehicleController {
 
       const response: ApiResponse = {
         success: true,
-        data: vehicle
+        data: vehicle,
       };
 
       res.status(200).json(response);
@@ -125,8 +122,8 @@ export class VehicleController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -146,7 +143,10 @@ export class VehicleController {
       }
 
       // Filter out undefined values for exactOptionalPropertyTypes compatibility
-      const updateData: any = {};
+      const updateData: {
+        name?: string;
+        capacity?: number;
+      } = {};
       if (rawUpdateData.name !== undefined) {
         updateData.name = rawUpdateData.name;
       }
@@ -162,7 +162,7 @@ export class VehicleController {
 
       const response: ApiResponse = {
         success: true,
-        data: updatedVehicle
+        data: updatedVehicle,
       };
 
       res.status(200).json(response);
@@ -173,8 +173,8 @@ export class VehicleController {
           error: 'Invalid input data',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -196,7 +196,7 @@ export class VehicleController {
 
       const response: ApiResponse = {
         success: true,
-        data: result
+        data: result,
       };
 
       res.status(200).json(response);
@@ -207,8 +207,8 @@ export class VehicleController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -231,7 +231,7 @@ export class VehicleController {
 
       const response: ApiResponse = {
         success: true,
-        data: schedule
+        data: schedule,
       };
 
       res.status(200).json(response);
@@ -242,8 +242,8 @@ export class VehicleController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -265,7 +265,7 @@ export class VehicleController {
 
       const response: ApiResponse = {
         success: true,
-        data: availableVehicles
+        data: availableVehicles,
       };
 
       res.status(200).json(response);
@@ -276,8 +276,8 @@ export class VehicleController {
           error: 'Invalid parameters',
           validationErrors: error.errors.map(err => ({
             field: err.path.join('.'),
-            message: err.message
-          }))
+            message: err.message,
+          })),
         };
         res.status(400).json(response);
         return;
@@ -288,8 +288,8 @@ export class VehicleController {
 }
 
 // Factory function to create controller with dependencies
-export const createVehicleController = () => {
-  const { PrismaClient } = require('@prisma/client');
+export const createVehicleController = (): VehicleController => {
+  // PrismaClient importé en haut du fichier
   
   const prisma = new PrismaClient();
   const vehicleService = new VehicleService(prisma);

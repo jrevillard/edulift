@@ -5,10 +5,10 @@ import { SocketEmitter } from '../utils/socketEmitter';
 
 
 export interface Logger {
-  info(message: string, meta?: any): void;
-  error(message: string, meta?: any): void;
-  warn(message: string, meta?: any): void;
-  debug(message: string, meta?: any): void;
+  info(message: string, meta?: unknown): void;
+  error(message: string, meta?: unknown): void;
+  warn(message: string, meta?: unknown): void;
+  debug(message: string, meta?: unknown): void;
 }
 
 // Family Invitation Interfaces
@@ -108,7 +108,7 @@ export class UnifiedInvitationService {
   constructor(
     private prisma: PrismaClient,
     private logger: Logger,
-    private emailService: EmailServiceInterface
+    private emailService: EmailServiceInterface,
   ) {}
 
   // Static method for generating invite codes (moved from InviteCodeGenerator)
@@ -125,13 +125,13 @@ export class UnifiedInvitationService {
     familyId: string,
     inviteData: CreateFamilyInvitationData,
     adminId: string,
-    platform: 'web' | 'native' = 'web'
+    platform: 'web' | 'native' = 'web',
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Verify admin permissions
       const adminMember = await tx.familyMember.findFirst({
         where: { userId: adminId, familyId },
-        include: { family: true, user: true }
+        include: { family: true, user: true },
       });
 
       if (!adminMember || adminMember.role !== FamilyRole.ADMIN) {
@@ -141,13 +141,13 @@ export class UnifiedInvitationService {
       // Check for existing user if email provided
       if (inviteData.email) {
         const existingUser = await tx.user.findUnique({
-          where: { email: inviteData.email }
+          where: { email: inviteData.email },
         });
 
         if (existingUser) {
           // Check if user already in family
           const existingMember = await tx.familyMember.findFirst({
-            where: { userId: existingUser.id }
+            where: { userId: existingUser.id },
           });
 
           if (existingMember?.familyId === familyId) {
@@ -161,8 +161,8 @@ export class UnifiedInvitationService {
             familyId,
             email: inviteData.email,
             status: FamilyInvitationStatus.PENDING,
-            expiresAt: { gt: new Date() }
-          }
+            expiresAt: { gt: new Date() },
+          },
         });
 
         if (existingInvitation) {
@@ -172,7 +172,7 @@ export class UnifiedInvitationService {
 
       // Check family capacity
       const memberCount = await tx.familyMember.count({
-        where: { familyId }
+        where: { familyId },
       });
 
       if (memberCount >= 6) {
@@ -193,8 +193,8 @@ export class UnifiedInvitationService {
           status: FamilyInvitationStatus.PENDING,
           expiresAt,
           createdBy: adminId,
-          invitedBy: adminId
-        }
+          invitedBy: adminId,
+        },
       });
 
       // Send email if email provided
@@ -204,7 +204,7 @@ export class UnifiedInvitationService {
           inviterName: adminMember.user.name,
           inviteCode,
           role: inviteData.role,
-          platform
+          platform,
         };
         if (inviteData.personalMessage) {
           emailData.personalMessage = inviteData.personalMessage;
@@ -218,7 +218,7 @@ export class UnifiedInvitationService {
         email: inviteData.email,
         hasEmail: !!inviteData.email,
         hasPersonalMessage: !!inviteData.personalMessage,
-        personalMessageLength: inviteData.personalMessage?.length || 0
+        personalMessageLength: inviteData.personalMessage?.length || 0,
       });
 
       return invitation;
@@ -234,12 +234,12 @@ export class UnifiedInvitationService {
       const invitation = await this.prisma.familyInvitation.findFirst({
         where: {
           inviteCode,
-          status: FamilyInvitationStatus.PENDING
+          status: FamilyInvitationStatus.PENDING,
         },
         include: {
           family: true,
-          createdByUser: true
-        }
+          createdByUser: true,
+        },
       });
 
       if (!invitation) {
@@ -255,7 +255,7 @@ export class UnifiedInvitationService {
         familyId: invitation.familyId,
         familyName: invitation.family.name,
         role: invitation.role,
-        inviterName: invitation.createdByUser?.name || null
+        inviterName: invitation.createdByUser?.name || null,
       };
 
       if (invitation.personalMessage) {
@@ -269,17 +269,17 @@ export class UnifiedInvitationService {
           include: {
             familyMemberships: {
               include: {
-                family: true
-              }
-            }
-          }
+                family: true,
+              },
+            },
+          },
         });
         
         if (currentUser && currentUser.email !== invitation.email) {
           return { 
             valid: false, 
             error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
-            errorCode: 'EMAIL_MISMATCH'
+            errorCode: 'EMAIL_MISMATCH',
           };
         }
       }
@@ -292,10 +292,10 @@ export class UnifiedInvitationService {
           include: {
             familyMemberships: {
               include: {
-                family: true
-              }
-            }
-          }
+                family: true,
+              },
+            },
+          },
         });
         result.existingUser = !!existingUser;
         
@@ -305,7 +305,7 @@ export class UnifiedInvitationService {
           const currentFamily = currentFamilyMembership.family;
           result.userCurrentFamily = {
             id: currentFamily.id,
-            name: currentFamily.name
+            name: currentFamily.name,
           };
 
           // Check if user can leave current family (not last admin)
@@ -313,8 +313,8 @@ export class UnifiedInvitationService {
             const adminCount = await this.prisma.familyMember.count({
               where: {
                 familyId: currentFamily.id,
-                role: 'ADMIN'
-              }
+                role: 'ADMIN',
+              },
             });
             
             result.canLeaveCurrentFamily = adminCount > 1;
@@ -334,10 +334,10 @@ export class UnifiedInvitationService {
           include: {
             familyMemberships: {
               include: {
-                family: true
-              }
-            }
-          }
+                family: true,
+              },
+            },
+          },
         });
 
         if (currentUser && currentUser.familyMemberships && currentUser.familyMemberships.length > 0) {
@@ -347,7 +347,7 @@ export class UnifiedInvitationService {
           if (currentUserFamily.familyId !== invitation.familyId) {
             result.userCurrentFamily = {
               id: currentUserFamily.family.id,
-              name: currentUserFamily.family.name
+              name: currentUserFamily.family.name,
             };
 
             // Check if user can leave current family (not last admin)
@@ -355,8 +355,8 @@ export class UnifiedInvitationService {
               const adminCount = await this.prisma.familyMember.count({
                 where: {
                   familyId: currentUserFamily.familyId,
-                  role: 'ADMIN'
-                }
+                  role: 'ADMIN',
+                },
               });
               
               result.canLeaveCurrentFamily = adminCount > 1;
@@ -374,16 +374,19 @@ export class UnifiedInvitationService {
       return result;
     
     } catch (error: any) {
-      this.logger.error('Family invitation validation failed', { 
-        inviteCode, 
-        error: error?.message || 'Unknown error', 
-        stack: error?.stack 
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      this.logger.error('Family invitation validation failed', {
+        inviteCode,
+        error: errorMessage,
+        stack: errorStack,
       });
-      
+
       // Return graceful failure instead of throwing
       return {
         valid: false,
-        error: 'Temporary validation error. Please try again.'
+        error: 'Temporary validation error. Please try again.',
       };
     }
   }
@@ -391,7 +394,7 @@ export class UnifiedInvitationService {
   async acceptFamilyInvitation(
     inviteCode: string,
     userId: string,
-    options: AcceptFamilyInvitationOptions = {}
+    options: AcceptFamilyInvitationOptions = {},
   ): Promise<AcceptFamilyInvitationResult> {
     try {
       return await this.prisma.$transaction(async (tx) => {
@@ -399,15 +402,15 @@ export class UnifiedInvitationService {
         const invitation = await tx.familyInvitation.findFirst({
           where: {
             inviteCode,
-            status: FamilyInvitationStatus.PENDING
+            status: FamilyInvitationStatus.PENDING,
           },
-          include: { family: true }
+          include: { family: true },
         });
 
         if (!invitation) {
           return {
             success: false,
-            error: 'Invalid invitation code'
+            error: 'Invalid invitation code',
           };
         }
 
@@ -415,19 +418,19 @@ export class UnifiedInvitationService {
         if (invitation.expiresAt < new Date()) {
           return {
             success: false,
-            error: 'Invitation has expired'
+            error: 'Invitation has expired',
           };
         }
 
         // Get user
         const user = await tx.user.findUnique({
-          where: { id: userId }
+          where: { id: userId },
         });
 
         if (!user) {
           return {
             success: false,
-            error: 'User not found'
+            error: 'User not found',
           };
         }
 
@@ -435,28 +438,28 @@ export class UnifiedInvitationService {
         if (invitation.email && user.email !== invitation.email) {
           return {
             success: false,
-            error: 'This invitation was sent to a different email address'
+            error: 'This invitation was sent to a different email address',
           };
         }
 
         // Check if user already in a family
         const existingMembership = await tx.familyMember.findFirst({
           where: { userId },
-          include: { family: true }
+          include: { family: true },
         });
 
         if (existingMembership) {
           if (existingMembership.familyId === invitation.familyId) {
             return {
               success: false,
-              error: 'You are already a member of this family'
+              error: 'You are already a member of this family',
             };
           }
 
           if (!options.leaveCurrentFamily) {
             return {
               success: false,
-              error: `You already belong to a family: ${existingMembership.family.name}`
+              error: `You already belong to a family: ${existingMembership.family.name}`,
             };
           }
 
@@ -465,14 +468,14 @@ export class UnifiedInvitationService {
             const adminCount = await tx.familyMember.count({
               where: {
                 familyId: existingMembership.familyId,
-                role: FamilyRole.ADMIN
-              }
+                role: FamilyRole.ADMIN,
+              },
             });
 
             if (adminCount === 1) {
               return {
                 success: false,
-                error: 'Cannot leave family as you are the last administrator'
+                error: 'Cannot leave family as you are the last administrator',
               };
             }
           }
@@ -481,7 +484,7 @@ export class UnifiedInvitationService {
           SocketEmitter.broadcastFamilyUpdate(existingMembership.familyId, 'memberLeft', {
             userId,
             action: 'leftForNewFamily',
-            leftTo: invitation.familyId
+            leftTo: invitation.familyId,
           });
 
           // Remove from current family
@@ -489,9 +492,9 @@ export class UnifiedInvitationService {
             where: {
               familyId_userId: {
                 familyId: existingMembership.familyId,
-                userId
-              }
-            }
+                userId,
+              },
+            },
           });
         }
 
@@ -501,23 +504,23 @@ export class UnifiedInvitationService {
           data: {
             status: FamilyInvitationStatus.ACCEPTED,
             acceptedBy: userId,
-            acceptedAt: new Date()
-          }
+            acceptedAt: new Date(),
+          },
         });
 
         await tx.familyMember.create({
           data: {
             userId,
             familyId: invitation.familyId,
-            role: invitation.role
-          }
+            role: invitation.role,
+          },
         });
 
         this.logger.info('Family invitation accepted', {
           invitationId: invitation.id,
           userId,
           familyId: invitation.familyId,
-          leftPreviousFamily: !!existingMembership
+          leftPreviousFamily: !!existingMembership,
         });
 
         // Emit WebSocket event for family invitation acceptance
@@ -525,23 +528,25 @@ export class UnifiedInvitationService {
           userId,
           action: 'invitationAccepted',
           invitationId: invitation.id,
-          role: invitation.role
+          role: invitation.role,
         });
 
         return {
-          success: true
+          success: true,
         };
       });
     } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
       this.logger.error('Family invitation acceptance failed', {
         inviteCode,
         userId,
-        error: error?.message || 'Unknown error'
+        error: errorMessage,
       });
 
       return {
         success: false,
-        error: error?.message || 'Failed to accept invitation'
+        error: errorMessage || 'Failed to accept invitation',
       };
     }
   }
@@ -551,12 +556,12 @@ export class UnifiedInvitationService {
     groupId: string,
     inviteData: CreateGroupInvitationData,
     adminId: string,
-    platform: 'web' | 'native' = 'web'
+    platform: 'web' | 'native' = 'web',
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Verify group exists and admin permissions
       const group = await tx.group.findUnique({
-        where: { id: groupId }
+        where: { id: groupId },
       });
 
       if (!group) {
@@ -566,7 +571,7 @@ export class UnifiedInvitationService {
       // Check if user is group admin
       const adminMember = await tx.familyMember.findFirst({
         where: { userId: adminId },
-        include: { family: true, user: true }
+        include: { family: true, user: true },
       });
 
       if (!adminMember || adminMember.role !== FamilyRole.ADMIN) {
@@ -577,8 +582,8 @@ export class UnifiedInvitationService {
       const groupMembership = await tx.groupFamilyMember.findFirst({
         where: {
           groupId,
-          familyId: adminMember.familyId
-        }
+          familyId: adminMember.familyId,
+        },
       });
 
       if (group.familyId !== adminMember.familyId && (!groupMembership || groupMembership.role !== 'ADMIN')) {
@@ -593,9 +598,9 @@ export class UnifiedInvitationService {
           include: {
             members: {
               where: { role: FamilyRole.ADMIN },
-              include: { user: true }
-            }
-          }
+              include: { user: true },
+            },
+          },
         });
 
         if (!targetFamily) {
@@ -606,8 +611,8 @@ export class UnifiedInvitationService {
         const existingMembership = await tx.groupFamilyMember.findFirst({
           where: {
             groupId,
-            familyId: inviteData.targetFamilyId
-          }
+            familyId: inviteData.targetFamilyId,
+          },
         });
 
         if (existingMembership) {
@@ -620,8 +625,8 @@ export class UnifiedInvitationService {
             groupId,
             targetFamilyId: inviteData.targetFamilyId,
             status: GroupInvitationStatus.PENDING,
-            expiresAt: { gt: new Date() }
-          }
+            expiresAt: { gt: new Date() },
+          },
         });
 
         if (existingInvitation) {
@@ -644,8 +649,8 @@ export class UnifiedInvitationService {
           status: GroupInvitationStatus.PENDING,
           expiresAt,
           createdBy: adminId,
-          invitedBy: adminId
-        }
+          invitedBy: adminId,
+        },
       });
 
       // Send emails to family admins if target family specified
@@ -657,7 +662,7 @@ export class UnifiedInvitationService {
             groupName: group.name,
             inviteCode,
             role: inviteData.role,
-            platform
+            platform,
           };
           if (inviteData.personalMessage) {
             emailData.personalMessage = inviteData.personalMessage;
@@ -670,7 +675,7 @@ export class UnifiedInvitationService {
           targetFamilyId: inviteData.targetFamilyId,
           hasTargetFamily: !!inviteData.targetFamilyId,
           hasPersonalMessage: !!inviteData.personalMessage,
-          personalMessageLength: inviteData.personalMessage?.length || 0
+          personalMessageLength: inviteData.personalMessage?.length || 0,
         });
       } else if (inviteData.email) {
         // Send email to invited user if email provided
@@ -679,7 +684,7 @@ export class UnifiedInvitationService {
             groupName: group.name,
             inviteCode,
             role: inviteData.role,
-            platform
+            platform,
           };
           if (inviteData.personalMessage) {
             emailData.personalMessage = inviteData.personalMessage;
@@ -691,7 +696,7 @@ export class UnifiedInvitationService {
             email: inviteData.email,
             hasTargetFamily: !!inviteData.targetFamilyId,
             hasPersonalMessage: !!inviteData.personalMessage,
-            personalMessageLength: inviteData.personalMessage?.length || 0
+            personalMessageLength: inviteData.personalMessage?.length || 0,
           });
       } else{
         //error if no target family or email provided
@@ -706,12 +711,12 @@ export class UnifiedInvitationService {
     const invitation = await this.prisma.groupInvitation.findFirst({
       where: {
         inviteCode,
-        status: GroupInvitationStatus.PENDING
+        status: GroupInvitationStatus.PENDING,
       },
       include: {
         group: true,
-        invitedByUser: true  // Include inviter information
-      }
+        invitedByUser: true,  // Include inviter information
+      },
     });
 
     if (!invitation) {
@@ -726,20 +731,20 @@ export class UnifiedInvitationService {
       valid: true,
       groupId: invitation.group.id,
       groupName: invitation.group.name,
-      inviterName: invitation.invitedByUser?.name || null
+      inviterName: invitation.invitedByUser?.name || null,
     };
 
     // SECURITY CHECK: If there's a current authenticated user and the invitation has an email
     if (currentUserId && invitation.email) {
       const currentUser = await this.prisma.user.findUnique({
-        where: { id: currentUserId }
+        where: { id: currentUserId },
       });
 
       if (currentUser && currentUser.email !== invitation.email) {
         return {
           valid: false,
           error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
-          errorCode: 'EMAIL_MISMATCH'
+          errorCode: 'EMAIL_MISMATCH',
         };
       }
     }
@@ -748,7 +753,7 @@ export class UnifiedInvitationService {
     if (invitation.email) {
       result.email = invitation.email;
       const existingUser = await this.prisma.user.findUnique({
-        where: { email: invitation.email }
+        where: { email: invitation.email },
       });
       result.existingUser = !!existingUser;
     }
@@ -758,7 +763,7 @@ export class UnifiedInvitationService {
 
   async acceptGroupInvitation(
     inviteCode: string,
-    userId: string
+    userId: string,
   ): Promise<AcceptGroupInvitationResult> {
     return this.prisma.$transaction(async (tx) => {
       // Find and validate invitation
@@ -766,9 +771,9 @@ export class UnifiedInvitationService {
         where: {
           inviteCode,
           status: GroupInvitationStatus.PENDING,
-          expiresAt: { gt: new Date() }
+          expiresAt: { gt: new Date() },
         },
-        include: { group: true }
+        include: { group: true },
       });
 
       if (!invitation) {
@@ -777,7 +782,7 @@ export class UnifiedInvitationService {
 
       // Get user and family membership
       const user = await tx.user.findUnique({
-        where: { id: userId }
+        where: { id: userId },
       });
 
       if (!user) {
@@ -791,17 +796,17 @@ export class UnifiedInvitationService {
             include: {
               members: {
                 where: { role: FamilyRole.ADMIN },
-                include: { user: true }
-              }
-            }
-          }
-        }
+                include: { user: true },
+              },
+            },
+          },
+        },
       });
 
       if (!familyMember) {
         return {
           success: false,
-          error: 'Family onboarding required'
+          error: 'Family onboarding required',
         };
       }
 
@@ -809,14 +814,14 @@ export class UnifiedInvitationService {
       const existingMembership = await tx.groupFamilyMember.findFirst({
         where: {
           groupId: invitation.groupId,
-          familyId: familyMember.familyId
-        }
+          familyId: familyMember.familyId,
+        },
       });
 
       if (existingMembership) {
         return {
           success: false,
-          error: `Your family is already a member of ${invitation.group.name}`
+          error: `Your family is already a member of ${invitation.group.name}`,
         };
       }
 
@@ -825,7 +830,7 @@ export class UnifiedInvitationService {
         const adminContact = familyMember.family.members[0]?.user.name || 'your family admin';
         return {
           success: false,
-          error: `Only your family admin can accept this invitation. Please contact ${adminContact}.`
+          error: `Only your family admin can accept this invitation. Please contact ${adminContact}.`,
         };
       }
 
@@ -835,8 +840,8 @@ export class UnifiedInvitationService {
         data: {
           status: GroupInvitationStatus.ACCEPTED,
           acceptedBy: userId,
-          acceptedAt: new Date()
-        }
+          acceptedAt: new Date(),
+        },
       });
 
       // Add family to group
@@ -845,18 +850,18 @@ export class UnifiedInvitationService {
           familyId: familyMember.familyId,
           groupId: invitation.groupId,
           role: invitation.role as GroupRole,
-          addedBy: userId
-        }
+          addedBy: userId,
+        },
       });
 
       // Get family members count
       const familyMembers = await tx.familyMember.findMany({
-        where: { familyId: familyMember.familyId }
+        where: { familyId: familyMember.familyId },
       });
 
       // Add family children to group (if any)
       const familyChildren = await tx.child.findMany({
-        where: { familyId: familyMember.familyId }
+        where: { familyId: familyMember.familyId },
       });
 
       if (familyChildren.length > 0) {
@@ -864,8 +869,8 @@ export class UnifiedInvitationService {
           data: familyChildren.map(child => ({
             childId: child.id,
             groupId: invitation.groupId,
-            addedBy: userId
-          }))
+            addedBy: userId,
+          })),
         });
       }
 
@@ -874,7 +879,7 @@ export class UnifiedInvitationService {
         userId,
         familyId: familyMember.familyId,
         groupId: invitation.groupId,
-        membersAdded: familyMembers.length
+        membersAdded: familyMembers.length,
       });
 
       // Emit WebSocket event for group invitation acceptance
@@ -884,11 +889,11 @@ export class UnifiedInvitationService {
         familyId: familyMember.familyId,
         groupId: invitation.groupId,
         membersAdded: familyMembers.length,
-        invitationId: invitation.id
+        invitationId: invitation.id,
       });
 
       return {
-        success: true
+        success: true,
       };
     });
   }
@@ -897,7 +902,7 @@ export class UnifiedInvitationService {
   // Management Methods
   async listUserInvitations(userId: string): Promise<UserInvitationsResult> {
     const user = await this.prisma.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
 
     if (!user?.email) {
@@ -909,20 +914,20 @@ export class UnifiedInvitationService {
         where: {
           email: user.email,
           status: FamilyInvitationStatus.PENDING,
-          expiresAt: { gt: new Date() }
+          expiresAt: { gt: new Date() },
         },
         include: { family: true },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       }),
       this.prisma.groupInvitation.findMany({
         where: {
           email: user.email,
           status: GroupInvitationStatus.PENDING,
-          expiresAt: { gt: new Date() }
+          expiresAt: { gt: new Date() },
         },
         include: { group: true },
-        orderBy: { createdAt: 'desc' }
-      })
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
 
     return {
@@ -931,22 +936,22 @@ export class UnifiedInvitationService {
         inviteCode: inv.inviteCode,
         role: inv.role,
         familyName: inv.family.name,
-        expiresAt: inv.expiresAt
+        expiresAt: inv.expiresAt,
       })),
       groupInvitations: groupInvitations.map(inv => ({
         id: inv.id,
         inviteCode: inv.inviteCode,
         role: inv.role as GroupRole,
         groupName: inv.group.name,
-        expiresAt: inv.expiresAt
-      }))
+        expiresAt: inv.expiresAt,
+      })),
     };
   }
 
   async cancelFamilyInvitation(invitationId: string, adminId: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       const invitation = await tx.familyInvitation.findUnique({
-        where: { id: invitationId }
+        where: { id: invitationId },
       });
 
       if (!invitation) {
@@ -958,8 +963,8 @@ export class UnifiedInvitationService {
         where: {
           userId: adminId,
           familyId: invitation.familyId,
-          role: FamilyRole.ADMIN
-        }
+          role: FamilyRole.ADMIN,
+        },
       });
 
       if (!adminMember) {
@@ -968,7 +973,7 @@ export class UnifiedInvitationService {
 
       await tx.familyInvitation.update({
         where: { id: invitationId },
-        data: { status: FamilyInvitationStatus.CANCELLED }
+        data: { status: FamilyInvitationStatus.CANCELLED },
       });
     });
   }
@@ -977,7 +982,7 @@ export class UnifiedInvitationService {
     await this.prisma.$transaction(async (tx) => {
       const invitation = await tx.groupInvitation.findUnique({
         where: { id: invitationId },
-        include: { group: true }
+        include: { group: true },
       });
 
       if (!invitation) {
@@ -987,7 +992,7 @@ export class UnifiedInvitationService {
       // Verify admin permissions
       const adminMember = await tx.familyMember.findFirst({
         where: { userId: adminId },
-        include: { family: true }
+        include: { family: true },
       });
 
       if (!adminMember || adminMember.role !== FamilyRole.ADMIN) {
@@ -1000,8 +1005,8 @@ export class UnifiedInvitationService {
           where: {
             groupId: invitation.groupId,
             familyId: adminMember.familyId,
-            role: 'ADMIN'
-          }
+            role: 'ADMIN',
+          },
         });
 
         if (!groupMembership) {
@@ -1011,7 +1016,7 @@ export class UnifiedInvitationService {
 
       await tx.groupInvitation.update({
         where: { id: invitationId },
-        data: { status: GroupInvitationStatus.CANCELLED }
+        data: { status: GroupInvitationStatus.CANCELLED },
       });
     });
   }
@@ -1022,21 +1027,21 @@ export class UnifiedInvitationService {
         groupId,
         status: GroupInvitationStatus.PENDING,
         expiresAt: {
-          gt: new Date()
-        }
+          gt: new Date(),
+        },
       },
       include: {
         invitedByUser: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
-        }
+            email: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: 'desc',
+      },
     });
   }
 
@@ -1048,27 +1053,27 @@ export class UnifiedInvitationService {
       this.prisma.familyInvitation.updateMany({
         where: {
           status: FamilyInvitationStatus.PENDING,
-          expiresAt: { lt: now }
+          expiresAt: { lt: now },
         },
-        data: { status: FamilyInvitationStatus.EXPIRED }
+        data: { status: FamilyInvitationStatus.EXPIRED },
       }),
       this.prisma.groupInvitation.updateMany({
         where: {
           status: GroupInvitationStatus.PENDING,
-          expiresAt: { lt: now }
+          expiresAt: { lt: now },
         },
-        data: { status: GroupInvitationStatus.EXPIRED }
-      })
+        data: { status: GroupInvitationStatus.EXPIRED },
+      }),
     ]);
 
     this.logger.info('Cleaned up expired invitations', {
       familyInvitations: familyResult.count,
-      groupInvitations: groupResult.count
+      groupInvitations: groupResult.count,
     });
 
     return {
       familyInvitationsExpired: familyResult.count,
-      groupInvitationsExpired: groupResult.count
+      groupInvitationsExpired: groupResult.count,
     };
   }
 }

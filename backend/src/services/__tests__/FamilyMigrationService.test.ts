@@ -6,24 +6,24 @@ import { PrismaClient } from '@prisma/client';
 const mockPrisma = {
   $transaction: jest.fn(),
   user: {
-    findMany: jest.fn()
+    findMany: jest.fn(),
   },
   family: {
-    findMany: jest.fn()
+    findMany: jest.fn(),
   },
   child: {
-    findMany: jest.fn()
+    findMany: jest.fn(),
   },
   vehicle: {
-    findMany: jest.fn()
-  }
+    findMany: jest.fn(),
+  },
 } as any;
 
 // Mock Logger
 const mockLogger = {
   info: jest.fn(),
   error: jest.fn(),
-  warn: jest.fn()
+  warn: jest.fn(),
 };
 
 describe('FamilyMigrationService', () => {
@@ -33,7 +33,7 @@ describe('FamilyMigrationService', () => {
     jest.clearAllMocks();
     migrationService = new FamilyMigrationService(
       mockPrisma as PrismaClient,
-      mockLogger
+      mockLogger,
     );
   });
 
@@ -45,43 +45,43 @@ describe('FamilyMigrationService', () => {
           name: 'John Doe',
           children: [
             { id: 'child-1', name: 'Alice' },
-            { id: 'child-2', name: 'Bob' }
+            { id: 'child-2', name: 'Bob' },
           ],
           vehicles: [
-            { id: 'vehicle-1', name: 'Car' }
-          ]
+            { id: 'vehicle-1', name: 'Car' },
+          ],
         },
         {
           id: 'user-2',
           name: 'Jane Smith',
           children: [
-            { id: 'child-3', name: 'Charlie' }
+            { id: 'child-3', name: 'Charlie' },
           ],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       ];
 
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           user: {
-            findMany: jest.fn().mockResolvedValue(mockUsers)
+            findMany: jest.fn().mockResolvedValue(mockUsers),
           },
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
-            create: jest.fn().mockResolvedValue({})
+            create: jest.fn().mockResolvedValue({}),
           },
           family: {
             create: jest.fn().mockImplementation(({ data }) => ({
               id: `family-${data.name}`,
-              ...data
-            }))
+              ...data,
+            })),
           },
           child: {
-            updateMany: jest.fn().mockResolvedValue({ count: 2 })
+            updateMany: jest.fn().mockResolvedValue({ count: 2 }),
           },
           vehicle: {
-            updateMany: jest.fn().mockResolvedValue({ count: 1 })
-          }
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+          },
         });
       });
 
@@ -94,7 +94,7 @@ describe('FamilyMigrationService', () => {
         familiesCreated: 2,
         childrenMigrated: 3,
         vehiclesMigrated: 1,
-        errors: []
+        errors: [],
       });
 
       expect(mockLogger.info).toHaveBeenCalledWith('Starting family migration for existing users');
@@ -107,28 +107,28 @@ describe('FamilyMigrationService', () => {
           id: 'user-1',
           name: 'John Doe',
           children: [],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       ];
 
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           user: {
-            findMany: jest.fn().mockResolvedValue(mockUsers)
+            findMany: jest.fn().mockResolvedValue(mockUsers),
           },
           familyMember: {
             findFirst: jest.fn().mockResolvedValue({ id: 'existing-membership' }),
-            create: jest.fn()
+            create: jest.fn(),
           },
           family: {
-            create: jest.fn()
+            create: jest.fn(),
           },
           child: {
-            updateMany: jest.fn()
+            updateMany: jest.fn(),
           },
           vehicle: {
-            updateMany: jest.fn()
-          }
+            updateMany: jest.fn(),
+          },
         });
       });
 
@@ -141,7 +141,7 @@ describe('FamilyMigrationService', () => {
         familiesCreated: 0,
         childrenMigrated: 0,
         vehiclesMigrated: 0,
-        errors: []
+        errors: [],
       });
 
       expect(mockLogger.warn).toHaveBeenCalledWith('User user-1 already has family membership, skipping');
@@ -153,28 +153,28 @@ describe('FamilyMigrationService', () => {
           id: 'user-1',
           name: 'John Doe',
           children: [],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       ];
 
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           user: {
-            findMany: jest.fn().mockResolvedValue(mockUsers)
+            findMany: jest.fn().mockResolvedValue(mockUsers),
           },
           familyMember: {
             findFirst: jest.fn().mockResolvedValue(null),
-            create: jest.fn().mockRejectedValue(new Error('Database error'))
+            create: jest.fn().mockRejectedValue(new Error('Database error')),
           },
           family: {
-            create: jest.fn().mockResolvedValue({ id: 'family-1' })
+            create: jest.fn().mockResolvedValue({ id: 'family-1' }),
           },
           child: {
-            updateMany: jest.fn()
+            updateMany: jest.fn(),
           },
           vehicle: {
-            updateMany: jest.fn()
-          }
+            updateMany: jest.fn(),
+          },
         });
       });
 
@@ -196,33 +196,33 @@ describe('FamilyMigrationService', () => {
           name: 'Family One',
           members: [
             { userId: 'user-1', role: FamilyRole.ADMIN },
-            { userId: 'user-2', role: FamilyRole.MEMBER }
+            { userId: 'user-2', role: FamilyRole.MEMBER },
           ],
           children: [
             { id: 'child-1' },
-            { id: 'child-2' }
+            { id: 'child-2' },
           ],
           vehicles: [
-            { id: 'vehicle-1' }
-          ]
-        }
+            { id: 'vehicle-1' },
+          ],
+        },
       ];
 
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           family: {
             findMany: jest.fn().mockResolvedValue(mockFamilies),
-            deleteMany: jest.fn().mockResolvedValue({ count: 1 })
+            deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
           },
           familyMember: {
-            deleteMany: jest.fn().mockResolvedValue({ count: 2 })
+            deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
           },
           child: {
-            updateMany: jest.fn().mockResolvedValue({ count: 2 })
+            updateMany: jest.fn().mockResolvedValue({ count: 2 }),
           },
           vehicle: {
-            updateMany: jest.fn().mockResolvedValue({ count: 1 })
-          }
+            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+          },
         });
       });
 
@@ -235,7 +235,7 @@ describe('FamilyMigrationService', () => {
         familiesCreated: -1, // Negative indicates deletion
         childrenMigrated: 2,
         vehiclesMigrated: 1,
-        errors: []
+        errors: [],
       });
 
       expect(mockLogger.info).toHaveBeenCalledWith('Starting family migration rollback');
@@ -247,28 +247,28 @@ describe('FamilyMigrationService', () => {
           id: 'family-1',
           name: 'Family One',
           members: [
-            { userId: 'user-1', role: FamilyRole.MEMBER }
+            { userId: 'user-1', role: FamilyRole.MEMBER },
           ],
           children: [],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       ];
 
       const mockTransaction = jest.fn(async (callback) => {
         return callback({
           family: {
             findMany: jest.fn().mockResolvedValue(mockFamilies),
-            deleteMany: jest.fn().mockResolvedValue({ count: 1 })
+            deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
           },
           familyMember: {
-            deleteMany: jest.fn().mockResolvedValue({ count: 1 })
+            deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
           },
           child: {
-            updateMany: jest.fn()
+            updateMany: jest.fn(),
           },
           vehicle: {
-            updateMany: jest.fn()
-          }
+            updateMany: jest.fn(),
+          },
         });
       });
 

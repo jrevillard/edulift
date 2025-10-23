@@ -6,14 +6,12 @@ export interface AuthenticatedUser {
 }
 
 // Extend Express Request interface to include authenticated user
-declare global {
-  namespace Express {
-    interface User {
-      id: string;
-      email: string;
-      name: string;
-      timezone?: string;
-    }
+declare module 'express' {
+  interface User {
+    id: string;
+    email: string;
+    name: string;
+    timezone?: string;
   }
 }
 
@@ -119,7 +117,7 @@ export interface ValidationError {
   message: string;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

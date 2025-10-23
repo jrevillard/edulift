@@ -9,12 +9,12 @@ interface CacheService {
 export class FamilyAuthService implements IFamilyAuthService {
   private static readonly ROLE_HIERARCHY = {
     [FamilyRole.ADMIN]: 2,
-    [FamilyRole.MEMBER]: 1
+    [FamilyRole.MEMBER]: 1,
   };
 
   constructor(
     private prisma: PrismaClient,
-    private cacheService: CacheService
+    private cacheService: CacheService,
   ) {}
 
   async getUserPermissions(userId: string): Promise<FamilyPermissions> {
@@ -26,7 +26,7 @@ export class FamilyAuthService implements IFamilyAuthService {
     // Get user's family membership
     const member = await this.prisma.familyMember.findFirst({
       where: { userId },
-      include: { family: true }
+      include: { family: true },
     });
 
     if (!member) {
@@ -38,7 +38,7 @@ export class FamilyAuthService implements IFamilyAuthService {
       canManageMembers: member.role === FamilyRole.ADMIN,
       canModifyChildren: member.role === FamilyRole.ADMIN,
       canModifyVehicles: member.role === FamilyRole.ADMIN,
-      canViewFamily: true
+      canViewFamily: true,
     };
 
     // Cache for 5 minutes
@@ -50,13 +50,13 @@ export class FamilyAuthService implements IFamilyAuthService {
   async canAccessChild(userId: string, childId: string): Promise<boolean> {
     const child = await this.prisma.child.findUnique({
       where: { id: childId },
-      select: { familyId: true }
+      select: { familyId: true },
     });
 
     if (!child) return false;
 
     const member = await this.prisma.familyMember.findFirst({
-      where: { userId, familyId: child.familyId! }
+      where: { userId, familyId: child.familyId! },
     });
 
     return !!member;
@@ -68,7 +68,7 @@ export class FamilyAuthService implements IFamilyAuthService {
     }
 
     const member = await this.prisma.familyMember.findFirst({
-      where: { userId }
+      where: { userId },
     });
 
     if (!member) return false;
@@ -79,13 +79,13 @@ export class FamilyAuthService implements IFamilyAuthService {
   async canAccessVehicle(userId: string, vehicleId: string): Promise<boolean> {
     const vehicle = await this.prisma.vehicle.findUnique({
       where: { id: vehicleId },
-      select: { familyId: true }
+      select: { familyId: true },
     });
 
     if (!vehicle) return false;
 
     const member = await this.prisma.familyMember.findFirst({
-      where: { userId, familyId: vehicle.familyId! }
+      where: { userId, familyId: vehicle.familyId! },
     });
 
     return !!member;
@@ -97,7 +97,7 @@ export class FamilyAuthService implements IFamilyAuthService {
     }
 
     const member = await this.prisma.familyMember.findFirst({
-      where: { userId }
+      where: { userId },
     });
 
     if (!member) return false;
@@ -107,7 +107,7 @@ export class FamilyAuthService implements IFamilyAuthService {
 
   async requireFamilyRole(userId: string, requiredRole: FamilyRole): Promise<void> {
     const member = await this.prisma.familyMember.findFirst({
-      where: { userId }
+      where: { userId },
     });
 
     if (!member) {

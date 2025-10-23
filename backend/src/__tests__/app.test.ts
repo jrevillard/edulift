@@ -1,12 +1,12 @@
 import request from 'supertest';
-import express from 'express';
+import express, { Express } from 'express';
 
 // Mock environment variables before importing app
 const originalEnv = process.env;
 
 // Import the app creation logic by extracting it to a function
 // We'll need to create a simple app setup for testing
-function createTestApp(rateConfig: { enabled?: string; maxRequests?: string; windowMs?: string } = {}) {
+function createTestApp(rateConfig: { enabled?: string; maxRequests?: string; windowMs?: string } = {}): Express {
   // Set test environment variables
   process.env.RATE_LIMIT_ENABLED = rateConfig.enabled ?? 'true';
   process.env.RATE_LIMIT_MAX_REQUESTS = rateConfig.maxRequests ?? '3'; // Low for testing
@@ -19,32 +19,32 @@ function createTestApp(rateConfig: { enabled?: string; maxRequests?: string; win
   const rateLimitStore = new Map();
 
   if (rateLimitEnabled) {
-    app.use((req: any, res: any, next: any) => {
+    app.use((req: any, res: any, next: () => void) => {
       const ip = req.ip || req.socket?.remoteAddress || 'unknown';
       const now = Date.now();
       const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000');
       const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300');
-      
+
       if (!rateLimitStore.has(ip)) {
         rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
         return next();
       }
-      
+
       const clientData = rateLimitStore.get(ip);
-      
+
       if (now > clientData.resetTime) {
         clientData.count = 1;
         clientData.resetTime = now + windowMs;
         return next();
       }
-      
+
       if (clientData.count >= maxRequests) {
         return res.status(429).json({
           success: false,
-          error: 'Too many requests, please try again later'
+          error: 'Too many requests, please try again later',
         });
       }
-      
+
       clientData.count++;
       next();
     });
@@ -120,7 +120,7 @@ describe('Rate Limiting Middleware', () => {
       const app = createTestApp({ 
         enabled: 'true',
         maxRequests: '1', // Only allow 1 request
-        windowMs: '1000' 
+        windowMs: '1000', 
       });
 
       // First request succeeds
@@ -159,7 +159,7 @@ describe('Rate Limiting Middleware', () => {
     it('should handle invalid environment variable values gracefully', async () => {
       const app = createTestApp({ 
         maxRequests: 'invalid', 
-        windowMs: 'invalid' 
+        windowMs: 'invalid', 
       });
 
       // Should not crash and should work (falling back to defaults via parseInt)

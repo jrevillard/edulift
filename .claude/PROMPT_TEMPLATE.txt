@@ -3,13 +3,17 @@ We are here to start an interractive debuging session together... I will let you
 ---------
 
 Success criterias:
-   - 90% of code coverage (verified with the flutter test --coverage command)
-   - state of the art testing architecture 100% respected (follows strictly FLUTTER_TESTING_RESEARCH_2025.md)
-   - "flutter analyse" must show 0 info/warning/error
-   - Ensure that the arch_unit rules are always enforced ("flutter test test/architecture/" MUST return 0 error)
+   - 90% of code coverage
+   - state of the art testing architecture 100% respected
+   - "npm run lint" must show 0 info/warning/error
+   - you run asked a  reviewer to verifiy that all has been done properly, without workaround, 100%
 
-Use the serena symboles tool to be more efficient. NEVER activate the serena workspace projet.. always use the sub projects in frontend/backend/mobile_app. Check the web frontend for reference and the associated functional documentation: /workspace/docs/Functional-Documentation.md. Check the backend API implementation in /workspace/backend/src and the corresponding API documentation in /workspace/docs/API-Documentation.md to ensure that you do not invent functionality or if you need to ensure the real API behaviour. 
+Use the serena symboles tool to be more efficient. NEVER activate the serena workspace projet.. always use the sub projects in frontend/backend. Check the web frontend for reference and the associated functional documentation: /workspace/docs/Functional-Documentation.md. Check the backend API implementation in /workspace/backend/src and the corresponding API documentation in /workspace/docs/API-Documentation.md to ensure that you do not invent functionality or if you need to ensure the real API behaviour. 
 You must figure out the best way to spawn subagents in parallel to tackle all of these issues without loosing any context or intents. **Assign proper task isolation for simple swarm tasks (orchestrate them properly!!) or instanciate hive mind with the adaptative coordinator for complex task**
+
+Always use context7 when you need code generation, setup or configuration steps, or library/API documentation. This means you should automatically use the Context7 MCP tools to resolve library id and get library docs without me having to explicitly ask.
+
+---------
 
 VERY IMPORTANT Principle 0: Radical Candor—Truth Above All
 Under no circumstances may you lie, simulate, mislead, or attempt to create the illusion of functionality, performance, or integration.

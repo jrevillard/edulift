@@ -6,7 +6,7 @@ import {
   PushNotificationData, 
   PushNotificationResult, 
   BatchPushNotificationResult,
-  FcmTokenData
+  FcmTokenData,
 } from '../types/PushNotificationInterface';
 
 export class PushNotificationService implements PushNotificationServiceInterface {
@@ -16,7 +16,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
 
   constructor(
     prisma: PrismaClient,
-    firebaseConfig?: FirebaseConfig
+    firebaseConfig?: FirebaseConfig,
   ) {
     this.fcmTokenService = new FcmTokenService(prisma);
     this.isEnabled = process.env.FIREBASE_NOTIFICATIONS_ENABLED === 'true';
@@ -45,7 +45,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     if (!this.isAvailable()) {
       return {
         success: false,
-        error: 'Push notification service is not available'
+        error: 'Push notification service is not available',
       };
     }
 
@@ -67,7 +67,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     } catch (error) {
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
@@ -81,8 +81,8 @@ export class PushNotificationService implements PushNotificationServiceInterface
         results: tokens.map(token => ({
           token,
           success: false,
-          error: 'Push notification service is not available'
-        }))
+          error: 'Push notification service is not available',
+        })),
       };
     }
 
@@ -100,8 +100,8 @@ export class PushNotificationService implements PushNotificationServiceInterface
           successfulTokens.map(token => 
             this.fcmTokenService.updateTokenLastUsed(token).catch(() => {
               // Ignore errors for non-critical operation
-            })
-          )
+            }),
+          ),
         );
       }
 
@@ -119,8 +119,8 @@ export class PushNotificationService implements PushNotificationServiceInterface
         results: tokens.map(token => ({
           token,
           success: false,
-          error: (error as Error).message
-        }))
+          error: (error as Error).message,
+        })),
       };
     }
   }
@@ -131,7 +131,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
         successCount: 0,
         failureCount: 0,
         invalidTokens: [],
-        results: []
+        results: [],
       };
     }
 
@@ -144,18 +144,18 @@ export class PushNotificationService implements PushNotificationServiceInterface
           successCount: 0,
           failureCount: 0,
           invalidTokens: [],
-          results: []
+          results: [],
         };
       }
 
       const tokens = userTokens.map(t => t.token);
       return await this.sendToTokens(tokens, notification);
-    } catch (error) {
+    } catch {
       return {
         successCount: 0,
         failureCount: 0,
         invalidTokens: [],
-        results: []
+        results: [],
       };
     }
   }
@@ -166,7 +166,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
         successCount: 0,
         failureCount: 0,
         invalidTokens: [],
-        results: []
+        results: [],
       };
     }
 
@@ -179,18 +179,18 @@ export class PushNotificationService implements PushNotificationServiceInterface
           successCount: 0,
           failureCount: 0,
           invalidTokens: [],
-          results: []
+          results: [],
         };
       }
 
       const tokens = userTokens.map(t => t.token);
       return await this.sendToTokens(tokens, notification);
-    } catch (error) {
+    } catch {
       return {
         successCount: 0,
         failureCount: 0,
         invalidTokens: [],
-        results: []
+        results: [],
       };
     }
   }
@@ -199,7 +199,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     if (!this.isAvailable()) {
       return {
         success: false,
-        error: 'Push notification service is not available'
+        error: 'Push notification service is not available',
       };
     }
 
@@ -209,7 +209,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     } catch (error) {
       return {
         success: false,
-        error: (error as Error).message
+        error: (error as Error).message,
       };
     }
   }
@@ -232,7 +232,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
       }
 
       return isValid;
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -245,7 +245,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     try {
       const firebase = this.getFirebaseService();
       return await firebase.subscribeToTopic(token, topic);
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -258,7 +258,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     try {
       const firebase = this.getFirebaseService();
       return await firebase.unsubscribeFromTopic(token, topic);
-    } catch (error) {
+    } catch {
       return false;
     }
   }
@@ -289,7 +289,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
       changeType: string;
       assignedChildren?: string[];
       vehicles?: Array<{ name: string; driverName?: string }>;
-    }
+    },
   ): Promise<BatchPushNotificationResult> {
     const notification: PushNotificationData = {
       title: `EduLift - ${scheduleSlotData.groupName}`,
@@ -298,10 +298,10 @@ export class PushNotificationService implements PushNotificationServiceInterface
         type: 'schedule_slot_change',
         groupName: scheduleSlotData.groupName,
         datetime: scheduleSlotData.datetime,
-        changeType: scheduleSlotData.changeType
+        changeType: scheduleSlotData.changeType,
       },
       clickAction: '/dashboard',
-      priority: 'high'
+      priority: 'high',
     };
 
     return await this.sendToUsers(userIds, notification);
@@ -313,7 +313,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
       familyName: string;
       inviterName: string;
       inviteCode: string;
-    }
+    },
   ): Promise<BatchPushNotificationResult> {
     const notification: PushNotificationData = {
       title: 'EduLift - Family Invitation',
@@ -322,10 +322,10 @@ export class PushNotificationService implements PushNotificationServiceInterface
         type: 'family_invitation',
         familyName: invitationData.familyName,
         inviterName: invitationData.inviterName,
-        inviteCode: invitationData.inviteCode
+        inviteCode: invitationData.inviteCode,
       },
       clickAction: `/families/join?code=${invitationData.inviteCode}`,
-      priority: 'high'
+      priority: 'high',
     };
 
     return await this.sendToUser(userId, notification);
@@ -337,7 +337,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
       groupName: string;
       inviterName: string;
       inviteCode: string;
-    }
+    },
   ): Promise<BatchPushNotificationResult> {
     const notification: PushNotificationData = {
       title: 'EduLift - Group Invitation',
@@ -346,10 +346,10 @@ export class PushNotificationService implements PushNotificationServiceInterface
         type: 'group_invitation',
         groupName: invitationData.groupName,
         inviterName: invitationData.inviterName,
-        inviteCode: invitationData.inviteCode
+        inviteCode: invitationData.inviteCode,
       },
       clickAction: `/groups/join?code=${invitationData.inviteCode}`,
-      priority: 'high'
+      priority: 'high',
     };
 
     return await this.sendToUser(userId, notification);

@@ -45,7 +45,7 @@ describe('EmailService', () => {
       expect(_sendSpy).toHaveBeenCalledWith(
         email,
         'EduLift - Secure Login',
-        expect.stringContaining(token)
+        expect.stringContaining(token),
       );
     });
 
@@ -60,7 +60,7 @@ describe('EmailService', () => {
         expect(_sendSpy).toHaveBeenCalledWith(
             email,
             'EduLift - Secure Login',
-            expect.stringContaining(magicLinkUrl)
+            expect.stringContaining(magicLinkUrl),
         );
     });
   });

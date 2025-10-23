@@ -17,7 +17,7 @@ const mockUserRepository = {
   findGroupMembers: jest.fn(),
   getUserGroups: jest.fn(),
   getGroupMembers: jest.fn(),
-  getGroupById: jest.fn()
+  getGroupById: jest.fn(),
 } as unknown as jest.Mocked<UserRepository>;
 
 const mockMagicLinkRepository = {
@@ -26,14 +26,14 @@ const mockMagicLinkRepository = {
   markAsUsed: jest.fn(),
   cleanupExpired: jest.fn(),
   findUserTokens: jest.fn(),
-  revokeUserTokens: jest.fn()
+  revokeUserTokens: jest.fn(),
 } as unknown as MagicLinkRepository;
 
 const mockEmailService = {
   sendMagicLink: jest.fn(),
   sendScheduleNotification: jest.fn(),
   sendGroupInvitation: jest.fn(),
-  verifyConnection: jest.fn()
+  verifyConnection: jest.fn(),
 } as unknown as EmailService;
 
 describe('AuthService', () => {
@@ -47,18 +47,18 @@ describe('AuthService', () => {
       return {
         generateRefreshToken: jest.fn().mockResolvedValue({
           token: 'mock-refresh-token',
-          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60 days
+          expiresAt: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000), // 60 days
         }),
         verifyAndRotateRefreshToken: jest.fn(),
         revokeAllUserTokens: jest.fn(),
-        cleanupExpiredTokens: jest.fn()
+        cleanupExpiredTokens: jest.fn(),
       } as any;
     });
 
     authService = new AuthService(
       mockUserRepository,
       mockMagicLinkRepository,
-      mockEmailService
+      mockEmailService,
     );
   });
 
@@ -71,7 +71,7 @@ describe('AuthService', () => {
         name: 'Test User',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       (mockUserRepository.findByEmail as jest.Mock).mockResolvedValue(existingUser);
@@ -81,25 +81,25 @@ describe('AuthService', () => {
         userId: 'user-1',
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
         used: false,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const result = await authService.requestMagicLink({ 
         email, 
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
       expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(email);
       expect(mockMagicLinkRepository.create).toHaveBeenCalledWith({
         userId: 'user-1',
         expiresAt: expect.any(Date),
-        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
       expect(mockEmailService.sendMagicLink).toHaveBeenCalledWith(
         email,
         'magic-token',
         undefined,
-        'https://app.edulift.com/auth/verify?token=magic-token'
+        'https://app.edulift.com/auth/verify?token=magic-token',
       );
       expect(result).toEqual({ success: true, userExists: true });
     });
@@ -115,7 +115,7 @@ describe('AuthService', () => {
         name,
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
       (mockMagicLinkRepository.create as jest.Mock).mockResolvedValue({
         id: 'link-2',
@@ -123,13 +123,13 @@ describe('AuthService', () => {
         userId: 'user-2',
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
         used: false,
-        createdAt: new Date()
+        createdAt: new Date(),
       });
 
       const result = await authService.requestMagicLink({ 
         email, 
         name,
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
       expect(mockUserRepository.create).toHaveBeenCalledWith({ email, name });
@@ -143,9 +143,9 @@ describe('AuthService', () => {
 
       await expect(authService.requestMagicLink({ 
         email,
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       })).rejects.toThrow(
-        'Name is required for new users'
+        'Name is required for new users',
       );
     });
 
@@ -158,9 +158,9 @@ describe('AuthService', () => {
       await expect(authService.requestMagicLink({ 
         email, 
         name,
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       })).rejects.toThrow(
-        'Name is required for new users'
+        'Name is required for new users',
       );
     });
 
@@ -175,13 +175,13 @@ describe('AuthService', () => {
         name,
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       await authService.requestMagicLink({
         email,
         name,
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
       expect(mockUserRepository.create).toHaveBeenCalledWith({ email, name });
@@ -196,25 +196,25 @@ describe('AuthService', () => {
         name: 'Test User',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       (mockUserRepository.findByEmail as jest.Mock).mockResolvedValue(existingUser);
       (mockMagicLinkRepository.create as jest.Mock).mockResolvedValue({
-        token: 'magic-link-token'
+        token: 'magic-link-token',
       });
 
       await authService.requestMagicLink({ 
         email, 
         inviteCode,
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
       expect(mockEmailService.sendMagicLink).toHaveBeenCalledWith(
         email,
         'magic-link-token',
         inviteCode,
-'https://app.edulift.com/auth/verify?token=magic-link-token&inviteCode=ABC123XYZ'
+'https://app.edulift.com/auth/verify?token=magic-link-token&inviteCode=ABC123XYZ',
       );
     });
 
@@ -230,17 +230,17 @@ describe('AuthService', () => {
         name,
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
       (mockMagicLinkRepository.create as jest.Mock).mockResolvedValue({
-        token: 'new-user-token'
+        token: 'new-user-token',
       });
 
       await authService.requestMagicLink({ 
         email, 
         name, 
         inviteCode,
-        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
       expect(mockUserRepository.create).toHaveBeenCalledWith({ email, name });
@@ -248,7 +248,7 @@ describe('AuthService', () => {
         email,
         'new-user-token',
         inviteCode,
-        'https://app.edulift.com/auth/verify?token=new-user-token&inviteCode=FAMILY456'
+        'https://app.edulift.com/auth/verify?token=new-user-token&inviteCode=FAMILY456',
       );
     });
   });
@@ -262,7 +262,7 @@ describe('AuthService', () => {
         name: 'Test User',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       (mockMagicLinkRepository.findValidToken as jest.Mock).mockResolvedValue({
@@ -272,7 +272,7 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
         used: false,
         createdAt: new Date(),
-        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
       (mockUserRepository.findById as jest.Mock).mockResolvedValue(user);
 
@@ -287,7 +287,7 @@ describe('AuthService', () => {
           name: user.name,
           timezone: user.timezone,
           createdAt: user.createdAt,
-          updatedAt: user.updatedAt
+          updatedAt: user.updatedAt,
         },
         accessToken: expect.any(String),
         refreshToken: 'mock-refresh-token',
@@ -295,7 +295,7 @@ describe('AuthService', () => {
         tokenType: 'Bearer',
         // Legacy fields
         token: expect.any(String),
-        expiresAt: expect.any(Date)
+        expiresAt: expect.any(Date),
       });
     });
 
@@ -319,7 +319,7 @@ describe('AuthService', () => {
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
         used: false,
         createdAt: new Date(),
-        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
+        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
       (mockUserRepository.findById as jest.Mock).mockResolvedValue(null);
 
@@ -337,7 +337,7 @@ describe('AuthService', () => {
         name: 'Test User',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       const token = authService.generateJWTToken(user);
@@ -362,7 +362,7 @@ describe('AuthService', () => {
         name: 'Old Name',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedUser = {
         id: userId,
@@ -370,7 +370,7 @@ describe('AuthService', () => {
         name: 'Updated Name',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -388,7 +388,7 @@ describe('AuthService', () => {
         name: 'Updated Name',
         timezone: 'UTC',
         createdAt: mockUpdatedUser.createdAt,
-        updatedAt: mockUpdatedUser.updatedAt
+        updatedAt: mockUpdatedUser.updatedAt,
       });
     });
 
@@ -401,7 +401,7 @@ describe('AuthService', () => {
         name: 'Old Name',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedUser = {
         id: userId,
@@ -409,7 +409,7 @@ describe('AuthService', () => {
         name: 'Updated Name Only',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -426,7 +426,7 @@ describe('AuthService', () => {
         name: 'Updated Name Only',
         timezone: 'UTC',
         createdAt: mockUpdatedUser.createdAt,
-        updatedAt: mockUpdatedUser.updatedAt
+        updatedAt: mockUpdatedUser.updatedAt,
       });
     });
 
@@ -474,7 +474,7 @@ describe('AuthService', () => {
         name: 'Test User',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockExistingUser = {
         id: 'other-user',
@@ -482,7 +482,7 @@ describe('AuthService', () => {
         name: 'Other User',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -505,7 +505,7 @@ describe('AuthService', () => {
         name: 'Old Name',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
       const mockUpdatedUser = {
         id: userId,
@@ -513,7 +513,7 @@ describe('AuthService', () => {
         name: 'Updated Name',
         timezone: 'UTC',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       mockUserRepository.findById.mockResolvedValue(mockUser);
@@ -532,7 +532,7 @@ describe('AuthService', () => {
         name: 'Updated Name',
         timezone: 'UTC',
         createdAt: mockUpdatedUser.createdAt,
-        updatedAt: mockUpdatedUser.updatedAt
+        updatedAt: mockUpdatedUser.updatedAt,
       });
     });
   });

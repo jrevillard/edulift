@@ -72,7 +72,7 @@ describe('BaseEmailService URL Generation', () => {
         groupName: 'Test Group',
         inviteCode: 'GRP123',
         role: 'MEMBER',
-        platform: 'native'
+        platform: 'native',
       };
 
       await emailService.sendGroupInvitation(groupData);
@@ -85,7 +85,7 @@ describe('BaseEmailService URL Generation', () => {
         familyName: 'Test Family',
         inviteCode: 'FAM123',
         role: 'MEMBER',
-        platform: 'native'
+        platform: 'native',
       };
 
       await emailService.sendFamilyInvitation('test@example.com', familyData);
@@ -98,7 +98,7 @@ describe('BaseEmailService URL Generation', () => {
         datetime: '2024-01-15T08:00:00Z',
         assignedChildren: ['Emma', 'Lucas'],
         groupName: 'Test Group',
-        changeType: 'SLOT_CREATED'
+        changeType: 'SLOT_CREATED',
       };
 
       await emailService.sendScheduleSlotNotification('test@example.com', notificationData, 'native');
@@ -110,7 +110,7 @@ describe('BaseEmailService URL Generation', () => {
         to: 'test@example.com',
         groupName: 'Test Group',
         inviteCode: 'GRP123',
-        role: 'MEMBER'
+        role: 'MEMBER',
         // platform not specified, should default to 'web'
       };
 
@@ -127,32 +127,32 @@ describe('BaseEmailService URL Generation', () => {
           path: 'auth/verify',
           params: new URLSearchParams({ token: 'test123', inviteCode: 'INV123' }),
           platform: 'web' as const,
-          expected: 'http://localhost:3000/auth/verify?token=test123&inviteCode=INV123'
+          expected: 'http://localhost:3000/auth/verify?token=test123&inviteCode=INV123',
         },
         {
           path: 'auth/verify',
           params: new URLSearchParams({ token: 'test123', inviteCode: 'INV123' }),
           platform: 'native' as const,
-          expected: 'edulift://auth/verify?token=test123&inviteCode=INV123'
+          expected: 'edulift://auth/verify?token=test123&inviteCode=INV123',
         },
         {
           path: 'families/join',
           params: new URLSearchParams({ code: 'FAM123' }),
           platform: 'native' as const,
-          expected: 'edulift://families/join?code=FAM123'
+          expected: 'edulift://families/join?code=FAM123',
         },
         {
           path: 'groups/join',
           params: new URLSearchParams({ code: 'GRP123' }),
           platform: 'native' as const,
-          expected: 'edulift://groups/join?code=GRP123'
+          expected: 'edulift://groups/join?code=GRP123',
         },
         {
           path: 'dashboard',
           params: undefined,
           platform: 'native' as const,
-          expected: 'edulift://dashboard'
-        }
+          expected: 'edulift://dashboard',
+        },
       ];
 
       testCases.forEach(({ path, params, platform, expected }) => {

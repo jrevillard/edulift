@@ -29,7 +29,7 @@ describe('PushNotificationService', () => {
       subscribeToTopic: jest.fn(),
       unsubscribeFromTopic: jest.fn(),
       sendToUser: jest.fn(),
-      sendToUsers: jest.fn()
+      sendToUsers: jest.fn(),
     } as any;
 
     mockFcmTokenService = {
@@ -40,7 +40,7 @@ describe('PushNotificationService', () => {
       deactivateToken: jest.fn().mockResolvedValue(undefined),
       deactivateTokens: jest.fn().mockResolvedValue(undefined),
       deleteToken: jest.fn().mockResolvedValue(undefined),
-      cleanupInactiveTokens: jest.fn().mockResolvedValue(0)
+      cleanupInactiveTokens: jest.fn().mockResolvedValue(0),
     } as any;
 
     // Mock the constructors to return our mock instances
@@ -50,7 +50,7 @@ describe('PushNotificationService', () => {
     const mockFirebaseConfig = {
       projectId: 'test-project',
       clientEmail: 'test@test-project.iam.gserviceaccount.com',
-      privateKey: 'test-key'
+      privateKey: 'test-key',
     };
 
     pushNotificationService = new PushNotificationService(mockPrismaClient, mockFirebaseConfig);
@@ -79,13 +79,13 @@ describe('PushNotificationService', () => {
   describe('sendToToken', () => {
     const mockNotification: PushNotificationData = {
       title: 'Test Title',
-      body: 'Test Body'
+      body: 'Test Body',
     };
 
     it('should send notification and update token last used on success', async () => {
       mockFirebaseService.sendToToken.mockResolvedValueOnce({
         success: true,
-        messageId: 'msg-123'
+        messageId: 'msg-123',
       });
 
       const result = await pushNotificationService.sendToToken('test-token', mockNotification);
@@ -99,7 +99,7 @@ describe('PushNotificationService', () => {
       mockFirebaseService.sendToToken.mockResolvedValueOnce({
         success: false,
         error: 'Token invalid',
-        invalidTokens: ['invalid-token']
+        invalidTokens: ['invalid-token'],
       });
 
       const result = await pushNotificationService.sendToToken('invalid-token', mockNotification);
@@ -121,7 +121,7 @@ describe('PushNotificationService', () => {
   describe('sendToTokens', () => {
     const mockNotification: PushNotificationData = {
       title: 'Batch Test',
-      body: 'Batch Body'
+      body: 'Batch Body',
     };
 
     it('should send notifications to multiple tokens and handle results', async () => {
@@ -132,13 +132,13 @@ describe('PushNotificationService', () => {
         results: [
           { token: 'token1', success: true, messageId: 'msg-1' },
           { token: 'token2', success: true, messageId: 'msg-2' },
-          { token: 'invalid-token', success: false, error: 'Invalid token' }
-        ]
+          { token: 'invalid-token', success: false, error: 'Invalid token' },
+        ],
       });
 
       const result = await pushNotificationService.sendToTokens(
         ['token1', 'token2', 'invalid-token'], 
-        mockNotification
+        mockNotification,
       );
 
       expect(result.successCount).toBe(2);
@@ -161,14 +161,14 @@ describe('PushNotificationService', () => {
   describe('sendToUser', () => {
     const mockNotification: PushNotificationData = {
       title: 'User Test',
-      body: 'User Body'
+      body: 'User Body',
     };
 
     it('should send notifications to all user tokens', async () => {
       
       mockFcmTokenService.getUserTokens.mockResolvedValueOnce([
         { token: 'token1', platform: 'android' },
-        { token: 'token2', platform: 'ios' }
+        { token: 'token2', platform: 'ios' },
       ] as any);
 
       mockFirebaseService.sendToTokens.mockResolvedValueOnce({
@@ -177,8 +177,8 @@ describe('PushNotificationService', () => {
         invalidTokens: [],
         results: [
           { token: 'token1', success: true, messageId: 'msg-1' },
-          { token: 'token2', success: true, messageId: 'msg-2' }
-        ]
+          { token: 'token2', success: true, messageId: 'msg-2' },
+        ],
       });
 
       const result = await pushNotificationService.sendToUser('user-1', mockNotification);
@@ -202,14 +202,14 @@ describe('PushNotificationService', () => {
   describe('sendToUsers', () => {
     const mockNotification: PushNotificationData = {
       title: 'Users Test',
-      body: 'Users Body'
+      body: 'Users Body',
     };
 
     it('should send notifications to all users tokens', async () => {
       
       mockFcmTokenService.getUsersTokens.mockResolvedValueOnce([
         { token: 'token1', userId: 'user-1' },
-        { token: 'token2', userId: 'user-2' }
+        { token: 'token2', userId: 'user-2' },
       ] as any);
 
       mockFirebaseService.sendToTokens.mockResolvedValueOnce({
@@ -218,8 +218,8 @@ describe('PushNotificationService', () => {
         invalidTokens: [],
         results: [
           { token: 'token1', success: true, messageId: 'msg-1' },
-          { token: 'token2', success: true, messageId: 'msg-2' }
-        ]
+          { token: 'token2', success: true, messageId: 'msg-2' },
+        ],
       });
 
       const result = await pushNotificationService.sendToUsers(['user-1', 'user-2'], mockNotification);
@@ -295,7 +295,7 @@ describe('PushNotificationService', () => {
           successCount: 1,
           failureCount: 0,
           invalidTokens: [],
-          results: [{ token: 'token1', success: true, messageId: 'msg-1' }]
+          results: [{ token: 'token1', success: true, messageId: 'msg-1' }],
         });
 
         const result = await pushNotificationService.sendScheduleSlotNotification(
@@ -305,8 +305,8 @@ describe('PushNotificationService', () => {
             datetime: '2024-03-15T08:00:00Z',
             changeType: 'SLOT_CREATED',
             assignedChildren: ['Child 1'],
-            vehicles: [{ name: 'Car 1', driverName: 'Driver 1' }]
-          }
+            vehicles: [{ name: 'Car 1', driverName: 'Driver 1' }],
+          },
         );
 
         expect(result.successCount).toBe(1);
@@ -318,9 +318,9 @@ describe('PushNotificationService', () => {
             data: expect.objectContaining({
               type: 'schedule_slot_change',
               groupName: 'Test Group',
-              changeType: 'SLOT_CREATED'
-            })
-          })
+              changeType: 'SLOT_CREATED',
+            }),
+          }),
         );
         
         sendToUsersSpy.mockRestore();
@@ -334,7 +334,7 @@ describe('PushNotificationService', () => {
           successCount: 1,
           failureCount: 0,
           invalidTokens: [],
-          results: [{ token: 'token1', success: true, messageId: 'msg-1' }]
+          results: [{ token: 'token1', success: true, messageId: 'msg-1' }],
         });
 
         const result = await pushNotificationService.sendFamilyInvitationNotification(
@@ -342,8 +342,8 @@ describe('PushNotificationService', () => {
           {
             familyName: 'Test Family',
             inviterName: 'John Doe',
-            inviteCode: 'ABC123'
-          }
+            inviteCode: 'ABC123',
+          },
         );
 
         expect(result.successCount).toBe(1);
@@ -355,9 +355,9 @@ describe('PushNotificationService', () => {
             data: expect.objectContaining({
               type: 'family_invitation',
               familyName: 'Test Family',
-              inviteCode: 'ABC123'
-            })
-          })
+              inviteCode: 'ABC123',
+            }),
+          }),
         );
         
         sendToUserSpy.mockRestore();
@@ -371,7 +371,7 @@ describe('PushNotificationService', () => {
           successCount: 1,
           failureCount: 0,
           invalidTokens: [],
-          results: [{ token: 'token1', success: true, messageId: 'msg-1' }]
+          results: [{ token: 'token1', success: true, messageId: 'msg-1' }],
         });
 
         const result = await pushNotificationService.sendGroupInvitationNotification(
@@ -379,8 +379,8 @@ describe('PushNotificationService', () => {
           {
             groupName: 'Test Group',
             inviterName: 'Jane Smith',
-            inviteCode: 'XYZ789'
-          }
+            inviteCode: 'XYZ789',
+          },
         );
 
         expect(result.successCount).toBe(1);
@@ -392,9 +392,9 @@ describe('PushNotificationService', () => {
             data: expect.objectContaining({
               type: 'group_invitation',
               groupName: 'Test Group',
-              inviteCode: 'XYZ789'
-            })
-          })
+              inviteCode: 'XYZ789',
+            }),
+          }),
         );
         
         sendToUserSpy.mockRestore();

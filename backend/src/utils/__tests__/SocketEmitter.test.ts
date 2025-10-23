@@ -49,8 +49,8 @@ describe('SocketEmitter', () => {
         {
           scheduleSlotId,
           groupId,
-          ...additionalData
-        }
+          ...additionalData,
+        },
       );
     });
 
@@ -65,8 +65,8 @@ describe('SocketEmitter', () => {
         {
           scheduleSlotId,
           groupId,
-          ...slotData
-        }
+          ...slotData,
+        },
       );
     });
 
@@ -78,8 +78,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.SCHEDULE_SLOT_DELETED,
         {
           scheduleSlotId,
-          groupId
-        }
+          groupId,
+        },
       );
     });
 
@@ -93,8 +93,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.SCHEDULE_UPDATED,
         {
           groupId,
-          ...scheduleData
-        }
+          ...scheduleData,
+        },
       );
     });
 
@@ -106,8 +106,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED,
         {
           scheduleSlotId,
-          groupId
-        }
+          groupId,
+        },
       );
     });
   });
@@ -125,8 +125,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.GROUP_UPDATED,
         {
           groupId,
-          ...groupData
-        }
+          ...groupData,
+        },
       );
     });
 
@@ -137,8 +137,8 @@ describe('SocketEmitter', () => {
         groupId,
         SOCKET_EVENTS.GROUP_UPDATED,
         {
-          groupId
-        }
+          groupId,
+        },
       );
     });
   });
@@ -158,8 +158,8 @@ describe('SocketEmitter', () => {
         {
           userId,
           familyId,
-          ...childData
-        }
+          ...childData,
+        },
       );
     });
 
@@ -174,8 +174,8 @@ describe('SocketEmitter', () => {
         {
           userId,
           familyId,
-          ...childData
-        }
+          ...childData,
+        },
       );
     });
 
@@ -190,8 +190,8 @@ describe('SocketEmitter', () => {
         {
           userId,
           familyId,
-          ...childData
-        }
+          ...childData,
+        },
       );
     });
 
@@ -203,8 +203,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.CHILD_ADDED,
         {
           userId,
-          familyId
-        }
+          familyId,
+        },
       );
     });
   });
@@ -224,8 +224,8 @@ describe('SocketEmitter', () => {
         {
           userId,
           familyId,
-          ...vehicleData
-        }
+          ...vehicleData,
+        },
       );
     });
 
@@ -240,8 +240,8 @@ describe('SocketEmitter', () => {
         {
           userId,
           familyId,
-          ...vehicleData
-        }
+          ...vehicleData,
+        },
       );
     });
 
@@ -256,8 +256,8 @@ describe('SocketEmitter', () => {
         {
           userId,
           familyId,
-          ...vehicleData
-        }
+          ...vehicleData,
+        },
       );
     });
   });
@@ -275,8 +275,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.FAMILY_MEMBER_JOINED,
         {
           familyId,
-          ...memberData
-        }
+          ...memberData,
+        },
       );
     });
 
@@ -290,8 +290,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.FAMILY_MEMBER_LEFT,
         {
           familyId,
-          ...memberData
-        }
+          ...memberData,
+        },
       );
     });
 
@@ -305,8 +305,8 @@ describe('SocketEmitter', () => {
         SOCKET_EVENTS.FAMILY_UPDATED,
         {
           familyId,
-          ...familyData
-        }
+          ...familyData,
+        },
       );
     });
   });
@@ -328,7 +328,7 @@ describe('SocketEmitter', () => {
       SocketEmitter.broadcastScheduleSlotUpdate('group-123', 'slot-456');
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        'SocketHandler not initialized, skipping WebSocket emission'
+        'SocketHandler not initialized, skipping WebSocket emission',
       );
     });
 
@@ -361,7 +361,7 @@ describe('SocketEmitter', () => {
         scheduleSlotId,
         groupId,
         capacity: 8,
-        driverId: 'driver-789'
+        driverId: 'driver-789',
       });
     });
 
@@ -380,7 +380,7 @@ describe('SocketEmitter', () => {
         userId,
         familyId,
         childId: 'child-789',
-        name: 'Test Child'
+        name: 'Test Child',
       });
     });
 
@@ -390,7 +390,7 @@ describe('SocketEmitter', () => {
       const [, , actualData] = mockSocketHandler.broadcastToGroup.mock.calls[0];
       expect(actualData).toEqual({
         scheduleSlotId: 'slot-456',
-        groupId: 'group-123'
+        groupId: 'group-123',
       });
     });
   });

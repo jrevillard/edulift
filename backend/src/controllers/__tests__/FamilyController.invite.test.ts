@@ -8,12 +8,19 @@ import { FamilyRole } from '../../types/family';
 // Mock services
 const mockFamilyService = {
   getUserFamily: jest.fn(),
-  inviteMember: jest.fn()
+  inviteMember: jest.fn(),
 } as unknown as FamilyService;
 
 const mockFamilyAuthService = {
-  requireFamilyRole: jest.fn()
+  requireFamilyRole: jest.fn(),
 } as unknown as FamilyAuthService;
+
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+};
 
 describe('FamilyController - inviteMember', () => {
   let familyController: FamilyController;
@@ -21,7 +28,7 @@ describe('FamilyController - inviteMember', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    familyController = new FamilyController(mockFamilyService, mockFamilyAuthService);
+    familyController = new FamilyController(mockFamilyService, mockFamilyAuthService, mockLogger);
     
     app = express();
     app.use(express.json());
@@ -31,7 +38,7 @@ describe('FamilyController - inviteMember', () => {
       next();
     });
     app.post('/families/:familyId/invite', (req, res) => 
-      familyController.inviteMember(req as any, res)
+      familyController.inviteMember(req as any, res),
     );
   });
 
@@ -40,13 +47,13 @@ describe('FamilyController - inviteMember', () => {
       email: 'newmember@example.com',
       role: 'MEMBER',
       personalMessage: 'Welcome to our family!',
-      platform: 'native'
+      platform: 'native',
     };
 
     const mockFamily = {
       id: 'family-456',
       name: 'Test Family',
-      inviteCode: 'ABC123'
+      inviteCode: 'ABC123',
     };
 
     const mockInvitationResult = {
@@ -67,8 +74,8 @@ describe('FamilyController - inviteMember', () => {
       invitedByUser: {
         id: 'user-123',
         name: 'Test User',
-        email: 'testuser@example.com'
-      }
+        email: 'testuser@example.com',
+      },
     };
 
     // Setup mocks
@@ -84,7 +91,7 @@ describe('FamilyController - inviteMember', () => {
     expect(response.body).toEqual({
       success: true,
       data: mockInvitationResult,
-      message: 'Invitation sent successfully'
+      message: 'Invitation sent successfully',
     });
 
     // Verify service calls
@@ -93,7 +100,7 @@ describe('FamilyController - inviteMember', () => {
     expect(mockFamilyService.inviteMember).toHaveBeenCalledWith('family-456', {
       email: 'newmember@example.com',
       role: 'MEMBER',
-      personalMessage: 'Welcome to our family!'
+      personalMessage: 'Welcome to our family!',
     }, 'user-123', 'native');
   });
 
@@ -105,7 +112,7 @@ describe('FamilyController - inviteMember', () => {
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       success: false,
-      error: 'Email is required'
+      error: 'Email is required',
     });
   });
 
@@ -114,13 +121,13 @@ describe('FamilyController - inviteMember', () => {
       .post('/families/family-456/invite')
       .send({ 
         email: 'test@example.com',
-        role: 'INVALID_ROLE' 
+        role: 'INVALID_ROLE', 
       });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       success: false,
-      error: 'Invalid role'
+      error: 'Invalid role',
     });
   });
 
@@ -132,33 +139,33 @@ describe('FamilyController - inviteMember', () => {
       .post('/families/family-456/invite')
       .send({ 
         email: 'test@example.com',
-        role: 'MEMBER' 
+        role: 'MEMBER', 
       });
 
     expect(response.status).toBe(403);
     expect(response.body).toEqual({
       success: false,
-      error: 'Access denied: not a member of this family'
+      error: 'Access denied: not a member of this family',
     });
   });
 
   it('should return 403 if user is not admin', async () => {
     const mockFamily = {
       id: 'family-456',
-      name: 'Test Family'
+      name: 'Test Family',
     };
 
     // Setup mocks - user in family but not admin
     (mockFamilyService.getUserFamily as jest.Mock).mockResolvedValue(mockFamily);
     (mockFamilyAuthService.requireFamilyRole as jest.Mock).mockRejectedValue(
-      new Error('INSUFFICIENT_PERMISSIONS')
+      new Error('INSUFFICIENT_PERMISSIONS'),
     );
 
     const response = await request(app)
       .post('/families/family-456/invite')
       .send({ 
         email: 'test@example.com',
-        role: 'MEMBER' 
+        role: 'MEMBER', 
       });
 
     expect(response.status).toBe(403);
@@ -170,12 +177,12 @@ describe('FamilyController - inviteMember', () => {
     const mockFamily = {
       id: 'family-456',
       name: 'Test Family',
-      inviteCode: 'ABC123'
+      inviteCode: 'ABC123',
     };
 
     const mockInvitationResult = {
       inviteCode: 'ABC123',
-      email: 'test@example.com'
+      email: 'test@example.com',
     };
 
     // Setup mocks
@@ -191,7 +198,7 @@ describe('FamilyController - inviteMember', () => {
     expect(mockFamilyService.inviteMember).toHaveBeenCalledWith('family-456', {
       email: 'test@example.com',
       role: FamilyRole.MEMBER,
-      personalMessage: undefined
+      personalMessage: undefined,
     }, 'user-123', 'web');
   });
 });

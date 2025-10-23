@@ -209,7 +209,7 @@ describe('DashboardController', () => {
       // Mock getUserWithFamily to return user with family
       mockDashboardServiceInstance.getUserWithFamily.mockResolvedValue({
         id: 'user-123',
-        familyMemberships: [{ familyId: 'family-123' }]
+        familyMemberships: [{ familyId: 'family-123' }],
       } as any);
       
       mockDashboardServiceInstance.getRecentActivityForFamily.mockResolvedValue(mockActivities);
@@ -232,7 +232,7 @@ describe('DashboardController', () => {
       // Mock getUserWithFamily to return user without family
       mockDashboardServiceInstance.getUserWithFamily.mockResolvedValue({
         id: 'user-123',
-        familyMemberships: []
+        familyMemberships: [],
       } as any);
       
       mockDashboardServiceInstance.getRecentActivityForUser.mockResolvedValue([]);

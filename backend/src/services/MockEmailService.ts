@@ -57,7 +57,7 @@ export class MockEmailService extends BaseEmailService {
       }
     } else {
       // Other emails - generic format
-      console.log(`\n📧 DEVELOPMENT MODE - Email`);
+      console.log('\n📧 DEVELOPMENT MODE - Email');
       console.log('==========================');
       console.log(`📧 To: ${to}`);
       console.log(`📝 Subject: ${subject}`);

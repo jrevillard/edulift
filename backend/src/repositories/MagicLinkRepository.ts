@@ -27,8 +27,8 @@ export class MagicLinkRepository {
         userId: data.userId,
         expiresAt: data.expiresAt,
         codeChallenge: data.codeChallenge,
-        token
-      }
+        token,
+      },
     });
   }
 
@@ -38,9 +38,9 @@ export class MagicLinkRepository {
         token,
         used: false,
         expiresAt: {
-          gt: new Date()
-        }
-      }
+          gt: new Date(),
+        },
+      },
     });
   }
 
@@ -49,12 +49,17 @@ export class MagicLinkRepository {
    * This method should be used instead of findValidToken for PKCE-protected flows
    */
   async findValidTokenWithPKCE(token: string, codeChallenge?: string): Promise<MagicLink | null> {
-    const where: any = {
+    const where: {
+      token: string;
+      used: boolean;
+      expiresAt: { gt: Date };
+      codeChallenge?: string;
+    } = {
       token,
       used: false,
       expiresAt: {
-        gt: new Date()
-      }
+        gt: new Date(),
+      },
     };
 
     // If codeChallenge is provided, include it in the query for additional security
@@ -68,7 +73,7 @@ export class MagicLinkRepository {
   async markAsUsed(token: string): Promise<void> {
     await this.prisma.magicLink.updateMany({
       where: { token },
-      data: { used: true }
+      data: { used: true },
     });
   }
 
@@ -77,9 +82,9 @@ export class MagicLinkRepository {
       where: {
         OR: [
           { used: true },
-          { expiresAt: { lt: new Date() } }
-        ]
-      }
+          { expiresAt: { lt: new Date() } },
+        ],
+      },
     });
 
     return result.count;
@@ -92,7 +97,7 @@ export class MagicLinkRepository {
   async findUserTokens(userId: string): Promise<MagicLink[]> {
     return this.prisma.magicLink.findMany({
       where: { userId },
-      orderBy: { expiresAt: 'desc' }
+      orderBy: { expiresAt: 'desc' },
     });
   }
 
@@ -100,9 +105,9 @@ export class MagicLinkRepository {
     await this.prisma.magicLink.updateMany({
       where: { 
         userId,
-        used: false 
+        used: false, 
       },
-      data: { used: true }
+      data: { used: true },
     });
   }
 }

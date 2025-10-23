@@ -10,11 +10,11 @@ const router = Router();
 
 // Validation schemas
 const ChildParamsSchema = z.object({
-  childId: z.string().cuid('Invalid child ID format')
+  childId: z.string().cuid('Invalid child ID format'),
 });
 
 const WeekQuerySchema = z.object({
-  week: z.string().optional()
+  week: z.string().optional(),
 });
 
 // All routes require authentication
@@ -29,53 +29,53 @@ router.get('/', asyncHandler(childController.getChildren));
 // Get specific child
 router.get('/:childId', 
   validateParams(ChildParamsSchema),
-  asyncHandler(childController.getChild)
+  asyncHandler(childController.getChild),
 );
 
 // Update child - support both PUT and PATCH methods
 router.put('/:childId', 
   validateParams(ChildParamsSchema),
-  asyncHandler(childController.updateChild)
+  asyncHandler(childController.updateChild),
 );
 
 router.patch('/:childId', 
   validateParams(ChildParamsSchema),
-  asyncHandler(childController.updateChild)
+  asyncHandler(childController.updateChild),
 );
 
 // Delete child
 router.delete('/:childId', 
   validateParams(ChildParamsSchema),
-  asyncHandler(childController.deleteChild)
+  asyncHandler(childController.deleteChild),
 );
 
 // Get child's trip assignments
 router.get('/:childId/assignments', 
   validateParams(ChildParamsSchema),
   validateQuery(WeekQuerySchema),
-  asyncHandler(childController.getChildAssignments)
+  asyncHandler(childController.getChildAssignments),
 );
 
 // Group membership routes
 router.post('/:childId/groups/:groupId',
   validateParams(z.object({
     childId: z.string().cuid('Invalid child ID format'),
-    groupId: z.string().cuid('Invalid group ID format')
+    groupId: z.string().cuid('Invalid group ID format'),
   })),
-  asyncHandler(childController.addChildToGroup)
+  asyncHandler(childController.addChildToGroup),
 );
 
 router.delete('/:childId/groups/:groupId',
   validateParams(z.object({
     childId: z.string().cuid('Invalid child ID format'),
-    groupId: z.string().cuid('Invalid group ID format')
+    groupId: z.string().cuid('Invalid group ID format'),
   })),
-  asyncHandler(childController.removeChildFromGroup)
+  asyncHandler(childController.removeChildFromGroup),
 );
 
 router.get('/:childId/groups',
   validateParams(ChildParamsSchema),
-  asyncHandler(childController.getChildGroupMemberships)
+  asyncHandler(childController.getChildGroupMemberships),
 );
 
 export default router;

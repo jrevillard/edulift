@@ -72,13 +72,13 @@ describe('GroupService.updateGroup', () => {
       updatedAt: new Date(),
       ownerFamily: {
         id: 'family123',
-        name: 'Test Family'
+        name: 'Test Family',
       },
       familyMembers: [], // Required for calculateUserRoleInGroup
       _count: {
         familyMembers: 1,
-        scheduleSlots: 0
-      }
+        scheduleSlots: 0,
+      },
     };
 
     beforeEach(() => {
@@ -120,8 +120,8 @@ describe('GroupService.updateGroup', () => {
       expect(mockPrisma.group.findUnique).toHaveBeenNthCalledWith(1, {
         where: { id: 'group123' },
         include: {
-          familyMembers: true
-        }
+          familyMembers: true,
+        },
       });
 
       // Second call: fetch complete group after update
@@ -130,8 +130,8 @@ describe('GroupService.updateGroup', () => {
         include: expect.objectContaining({
           ownerFamily: expect.any(Object),
           familyMembers: true,
-          _count: expect.any(Object)
-        })
+          _count: expect.any(Object),
+        }),
       });
 
       expect(mockActivityLogRepo.createActivity).toHaveBeenCalledWith({
@@ -155,7 +155,7 @@ describe('GroupService.updateGroup', () => {
         userRole: 'ADMIN', // Changed from 'OWNER' to 'ADMIN'
         ownerFamily: mockUpdatedGroup.ownerFamily,
         familyCount: mockUpdatedGroup._count.familyMembers,
-        scheduleCount: mockUpdatedGroup._count.scheduleSlots
+        scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
 
@@ -197,7 +197,7 @@ describe('GroupService.updateGroup', () => {
         userRole: 'ADMIN',
         ownerFamily: mockUpdatedGroup.ownerFamily,
         familyCount: mockUpdatedGroup._count.familyMembers,
-        scheduleCount: mockUpdatedGroup._count.scheduleSlots
+        scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
 
@@ -240,7 +240,7 @@ describe('GroupService.updateGroup', () => {
         userRole: 'ADMIN',
         ownerFamily: mockUpdatedGroup.ownerFamily,
         familyCount: mockUpdatedGroup._count.familyMembers,
-        scheduleCount: mockUpdatedGroup._count.scheduleSlots
+        scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
 
@@ -273,7 +273,7 @@ describe('GroupService.updateGroup', () => {
         inviteCode: mockUpdatedGroup.inviteCode,
         ownerFamily: mockUpdatedGroup.ownerFamily,
         familyCount: mockUpdatedGroup._count.familyMembers,
-        scheduleCount: mockUpdatedGroup._count.scheduleSlots
+        scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
 
@@ -306,7 +306,7 @@ describe('GroupService.updateGroup', () => {
         userRole: 'ADMIN',
         ownerFamily: mockUpdatedGroup.ownerFamily,
         familyCount: mockUpdatedGroup._count.familyMembers,
-        scheduleCount: mockUpdatedGroup._count.scheduleSlots
+        scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
   });
@@ -316,7 +316,7 @@ describe('GroupService.updateGroup', () => {
       mockPrisma.group.findUnique.mockResolvedValue(null);
 
       await expect(
-        groupService.updateGroup('nonexistent', 'user123', { name: 'New Name' })
+        groupService.updateGroup('nonexistent', 'user123', { name: 'New Name' }),
       ).rejects.toThrow(new AppError('Group not found', 404));
 
       expect(mockPrisma.group.update).not.toHaveBeenCalled();
@@ -340,7 +340,7 @@ describe('GroupService.updateGroup', () => {
       });
 
       await expect(
-        groupService.updateGroup('group123', 'user123', { name: 'New Name' })
+        groupService.updateGroup('group123', 'user123', { name: 'New Name' }),
       ).rejects.toThrow(new AppError('Only group owners and administrators can update group settings', 403));
 
       expect(mockPrisma.group.update).not.toHaveBeenCalled();
@@ -359,7 +359,7 @@ describe('GroupService.updateGroup', () => {
       mockPrisma.familyMember.findFirst.mockResolvedValue(null);
 
       await expect(
-        groupService.updateGroup('group123', 'user123', { name: 'New Name' })
+        groupService.updateGroup('group123', 'user123', { name: 'New Name' }),
       ).rejects.toThrow(new AppError('User has no family', 400));
 
       expect(mockPrisma.group.update).not.toHaveBeenCalled();
@@ -373,7 +373,7 @@ describe('GroupService.updateGroup', () => {
           {
             familyId: 'family456', // Member family
             role: 'MEMBER',
-          }
+          },
         ],
       };
 
@@ -388,7 +388,7 @@ describe('GroupService.updateGroup', () => {
       });
 
       await expect(
-        groupService.updateGroup('group123', 'user456', { name: 'New Name' })
+        groupService.updateGroup('group123', 'user456', { name: 'New Name' }),
       ).rejects.toThrow(new AppError('Only group owners and administrators can update group settings', 403));
 
       expect(mockPrisma.group.update).not.toHaveBeenCalled();
@@ -415,8 +415,8 @@ describe('GroupService.updateGroup', () => {
         familyMembers: [], // Required for calculateUserRoleInGroup
         _count: {
           familyMembers: 1,
-          scheduleSlots: 0
-        }
+          scheduleSlots: 0,
+        },
       };
 
       mockPrisma.group.findUnique
@@ -438,7 +438,7 @@ describe('GroupService.updateGroup', () => {
 
       // The actual implementation throws errors when activity logging fails
       await expect(
-        groupService.updateGroup('group123', 'user123', { name: 'Updated Name' })
+        groupService.updateGroup('group123', 'user123', { name: 'Updated Name' }),
       ).rejects.toThrow('Failed to update group');
     });
   });
@@ -463,8 +463,8 @@ describe('GroupService.updateGroup', () => {
         familyMembers: [], // Required for calculateUserRoleInGroup
         _count: {
           familyMembers: 1,
-          scheduleSlots: 0
-        }
+          scheduleSlots: 0,
+        },
       };
 
       mockPrisma.group.findUnique
@@ -496,7 +496,7 @@ describe('GroupService.updateGroup', () => {
           {
             familyId: 'family456', // Member family with ADMIN role
             role: 'ADMIN',
-          }
+          },
         ],
       };
 
@@ -513,12 +513,12 @@ describe('GroupService.updateGroup', () => {
           {
             familyId: 'family456',
             role: 'ADMIN',
-          }
+          },
         ],
         _count: {
           familyMembers: 1,
-          scheduleSlots: 0
-        }
+          scheduleSlots: 0,
+        },
       };
 
       mockPrisma.group.findUnique
@@ -550,7 +550,7 @@ describe('GroupService.updateGroup', () => {
           {
             familyId: 'family456', // Member family with MEMBER role
             role: 'MEMBER',
-          }
+          },
         ],
       };
 
@@ -565,7 +565,7 @@ describe('GroupService.updateGroup', () => {
       });
 
       await expect(
-        groupService.updateGroup('group123', 'user456', { name: 'New Name' })
+        groupService.updateGroup('group123', 'user456', { name: 'New Name' }),
       ).rejects.toThrow(new AppError('Only group owners and administrators can update group settings', 403));
 
       expect(mockPrisma.group.update).not.toHaveBeenCalled();
@@ -590,8 +590,8 @@ describe('GroupService.updateGroup', () => {
         familyMembers: [],
         _count: {
           familyMembers: 1,
-          scheduleSlots: 0
-        }
+          scheduleSlots: 0,
+        },
       };
 
       mockPrisma.group.findUnique

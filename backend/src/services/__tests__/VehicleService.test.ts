@@ -32,14 +32,14 @@ describe('VehicleService', () => {
       const vehicleData = {
         name: 'Honda Civic',
         capacity: 5,
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       const expectedVehicle = {
         id: 'vehicle123',
         ...vehicleData,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       // Mock user's family membership as ADMIN
@@ -47,7 +47,7 @@ describe('VehicleService', () => {
         userId: 'user123',
         familyId: 'family123',
         role: 'ADMIN',
-        family: { id: 'family123', name: 'Test Family' }
+        family: { id: 'family123', name: 'Test Family' },
       });
       
       (mockPrisma.vehicle.create as jest.Mock).mockResolvedValue(expectedVehicle);
@@ -58,8 +58,8 @@ describe('VehicleService', () => {
         data: {
           name: 'Honda Civic',
           capacity: 5,
-          familyId: 'family123'
-        }
+          familyId: 'family123',
+        },
       });
       expect(result).toEqual(expectedVehicle);
     });
@@ -68,7 +68,7 @@ describe('VehicleService', () => {
       const vehicleData = {
         name: 'Invalid Vehicle',
         capacity: 0,
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       await expect(vehicleService.createVehicle(vehicleData, 'user123')).rejects.toThrow(AppError);
@@ -80,7 +80,7 @@ describe('VehicleService', () => {
       const vehicleData = {
         name: 'Big Bus',
         capacity: 11,
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       await expect(vehicleService.createVehicle(vehicleData, 'user123')).rejects.toThrow(AppError);
@@ -92,7 +92,7 @@ describe('VehicleService', () => {
       const vehicleData = {
         name: 'Honda Civic',
         capacity: 5,
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       (mockPrisma.vehicle.create as jest.Mock).mockRejectedValue(new Error('Database error'));
@@ -112,7 +112,7 @@ describe('VehicleService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId,
         familyId,
-        family: mockFamily
+        family: mockFamily,
       });
 
       const expectedVehicles = [
@@ -120,14 +120,14 @@ describe('VehicleService', () => {
           id: 'vehicle1',
           name: 'Honda Civic',
           capacity: 5,
-          familyId
+          familyId,
         },
         {
           id: 'vehicle2',
           name: 'Toyota Camry',
           capacity: 4,
-          familyId
-        }
+          familyId,
+        },
       ];
 
       (mockPrisma.vehicle.findMany as jest.Mock).mockResolvedValue(expectedVehicles);
@@ -136,7 +136,7 @@ describe('VehicleService', () => {
 
       expect(mockPrisma.vehicle.findMany).toHaveBeenCalledWith({
         where: { familyId },
-        orderBy: [{ name: 'asc' }]
+        orderBy: [{ name: 'asc' }],
       });
       expect(result).toEqual(expectedVehicles);
     });
@@ -164,14 +164,14 @@ describe('VehicleService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId,
         familyId,
-        family: mockFamily
+        family: mockFamily,
       });
 
       const expectedVehicle = {
         id: vehicleId,
         name: 'Honda Civic',
         capacity: 5,
-        familyId
+        familyId,
       };
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(expectedVehicle);
@@ -179,7 +179,7 @@ describe('VehicleService', () => {
       const result = await vehicleService.getVehicleById(vehicleId, userId);
 
       expect(mockPrisma.vehicle.findFirst).toHaveBeenCalledWith({
-        where: { id: vehicleId, familyId }
+        where: { id: vehicleId, familyId },
       });
       expect(result).toEqual(expectedVehicle);
     });
@@ -194,7 +194,7 @@ describe('VehicleService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId,
         familyId,
-        family: mockFamily
+        family: mockFamily,
       });
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(null);
@@ -226,31 +226,31 @@ describe('VehicleService', () => {
         .mockResolvedValueOnce({ // For getUserFamily
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyVehicles
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getVehicleById -> getUserFamily
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingVehicle = {
         id: vehicleId,
         name: 'Old Name',
         capacity: 5,
-        familyId
+        familyId,
       };
 
       const expectedVehicle = {
         id: vehicleId,
         name: 'Updated Name',
         capacity: 6,
-        familyId
+        familyId,
       };
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);
@@ -262,8 +262,8 @@ describe('VehicleService', () => {
         where: { id: vehicleId },
         data: {
           name: 'Updated Name',
-          capacity: 6
-        }
+          capacity: 6,
+        },
       });
       expect(result).toEqual(expectedVehicle);
     });
@@ -282,24 +282,24 @@ describe('VehicleService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyVehicles call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getVehicleById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingVehicle = {
         id: vehicleId,
         name: 'Old Name',
         capacity: 5,
-        familyId
+        familyId,
       };
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);
@@ -323,24 +323,24 @@ describe('VehicleService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyVehicles call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getVehicleById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingVehicle = {
         id: vehicleId,
         name: 'Old Name',
         capacity: 5,
-        familyId
+        familyId,
       };
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);
@@ -365,24 +365,24 @@ describe('VehicleService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyVehicles call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getVehicleById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingVehicle = {
         id: vehicleId,
         name: 'Honda Civic',
         capacity: 5,
-        familyId
+        familyId,
       };
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);
@@ -391,7 +391,7 @@ describe('VehicleService', () => {
       const result = await vehicleService.deleteVehicle(vehicleId, userId);
 
       expect(mockPrisma.vehicle.delete).toHaveBeenCalledWith({
-        where: { id: vehicleId }
+        where: { id: vehicleId },
       });
       expect(result).toEqual({ success: true });
     });
@@ -409,24 +409,24 @@ describe('VehicleService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyVehicles call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getVehicleById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingVehicle = {
         id: vehicleId,
         name: 'Honda Civic',
         capacity: 5,
-        familyId
+        familyId,
       };
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);

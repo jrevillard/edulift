@@ -32,14 +32,14 @@ describe('ChildService', () => {
       const childData = {
         name: 'John Doe',
         age: 8,
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       const expectedChild = {
         id: 'child123',
         ...childData,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
@@ -50,8 +50,8 @@ describe('ChildService', () => {
         data: {
           name: 'John Doe',
           age: 8,
-          familyId: 'family123'
-        }
+          familyId: 'family123',
+        },
       });
       expect(result).toEqual(expectedChild);
     });
@@ -59,7 +59,7 @@ describe('ChildService', () => {
     it('should create child with undefined age as null', async () => {
       const childData = {
         name: 'Jane Doe',
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       const expectedChild = {
@@ -68,7 +68,7 @@ describe('ChildService', () => {
         age: null,
         familyId: 'family123',
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
@@ -79,15 +79,15 @@ describe('ChildService', () => {
         data: {
           name: 'Jane Doe',
           age: null,
-          familyId: 'family123'
-        }
+          familyId: 'family123',
+        },
       });
     });
 
     it('should throw error when creation fails', async () => {
       const childData = {
         name: 'John Doe',
-        familyId: 'family123'
+        familyId: 'family123',
       };
 
       (mockPrisma.child.create as jest.Mock).mockRejectedValue(new Error('Database error'));
@@ -107,7 +107,7 @@ describe('ChildService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId,
         familyId,
-        family: mockFamily
+        family: mockFamily,
       });
 
       const expectedChildren = [
@@ -119,16 +119,16 @@ describe('ChildService', () => {
           groupMemberships: [{
             childId: 'child1',
             groupId: 'group1',
-            group: { id: 'group1', name: 'School Group' }
-          }]
+            group: { id: 'group1', name: 'School Group' },
+          }],
         },
         {
           id: 'child2',
           name: 'Jane',
           age: 6,
           familyId,
-          groupMemberships: []
-        }
+          groupMemberships: [],
+        },
       ];
 
       (mockPrisma.child.findMany as jest.Mock).mockResolvedValue(expectedChildren);
@@ -143,13 +143,13 @@ describe('ChildService', () => {
               group: {
                 select: {
                   id: true,
-                  name: true
-                }
-              }
-            }
-          }
+                  name: true,
+                },
+              },
+            },
+          },
         },
-        orderBy: [{ name: 'asc' }]
+        orderBy: [{ name: 'asc' }],
       });
       expect(result).toEqual(expectedChildren);
     });
@@ -177,14 +177,14 @@ describe('ChildService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId,
         familyId,
-        family: mockFamily
+        family: mockFamily,
       });
 
       const expectedChild = {
         id: childId,
         name: 'John',
         age: 8,
-        familyId
+        familyId,
       };
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(expectedChild);
@@ -192,7 +192,7 @@ describe('ChildService', () => {
       const result = await childService.getChildById(childId, userId);
 
       expect(mockPrisma.child.findFirst).toHaveBeenCalledWith({
-        where: { id: childId, familyId }
+        where: { id: childId, familyId },
       });
       expect(result).toEqual(expectedChild);
     });
@@ -207,7 +207,7 @@ describe('ChildService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         userId,
         familyId,
-        family: mockFamily
+        family: mockFamily,
       });
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(null);
@@ -241,31 +241,31 @@ describe('ChildService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyChildren call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getChildById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingChild = {
         id: childId,
         name: 'Old Name',
         age: 8,
-        familyId
+        familyId,
       };
 
       const expectedChild = {
         id: childId,
         name: 'Updated Name',
         age: 9,
-        familyId
+        familyId,
       };
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
@@ -277,8 +277,8 @@ describe('ChildService', () => {
         where: { id: childId },
         data: {
           name: 'Updated Name',
-          age: 9
-        }
+          age: 9,
+        },
       });
       expect(result).toEqual(expectedChild);
     });
@@ -297,31 +297,31 @@ describe('ChildService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyChildren call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getChildById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingChild = {
         id: childId,
         name: 'Emmie',
         age: 12,
-        familyId
+        familyId,
       };
 
       const expectedChild = {
         id: childId,
         name: 'Emmie',
         age: 10, // Updated age
-        familyId
+        familyId,
       };
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
@@ -332,8 +332,8 @@ describe('ChildService', () => {
       expect(mockPrisma.child.update).toHaveBeenCalledWith({
         where: { id: childId },
         data: {
-          age: 10 // Only age should be updated
-        }
+          age: 10, // Only age should be updated
+        },
       });
       expect(result).toEqual(expectedChild);
     });
@@ -352,24 +352,24 @@ describe('ChildService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyChildren call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getChildById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingChild = {
         id: childId,
         name: 'Old Name',
         age: 8,
-        familyId
+        familyId,
       };
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
@@ -394,24 +394,24 @@ describe('ChildService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyChildren call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getChildById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingChild = {
         id: childId,
         name: 'John',
         age: 8,
-        familyId
+        familyId,
       };
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
@@ -420,7 +420,7 @@ describe('ChildService', () => {
       const result = await childService.deleteChild(childId, userId);
 
       expect(mockPrisma.child.delete).toHaveBeenCalledWith({
-        where: { id: childId }
+        where: { id: childId },
       });
       expect(result).toEqual({ success: true });
     });
@@ -438,24 +438,24 @@ describe('ChildService', () => {
         .mockResolvedValueOnce({ // For getUserFamily call #1
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         })
         .mockResolvedValueOnce({ // For canUserModifyFamilyChildren call #2
           userId,
           familyId,
-          role: 'ADMIN'
+          role: 'ADMIN',
         })
         .mockResolvedValueOnce({ // For getChildById -> getUserFamily call #3
           userId,
           familyId,
-          family: mockFamily
+          family: mockFamily,
         });
 
       const existingChild = {
         id: childId,
         name: 'John',
         age: 8,
-        familyId
+        familyId,
       };
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);

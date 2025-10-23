@@ -3,6 +3,8 @@
  * Prevents information leakage in production environments
  */
 
+import { logger } from './logger';
+
 export interface SecurityErrorDetails {
   userMessage: string;
   logMessage: string;
@@ -13,7 +15,7 @@ export interface SecurityErrorDetails {
  * Sanitizes error messages for production environment
  * Removes sensitive implementation details while preserving functionality
  */
-export function sanitizeSecurityError(error: Error): SecurityErrorDetails {
+export const sanitizeSecurityError = (error: Error): SecurityErrorDetails => {
   const isProduction = process.env.NODE_ENV === 'production';
   
   // SECURITY messages that should be sanitized in production
@@ -23,7 +25,7 @@ export function sanitizeSecurityError(error: Error): SecurityErrorDetails {
         ? 'Authentication failed. Please try again.' 
         : error.message,
       logMessage: error.message, // Full details for logging
-      statusCode: 401
+      statusCode: 401,
     };
   }
   
@@ -34,7 +36,7 @@ export function sanitizeSecurityError(error: Error): SecurityErrorDetails {
         ? 'Invalid authentication request. Please try again.'
         : error.message,
       logMessage: error.message,
-      statusCode: 400
+      statusCode: 400,
     };
   }
   
@@ -45,21 +47,21 @@ export function sanitizeSecurityError(error: Error): SecurityErrorDetails {
         ? 'Service temporarily unavailable. Please try again.'
         : error.message,
       logMessage: error.message,
-      statusCode: 500
+      statusCode: 500,
     };
   }
   
   // Generic fallback for security-sensitive operations
   const securityKeywords = ['token', 'validation', 'verification', 'challenge'];
   const containsSecurityKeyword = securityKeywords.some(keyword => 
-    error.message.toLowerCase().includes(keyword)
+    error.message.toLowerCase().includes(keyword),
   );
   
   if (containsSecurityKeyword && isProduction) {
     return {
       userMessage: 'Authentication error. Please try again.',
       logMessage: error.message,
-      statusCode: 401
+      statusCode: 401,
     };
   }
   
@@ -67,32 +69,32 @@ export function sanitizeSecurityError(error: Error): SecurityErrorDetails {
   return {
     userMessage: error.message,
     logMessage: error.message,
-    statusCode: 500
+    statusCode: 500,
   };
-}
+};
 
 /**
  * Logs security events with appropriate detail level
  */
-export function logSecurityEvent(event: string, details: any, level: 'info' | 'warn' | 'error' = 'warn') {
+export const logSecurityEvent = (event: string, details: unknown, level: 'info' | 'warn' | 'error' = 'warn'): void => {
   const timestamp = new Date().toISOString();
   const logEntry = {
     timestamp,
     event,
-    details: process.env.NODE_ENV === 'production' 
-      ? { ...details, sensitive: '[REDACTED]' } 
+    details: process.env.NODE_ENV === 'production'
+      ? { ...(details as Record<string, unknown>), sensitive: '[REDACTED]' }
       : details,
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   };
   
   switch (level) {
     case 'error':
-      console.error('🚨 SECURITY EVENT:', JSON.stringify(logEntry, null, 2));
+      logger.error('🚨 SECURITY EVENT', logEntry);
       break;
     case 'warn':
-      console.warn('⚠️ SECURITY WARNING:', JSON.stringify(logEntry, null, 2));
+      logger.warn('⚠️ SECURITY WARNING', logEntry);
       break;
     default:
-      console.log('ℹ️ SECURITY INFO:', JSON.stringify(logEntry, null, 2));
+      logger.info('ℹ️ SECURITY INFO', logEntry);
   }
-}
+};

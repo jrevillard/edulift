@@ -4,7 +4,7 @@ import {
   FamilyMember as PrismaFamilyMember,
   Child as PrismaChild,
   Vehicle as PrismaVehicle,
-  User as PrismaUser
+  User as PrismaUser,
 } from '@prisma/client';
 
 export { PrismaFamilyRole as FamilyRole };
@@ -53,7 +53,7 @@ export class FamilyError extends Error {
   constructor(
     public code: string,
     message: string,
-    public statusCode: number = 400
+    public statusCode: number = 400,
   ) {
     super(message);
     this.name = 'FamilyError';

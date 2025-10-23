@@ -23,6 +23,10 @@ EduLift simplifies and centralizes the organization of home-to-school trips for 
 - Follow the existing code style and architecture patterns
 - Respect the monorepo structure and dependencies between components
 
+Always use context7 when I need code generation, setup or configuration steps, or
+library/API documentation. This means you should automatically use the Context7 MCP
+tools to resolve library id and get library docs without me having to explicitly ask.
+
 ## 📁 Component-Specific Instructions
 
 Each component has its own AGENTS.md file with detailed instructions:
