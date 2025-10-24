@@ -1,3 +1,5 @@
+[![CD Pipeline](https://github.com/jrevillard/edulift/actions/workflows/cd-simple.yml/badge.svg)](https://github.com/jrevillard/edulift/actions/workflows/cd-simple.yml)
+
 # EduLift Documentation
 
 ## 📋 Main Documentation
