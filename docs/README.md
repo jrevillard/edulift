@@ -1,4 +1,4 @@
-[![CD Pipeline](https://github.com/jrevillard/edulift/actions/workflows/cd-simple.yml/badge.svg)](https://github.com/jrevillard/edulift/actions/workflows/cd-simple.yml)
+[![CI Pipeline](https://github.com/jrevillard/edulift/actions/workflows/ci.yml/badge.svg)](https://github.com/jrevillard/edulift/actions/workflows/ci.yml) [![CD Pipeline](https://github.com/jrevillard/edulift/actions/workflows/cd-simple.yml/badge.svg)](https://github.com/jrevillard/edulift/actions/workflows/cd-simple.yml)
 
 # EduLift Documentation
 
