@@ -56,9 +56,7 @@ services:
 
   # Backend API with production optimizations
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: jrevillard/edulift-backend:latest
     container_name: edulift-backend-prod
     restart: unless-stopped
     environment:
@@ -103,13 +101,7 @@ services:
 
   # Frontend with Nginx (all-in-one)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-      args:
-        VITE_API_URL: ${VITE_API_URL}
-        VITE_SOCKET_URL: ${VITE_SOCKET_URL}
-        VITE_SOCKET_FORCE_POLLING: ${VITE_SOCKET_FORCE_POLLING:-false}
+    image: jrevillard/edulift-frontend:latest
     container_name: edulift-frontend-prod
     restart: unless-stopped
     ports:
