@@ -566,7 +566,8 @@ export const createGroupController = (): GroupController => {
     createGroup: controller.createGroup.bind(controller),
     joinGroup: controller.joinGroup.bind(controller),
     getUserGroups: controller.getUserGroups.bind(controller),
-    // @ts-expect-error - getGroupFamilies method exists but TypeScript can't see it
+    getGroupFamilies: controller.getGroupFamilies.bind(controller),
+    // @ts-expect-error - Alias for backward compatibility
     getFamilies: controller.getGroupFamilies.bind(controller),
     updateFamilyRole: controller.updateFamilyRole.bind(controller),
     removeFamilyFromGroup: controller.removeFamilyFromGroup.bind(controller),
