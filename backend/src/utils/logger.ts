@@ -14,10 +14,12 @@ export interface Logger {
 
 export class AppLogger implements Logger {
   private context?: string;
+  private logLevel: string;
 
   constructor(context?: string) {
     // @ts-expect-error - exactOptionalPropertyTypes issue with optional context
     this.context = context;
+    this.logLevel = process.env.LOG_LEVEL?.toLowerCase() || 'info';
   }
 
   private formatMessage(message: string, meta?: Record<string, unknown>): string {
@@ -27,20 +29,35 @@ export class AppLogger implements Logger {
     return `${timestamp} ${prefix} ${message}${metaStr}`;
   }
 
+  private shouldLog(level: string): boolean {
+    const levels = ['error', 'warn', 'info', 'debug'];
+    const currentLevelIndex = levels.indexOf(this.logLevel);
+    const messageLevelIndex = levels.indexOf(level);
+    return messageLevelIndex <= currentLevelIndex;
+  }
+
   info(message: string, meta?: Record<string, unknown>): void {
-    console.info(this.formatMessage(message, meta));
+    if (this.shouldLog('info')) {
+      console.info(this.formatMessage(message, meta));
+    }
   }
 
   error(message: string, meta?: Record<string, unknown>): void {
-    console.error(this.formatMessage(message, meta));
+    if (this.shouldLog('error')) {
+      console.error(this.formatMessage(message, meta));
+    }
   }
 
   warn(message: string, meta?: Record<string, unknown>): void {
-    console.warn(this.formatMessage(message, meta));
+    if (this.shouldLog('warn')) {
+      console.warn(this.formatMessage(message, meta));
+    }
   }
 
   debug(message: string, meta?: Record<string, unknown>): void {
-    console.debug(this.formatMessage(message, meta));
+    if (this.shouldLog('debug')) {
+      console.debug(this.formatMessage(message, meta));
+    }
   }
 }
 
