@@ -12,6 +12,7 @@ import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { SOCKET_EVENTS } from '../shared/events';
 import { AuthorizationService } from '../services/AuthorizationService';
+import { createLogger } from '../utils/logger';
 
 // Extend Socket interface to include userId
 declare module 'socket.io' {
@@ -25,6 +26,7 @@ export class SocketHandler {
   socketService: SocketService;
   private authorizationService: AuthorizationService;
   private prisma: PrismaClient;
+  private logger = createLogger('socket');
   private rateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
 
   constructor(server: HTTPServer) {
@@ -98,7 +100,7 @@ export class SocketHandler {
         next();
       } catch (error) {
         if (process.env.NODE_ENV !== 'test') {
-          console.error('Socket authentication failed:', error);
+          this.logger.error('Socket authentication failed:', { error: error instanceof Error ? error.message : String(error) });
         }
         next(new Error('Authentication failed'));
       }
@@ -145,7 +147,7 @@ export class SocketHandler {
 
   private setupEventHandlers(): void {
     this.io.on('connection', async (socket: Socket) => {
-      console.log(`Socket connected: ${socket.id} for user: ${socket.userId}`);
+      this.logger.info(`Socket connected: ${socket.id} for user: ${socket.userId}`);
 
       try {
         // Handle initial connection and join user to groups
@@ -178,13 +180,13 @@ export class SocketHandler {
 
           await socket.join(`scheduleSlot-${data.scheduleSlotId}`);
           if (process.env.NODE_ENV !== 'test') {
-            console.log(`User ${socket.userId} joined schedule slot ${data.scheduleSlotId}`);
+            this.logger.info(`User ${socket.userId} joined schedule slot ${data.scheduleSlotId}`);
           }
         });
 
         socket.on(SOCKET_EVENTS.SCHEDULE_SLOT_LEAVE, async (data: { scheduleSlotId: string }) => {
           await socket.leave(`scheduleSlot-${data.scheduleSlotId}`);
-          console.log(`User ${socket.userId} left schedule slot ${data.scheduleSlotId}`);
+          this.logger.info(`User ${socket.userId} left schedule slot ${data.scheduleSlotId}`);
         });
 
         // Group-related events
@@ -313,37 +315,37 @@ export class SocketHandler {
         socket.on('join-group', async (groupId: string) => {
           if (socket.userId) {
             await socket.join(groupId);
-            console.log(`User ${socket.userId} joined group ${groupId}`);
+            this.logger.info(`User ${socket.userId} joined group ${groupId}`);
           }
         });
 
         socket.on('join-family', async (familyId: string) => {
           if (socket.userId) {
             await socket.join(familyId);
-            console.log(`User ${socket.userId} joined family ${familyId}`);
+            this.logger.info(`User ${socket.userId} joined family ${familyId}`);
           }
         });
 
         socket.on('authenticate', async (data: { userId: string }) => {
           if (socket.userId) {
             await socket.join(data.userId);
-            console.log(`User ${socket.userId} authenticated and joined user room ${data.userId}`);
+            this.logger.info(`User ${socket.userId} authenticated and joined user room ${data.userId}`);
           }
         });
 
         // Error handling
         socket.on(SOCKET_EVENTS.ERROR, (error) => {
-          console.error(`Socket error for user ${socket.userId}:`, error);
+          this.logger.error(`Socket error for user ${socket.userId}:`, { error: error instanceof Error ? error.message : String(error) });
         });
 
         // Disconnection handling
         socket.on('disconnect', async (reason) => {
-          console.log(`Socket disconnected: ${socket.id} for user: ${socket.userId}, reason: ${reason}`);
+          this.logger.info(`Socket disconnected: ${socket.id} for user: ${socket.userId}, reason: ${reason}`);
           await this.socketService.handleDisconnection(socket);
         });
 
       } catch (error) {
-        console.error('Error in socket connection handling:', error);
+        this.logger.error('Error in socket connection handling:', { error: error instanceof Error ? error.message : String(error) });
         socket.emit(SOCKET_EVENTS.ERROR, {
           type: 'CONNECTION_ERROR',
           message: 'Failed to establish connection',
@@ -363,7 +365,7 @@ export class SocketHandler {
       const groupIds = await this.authorizationService.getUserAccessibleGroupIds(socket.userId);
 
       if (groupIds.length === 0) {
-        console.warn(`User ${socket.userId} has no accessible groups`);
+        this.logger.warn(`User ${socket.userId} has no accessible groups`);
         // Still allow connection but with no groups
       }
 
@@ -381,7 +383,7 @@ export class SocketHandler {
       });
 
     } catch (error) {
-      console.error(`Error handling user connection for user ${socket.userId}:`, error);
+      this.logger.error(`Error handling user connection for user ${socket.userId}:`, { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -431,7 +433,7 @@ export class SocketHandler {
       }
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Error during cleanup:', error);
+        this.logger.error('Error during cleanup:', { error: error instanceof Error ? error.message : String(error) });
       }
       // Still attempt to disconnect Prisma even if socket cleanup fails
       if (this.prisma) {

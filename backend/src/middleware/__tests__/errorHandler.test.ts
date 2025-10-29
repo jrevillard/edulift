@@ -1,10 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError, createError, errorHandler, notFoundHandler } from '../errorHandler';
+import { logger } from '../../utils/logger';
 
 describe('Error Handler Middleware', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let mockNext: NextFunction;
+  let loggerSpy: jest.SpyInstance;
 
   beforeEach(() => {
     mockRequest = {};
@@ -13,6 +15,13 @@ describe('Error Handler Middleware', () => {
       json: jest.fn().mockReturnThis(),
     };
     mockNext = jest.fn();
+
+    // Spy on the logger instead of console
+    loggerSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    loggerSpy.mockRestore();
   });
 
   describe('AppError', () => {
@@ -44,15 +53,6 @@ describe('Error Handler Middleware', () => {
   });
 
   describe('errorHandler', () => {
-    let consoleSpy: jest.SpyInstance;
-
-    beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
-    afterEach(() => {
-      consoleSpy.mockRestore();
-    });
 
     it('should handle AppError with custom status and message', () => {
       const error = new AppError('Custom error message', 404);
@@ -111,7 +111,7 @@ describe('Error Handler Middleware', () => {
 
       errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error:', expect.objectContaining({
+      expect(loggerSpy).toHaveBeenCalledWith('Error:', expect.objectContaining({
         message: 'Test error for logging',
         statusCode: 500,
       }));
@@ -122,7 +122,7 @@ describe('Error Handler Middleware', () => {
 
       errorHandler(error, mockRequest as Request, mockResponse as Response, mockNext);
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error:', expect.objectContaining({
+      expect(loggerSpy).toHaveBeenCalledWith('Error:', expect.objectContaining({
         message: 'App error for logging',
         statusCode: 422,
       }));

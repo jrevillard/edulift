@@ -38,7 +38,7 @@ export class FamilyController {
         data: family,
       });
     } catch (error) {
-      console.error('Family creation error:', error);
+      this.logger.error('Family creation error:', { error: error instanceof Error ? error.message : String(error) });
       res.status(400).json({
         success: false,
         error: (error as Error).message,
@@ -222,7 +222,7 @@ export class FamilyController {
         message: 'Invitation sent successfully',
       });
     } catch (error) {
-      console.error('Family invitation error:', error);
+      this.logger.error('Family invitation error:', { error: error instanceof Error ? error.message : String(error) });
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
@@ -253,7 +253,7 @@ export class FamilyController {
         data: invitations,
       });
     } catch (error) {
-      console.error('Get pending invitations error:', error);
+      this.logger.error('Get pending invitations error:', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         error: (error as Error).message,
@@ -286,7 +286,7 @@ export class FamilyController {
         message: 'Invitation cancelled successfully',
       });
     } catch (error) {
-      console.error('Cancel invitation error:', error);
+      this.logger.error('Cancel invitation error:', { error: error instanceof Error ? error.message : String(error) });
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
@@ -335,7 +335,7 @@ export class FamilyController {
         message: 'Family name updated successfully',
       });
     } catch (error) {
-      console.error('FamilyController.updateFamilyName error:', error);
+      this.logger.error('FamilyController.updateFamilyName error:', { error: error instanceof Error ? error.message : String(error) });
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
@@ -369,7 +369,7 @@ export class FamilyController {
         message: 'Member removed successfully',
       });
     } catch (error) {
-      console.error('Remove member error:', error);
+      this.logger.error('Remove member error:', { error: error instanceof Error ? error.message : String(error) });
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
       res.status(statusCode).json({
         success: false,
@@ -414,7 +414,7 @@ export class FamilyController {
         });
       }
     } catch (error) {
-      console.error('Validate invite code error:', error);
+      this.logger.error('Validate invite code error:', { error: error instanceof Error ? error.message : String(error) });
       res.status(400).json({
         success: false,
         data: {
@@ -436,7 +436,7 @@ export class FamilyController {
         },
       });
     } catch (error) {
-      console.error('Leave family error:', error);
+      this.logger.error('Leave family error:', { error: error instanceof Error ? error.message : String(error) });
       
       // Handle specific business rule errors
       if (error instanceof Error && error.message.includes('LAST_ADMIN')) {

@@ -1,10 +1,13 @@
 import { PrismaClient } from '@prisma/client';
+import { createLogger } from '../utils/logger';
 
 /**
  * AuthorizationService - Handles authorization checks for WebSocket events and API endpoints
  * Ensures users can only access resources they have permission for
  */
 export class AuthorizationService {
+  private logger = createLogger('authorization');
+
   constructor(private prisma: PrismaClient) {}
 
   /**
@@ -47,7 +50,7 @@ export class AuthorizationService {
 
       return isOwnerFamily || isMemberFamily;
     } catch (error) {
-      console.error(`Error checking group access for user ${userId}, group ${groupId}:`, error);
+      this.logger.error(`Error checking group access for user ${userId}, group ${groupId}:`, { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -71,7 +74,7 @@ export class AuthorizationService {
       // Check if user can access the group
       return this.canUserAccessGroup(userId, scheduleSlot.groupId);
     } catch (error) {
-      console.error(`Error checking schedule slot access for user ${userId}, slot ${scheduleSlotId}:`, error);
+      this.logger.error(`Error checking schedule slot access for user ${userId}, slot ${scheduleSlotId}:`, { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -90,7 +93,7 @@ export class AuthorizationService {
 
       return !!familyMember;
     } catch (error) {
-      console.error(`Error checking family access for user ${userId}, family ${familyId}:`, error);
+      this.logger.error(`Error checking family access for user ${userId}, family ${familyId}:`, { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -128,7 +131,7 @@ export class AuthorizationService {
 
       return accessibleGroups.map(group => group.id);
     } catch (error) {
-      console.error(`Error getting accessible groups for user ${userId}:`, error);
+      this.logger.error(`Error getting accessible groups for user ${userId}:`, { error: error instanceof Error ? error.message : String(error) });
       return [];
     }
   }

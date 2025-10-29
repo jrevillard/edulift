@@ -9,6 +9,7 @@ import { createError, AppError } from '../middleware/errorHandler';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
+import { createLogger } from '../utils/logger';
 
 const CreateGroupSchema = z.object({
   name: z.string().min(1, 'Group name is required').max(100, 'Group name too long'),
@@ -37,6 +38,8 @@ const UpdateGroupSchema = z.object({
 });
 
 export class GroupController {
+  private logger = createLogger('group-controller');
+
   constructor(
     private groupService: GroupService,
     private schedulingService: SchedulingService,
@@ -368,7 +371,7 @@ export class GroupController {
         return;
       }
 
-      console.error('Invite family to group error:', error);
+      this.logger.error('Invite family to group error:', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         error: 'Failed to invite family to group',
@@ -451,7 +454,7 @@ export class GroupController {
       };
       res.status(200).json(response);
     } catch (error) {
-      console.error('Validate invitation code error:', error);
+      this.logger.error('Validate invitation code error:', { error: error instanceof Error ? error.message : String(error) });
       const response: ApiResponse = {
         success: false,
         error: 'Failed to validate invitation code',
@@ -494,7 +497,7 @@ export class GroupController {
       
       res.status(result.valid ? 200 : 400).json(response);
     } catch (error) {
-      console.error('Validate invitation code with auth error:', error);
+      this.logger.error('Validate invitation code with auth error:', { error: error instanceof Error ? error.message : String(error) });
       const response: ApiResponse = {
         success: false,
         error: 'Failed to validate invitation code',
@@ -535,7 +538,7 @@ export class GroupController {
 
       res.json(response);
     } catch (error: any) {
-      console.error('Error searching families:', error);
+      this.logger.error('Error searching families:', { error: error instanceof Error ? error.message : String(error) });
       const response: ApiResponse = {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to search families',

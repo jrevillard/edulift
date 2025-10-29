@@ -1,4 +1,6 @@
 import 'dotenv/config';
+// Import console override FIRST to ensure ALL console calls respect LOG_LEVEL
+import './utils/consoleOverride';
 import { createServer } from 'http';
 import app from './app';
 import { SocketHandler } from './socket/socketHandler';

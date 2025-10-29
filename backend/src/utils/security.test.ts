@@ -1,4 +1,5 @@
 import { sanitizeSecurityError, logSecurityEvent } from './security';
+import { logger } from './logger';
 
 describe('Security Utils', () => {
   describe('sanitizeSecurityError', () => {
@@ -87,15 +88,15 @@ describe('Security Utils', () => {
   });
 
   describe('logSecurityEvent', () => {
-    let consoleSpy: jest.SpyInstance;
+    let loggerSpy: jest.SpyInstance;
     const originalEnv = process.env.NODE_ENV;
 
     beforeEach(() => {
-      consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      loggerSpy = jest.spyOn(logger, 'warn').mockImplementation();
     });
 
     afterEach(() => {
-      consoleSpy.mockRestore();
+      loggerSpy.mockRestore();
       process.env.NODE_ENV = originalEnv;
     });
 
@@ -108,11 +109,16 @@ describe('Security Utils', () => {
         password: 'secret123',
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('⚠️ SECURITY WARNING'),
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('"sensitive":"[REDACTED]"'),
+      expect(loggerSpy).toHaveBeenCalledWith(
+        '⚠️ SECURITY WARNING',
+        expect.objectContaining({
+          event: 'AUTH_FAILED',
+          details: expect.objectContaining({
+            email: 'user@example.com',
+            password: 'secret123',
+            sensitive: '[REDACTED]'
+          })
+        })
       );
     });
 
@@ -124,26 +130,38 @@ describe('Security Utils', () => {
         email: 'user@example.com',
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('⚠️ SECURITY WARNING'),
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('user@example.com'),
+      expect(loggerSpy).toHaveBeenCalledWith(
+        '⚠️ SECURITY WARNING',
+        expect.objectContaining({
+          event: 'AUTH_FAILED',
+          details: expect.objectContaining({
+            email: 'user@example.com',
+            error: 'Invalid credentials'
+          })
+        })
       );
     });
 
     it('should support different log levels', () => {
-      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-      const infoSpy = jest.spyOn(console, 'info').mockImplementation();
+      const errorSpy = jest.spyOn(logger, 'error').mockImplementation();
+      const infoSpy = jest.spyOn(logger, 'info').mockImplementation();
 
       logSecurityEvent('CRITICAL_EVENT', { error: 'Critical issue' }, 'error');
       logSecurityEvent('INFO_EVENT', { info: 'Information' }, 'info');
 
       expect(errorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('🚨 SECURITY EVENT'),
+        '🚨 SECURITY EVENT',
+        expect.objectContaining({
+          event: 'CRITICAL_EVENT',
+          details: { error: 'Critical issue' }
+        })
       );
       expect(infoSpy).toHaveBeenCalledWith(
-        expect.stringContaining('ℹ️ SECURITY INFO'),
+        'ℹ️ SECURITY INFO',
+        expect.objectContaining({
+          event: 'INFO_EVENT',
+          details: { info: 'Information' }
+        })
       );
 
       errorSpy.mockRestore();

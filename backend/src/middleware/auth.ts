@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '../types';
+import { createLogger } from '../utils/logger';
 
 const prisma = new PrismaClient();
+const logger = createLogger('auth');
 
 export interface AuthenticatedRequest extends Request {
   userId: string;
@@ -104,7 +106,7 @@ export const authenticateToken = async (
           }
         }
       } catch (gracePeriodError) {
-        console.error('Grace period check error:', gracePeriodError);
+        logger.error('Grace period check error:', gracePeriodError);
       }
 
       // ✅ 401 = Unauthorized (token expired) → allows automatic refresh on client
@@ -117,7 +119,7 @@ export const authenticateToken = async (
       return;
     }
 
-    console.error('Token verification error:', error);
+    logger.error('Token verification error:', error);
 
     // ✅ 401 = Invalid token (any other JWT verification error)
     // Could be malformed, wrong signature, etc. - all auth issues, not permissions
@@ -208,14 +210,14 @@ export const authenticateTokenForRevocation = async (
       }
     } catch (userFetchError) {
       // User not found or DB error - continue anyway for logout
-      console.warn('[RFC 7009] User fetch failed during logout, continuing anyway:', userFetchError);
+      logger.warn('[RFC 7009] User fetch failed during logout, continuing anyway:', userFetchError);
     }
 
     next();
   } catch (error) {
     // RFC 7009: ANY error during token decode = accept and return 200
     // The token is unusable, which is the desired state
-    console.info('[RFC 7009] Token decode error during logout (compliant - accepting anyway):', error);
+    logger.info('[RFC 7009] Token decode error during logout (compliant - accepting anyway):', error);
 
     const response: ApiResponse = {
       success: true,
@@ -327,7 +329,7 @@ export const requireGroupAdmin = async (
 
     next();
   } catch (error) {
-    console.error('Group admin check error:', error);
+    logger.error('Group admin check error:', error);
     
     const response: ApiResponse = {
       success: false,

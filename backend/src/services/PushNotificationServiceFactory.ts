@@ -1,9 +1,11 @@
 import { PrismaClient } from '@prisma/client';
 import { PushNotificationService } from './PushNotificationService';
 import { FirebaseConfig } from './FirebaseService';
+import { createLogger } from '../utils/logger';
 
 export class PushNotificationServiceFactory {
   private static instance: PushNotificationService | null = null;
+  private static logger = createLogger('push-notification-factory');
 
   static getInstance(prisma: PrismaClient): PushNotificationService {
     if (!this.instance) {
@@ -13,13 +15,13 @@ export class PushNotificationServiceFactory {
   }
 
   private static createPushNotificationService(prisma: PrismaClient): PushNotificationService {
-    const isEnabled = process.env.FIREBASE_NOTIFICATIONS_ENABLED === 'true';
+    const isEnabled = (process.env.FIREBASE_NOTIFICATIONS_ENABLED || '').toLowerCase().trim() === 'true';
     
-    console.log('🔍 PushNotificationServiceFactory configuration check:');
-    console.log(`FIREBASE_NOTIFICATIONS_ENABLED: ${process.env.FIREBASE_NOTIFICATIONS_ENABLED || 'NOT SET'}`);
-    console.log(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || 'NOT SET'}`);
-    console.log(`FIREBASE_CLIENT_EMAIL: ${process.env.FIREBASE_CLIENT_EMAIL || 'NOT SET'}`);
-    console.log(`FIREBASE_PRIVATE_KEY: ${process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'NOT SET'}`);
+    PushNotificationServiceFactory.logger.debug('🔍 PushNotificationServiceFactory configuration check:');
+    PushNotificationServiceFactory.logger.debug(`FIREBASE_NOTIFICATIONS_ENABLED: ${process.env.FIREBASE_NOTIFICATIONS_ENABLED || 'NOT SET'}`);
+    PushNotificationServiceFactory.logger.debug(`FIREBASE_PROJECT_ID: ${process.env.FIREBASE_PROJECT_ID || 'NOT SET'}`);
+    PushNotificationServiceFactory.logger.debug(`FIREBASE_CLIENT_EMAIL: ${process.env.FIREBASE_CLIENT_EMAIL || 'NOT SET'}`);
+    PushNotificationServiceFactory.logger.debug(`FIREBASE_PRIVATE_KEY: ${process.env.FIREBASE_PRIVATE_KEY ? 'SET' : 'NOT SET'}`);
 
     if (isEnabled && this.hasFirebaseConfig()) {
       const firebaseConfig: FirebaseConfig = {
@@ -28,10 +30,10 @@ export class PushNotificationServiceFactory {
         privateKey: process.env.FIREBASE_PRIVATE_KEY!,
       };
 
-      console.log(`🔔 PushNotificationServiceFactory: Using Firebase push notifications for project: ${firebaseConfig.projectId}`);
+      PushNotificationServiceFactory.logger.info(`🔔 PushNotificationServiceFactory: Using Firebase push notifications for project: ${firebaseConfig.projectId}`);
       return new PushNotificationService(prisma, firebaseConfig);
     } else {
-      console.log('🔔 PushNotificationServiceFactory: Push notifications disabled or Firebase not configured');
+      PushNotificationServiceFactory.logger.warn('🔔 PushNotificationServiceFactory: Push notifications disabled or Firebase not configured');
       return new PushNotificationService(prisma);
     }
   }

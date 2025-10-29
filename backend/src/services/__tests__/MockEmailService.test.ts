@@ -1,22 +1,35 @@
-import { MockEmailService } from '../MockEmailService';
-import { BaseEmailService } from '../base/BaseEmailService';
+import { createLogger } from '../../utils/logger';
 
 describe('MockEmailService', () => {
-  let mockEmailService: MockEmailService;
-  let consoleLogSpy: jest.SpyInstance;
+  let mockEmailService: any;
+  let mockLogger: any;
+  let loggerInfoSpy: jest.SpyInstance;
 
   beforeEach(() => {
-    mockEmailService = new MockEmailService();
-    // Spy on console.log to capture output without polluting the test runner output
-    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    // Create a mock logger and spy on it
+    mockLogger = createLogger('MockEmailService');
+    loggerInfoSpy = jest.spyOn(mockLogger, 'info').mockImplementation(() => {});
+
+    // Mock the module to return our logger
+    jest.doMock('../../utils/logger', () => ({
+      createLogger: jest.fn(() => mockLogger),
+      logger: mockLogger
+    }));
+
+    // Clear module cache and create service with mocked logger
+    jest.resetModules();
+    const { MockEmailService: MockEmailServiceClass } = require('../MockEmailService');
+    mockEmailService = new MockEmailServiceClass();
   });
 
   afterEach(() => {
-    // Restore original console.log
-    consoleLogSpy.mockRestore();
+    loggerInfoSpy.mockRestore();
+    jest.resetModules();
+    jest.restoreAllMocks();
   });
 
   it('should be an instance of BaseEmailService', () => {
+    const { BaseEmailService } = require('../base/BaseEmailService');
     expect(mockEmailService).toBeInstanceOf(BaseEmailService);
   });
 
@@ -24,26 +37,37 @@ describe('MockEmailService', () => {
     it('should log the correct output for a standard web magic link', async () => {
       const email = 'test@example.com';
       const token = 'web-token-123';
-      
+
       await mockEmailService.sendMagicLink(email, token);
 
-      // Check that console.log was called with the expected mock email format
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('🔗 DEVELOPMENT MODE - Magic Link Email'));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`📧 To: ${email}`));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`🔑 Token: ${token}`));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`Token: ${token}`));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}`));
+      // Check that Pino logger calls console.info with the expected messages
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining('🔗 DEVELOPMENT MODE - Magic Link Email')
+      );
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`📧 To: ${email}`)
+      );
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`🔑 Token: ${token}`)
+      );
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}`)
+      );
     });
 
     it('should log the correct output for a magic link with an invite code', async () => {
         const email = 'invitee@example.com';
         const token = 'invite-token-456';
         const inviteCode = 'INVITE123';
-        
+
         await mockEmailService.sendMagicLink(email, token, inviteCode);
-  
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`Invite Code: ${inviteCode}`));
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}&inviteCode=${inviteCode}`));
+
+        expect(loggerInfoSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`Invite Code: ${inviteCode}`)
+        );
+        expect(loggerInfoSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}&inviteCode=${inviteCode}`)
+        );
     });
 
     it('should correctly log a provided native magicLinkUrl (e.g., for mobile)', async () => {
@@ -53,8 +77,12 @@ describe('MockEmailService', () => {
 
       await mockEmailService.sendMagicLink(email, token, undefined, magicLinkUrl);
 
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`🔑 Token: ${token}`));
-      expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`🌐 Magic Link: ${magicLinkUrl}`));
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`🔑 Token: ${token}`)
+      );
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`🌐 Magic Link: ${magicLinkUrl}`)
+      );
     });
   });
 
@@ -68,18 +96,26 @@ describe('MockEmailService', () => {
             role: 'MEMBER',
         });
 
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining('👥 DEVELOPMENT MODE - Group Invitation'));
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`🔗 Invite Code: ${inviteCode}`));
-        expect(consoleLogSpy).toHaveBeenCalledWith(expect.stringContaining(`🌐 Invite URL: https://app.edulift.com/groups/join?code=${inviteCode}`));
+        expect(loggerInfoSpy).toHaveBeenCalledWith(
+          expect.stringContaining('👥 DEVELOPMENT MODE - Group Invitation')
+        );
+        expect(loggerInfoSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`🔗 Invite Code: ${inviteCode}`)
+        );
+        expect(loggerInfoSpy).toHaveBeenCalledWith(
+          expect.stringContaining(`🌐 Invite URL: https://app.edulift.com/groups/join?code=${inviteCode}`)
+        );
     });
   });
 
   describe('verifyConnection', () => {
     it('should return true and log a confirmation message', async () => {
       const result = await mockEmailService.verifyConnection();
-      
+
       expect(result).toBe(true);
-      expect(consoleLogSpy).toHaveBeenCalledWith('📧 Mock email service is always connected in development');
+      expect(loggerInfoSpy).toHaveBeenCalledWith(
+        '📧 Mock email service is always connected in development'
+      );
     });
   });
 });

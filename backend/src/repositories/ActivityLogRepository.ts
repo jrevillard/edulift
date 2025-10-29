@@ -1,5 +1,8 @@
 // @ts-nocheck
 import { PrismaClient } from '@prisma/client';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ActivityLogRepository');
 
 export interface CreateActivityData {
   userId: string;
@@ -57,7 +60,7 @@ export class ActivityLogRepository {
       });
     } catch {
       // Fallback to mock if table doesn't exist yet
-      console.warn('ActivityLog table not available, returning mock data');
+      logger.warn('ActivityLog table not available, returning mock data', { userId: data.userId, actionType: data.actionType });
       const activity: ActivityLog = {
         id: `activity-${Date.now()}`,
         userId: data.userId,
@@ -91,7 +94,7 @@ export class ActivityLogRepository {
       });
     } catch {
       // Since ActivityLog table doesn't exist yet, fetch real data from other tables for family
-      console.warn('ActivityLog table not available, generating family-based activities from existing data');
+      logger.warn('ActivityLog table not available, generating family-based activities from existing data', { familyId });
       
       try {
         // Get recent data from various tables for the family
@@ -183,7 +186,7 @@ export class ActivityLogRepository {
         activities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
         return activities.slice(0, limit);
       } catch (fallbackError) {
-        console.error('Error generating family activities from existing data:', fallbackError);
+        logger.error('Error generating family activities from existing data', { familyId, error: fallbackError });
         return [];
       }
     }
@@ -198,7 +201,7 @@ export class ActivityLogRepository {
       });
     } catch {
       // Since ActivityLog table doesn't exist yet, fetch real data from other tables
-      console.warn('ActivityLog table not available, generating from existing data');
+      logger.warn('ActivityLog table not available, generating from existing data', { userId });
       
       try {
         // Get recent data from various tables
@@ -314,7 +317,7 @@ export class ActivityLogRepository {
         activities.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
         return activities.slice(0, limit);
       } catch (fallbackError) {
-        console.error('Error generating activities from existing data:', fallbackError);
+        logger.error('Error generating activities from existing data', { userId, error: fallbackError });
         return [];
       }
     }

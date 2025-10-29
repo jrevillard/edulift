@@ -533,7 +533,7 @@ export class FamilyService implements IFamilyService {
         name: validation.familyName || '',
       };
     } catch (error) {
-      this.logger.error('Error validating invite code:', error);
+      this.logger.error('Error validating invite code:', { error: error instanceof Error ? error.message : String(error) });
       return null;
     }
   }

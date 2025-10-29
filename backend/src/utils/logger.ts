@@ -1,9 +1,12 @@
 /**
- * Logger utility for application-wide logging
+ * Logger utility for application-wide logging using Pino
  *
- * This logger wraps console methods but provides a structured interface
- * that follows ESLint rules by using only allowed console methods.
+ * This logger provides a structured interface that respects LOG_LEVEL
+ * and uses Pino for high-performance structured logging.
  */
+
+import pino from 'pino';
+import * as os from 'os';
 
 export interface Logger {
   info(message: string, meta?: Record<string, unknown>): void;
@@ -12,59 +15,67 @@ export interface Logger {
   debug(message: string, meta?: Record<string, unknown>): void;
 }
 
-export class AppLogger implements Logger {
-  private context?: string;
-  private logLevel: string;
+class PinoAppLogger implements Logger {
+  private logger: pino.Logger;
+  private context: string;
 
   constructor(context?: string) {
-    // @ts-expect-error - exactOptionalPropertyTypes issue with optional context
-    this.context = context;
-    this.logLevel = process.env.LOG_LEVEL?.toLowerCase() || 'info';
-  }
+    this.context = context || 'main';
 
-  private formatMessage(message: string, meta?: Record<string, unknown>): string {
-    const timestamp = new Date().toISOString();
-    const prefix = this.context ? `[${this.context}]` : '';
-    const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
-    return `${timestamp} ${prefix} ${message}${metaStr}`;
-  }
+    // Configuration for development vs production
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const validLevels = ['error', 'warn', 'info', 'debug'];
+    const logLevel = validLevels.includes(process.env.LOG_LEVEL?.toLowerCase() || '')
+      ? process.env.LOG_LEVEL?.toLowerCase() || 'info'
+      : 'info';
 
-  private shouldLog(level: string): boolean {
-    const levels = ['error', 'warn', 'info', 'debug'];
-    const currentLevelIndex = levels.indexOf(this.logLevel);
-    const messageLevelIndex = levels.indexOf(level);
-    return messageLevelIndex <= currentLevelIndex;
+    const config: any = {
+      level: logLevel,
+      // Always include essential metadata
+      base: {
+        pid: process.pid,
+        hostname: os.hostname(),
+        service: 'edulift-backend',
+        context: this.context
+      }
+    };
+
+    // In development, use readable format
+    if (isDevelopment) {
+      config.transport = {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname'
+        }
+      };
+    }
+
+    this.logger = pino(config);
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
-    if (this.shouldLog('info')) {
-      console.info(this.formatMessage(message, meta));
-    }
+    this.logger.info({ message, ...meta });
   }
 
   error(message: string, meta?: Record<string, unknown>): void {
-    if (this.shouldLog('error')) {
-      console.error(this.formatMessage(message, meta));
-    }
+    this.logger.error({ message, ...meta });
   }
 
   warn(message: string, meta?: Record<string, unknown>): void {
-    if (this.shouldLog('warn')) {
-      console.warn(this.formatMessage(message, meta));
-    }
+    this.logger.warn({ message, ...meta });
   }
 
   debug(message: string, meta?: Record<string, unknown>): void {
-    if (this.shouldLog('debug')) {
-      console.debug(this.formatMessage(message, meta));
-    }
+    this.logger.debug({ message, ...meta });
   }
 }
 
 // Default logger instance for application-wide use
-export const logger = new AppLogger();
+export const logger = new PinoAppLogger();
 
 // Context-specific loggers
 export const createLogger = (context: string): Logger => {
-  return new AppLogger(context);
+  return new PinoAppLogger(context);
 };

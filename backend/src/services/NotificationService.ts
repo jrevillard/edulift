@@ -5,6 +5,9 @@ import { PushNotificationServiceFactory } from './PushNotificationServiceFactory
 import { UserRepository } from '../repositories/UserRepository';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
 import { PrismaClient } from '@prisma/client';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('NotificationService');
 
 export class NotificationService {
   private pushNotificationService: PushNotificationService;
@@ -28,7 +31,7 @@ export class NotificationService {
       const scheduleSlot = await this.scheduleSlotRepository.findByIdWithDetails(scheduleSlotId);
       
       if (!scheduleSlot) {
-        console.error('ScheduleSlot not found for notification');
+        logger.error('ScheduleSlot not found for notification');
         return;
       }
 
@@ -72,7 +75,7 @@ export class NotificationService {
       const emailNotificationPromises = recipientsToNotify.map(member =>
         this.emailService.sendScheduleSlotNotification(member.email, notificationData, platform)
           .catch(error => {
-            console.error(`Failed to send schedule slot email notification to ${member.email}:`, error);
+            logger.error(`Failed to send schedule slot email notification to ${member.email}:`, { error: error instanceof Error ? error.message : String(error) });
           }),
       );
 
@@ -91,14 +94,14 @@ export class NotificationService {
           })) || [],
         },
       ).catch(error => {
-        console.error('Failed to send schedule slot push notifications:', error);
+        logger.error('Failed to send schedule slot push notifications:', { error: error instanceof Error ? error.message : String(error) });
       });
 
       await Promise.allSettled([...emailNotificationPromises, pushNotificationPromise]);
       
-      console.log(`Sent ${changeType} notifications (email + push) for schedule slot ${scheduleSlotId} to ${recipientsToNotify.length} members`);
+      logger.info(`Sent ${changeType} notifications (email + push) for schedule slot ${scheduleSlotId} to ${recipientsToNotify.length} members`);
     } catch (error) {
-      console.error('Failed to send schedule slot notifications:', error);
+      logger.error('Failed to send schedule slot notifications:', { error: error instanceof Error ? error.message : String(error) });
     }
   }
 
@@ -127,7 +130,7 @@ export class NotificationService {
       const group = await this.userRepository.getGroupById(groupId);
       
       if (!group) {
-        console.error('Group not found for daily reminders');
+        logger.error('Group not found for daily reminders');
         return;
       }
 
@@ -197,15 +200,15 @@ export class NotificationService {
           formattedSlots,
           platform,
         ).catch(error => {
-          console.error(`Failed to send daily reminder to ${member.user.email}:`, error);
+          logger.error(`Failed to send daily reminder to ${member.user.email}`, { error });
         });
       });
 
       await Promise.allSettled(reminderPromises);
       
-      console.log(`Sent daily reminders to ${userSlots.size} users for group ${groupId}`);
+      logger.info(`Sent daily reminders to ${userSlots.size} users for group ${groupId}`, { groupId });
     } catch (error) {
-      console.error('Failed to send daily reminders:', error);
+      logger.error('Failed to send daily reminders', { error });
     }
   }
 
@@ -216,7 +219,7 @@ export class NotificationService {
       const group = await this.userRepository.getGroupById(groupId);
       
       if (!group) {
-        console.error('Group not found for weekly schedule');
+        logger.error('Group not found for weekly schedule', { groupId });
         return;
       }
 
@@ -268,15 +271,15 @@ export class NotificationService {
           scheduleData,
           platform,
         ).catch(error => {
-          console.error(`Failed to send weekly schedule to ${member.user.email}:`, error);
+          logger.error(`Failed to send weekly schedule to ${member.user.email}`, { email: member.user.email, error });
         }),
       );
 
       await Promise.allSettled(schedulePromises);
       
-      console.log(`Sent weekly schedule to ${groupMembers.length} members for group ${groupId}`);
+      logger.info(`Sent weekly schedule to ${groupMembers.length} members for group ${groupId}`, { groupId, memberCount: groupMembers.length });
     } catch (error) {
-      console.error('Failed to send weekly schedule:', error);
+      logger.error('Failed to send weekly schedule', { groupId, error });
     }
   }
 
@@ -424,8 +427,9 @@ export class NotificationService {
     changedBy: string,
   ): Promise<void> {
     try {
-      console.log(
+      logger.info(
         `Sending family name change notifications for family ${familyId}: "${oldName}" → "${newName}" (changed by ${changedBy})`,
+        { familyId, oldName, newName, changedBy }
       );
 
       // Get all family members
@@ -464,17 +468,19 @@ export class NotificationService {
           priority: 'normal',
         },
       ).catch(error => {
-        console.error('Failed to send family name change push notifications:', error);
+        logger.error('Failed to send family name change push notifications', { familyId, error });
       });
 
       await Promise.allSettled([...emailNotificationPromises, pushNotificationPromise]);
 
-      console.log(
+      logger.info(
         `Successfully sent ${familyMembers.length} notifications for family name change`,
+        { familyId, notificationCount: familyMembers.length }
       );
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to send family name change notifications: ${(error as Error).message}`,
+        { familyId, error }
       );
       throw error;
     }
@@ -489,23 +495,25 @@ export class NotificationService {
     try {
       // For now, we'll use simple logging
       // In production, this would integrate with email service
-      console.log(
+      logger.info(
         `📧 Family Name Change Notification sent to ${member.user.name} (${member.user.email}): ` +
         `Family "${oldName}" renamed to "${newName}" by ${changedBy}`,
+        { memberName: member.user.name, email: member.user.email, oldName, newName, changedBy }
       );
 
       // If email service is available, send actual email
       if (this.emailService) {
         // For now, we'll use a generic notification method or skip email
         // TODO: Implement sendFamilyNameChangeNotification in EmailServiceInterface
-        console.log(`Email notification would be sent to ${member.user.email} about family name change`);
+        logger.info(`Email notification would be sent to ${member.user.email} about family name change`, { email: member.user.email });
       }
 
       // Simulate async notification processing
       await new Promise(resolve => setTimeout(resolve, 10));
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to send family name change notification to ${member.user.email}: ${(error as Error).message}`,
+        { email: member.user.email, error }
       );
       // Don't throw here to prevent one failed notification from stopping all others
     }
@@ -521,8 +529,9 @@ export class NotificationService {
     invitedBy: string,
   ): Promise<void> {
     try {
-      console.log(
+      logger.info(
         `📧 Sending new member notifications for family ${familyId}: ${newMemberName} joined "${familyName}" (invited by ${invitedBy})`,
+        { familyId, newMemberName, familyName, invitedBy }
       );
 
       const familyMembers = await this.prisma.familyMember.findMany({
@@ -559,13 +568,14 @@ export class NotificationService {
           priority: 'normal',
         },
       ).catch(error => {
-        console.error('Failed to send new member push notifications:', error);
+        logger.error('Failed to send new member push notifications', { familyId, error });
       });
 
       await Promise.allSettled([...emailNotificationPromises, pushNotificationPromise]);
     } catch (error) {
-      console.error(
+      logger.error(
         `Failed to send new member notifications: ${(error as Error).message}`,
+        { familyId, error }
       );
     }
   }
@@ -576,9 +586,10 @@ export class NotificationService {
     newMemberName: string,
     invitedBy: string,
   ): Promise<void> {
-    console.log(
+    logger.info(
       `📧 New Member Notification sent to ${member.user.name} (${member.user.email}): ` +
       `${newMemberName} joined family "${familyName}" (invited by ${invitedBy})`,
+      { memberName: member.user.name, email: member.user.email, newMemberName, familyName, invitedBy }
     );
   }
 }

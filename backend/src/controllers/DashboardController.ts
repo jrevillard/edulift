@@ -2,6 +2,9 @@ import { Response } from 'express';
 import { DashboardService } from '../services/DashboardService';
 import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('DashboardController');
 
 export class DashboardController {
   private dashboardService: DashboardService;
@@ -30,7 +33,7 @@ export class DashboardController {
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Error getting dashboard stats:', error);
+        logger.error('Error getting dashboard stats:', { error: error instanceof Error ? error.message : String(error) });
       }
       res.status(500).json({
         success: false,
@@ -59,7 +62,7 @@ export class DashboardController {
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Error getting today schedule:', error);
+        logger.error('Error getting today schedule:', { error: error instanceof Error ? error.message : String(error) });
       }
       res.status(500).json({
         success: false,
@@ -88,7 +91,7 @@ export class DashboardController {
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Error getting weekly schedule:', error);
+        logger.error('Error getting weekly schedule:', { error: error instanceof Error ? error.message : String(error) });
       }
       res.status(500).json({
         success: false,
@@ -129,7 +132,7 @@ export class DashboardController {
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Error getting recent activity:', error);
+        logger.error('Error getting recent activity:', { error: error instanceof Error ? error.message : String(error) });
       }
       res.status(500).json({
         success: false,

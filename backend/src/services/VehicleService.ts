@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
+import { createLogger } from '../utils/logger';
 
 export interface CreateVehicleData {
   name: string;
@@ -16,6 +17,7 @@ export interface UpdateVehicleData {
 
 export class VehicleService {
   private activityLogRepo: ActivityLogRepository;
+  private logger = createLogger('vehicle');
 
   constructor(private prisma: PrismaClient) {
     this.activityLogRepo = new ActivityLogRepository(prisma);
@@ -32,7 +34,7 @@ export class VehicleService {
       
       return familyMember?.family || null;
     } catch (error) {
-      console.error('Get user family error:', error);
+      this.logger.error('Get user family error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to get user family', 500);
     }
   }
@@ -49,7 +51,7 @@ export class VehicleService {
       // Only Admins can modify vehicles
       return familyMember?.role === 'ADMIN';
     } catch (error) {
-      console.error('Check user permissions error:', error);
+      this.logger.error('Check user permissions error:', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -85,7 +87,7 @@ export class VehicleService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Create vehicle error:', error);
+      this.logger.error('Create vehicle error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to create vehicle', 500);
     }
   }
@@ -107,7 +109,7 @@ export class VehicleService {
 
       return vehicles;
     } catch (error) {
-      console.error('Get vehicles error:', error);
+      this.logger.error('Get vehicles error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch vehicles', 500);
     }
   }
@@ -136,7 +138,7 @@ export class VehicleService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get vehicle error:', error);
+      this.logger.error('Get vehicle error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch vehicle', 500);
     }
   }
@@ -192,7 +194,7 @@ export class VehicleService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Update vehicle error:', error);
+      this.logger.error('Update vehicle error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to update vehicle', 500);
     }
   }
@@ -230,7 +232,7 @@ export class VehicleService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Delete vehicle error:', error);
+      this.logger.error('Delete vehicle error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to delete vehicle', 500);
     }
   }
@@ -257,7 +259,7 @@ export class VehicleService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get vehicle schedule error:', error);
+      this.logger.error('Get vehicle schedule error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch vehicle schedule', 500);
     }
   }
@@ -309,7 +311,7 @@ export class VehicleService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get available vehicles error:', error);
+      this.logger.error('Get available vehicles error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch available vehicles', 500);
     }
   }

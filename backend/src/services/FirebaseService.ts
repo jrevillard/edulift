@@ -1,7 +1,7 @@
 // @ts-nocheck
 import * as admin from 'firebase-admin';
 import { PushNotificationServiceInterface, PushNotificationData, PushNotificationResult, BatchPushNotificationResult } from '../types/PushNotificationInterface';
-import { logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
 
 export interface FirebaseConfig {
   projectId: string;
@@ -14,15 +14,23 @@ export class FirebaseService implements PushNotificationServiceInterface {
   private messaging: admin.messaging.Messaging | null = null;
   private isInitialized = false;
   private initError: Error | null = null;
+  private logger = createLogger('firebase');
 
   constructor(private config: FirebaseConfig) {
+    this.logger.debug('Initializing FirebaseService', { projectId: config.projectId });
     this.initialize();
   }
 
   private initialize(): void {
     try {
+      this.logger.debug('Starting Firebase Admin SDK initialization', {
+        projectId: this.config.projectId,
+        existingAppsCount: admin.apps.length
+      });
+
       // Check if Firebase app already exists
       if (admin.apps.length === 0) {
+        this.logger.debug('Creating new Firebase app instance');
         this.app = admin.initializeApp({
           credential: admin.credential.cert({
             projectId: this.config.projectId,
@@ -30,23 +38,30 @@ export class FirebaseService implements PushNotificationServiceInterface {
             privateKey: this.config.privateKey.replace(/\\n/g, '\n'),
           }),
         });
+        this.logger.debug('Firebase app created successfully');
       } else {
+        this.logger.debug('Reusing existing Firebase app instance');
         this.app = admin.apps[0];
       }
 
       this.messaging = admin.messaging(this.app);
       this.isInitialized = true;
-      
+
       if (process.env.NODE_ENV !== 'test') {
-        logger.info('🔥 FirebaseService: Successfully initialized Firebase Admin SDK');
+        this.logger.info('🔥 Firebase Admin SDK initialized successfully', {
+          projectId: this.config.projectId,
+          appName: this.app.name
+        });
       }
     } catch (error) {
       this.initError = error as Error;
       this.isInitialized = false;
-      
-      if (process.env.NODE_ENV !== 'test') {
-        logger.error('🔥 FirebaseService: Failed to initialize Firebase Admin SDK:', error);
-      }
+
+      this.logger.error('🔥 Failed to initialize Firebase Admin SDK', {
+        error: error instanceof Error ? error.message : String(error),
+        projectId: this.config.projectId,
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   }
 
@@ -328,7 +343,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       return true;
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        logger.error(`Failed to subscribe token to topic ${topic}:`, error);
+        this.logger.error(`Failed to subscribe token to topic ${topic}:`, { error: error instanceof Error ? error.message : String(error) });
       }
       return false;
     }
@@ -341,7 +356,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       return true;
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        logger.error(`Failed to unsubscribe token from topic ${topic}:`, error);
+        this.logger.error(`Failed to unsubscribe token from topic ${topic}:`, { error: error instanceof Error ? error.message : String(error) });
       }
       return false;
     }

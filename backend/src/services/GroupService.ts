@@ -6,11 +6,12 @@ import { EmailService } from './EmailService';
 import { MockEmailService } from './MockEmailService';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { UnifiedInvitationService } from './UnifiedInvitationService';
-import { 
-  CreateGroupData, 
+import {
+  CreateGroupData,
   // InviteFamilyToGroupData, // Currently unused
   FamilySearchResult,
 } from '../types/GroupTypes';
+import { createLogger } from '../utils/logger';
 
 interface GroupInviteValidationResponse {
   valid: boolean;
@@ -43,6 +44,7 @@ export class GroupService {
   private activityLogRepo: ActivityLogRepository;
   private emailService: EmailServiceInterface;
   private unifiedInvitationService: UnifiedInvitationService;
+  private logger = createLogger('group');
   
   // Constants
 
@@ -74,10 +76,10 @@ export class GroupService {
     this.unifiedInvitationService = new UnifiedInvitationService(
       prisma,
       {
-        info: (message: string, meta?: unknown) => console.log(message, meta),
-        error: (message: string, meta?: unknown) => console.error(message, meta),
-        warn: (message: string, meta?: unknown) => console.warn(message, meta),
-        debug: (message: string, meta?: unknown) => console.debug(message, meta),
+        info: (message: string, meta?: unknown) => this.logger.info(message, meta as Record<string, unknown>),
+        error: (message: string, meta?: unknown) => this.logger.error(message, meta as Record<string, unknown>),
+        warn: (message: string, meta?: unknown) => this.logger.warn(message, meta as Record<string, unknown>),
+        debug: (message: string, meta?: unknown) => this.logger.debug(message, meta as Record<string, unknown>),
       },
       this.emailService,
     );
@@ -294,7 +296,7 @@ export class GroupService {
       // Return enriched group with userRole (RESTful consistency)
       return await this.enrichGroupWithUserContext(group, data.createdBy);
     } catch (error) {
-      console.error('Create group error:', error);
+      this.logger.error('Create group error:', { error: error instanceof Error ? error.message : String(error) });
       if (error instanceof AppError) {
         throw error;
       }
@@ -445,7 +447,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Join group error:', error);
+      this.logger.error('Join group error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to join group', 500);
     }
   }
@@ -516,7 +518,7 @@ export class GroupService {
 
       return userGroups;
     } catch (error) {
-      console.error('Get user groups error:', error);
+      this.logger.error('Get user groups error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch user groups', 500);
     }
   }
@@ -662,7 +664,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get group families error:', error);
+      this.logger.error('Get group families error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch group families', 500);
     }
   }
@@ -716,7 +718,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Update family role error:', error);
+      this.logger.error('Update family role error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to update family role', 500);
     }
   }
@@ -776,7 +778,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Remove family from group error:', error);
+      this.logger.error('Remove family from group error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to remove family from group', 500);
     }
   }
@@ -862,7 +864,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Update group error:', error);
+      this.logger.error('Update group error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to update group', 500);
     }
   }
@@ -902,7 +904,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Delete group error:', error);
+      this.logger.error('Delete group error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to delete group', 500);
     }
   }
@@ -967,7 +969,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Leave group error:', error);
+      this.logger.error('Leave group error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to leave group', 500);
     }
   }
@@ -1041,7 +1043,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Error searching families for invitation:', error);
+      this.logger.error('Error searching families for invitation:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to search families', 500);
     }
   }
@@ -1136,7 +1138,7 @@ export class GroupService {
         memberCount: family._count.members,
       }));
     } catch (error) {
-      console.error('Search families error:', error);
+      this.logger.error('Search families error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to search families', 500);
     }
   }
@@ -1204,7 +1206,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get pending invitations error:', error);
+      this.logger.error('Get pending invitations error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch invitations', 500);
     }
   }
@@ -1222,7 +1224,7 @@ export class GroupService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Cancel invitation error:', error);
+      this.logger.error('Cancel invitation error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to cancel invitation', 500);
     }
   }
@@ -1323,7 +1325,7 @@ export class GroupService {
         };
       }
     } catch (error) {
-      console.error('Error validating group invitation with user context:', error);
+      this.logger.error('Error validating group invitation with user context:', { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }
@@ -1357,7 +1359,7 @@ export class GroupService {
         },
       };
     } catch (error) {
-      console.error('Error validating group invitation code:', error);
+      this.logger.error('Error validating group invitation code:', { error: error instanceof Error ? error.message : String(error) });
       throw error;
     }
   }

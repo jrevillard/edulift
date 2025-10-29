@@ -7,6 +7,9 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { z } from 'zod';
 import { SocketEmitter } from '../utils/socketEmitter';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ScheduleSlotController');
 
 const AssignChildSchema = z.object({
   childId: z.string().cuid('Invalid child ID format'),
@@ -245,16 +248,16 @@ export class ScheduleSlotController {
     const { groupId } = req.params;
     const { startDate, endDate } = req.query;
 
-    console.log(`🎯 getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
+    logger.debug(`🎯 getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
 
-    console.log('🔄 Calling scheduleSlotService.getSchedule...');
+    logger.debug('🔄 Calling scheduleSlotService.getSchedule...');
     const schedule = await this.scheduleSlotService.getSchedule(
       groupId,
       startDate as string | undefined,
       endDate as string | undefined,
     );
 
-    console.log('📤 Controller sending response:', JSON.stringify(schedule, null, 2));
+    logger.debug('📤 Controller sending response:', { schedule });
 
     const response: ApiResponse = {
       success: true,

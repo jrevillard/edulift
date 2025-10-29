@@ -6,6 +6,7 @@ import { FamilyAuthService } from '../services/FamilyAuthService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
+import { createLogger } from '../utils/logger';
 
 // Mock cache service for now
 const mockCacheService = {
@@ -16,10 +17,10 @@ const mockCacheService = {
 
 // Mock logger for now
 const mockLogger = {
-  info: (...args: unknown[]): void => console.info(...args),
-  error: console.error,
-  warn: console.warn,
-  debug: console.debug,
+  info: (...args: unknown[]): void => logger.info(args[0], args[1] as Record<string, unknown>),
+  error: (...args: unknown[]): void => logger.error(args[0], args[1] as Record<string, unknown>),
+  warn: (...args: unknown[]): void => logger.warn(args[0], args[1] as Record<string, unknown>),
+  debug: (...args: unknown[]): void => logger.debug(args[0], args[1] as Record<string, unknown>),
 };
 
 const prisma = new PrismaClient();
@@ -31,6 +32,7 @@ const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
 const familyController = new FamilyController(familyService, familyAuthService, mockLogger);
 
 const router = Router();
+const logger = createLogger('families-route');
 
 // Public routes (no auth required)
 router.post('/validate-invite', asyncHandler((req: Request, res: Response) => familyController.validateInviteCode(req, res)));

@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import { BaseEmailService } from './base/BaseEmailService';
+import { createLogger } from '../utils/logger';
 
 export interface EmailConfig {
   host: string;
@@ -15,6 +16,7 @@ export interface EmailConfig {
 export class EmailService extends BaseEmailService {
   private transporter: nodemailer.Transporter;
   private fromEmail: string;
+  private logger = createLogger('email');
 
   constructor(config: EmailConfig) {
     super();
@@ -35,7 +37,7 @@ export class EmailService extends BaseEmailService {
       await this.transporter.sendMail(mailOptions);
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error(`Failed to send email to ${to} with subject "${subject}"`, error);
+        this.logger.error(`Failed to send email to ${to} with subject "${subject}"`, { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to send email');
     }
@@ -47,7 +49,7 @@ export class EmailService extends BaseEmailService {
       return true;
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Email service connection failed:', error);
+        this.logger.error('Email service connection failed:', { error: error instanceof Error ? error.message : String(error) });
       }
       return false;
     }

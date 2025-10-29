@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { SocketEmitter } from '../utils/socketEmitter';
+import { createLogger } from '../utils/logger';
 
 export interface CreateChildData {
   name: string;
@@ -14,6 +15,8 @@ export interface UpdateChildData {
 }
 
 export class ChildService {
+  private logger = createLogger('child');
+
   constructor(private prisma: PrismaClient) {}
 
   async createChild(data: CreateChildData) {
@@ -34,7 +37,7 @@ export class ChildService {
 
       return child;
     } catch (error) {
-      console.error('Create child error:', error);
+      this.logger.error('Create child error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to create child', 500);
     }
   }
@@ -50,7 +53,7 @@ export class ChildService {
       
       return familyMember?.family || null;
     } catch (error) {
-      console.error('Get user family error:', error);
+      this.logger.error('Get user family error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to get user family', 500);
     }
   }
@@ -67,7 +70,7 @@ export class ChildService {
       // Only Admins can modify children
       return familyMember?.role === 'ADMIN';
     } catch (error) {
-      console.error('Check user permissions error:', error);
+      this.logger.error('Check user permissions error:', { error: error instanceof Error ? error.message : String(error) });
       return false;
     }
   }
@@ -101,7 +104,7 @@ export class ChildService {
 
       return children;
     } catch (error) {
-      console.error('Get children error:', error);
+      this.logger.error('Get children error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch children', 500);
     }
   }
@@ -130,7 +133,7 @@ export class ChildService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get child error:', error);
+      this.logger.error('Get child error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch child', 500);
     }
   }
@@ -176,7 +179,7 @@ export class ChildService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Update child error:', error);
+      this.logger.error('Update child error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to update child', 500);
     }
   }
@@ -221,7 +224,7 @@ export class ChildService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Delete child error:', error);
+      this.logger.error('Delete child error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to delete child', 500);
     }
   }
@@ -248,7 +251,7 @@ export class ChildService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get child assignments error:', error);
+      this.logger.error('Get child assignments error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to fetch child assignments', 500);
     }
   }

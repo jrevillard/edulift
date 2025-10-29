@@ -4,6 +4,9 @@ import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { PushNotificationServiceFactory } from '../services/PushNotificationServiceFactory';
 import { FcmTokenData } from '../types/PushNotificationInterface';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('FCMTokensRoute');
 
 // Authenticated request interface
 interface AuthenticatedRequest extends Request {
@@ -91,7 +94,7 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response): 
       },
     });
   } catch (error) {
-    console.error('Error saving FCM token:', error);
+    logger.error('Error saving FCM token:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to save FCM token',
       message: (error as Error).message,
@@ -124,7 +127,7 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response): P
       data: responseData,
     });
   } catch (error) {
-    console.error('Error fetching FCM tokens:', error);
+    logger.error('Error fetching FCM tokens:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to fetch FCM tokens',
       message: (error as Error).message,
@@ -164,7 +167,7 @@ router.delete('/:token', requireAuth, async (req: AuthenticatedRequest, res: Res
       message: 'FCM token deleted successfully',
     });
   } catch (error) {
-    console.error('Error deleting FCM token:', error);
+    logger.error('Error deleting FCM token:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to delete FCM token',
       message: (error as Error).message,
@@ -218,7 +221,7 @@ router.post('/validate', requireAuth, async (req: AuthenticatedRequest, res: Res
       },
     });
   } catch (error) {
-    console.error('Error validating FCM token:', error);
+    logger.error('Error validating FCM token:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to validate FCM token',
       message: (error as Error).message,
@@ -273,7 +276,7 @@ router.post('/subscribe', requireAuth, async (req: AuthenticatedRequest, res: Re
       },
     });
   } catch (error) {
-    console.error('Error subscribing to topic:', error);
+    logger.error('Error subscribing to topic:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to subscribe to topic',
       message: (error as Error).message,
@@ -328,7 +331,7 @@ router.post('/unsubscribe', requireAuth, async (req: AuthenticatedRequest, res: 
       },
     });
   } catch (error) {
-    console.error('Error unsubscribing from topic:', error);
+    logger.error('Error unsubscribing from topic:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to unsubscribe from topic',
       message: (error as Error).message,
@@ -387,7 +390,7 @@ router.post('/test', requireAuth, async (req: AuthenticatedRequest, res: Respons
       },
     });
   } catch (error) {
-    console.error('Error sending test notification:', error);
+    logger.error('Error sending test notification:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to send test notification',
       message: (error as Error).message,
@@ -419,7 +422,7 @@ router.get('/stats', requireAuth, async (req: AuthenticatedRequest, res: Respons
       },
     });
   } catch (error) {
-    console.error('Error fetching FCM token stats:', error);
+    logger.error('Error fetching FCM token stats:', { error: error instanceof Error ? error.message : String(error) });
     res.status(500).json({
       error: 'Failed to fetch FCM token statistics',
       message: (error as Error).message,

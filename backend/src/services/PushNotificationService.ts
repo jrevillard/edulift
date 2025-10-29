@@ -1,13 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { FirebaseService, FirebaseConfig } from './FirebaseService';
 import { FcmTokenService } from './FcmTokenService';
-import { 
-  PushNotificationServiceInterface, 
-  PushNotificationData, 
-  PushNotificationResult, 
+import { createLogger } from '../utils/logger';
+import {
+  PushNotificationServiceInterface,
+  PushNotificationData,
+  PushNotificationResult,
   BatchPushNotificationResult,
   FcmTokenData,
 } from '../types/PushNotificationInterface';
+
+const logger = createLogger('PushNotificationService');
 
 export class PushNotificationService implements PushNotificationServiceInterface {
   private firebaseService: FirebaseService | null = null;
@@ -26,7 +29,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     }
 
     if (process.env.NODE_ENV !== 'test') {
-      console.log(`🔔 PushNotificationService: ${this.isEnabled ? 'Enabled' : 'Disabled'}`);
+      logger.info(`🔔 PushNotificationService: ${this.isEnabled ? 'Enabled' : 'Disabled'}`, { isEnabled: this.isEnabled });
     }
   }
 

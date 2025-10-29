@@ -5,33 +5,27 @@ import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { UnifiedInvitationService } from '../services/UnifiedInvitationService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
+import { createLogger } from '../utils/logger';
 
 const prisma = new PrismaClient();
-
-// Mock logger for now
-const mockLogger = {
-  info: console.log,
-  error: console.error,
-  warn: console.warn,
-  debug: console.debug,
-};
+const logger = createLogger('InvitationsRoute');
 
 const router = Router();
 
 // Initialize services
 const emailService = EmailServiceFactory.getInstance();
-const invitationService = new UnifiedInvitationService(prisma, mockLogger, emailService);
+const invitationService = new UnifiedInvitationService(prisma, logger, emailService);
 
 // Public validation endpoint (no auth required)
 router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { code } = req.params;
 
-  console.log('General invitation validation endpoint called with code:', code);
+  logger.debug('General invitation validation endpoint called with code:', { code });
 
   try {
     // Try family invitation first
     const familyValidation = await invitationService.validateFamilyInvitation(code);
-    console.log('Family validation result:', { code, valid: familyValidation.valid, error: familyValidation.error });
+    logger.debug('Family validation result:', { code, valid: familyValidation.valid, error: familyValidation.error });
 
     if (familyValidation.valid) {
       res.json({
@@ -46,7 +40,7 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
 
     // Try group invitation
     const groupValidation = await invitationService.validateGroupInvitation(code);
-    console.log('Group validation result:', { code, valid: groupValidation.valid, error: groupValidation.error });
+    logger.debug('Group validation result:', { code, valid: groupValidation.valid, error: groupValidation.error });
 
     if (groupValidation.valid) {
       res.json({
@@ -60,7 +54,7 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
     }
 
     // Neither found
-    console.log('No valid invitation found for code:', code);
+    logger.debug('No valid invitation found for code:', { code });
     res.status(404).json({
       success: false,
       error: 'Invalid invitation code',

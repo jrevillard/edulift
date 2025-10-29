@@ -1,8 +1,11 @@
 // @ts-nocheck
 import { PrismaClient } from '@prisma/client';
 import { FcmTokenServiceInterface, FcmTokenData } from '../types/PushNotificationInterface';
+import { createLogger } from '../utils/logger';
 
 export class FcmTokenService implements FcmTokenServiceInterface {
+  private logger = createLogger('fcm-token');
+
   constructor(private prisma: PrismaClient) {}
 
   async saveToken(tokenData: FcmTokenData): Promise<FcmTokenData> {
@@ -43,7 +46,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       }
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Failed to save FCM token:', error);
+        this.logger.error('Failed to save FCM token:', { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to save FCM token');
     }
@@ -64,7 +67,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       return tokens.map(token => this.mapPrismaToTokenData(token));
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error(`Failed to get tokens for user ${userId}:`, error);
+        this.logger.error(`Failed to get tokens for user ${userId}:`, { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to retrieve user tokens');
     }
@@ -89,7 +92,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       return tokens.map(token => this.mapPrismaToTokenData(token));
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Failed to get tokens for users:', error);
+        this.logger.error('Failed to get tokens for users:', { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to retrieve users tokens');
     }
@@ -106,7 +109,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error(`Failed to deactivate token ${token}:`, error);
+        this.logger.error(`Failed to deactivate token ${token}:`, { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to deactivate token');
     }
@@ -129,11 +132,11 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       });
       
       if (process.env.NODE_ENV !== 'test') {
-        console.log(`Deactivated ${tokens.length} FCM tokens`);
+        this.logger.info(`Deactivated ${tokens.length} FCM tokens`, { count: tokens.length });
       }
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Failed to deactivate tokens:', error);
+        this.logger.error('Failed to deactivate tokens:', { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to deactivate tokens');
     }
@@ -146,7 +149,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       });
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error(`Failed to delete token ${token}:`, error);
+        this.logger.error(`Failed to delete token ${token}:`, { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to delete token');
     }
@@ -167,13 +170,13 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       });
 
       if (process.env.NODE_ENV !== 'test') {
-        console.log(`Cleaned up ${result.count} inactive FCM tokens`);
+        this.logger.info(`Cleaned up ${result.count} inactive FCM tokens`, { count: result.count });
       }
 
       return result.count;
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Failed to cleanup inactive tokens:', error);
+        this.logger.error('Failed to cleanup inactive tokens:', { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to cleanup inactive tokens');
     }
@@ -193,7 +196,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
     } catch (error) {
       // Don't throw error for this operation as it's not critical
       if (process.env.NODE_ENV !== 'test') {
-        console.error(`Failed to update last used for token ${token}:`, error);
+        this.logger.error(`Failed to update last used for token ${token}:`, { error: error instanceof Error ? error.message : String(error) });
       }
     }
   }
@@ -219,7 +222,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       return tokens.map(token => this.mapPrismaToTokenData(token));
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Failed to get potentially invalid tokens:', error);
+        this.logger.error('Failed to get potentially invalid tokens:', { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to retrieve potentially invalid tokens');
     }
@@ -259,7 +262,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       };
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
-        console.error('Failed to get token stats:', error);
+        this.logger.error('Failed to get token stats:', { error: error instanceof Error ? error.message : String(error) });
       }
       throw new Error('Failed to retrieve token statistics');
     }
