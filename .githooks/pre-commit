@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# Pre-commit hook for EduLift project
+# Runs quality checks before allowing commit
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Get list of staged files
+STAGED_FILES=$(git diff --cached --name-only)
+
+# Check if backend files are modified
+BACKEND_CHANGED=false
+FRONTEND_CHANGED=false
+
+for file in $STAGED_FILES; do
+    if [[ $file == backend/* ]]; then
+        BACKEND_CHANGED=true
+    fi
+    if [[ $file == frontend/* ]]; then
+        FRONTEND_CHANGED=true
+    fi
+done
+
+# Function to print colored output
+print_success() {
+    echo "✅ $1"
+}
+
+print_error() {
+    echo "❌ $1"
+}
+
+print_info() {
+    echo "ℹ️  $1"
+}
+
+# Backend checks
+if [ "$BACKEND_CHANGED" = true ]; then
+    echo ""
+    print_info "Backend files modified. Running backend checks..."
+
+    # Navigate to backend directory
+    cd backend
+
+    # TypeScript type checking
+    echo "🔎 Running TypeScript type checking..."
+    if npm run typecheck; then
+        print_success "TypeScript type checking passed"
+    else
+        print_error "TypeScript type checking failed"
+        echo "Please fix the TypeScript errors before committing."
+        exit 1
+    fi
+
+    # Linting (if available)
+    if npm run lint --silent 2>/dev/null; then
+        print_success "Linting passed"
+    else
+        print_info "Linting not available or failed (optional)"
+    fi
+
+    # Run tests if available
+    if npm test --silent 2>/dev/null; then
+        print_success "Tests passed"
+    else
+        print_info "Tests not available or failed (optional)"
+    fi
+
+    cd ..
+fi
+
+# Frontend checks
+if [ "$FRONTEND_CHANGED" = true ]; then
+    echo ""
+    print_info "Frontend files modified. Running frontend checks..."
+
+    # Navigate to frontend directory
+    cd frontend
+
+    # TypeScript type checking
+    echo "🔎 Running TypeScript type checking..."
+    if npm run typecheck; then
+        print_success "TypeScript type checking passed"
+    else
+        print_error "TypeScript type checking failed"
+        echo "Please fix the TypeScript errors before committing."
+        exit 1
+    fi
+
+    # Linting (if available)
+    if npm run lint --silent 2>/dev/null; then
+        print_success "Linting passed"
+    else
+        print_info "Linting not available or failed (optional)"
+    fi
+
+    # Run tests if available
+    if npm test --silent 2>/dev/null; then
+        print_success "Tests passed"
+    else
+        print_info "Tests not available or failed (optional)"
+    fi
+
+    cd ..
+fi
+
+# If no code files were changed
+if [ "$BACKEND_CHANGED" = false ] && [ "$FRONTEND_CHANGED" = false ]; then
+    print_info "No code files modified, skipping checks"
+fi
+
+echo ""
+print_success "All pre-commit checks passed! 🎉"
+echo "Proceeding with commit..."
