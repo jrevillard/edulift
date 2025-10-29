@@ -19,40 +19,43 @@ export interface Logger {
 
 class PinoLoggerService implements Logger {
   private logger: pino.Logger;
-  private context?: string;
+  private context: string;
 
   constructor(context?: string) {
-    this.context = context;
+    this.context = context || 'main';
 
     // Configuration pour la production
     const isDevelopment = process.env.NODE_ENV !== 'production';
     const validLevels = ['error', 'warn', 'info', 'debug'];
-    const logLevel = validLevels.includes(process.env.LOG_LEVEL?.toLowerCase() || '')
-      ? process.env.LOG_LEVEL?.toLowerCase()
+    const rawLogLevel = process.env.LOG_LEVEL?.toLowerCase();
+    const logLevel = (rawLogLevel && validLevels.includes(rawLogLevel))
+      ? rawLogLevel
       : 'info';
 
-    this.logger = pino({
+    const config: pino.LoggerOptions = {
       level: logLevel,
-      // En développement, utiliser un format lisible mais structuré
-      transport: isDevelopment
-        ? {
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              translateTime: 'HH:MM:ss Z',
-              ignore: 'pid,hostname'
-            }
-          }
-        : undefined, // En production, logs JSON structuré pour la lisibilité machine
-
       // Toujours inclure les métadonnées essentielles
       base: {
         pid: process.pid,
         hostname: os.hostname(),
         service: 'edulift-backend',
-        context: this.context || 'main'
+        context: this.context
       }
-    });
+    };
+
+    // En développement, utiliser un format lisible mais structuré
+    if (isDevelopment) {
+      config.transport = {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname'
+        }
+      };
+    }
+
+    this.logger = pino(config);
   }
 
   info(message: string, meta?: Record<string, unknown>): void {

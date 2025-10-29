@@ -17,10 +17,10 @@ const mockCacheService = {
 
 // Mock logger for now
 const mockLogger = {
-  info: (...args: unknown[]): void => logger.info(args[0], args[1] as Record<string, unknown>),
-  error: (...args: unknown[]): void => logger.error(args[0], args[1] as Record<string, unknown>),
-  warn: (...args: unknown[]): void => logger.warn(args[0], args[1] as Record<string, unknown>),
-  debug: (...args: unknown[]): void => logger.debug(args[0], args[1] as Record<string, unknown>),
+  info: (message: string, meta?: Record<string, unknown>): void => logger.info(message, meta),
+  error: (message: string, meta?: Record<string, unknown>): void => logger.error(message, meta),
+  warn: (message: string, meta?: Record<string, unknown>): void => logger.warn(message, meta),
+  debug: (message: string, meta?: Record<string, unknown>): void => logger.debug(message, meta),
 };
 
 const prisma = new PrismaClient();
