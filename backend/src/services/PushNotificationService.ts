@@ -22,7 +22,7 @@ export class PushNotificationService implements PushNotificationServiceInterface
     firebaseConfig?: FirebaseConfig,
   ) {
     this.fcmTokenService = new FcmTokenService(prisma);
-    this.isEnabled = process.env.FIREBASE_NOTIFICATIONS_ENABLED === 'true';
+    this.isEnabled = (process.env.FIREBASE_NOTIFICATIONS_ENABLED || '').toLowerCase().trim() === 'true';
 
     if (this.isEnabled && firebaseConfig) {
       this.firebaseService = new FirebaseService(firebaseConfig);
