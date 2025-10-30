@@ -1,11 +1,11 @@
+import { prisma } from '../config/database';
 import { Router, Response } from 'express';
 import { DashboardController } from '../controllers/DashboardController';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
-import { PrismaClient } from '@prisma/client';
 
 const router = Router();
-const prisma = new PrismaClient();
+
 const dashboardController = new DashboardController(prisma);
 
 // All routes require authentication

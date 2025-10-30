@@ -1,3 +1,4 @@
+import { prisma } from '../config/database';
 import { Router } from 'express';
 import { ScheduleSlotController } from '../controllers/ScheduleSlotController';
 import { ScheduleSlotService } from '../services/ScheduleSlotService';
@@ -11,10 +12,9 @@ import { authenticateToken } from '../middleware/auth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
 import { z } from 'zod';
-import { PrismaClient } from '@prisma/client';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 
-const prisma = new PrismaClient();
+
 const scheduleSlotRepository = new ScheduleSlotRepository(prisma);
 const userRepository = new UserRepository(prisma);
 

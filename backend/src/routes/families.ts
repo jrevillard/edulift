@@ -1,5 +1,5 @@
+import { prisma } from '../config/database';
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { FamilyController } from '../controllers/FamilyController';
 import { FamilyService } from '../services/FamilyService';
 import { FamilyAuthService } from '../services/FamilyAuthService';
@@ -23,7 +23,7 @@ const mockLogger = {
   debug: (message: string, meta?: Record<string, unknown>): void => logger.debug(message, meta),
 };
 
-const prisma = new PrismaClient();
+
 
 // Use centralized email service factory
 const emailService = EmailServiceFactory.getInstance();

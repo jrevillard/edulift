@@ -1,5 +1,5 @@
+import { prisma } from '../config/database';
 import { Router, Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
@@ -7,7 +7,7 @@ import { UnifiedInvitationService } from '../services/UnifiedInvitationService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { createLogger } from '../utils/logger';
 
-const prisma = new PrismaClient();
+
 const logger = createLogger('InvitationsRoute');
 
 const router = Router();

@@ -1,24 +1,16 @@
-// @ts-nocheck
+import { prisma } from '../config/database';
 import { Router, Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 import { PushNotificationServiceFactory } from '../services/PushNotificationServiceFactory';
 import { FcmTokenData } from '../types/PushNotificationInterface';
 import { createLogger } from '../utils/logger';
+import { AuthenticatedRequest } from '../middleware/auth';
+import { asyncHandler } from '../middleware/errorHandler';
 
 const logger = createLogger('FCMTokensRoute');
 
-// Authenticated request interface
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
-}
-
 const router = Router();
-const prisma = new PrismaClient();
+
 
 // Validation schemas
 const SaveTokenSchema = z.object({
@@ -47,7 +39,8 @@ const TestNotificationSchema = z.object({
 
 // Middleware to ensure user is authenticated
 const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
-  if (!req.user || !req.user.id) {
+  const authReq = req as AuthenticatedRequest;
+  if (!authReq.user || !authReq.user.id) {
     res.status(401).json({ error: 'Authentication required' });
     return;
   }
@@ -58,7 +51,7 @@ const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
  * Save or update an FCM token for the authenticated user
  * POST /api/fcm-tokens
  */
-router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const validation = SaveTokenSchema.safeParse(req.body);
     
@@ -100,13 +93,13 @@ router.post('/', requireAuth, async (req: AuthenticatedRequest, res: Response): 
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Get all active FCM tokens for the authenticated user
  * GET /api/fcm-tokens
  */
-router.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get('/', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user.id;
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
@@ -133,13 +126,13 @@ router.get('/', requireAuth, async (req: AuthenticatedRequest, res: Response): P
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Delete a specific FCM token
  * DELETE /api/fcm-tokens/:token
  */
-router.delete('/:token', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/:token', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const { token } = req.params;
     const userId = req.user.id;
@@ -173,13 +166,13 @@ router.delete('/:token', requireAuth, async (req: AuthenticatedRequest, res: Res
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Validate an FCM token
  * POST /api/fcm-tokens/validate
  */
-router.post('/validate', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/validate', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const validation = ValidateTokenSchema.safeParse(req.body);
     
@@ -227,13 +220,13 @@ router.post('/validate', requireAuth, async (req: AuthenticatedRequest, res: Res
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Subscribe a token to a topic
  * POST /api/fcm-tokens/subscribe
  */
-router.post('/subscribe', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/subscribe', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const validation = SubscribeTopicSchema.safeParse(req.body);
     
@@ -282,13 +275,13 @@ router.post('/subscribe', requireAuth, async (req: AuthenticatedRequest, res: Re
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Unsubscribe a token from a topic
  * POST /api/fcm-tokens/unsubscribe
  */
-router.post('/unsubscribe', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/unsubscribe', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const validation = SubscribeTopicSchema.safeParse(req.body);
     
@@ -337,13 +330,13 @@ router.post('/unsubscribe', requireAuth, async (req: AuthenticatedRequest, res: 
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Send a test notification to the user's devices
  * POST /api/fcm-tokens/test
  */
-router.post('/test', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/test', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const validation = TestNotificationSchema.safeParse(req.body);
     
@@ -396,13 +389,13 @@ router.post('/test', requireAuth, async (req: AuthenticatedRequest, res: Respons
       message: (error as Error).message,
     });
   }
-});
+}));
 
 /**
  * Get FCM token statistics (admin endpoint - could be restricted further)
  * GET /api/fcm-tokens/stats
  */
-router.get('/stats', requireAuth, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get('/stats', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
     
@@ -428,6 +421,6 @@ router.get('/stats', requireAuth, async (req: AuthenticatedRequest, res: Respons
       message: (error as Error).message,
     });
   }
-});
+}));
 
 export default router;

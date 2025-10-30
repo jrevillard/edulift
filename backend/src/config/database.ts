@@ -14,7 +14,7 @@ const logger = createLogger('database');
 
 // Declare global to prevent multiple instances in development
 declare global {
-  // eslint-disable-next-line no-var
+   
   var __prisma: PrismaClient | undefined;
 }
 
