@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { SOCKET_EVENTS, type ScheduleEventData, type GroupEventData, type UserEventData, type NotificationEventData, type ConflictEventData, type ChildEventData, type VehicleEventData, type FamilyEventData, type CapacityEventData } from '../shared/events';
+import { SOCKET_URL } from '@/config/runtime';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -40,11 +41,10 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   useEffect(() => {
     if (isAuthenticated && user && authToken) {
-      const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:3001';
-      
       console.log('Creating new socket connection with fresh token');
-      
-      const newSocket = io(socketUrl, {
+      console.log('Socket URL:', SOCKET_URL);
+
+      const newSocket = io(SOCKET_URL, {
         auth: {
           token: authToken
         },

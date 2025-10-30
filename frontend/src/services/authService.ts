@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { ApiResponse } from '@/types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+import { API_BASE_URL } from '@/config/runtime';
 
 export interface User {
   id: string;

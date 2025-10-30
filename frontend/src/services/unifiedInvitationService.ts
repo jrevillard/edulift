@@ -58,7 +58,7 @@ interface AcceptGroupResult {
 
 
 class UnifiedInvitationService {
-  private baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
+  private baseUrl = API_BASE_URL;
 
   /**
    * Validate a family invitation code

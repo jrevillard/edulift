@@ -4,13 +4,12 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import isoWeek from 'dayjs/plugin/isoWeek';
+import { API_BASE_URL } from '@/config/runtime';
 
 // Configure dayjs plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
 dayjs.extend(isoWeek);
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 // Custom error class for 409 Conflict responses
 export class ConflictError extends Error {
