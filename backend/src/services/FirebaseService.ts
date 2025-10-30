@@ -25,7 +25,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
     try {
       this.logger.debug('Starting Firebase Admin SDK initialization', {
         projectId: this.config.projectId,
-        existingAppsCount: admin.apps.length
+        existingAppsCount: admin.apps.length,
       });
 
       // Check if Firebase app already exists
@@ -50,7 +50,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       if (process.env.NODE_ENV !== 'test') {
         this.logger.info('🔥 Firebase Admin SDK initialized successfully', {
           projectId: this.config.projectId,
-          appName: this.app.name
+          appName: this.app.name,
         });
       }
     } catch (error) {
@@ -60,7 +60,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       this.logger.error('🔥 Failed to initialize Firebase Admin SDK', {
         error: error instanceof Error ? error.message : String(error),
         projectId: this.config.projectId,
-        stack: error instanceof Error ? error.stack : undefined
+        stack: error instanceof Error ? error.stack : undefined,
       });
     }
   }
@@ -70,10 +70,10 @@ export class FirebaseService implements PushNotificationServiceInterface {
   }
 
   private getMessaging(): admin.messaging.Messaging {
-    if (!this.isAvailable()) {
+    if (!this.isAvailable() || !this.messaging) {
       throw new Error(`Firebase service not available: ${this.initError?.message || 'Not initialized'}`);
     }
-    return this.messaging!;
+    return this.messaging;
   }
 
   async sendToToken(token: string, notification: PushNotificationData): Promise<PushNotificationResult> {

@@ -91,6 +91,11 @@ jobs:
           cd backend
           npm run typecheck
 
+      - name: Run ESLint
+        run: |
+          cd backend
+          npm run lint
+
       - name: Validate TypeScript build (producibility check)
         run: |
           cd backend

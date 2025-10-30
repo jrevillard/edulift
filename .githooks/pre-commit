@@ -54,11 +54,15 @@ if [ "$BACKEND_CHANGED" = true ]; then
         exit 1
     fi
 
-    # Linting (if available)
-    if npm run lint --silent 2>/dev/null; then
+    # Linting
+    echo "🔍 Running ESLint..."
+    if npm run lint; then
         print_success "Linting passed"
     else
-        print_info "Linting not available or failed (optional)"
+        print_error "Linting failed"
+        echo "Please fix the linting errors before committing."
+        echo "You can run 'npm run lint:fix' to automatically fix some errors."
+        exit 1
     fi
 
     # Run tests if available
@@ -89,11 +93,15 @@ if [ "$FRONTEND_CHANGED" = true ]; then
         exit 1
     fi
 
-    # Linting (if available)
-    if npm run lint --silent 2>/dev/null; then
+    # Linting
+    echo "🔍 Running ESLint..."
+    if npm run lint; then
         print_success "Linting passed"
     else
-        print_info "Linting not available or failed (optional)"
+        print_error "Linting failed"
+        echo "Please fix the linting errors before committing."
+        echo "You can run 'npm run lint:fix' to automatically fix some errors."
+        exit 1
     fi
 
     # Run tests if available

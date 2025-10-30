@@ -116,9 +116,9 @@ describe('Security Utils', () => {
           details: expect.objectContaining({
             email: 'user@example.com',
             password: 'secret123',
-            sensitive: '[REDACTED]'
-          })
-        })
+            sensitive: '[REDACTED]',
+          }),
+        }),
       );
     });
 
@@ -136,9 +136,9 @@ describe('Security Utils', () => {
           event: 'AUTH_FAILED',
           details: expect.objectContaining({
             email: 'user@example.com',
-            error: 'Invalid credentials'
-          })
-        })
+            error: 'Invalid credentials',
+          }),
+        }),
       );
     });
 
@@ -153,15 +153,15 @@ describe('Security Utils', () => {
         '🚨 SECURITY EVENT',
         expect.objectContaining({
           event: 'CRITICAL_EVENT',
-          details: { error: 'Critical issue' }
-        })
+          details: { error: 'Critical issue' },
+        }),
       );
       expect(infoSpy).toHaveBeenCalledWith(
         'ℹ️ SECURITY INFO',
         expect.objectContaining({
           event: 'INFO_EVENT',
-          details: { info: 'Information' }
-        })
+          details: { info: 'Information' },
+        }),
       );
 
       errorSpy.mockRestore();

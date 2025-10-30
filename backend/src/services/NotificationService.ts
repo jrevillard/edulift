@@ -429,7 +429,7 @@ export class NotificationService {
     try {
       logger.info(
         `Sending family name change notifications for family ${familyId}: "${oldName}" → "${newName}" (changed by ${changedBy})`,
-        { familyId, oldName, newName, changedBy }
+        { familyId, oldName, newName, changedBy },
       );
 
       // Get all family members
@@ -475,12 +475,12 @@ export class NotificationService {
 
       logger.info(
         `Successfully sent ${familyMembers.length} notifications for family name change`,
-        { familyId, notificationCount: familyMembers.length }
+        { familyId, notificationCount: familyMembers.length },
       );
     } catch (error) {
       logger.error(
         `Failed to send family name change notifications: ${(error as Error).message}`,
-        { familyId, error }
+        { familyId, error },
       );
       throw error;
     }
@@ -498,7 +498,7 @@ export class NotificationService {
       logger.info(
         `📧 Family Name Change Notification sent to ${member.user.name} (${member.user.email}): ` +
         `Family "${oldName}" renamed to "${newName}" by ${changedBy}`,
-        { memberName: member.user.name, email: member.user.email, oldName, newName, changedBy }
+        { memberName: member.user.name, email: member.user.email, oldName, newName, changedBy },
       );
 
       // If email service is available, send actual email
@@ -513,7 +513,7 @@ export class NotificationService {
     } catch (error) {
       logger.error(
         `Failed to send family name change notification to ${member.user.email}: ${(error as Error).message}`,
-        { email: member.user.email, error }
+        { email: member.user.email, error },
       );
       // Don't throw here to prevent one failed notification from stopping all others
     }
@@ -531,7 +531,7 @@ export class NotificationService {
     try {
       logger.info(
         `📧 Sending new member notifications for family ${familyId}: ${newMemberName} joined "${familyName}" (invited by ${invitedBy})`,
-        { familyId, newMemberName, familyName, invitedBy }
+        { familyId, newMemberName, familyName, invitedBy },
       );
 
       const familyMembers = await this.prisma.familyMember.findMany({
@@ -575,7 +575,7 @@ export class NotificationService {
     } catch (error) {
       logger.error(
         `Failed to send new member notifications: ${(error as Error).message}`,
-        { familyId, error }
+        { familyId, error },
       );
     }
   }
@@ -589,7 +589,7 @@ export class NotificationService {
     logger.info(
       `📧 New Member Notification sent to ${member.user.name} (${member.user.email}): ` +
       `${newMemberName} joined family "${familyName}" (invited by ${invitedBy})`,
-      { memberName: member.user.name, email: member.user.email, newMemberName, familyName, invitedBy }
+      { memberName: member.user.name, email: member.user.email, newMemberName, familyName, invitedBy },
     );
   }
 }

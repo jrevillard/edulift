@@ -24,13 +24,15 @@ class PinoLoggerService implements Logger {
   constructor(context?: string) {
     this.context = context || 'main';
 
-    // Configuration pour la production
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    // Configuration du niveau de log (indépendant de NODE_ENV)
     const validLevels = ['error', 'warn', 'info', 'debug'];
     const rawLogLevel = process.env.LOG_LEVEL?.toLowerCase();
     const logLevel = (rawLogLevel && validLevels.includes(rawLogLevel))
       ? rawLogLevel
       : 'info';
+
+    // Configuration du format (basé sur LOG_PRETTY si disponible, sinon NODE_ENV)
+    const isPretty = process.env.LOG_PRETTY === 'true' || process.env.NODE_ENV !== 'production';
 
     const config: pino.LoggerOptions = {
       level: logLevel,
@@ -39,19 +41,19 @@ class PinoLoggerService implements Logger {
         pid: process.pid,
         hostname: os.hostname(),
         service: 'edulift-backend',
-        context: this.context
-      }
+        context: this.context,
+      },
     };
 
-    // En développement, utiliser un format lisible mais structuré
-    if (isDevelopment) {
+    // Utiliser un format lisible si LOG_PRETTY=true ou NODE_ENV != production
+    if (isPretty) {
       config.transport = {
         target: 'pino-pretty',
         options: {
           colorize: true,
           translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname'
-        }
+          ignore: 'pid,hostname',
+        },
       };
     }
 

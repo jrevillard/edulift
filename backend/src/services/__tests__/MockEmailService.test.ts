@@ -13,11 +13,12 @@ describe('MockEmailService', () => {
     // Mock the module to return our logger
     jest.doMock('../../utils/logger', () => ({
       createLogger: jest.fn(() => mockLogger),
-      logger: mockLogger
+      logger: mockLogger,
     }));
 
     // Clear module cache and create service with mocked logger
     jest.resetModules();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { MockEmailService: MockEmailServiceClass } = require('../MockEmailService');
     mockEmailService = new MockEmailServiceClass();
   });
@@ -29,6 +30,7 @@ describe('MockEmailService', () => {
   });
 
   it('should be an instance of BaseEmailService', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { BaseEmailService } = require('../base/BaseEmailService');
     expect(mockEmailService).toBeInstanceOf(BaseEmailService);
   });
@@ -42,16 +44,16 @@ describe('MockEmailService', () => {
 
       // Check that Pino logger calls console.info with the expected messages
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining('🔗 DEVELOPMENT MODE - Magic Link Email')
+        expect.stringContaining('🔗 DEVELOPMENT MODE - Magic Link Email'),
       );
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`📧 To: ${email}`)
+        expect.stringContaining(`📧 To: ${email}`),
       );
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`🔑 Token: ${token}`)
+        expect.stringContaining(`🔑 Token: ${token}`),
       );
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}`)
+        expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}`),
       );
     });
 
@@ -63,10 +65,10 @@ describe('MockEmailService', () => {
         await mockEmailService.sendMagicLink(email, token, inviteCode);
 
         expect(loggerInfoSpy).toHaveBeenCalledWith(
-          expect.stringContaining(`Invite Code: ${inviteCode}`)
+          expect.stringContaining(`Invite Code: ${inviteCode}`),
         );
         expect(loggerInfoSpy).toHaveBeenCalledWith(
-          expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}&inviteCode=${inviteCode}`)
+          expect.stringContaining(`Magic Link: https://app.edulift.com/auth/verify?token=${token}&inviteCode=${inviteCode}`),
         );
     });
 
@@ -78,10 +80,10 @@ describe('MockEmailService', () => {
       await mockEmailService.sendMagicLink(email, token, undefined, magicLinkUrl);
 
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`🔑 Token: ${token}`)
+        expect.stringContaining(`🔑 Token: ${token}`),
       );
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`🌐 Magic Link: ${magicLinkUrl}`)
+        expect.stringContaining(`🌐 Magic Link: ${magicLinkUrl}`),
       );
     });
   });
@@ -97,13 +99,13 @@ describe('MockEmailService', () => {
         });
 
         expect(loggerInfoSpy).toHaveBeenCalledWith(
-          expect.stringContaining('👥 DEVELOPMENT MODE - Group Invitation')
+          expect.stringContaining('👥 DEVELOPMENT MODE - Group Invitation'),
         );
         expect(loggerInfoSpy).toHaveBeenCalledWith(
-          expect.stringContaining(`🔗 Invite Code: ${inviteCode}`)
+          expect.stringContaining(`🔗 Invite Code: ${inviteCode}`),
         );
         expect(loggerInfoSpy).toHaveBeenCalledWith(
-          expect.stringContaining(`🌐 Invite URL: https://app.edulift.com/groups/join?code=${inviteCode}`)
+          expect.stringContaining(`🌐 Invite URL: https://app.edulift.com/groups/join?code=${inviteCode}`),
         );
     });
   });
@@ -114,7 +116,7 @@ describe('MockEmailService', () => {
 
       expect(result).toBe(true);
       expect(loggerInfoSpy).toHaveBeenCalledWith(
-        '📧 Mock email service is always connected in development'
+        '📧 Mock email service is always connected in development',
       );
     });
   });

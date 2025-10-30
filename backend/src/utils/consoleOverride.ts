@@ -33,10 +33,10 @@ const originalConsole = {
 /**
  * Enhanced console call wrapper that preserves call stack and formatting
  */
-function createConsoleWrapper(
+const createConsoleWrapper = (
   level: 'debug' | 'info' | 'warn' | 'error',
-  originalMethod: (...args: any[]) => void
-) {
+  originalMethod: (...args: any[]) => void,
+) => {
   return (...args: any[]): void => {
     // Always call through the logger system first
     const message = args.map(arg => {
@@ -71,12 +71,12 @@ function createConsoleWrapper(
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Special wrapper for console.trace to include stack trace
  */
-function createTraceWrapper(originalMethod: (...args: any[]) => void) {
+const createTraceWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const message = args.map(arg => {
       if (typeof arg === 'string') return arg;
@@ -96,12 +96,12 @@ function createTraceWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Wrapper for console.table to preserve table formatting
  */
-function createTableWrapper(originalMethod: (...args: any[]) => void) {
+const createTableWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const message = `TABLE: ${args.length} item(s)`;
     logger.debug(message);
@@ -111,12 +111,15 @@ function createTableWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Wrapper for console.group methods
  */
-function createGroupWrapper(originalMethod: (...args: any[]) => void, type: 'group' | 'groupCollapsed' | 'groupEnd' = 'group') {
+const createGroupWrapper = (
+  originalMethod: (...args: any[]) => void,
+  type: 'group' | 'groupCollapsed' | 'groupEnd' = 'group',
+) => {
   return (...args: any[]): void => {
     const message = args.map(arg => {
       if (typeof arg === 'string') return arg;
@@ -133,14 +136,14 @@ function createGroupWrapper(originalMethod: (...args: any[]) => void, type: 'gro
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Wrapper for console.time/timeEnd
  */
 const timers = new Map<string, number>();
 
-function createTimeWrapper(originalMethod: (...args: any[]) => void) {
+const createTimeWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     timers.set(label, Date.now());
@@ -150,9 +153,9 @@ function createTimeWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
-function createTimeEndWrapper(originalMethod: (...args: any[]) => void) {
+const createTimeEndWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     const startTime = timers.get(label);
@@ -172,12 +175,12 @@ function createTimeEndWrapper(originalMethod: (...args: any[]) => void) {
       }
     }
   };
-}
+};
 
 /**
  * Wrapper for console.assert
  */
-function createAssertWrapper(originalMethod: (...args: any[]) => void) {
+const createAssertWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const [assertion, ...messageArgs] = args;
 
@@ -199,14 +202,14 @@ function createAssertWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Wrapper for console.count
  */
 const counters = new Map<string, number>();
 
-function createCountWrapper(originalMethod: (...args: any[]) => void) {
+const createCountWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     const current = (counters.get(label) || 0) + 1;
@@ -218,9 +221,9 @@ function createCountWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
-function createCountResetWrapper(originalMethod: (...args: any[]) => void) {
+const createCountResetWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     counters.delete(label);
@@ -231,12 +234,12 @@ function createCountResetWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Wrapper for console.dir
  */
-function createDirWrapper(originalMethod: (...args: any[]) => void) {
+const createDirWrapper = (originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const message = `DIR: ${args.length} object(s)`;
     logger.debug(message);
@@ -245,12 +248,12 @@ function createDirWrapper(originalMethod: (...args: any[]) => void) {
       originalMethod.apply(console, args);
     }
   };
-}
+};
 
 /**
  * Override all console methods globally
  */
-export function overrideConsole(): void {
+export const overrideConsole = (): void => {
   console.log = createConsoleWrapper('info', originalConsole.log);
   console.error = createConsoleWrapper('error', originalConsole.error);
   console.warn = createConsoleWrapper('warn', originalConsole.warn);
@@ -271,35 +274,35 @@ export function overrideConsole(): void {
 
   // console.clear should still work normally
   console.clear = originalConsole.clear;
-}
+};
 
 /**
  * Restore original console methods (useful for testing)
  */
-export function restoreConsole(): void {
+export const restoreConsole = (): void => {
   Object.assign(console, originalConsole);
-}
+};
 
 /**
  * Get statistics about console usage
  */
-export function getConsoleStats(): {
+export const getConsoleStats = (): {
   timersCount: number;
   countersCount: number;
-} {
+} => {
   return {
     timersCount: timers.size,
     countersCount: counters.size,
   };
-}
+};
 
 /**
  * Clear all timers and counters (useful for cleanup)
  */
-export function clearConsoleStats(): void {
+export const clearConsoleStats = (): void => {
   timers.clear();
   counters.clear();
-}
+};
 
 // Auto-override console when this module is imported
 overrideConsole();

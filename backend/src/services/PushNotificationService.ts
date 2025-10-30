@@ -38,10 +38,10 @@ export class PushNotificationService implements PushNotificationServiceInterface
   }
 
   private getFirebaseService(): FirebaseService {
-    if (!this.isAvailable()) {
+    if (!this.isAvailable() || !this.firebaseService) {
       throw new Error('Push notification service is not available');
     }
-    return this.firebaseService!;
+    return this.firebaseService;
   }
 
   async sendToToken(token: string, notification: PushNotificationData): Promise<PushNotificationResult> {

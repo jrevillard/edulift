@@ -22,33 +22,35 @@ class PinoAppLogger implements Logger {
   constructor(context?: string) {
     this.context = context || 'main';
 
-    // Configuration for development vs production
-    const isDevelopment = process.env.NODE_ENV !== 'production';
+    // Configuration du niveau de log (indépendant de NODE_ENV)
     const validLevels = ['error', 'warn', 'info', 'debug'];
     const logLevel = validLevels.includes(process.env.LOG_LEVEL?.toLowerCase() || '')
       ? process.env.LOG_LEVEL?.toLowerCase() || 'info'
       : 'info';
 
-    const config: any = {
+    // Configuration du format (basé sur LOG_PRETTY si disponible, sinon NODE_ENV)
+    const isPretty = process.env.LOG_PRETTY === 'true' || process.env.NODE_ENV !== 'production';
+
+    const config: pino.LoggerOptions = {
       level: logLevel,
       // Always include essential metadata
       base: {
         pid: process.pid,
         hostname: os.hostname(),
         service: 'edulift-backend',
-        context: this.context
-      }
+        context: this.context,
+      },
     };
 
-    // In development, use readable format
-    if (isDevelopment) {
+    // Utiliser un format lisible si LOG_PRETTY=true ou NODE_ENV != production
+    if (isPretty) {
       config.transport = {
         target: 'pino-pretty',
         options: {
           colorize: true,
           translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname'
-        }
+          ignore: 'pid,hostname',
+        },
       };
     }
 
