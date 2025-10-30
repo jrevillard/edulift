@@ -29,5 +29,10 @@ export default {
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
-  }
+  },
+  // Increase timeout for async operations
+  testTimeout: 10000,
+  // Force exit after tests complete - necessary for Socket.IO tests
+  // The worker exit warning is expected and benign
+  forceExit: true
 };

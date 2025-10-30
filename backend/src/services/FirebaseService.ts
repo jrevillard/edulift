@@ -1,5 +1,4 @@
 import * as admin from 'firebase-admin';
-import { getMessaging } from 'firebase-admin/messaging';
 import { PushNotificationServiceInterface, PushNotificationData, PushNotificationResult, BatchPushNotificationResult } from '../types/PushNotificationInterface';
 import { createLogger } from '../utils/logger';
 
@@ -52,7 +51,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
         this.app = apps[0];
       }
 
-      this.messaging = getMessaging(this.app || undefined);
+      this.messaging = admin.messaging(this.app || undefined);
       this.isInitialized = true;
 
       if (process.env.NODE_ENV !== 'test') {

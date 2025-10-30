@@ -103,7 +103,20 @@ describe('SocketHandler Security', () => {
 
     // Initialize SocketHandler
     socketHandler = new SocketHandler(httpServer);
-    
+
+    // Mock authorization service to prevent connection errors
+    const mockAuthService = socketHandler['authorizationService'];
+    if (mockAuthService) {
+      mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(true);
+      mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(true);
+      mockAuthService.canUserAccessFamily = jest.fn().mockResolvedValue(true);
+      mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([TEST_GROUP_ID, 'another-group-id']);
+      mockAuthService.canUserAccessGroups = jest.fn().mockResolvedValue({
+        [TEST_GROUP_ID]: true,
+        'another-group-id': true,
+      });
+    }
+
     // Start server
     httpServer.listen(0);
   });
@@ -114,17 +127,21 @@ describe('SocketHandler Security', () => {
       if (socketHandler) {
         await socketHandler.cleanup();
       }
-      
-      // Wait for cleanup to complete
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
+
+      // Wait for cleanup to complete (use unref to prevent hanging)
+      await new Promise(resolve => {
+        const timer = setTimeout(resolve, 150);
+        timer.unref();
+      });
+
       // Then close HTTP server if it's listening
       if (httpServer && httpServer.listening) {
         await new Promise<void>((resolve, reject) => {
           const timeoutId = setTimeout(() => {
             reject(new Error('Server close timeout'));
           }, 5000);
-          
+          timeoutId.unref();
+
           httpServer.close((err) => {
             clearTimeout(timeoutId);
             if (err) {
@@ -136,9 +153,12 @@ describe('SocketHandler Security', () => {
           });
         });
       }
-      
-      // Additional wait to ensure all handles are closed
-      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Additional wait to ensure all handles are closed (use unref)
+      await new Promise(resolve => {
+        const timer = setTimeout(resolve, 50);
+        timer.unref();
+      });
     } catch (error) {
       console.error('Error during afterEach cleanup:', error);
     }

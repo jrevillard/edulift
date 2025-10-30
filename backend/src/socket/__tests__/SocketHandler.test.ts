@@ -123,7 +123,12 @@ describe('SocketHandler', () => {
     if (mockAuthService) {
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(true);
       mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(true);
+      mockAuthService.canUserAccessFamily = jest.fn().mockResolvedValue(true);
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([TEST_GROUP_ID, 'another-group-id']);
+      mockAuthService.canUserAccessGroups = jest.fn().mockResolvedValue({
+        [TEST_GROUP_ID]: true,
+        'another-group-id': true,
+      });
     }
     
     // Start HTTP server

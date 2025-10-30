@@ -413,20 +413,23 @@ export class SocketHandler {
     try {
       // Disconnect all connected sockets first
       this.io.disconnectSockets(true);
-      
-      // Wait for disconnections to process
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+
+      // Wait for disconnections to process (use unref to prevent hanging)
+      await new Promise(resolve => {
+        const timer = setTimeout(resolve, 100);
+        timer.unref();
+      });
+
       // Close the Socket.IO server
       await new Promise<void>((resolve) => {
         this.io.close(() => {
           resolve();
         });
       });
-      
+
       // Clear rate limit map
       this.rateLimitMap.clear();
-      
+
       // Disconnect Prisma
       if (this.prisma) {
         await this.prisma.$disconnect();

@@ -1,23 +1,37 @@
+// Mock firebase-admin avant toute import
+jest.mock('firebase-admin', () => {
+  const mockAdmin = {
+    apps: [],
+    getApps: jest.fn().mockReturnValue([]),
+    initializeApp: jest.fn().mockReturnValue({
+      name: 'test-app',
+      getOrInitService: jest.fn(),
+    }),
+    credential: {
+      cert: jest.fn().mockReturnValue({}),
+    },
+    messaging: jest.fn().mockReturnValue({
+      send: jest.fn().mockResolvedValue({ messageId: 'message-id-123' }),
+      sendEachForMulticast: jest.fn().mockResolvedValue({
+        successCount: 2,
+        failureCount: 0,
+        results: [
+          { success: true, messageId: 'message-id-1' },
+          { success: true, messageId: 'message-id-2' },
+        ],
+      }),
+      subscribeToTopic: jest.fn().mockResolvedValue({}),
+      unsubscribeFromTopic: jest.fn().mockResolvedValue({}),
+    }),
+  };
+
+  // @ts-ignore
+  return mockAdmin;
+});
+
+import * as admin from 'firebase-admin';
 import { FirebaseService, FirebaseConfig } from '../FirebaseService';
 import { PushNotificationData } from '../../types/PushNotificationInterface';
-import * as admin from 'firebase-admin';
-
-// Mock firebase-admin
-jest.mock('firebase-admin', () => ({
-  apps: [],
-  initializeApp: jest.fn().mockReturnValue({
-    name: 'test-app',
-  }),
-  credential: {
-    cert: jest.fn().mockReturnValue({}),
-  },
-  messaging: jest.fn().mockReturnValue({
-    send: jest.fn(),
-    sendEachForMulticast: jest.fn(),
-    subscribeToTopic: jest.fn(),
-    unsubscribeFromTopic: jest.fn(),
-  }),
-}));
 
 describe('FirebaseService', () => {
   let firebaseService: FirebaseService;
@@ -30,16 +44,17 @@ describe('FirebaseService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
-        mockMessaging = {
+
+    mockMessaging = {
       send: jest.fn(),
       sendEachForMulticast: jest.fn(),
       subscribeToTopic: jest.fn(),
       unsubscribeFromTopic: jest.fn(),
     };
-    // @ts-expect-error - mock of Firebase admin
-    admin.messaging.mockReturnValue(mockMessaging);
-    
+
+    // Update the admin.messaging mock to return our mockMessaging
+    (admin.messaging as jest.Mock).mockReturnValue(mockMessaging);
+
     firebaseService = new FirebaseService(mockConfig);
   });
 
