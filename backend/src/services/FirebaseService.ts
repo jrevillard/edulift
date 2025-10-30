@@ -1,5 +1,5 @@
-// @ts-nocheck
 import * as admin from 'firebase-admin';
+import { getMessaging } from 'firebase-admin/messaging';
 import { PushNotificationServiceInterface, PushNotificationData, PushNotificationResult, BatchPushNotificationResult } from '../types/PushNotificationInterface';
 import { createLogger } from '../utils/logger';
 
@@ -23,13 +23,21 @@ export class FirebaseService implements PushNotificationServiceInterface {
 
   private initialize(): void {
     try {
+      // Check if admin is properly imported
+      if (!admin) {
+        throw new Error('Firebase admin module not properly imported');
+      }
+
+      // Use getApps() from firebase-admin v12
+      const apps = (admin as any).getApps();
+
       this.logger.debug('Starting Firebase Admin SDK initialization', {
         projectId: this.config.projectId,
-        existingAppsCount: admin.apps.length,
+        existingAppsCount: apps.length,
       });
 
       // Check if Firebase app already exists
-      if (admin.apps.length === 0) {
+      if (apps.length === 0) {
         this.logger.debug('Creating new Firebase app instance');
         this.app = admin.initializeApp({
           credential: admin.credential.cert({
@@ -41,16 +49,16 @@ export class FirebaseService implements PushNotificationServiceInterface {
         this.logger.debug('Firebase app created successfully');
       } else {
         this.logger.debug('Reusing existing Firebase app instance');
-        this.app = admin.apps[0];
+        this.app = apps[0];
       }
 
-      this.messaging = admin.messaging(this.app);
+      this.messaging = getMessaging(this.app || undefined);
       this.isInitialized = true;
 
       if (process.env.NODE_ENV !== 'test') {
         this.logger.info('🔥 Firebase Admin SDK initialized successfully', {
           projectId: this.config.projectId,
-          appName: this.app.name,
+          appName: this.app?.name,
         });
       }
     } catch (error) {
@@ -79,7 +87,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
   async sendToToken(token: string, notification: PushNotificationData): Promise<PushNotificationResult> {
     try {
       const messaging = this.getMessaging();
-      
+
       const message: admin.messaging.Message = {
         token,
         notification: {
@@ -116,18 +124,18 @@ export class FirebaseService implements PushNotificationServiceInterface {
       };
 
       const messageId = await messaging.send(message);
-      
+
       return {
         success: true,
         messageId,
       };
     } catch (error) {
       const errorMessage = (error as Error).message;
-      
+
       // Check for invalid token errors
       const isInvalidToken = errorMessage.includes('registration-token-not-registered') ||
-                           errorMessage.includes('invalid-registration-token') ||
-                           errorMessage.includes('not-found');
+        errorMessage.includes('invalid-registration-token') ||
+        errorMessage.includes('not-found');
 
       return {
         success: false,
@@ -149,7 +157,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
 
     try {
       const messaging = this.getMessaging();
-      
+
       const message: admin.messaging.MulticastMessage = {
         tokens,
         notification: {
@@ -186,7 +194,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       };
 
       const response = await messaging.sendEachForMulticast(message);
-      
+
       const results = response.responses.map((result, index) => ({
         token: tokens[index],
         success: result.success,
@@ -199,8 +207,8 @@ export class FirebaseService implements PushNotificationServiceInterface {
           if (result.error) {
             const errorCode = result.error.code;
             if (errorCode === 'messaging/registration-token-not-registered' ||
-                errorCode === 'messaging/invalid-registration-token' ||
-                errorCode === 'messaging/not-found') {
+              errorCode === 'messaging/invalid-registration-token' ||
+              errorCode === 'messaging/not-found') {
               return tokens[index];
             }
           }
@@ -246,7 +254,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
   async sendToTopic(topic: string, notification: PushNotificationData): Promise<PushNotificationResult> {
     try {
       const messaging = this.getMessaging();
-      
+
       const message: admin.messaging.Message = {
         topic,
         notification: {
@@ -283,7 +291,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       };
 
       const messageId = await messaging.send(message);
-      
+
       return {
         success: true,
         messageId,
@@ -299,11 +307,11 @@ export class FirebaseService implements PushNotificationServiceInterface {
   async validateToken(token: string): Promise<boolean> {
     try {
       const messaging = this.getMessaging();
-      
+
       // Send a data-only message to validate the token
       const message: admin.messaging.Message = {
         token,
-        data: { 
+        data: {
           type: 'token_validation',
           timestamp: Date.now().toString(),
         },
@@ -326,12 +334,12 @@ export class FirebaseService implements PushNotificationServiceInterface {
       return true;
     } catch (error) {
       const errorMessage = (error as Error).message;
-      
+
       // Token is invalid if we get these specific errors
       const isInvalidToken = errorMessage.includes('registration-token-not-registered') ||
-                           errorMessage.includes('invalid-registration-token') ||
-                           errorMessage.includes('not-found');
-      
+        errorMessage.includes('invalid-registration-token') ||
+        errorMessage.includes('not-found');
+
       return !isInvalidToken;
     }
   }
