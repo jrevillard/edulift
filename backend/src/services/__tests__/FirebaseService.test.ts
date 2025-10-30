@@ -29,7 +29,7 @@ jest.mock('firebase-admin', () => {
   return mockAdmin;
 });
 
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { FirebaseService, FirebaseConfig } from '../FirebaseService';
 import { PushNotificationData } from '../../types/PushNotificationInterface';
 

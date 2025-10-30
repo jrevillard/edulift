@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 import { PushNotificationServiceInterface, PushNotificationData, PushNotificationResult, BatchPushNotificationResult } from '../types/PushNotificationInterface';
 import { createLogger } from '../utils/logger';
 
@@ -28,7 +28,7 @@ export class FirebaseService implements PushNotificationServiceInterface {
       }
 
       // Use getApps() from firebase-admin v12
-      const apps = (admin as any).getApps();
+      const apps = admin.apps;
 
       this.logger.debug('Starting Firebase Admin SDK initialization', {
         projectId: this.config.projectId,
