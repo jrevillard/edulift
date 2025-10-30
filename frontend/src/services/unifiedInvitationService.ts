@@ -5,6 +5,8 @@
  * and provides methods for handling family and group invitations
  */
 
+import { API_BASE_URL } from '@/config/runtime';
+
 // Import proper types for roles
 export type FamilyRole = 'ADMIN' | 'MEMBER';
 export type GroupRole = 'ADMIN' | 'MEMBER';
