@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import { PrismaClient } from '@prisma/client';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
+import { prisma } from './config/database';
 import groupsRouter from './routes/groups';
 import authRouter from './routes/auth';
 import childrenRouter from './routes/children';
@@ -16,7 +16,7 @@ import invitationsRouter from './routes/invitations';
 import fcmTokensRouter from './routes/fcmTokens';
 
 const app = express();
-const db = new PrismaClient();
+const db = prisma;
 
 // Security middleware
 app.use(helmet());

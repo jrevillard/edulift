@@ -8,7 +8,7 @@ import { NotificationService } from '../services/NotificationService';
 import { EmailService } from '../services/EmailService';
 import { MockEmailService } from '../services/MockEmailService';
 import { UserRepository } from '../repositories/UserRepository';
-import { PrismaClient } from '@prisma/client';
+import { prisma as globalPrisma } from '../config/database';
 import jwt from 'jsonwebtoken';
 import { SOCKET_EVENTS } from '../shared/events';
 import { AuthorizationService } from '../services/AuthorizationService';
@@ -25,7 +25,7 @@ export class SocketHandler {
   private io: SocketIOServer;
   socketService: SocketService;
   private authorizationService: AuthorizationService;
-  private prisma: PrismaClient;
+  private prisma: typeof globalPrisma;
   private logger = createLogger('socket');
   private rateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
 
@@ -34,7 +34,7 @@ export class SocketHandler {
     const corsOrigins = process.env.CORS_ORIGIN === '*'
       ? '*'
       : process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim());
-    
+
     this.io = new SocketIOServer(server, {
       cors: {
         origin: corsOrigins,
@@ -44,8 +44,8 @@ export class SocketHandler {
       transports: ['websocket', 'polling'],
     });
 
-    // Initialize services
-    this.prisma = new PrismaClient();
+    // Use singleton Prisma instance
+    this.prisma = globalPrisma;
     const prisma = this.prisma;
     const scheduleSlotRepository = new ScheduleSlotRepository(prisma);
     const userRepository = new UserRepository(prisma);
@@ -430,17 +430,11 @@ export class SocketHandler {
       // Clear rate limit map
       this.rateLimitMap.clear();
 
-      // Disconnect Prisma
-      if (this.prisma) {
-        await this.prisma.$disconnect();
-      }
+      // Note: Don't disconnect Prisma singleton here - it's managed globally
+      // and may be used by other parts of the application
     } catch (error) {
       if (process.env.NODE_ENV !== 'test') {
         this.logger.error('Error during cleanup:', { error: error instanceof Error ? error.message : String(error) });
-      }
-      // Still attempt to disconnect Prisma even if socket cleanup fails
-      if (this.prisma) {
-        await this.prisma.$disconnect();
       }
     }
   }

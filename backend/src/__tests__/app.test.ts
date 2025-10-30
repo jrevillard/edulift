@@ -99,17 +99,17 @@ describe('Rate Limiting Middleware', () => {
     });
 
     it('should reset the counter after the time window', async () => {
-      const app = createTestApp({ maxRequests: '2', windowMs: '100' }); // 100ms window
+      const app = createTestApp({ maxRequests: '2', windowMs: '200' }); // 200ms window
 
       // Use up the requests
       await request(app).get('/test').expect(200);
       await request(app).get('/test').expect(200);
-      
+
       // This should be rate limited
       await request(app).get('/test').expect(429);
 
-      // Wait for window to reset
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Wait for window to reset (add extra margin for timing issues)
+      await new Promise(resolve => setTimeout(resolve, 250));
 
       // Should work again after reset
       const response = await request(app).get('/test');
