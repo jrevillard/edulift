@@ -76,8 +76,11 @@ app.use(
   }),
 );
 
-// Logging
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+// HTTP request logging (independent from NODE_ENV)
+// Use HTTP_LOG_FORMAT if set, otherwise default based on NODE_ENV
+const httpLogFormat = process.env.HTTP_LOG_FORMAT ||
+  (process.env.NODE_ENV === 'production' ? 'combined' : 'dev');
+app.use(morgan(httpLogFormat));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));

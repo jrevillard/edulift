@@ -31,8 +31,10 @@ class PinoLoggerService implements Logger {
       ? rawLogLevel
       : 'info';
 
-    // Configuration du format (basé sur LOG_PRETTY si disponible, sinon NODE_ENV)
-    const isPretty = process.env.LOG_PRETTY === 'true' || process.env.NODE_ENV !== 'production';
+    // Configuration du format (priorité à LOG_PRETTY, sinon fallback sur NODE_ENV)
+    const isPretty = process.env.LOG_PRETTY !== undefined
+      ? process.env.LOG_PRETTY === 'true'
+      : process.env.NODE_ENV !== 'production';
 
     const config: pino.LoggerOptions = {
       level: logLevel,
