@@ -44,22 +44,45 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       console.log('Creating new socket connection with fresh token');
       console.log('Socket URL:', SOCKET_URL);
 
-      const newSocket = io(SOCKET_URL, {
-        auth: {
-          token: authToken
-        },
-        autoConnect: true,
-        reconnection: true,
-        reconnectionDelay: 3000,    // Start with 3 seconds
-        reconnectionDelayMax: 30000, // Max 30 seconds
-        reconnectionAttempts: 3,     // Reduced to 3 attempts
-        timeout: 10000,             // 10 second connection timeout
-        // Configurable transport method via environment variable
-        // Set VITE_SOCKET_FORCE_POLLING=true to force polling only (useful for proxy issues)
-        transports: import.meta.env.VITE_SOCKET_FORCE_POLLING === 'true' 
-          ? ['polling'] 
-          : ['websocket', 'polling']
-      });
+      // Try to create socket with error handling and fallback
+      let newSocket: Socket | null = null;
+      const createSocketWithFallback = (transportOnly?: string[]) => {
+        try {
+          return io(SOCKET_URL, {
+            auth: {
+              token: authToken
+            },
+            autoConnect: true,
+            reconnection: true,
+            reconnectionDelay: 3000,    // Start with 3 seconds
+            reconnectionDelayMax: 30000, // Max 30 seconds
+            reconnectionAttempts: 3,     // Reduced to 3 attempts
+            timeout: 10000,             // 10 second connection timeout
+            transports: transportOnly || (import.meta.env.VITE_SOCKET_FORCE_POLLING === 'true'
+              ? ['polling']
+              : ['websocket', 'polling'])
+          });
+        } catch (error) {
+          console.error('Failed to create socket with transports', transportOnly, ':', error);
+          return null;
+        }
+      };
+
+      // Try WebSocket first, then fallback to polling only
+      newSocket = createSocketWithFallback();
+
+      // If WebSocket fails and not already forcing polling, try polling only
+      if (!newSocket && import.meta.env.VITE_SOCKET_FORCE_POLLING !== 'true') {
+        console.warn('WebSocket connection failed, trying polling-only fallback...');
+        newSocket = createSocketWithFallback(['polling']);
+      }
+
+      // If all socket creation attempts failed
+      if (!newSocket) {
+        console.error('All connection attempts failed. Application will work without real-time features.');
+        setWsStatus('error', 'Real-time features unavailable. Application will work normally.');
+        return;
+      }
 
       // Update connection status to connecting
       setWsStatus('connecting');
@@ -91,19 +114,24 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       newSocket.on('connect_error', (error) => {
         console.error('Socket connection error:', error);
         setIsConnected(false);
-        
-        // Provide user-friendly error messages
-        let errorMessage = 'Unable to connect to real-time updates';
-        
+
+        // Provide user-friendly error messages that don't break the app
+        let errorMessage = 'Real-time updates unavailable. Application will work normally.';
+
         if (error.message.includes('ECONNREFUSED')) {
-          errorMessage = 'Cannot connect to server. Please ensure the backend is running.';
+          errorMessage = 'Real-time features temporarily unavailable. All other features will work normally.';
         } else if (error.message.includes('Unauthorized')) {
-          errorMessage = 'Authentication failed. Please try logging in again.';
+          errorMessage = 'Session expired for real-time updates. Please refresh if needed.';
         } else if (error.message.includes('timeout')) {
-          errorMessage = 'Connection timeout. Please check your internet connection.';
+          errorMessage = 'Real-time connection timeout. Application continues to work normally.';
+        } else if (error.message.includes('WebSocket')) {
+          errorMessage = 'WebSocket connection failed. Using fallback transport.';
         }
-        
+
         setWsStatus('error', errorMessage);
+
+        // Don't throw - let the app continue normally
+        console.info('Application continues to work without real-time updates');
       });
 
       // Reconnection events
@@ -120,7 +148,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
       newSocket.on('reconnect_failed', () => {
         console.error('Failed to reconnect after maximum attempts');
-        setWsStatus('error', 'Failed to reconnect. Please refresh the page to try again.');
+        setWsStatus('error', 'Real-time features temporarily disabled. Application continues to work normally.');
+        console.info('Application will continue without real-time updates. Manual refresh may restore real-time features.');
       });
 
       // Real-time event handlers - CENTRALIZED HANDLING
