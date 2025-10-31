@@ -199,7 +199,7 @@ describe('SocketContext', () => {
       eventHandlers.connect_error?.(new Error('Connection failed'))
     })
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Unable to connect to real-time updates')
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time updates unavailable. Application will work normally.')
   })
 
   it('should handle authentication errors', async () => {
@@ -214,7 +214,7 @@ describe('SocketContext', () => {
       eventHandlers.connect_error?.(new Error('Unauthorized'))
     })
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Authentication failed. Please try logging in again.')
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Session expired for real-time updates. Please refresh if needed.')
   })
 
   it('should handle timeout errors', async () => {
@@ -229,7 +229,7 @@ describe('SocketContext', () => {
       eventHandlers.connect_error?.(new Error('timeout'))
     })
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Connection timeout. Please check your internet connection.')
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time connection timeout. Application continues to work normally.')
   })
 
   it('should handle reconnection events', async () => {
@@ -256,7 +256,7 @@ describe('SocketContext', () => {
     await act(async () => {
       eventHandlers.reconnect_failed?.()
     })
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Failed to reconnect. Please refresh the page to try again.')
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time features temporarily disabled. Application continues to work normally.')
   })
 
   it('should invalidate queries on schedule events', async () => {

@@ -65,11 +65,15 @@ if [ "$BACKEND_CHANGED" = true ]; then
         exit 1
     fi
 
-    # Run tests if available
-    if npm test --silent 2>/dev/null; then
+    # Run tests - mandatory
+    print_info "Running tests..."
+    if npm run test:run; then
         print_success "Tests passed"
     else
-        print_info "Tests not available or failed (optional)"
+        print_error "Tests failed"
+        echo "Please fix the failing tests before committing."
+        echo "You can run 'npm test' to see the full test output."
+        exit 1
     fi
 
     cd ..
@@ -104,11 +108,15 @@ if [ "$FRONTEND_CHANGED" = true ]; then
         exit 1
     fi
 
-    # Run tests if available
-    if npm test --silent 2>/dev/null; then
+    # Run tests - mandatory
+    print_info "Running tests..."
+    if npm run test:run; then
         print_success "Tests passed"
     else
-        print_info "Tests not available or failed (optional)"
+        print_error "Tests failed"
+        echo "Please fix the failing tests before committing."
+        echo "You can run 'npm test' to see the full test output."
+        exit 1
     fi
 
     cd ..
