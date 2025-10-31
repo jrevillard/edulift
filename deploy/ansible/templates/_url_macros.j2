@@ -1,0 +1,75 @@
+{# =========================================================================== #}
+{# URL Parsing Macros for EduLift Deployment                                   #}
+{# =========================================================================== #}
+
+{#
+  Extract the host from a full URL (without port)
+  Examples:
+    - "https://api.example.com/path" -> "api.example.com"
+    - "https://example.com" -> "example.com"
+    - "https://example.com:8443/path" -> "example.com"
+#}
+{% macro get_host(url) -%}
+{{ url | regex_replace('^https?://', '') | regex_replace(':[0-9]+', '') | regex_replace('/.*$', '') }}
+{%- endmacro %}
+
+{#
+  Extract the path from a full URL (including leading slash)
+  Examples:
+    - "https://example.com/api/v1" -> "/api/v1"
+    - "https://example.com" -> ""
+#}
+{% macro get_path(url) -%}
+{% set path_part = url | regex_replace('^https?://[^/]+', '') -%}
+{{ path_part if path_part != url else '' }}
+{%- endmacro %}
+
+{#
+  Check if a URL uses a path (returns true if path exists beyond root)
+  Examples:
+    - "https://example.com/api" -> true
+    - "https://api.example.com" -> false
+    - "https://example.com" -> false
+#}
+{% macro uses_path(url) -%}
+{{ (get_path(url) | length > 1) | string | lower }}
+{%- endmacro %}
+
+{#
+  Build a Traefik Host() rule from URL
+  Examples:
+    - "https://api.example.com/path" -> "Host(`api.example.com`)"
+#}
+{% macro traefik_host_rule(url) -%}
+Host(`{{ get_host(url) }}`)
+{%- endmacro %}
+
+{#
+  Build a Traefik PathPrefix() rule from URL (if path exists)
+  Examples:
+    - "https://example.com/api" -> "PathPrefix(`/api`)"
+    - "https://api.example.com" -> ""
+#}
+{% macro traefik_path_rule(url) -%}
+{% set path = get_path(url) -%}
+{% if path and path != '/' -%}
+PathPrefix(`{{ path }}`)
+{%- endif %}
+{%- endmacro %}
+
+{#
+  Build a complete Traefik routing rule (Host + Path)
+  Examples:
+    - "https://example.com/api" -> "Host(`example.com`) && PathPrefix(`/api`)"
+    - "https://api.example.com" -> "Host(`api.example.com`)"
+    - "https://example.com" -> "Host(`example.com`)"
+#}
+{% macro traefik_rule(url) -%}
+{% set host = traefik_host_rule(url) -%}
+{% set path = traefik_path_rule(url) -%}
+{% if path -%}
+{{ host }} && {{ path }}
+{%- else -%}
+{{ host }}
+{%- endif %}
+{%- endmacro %}

@@ -1,0 +1,38 @@
+[Unit]
+Description=EduLift {{ deployment_environment | capitalize }} Service
+Documentation=https://github.com/your-org/edulift
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory={{ edulift_deploy_dir }}
+EnvironmentFile={{ edulift_deploy_dir }}/.env
+Environment="COMPOSE_PROJECT_NAME={{ compose_project_name }}"
+ExecStartPre=/usr/bin/docker compose -p {{ compose_project_name }} -f docker-compose.yml --env-file .env down --remove-orphans
+ExecStart=/usr/bin/docker compose -p {{ compose_project_name }} -f docker-compose.yml --env-file .env pull
+ExecStart=/usr/bin/docker compose -p {{ compose_project_name }} -f docker-compose.yml --env-file .env up -d --force-recreate --remove-orphans
+ExecStop=/usr/bin/docker compose -p {{ compose_project_name }} -f docker-compose.yml --env-file .env stop
+ExecReload=/usr/bin/docker compose -p {{ compose_project_name }} -f docker-compose.yml --env-file .env restart
+
+# Restart policy
+Restart=on-failure
+RestartSec=10s
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=edulift-{{ deployment_environment }}
+
+[Install]
+WantedBy=multi-user.target

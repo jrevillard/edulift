@@ -1,0 +1,290 @@
+---
+# EduLift Deployment Playbook
+# This playbook deploys Vue.js frontend, Node.js backend, PostgreSQL, Redis, Traefik, and systemd on Ubuntu servers with Docker
+
+- name: Deploy EduLift Environment
+  hosts: edulift_servers
+  become: yes
+  vars:
+    # Environment name (production, staging, etc.)
+    deployment_environment: "{{ env | default('production') }}"
+
+    # Base paths (environment-specific)
+    edulift_deploy_dir: "/opt/edulift-{{ deployment_environment }}"
+
+    # User and group (environment-specific)
+    edulift_user: "edulift-{{ deployment_environment }}"
+    edulift_group: "edulift-{{ deployment_environment }}"
+
+    # Service name (environment-specific)
+    service_name: "edulift-{{ deployment_environment }}"
+
+    # Docker compose project name (environment-specific)
+    compose_project_name: "edulift-{{ deployment_environment }}"
+
+    docker_compose_version: "2.24.0"
+
+  tasks:
+    # ====================================
+    # System Preparation
+    # ====================================
+
+    - name: Update system packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+        cache_valid_time: 3600
+        state: latest
+      become: yes
+
+    - name: Install required system packages
+      apt:
+        name:
+          - curl
+          - wget
+          - gnupg2
+          - htop
+          - python3-pip
+          - python3-docker
+        state: present
+      become: yes
+
+    # ====================================
+    # Docker Installation
+    # ====================================
+
+    - name: Create directory for Docker GPG key
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+      become: yes
+
+    - name: Add Docker's official GPG key
+      get_url:
+        url: https://download.docker.com/linux/debian/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+        force: yes
+      become: yes
+
+    - name: Dearmor the GPG key
+      command: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.asc
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+      become: yes
+
+    - name: Remove armored GPG key
+      file:
+        path: /etc/apt/keyrings/docker.asc
+        state: absent
+      become: yes
+
+    - name: Set Docker architecture fact
+      set_fact:
+        docker_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else ansible_architecture }}"
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch={{ docker_arch }} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable"
+        state: present
+        filename: docker
+      become: yes
+
+    - name: Update apt cache after adding Docker repository
+      apt:
+        update_cache: yes
+        cache_valid_time: 0
+      become: yes
+
+    - name: Install Docker Engine and related packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      become: yes
+
+    # ====================================
+    # User Management
+    # ====================================
+
+    - name: Create environment-specific group
+      group:
+        name: "{{ edulift_group }}"
+        system: yes
+        state: present
+      become: yes
+
+    - name: Create environment-specific user
+      user:
+        name: "{{ edulift_user }}"
+        shell: /bin/false
+        group: "{{ edulift_group }}"
+        system: yes
+        state: present
+      become: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ edulift_user }}"
+        groups:
+          - docker
+        append: yes
+        state: present
+      become: yes
+
+    # ====================================
+    # Application Deployment
+    # ====================================
+
+    - name: Create deployment directory
+      file:
+        path: "{{ edulift_deploy_dir }}"
+        state: directory
+        mode: '0750'
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+      become: yes
+
+    - name: Create directories for application
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0750'
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+      become: yes
+      with_items:
+          - "{{ edulift_deploy_dir }}/backups"
+          - "{{ edulift_deploy_dir }}/logs/traefik"
+          - "{{ edulift_deploy_dir }}/logs/backend"
+
+    - name: Generate docker-compose.yml from template
+      template:
+        src: templates/docker-compose.yml.j2
+        dest: "{{ edulift_deploy_dir }}/docker-compose.yml"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0644'
+      notify: recreate containers
+      become: yes
+
+    - name: Generate environment file from template
+      template:
+        src: templates/env.j2
+        dest: "{{ edulift_deploy_dir }}/.env"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0600'
+      notify: restart containers
+      become: yes
+
+    - name: Generate backup script from template
+      template:
+        src: templates/backup.sh.j2
+        dest: "{{ edulift_deploy_dir }}/backup.sh"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0750'
+
+    - name: Generate systemd service file from template
+      template:
+        src: templates/edulift.service.j2
+        dest: "/etc/systemd/system/edulift-{{ deployment_environment }}.service"
+        owner: root
+        group: root
+        mode: '0644'
+      become: yes
+
+    - name: Reload systemd daemon to recognize new service
+      systemd:
+        daemon_reload: yes
+      become: yes
+
+    # ====================================
+    # Deploy EduLift stack with Docker Compose
+    # ====================================
+
+    - name: Deploy EduLift stack with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ edulift_deploy_dir }}"
+        project_name: "{{ compose_project_name }}"
+        pull: "{{ 'always' if edulift_deployment.pull_images | bool else 'missing' }}"
+        state: present
+      become_user: "{{ edulift_user }}"
+      register: compose_result
+
+    # ====================================
+    # Post-deployment verification
+    # ====================================
+
+    - name: Display deployment summary
+      debug:
+        msg: "EduLift {{ deployment_environment }} deployment completed successfully!"
+
+# ====================================
+# Handlers
+# ====================================
+
+  handlers:
+    - name: Reload systemd and restart EduLift
+      systemd:
+        daemon_reload: yes
+        name: "{{ service_name }}"
+        state: restarted
+
+    - name: Restart EduLift Service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+
+    - name: Restart EduLift Service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+
+# ====================================
+# Handlers
+# ====================================
+
+  handlers:
+    - name: Restart EduLift service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+      become: yes
+      listen: "restart edulift"
+
+    - name: Restart EduLift containers
+      community.docker.docker_compose_v2:
+        project_src: "{{ edulift_deploy_dir }}"
+        project_name: "{{ compose_project_name }}"
+        state: restarted
+      become_user: "{{ edulift_user }}"
+      listen: "restart containers"
+
+    - name: Recreate EduLift containers (full rebuild)
+      community.docker.docker_compose_v2:
+        project_src: "{{ edulift_deploy_dir }}"
+        project_name: "{{ compose_project_name }}"
+        state: present
+        pull: always
+        recreate: always
+      become_user: "{{ edulift_user }}"
+      listen: "recreate containers"
+
+# ====================================
+# End Playbook
+# ====================================

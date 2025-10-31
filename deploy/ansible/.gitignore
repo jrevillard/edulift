@@ -1,0 +1,19 @@
+# Environment files with secrets
+.env.prod
+.env.*.local
+
+# Backups
+backups/
+*.sql
+*.sql.gz
+
+# Logs
+logs/
+*.log
+
+# Docker volumes data
+data/
+
+# Traefik certificates (managed by Docker volume)
+letsencrypt/
+acme.json

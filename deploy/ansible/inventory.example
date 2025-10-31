@@ -1,0 +1,49 @@
+# EduLift Ansible Inventory Example
+# Copy this file to 'inventory' and customize for your environment
+
+# ============================================
+# Single VM with Multiple Environments
+# ============================================
+
+[production]
+prod-vm ansible_host=your-server-ip ansible_user=ubuntu env=production
+
+[staging]
+prod-vm ansible_host=your-server-ip ansible_user=ubuntu env=staging
+
+[edulift_servers:children]
+production
+staging
+
+# ============================================
+# OR: Separate VMs for Each Environment
+# ============================================
+
+# [production]
+# prod-server ansible_host=192.168.1.100 ansible_user=ubuntu env=production
+
+# [staging]
+# staging-server ansible_host=192.168.1.101 ansible_user=ubuntu env=staging
+
+# [edulift_servers:children]
+# production
+# staging
+
+# ============================================
+# Common Variables
+# ============================================
+
+[edulift_servers:vars]
+# Set to true to use Jinja2 template for .env.prod
+# Set to false to copy a pre-existing .env file
+use_template_env=false
+
+# Set to false to skip pulling images (faster deployment for testing)
+pull_images=true
+
+# Set to false to skip backup cron job setup
+enable_backup_cron=true
+
+# SSH settings (optional)
+# ansible_ssh_private_key_file=~/.ssh/id_rsa
+# ansible_python_interpreter=/usr/bin/python3
