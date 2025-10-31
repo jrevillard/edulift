@@ -28,18 +28,14 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const { isAuthenticated, user } = useAuth();
   const queryClient = useQueryClient();
   const { setWsStatus } = useConnectionStore();
 
-  // Track auth token changes
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    setAuthToken(token);
-  }, [isAuthenticated, user]);
+    // Read token directly from localStorage to avoid extra render
+    const authToken = localStorage.getItem('authToken');
 
-  useEffect(() => {
     if (isAuthenticated && user && authToken) {
       console.log('Creating new socket connection with fresh token');
       console.log('Socket URL:', SOCKET_URL);
@@ -367,7 +363,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setIsConnected(false);
       }
     }
-  }, [socket, isAuthenticated, user, authToken, queryClient, setWsStatus]);
+  }, [isAuthenticated, user, queryClient]);
 
   const value: SocketContextType = {
     socket,

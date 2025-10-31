@@ -191,32 +191,16 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      # API routes with WebSocket support
-      - "traefik.http.routers.{{ compose_project_name }}-backend.rule={{ url.traefik_rule(backend_url) }}"
+      # Backend service - simple configuration for single instance
+      - "traefik.http.services.{{ compose_project_name }}-backend.loadbalancer.server.port={{ edulift_services.backend.port }}"
+      - "traefik.http.services.{{ compose_project_name }}-backend.loadbalancer.passhostheader=true"
+      # Backend router - handles both API and WebSocket traffic
+      - "traefik.http.routers.{{ compose_project_name }}-backend.rule={{ url.traefik_rule(backend_url) }} || PathPrefix(`/socket.io`)"
       - "traefik.http.routers.{{ compose_project_name }}-backend.entrypoints=websecure"
       - "traefik.http.routers.{{ compose_project_name }}-backend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.{{ compose_project_name }}-backend.priority=10"
-      - "traefik.http.services.{{ compose_project_name }}-backend.loadbalancer.server.port={{ edulift_services.backend.port }}"
-      # WebSocket support - explicit middleware for WebSocket upgrade
-      - "traefik.http.services.{{ compose_project_name }}-backend.loadbalancer.passhostheader=true"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-websockets.headers.accesscontrolalloworiginlist={{ cors_origins | join(',') }}"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-websockets.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-websockets.headers.accesscontrolallowheaders=*"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-websockets.headers.accesscontrolallowcredentials=true"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-websockets.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-websockets.headers.customresponseheaders.X-Forwarded-Proto=https"
-      # CORS middleware
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,PATCH,OPTIONS"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-cors.headers.accesscontrolalloworiginlist={{ cors_origins | join(',') }}"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-cors.headers.accesscontrolallowcredentials={{ edulift_services.backend.cors.allow_credentials }}"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-cors.headers.accesscontrolmaxage={{ edulift_services.backend.cors.max_age }}"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-cors.headers.addvaryheader=true"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-cors.headers.accesscontrolallowheaders=*"
-      # Security headers
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-security.headers.stsSeconds={{ edulift_services.traefik.security.middlewares.sts_seconds }}"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-security.headers.stsIncludeSubdomains={{ edulift_services.traefik.security.middlewares.sts_include_subdomains }}"
-      - "traefik.http.middlewares.{{ compose_project_name }}-backend-security.headers.stsPreload={{ edulift_services.traefik.security.middlewares.sts_preload }}"
-      - "traefik.http.routers.{{ compose_project_name }}-backend.middlewares={{ compose_project_name }}-backend-websockets,{{ compose_project_name }}-backend-cors,{{ compose_project_name }}-backend-security"
+      # NO middlewares - let backend handle CORS, don't break WebSocket
+      - "traefik.http.routers.{{ compose_project_name }}-backend.middlewares="
     healthcheck:
       test:
         [

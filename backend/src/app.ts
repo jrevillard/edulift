@@ -24,6 +24,17 @@ app.use(helmet());
 // Simple rate limiting to prevent flooding
 const rateLimitEnabled = process.env.RATE_LIMIT_ENABLED !== 'false'; // Default: enabled
 const rateLimitStore = new Map();
+const RATE_LIMIT_CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+// Periodically clean up stale entries to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, clientData] of rateLimitStore.entries()) {
+    if (now > clientData.resetTime) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}, RATE_LIMIT_CLEANUP_INTERVAL_MS);
 
 if (rateLimitEnabled) {
   app.use((req: express.Request, res: express.Response, next: express.NextFunction): void => {
