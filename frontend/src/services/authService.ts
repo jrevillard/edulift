@@ -14,6 +14,7 @@ export interface User {
 export interface AuthResponse {
   user: User;
   token: string;
+  refreshToken: string;
   expiresAt: string;
   invitationResult?: {
     processed: boolean;
@@ -28,6 +29,7 @@ export interface AuthResponse {
 
 class AuthService {
   private token: string | null = null;
+  private storedRefreshToken: string | null = null;
   private user: User | null = null;
   private interceptorsSetup = false;
   private onAuthChanged?: () => void;
@@ -35,6 +37,7 @@ class AuthService {
   constructor() {
     // Initialize from localStorage
     this.token = localStorage.getItem('authToken');
+    this.storedRefreshToken = localStorage.getItem('refreshToken');
     const userData = localStorage.getItem('userData');
     if (userData) {
       try {
@@ -254,8 +257,8 @@ class AuthService {
       }
 
       const authData = response.data.data;
-      this.setAuth(authData.token, authData.user);
-      
+      this.setAuth(authData.token, authData.user, authData.refreshToken);
+
       // Clear PKCE data after successful authentication
       clearPKCEData();
       console.log('✅ Magic link verified successfully with PKCE');
@@ -298,8 +301,8 @@ class AuthService {
   private isRefreshInProgress = false;
 
   async refreshToken(): Promise<void> {
-    if (!this.token) {
-      throw new Error('No token to refresh');
+    if (!this.storedRefreshToken) {
+      throw new Error('No refresh token available');
     }
 
     // Prevent concurrent refresh attempts
@@ -310,11 +313,10 @@ class AuthService {
     this.isRefreshInProgress = true;
 
     try {
-      const response = await axios.post<ApiResponse<{ token: string; expiresAt: string }>>(
+      const response = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number; tokenType: string }>>(
         `${API_BASE_URL}/auth/refresh`,
-        {},
         {
-          headers: { Authorization: `Bearer ${this.token}` }
+          refreshToken: this.storedRefreshToken
         }
       );
 
@@ -322,8 +324,13 @@ class AuthService {
         throw new Error(response.data.error || 'Failed to refresh token');
       }
 
-      this.token = response.data.data.token;
+      // Update both access token and refresh token (token rotation)
+      this.token = response.data.data.accessToken;
+      this.storedRefreshToken = response.data.data.refreshToken;
       localStorage.setItem('authToken', this.token);
+      localStorage.setItem('refreshToken', this.storedRefreshToken);
+
+      console.log('✅ Token refreshed successfully');
     } finally {
       this.isRefreshInProgress = false;
     }
@@ -340,11 +347,17 @@ class AuthService {
     }
   }
 
-  private setAuth(token: string, user: User): void {
+  private setAuth(token: string, user: User, refreshToken?: string): void {
     this.token = token;
     this.user = user;
     localStorage.setItem('authToken', token);
     localStorage.setItem('userData', JSON.stringify(user));
+
+    // Store refresh token if provided
+    if (refreshToken) {
+      this.storedRefreshToken = refreshToken;
+      localStorage.setItem('refreshToken', refreshToken);
+    }
   }
 
   getRedirectAfterLogin(): string | null {
@@ -357,10 +370,12 @@ class AuthService {
 
   private clearAuth(): void {
     this.token = null;
+    this.storedRefreshToken = null;
     this.user = null;
     localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('userData');
-    
+
     // Clear PKCE data on auth clear to prevent security issues
     try {
       import('../utils/pkceUtils').then(({ clearPKCEData }) => {
@@ -371,7 +386,7 @@ class AuthService {
     } catch (error) {
       console.error('Failed to import PKCE utilities during auth clear:', error);
     }
-    
+
     // Notify auth context of change
     if (this.onAuthChanged) {
       this.onAuthChanged();
