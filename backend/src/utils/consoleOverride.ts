@@ -35,7 +35,7 @@ const originalConsole = {
  */
 const createConsoleWrapper = (
   level: 'debug' | 'info' | 'warn' | 'error',
-  originalMethod: (...args: any[]) => void,
+  _originalMethod: (...args: any[]) => void,
 ) => {
   return (...args: any[]): void => {
     // Always call through the logger system first
@@ -50,6 +50,7 @@ const createConsoleWrapper = (
     }).join(' ');
 
     // Route through the logger system which respects LOG_LEVEL
+    // The logger (Pino) will handle formatting, colors, and output based on LOG_LEVEL
     switch (level) {
       case 'debug':
         logger.debug(message);
@@ -65,18 +66,15 @@ const createConsoleWrapper = (
         break;
     }
 
-    // If we're in development or the original method would have shown,
-    // also call the original method to preserve formatting
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: We no longer call originalMethod here to avoid duplicate logs
+    // and to ensure LOG_LEVEL is consistently respected across all environments
   };
 };
 
 /**
  * Special wrapper for console.trace to include stack trace
  */
-const createTraceWrapper = (originalMethod: (...args: any[]) => void) => {
+const createTraceWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const message = args.map(arg => {
       if (typeof arg === 'string') return arg;
@@ -88,28 +86,22 @@ const createTraceWrapper = (originalMethod: (...args: any[]) => void) => {
       }
     }).join(' ');
 
-    // Log through our system
-    logger.debug(`TRACE: ${message}`);
+    // Log through our system with stack trace
+    logger.debug(`TRACE: ${message}\n${new Error().stack}`);
 
-    // Call original to show stack trace in non-production
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
 /**
  * Wrapper for console.table to preserve table formatting
  */
-const createTableWrapper = (originalMethod: (...args: any[]) => void) => {
+const createTableWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
-    const message = `TABLE: ${args.length} item(s)`;
+    const message = `TABLE: ${JSON.stringify(args[0])}`;
     logger.debug(message);
 
-    // Always show tables in non-production as they're useful for debugging
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
@@ -117,7 +109,7 @@ const createTableWrapper = (originalMethod: (...args: any[]) => void) => {
  * Wrapper for console.group methods
  */
 const createGroupWrapper = (
-  originalMethod: (...args: any[]) => void,
+  _originalMethod: (...args: any[]) => void,
   type: 'group' | 'groupCollapsed' | 'groupEnd' = 'group',
 ) => {
   return (...args: any[]): void => {
@@ -132,9 +124,7 @@ const createGroupWrapper = (
 
     logger.debug(`${type.toUpperCase()}: ${message}`);
 
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
@@ -143,19 +133,17 @@ const createGroupWrapper = (
  */
 const timers = new Map<string, number>();
 
-const createTimeWrapper = (originalMethod: (...args: any[]) => void) => {
+const createTimeWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     timers.set(label, Date.now());
     logger.debug(`TIMER START: ${label}`);
 
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
-const createTimeEndWrapper = (originalMethod: (...args: any[]) => void) => {
+const createTimeEndWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     const startTime = timers.get(label);
@@ -164,23 +152,18 @@ const createTimeEndWrapper = (originalMethod: (...args: any[]) => void) => {
       const duration = Date.now() - startTime;
       timers.delete(label);
       logger.debug(`TIMER END: ${label} - ${duration}ms`);
-
-      if (process.env.NODE_ENV !== 'production') {
-        originalMethod.apply(console, args);
-      }
     } else {
       logger.warn(`Timer "${label}" not found`);
-      if (process.env.NODE_ENV !== 'production') {
-        originalMethod.apply(console, args);
-      }
     }
+
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
 /**
  * Wrapper for console.assert
  */
-const createAssertWrapper = (originalMethod: (...args: any[]) => void) => {
+const createAssertWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const [assertion, ...messageArgs] = args;
 
@@ -198,9 +181,7 @@ const createAssertWrapper = (originalMethod: (...args: any[]) => void) => {
       logger.error(`ASSERTION FAILED: ${message}`);
     }
 
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
@@ -209,7 +190,7 @@ const createAssertWrapper = (originalMethod: (...args: any[]) => void) => {
  */
 const counters = new Map<string, number>();
 
-const createCountWrapper = (originalMethod: (...args: any[]) => void) => {
+const createCountWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     const current = (counters.get(label) || 0) + 1;
@@ -217,36 +198,30 @@ const createCountWrapper = (originalMethod: (...args: any[]) => void) => {
 
     logger.debug(`COUNT: ${label} = ${current}`);
 
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
-const createCountResetWrapper = (originalMethod: (...args: any[]) => void) => {
+const createCountResetWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
     const label = args[0] || 'default';
     counters.delete(label);
 
     logger.debug(`COUNT RESET: ${label}`);
 
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
 /**
  * Wrapper for console.dir
  */
-const createDirWrapper = (originalMethod: (...args: any[]) => void) => {
+const createDirWrapper = (_originalMethod: (...args: any[]) => void) => {
   return (...args: any[]): void => {
-    const message = `DIR: ${args.length} object(s)`;
+    const message = `DIR: ${JSON.stringify(args[0], null, 2)}`;
     logger.debug(message);
 
-    if (process.env.NODE_ENV !== 'production') {
-      originalMethod.apply(console, args);
-    }
+    // Note: Logger handles output based on LOG_LEVEL
   };
 };
 
