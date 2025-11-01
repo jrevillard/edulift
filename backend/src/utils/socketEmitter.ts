@@ -1,11 +1,14 @@
 /**
  * Socket Emitter Utility
- * 
+ *
  * Provides a way for controllers and services to emit WebSocket events
  * after database operations without circular import issues.
  */
 
 import { SOCKET_EVENTS } from '../shared/events';
+import { createLogger } from './logger';
+
+const logger = createLogger('SocketEmitter');
 
 // Global reference to socket handler (set during app initialization)
 let globalSocketHandler: any = null;
@@ -23,7 +26,7 @@ export class SocketEmitter {
   
   static broadcastScheduleSlotUpdate = (groupId: string, scheduleSlotId: string, data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastScheduleSlotUpdate', groupId, scheduleSlotId });
       return;
     }
 
@@ -36,7 +39,7 @@ export class SocketEmitter {
   
   static broadcastScheduleSlotCreated = (groupId: string, scheduleSlotId: string, data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastScheduleSlotCreated', groupId, scheduleSlotId });
       return;
     }
 
@@ -49,7 +52,7 @@ export class SocketEmitter {
   
   static broadcastScheduleSlotDeleted = (groupId: string, scheduleSlotId: string): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastScheduleSlotDeleted', groupId, scheduleSlotId });
       return;
     }
     
@@ -61,7 +64,7 @@ export class SocketEmitter {
   
   static broadcastScheduleUpdate = (groupId: string, data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastScheduleUpdate', groupId });
       return;
     }
 
@@ -73,7 +76,7 @@ export class SocketEmitter {
   
   static broadcastGroupUpdate = (groupId: string, data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupUpdate', groupId });
       return;
     }
 
@@ -85,7 +88,7 @@ export class SocketEmitter {
   
   static broadcastChildUpdate = (userId: string, familyId: string, eventType: 'added' | 'updated' | 'deleted', data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastChildUpdate', userId, familyId, eventType });
       return;
     }
     
@@ -104,7 +107,7 @@ export class SocketEmitter {
   
   static broadcastVehicleUpdate = (userId: string, familyId: string, eventType: 'added' | 'updated' | 'deleted', data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastVehicleUpdate', userId, familyId, eventType });
       return;
     }
     
@@ -123,7 +126,7 @@ export class SocketEmitter {
   
   static broadcastFamilyUpdate = (familyId: string, eventType: 'memberJoined' | 'memberLeft' | 'updated', data?: unknown): void => {
     if (!globalSocketHandler) {
-      console.warn('SocketHandler not initialized, skipping WebSocket emission');
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastFamilyUpdate', familyId, eventType });
       return;
     }
     

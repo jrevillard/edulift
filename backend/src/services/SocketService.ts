@@ -3,6 +3,9 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { ScheduleSlotService } from './ScheduleSlotService';
 import { WeeklySchedule } from '../types';
 import { SOCKET_EVENTS } from '../shared/events';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('SocketService');
 
 export interface AuthData {
   userId: string;
@@ -45,7 +48,7 @@ export class SocketService {
       });
     }
 
-    console.log(`User ${authData.userId} connected and joined ${authData.groupIds.length} groups`);
+    logger.info('User connected and joined groups', { userId: authData.userId, groupCount: authData.groupIds.length });
   }
 
   async handleScheduleSlotUpdate(
@@ -98,8 +101,8 @@ export class SocketService {
       });
 
     } catch (error) {
-      console.error('Error updating schedule slot:', error);
-      
+      logger.error('Failed to update schedule slot', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, scheduleSlotId: data.scheduleSlotId });
+
       socket.emit(SOCKET_EVENTS.ERROR, {
         type: this.categorizeError(error),
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -121,7 +124,7 @@ export class SocketService {
       }
     }
 
-    console.log(`User ${socket.userId} disconnected`);
+    logger.info('User disconnected', { userId: socket.userId });
   }
 
   broadcastScheduleUpdate(io: SocketIOServer, scheduleData: WeeklySchedule): void {
@@ -137,7 +140,7 @@ export class SocketService {
       io.to(userId).emit(SOCKET_EVENTS.CONFLICT_DETECTED, conflictData);
     }
 
-    console.log(`Conflict detected for schedule slot ${conflictData.scheduleSlotId}: ${conflictData.conflictType}`);
+    logger.warn('Conflict detected for schedule slot', { scheduleSlotId: conflictData.scheduleSlotId, conflictType: conflictData.conflictType, affectedUserCount: conflictData.affectedUsers.length });
   }
 
   async broadcastGroupNotification(

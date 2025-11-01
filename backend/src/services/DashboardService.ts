@@ -3,6 +3,9 @@ import { ChildService } from './ChildService';
 import { VehicleService } from './VehicleService';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { PrismaClient } from '@prisma/client';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('DashboardService');
 
 export interface TrendData {
   value: string;
@@ -101,7 +104,7 @@ export class DashboardService {
 
       return stats;
     } catch (error) {
-      console.error('Error calculating user stats:', error);
+      logger.error('Failed to calculate user stats', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       throw error;
     }
   }
@@ -143,7 +146,7 @@ export class DashboardService {
 
       return trips;
     } catch (error) {
-      console.error('Error getting today trips for user:', error);
+      logger.error('Failed to get today trips for user', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       throw error;
     }
   }
@@ -189,7 +192,7 @@ export class DashboardService {
 
       return trips;
     } catch (error) {
-      console.error('Error getting weekly trips for user:', error);
+      logger.error('Failed to get weekly trips for user', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       throw error;
     }
   }
@@ -211,7 +214,7 @@ export class DashboardService {
 
       return formattedActivities;
     } catch (error) {
-      console.error('Error getting recent activity for user:', error);
+      logger.error('Failed to get recent activity for user', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       throw error;
     }
   }
@@ -233,7 +236,7 @@ export class DashboardService {
 
       return formattedActivities;
     } catch (error) {
-      console.error('Error getting recent activity for family:', error);
+      logger.error('Failed to get recent activity for family', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, familyId });
       throw error;
     }
   }
@@ -252,7 +255,7 @@ export class DashboardService {
         },
       });
     } catch (error) {
-      console.error('Error getting user with family:', error);
+      logger.error('Failed to get user with family', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       throw error;
     }
   }
@@ -391,7 +394,7 @@ export class DashboardService {
 
       return tripCount;
     } catch (error) {
-      console.error('Error counting this week trips:', error);
+      logger.error('Failed to count this week trips', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       return 0;
     }
   }
@@ -528,7 +531,7 @@ export class DashboardService {
 
       return scheduleSlots;
     } catch (error) {
-      console.error('Error fetching today schedule slots:', error);
+      logger.error('Failed to fetch today schedule slots', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       // Return empty array if there's an error
       return [];
     }
@@ -677,7 +680,7 @@ export class DashboardService {
 
       return scheduleSlots;
     } catch (error) {
-      console.error('Error fetching weekly schedule slots:', error);
+      logger.error('Failed to fetch weekly schedule slots', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
       return [];
     }
   }

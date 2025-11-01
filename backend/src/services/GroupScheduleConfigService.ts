@@ -3,6 +3,9 @@ import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { GroupService } from './GroupService';
 import { getWeekdayInTimezone, getTimeInTimezone } from '../utils/timezoneUtils';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('GroupScheduleConfigService');
 
 // Type definitions for schedule configuration
 // IMPORTANT: All times are stored as UTC times (e.g., "07:00" means 07:00 UTC)
@@ -198,7 +201,7 @@ export class GroupScheduleConfigService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get group schedule config error:', error);
+      logger.error('Failed to fetch group schedule configuration', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, groupId });
       throw new AppError('Failed to fetch group schedule configuration', 500);
     }
   }
@@ -230,7 +233,7 @@ export class GroupScheduleConfigService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get group time slots error:', error);
+      logger.error('Failed to fetch group time slots', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, groupId, weekday });
       throw new AppError('Failed to fetch group time slots', 500);
     }
   }
@@ -316,7 +319,7 @@ export class GroupScheduleConfigService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Update group schedule config error:', error);
+      logger.error('Failed to update group schedule configuration', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, groupId });
       throw new AppError('Failed to update group schedule configuration', 500);
     }
   }
@@ -371,7 +374,7 @@ export class GroupScheduleConfigService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Reset group schedule config error:', error);
+      logger.error('Failed to reset group schedule configuration', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, groupId });
       throw new AppError('Failed to reset group schedule configuration', 500);
     }
   }
@@ -446,7 +449,7 @@ export class GroupScheduleConfigService {
         },
       });
 
-      console.log(`Initializing required schedule configurations for ${groupsWithoutConfig.length} groups`);
+      logger.info('Initializing required schedule configurations', { groupCount: groupsWithoutConfig.length });
 
       for (const group of groupsWithoutConfig) {
         await this.prisma.groupScheduleConfig.create({
@@ -455,13 +458,13 @@ export class GroupScheduleConfigService {
             scheduleHours: DEFAULT_SCHEDULE_HOURS,
           },
         });
-        
-        console.log(`✓ Initialized configuration for group: ${group.name}`);
+
+        logger.info('Initialized configuration for group', { groupId: group.id, groupName: group.name });
       }
 
-      console.log('Required schedule configurations initialized successfully');
+      logger.info('Required schedule configurations initialized successfully', { groupCount: groupsWithoutConfig.length });
     } catch (error) {
-      console.error('Failed to initialize schedule configurations:', error);
+      logger.error('Failed to initialize schedule configurations', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
       throw new AppError('Failed to initialize schedule configurations', 500);
     }
   }

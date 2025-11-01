@@ -2,6 +2,9 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { isDateInPastWithTimezone } from '../utils/dateValidation';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ChildAssignmentService');
 
 export interface GroupChildMemberData {
   childId: string;
@@ -112,7 +115,7 @@ export class ChildAssignmentService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Add child to group error:', error);
+      logger.error('Failed to add child to group', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, childId, groupId });
       throw new AppError('Failed to add child to group', 500);
     }
   }
@@ -152,7 +155,7 @@ export class ChildAssignmentService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Remove child from group error:', error);
+      logger.error('Failed to remove child from group', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, childId, groupId });
       throw new AppError('Failed to remove child from group', 500);
     }
   }
@@ -298,7 +301,7 @@ export class ChildAssignmentService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Assign child to schedule slot error:', error);
+      logger.error('Failed to assign child to schedule slot', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, scheduleSlotId, childId, vehicleAssignmentId });
       throw new AppError('Failed to assign child to schedule slot', 500);
     }
   }
@@ -347,7 +350,7 @@ export class ChildAssignmentService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Remove child from schedule slot error:', error);
+      logger.error('Failed to remove child from schedule slot', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, scheduleSlotId, childId });
       throw new AppError('Failed to remove child from schedule slot', 500);
     }
   }
@@ -400,7 +403,7 @@ export class ChildAssignmentService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get available children error:', error);
+      logger.error('Failed to get available children', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, scheduleSlotId });
       throw new AppError('Failed to get available children', 500);
     }
   }
@@ -439,7 +442,7 @@ export class ChildAssignmentService {
       if (error instanceof AppError) {
         throw error;
       }
-      console.error('Get child group memberships error:', error);
+      logger.error('Failed to get child group memberships', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, childId });
       throw new AppError('Failed to get child group memberships', 500);
     }
   }

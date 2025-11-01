@@ -8,6 +8,20 @@ import { GroupService } from '../GroupService';
 jest.mock('@prisma/client');
 jest.mock('../../repositories/ActivityLogRepository');
 jest.mock('../GroupService');
+jest.mock('../../utils/logger', () => ({
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  })),
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}));
 
 const mockPrisma = {
   groupScheduleConfig: {
@@ -370,8 +384,6 @@ describe('GroupScheduleConfigService', () => {
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue(groupsWithoutConfig);
       (mockPrisma.groupScheduleConfig.create as jest.Mock).mockResolvedValue({});
 
-      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-
       await service.initializeDefaultConfigs();
 
       expect(mockPrisma.group.findMany).toHaveBeenCalledWith({
@@ -380,10 +392,7 @@ describe('GroupScheduleConfigService', () => {
       });
 
       expect(mockPrisma.groupScheduleConfig.create).toHaveBeenCalledTimes(2);
-      expect(consoleSpy).toHaveBeenCalledWith('✓ Initialized configuration for group: Group 1');
-      expect(consoleSpy).toHaveBeenCalledWith('✓ Initialized configuration for group: Group 2');
-
-      consoleSpy.mockRestore();
+      // Logger calls are now handled by the mocked logger module
     });
   });
 

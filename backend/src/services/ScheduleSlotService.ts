@@ -5,6 +5,9 @@ import { NotificationService } from './NotificationService';
 import { ScheduleSlotValidationService } from './ScheduleSlotValidationService';
 import { PrismaClient } from '@prisma/client';
 import { getWeekBoundaries } from '../utils/isoWeekUtils';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('ScheduleSlotService');
 
 export class ScheduleSlotService {
   private prisma: PrismaClient;
@@ -136,7 +139,7 @@ export class ScheduleSlotService {
     // Send notification for vehicle assignment
     if (this.notificationService) {
       this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'VEHICLE_ASSIGNED')
-        .catch(error => console.error('Failed to send vehicle assignment notification:', error));
+        .catch(error => logger.error('Failed to send vehicle assignment notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
     
     return result;
@@ -149,7 +152,7 @@ export class ScheduleSlotService {
     // Send notification BEFORE removing vehicle (while slot still has the vehicle)
     if (this.notificationService) {
       this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'VEHICLE_REMOVED')
-        .catch(error => console.error('Failed to send vehicle removal notification:', error));
+        .catch(error => logger.error('Failed to send vehicle removal notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
     
     const result = await this.scheduleSlotRepository.removeVehicleFromSlot(scheduleSlotId, vehicleId);
@@ -172,7 +175,7 @@ export class ScheduleSlotService {
     // Send notification for child removal
     if (this.notificationService) {
       this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'CHILD_REMOVED')
-        .catch(error => console.error('Failed to send child removal notification:', error));
+        .catch(error => logger.error('Failed to send child removal notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
     
     return result;
@@ -192,7 +195,7 @@ export class ScheduleSlotService {
     // Send notification for driver assignment
     if (this.notificationService) {
       this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'DRIVER_ASSIGNED')
-        .catch(error => console.error('Failed to send driver assignment notification:', error));
+        .catch(error => logger.error('Failed to send driver assignment notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
     
     return result;
@@ -224,7 +227,7 @@ export class ScheduleSlotService {
       // Send notification for seat override update
       if (this.notificationService) {
         this.notificationService.notifyScheduleSlotChange(vehicleAssignment.scheduleSlotId, 'SEAT_OVERRIDE_UPDATED')
-          .catch(error => console.error('Failed to send seat override update notification:', error));
+          .catch(error => logger.error('Failed to send seat override update notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId: vehicleAssignment.scheduleSlotId }));
       }
     }
 
@@ -232,17 +235,17 @@ export class ScheduleSlotService {
   }
 
   async getScheduleSlotDetails(scheduleSlotId: string): Promise<ScheduleSlotWithDetails | null> {
-    console.log(`🔎 getScheduleSlotDetails: Fetching slot ${scheduleSlotId} from repository`);
+    logger.debug('Fetching schedule slot details', { scheduleSlotId });
     const slot = await this.scheduleSlotRepository.findById(scheduleSlotId);
 
     if (!slot) {
-      console.log(`❌ getScheduleSlotDetails: Slot ${scheduleSlotId} not found`);
+      logger.debug('Schedule slot not found', { scheduleSlotId });
       return null;
     }
 
-    console.log(`📦 getScheduleSlotDetails: Repository returned slot with ${slot.vehicleAssignments?.length || 0} vehicle assignments`);
+    logger.debug('Repository returned schedule slot', { scheduleSlotId, vehicleAssignmentCount: slot.vehicleAssignments?.length || 0 });
     slot.vehicleAssignments?.forEach((va: unknown) => {
-      console.log(`    - Vehicle: ${va.vehicle.name} (${va.vehicle.id}) [Assignment ID: ${va.id}]`);
+      logger.debug('Vehicle assignment details', { vehicleName: va.vehicle.name, vehicleId: va.vehicle.id, assignmentId: va.id });
     });
 
     const totalCapacity = slot.vehicleAssignments.reduce((sum: number, va: unknown) =>
@@ -274,7 +277,7 @@ export class ScheduleSlotService {
 
         // Filter out invalid assignments silently
         if (invalidAssignments.length > 0) {
-          console.warn(`Found ${invalidAssignments.length} child assignments with missing vehicleAssignmentId in slot ${slot.id}`);
+          logger.warn('Found child assignments with missing vehicleAssignmentId', { slotId: slot.id, invalidCount: invalidAssignments.length });
         }
 
         return validAssignments.map((assignment: unknown) => ({
@@ -291,7 +294,7 @@ export class ScheduleSlotService {
       updatedAt: slot.updatedAt?.toISOString(),
     };
 
-    console.log(`✨ getScheduleSlotDetails: Returning result with ${result.vehicleAssignments.length} vehicle assignments`);
+    logger.debug('Returning schedule slot details', { scheduleSlotId, vehicleAssignmentCount: result.vehicleAssignments.length });
 
     return result;
   }
@@ -329,19 +332,19 @@ export class ScheduleSlotService {
       rangeEnd = boundaries.weekEnd;
     }
 
-    console.log(`🔍 getSchedule: Fetching slots from repository for group ${groupId}`);
+    logger.debug('Fetching schedule slots from repository', { groupId, rangeStart: rangeStart.toISOString(), rangeEnd: rangeEnd.toISOString() });
     const slots = await this.scheduleSlotRepository.getWeeklyScheduleByDateRange(groupId, rangeStart, rangeEnd);
 
-    console.log(`📊 getSchedule: Repository returned ${slots.length} slots`);
+    logger.debug('Repository returned schedule slots', { groupId, slotCount: slots.length });
     slots.forEach((slot: unknown) => {
-      console.log(`  Slot ${slot.id}: ${slot.vehicleAssignments?.length || 0} vehicle assignments`);
+      logger.debug('Schedule slot details', { slotId: slot.id, vehicleAssignmentCount: slot.vehicleAssignments?.length || 0 });
       slot.vehicleAssignments?.forEach((va: unknown) => {
-        console.log(`    - Vehicle: ${va.vehicle.name} (${va.vehicle.id})`);
+        logger.debug('Vehicle assignment in slot', { vehicleName: va.vehicle.name, vehicleId: va.vehicle.id });
       });
     });
 
     // Transform to match expected format (data already enriched by repository includes)
-    console.log(`🔄 getSchedule: Transforming ${slots.length} slots...`);
+    logger.debug('Transforming schedule slots', { slotCount: slots.length });
     const slotsWithDetails = slots.map((slot: unknown) => {
       const totalCapacity = slot.vehicleAssignments.reduce((sum: number, va: unknown) =>
         sum + (va.seatOverride ?? va.vehicle.capacity), 0);
@@ -354,7 +357,7 @@ export class ScheduleSlotService {
       const invalidAssignments = slot.childAssignments.filter((assignment: unknown) => !assignment.vehicleAssignmentId);
 
       if (invalidAssignments.length > 0) {
-        console.warn(`Found ${invalidAssignments.length} child assignments with missing vehicleAssignmentId in slot ${slot.id}`);
+        logger.warn('Found child assignments with missing vehicleAssignmentId', { slotId: slot.id, invalidCount: invalidAssignments.length });
       }
 
       return {
@@ -388,9 +391,9 @@ export class ScheduleSlotService {
       };
     });
 
-    console.log(`✅ getSchedule: Final result has ${slotsWithDetails.length} slots`);
+    logger.debug('Final schedule result prepared', { slotCount: slotsWithDetails.length });
     slotsWithDetails.forEach((slot, index) => {
-      console.log(`  [${index}] Slot ${slot.id}: ${slot.vehicleAssignments?.length || 0} vehicles`);
+      logger.debug('Final slot details', { index, slotId: slot.id, vehicleCount: slot.vehicleAssignments?.length || 0 });
     });
 
     return {

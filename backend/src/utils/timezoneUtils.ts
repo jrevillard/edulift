@@ -1,4 +1,7 @@
 import { DateTime } from 'luxon';
+import { createLogger } from './logger';
+
+const logger = createLogger('TimezoneUtils');
 
 /**
  * Convert UTC datetime to user's local timezone
@@ -148,7 +151,7 @@ export const getValidatedTimezone = (timezone: string | undefined | null): strin
   }
 
   // Default to UTC if invalid
-  console.warn(`Invalid timezone "${timezone}" provided, defaulting to UTC`);
+  logger.warn('Invalid timezone provided, defaulting to UTC', { timezone });
   return 'UTC';
 };
 
