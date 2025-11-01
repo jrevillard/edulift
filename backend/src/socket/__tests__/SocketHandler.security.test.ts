@@ -44,7 +44,7 @@ describe('SocketHandler Security', () => {
   let socketHandler: SocketHandler;
   let mockPrisma: jest.Mocked<PrismaClient>;
   
-  const JWT_SECRET = 'test-secret';
+  const JWT_ACCESS_SECRET = 'test-secret';
   const TEST_USER_ID = 'authorized-user-123';
   const UNAUTHORIZED_USER_ID = 'unauthorized-user-456';
   const TEST_GROUP_ID = 'authorized-group-789';
@@ -99,8 +99,7 @@ describe('SocketHandler Security', () => {
     });
 
     // Setup JWT secret
-    process.env.JWT_SECRET = JWT_SECRET;
-    process.env.JWT_ACCESS_SECRET = JWT_SECRET; // For WebSocket authentication
+    process.env.JWT_ACCESS_SECRET = JWT_ACCESS_SECRET;
 
     // Initialize SocketHandler
     socketHandler = new SocketHandler(httpServer);
@@ -172,7 +171,7 @@ describe('SocketHandler Security', () => {
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(false);
       
-      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
@@ -213,7 +212,7 @@ describe('SocketHandler Security', () => {
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([TEST_GROUP_ID]);
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(true);
       
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
@@ -251,7 +250,7 @@ describe('SocketHandler Security', () => {
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(false);
       
-      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
@@ -281,7 +280,7 @@ describe('SocketHandler Security', () => {
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(false);
       
-      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
@@ -325,7 +324,7 @@ describe('SocketHandler Security', () => {
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(false);
       
-      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
@@ -376,7 +375,7 @@ describe('SocketHandler Security', () => {
     });
 
     it('should reject tokens without userId', (done) => {
-      const token = jwt.sign({ someOtherField: 'value' }, JWT_SECRET);
+      const token = jwt.sign({ someOtherField: 'value' }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
@@ -394,7 +393,7 @@ describe('SocketHandler Security', () => {
 
   describe('Rate Limiting Security', () => {
     it('should enforce rate limits to prevent abuse', (done) => {
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       const serverPort = (httpServer.address() as AddressInfo)?.port;
       
       let connectionCount = 0;
@@ -462,7 +461,7 @@ describe('SocketHandler Security', () => {
       const authorizedGroups = ['group-1', 'group-2'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue(authorizedGroups);
       
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       return new Promise<void>((resolve, reject) => {
         const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {

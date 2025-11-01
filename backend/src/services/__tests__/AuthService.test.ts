@@ -329,25 +329,6 @@ describe('AuthService', () => {
     });
   });
 
-  describe('generateJWTToken', () => {
-    it('should generate JWT token for user', () => {
-      const user = {
-        id: 'user-1',
-        email: 'test@example.com',
-        name: 'Test User',
-        timezone: 'UTC',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
-      const token = authService.generateJWTToken(user);
-
-      expect(token).toBeDefined();
-      expect(typeof token).toBe('string');
-      expect(token.split('.')).toHaveLength(3); // JWT format
-    });
-  });
-
   describe('updateProfile', () => {
     beforeEach(() => {
       jest.clearAllMocks();

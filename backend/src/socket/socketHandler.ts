@@ -88,8 +88,7 @@ export class SocketHandler {
           throw new Error('No authentication token provided');
         }
 
-        // Use JWT_ACCESS_SECRET for new tokens, fallback to JWT_SECRET for legacy tokens
-        const jwtAccessSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback-secret-key';
+        const jwtAccessSecret = process.env.JWT_ACCESS_SECRET || 'fallback-secret-key';
         const decoded = jwt.verify(token, jwtAccessSecret) as any;
         
         if (!decoded.userId) {

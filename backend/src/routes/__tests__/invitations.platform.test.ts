@@ -58,7 +58,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
   beforeAll(() => {
     // Set environment variable for JWT secret
-    process.env.JWT_SECRET = 'test-secret';
+    process.env.JWT_ACCESS_SECRET = 'test-secret';
 
     app = express();
     app.use(express.json());

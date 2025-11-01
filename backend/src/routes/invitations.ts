@@ -126,7 +126,8 @@ router.get('/family/:code/validate', asyncHandler(async (req: Request, res: Resp
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.substring(7);
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+        const jwtAccessSecret = process.env.JWT_ACCESS_SECRET || 'default-secret';
+        const decoded = jwt.verify(token, jwtAccessSecret);
         currentUserId = (decoded as any).userId;
       } catch {
         // Invalid token - continue without authentication
@@ -263,7 +264,8 @@ router.get('/group/:code/validate', asyncHandler(async (req: Request, res: Respo
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.substring(7);
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+        const jwtAccessSecret = process.env.JWT_ACCESS_SECRET || 'default-secret';
+        const decoded = jwt.verify(token, jwtAccessSecret);
         currentUserId = (decoded as any).userId;
       } catch {
         // Invalid token - continue without authentication

@@ -56,7 +56,6 @@ export interface MagicLinkRequestOptions {
 }
 
 export class AuthService {
-  private jwtSecret: string;
   private jwtAccessSecret: string;
   private refreshTokenService: RefreshTokenService;
 
@@ -65,10 +64,8 @@ export class AuthService {
     private magicLinkRepository: MagicLinkRepository,
     private emailService: EmailServiceInterface,
   ) {
-    // Legacy JWT_SECRET for backward compatibility
-    this.jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key';
-    // New separate secrets for access tokens (refresh tokens managed by RefreshTokenService)
-    this.jwtAccessSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback-secret-key';
+    // Access token secret for JWT generation
+    this.jwtAccessSecret = process.env.JWT_ACCESS_SECRET || 'fallback-secret-key';
     this.refreshTokenService = new RefreshTokenService();
   }
 
@@ -238,30 +235,6 @@ export class AuthService {
     });
   }
 
-  /**
-   * LEGACY: Generate JWT token with 24h expiration
-   * @deprecated Use generateAccessToken instead
-   */
-  generateJWTToken(user: { id: string; email: string; name: string }): string {
-    const payload = {
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-    };
-
-    return jwt.sign(payload, this.jwtSecret, {
-      expiresIn: '24h',
-      issuer: 'edulift-api',
-    });
-  }
-
-  verifyJWTToken(token: string): any {
-    try {
-      return jwt.verify(token, this.jwtSecret) as any;
-    } catch {
-      throw new Error('Invalid or expired token');
-    }
-  }
 
   async updateProfile(userId: string, profileData: UpdateProfileData): Promise<any> {
     try {

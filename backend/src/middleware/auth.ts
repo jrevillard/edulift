@@ -42,8 +42,7 @@ export const authenticateToken = async (
   }
 
   try {
-    // ✅ NEW: Use JWT_ACCESS_SECRET for new tokens, fallback to JWT_SECRET for legacy
-    const jwtAccessSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
+    const jwtAccessSecret = process.env.JWT_ACCESS_SECRET;
     if (!jwtAccessSecret) {
       throw new Error('JWT_ACCESS_SECRET environment variable not set');
     }

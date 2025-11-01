@@ -50,7 +50,7 @@ describe('SocketHandler', () => {
   const TEST_USER_ID = 'test-user-123';
   const TEST_GROUP_ID = 'test-group-456';
   const TEST_FAMILY_ID = 'test-family-789';
-  const JWT_SECRET = 'test-secret';
+  const JWT_ACCESS_SECRET = 'test-secret';
 
   // Helper function to track timeouts
   const setTestTimeout = (callback: () => void, delay: number): NodeJS.Timeout => {
@@ -60,8 +60,7 @@ describe('SocketHandler', () => {
   };
 
   beforeAll(() => {
-    process.env.JWT_SECRET = JWT_SECRET;
-    process.env.JWT_ACCESS_SECRET = JWT_SECRET; // For WebSocket authentication
+    process.env.JWT_ACCESS_SECRET = JWT_ACCESS_SECRET;
     process.env.CORS_ORIGIN = 'http://localhost:3000';
   });
   
@@ -165,7 +164,7 @@ describe('SocketHandler', () => {
 
   describe('Authentication Middleware', () => {
     it('should accept valid JWT token', async () => {
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       const connectionPromise = new Promise<void>((resolve, reject) => {
         clientSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
@@ -228,7 +227,7 @@ describe('SocketHandler', () => {
     });
 
     it('should accept token from authorization header', async () => {
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       const connectionPromise = new Promise<void>((resolve, reject) => {
         clientSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
@@ -256,7 +255,7 @@ describe('SocketHandler', () => {
 
   describe('Rate Limiting Middleware', () => {
     it('should accept requests under rate limit', async () => {
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       // Create multiple connections to test rate limiting
       const connections: Socket[] = [];
@@ -293,7 +292,7 @@ describe('SocketHandler', () => {
     let connectedSocket: Socket;
 
     beforeEach(async () => {
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       connectedSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
@@ -316,7 +315,7 @@ describe('SocketHandler', () => {
 
     it('should emit CONNECTED event on successful connection', async () => {
       // Create a fresh socket connection for this test to avoid race conditions
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       const testSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
@@ -350,7 +349,7 @@ describe('SocketHandler', () => {
 
     it('should handle group join events', async () => {
       // Create second client that will receive the join event
-      const token = jwt.sign({ userId: 'another-user-id' }, JWT_SECRET);
+      const token = jwt.sign({ userId: 'another-user-id' }, JWT_ACCESS_SECRET);
       const secondSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
         autoConnect: false,
@@ -391,7 +390,7 @@ describe('SocketHandler', () => {
 
     it('should handle group leave events', async () => {
       // Create second client that will receive the leave event
-      const token = jwt.sign({ userId: 'another-user-id' }, JWT_SECRET);
+      const token = jwt.sign({ userId: 'another-user-id' }, JWT_ACCESS_SECRET);
       const secondSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
         autoConnect: false,
@@ -464,7 +463,7 @@ describe('SocketHandler', () => {
 
     it('should handle typing events', async () => {
       // Create second client to receive typing events
-      const token = jwt.sign({ userId: 'another-user-id' }, JWT_SECRET);
+      const token = jwt.sign({ userId: 'another-user-id' }, JWT_ACCESS_SECRET);
       const secondSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
         autoConnect: false,
@@ -531,7 +530,7 @@ describe('SocketHandler', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       
-      const token = jwt.sign({ userId: 'user-without-family' }, JWT_SECRET);
+      const token = jwt.sign({ userId: 'user-without-family' }, JWT_ACCESS_SECRET);
       
       const connectedSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
@@ -556,7 +555,7 @@ describe('SocketHandler', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockRejectedValue(new Error('Database error'));
       
-      const token = jwt.sign({ userId: 'user-db-error' }, JWT_SECRET);
+      const token = jwt.sign({ userId: 'user-db-error' }, JWT_ACCESS_SECRET);
       
       const errorPromise = new Promise<any>((resolve) => {
         const connectedSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
@@ -616,7 +615,7 @@ describe('SocketHandler', () => {
 
   describe('Error Handling', () => {
     it('should handle socket errors', async () => {
-      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_SECRET);
+      const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       
       const connectedSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
         auth: { token },
