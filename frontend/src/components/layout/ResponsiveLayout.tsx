@@ -35,7 +35,14 @@ export const ResponsiveLayout: React.FC<{
                 <MobileNav onNavigate={() => setMobileMenuOpen(false)} />
               </SheetContent>
             </Sheet>
-            <h1 className="ml-4 text-lg font-semibold">EduLift</h1>
+            <div className="ml-4 flex items-center gap-2">
+              <img
+                src="/logo-32.png"
+                alt="EduLift"
+                className="w-6 h-6 object-contain"
+              />
+              <h1 className="text-lg font-semibold">EduLift</h1>
+            </div>
             <div className="ml-auto">
               <ConnectionIndicator />
             </div>

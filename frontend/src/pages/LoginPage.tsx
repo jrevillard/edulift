@@ -249,9 +249,19 @@ const LoginPage: React.FC = () => {
         </div>
 
         <div className="text-white relative z-10">
-          <div className="flex items-center gap-2 mb-8">
-            <div className="p-2 bg-background/20 rounded-xl">
-              <Sparkles className="w-6 h-6" />
+          <div className="flex flex-col items-center gap-4 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-background/20 rounded-xl">
+                <img
+                  src="/logo-64.png"
+                  alt="EduLift"
+                  className="w-12 h-12 object-contain"
+                  data-testid="edu-lift-login-logo"
+                />
+              </div>
+              <div className="p-2 bg-background/20 rounded-xl">
+                <Sparkles className="w-6 h-6" />
+              </div>
             </div>
             <h1 className="text-4xl font-bold">EduLift</h1>
           </div>
@@ -294,8 +304,15 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-primary-foreground/70 text-sm relative z-10">
-          © 2025 EduLift. All rights reserved.
+        <div className="flex flex-col items-center gap-2 text-primary-foreground/70 text-sm relative z-10">
+          <div className="flex items-center gap-2">
+            <img
+              src="/logo-32.png"
+              alt="EduLift"
+              className="w-6 h-6 object-contain opacity-70"
+            />
+            <span>© 2025 EduLift. All rights reserved.</span>
+          </div>
         </div>
       </div>
 

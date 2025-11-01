@@ -174,7 +174,10 @@ const SchedulePage: React.FC = () => {
   // Fetch schedule configuration for the selected group
   const { data: scheduleConfig, error: scheduleConfigError, isLoading: scheduleConfigLoading } = useQuery({
     queryKey: ['group-schedule-config', selectedGroup],
-    queryFn: () => scheduleConfigService.getGroupScheduleConfig(selectedGroup),
+    queryFn: () => {
+      console.log('🔍 DEBUG: Fetching schedule config for group:', selectedGroup);
+      return scheduleConfigService.getGroupScheduleConfig(selectedGroup);
+    },
     enabled: !!selectedGroup,
     staleTime: 5 * 60 * 1000, // 5 minutes - config doesn't change often
     gcTime: 10 * 60 * 1000, // 10 minutes cache (was cacheTime)
@@ -183,6 +186,16 @@ const SchedulePage: React.FC = () => {
     networkMode: 'online', // Only query when online
     refetchOnWindowFocus: false, // Prevent unnecessary refetches
   });
+
+  // Debug schedule config loading
+  useEffect(() => {
+    console.log('🔍 DEBUG: ScheduleConfig changed:', {
+      scheduleConfig: scheduleConfig,
+      error: scheduleConfigError,
+      isLoading: scheduleConfigLoading,
+      selectedGroup
+    });
+  }, [scheduleConfig, scheduleConfigError, scheduleConfigLoading, selectedGroup]);
 
   // Generate combined time slots from all weekdays for the grid
   // IMPORTANT: Convert UTC times from backend to local times for display

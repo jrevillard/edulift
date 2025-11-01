@@ -51,15 +51,24 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   return (
     <header className={cn("mb-8 md:mb-12", className)} data-testid={dataTestId}>
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent" data-testid={dataTestId ? `${dataTestId}-title` : undefined}>
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-base sm:text-lg text-muted-foreground font-medium" data-testid={subtitleTestId}>
-              {subtitle}
-            </p>
-          )}
+        <div className="flex items-center space-y-2 lg:space-y-0 lg:space-x-4">
+          {/* EduLift Logo */}
+          <img
+            src="/logo-64.png"
+            alt="EduLift"
+            className="h-12 w-12 lg:h-14 lg:w-14 object-contain"
+            data-testid="edu-lift-logo"
+          />
+          <div className="space-y-2">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent" data-testid={dataTestId ? `${dataTestId}-title` : undefined}>
+              {title}
+            </h1>
+            {subtitle && (
+              <p className="text-base sm:text-lg text-muted-foreground font-medium" data-testid={subtitleTestId}>
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
         {children && (
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
