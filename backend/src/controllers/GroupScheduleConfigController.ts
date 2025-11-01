@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { GroupScheduleConfigService } from '../services/GroupScheduleConfigService';
 import { AppError } from '../middleware/errorHandler';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { ApiResponse } from '../types';
 
 export class GroupScheduleConfigController {
   private service: GroupScheduleConfigService;
@@ -31,10 +32,15 @@ export class GroupScheduleConfigController {
       throw new AppError('Group schedule configuration not found. Please contact an administrator to configure schedule slots.', 404);
     }
 
-    res.json({
-      ...config,
-      isDefault: false,
-    });
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        ...config,
+        isDefault: false,
+      },
+    };
+
+    res.json(response);
   };
 
   /**
@@ -56,11 +62,16 @@ export class GroupScheduleConfigController {
 
     const timeSlots = await this.service.getGroupTimeSlots(groupId, weekday, userId);
 
-    res.json({
-      groupId,
-      weekday: weekday.toUpperCase(),
-      timeSlots,
-    });
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        groupId,
+        weekday: weekday.toUpperCase(),
+        timeSlots,
+      },
+    };
+
+    res.json(response);
   };
 
   /**
@@ -99,10 +110,15 @@ export class GroupScheduleConfigController {
       userTimezone,
     );
 
-    res.json({
-      ...config,
-      isDefault: false,
-    });
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        ...config,
+        isDefault: false,
+      },
+    };
+
+    res.json(response);
   };
 
   /**
@@ -119,10 +135,15 @@ export class GroupScheduleConfigController {
 
     const config = await this.service.resetGroupScheduleConfig(groupId, userId);
 
-    res.json({
-      ...config,
-      isDefault: true,
-    });
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        ...config,
+        isDefault: true,
+      },
+    };
+
+    res.json(response);
   };
 
   /**
@@ -132,10 +153,15 @@ export class GroupScheduleConfigController {
   getDefaultScheduleHours = async (_req: Request, res: Response): Promise<void> => {
     const defaultHours = GroupScheduleConfigService.getDefaultScheduleHours();
 
-    res.json({
-      scheduleHours: defaultHours,
-      isDefault: true,
-    });
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        scheduleHours: defaultHours,
+        isDefault: true,
+      },
+    };
+
+    res.json(response);
   };
 
   /**
@@ -148,9 +174,14 @@ export class GroupScheduleConfigController {
 
     await this.service.initializeDefaultConfigs();
 
-    res.json({
-      message: 'Default schedule configurations initialized successfully',
-    });
+    const response: ApiResponse = {
+      success: true,
+      data: {
+        message: 'Default schedule configurations initialized successfully',
+      },
+    };
+
+    res.json(response);
   };
 }
 
