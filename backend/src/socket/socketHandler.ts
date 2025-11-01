@@ -83,12 +83,14 @@ export class SocketHandler {
     this.io.use(async (socket, next) => {
       try {
         const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
-        
+
         if (!token) {
           throw new Error('No authentication token provided');
         }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret-key') as any;
+        // Use JWT_ACCESS_SECRET for new tokens, fallback to JWT_SECRET for legacy tokens
+        const jwtAccessSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'fallback-secret-key';
+        const decoded = jwt.verify(token, jwtAccessSecret) as any;
         
         if (!decoded.userId) {
           throw new Error('Invalid token payload');

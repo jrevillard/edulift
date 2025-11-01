@@ -100,6 +100,7 @@ describe('SocketHandler Security', () => {
 
     // Setup JWT secret
     process.env.JWT_SECRET = JWT_SECRET;
+    process.env.JWT_ACCESS_SECRET = JWT_SECRET; // For WebSocket authentication
 
     // Initialize SocketHandler
     socketHandler = new SocketHandler(httpServer);

@@ -61,6 +61,7 @@ describe('SocketHandler', () => {
 
   beforeAll(() => {
     process.env.JWT_SECRET = JWT_SECRET;
+    process.env.JWT_ACCESS_SECRET = JWT_SECRET; // For WebSocket authentication
     process.env.CORS_ORIGIN = 'http://localhost:3000';
   });
   

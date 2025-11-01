@@ -19,25 +19,25 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useSocket } from '../../contexts/SocketContext';
+import { useConnectionStore } from '../../stores/connectionStore';
 
 interface FamilyRequiredRouteProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
 }
 
-export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({ 
-  children, 
-  fallback 
+export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
+  children,
+  fallback
 }) => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const { 
-    requiresFamily, 
-    isCheckingFamily, 
-    hasFamily, 
-    isLoading: familyLoading 
+  const {
+    requiresFamily,
+    isCheckingFamily,
+    hasFamily,
+    isLoading: familyLoading
   } = useFamily();
-  const { isConnected: backendConnected } = useSocket();
+  const apiStatus = useConnectionStore((state) => state.apiStatus);
 
   // Show loading state while checking authentication or family status
   if (authLoading || isCheckingFamily || familyLoading) {
@@ -51,8 +51,8 @@ export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
     );
   }
 
-  // If backend is not connected, don't show wizard - let BackendConnectionAlert handle the UI
-  if (!backendConnected) {
+  // If API backend is not connected, don't show wizard - let BackendConnectionAlert handle the UI
+  if (apiStatus === 'disconnected' || apiStatus === 'error') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
