@@ -39,7 +39,8 @@ export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
   } = useFamily();
   const apiStatus = useConnectionStore((state) => state.apiStatus);
 
-  // Show loading state while checking authentication or family status
+  // POINT CRUCIAL : Attendre la fin des chargements AVANT toute décision
+  // Cela empêche une redirection prématurée due à une race condition
   if (authLoading || isCheckingFamily || familyLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -70,8 +71,19 @@ export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
     return fallback ? <>{fallback}</> : null;
   }
 
+  // La décision est prise seulement après la fin des chargements
   // If user requires family setup, redirect to onboarding
   if (requiresFamily || !hasFamily) {
+    // DEBUG: Log précis pour comprendre pourquoi la redirection a lieu
+    console.warn('🔍 DEBUG: Redirecting to onboarding because family check is complete and no family was found:', {
+      requiresFamily,
+      hasFamily,
+      apiStatus,
+      isAuthenticated,
+      authLoading,
+      isCheckingFamily,
+      familyLoading
+    });
     return <Navigate to="/onboarding" replace />;
   }
 

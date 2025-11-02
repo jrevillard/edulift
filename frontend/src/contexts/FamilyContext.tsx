@@ -103,24 +103,17 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           });
 
           if (authData.state?.isNewUser) {
-            // DEBUG: Check if this is actually a new user or stale data
-            if (authData.state?.user?.id === user?.id) {
-              console.warn('🔍 DEBUG: Stale isNewUser flag detected for existing user, cleaning up');
-              // Force clear stale isNewUser flag
-              const updatedAuthData = { ...authData, state: { ...authData.state, isNewUser: false } };
-              localStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
-            } else {
-              // Different user ID, this is actually a new user
-              console.log('🔍 DEBUG: Redirecting new user to onboarding');
-              setState(prev => ({
-                ...prev,
-                currentFamily: null,
-                userPermissions: null,
-                requiresFamily: true,
-                isCheckingFamily: false,
-                isLoading: false
-              }));
-              return;
+            // Always try to clear stale isNewUser flag first, then check if user actually needs onboarding
+            console.warn('🔍 DEBUG: Clearing potentially stale isNewUser flag');
+            // Force clear stale isNewUser flag
+            const updatedAuthData = { ...authData, state: { ...authData.state, isNewUser: false } };
+            localStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
+
+            // Only redirect to onboarding if we're sure this is a different user (not just stale data)
+            if (authData.state?.user?.id !== user?.id) {
+              console.log('🔍 DEBUG: Different user detected, may need onboarding');
+              // Don't redirect immediately - let the normal family check logic handle it
+              // This prevents false redirects for existing users with families
             }
           }
         } catch (error) {
@@ -160,20 +153,28 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to load user family:', error);
-      
-      // Check if this is a network/connection error
+
+      // Check if this is a network/connection error or server startup issue
       const isNetworkError = error instanceof Error && (
         error.message.includes('Failed to fetch') ||
         error.message.includes('NetworkError') ||
         error.message.includes('ERR_CONNECTION_REFUSED') ||
-        error.message.includes('ERR_NETWORK')
+        error.message.includes('ERR_NETWORK') ||
+        error.message.includes('500') ||
+        error.message.includes('502') ||
+        error.message.includes('503') ||
+        error.message.includes('504')
       );
-      
+
+      // Be more conservative - only require family if we're certain it's not a network/server issue
+      // Also check if user previously had a family (in session) to avoid false redirects
+      const hadPreviousFamily = !!state.currentFamily;
+
       setState(prev => ({
         ...prev,
         currentFamily: null,
         userPermissions: null,
-        requiresFamily: !isNetworkError,   // Don't require family on network errors
+        requiresFamily: !isNetworkError && !hadPreviousFamily,   // Don't require family on network errors or if user previously had one
         isCheckingFamily: false,
         isLoading: false,
         error: error instanceof Error ? error.message : 'Failed to load family'
