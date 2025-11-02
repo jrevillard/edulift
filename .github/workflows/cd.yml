@@ -1,4 +1,4 @@
-name: Optimized CD Pipeline (Registry Cache)
+name: CD Pipeline
 
 on:
   push:
@@ -68,11 +68,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta-backend.outputs.labels }}
           tags: ${{ steps.meta-backend.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          # Fallback to registry cache for better cross-job sharing
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache,mode=max
 
       # Extract metadata (tags, labels) for Docker (frontend)
       - name: Extract Docker metadata (frontend)
@@ -100,11 +101,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta-frontend.outputs.labels }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          # Fallback to registry cache for better cross-job sharing
-          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache
-          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache,mode=max
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache
+          cache-to: |
+            type=gha,mode=max
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache,mode=max
 
   deploy-info:
     name: Deployment Info
