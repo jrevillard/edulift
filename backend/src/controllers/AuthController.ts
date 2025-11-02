@@ -6,7 +6,9 @@ import { UserRepository } from '../repositories/UserRepository';
 import { MagicLinkRepository } from '../repositories/MagicLinkRepository';
 import { PrismaClient } from '@prisma/client';
 import { ApiResponse } from '../types';
-import { Logger, logger } from '../utils/logger';
+import { createLogger, Logger } from '../utils/logger';
+
+const authLogger = createLogger('AuthController');
 import { AuthenticatedRequest } from '../middleware/auth';
 import { z } from 'zod';
 import {
@@ -172,8 +174,7 @@ export class AuthController {
             this.logger.debug('Processing group invitation', { userId: authResult.user.id });
             // Try to accept group invitation directly
             const result = await this.unifiedInvitationService.acceptGroupInvitation(inviteCode, authResult.user.id);
-            // @ts-expect-error - logger debug parameter type
-            this.logger.debug('Group invitation result', result);
+            this.logger.debug('Group invitation result', { result });
             
             if (result.success) {
               invitationResult = {
@@ -332,7 +333,15 @@ export class AuthController {
     try {
       // Get user ID from authenticated request
       const userId = (req as AuthenticatedRequest).user?.id;
+      
+      this.logger.debug('updateProfile: Received request', {
+        userId,
+        profileData: req.body,
+        userEmail: (req as AuthenticatedRequest).user?.email,
+      });
+
       if (!userId) {
+        this.logger.error('updateProfile: User authentication required', { userId });
         const response: ApiResponse = {
           success: false,
           error: 'User authentication required',
@@ -341,11 +350,24 @@ export class AuthController {
         return;
       }
 
+      this.logger.debug('updateProfile: Authentication validated', { userId });
+
       // Validate the request body
       const profileData = UpdateProfileSchema.parse(req.body);
 
+      this.logger.debug('updateProfile: Profile data validated', {
+        userId,
+        hasName: !!profileData.name,
+        hasTimezone: !!profileData.timezone,
+        timezone: profileData.timezone,
+      });
+
       // Validate timezone if provided
       if (profileData.timezone && !isValidTimezone(profileData.timezone)) {
+        this.logger.warn('updateProfile: Invalid timezone provided', {
+          userId,
+          timezone: profileData.timezone,
+        });
         const response: ApiResponse = {
           success: false,
           error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
@@ -354,19 +376,44 @@ export class AuthController {
         return;
       }
 
+      this.logger.debug('updateProfile: Calling service to update profile', {
+        userId,
+        profileFields: Object.keys(profileData),
+      });
+
       // Update the user profile
       const updatedUser = await this.authService.updateProfile(userId, profileData);
+
+      this.logger.debug('updateProfile: Profile updated successfully', {
+        userId,
+        updatedName: updatedUser.name,
+        updatedTimezone: updatedUser.timezone,
+      });
 
       const response: ApiResponse = {
         success: true,
         data: updatedUser,
       };
 
+      this.logger.debug('updateProfile: Sending response', {
+        userId,
+        success: true,
+      });
+
       res.status(200).json(response);
     } catch (error) {
-      this.logger.error('Update profile error', { error: (error as Error).message });
+      this.logger.error('updateProfile: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).user?.id,
+        profileData: req.body,
+      });
 
       if (error instanceof z.ZodError) {
+        this.logger.warn('updateProfile: Validation error', {
+          validationErrors: error.errors,
+          userId: (req as AuthenticatedRequest).user?.id,
+        });
         const response: ApiResponse = {
           success: false,
           error: 'Invalid input data',
@@ -461,14 +508,9 @@ export const createAuthController = (): AuthController => {
   const authService = new AuthService(userRepository, magicLinkRepository, emailService);
   
   // Create logger for UnifiedInvitationService
-  const unifiedInvitationLogger = {
-    info: (message: string, meta?: Record<string, unknown>): void => logger.info(message, meta),
-    error: (message: string, meta?: Record<string, unknown>): void => logger.error(message, meta),
-    warn: (message: string, meta?: Record<string, unknown>): void => logger.warn(message, meta),
-    debug: (message: string, meta?: Record<string, unknown>): void => logger.debug(message, meta),
-  };
+  const unifiedInvitationLogger = createLogger('UnifiedInvitationService');
   
   const unifiedInvitationService = new UnifiedInvitationService(prisma, unifiedInvitationLogger, emailService);
   
-  return new AuthController(authService, unifiedInvitationService, logger);
+  return new AuthController(authService, unifiedInvitationService, authLogger);
 };

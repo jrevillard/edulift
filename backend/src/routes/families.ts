@@ -15,24 +15,17 @@ const mockCacheService = {
   async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
 };
 
-// Mock logger for now
-const mockLogger = {
-  info: (message: string, meta?: Record<string, unknown>): void => logger.info(message, meta),
-  error: (message: string, meta?: Record<string, unknown>): void => logger.error(message, meta),
-  warn: (message: string, meta?: Record<string, unknown>): void => logger.warn(message, meta),
-  debug: (message: string, meta?: Record<string, unknown>): void => logger.debug(message, meta),
-};
-
-
+// Create proper logger instances
+const routeLogger = createLogger('families-route');
+const familyServiceLogger = createLogger('FamilyService');
 
 // Use centralized email service factory
 const emailService = EmailServiceFactory.getInstance();
-const familyService = new FamilyService(prisma, mockLogger, undefined, emailService);
+const familyService = new FamilyService(prisma, familyServiceLogger, undefined, emailService);
 const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
-const familyController = new FamilyController(familyService, familyAuthService, mockLogger);
+const familyController = new FamilyController(familyService, familyAuthService, routeLogger);
 
 const router = Router();
-const logger = createLogger('families-route');
 
 // Public routes (no auth required)
 router.post('/validate-invite', asyncHandler((req: Request, res: Response) => familyController.validateInviteCode(req, res)));

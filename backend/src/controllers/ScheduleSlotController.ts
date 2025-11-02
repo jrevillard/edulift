@@ -35,11 +35,23 @@ export class ScheduleSlotController {
     const { groupId } = req.params;
     const { datetime, vehicleId, driverId, seatOverride } = req.body;
 
+    logger.debug('createScheduleSlotWithVehicle: Received request', {
+      userId: authReq.userId,
+      groupId,
+      datetime,
+      vehicleId,
+      driverId,
+      seatOverride,
+      userEmail: authReq.user?.email,
+    });
+
     if (!vehicleId) {
+      logger.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId: authReq.userId, groupId });
       throw createError('Vehicle ID is required to create a schedule slot', 400);
     }
 
     if (!authReq.userId) {
+      logger.error('createScheduleSlotWithVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
@@ -49,21 +61,49 @@ export class ScheduleSlotController {
         datetime,
       };
 
+      logger.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
+        groupId,
+        userId: authReq.userId,
+        vehicleId,
+        datetime,
+      });
       const slot = await this.scheduleSlotService.createScheduleSlotWithVehicle(slotData, vehicleId, authReq.userId, driverId, seatOverride);
 
       // Emit WebSocket event for real-time updates
       if (slot) {
+        logger.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
+          groupId,
+          slotId: slot.id,
+        });
         SocketEmitter.broadcastScheduleSlotCreated(groupId, slot.id, slot);
         SocketEmitter.broadcastScheduleUpdate(groupId);
       }
+
+      logger.debug('createScheduleSlotWithVehicle: Slot created successfully', {
+        groupId,
+        slotId: slot.id,
+        vehicleId,
+      });
 
       const response: ApiResponse = {
         success: true,
         data: slot,
       };
 
+      logger.debug('createScheduleSlotWithVehicle: Sending response', {
+        groupId,
+        slotId: slot.id,
+        success: true,
+      });
       res.status(201).json(response);
     } catch (error) {
+      logger.error('createScheduleSlotWithVehicle: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: authReq.userId,
+        groupId,
+      });
+
       if (error instanceof Error && error.message.includes('already exists')) {
         throw createError(error.message, 409);
       }

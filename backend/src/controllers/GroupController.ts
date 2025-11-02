@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Request, Response } from 'express';
 import { GroupService } from '../services/GroupService';
 import { SchedulingService } from '../services/SchedulingService';
@@ -51,17 +50,33 @@ export class GroupController {
     try {
       const authReq = req as AuthenticatedRequest;
       const { name, description } = CreateGroupSchema.parse(req.body);
-      
+
+      this.logger.debug('createGroup: Received request', {
+        userId: authReq.userId,
+        name,
+        description,
+        userEmail: authReq.user?.email,
+      });
+
       if (!authReq.userId) {
+        this.logger.error('createGroup: Authentication required', { userId: authReq.userId });
         throw createError('Authentication required', 401);
       }
 
+      this.logger.debug('createGroup: Getting user family', { userId: authReq.userId });
       // Get user's family first
       const userFamily = await this.groupService.getUserFamily(authReq.userId);
 
       if (!userFamily) {
+        this.logger.warn('createGroup: User not part of any family', { userId: authReq.userId });
         throw createError('User must be part of a family to create groups', 400);
       }
+
+      this.logger.debug('createGroup: Family found, creating group', {
+        userId: authReq.userId,
+        familyId: userFamily.familyId,
+        familyName: userFamily.family?.name,
+      });
 
       const group = await this.groupService.createGroup({
         name,
@@ -70,13 +85,30 @@ export class GroupController {
         createdBy: authReq.userId,
       });
 
+      this.logger.debug('createGroup: Group created successfully', {
+        userId: authReq.userId,
+        groupId: group.id,
+        groupName: group.name,
+      });
+
       const response: ApiResponse = {
         success: true,
         data: group,
       };
 
+      this.logger.debug('createGroup: Sending response', {
+        userId: authReq.userId,
+        groupId: group.id,
+        success: true,
+      });
       res.status(201).json(response);
     } catch (error) {
+      this.logger.error('createGroup: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).userId,
+      });
+
       if (error instanceof z.ZodError) {
         const response: ApiResponse = {
           success: false,
@@ -94,36 +126,110 @@ export class GroupController {
   };
 
   joinGroup = async (req: Request, res: Response): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const { inviteCode } = JoinGroupSchema.parse(req.body);
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { inviteCode } = JoinGroupSchema.parse(req.body);
 
-    if (!authReq.userId) {
-      throw createError('Authentication required', 401);
+      this.logger.debug('joinGroup: Received request', {
+        userId: authReq.userId,
+        inviteCode: `${inviteCode.substring(0, 8)}...`, // Only log partial code for security
+        userEmail: authReq.user?.email,
+      });
+
+      if (!authReq.userId) {
+        this.logger.error('joinGroup: Authentication required', { userId: authReq.userId });
+        throw createError('Authentication required', 401);
+      }
+
+      this.logger.debug('joinGroup: Authentication validated', { 
+        userId: authReq.userId,
+        inviteCode: `${inviteCode.substring(0, 8)}...`, 
+      });
+
+      this.logger.debug('joinGroup: Calling service', { 
+        userId: authReq.userId, 
+        inviteCode: `${inviteCode.substring(0, 8)}...`, 
+      });
+      
+      const membership = await this.groupService.joinGroupByInviteCode(inviteCode, authReq.userId);
+
+      this.logger.debug('joinGroup: Group joined successfully', {
+        userId: authReq.userId,
+        groupId: (membership as any).groupId,
+        membershipId: (membership as any).id,
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: membership,
+      };
+
+      this.logger.debug('joinGroup: Sending response', {
+        userId: authReq.userId,
+        groupId: (membership as any).groupId,
+        success: true,
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      this.logger.error('joinGroup: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).userId,
+        inviteCode: req.body?.inviteCode ? `${req.body.inviteCode.substring(0, 8)}...` : undefined,
+      });
+
+      if (error instanceof z.ZodError) {
+        this.logger.warn('joinGroup: Validation error', {
+          validationErrors: error.errors,
+          userId: (req as AuthenticatedRequest).userId,
+        });
+        const response: ApiResponse = {
+          success: false,
+          error: 'Invalid input data',
+          validationErrors: error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message,
+          })),
+        };
+        res.status(400).json(response);
+        return;
+      }
+      throw error;
     }
-
-    const membership = await this.groupService.joinGroupByInviteCode(inviteCode, authReq.userId);
-
-    const response: ApiResponse = {
-      success: true,
-      data: membership,
-    };
-
-    res.status(200).json(response);
   };
 
   getUserGroups = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
+
+    this.logger.debug('getUserGroups: Received request', {
+      userId: authReq.userId,
+      userEmail: authReq.user?.email,
+    });
+
     if (!authReq.userId) {
+      this.logger.error('getUserGroups: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
+    this.logger.debug('getUserGroups: Calling service', { userId: authReq.userId });
     const groups = await this.groupService.getUserGroups(authReq.userId);
+
+    this.logger.debug('getUserGroups: Groups retrieved', {
+      userId: authReq.userId,
+      groupCount: groups.length,
+    });
 
     const response: ApiResponse = {
       success: true,
       data: groups,
     };
 
+    this.logger.debug('getUserGroups: Sending response', {
+      userId: authReq.userId,
+      success: true,
+      groupCount: groups.length,
+    });
     res.status(200).json(response);
   };
 
@@ -131,17 +237,36 @@ export class GroupController {
     const authReq = req as AuthenticatedRequest;
     const { groupId } = req.params;
 
+    this.logger.debug('getGroupFamilies: Received request', {
+      userId: authReq.userId,
+      groupId,
+      userEmail: authReq.user?.email,
+    });
+
     if (!authReq.userId) {
+      this.logger.error('getGroupFamilies: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
+    this.logger.debug('getGroupFamilies: Calling service', { groupId, userId: authReq.userId });
     const families = await this.groupService.getGroupFamilies(groupId, authReq.userId);
+
+    this.logger.debug('getGroupFamilies: Families retrieved', {
+      groupId,
+      userId: authReq.userId,
+      familyCount: families.length,
+    });
 
     const response: ApiResponse = {
       success: true,
       data: families,
     };
 
+    this.logger.debug('getGroupFamilies: Sending response', {
+      groupId,
+      success: true,
+      familyCount: families.length,
+    });
     res.status(200).json(response);
   };
 
@@ -221,10 +346,23 @@ export class GroupController {
       const authReq = req as AuthenticatedRequest;
       const { groupId } = req.params;
       const updateData = UpdateGroupSchema.parse(req.body);
-      
+
+      this.logger.debug('updateGroup: Received request', {
+        userId: authReq.userId,
+        groupId,
+        updateData,
+        userEmail: authReq.user?.email,
+      });
+
       if (!authReq.userId) {
+        this.logger.error('updateGroup: Authentication required', { userId: authReq.userId });
         throw createError('Authentication required', 401);
       }
+
+      this.logger.debug('updateGroup: Authentication validated', { 
+        userId: authReq.userId,
+        groupId, 
+      });
 
       // Filter out undefined values for strict typing
       const filteredUpdateData: { name?: string; description?: string } = {};
@@ -237,6 +375,10 @@ export class GroupController {
 
       // Check if there's actually something to update
       if (Object.keys(filteredUpdateData).length === 0) {
+        this.logger.warn('updateGroup: No update data provided', { 
+          userId: authReq.userId,
+          groupId, 
+        });
         const response: ApiResponse = {
           success: false,
           error: 'No update data provided',
@@ -245,16 +387,47 @@ export class GroupController {
         return;
       }
 
+      this.logger.debug('updateGroup: Calling service to update group', {
+        groupId,
+        userId: authReq.userId,
+        updateFields: Object.keys(filteredUpdateData),
+      });
+
       const result = await this.groupService.updateGroup(groupId, authReq.userId, filteredUpdateData);
+
+      this.logger.debug('updateGroup: Group updated successfully', {
+        groupId,
+        userId: authReq.userId,
+        updatedName: result.name,
+        updatedDescription: result.description,
+      });
 
       const response: ApiResponse = {
         success: true,
         data: result,
       };
 
+      this.logger.debug('updateGroup: Sending response', {
+        groupId,
+        userId: authReq.userId,
+        success: true,
+      });
+
       res.status(200).json(response);
     } catch (error) {
+      this.logger.error('updateGroup: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).userId,
+        groupId: req.params?.groupId,
+        updateData: req.body,
+      });
+
       if (error instanceof z.ZodError) {
+        this.logger.warn('updateGroup: Validation error', {
+          validationErrors: error.errors,
+          userId: (req as AuthenticatedRequest).userId,
+        });
         const response: ApiResponse = {
           success: false,
           error: 'Invalid input data',
@@ -271,40 +444,118 @@ export class GroupController {
   };
 
   deleteGroup = async (req: Request, res: Response): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const { groupId } = req.params;
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { groupId } = req.params;
 
-    if (!authReq.userId) {
-      throw createError('Authentication required', 401);
+      this.logger.debug('deleteGroup: Received request', {
+        userId: authReq.userId,
+        groupId,
+        userEmail: authReq.user?.email,
+      });
+
+      if (!authReq.userId) {
+        this.logger.error('deleteGroup: Authentication required', { userId: authReq.userId });
+        throw createError('Authentication required', 401);
+      }
+
+      this.logger.debug('deleteGroup: Authentication validated', { 
+        userId: authReq.userId,
+        groupId, 
+      });
+
+      this.logger.debug('deleteGroup: Calling service to delete group', {
+        groupId,
+        userId: authReq.userId,
+      });
+
+      const result = await this.groupService.deleteGroup(groupId, authReq.userId);
+
+      this.logger.debug('deleteGroup: Group deleted successfully', {
+        groupId,
+        userId: authReq.userId,
+        deleted: result.success,
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+      };
+
+      this.logger.debug('deleteGroup: Sending response', {
+        groupId,
+        userId: authReq.userId,
+        success: true,
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      this.logger.error('deleteGroup: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).userId,
+        groupId: req.params?.groupId,
+      });
+      throw error;
     }
-
-    const result = await this.groupService.deleteGroup(groupId, authReq.userId);
-
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
-    res.status(200).json(response);
   };
 
 
   leaveGroup = async (req: Request, res: Response): Promise<void> => {
-    const authReq = req as AuthenticatedRequest;
-    const { groupId } = req.params;
+    try {
+      const authReq = req as AuthenticatedRequest;
+      const { groupId } = req.params;
 
-    if (!authReq.userId) {
-      throw createError('Authentication required', 401);
+      this.logger.debug('leaveGroup: Received request', {
+        userId: authReq.userId,
+        groupId,
+        userEmail: authReq.user?.email,
+      });
+
+      if (!authReq.userId) {
+        this.logger.error('leaveGroup: Authentication required', { userId: authReq.userId });
+        throw createError('Authentication required', 401);
+      }
+
+      this.logger.debug('leaveGroup: Authentication validated', { 
+        userId: authReq.userId,
+        groupId, 
+      });
+
+      this.logger.debug('leaveGroup: Calling service to leave group', {
+        groupId,
+        userId: authReq.userId,
+      });
+
+      const result = await this.groupService.leaveGroup(groupId, authReq.userId);
+
+      this.logger.debug('leaveGroup: Group left successfully', {
+        groupId,
+        userId: authReq.userId,
+        leftGroup: result.success,
+      });
+
+      const response: ApiResponse = {
+        success: true,
+        data: result,
+      };
+
+      this.logger.debug('leaveGroup: Sending response', {
+        groupId,
+        userId: authReq.userId,
+        success: true,
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      this.logger.error('leaveGroup: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).userId,
+        groupId: req.params?.groupId,
+      });
+      throw error;
     }
-
-    const result = await this.groupService.leaveGroup(groupId, authReq.userId);
-
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
-    res.status(200).json(response);
   };
 
   // NOTE: Schedule slot creation moved to ScheduleSlotController 
@@ -331,10 +582,34 @@ export class GroupController {
       const authReq = req as AuthenticatedRequest;
       const { groupId } = req.params;
       const inviteData = InviteFamilySchema.parse(req.body);
+
+      this.logger.debug('inviteFamilyToGroup: Received request', {
+        userId: authReq.userId,
+        groupId,
+        familyId: inviteData.familyId,
+        role: inviteData.role,
+        platform: inviteData.platform,
+        hasPersonalMessage: !!inviteData.personalMessage,
+        userEmail: authReq.user?.email,
+      });
       
       if (!authReq.userId) {
+        this.logger.error('inviteFamilyToGroup: Authentication required', { userId: authReq.userId });
         throw createError('Authentication required', 401);
       }
+
+      this.logger.debug('inviteFamilyToGroup: Authentication validated', { 
+        userId: authReq.userId,
+        groupId, 
+      });
+
+      this.logger.debug('inviteFamilyToGroup: Calling group service to invite family', {
+        groupId,
+        invitingUserId: authReq.userId,
+        targetFamilyId: inviteData.familyId,
+        role: inviteData.role,
+        platform: inviteData.platform,
+      });
 
       const result = await this.groupService.inviteFamilyById(
         groupId,
@@ -347,14 +622,41 @@ export class GroupController {
         inviteData.platform,
       );
 
+      this.logger.debug('inviteFamilyToGroup: Family invited successfully', {
+        groupId,
+        familyId: inviteData.familyId,
+        invitationId: result.id,
+        role: inviteData.role,
+        platform: inviteData.platform,
+      });
+
       const response: ApiResponse = {
         success: true,
         data: result,
       };
 
+      this.logger.debug('inviteFamilyToGroup: Sending response', {
+        groupId,
+        familyId: inviteData.familyId,
+        success: true,
+        invitationId: result.id,
+      });
+
       res.status(201).json(response);
     } catch (error) {
+      this.logger.error('inviteFamilyToGroup: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: (req as AuthenticatedRequest).userId,
+        groupId: req.params?.groupId,
+        familyId: req.body?.familyId,
+      });
+
       if (error instanceof z.ZodError) {
+        this.logger.warn('inviteFamilyToGroup: Validation error', {
+          validationErrors: error.errors,
+          userId: (req as AuthenticatedRequest).userId,
+        });
         res.status(400).json({
           success: false,
           error: 'Validation failed',
@@ -364,6 +666,11 @@ export class GroupController {
       }
 
       if (error instanceof AppError) {
+        this.logger.warn('inviteFamilyToGroup: Application error', {
+          errorMessage: error.message,
+          statusCode: error.statusCode,
+          userId: (req as AuthenticatedRequest).userId,
+        });
         res.status(error.statusCode).json({
           success: false,
           error: error.message,
@@ -371,7 +678,6 @@ export class GroupController {
         return;
       }
 
-      this.logger.error('Invite family to group error:', { error: error instanceof Error ? error.message : String(error) });
       res.status(500).json({
         success: false,
         error: 'Failed to invite family to group',
@@ -543,7 +849,6 @@ export class GroupController {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to search families',
       };
-      // @ts-expect-error - error type handling
       res.status((error as Error & { statusCode?: number })?.statusCode || 500).json(response);
     }
   };

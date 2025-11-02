@@ -23,7 +23,17 @@ export class FamilyController {
     try {
       const { name } = req.body;
 
+      this.logger.debug('createFamily: Received request', {
+        userId: req.user?.id,
+        name,
+        userEmail: req.user?.email,
+      });
+
       if (!name || name.trim().length === 0) {
+        this.logger.warn('createFamily: Validation failed - Family name is required', {
+          userId: req.user?.id,
+          name,
+        });
         res.status(400).json({
           success: false,
           error: 'Family name is required',
@@ -31,14 +41,25 @@ export class FamilyController {
         return;
       }
 
+      this.logger.debug('createFamily: Creating family', { userId: req.user.id, name: name.trim() });
       const family = await this.familyService.createFamily(req.user.id, name);
+
+      this.logger.debug('createFamily: Family created successfully', {
+        userId: req.user.id,
+        familyId: family.id,
+        familyName: family.name,
+      });
 
       res.status(201).json({
         success: true,
         data: family,
       });
     } catch (error) {
-      this.logger.error('Family creation error:', { error: error instanceof Error ? error.message : String(error) });
+      this.logger.error('createFamily: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: req.user?.id,
+      });
       res.status(400).json({
         success: false,
         error: (error as Error).message,

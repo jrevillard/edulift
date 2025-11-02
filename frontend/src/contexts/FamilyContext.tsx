@@ -94,17 +94,34 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       if (authStorage) {
         try {
           const authData = JSON.parse(authStorage);
+
+          // DEBUG: Log auth storage state for troubleshooting
+          console.log('🔍 DEBUG: Auth storage found:', {
+            isNewUser: authData.state?.isNewUser,
+            userId: authData.state?.user?.id,
+            hasToken: !!authData.state?.token
+          });
+
           if (authData.state?.isNewUser) {
-            // New user should be redirected to onboarding
-            setState(prev => ({
-              ...prev,
-              currentFamily: null,
-              userPermissions: null,
-              requiresFamily: true,
-              isCheckingFamily: false,
-              isLoading: false
-            }));
-            return;
+            // DEBUG: Check if this is actually a new user or stale data
+            if (authData.state?.user?.id === user?.id) {
+              console.warn('🔍 DEBUG: Stale isNewUser flag detected for existing user, cleaning up');
+              // Force clear stale isNewUser flag
+              const updatedAuthData = { ...authData, state: { ...authData.state, isNewUser: false } };
+              localStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
+            } else {
+              // Different user ID, this is actually a new user
+              console.log('🔍 DEBUG: Redirecting new user to onboarding');
+              setState(prev => ({
+                ...prev,
+                currentFamily: null,
+                userPermissions: null,
+                requiresFamily: true,
+                isCheckingFamily: false,
+                isLoading: false
+              }));
+              return;
+            }
           }
         } catch (error) {
           console.warn('Failed to parse auth storage for isNewUser check:', error);
