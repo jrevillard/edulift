@@ -1,0 +1,158 @@
+name: Dependencies CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'package*.json'
+      - 'backend/package.json'
+      - 'frontend/package.json'
+      - 'e2e/package.json'
+      - '.github/workflows/dependencies-ci.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'package*.json'
+      - 'backend/package.json'
+      - 'frontend/package.json'
+      - 'e2e/package.json'
+      - '.github/workflows/dependencies-ci.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  CACHE_VERSION: 'v3'
+
+jobs:
+  dependency-audit:
+    name: Dependency Audit & Security
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Cache all node_modules for dependency analysis
+      - name: Cache all dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/cache/_cacache
+            backend/node_modules
+            frontend/node_modules
+            e2e/node_modules
+          key: ${{ env.CACHE_VERSION }}-deps-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ env.CACHE_VERSION }}-deps-${{ runner.os }}-
+
+      # Install all dependencies
+      - name: Install dependencies
+        run: |
+          echo "Installing backend dependencies..."
+          cd backend && npm ci --prefer-offline --no-audit
+          cd ..
+          echo "Installing frontend dependencies..."
+          cd frontend && npm ci --prefer-offline --no-audit
+          cd ..
+          echo "Installing E2E dependencies..."
+          cd e2e && npm ci --prefer-offline --no-audit
+          cd ..
+
+      # Security audit for each package
+      - name: Run security audit (backend)
+        run: |
+          cd backend
+          npm audit --audit-level high
+        continue-on-error: true
+
+      - name: Run security audit (frontend)
+        run: |
+          cd frontend
+          npm audit --audit-level high
+        continue-on-error: true
+
+      - name: Run security audit (E2E)
+        run: |
+          cd e2e
+          npm audit --audit-level high
+        continue-on-error: true
+
+      # Check for outdated packages
+      - name: Check for outdated packages (backend)
+        run: |
+          cd backend
+          npm outdated || echo "Some packages are outdated (this is informational)"
+
+      - name: Check for outdated packages (frontend)
+        run: |
+          cd frontend
+          npm outdated || echo "Some packages are outdated (this is informational)"
+
+      - name: Check for outdated packages (E2E)
+        run: |
+          cd e2e
+          npm outdated || echo "Some packages are outdated (this is informational)"
+
+  dependency-sync:
+    name: Dependency Sync Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Check for version mismatches in critical dependencies
+      - name: Check dependency version consistency
+        run: |
+          echo "=== Checking critical dependency versions ==="
+
+          # Extract versions from package-lock.json files
+          if [ -f "backend/package-lock.json" ]; then
+            echo "Backend TypeScript version:"
+            grep -o '"typescript": *"[^"]*"' backend/package-lock.json || echo "Not found"
+          fi
+
+          if [ -f "frontend/package-lock.json" ]; then
+            echo "Frontend TypeScript version:"
+            grep -o '"typescript": *"[^"]*"' frontend/package-lock.json || echo "Not found"
+          fi
+
+          if [ -f "e2e/package-lock.json" ]; then
+            echo "E2E TypeScript version:"
+            grep -o '"typescript": *"[^"]*"' e2e/package-lock.json || echo "Not found"
+          fi
+
+          echo "=== Checking React versions ==="
+          if [ -f "frontend/package-lock.json" ]; then
+            echo "Frontend React version:"
+            grep -o '"react": *"[^"]*"' frontend/package-lock.json || echo "Not found"
+            grep -o '"react-dom": *"[^"]*"' frontend/package-lock.json || echo "Not found"
+          fi
+
+      - name: Validate package.json structure
+        run: |
+          echo "=== Validating package.json files ==="
+
+          for pkg in backend/package.json frontend/package.json e2e/package.json; do
+            if [ -f "$pkg" ]; then
+              echo "Validating $pkg..."
+              # Check if JSON is valid
+              if ! node -e "JSON.parse(require('fs').readFileSync('$pkg', 'utf8'))"; then
+                echo "❌ Invalid JSON in $pkg"
+                exit 1
+              else
+                echo "✅ $pkg is valid JSON"
+              fi
+            fi
+          done
