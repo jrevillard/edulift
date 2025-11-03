@@ -77,11 +77,17 @@ services:
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
 {% endif %}
+      {% if deployment_environment in ['staging', 'production'] %}
+      # Static certificates
+      - "--providers.file.filename=/etc/traefik/tls.yml"
+      - "--entrypoints.websecure.http.tls.options=default"
+{% else %}
       # Let's Encrypt
       - "--certificatesresolvers.letsencrypt.acme.email={{ acme_email }}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+{% endif %}
       # Logging
       - "--log.level={{ edulift_services.traefik.log_level }}"
       - "--accesslog=true"
@@ -91,6 +97,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - {{ compose_project_name }}_traefik_certs:/letsencrypt
+{% if deployment_environment in ['staging', 'production'] %}
+      - ./certificates:/certificates:ro
+{% endif %}
+      - ./traefik-tls.yml:/etc/traefik/tls.yml:ro
       - ./logs/traefik:/logs
     networks:
       - {{ compose_project_name }}-network
@@ -99,7 +109,11 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.rule={{ url.traefik_rule(traefik_url) }}"
       - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.entrypoints=websecure"
+{% if deployment_environment in ['staging', 'production'] %}
+      - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.tls=true"
+{% else %}
       - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.tls.certresolver=letsencrypt"
+{% endif %}
       - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.service=api@internal"
 {% if url.uses_path(traefik_url) == 'true' %}
       # Strip path prefix for path-based routing
@@ -201,7 +215,11 @@ services:
       # Backend router - handles both API and WebSocket traffic
       - "traefik.http.routers.{{ compose_project_name }}-backend.rule={{ url.traefik_rule(backend_url) }} || PathPrefix(`/socket.io`)"
       - "traefik.http.routers.{{ compose_project_name }}-backend.entrypoints=websecure"
+{% if deployment_environment in ['staging', 'production'] %}
+      - "traefik.http.routers.{{ compose_project_name }}-backend.tls=true"
+{% else %}
       - "traefik.http.routers.{{ compose_project_name }}-backend.tls.certresolver=letsencrypt"
+{% endif %}
       - "traefik.http.routers.{{ compose_project_name }}-backend.priority=10"
 {% if edulift_deployment.disable_http_to_https_redirect is defined and edulift_deployment.disable_http_to_https_redirect == true %}
       # Backend router (HTTP) - only when redirect is disabled
@@ -250,7 +268,11 @@ services:
       # Frontend routes (root and all non-api paths)
       - "traefik.http.routers.{{ compose_project_name }}-frontend.rule={{ url.traefik_rule(frontend_url) }}"
       - "traefik.http.routers.{{ compose_project_name }}-frontend.entrypoints=websecure"
+{% if deployment_environment in ['staging', 'production'] %}
+      - "traefik.http.routers.{{ compose_project_name }}-frontend.tls=true"
+{% else %}
       - "traefik.http.routers.{{ compose_project_name }}-frontend.tls.certresolver=letsencrypt"
+{% endif %}
       - "traefik.http.routers.{{ compose_project_name }}-frontend.priority=1"
 {% if edulift_deployment.disable_http_to_https_redirect is defined and edulift_deployment.disable_http_to_https_redirect == true %}
       # Frontend router (HTTP) - only when redirect is disabled

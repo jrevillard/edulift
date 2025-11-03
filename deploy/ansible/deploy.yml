@@ -171,6 +171,47 @@
           - "{{ edulift_deploy_dir }}/logs/traefik"
           - "{{ edulift_deploy_dir }}/logs/backend"
 
+    - name: Create certificates directory for staging/production environments
+      file:
+        path: "{{ edulift_deploy_dir }}/certificates"
+        state: directory
+        mode: '0750'
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+      become: yes
+      when: deployment_environment in ['staging', 'production']
+
+    - name: Copy SSL certificates for {{ deployment_environment }}
+      copy:
+        src: "files/certificates/{{ deployment_environment }}/{{ item }}"
+        dest: "{{ edulift_deploy_dir }}/certificates/{{ item }}"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0644'
+      become: yes
+      loop:
+        - "cert.pem"
+        - "privkey.pem"
+      when: deployment_environment in ['staging', 'production']
+
+    - name: Set private key permissions for {{ deployment_environment }}
+      file:
+        path: "{{ edulift_deploy_dir }}/certificates/privkey.pem"
+        mode: '0600'
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+      become: yes
+      when: deployment_environment in ['staging', 'production']
+
+    - name: Generate traefik TLS configuration from template
+      template:
+        src: templates/traefik-tls.yml.j2
+        dest: "{{ edulift_deploy_dir }}/traefik-tls.yml"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0644'
+      become: yes
+
     - name: Generate docker-compose.yml from template
       template:
         src: templates/docker-compose.yml.j2

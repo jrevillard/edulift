@@ -1,0 +1,12 @@
+# TLS Configuration for EduLift
+# Uses static certificates for staging and production environments
+# Uses Let's Encrypt for other environments
+
+{% if deployment_environment in ['staging', 'production'] %}
+tls:
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certificates/cert.pem
+        keyFile: /certificates/privkey.pem
+{% endif %}
