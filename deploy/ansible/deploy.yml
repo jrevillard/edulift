@@ -239,27 +239,6 @@
 # ====================================
 
   handlers:
-    - name: Reload systemd and restart EduLift
-      systemd:
-        daemon_reload: yes
-        name: "{{ service_name }}"
-        state: restarted
-
-    - name: Restart EduLift Service
-      systemd:
-        name: "{{ service_name }}"
-        state: restarted
-
-    - name: Restart EduLift Service
-      systemd:
-        name: "{{ service_name }}"
-        state: restarted
-
-# ====================================
-# Handlers
-# ====================================
-
-  handlers:
     - name: Restart EduLift service
       systemd:
         name: "{{ service_name }}"

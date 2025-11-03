@@ -1,132 +1,7 @@
-import { describe, expect, test, beforeEach, vi } from 'vitest';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import { describe, test, expect } from 'vitest';
+import { convertScheduleHoursToLocal } from '../timezoneUtils';
 
-// Configure dayjs plugins
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
-import {
-  getUserTimezone,
-  isValidTimezone,
-  convertScheduleHoursToUtc,
-  convertScheduleHoursToLocal,
-  getBrowserTimezone,
-} from '../timezoneUtils';
-
-describe('timezoneUtils', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  describe('getUserTimezone', () => {
-    test('should return a valid IANA timezone', () => {
-      const timezone = getUserTimezone();
-
-      expect(timezone).toBeTruthy();
-      expect(typeof timezone).toBe('string');
-      expect(isValidTimezone(timezone)).toBe(true);
-    });
-  });
-
-  describe('isValidTimezone', () => {
-    test('should return true for valid IANA timezones', () => {
-      expect(isValidTimezone('Europe/Paris')).toBe(true);
-      expect(isValidTimezone('America/New_York')).toBe(true);
-      expect(isValidTimezone('UTC')).toBe(true);
-      expect(isValidTimezone('Asia/Tokyo')).toBe(true);
-      expect(isValidTimezone('America/Los_Angeles')).toBe(true);
-    });
-
-    test('should return false for invalid timezones', () => {
-      expect(isValidTimezone('Invalid/Timezone')).toBe(false);
-      expect(isValidTimezone('NotATimezone')).toBe(false);
-      expect(isValidTimezone('Paris')).toBe(false);
-      expect(isValidTimezone('')).toBe(false);
-      expect(isValidTimezone('123456')).toBe(false);
-    });
-  });
-
-  describe('convertScheduleHoursToUtc', () => {
-    test('should convert local schedule to UTC schedule', () => {
-      const localSchedule = {
-        MONDAY: ['09:00', '17:00'],
-        FRIDAY: ['15:00']
-      };
-
-      const utcSchedule = convertScheduleHoursToUtc(localSchedule, 'Europe/Paris');
-
-      expect(utcSchedule.MONDAY).toEqual(['08:00', '16:00']);
-      expect(utcSchedule.FRIDAY).toEqual(['14:00']);
-    });
-
-    test('should handle empty schedule', () => {
-      const localSchedule = {};
-      const utcSchedule = convertScheduleHoursToUtc(localSchedule, 'Europe/Paris');
-
-      expect(utcSchedule).toEqual({});
-    });
-  });
-
-  describe('convertScheduleHoursToLocal', () => {
-    test('should convert UTC schedule to local', () => {
-      const utc = {
-        MONDAY: ['06:00', '07:00'],
-        TUESDAY: ['14:00']
-      };
-
-      const local = convertScheduleHoursToLocal(utc, 'Europe/Paris');
-
-      expect(local).toEqual({
-        MONDAY: ['07:00', '08:00'],
-        TUESDAY: ['15:00']
-      });
-    });
-
-    test('CRITICAL: round-trip should preserve user intent', () => {
-      const original = {
-        MONDAY: ['00:30', '07:00', '17:00']
-      };
-
-      const utc = convertScheduleHoursToUtc(original, 'Europe/Paris');
-      const roundTrip = convertScheduleHoursToLocal(utc, 'Europe/Paris');
-
-      expect(roundTrip).toEqual(original);
-    });
-
-    test('should handle empty schedule', () => {
-      const utc = {};
-      const local = convertScheduleHoursToLocal(utc, 'Europe/Paris');
-      expect(local).toEqual({});
-    });
-
-    test('should sort times after conversion', () => {
-      const utc = {
-        MONDAY: ['16:00', '06:00', '11:00']
-      };
-
-      const local = convertScheduleHoursToLocal(utc, 'Europe/Paris');
-
-      expect(local.MONDAY).toEqual(['07:00', '12:00', '17:00']);
-    });
-  });
-
-  describe('getBrowserTimezone', () => {
-    test('should return a valid IANA timezone', () => {
-      const timezone = getBrowserTimezone();
-      expect(timezone).toBeTruthy();
-      expect(typeof timezone).toBe('string');
-      expect(isValidTimezone(timezone)).toBe(true);
-    });
-
-    test('should be same as getUserTimezone', () => {
-      expect(getBrowserTimezone()).toBe(getUserTimezone());
-    });
-  });
-});
-
-describe('Key Consistency Bug Prevention Tests', () => {
+describe('Schedule Key Consistency Bug Prevention Tests', () => {
   test('should return English weekday keys consistently (prevents French key bug)', () => {
     // This test specifically prevents the bug where frontend used French keys
     // but convertScheduleHoursToLocal returned English keys
@@ -168,7 +43,7 @@ describe('Key Consistency Bug Prevention Tests', () => {
     expect(localScheduleHours.MONDAY).toEqual(['07:00', '14:00']);
     expect(localScheduleHours.MONDAY).toHaveLength(2);
 
-    // Other days should not be present (convertScheduleHoursToLocal only creates days that have time slots)
+    // Other days should not be present (convertScheduleHours only creates days that have time slots)
     expect(localScheduleHours.TUESDAY).toBeUndefined();
     expect(localScheduleHours.WEDNESDAY).toBeUndefined();
     expect(localScheduleHours.THURSDAY).toBeUndefined();

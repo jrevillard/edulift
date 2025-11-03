@@ -70,9 +70,13 @@ services:
       # Entrypoints
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+{% if edulift_deployment.disable_http_to_https_redirect is defined and edulift_deployment.disable_http_to_https_redirect == true %}
+      # Disable HTTP to HTTPS redirect (for development/staging)
+{% else %}
       # HTTP to HTTPS redirect
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+{% endif %}
       # Let's Encrypt
       - "--certificatesresolvers.letsencrypt.acme.email={{ acme_email }}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
@@ -199,6 +203,12 @@ services:
       - "traefik.http.routers.{{ compose_project_name }}-backend.entrypoints=websecure"
       - "traefik.http.routers.{{ compose_project_name }}-backend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.{{ compose_project_name }}-backend.priority=10"
+{% if edulift_deployment.disable_http_to_https_redirect is defined and edulift_deployment.disable_http_to_https_redirect == true %}
+      # Backend router (HTTP) - only when redirect is disabled
+      - "traefik.http.routers.{{ compose_project_name }}-backend-http.rule={{ url.traefik_rule(backend_url) }} || PathPrefix(`/socket.io`)"
+      - "traefik.http.routers.{{ compose_project_name }}-backend-http.entrypoints=web"
+      - "traefik.http.routers.{{ compose_project_name }}-backend-http.priority=10"
+{% endif %}
       # NO middlewares - let backend handle CORS, don't break WebSocket
       - "traefik.http.routers.{{ compose_project_name }}-backend.middlewares="
     healthcheck:
@@ -242,11 +252,22 @@ services:
       - "traefik.http.routers.{{ compose_project_name }}-frontend.entrypoints=websecure"
       - "traefik.http.routers.{{ compose_project_name }}-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.{{ compose_project_name }}-frontend.priority=1"
+{% if edulift_deployment.disable_http_to_https_redirect is defined and edulift_deployment.disable_http_to_https_redirect == true %}
+      # Frontend router (HTTP) - only when redirect is disabled
+      - "traefik.http.routers.{{ compose_project_name }}-frontend-http.rule={{ url.traefik_rule(frontend_url) }}"
+      - "traefik.http.routers.{{ compose_project_name }}-frontend-http.entrypoints=web"
+      - "traefik.http.routers.{{ compose_project_name }}-frontend-http.priority=1"
+{% endif %}
       - "traefik.http.services.{{ compose_project_name }}-frontend.loadbalancer.server.port={{ edulift_services.frontend.port }}"
       # Security headers
+{% if edulift_deployment.disable_http_to_https_redirect is defined and edulift_deployment.disable_http_to_https_redirect == true %}
+      # Disable HSTS when HTTP redirect is disabled
+      - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.stsSeconds=0"
+{% else %}
       - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.stsSeconds={{ edulift_services.traefik.security.middlewares.sts_seconds }}"
       - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.stsIncludeSubdomains={{ edulift_services.traefik.security.middlewares.sts_include_subdomains }}"
       - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.stsPreload={{ edulift_services.traefik.security.middlewares.sts_preload }}"
+{% endif %}
       - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.frameDeny={{ edulift_services.frontend.security.headers.frame_deny }}"
       - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.contentTypeNosniff={{ edulift_services.frontend.security.headers.content_type_nosniff }}"
       - "traefik.http.middlewares.{{ compose_project_name }}-frontend-security.headers.browserXssFilter={{ edulift_services.frontend.security.headers.browser_xss_filter }}"

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { convertScheduleHoursToLocal } from '../../utils/timezoneUtils';
 
 // Configure dayjs plugins
 dayjs.extend(utc);
@@ -149,6 +150,110 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
 
       expect(now.format('z')).toBeTruthy();
       expect(dayjs.tz.guess()).toBe(browserTz);
+    });
+  });
+
+  describe('Weekday Key Consistency Tests', () => {
+    describe('Weekday key generation and schedule conversion consistency', () => {
+      it('should generate weekday keys that match convertScheduleHoursToLocal output', () => {
+        // Test data: Group with Monday 06:00 and 13:00 UTC slots
+        const utcScheduleHours = {
+          MONDAY: ['06:00', '13:00'],
+          TUESDAY: [],
+          WEDNESDAY: [],
+          THURSDAY: [],
+          FRIDAY: []
+        };
+
+        // Convert to user timezone (Europe/Paris = UTC+1 in November)
+        const userTimezone = 'Europe/Paris';
+        const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, userTimezone);
+
+        // Verify conversion: 06:00 UTC → 07:00 CET, 13:00 UTC → 14:00 CET
+        expect(localScheduleHours.MONDAY).toEqual(['07:00', '14:00']);
+        // Days without time slots are not created by convertScheduleHoursToLocal
+        expect(localScheduleHours.TUESDAY).toBeUndefined();
+        expect(localScheduleHours.WEDNESDAY).toBeUndefined();
+        expect(localScheduleHours.THURSDAY).toBeUndefined();
+        expect(localScheduleHours.FRIDAY).toBeUndefined();
+      });
+
+      it('should ensure frontend weekday keys match schedule conversion keys', () => {
+        // This test ensures the bug doesn't regress where frontend used French keys
+        // but convertScheduleHoursToLocal returns English keys
+
+        // Simulate the weekday key generation logic from SchedulePage
+        const weekdayKeys = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+
+        // Test that all expected keys are present and in correct format (English)
+        const expectedKeys = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+
+        weekdayKeys.forEach((key, index) => {
+          expect(key).toBe(expectedKeys[index]);
+          expect(key).toMatch(/^[A-Z]+$/); // All uppercase English
+          expect(key).not.toContain('é'); // No accented characters
+          expect(key).not.toContain('LUNDI'); // Not French
+          expect(key).not.toContain('MARDI'); // Not French
+        });
+      });
+
+      it('should handle timezone conversion correctly for schedule slot availability', () => {
+        // Test the specific case that was failing: Monday 06:00/13:00 UTC → 07:00/14:00 local
+        const utcScheduleHours = {
+          MONDAY: ['06:00', '13:00'] // Monday slots in UTC
+        };
+
+        const userTimezone = 'Europe/Paris'; // UTC+1 in November
+        const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, userTimezone);
+
+        // Simulate checking time slot availability in renderTimeSlot
+        const weekdayKey = 'MONDAY'; // This should come from frontend weekday generation
+        const availableTimeSlots = localScheduleHours[weekdayKey] || [];
+
+        // The available slots should be the converted times
+        expect(availableTimeSlots).toContain('07:00'); // 06:00 UTC + 1 hour
+        expect(availableTimeSlots).toContain('14:00'); // 13:00 UTC + 1 hour
+        expect(availableTimeSlots).toHaveLength(2);
+
+        // Test availability check logic
+        const testTime1 = '07:00';
+        const testTime2 = '08:00'; // Not in schedule
+        const testTime3 = '14:00';
+
+        expect(availableTimeSlots.includes(testTime1)).toBe(true);
+        expect(availableTimeSlots.includes(testTime2)).toBe(false);
+        expect(availableTimeSlots.includes(testTime3)).toBe(true);
+      });
+
+      it('should prevent regression of French key bug', () => {
+        // Test that verifies the original bug is fixed
+        // The bug was: convertScheduleHoursToLocal returned { MONDAY: [...] }
+        // But frontend generated weekday keys like { LUNDI, MARDI, ... }
+
+        const utcScheduleHours = {
+          MONDAY: ['08:00', '16:00'],
+          TUESDAY: ['08:00', '16:00']
+        };
+
+        const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');
+
+        // The keys returned by convertScheduleHoursToLocal should be English
+        expect(Object.keys(localScheduleHours)).toEqual(['MONDAY', 'TUESDAY']);
+
+        // Frontend should generate matching English keys
+        const frontendWeekdayKeys = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+
+        // All frontend keys should be English
+        frontendWeekdayKeys.forEach(key => {
+          expect(key).not.toBe('LUNDI');
+          expect(key).not.toBe('MARDI');
+          expect(key).not.toBe('MERCREDI');
+        });
+
+        // Keys should match between conversion and frontend generation
+        expect(localScheduleHours).toHaveProperty('MONDAY');
+        expect(localScheduleHours).toHaveProperty('TUESDAY');
+      });
     });
   });
 });

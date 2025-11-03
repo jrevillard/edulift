@@ -155,10 +155,12 @@ const SchedulePage: React.FC = () => {
       const date = new Date(weekStart);
       date.setUTCDate(weekStart.getUTCDate() + i);
 
-      // Use browser locale instead of hardcoded 'en-US'
+      // Use browser locale for display but English for keys to maintain consistency
       const locale = navigator.language || 'fr-FR';
+      const weekdayKeys = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
+      const currentDayIndex = i; // i goes from 0 to 4 for Mon-Fri
       weekdays.push({
-        key: date.toLocaleDateString(locale, { weekday: 'long' }).toUpperCase(),
+        key: weekdayKeys[currentDayIndex], // Always use English keys
         label: date.toLocaleDateString(locale, { weekday: 'long' }),
         shortLabel: date.toLocaleDateString(locale, { weekday: 'short' }),
         date: date,
@@ -207,6 +209,7 @@ const SchedulePage: React.FC = () => {
       scheduleConfig.scheduleHours,
       user.timezone
     );
+    console.log('🔍 DEBUG: localScheduleHours after conversion:', localScheduleHours);
 
     const allTimeSlots = new Set<string>();
     const weekdayKeys = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
@@ -465,6 +468,15 @@ const SchedulePage: React.FC = () => {
     );
     const weekdayTimeSlots = localScheduleHours[weekday.key] || [];
     const isTimeSlotAvailable = weekdayTimeSlots.includes(time);
+
+    // Debug logs pour comprendre le problème
+    console.log('🔍 DEBUG renderTimeSlot:', {
+      weekdayKey: weekday.key,
+      time,
+      localScheduleHours,
+      weekdayTimeSlots,
+      isTimeSlotAvailable
+    });
 
     // If time slot is not available for this weekday, render empty cell
     if (!isTimeSlotAvailable) {
