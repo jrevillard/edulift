@@ -18,6 +18,9 @@ COPY src/ ./src/
 COPY prisma/ ./prisma/
 COPY tsconfig.json ./
 
+# Copy assets (logo for emails)
+COPY assets/ ./assets/
+
 # Generate Prisma client
 RUN npx prisma generate
 
