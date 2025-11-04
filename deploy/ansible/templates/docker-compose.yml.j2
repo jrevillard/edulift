@@ -200,6 +200,7 @@ services:
     volumes:
       - {{ compose_project_name }}_backend_uploads:/app/uploads
       - ./logs:/app/logs
+      - ./.well-known:/app/.well-known:ro
     networks:
       - {{ compose_project_name }}-network
     depends_on:

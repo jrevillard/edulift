@@ -97,6 +97,13 @@ app.use(morgan(httpLogFormat));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Android App Links verification
+// https://developer.android.com/training/app-links/verify-android-applinks
+app.get('/.well-known/assetlinks.json', (_, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.sendFile('.well-known/assetlinks.json', { root: process.cwd() });
+});
+
 // Health check
 app.get('/health', (_, res) => {
   res.status(200).json({

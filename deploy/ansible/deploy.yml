@@ -234,6 +234,24 @@
       notify: restart containers
       become: yes
 
+    - name: Create .well-known directory
+      file:
+        path: "{{ edulift_deploy_dir }}/.well-known"
+        state: directory
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0755'
+      become: yes
+
+    - name: Generate Android App Links assetlinks.json
+      template:
+        src: templates/assetlinks.json.j2
+        dest: "{{ edulift_deploy_dir }}/.well-known/assetlinks.json"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0644'
+      become: yes
+
     - name: Generate backup script from template
       template:
         src: templates/backup.sh.j2
