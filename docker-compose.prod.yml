@@ -62,7 +62,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgresql://${POSTGRES_USER:-edulift}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-edulift}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-edulift}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-edulift}?connection_limit=20&pool_timeout=20&connect_timeout=10
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       JWT_SECRET: ${JWT_SECRET}
       EMAIL_HOST: ${EMAIL_HOST}

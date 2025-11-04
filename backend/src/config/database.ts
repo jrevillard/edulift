@@ -33,15 +33,13 @@ if (process.env.NODE_ENV !== 'production') {
   global.__prisma = prisma;
 }
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received, disconnecting Prisma');
-  await prisma.$disconnect();
-});
-
-process.on('SIGINT', async () => {
-  logger.info('SIGINT received, disconnecting Prisma');
-  await prisma.$disconnect();
-});
-
 logger.debug('Prisma client singleton initialized');
+
+/**
+ * Disconnect from database
+ * Called by the main server during graceful shutdown
+ */
+export const disconnectDatabase = async (): Promise<void> => {
+  logger.info('Disconnecting from database');
+  await prisma.$disconnect();
+};

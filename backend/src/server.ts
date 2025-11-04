@@ -12,6 +12,7 @@ import { createServer } from 'http';
 import app from './app';
 import { SocketHandler } from './socket/socketHandler';
 import { setGlobalSocketHandler } from './utils/socketEmitter';
+import { disconnectDatabase } from './config/database';
 
 // DEBUG: Test logger immediately after import
 logger.debug('Server.ts - After consoleOverride import');
@@ -37,19 +38,35 @@ server.listen(PORT, '0.0.0.0', () => {
   });
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-  });
-});
+// Graceful shutdown handler
+const gracefulShutdown = async (signal: string): Promise<void> => {
+  logger.info(`${signal} received, shutting down gracefully`);
 
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    logger.info('Process terminated');
-  });
-});
+  try {
+    // Close server to stop accepting new connections
+    server.close(async () => {
+      logger.info('HTTP server closed');
+
+      // Disconnect database
+      await disconnectDatabase();
+
+      logger.info('Process terminated');
+      process.exit(0);
+    });
+
+    // Force shutdown after timeout
+    setTimeout(() => {
+      logger.error('Forced shutdown after timeout');
+      process.exit(1);
+    }, 10000); // 10 second timeout
+  } catch (error) {
+    logger.error('Error during graceful shutdown', { error });
+    process.exit(1);
+  }
+};
+
+// Register signal handlers only once
+process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.once('SIGINT', () => gracefulShutdown('SIGINT'));
 
 export default server;
