@@ -64,6 +64,7 @@ services:
       EMAIL_USER: e2e-test@edulift.com
       EMAIL_PASSWORD: test-password
       FRONTEND_URL: http://localhost:8001
+      DEEP_LINK_BASE_URL: edulift://
       CORS_ORIGIN: "http://localhost:8001,http://frontend-e2e:3000"
       PORT: 3001
     networks:
