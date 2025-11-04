@@ -252,6 +252,15 @@
         mode: '0644'
       become: yes
 
+    - name: Generate iOS Universal Links apple-app-site-association
+      template:
+        src: templates/apple-app-site-association.j2
+        dest: "{{ edulift_deploy_dir }}/.well-known/apple-app-site-association"
+        owner: "{{ edulift_user }}"
+        group: "{{ edulift_group }}"
+        mode: '0644'
+      become: yes
+
     - name: Generate backup script from template
       template:
         src: templates/backup.sh.j2

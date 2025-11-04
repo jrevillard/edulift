@@ -1,0 +1,28 @@
+{# Apple App Site Association for {{ deployment_environment }} #}
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["{{ ios_team_id }}.{{ ios_bundle_id }}"],
+        "components": [
+          {
+            "/": "/auth/verify*",
+            "comment": "Matches any auth verification link"
+          },
+          {
+            "/": "/groups/*",
+            "comment": "Matches group links"
+          },
+          {
+            "/": "/families/*",
+            "comment": "Matches family links"
+          },
+          {
+            "/": "/*",
+            "comment": "Catch all for edulift links"
+          }
+        ]
+      }
+    ]
+  }
+}

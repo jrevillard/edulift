@@ -1,0 +1,27 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TEAM_ID_HERE.com.edulift.app.staging"],
+        "components": [
+          {
+            "/": "/auth/verify*",
+            "comment": "Matches any auth verification link"
+          },
+          {
+            "/": "/groups/*",
+            "comment": "Matches group links"
+          },
+          {
+            "/": "/families/*",
+            "comment": "Matches family links"
+          },
+          {
+            "/": "/*",
+            "comment": "Catch all for edulift links"
+          }
+        ]
+      }
+    ]
+  }
+}
