@@ -22,7 +22,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
           data: {
             userId: tokenData.userId,
             deviceId: tokenData.deviceId ?? null,
-            platform: tokenData.platform,
+            platform: tokenData.fcmPlatform,
             isActive: tokenData.isActive ?? true,
             lastUsed: tokenData.lastUsed || new Date(),
           },
@@ -36,7 +36,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
             userId: tokenData.userId,
             token: tokenData.token,
             deviceId: tokenData.deviceId ?? null,
-            platform: tokenData.platform,
+            platform: tokenData.fcmPlatform,
             isActive: tokenData.isActive ?? true,
             lastUsed: tokenData.lastUsed || new Date(),
           },
@@ -274,7 +274,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
       userId: token.userId,
       token: token.token,
       deviceId: token.deviceId,
-      platform: token.platform as 'android' | 'ios' | 'web',
+      fcmPlatform: token.platform as 'android' | 'ios' | 'web',
       isActive: token.isActive,
       lastUsed: token.lastUsed,
     };

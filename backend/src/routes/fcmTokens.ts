@@ -16,8 +16,8 @@ const router = Router();
 const SaveTokenSchema = z.object({
   token: z.string().min(1, 'FCM token is required'),
   deviceId: z.string().optional(),
-  platform: z.enum(['android', 'ios', 'web'], {
-    errorMap: () => ({ message: 'Platform must be android, ios, or web' }),
+  fcmPlatform: z.enum(['android', 'ios', 'web'], {
+    errorMap: () => ({ message: 'FCM platform must be android, ios, or web' }),
   }),
 });
 
@@ -63,7 +63,7 @@ router.post('/', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: Aut
       return;
     }
 
-    const { token, deviceId, platform } = validation.data;
+    const { token, deviceId, fcmPlatform } = validation.data;
     const userId = req.user.id;
 
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
@@ -72,7 +72,7 @@ router.post('/', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: Aut
       userId,
       token,
       deviceId: deviceId || null,
-      platform,
+      fcmPlatform,
     };
 
     const savedToken = await pushService.saveToken(tokenData);
@@ -81,7 +81,7 @@ router.post('/', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: Aut
       success: true,
       data: {
         id: savedToken.id,
-        platform: savedToken.platform,
+        fcmPlatform: savedToken.fcmPlatform,
         isActive: savedToken.isActive,
         createdAt: savedToken.lastUsed,
       },
@@ -108,7 +108,7 @@ router.get('/', requireAuth, asyncHandler<AuthenticatedRequest>(async (req: Auth
 
     const responseData = tokens.map(token => ({
       id: token.id,
-      platform: token.platform,
+      fcmPlatform: token.fcmPlatform,
       deviceId: token.deviceId,
       isActive: token.isActive,
       lastUsed: token.lastUsed,
@@ -409,7 +409,7 @@ router.get('/stats', requireAuth, asyncHandler<AuthenticatedRequest>(async (req:
         userTokenCount: userTokens.length,
         serviceAvailable: pushService.isAvailable(),
         platforms: userTokens.reduce((acc, token) => {
-          acc[token.platform] = (acc[token.platform] || 0) + 1;
+          acc[token.fcmPlatform] = (acc[token.fcmPlatform] || 0) + 1;
           return acc;
         }, {} as Record<string, number>),
       },

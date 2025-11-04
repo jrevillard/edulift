@@ -47,7 +47,6 @@ describe('FamilyController - inviteMember', () => {
       email: 'newmember@example.com',
       role: 'MEMBER',
       personalMessage: 'Welcome to our family!',
-      platform: 'native',
     };
 
     const mockFamily = {
@@ -101,7 +100,7 @@ describe('FamilyController - inviteMember', () => {
       email: 'newmember@example.com',
       role: 'MEMBER',
       personalMessage: 'Welcome to our family!',
-    }, 'user-123', 'native');
+    }, 'user-123');
   });
 
   it('should return 400 if email is missing', async () => {
@@ -199,6 +198,6 @@ describe('FamilyController - inviteMember', () => {
       email: 'test@example.com',
       role: FamilyRole.MEMBER,
       personalMessage: undefined,
-    }, 'user-123', 'web');
+    }, 'user-123');
   });
 });

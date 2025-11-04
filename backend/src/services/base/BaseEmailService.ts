@@ -5,22 +5,212 @@ export abstract class BaseEmailService implements EmailServiceInterface {
   protected abstract _send(to: string, subject: string, html: string, from?: string): Promise<void>;
 
   /**
-   * Generate URL based on platform type (web or native)
+   * Validates a base URL to ensure it's safe for use in email links
+   * @param baseUrl The URL to validate
+   * @returns true if the URL is safe, false otherwise
    */
-  protected generateUrl(path: string, params?: URLSearchParams, platform: 'web' | 'native' = 'web'): string {
-    const baseUrl = platform === 'native'
-      ? 'edulift://'
-      : (process.env.FRONTEND_URL || 'http://localhost:3000');
+  private validateDeepLinkUrl(baseUrl: string): boolean {
+    try {
+      // Handle empty/null/undefined URLs
+      if (!baseUrl || typeof baseUrl !== 'string') {
+        this.logInvalidUrl('Empty or invalid URL type', baseUrl);
+        return false;
+      }
 
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-    const separator = platform === 'native' ? '' : '/';
-    const fullPath = `${baseUrl}${separator}${cleanPath}`;
+      const trimmedUrl = baseUrl.trim();
+      if (!trimmedUrl) {
+        this.logInvalidUrl('Empty URL after trimming', baseUrl);
+        return false;
+      }
+
+      // Parse the URL to validate its structure
+      let parsedUrl: URL;
+      try {
+        parsedUrl = new URL(trimmedUrl);
+      } catch {
+        this.logInvalidUrl('Invalid URL format', trimmedUrl);
+        return false;
+      }
+
+      // Define allowed protocols
+      const allowedProtocols = ['http:', 'https:', 'edulift:'];
+      if (!allowedProtocols.includes(parsedUrl.protocol)) {
+        this.logInvalidUrl(`Disallowed protocol: ${parsedUrl.protocol}`, trimmedUrl);
+        return false;
+      }
+
+      // Additional security checks for http/https URLs
+      if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+        // Block localhost in production (unless explicitly allowed)
+        const hostname = parsedUrl.hostname.toLowerCase();
+        if (hostname === 'localhost' || hostname.startsWith('127.') || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+          // Allow localhost only in development
+          const nodeEnv = process.env.NODE_ENV || 'development';
+          if (nodeEnv === 'production') {
+            this.logInvalidUrl('Private IP address in production', trimmedUrl);
+            return false;
+          }
+        }
+
+        // Validate hostname format (prevent weird characters)
+        const hostnameRegex = /^[a-zA-Z0-9.-]+$/;
+        if (!hostnameRegex.test(hostname)) {
+          this.logInvalidUrl('Invalid hostname format', trimmedUrl);
+          return false;
+        }
+
+        // Prevent suspicious patterns in hostname
+        // eslint-disable-next-line no-script-url
+        const suspiciousPatterns = ['<script', 'javascript:', 'data:', 'vbscript:', 'file:'];
+        const lowerHostname = hostname.toLowerCase();
+        if (suspiciousPatterns.some(pattern => lowerHostname.includes(pattern))) {
+          this.logInvalidUrl('Suspicious pattern in hostname', trimmedUrl);
+          return false;
+        }
+      }
+
+      // Additional checks for edulift:// protocol
+      if (parsedUrl.protocol === 'edulift:') {
+        // For edulift:// URLs, the path should be simple and not contain suspicious content
+        const path = parsedUrl.pathname || '';
+        // eslint-disable-next-line no-script-url
+        const suspiciousPatterns = ['<script', 'javascript:', 'data:', 'vbscript:', 'file:', '..', '%2e%2e'];
+        const lowerPath = path.toLowerCase();
+        if (suspiciousPatterns.some(pattern => lowerPath.includes(pattern))) {
+          this.logInvalidUrl('Suspicious pattern in edulift:// path', trimmedUrl);
+          return false;
+        }
+      }
+
+      return true;
+    } catch {
+      this.logInvalidUrl('Unexpected validation error', baseUrl);
+      return false;
+    }
+  }
+
+  /**
+   * Logs invalid URLs securely without exposing sensitive information
+   * @param reason The reason why the URL is invalid
+   * @param url The invalid URL (will be partially masked in logs)
+   */
+  private logInvalidUrl(reason: string, url: string): void {
+    try {
+      // Mask sensitive parts of the URL for logging
+      let maskedUrl = '';
+      if (url && typeof url === 'string' && url.length > 0) {
+        // Show only first 20 characters and last 10 characters
+        if (url.length <= 30) {
+          maskedUrl = `${url.substring(0, 10)  }***`;
+        } else {
+          maskedUrl = `${url.substring(0, 20)  }***${  url.substring(url.length - 10)}`;
+        }
+      } else {
+        maskedUrl = '[null/empty]';
+      }
+
+      console.warn(`[BaseEmailService] Invalid URL detected - ${reason}: ${maskedUrl}`, {
+        reason,
+        urlLength: url?.length || 0,
+        timestamp: new Date().toISOString(),
+      });
+    } catch {
+      // Fallback logging if masking fails
+      console.error('[BaseEmailService] Invalid URL detected - logging error:', reason);
+    }
+  }
+
+  /**
+   * Determines the appropriate separator between base URL and path
+   * @param baseUrl The base URL to analyze
+   * @returns The separator string ('', '/', etc.)
+   */
+  private getSeparator(baseUrl: string): string {
+    // For edulift:// protocol, no separator needed
+    if (baseUrl.startsWith('edulift://')) {
+      return '';
+    }
+
+    // If base URL already ends with '/', no separator needed
+    if (baseUrl.endsWith('/')) {
+      return '';
+    }
+
+    // Default separator for web URLs
+    return '/';
+  }
+
+  /**
+   * Normalizes a path by removing leading slash and validating format
+   * @param path The path to normalize
+   * @returns The normalized path
+   */
+  private normalizePath(path: string): string {
+    if (!path || typeof path !== 'string') {
+      return '';
+    }
+
+    // Remove leading slash for consistent handling
+    return path.startsWith('/') ? path.slice(1) : path;
+  }
+
+  /**
+   * Builds a complete URL from base URL, path, and parameters
+   * @param baseUrl The validated base URL
+   * @param path The normalized path
+   * @param params Optional URL parameters
+   * @returns The complete URL
+   */
+  private buildUrl(baseUrl: string, path: string, params?: URLSearchParams): string {
+    const normalizedPath = this.normalizePath(path);
+    const separator = this.getSeparator(baseUrl);
+    const fullPath = `${baseUrl}${separator}${normalizedPath}`;
 
     if (params && params.toString()) {
       return `${fullPath}?${params.toString()}`;
     }
 
     return fullPath;
+  }
+
+  /**
+   * Generate URL using DEEP_LINK_BASE_URL with fallbacks and security validation
+   */
+  protected generateUrl(path: string, params?: URLSearchParams): string {
+    const candidateUrls = [
+      process.env.DEEP_LINK_BASE_URL,
+      process.env.FRONTEND_URL,
+      'http://localhost:3000',
+    ];
+
+    let validBaseUrl: string | null = null;
+    let urlSource = '';
+
+    // Try each URL in order of preference until we find a valid one
+    for (let i = 0; i < candidateUrls.length; i++) {
+      const candidateUrl = candidateUrls[i];
+      if (candidateUrl && this.validateDeepLinkUrl(candidateUrl)) {
+        validBaseUrl = candidateUrl;
+        urlSource = i === 0 ? 'DEEP_LINK_BASE_URL' : i === 1 ? 'FRONTEND_URL' : 'localhost fallback';
+        break;
+      }
+    }
+
+    // If no valid URL is found, use localhost as ultimate fallback (but log the issue)
+    if (!validBaseUrl) {
+      console.warn('[BaseEmailService] All URL candidates failed validation, using localhost fallback');
+      validBaseUrl = 'http://localhost:3000';
+      urlSource = 'emergency localhost fallback';
+    }
+
+    // Log the URL source for debugging (in development only)
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    if (nodeEnv !== 'production') {
+      console.debug(`[BaseEmailService] Using URL from ${urlSource}: ${validBaseUrl}`);
+    }
+
+    // Use the new buildUrl helper for clean URL construction
+    return this.buildUrl(validBaseUrl, path, params);
   }
 
   async sendMagicLink(email: string, token: string, inviteCode?: string, magicLinkUrl?: string): Promise<void> {
@@ -38,15 +228,15 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     await this._send(email, subject, html);
   }
 
-  async sendScheduleNotification(email: string, groupName: string, weekInfo: string, platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendScheduleNotification(email: string, groupName: string, weekInfo: string): Promise<void> {
     const subject = `EduLift - New schedule available for ${groupName}`;
-    const html = await this.generateScheduleNotificationEmail(groupName, weekInfo, platform);
+    const html = await this.generateScheduleNotificationEmail(groupName, weekInfo);
     await this._send(email, subject, html);
   }
 
   async sendGroupInvitation(data: GroupInvitationData): Promise<void> {
     const params = new URLSearchParams({ code: data.inviteCode });
-    const inviteUrl = await this.generateUrl('groups/join', params, data.platform || 'web');
+    const inviteUrl = await this.generateUrl('groups/join', params);
     const subject = `EduLift - Invitation to group ${data.groupName}`;
     const html = await this.generateGroupInvitationEmail(data.groupName, inviteUrl);
     await this._send(data.to, subject, html);
@@ -54,27 +244,27 @@ export abstract class BaseEmailService implements EmailServiceInterface {
 
   async sendFamilyInvitation(email: string, invitationData: FamilyInvitationData): Promise<void> {
     const params = new URLSearchParams({ code: invitationData.inviteCode });
-    const inviteUrl = await this.generateUrl('families/join', params, invitationData.platform || 'web');
+    const inviteUrl = await this.generateUrl('families/join', params);
     const subject = `EduLift - Invitation to family ${invitationData.familyName}`;
     const html = await this.generateFamilyInvitationEmail(invitationData.familyName, inviteUrl, invitationData.personalMessage);
     await this._send(email, subject, html);
   }
 
-  async sendScheduleSlotNotification(email: string, data: ScheduleSlotNotificationData, platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendScheduleSlotNotification(email: string, data: ScheduleSlotNotificationData): Promise<void> {
     const subject = this.getScheduleSlotNotificationSubject(data);
-    const html = await this.generateScheduleSlotNotificationEmail(data, platform);
+    const html = await this.generateScheduleSlotNotificationEmail(data);
     await this._send(email, subject, html);
   }
 
-  async sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[], platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[]): Promise<void> {
     const subject = `EduLift - Reminder for tomorrow's trips (${groupName})`;
-    const html = await this.generateDailyReminderEmail(groupName, tomorrowTrips, platform);
+    const html = await this.generateDailyReminderEmail(groupName, tomorrowTrips);
     await this._send(email, subject, html);
   }
 
-  async sendWeeklySchedule(email: string, groupName: string, weekInfo: string, scheduleData: any, platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendWeeklySchedule(email: string, groupName: string, weekInfo: string, scheduleData: any): Promise<void> {
     const subject = `EduLift - Weekly schedule ${weekInfo} (${groupName})`;
-    const html = await this.generateWeeklyScheduleEmail(groupName, weekInfo, scheduleData, platform);
+    const html = await this.generateWeeklyScheduleEmail(groupName, weekInfo, scheduleData);
     await this._send(email, subject, html);
   }
 
@@ -202,7 +392,7 @@ ${await this.generateEmailFooter()}
 </html>`;
   }
 
-  private async generateScheduleNotificationEmail(groupName: string, weekInfo: string, platform: 'web' | 'native' = 'web'): Promise<string> {
+  private async generateScheduleNotificationEmail(groupName: string, weekInfo: string): Promise<string> {
     return `
       <!DOCTYPE html>
       <html>
@@ -217,7 +407,7 @@ ${await this.generateEmailFooter()}
         <p><strong>Week:</strong> ${weekInfo}</p>
         <p>Sign in to EduLift to view the details and organize your trips.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${await this.generateUrl('dashboard', undefined, platform)}"
+          <a href="${this.generateUrl('dashboard')}"
              style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             View Schedule
           </a>
@@ -367,7 +557,7 @@ ${await this.generateEmailFooter()}
     }
   }
 
-  private async generateScheduleSlotNotificationEmail(data: ScheduleSlotNotificationData, platform: 'web' | 'native' = 'web'): Promise<string> {
+  private async generateScheduleSlotNotificationEmail(data: ScheduleSlotNotificationData): Promise<string> {
     const vehiclesHtml = data.vehicles && data.vehicles.length > 0
       ? data.vehicles.map(vehicle =>
         `<p><strong>Vehicle:</strong> ${vehicle.name} (${vehicle.capacity} seats)${vehicle.driverName ? ` - Driver: ${vehicle.driverName}` : ''}</p>`,
@@ -394,7 +584,7 @@ ${await this.generateEmailFooter()}
         </div>
         <p>Sign in to EduLift to see all details and manage your slots.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${await this.generateUrl('dashboard', undefined, platform)}" 
+          <a href="${this.generateUrl('dashboard')}"
              style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             View Schedule
           </a>
@@ -405,7 +595,7 @@ ${await this.generateEmailFooter()}
     `;
   }
 
-  private async generateDailyReminderEmail(groupName: string, tomorrowSlots: DailyReminderSlot[], platform: 'web' | 'native' = 'web'): Promise<string> {
+  private async generateDailyReminderEmail(groupName: string, tomorrowSlots: DailyReminderSlot[]): Promise<string> {
     const slotsHtml = tomorrowSlots.map((slot: DailyReminderSlot) => {
       const timeDisplay = slot.datetime
         ? new Date(slot.datetime).toISOString().slice(0, 16).replace('T', ' ')
@@ -437,7 +627,7 @@ ${await this.generateEmailFooter()}
         ${slotsHtml}
         <p>Don't forget to check the times and coordinate with other parents.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${await this.generateUrl('dashboard', undefined, platform)}" 
+          <a href="${this.generateUrl('dashboard')}"
              style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             View Schedule
           </a>
@@ -448,7 +638,7 @@ ${await this.generateEmailFooter()}
     `;
   }
 
-  private async generateWeeklyScheduleEmail(groupName: string, weekInfo: string, _scheduleData: any, platform: 'web' | 'native' = 'web'): Promise<string> {
+  private async generateWeeklyScheduleEmail(groupName: string, weekInfo: string, _scheduleData: any): Promise<string> {
     return `
       <!DOCTYPE html>
       <html>
@@ -462,7 +652,7 @@ ${await this.generateEmailFooter()}
         <p>Here is the schedule for week ${weekInfo} for the group <strong>${groupName}</strong>.</p>
         <p>Sign in to EduLift to see all details and manage your trips.</p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="${await this.generateUrl('dashboard', undefined, platform)}" 
+          <a href="${this.generateUrl('dashboard')}"
              style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
             View Schedule
           </a>

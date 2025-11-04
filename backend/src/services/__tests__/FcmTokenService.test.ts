@@ -28,7 +28,7 @@ describe('FcmTokenService', () => {
       userId: 'user-1',
       token: 'fcm-token-123',
       deviceId: 'device-1',
-      platform: 'android',
+      fcmPlatform: 'android',
     };
 
     it('should create new token when token does not exist', async () => {
@@ -124,8 +124,8 @@ describe('FcmTokenService', () => {
       const result = await fcmTokenService.getUserTokens('user-1');
 
       expect(result).toHaveLength(2);
-      expect(result[0].platform).toBe('android');
-      expect(result[1].platform).toBe('ios');
+      expect(result[0].fcmPlatform).toBe('android');
+      expect(result[1].fcmPlatform).toBe('ios');
       expect(mockPrismaClient.fcmToken.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1', isActive: true },
         orderBy: { lastUsed: 'desc' },

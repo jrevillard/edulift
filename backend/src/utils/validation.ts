@@ -75,6 +75,5 @@ export const RequestMagicLinkSchema = z.object({
     )
     .optional(),
   inviteCode: z.string().optional(),
-  platform: z.enum(['web', 'native']).default('web'),
   code_challenge: z.string().min(43).max(128), // PKCE
 });

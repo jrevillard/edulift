@@ -34,11 +34,10 @@ export class AuthController {
 
   requestMagicLink = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email, name, timezone, inviteCode, platform, code_challenge } = RequestMagicLinkSchema.parse(req.body);
+      const { email, name, timezone, inviteCode, code_challenge } = RequestMagicLinkSchema.parse(req.body);
 
       this.logger.debug('AuthController received magic link request', {
         inviteCode,
-        platform,
         timezone,
         code_challenge: code_challenge ? `${code_challenge.substring(0, 10)}...` : undefined,
       });
@@ -46,14 +45,12 @@ export class AuthController {
       // SECURITY: PKCE - Generate magic link with code_challenge for cross-user protection - MANDATORY
       const options: {
         email: string;
-        platform?: string;
         code_challenge?: string;
         name?: string;
         timezone?: string;
         inviteCode?: string;
       } = {
         email,
-        platform,
         code_challenge, // PKCE code challenge is required
       };
       if (name) options.name = name;

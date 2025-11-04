@@ -167,8 +167,8 @@ describe('PushNotificationService', () => {
     it('should send notifications to all user tokens', async () => {
       
       mockFcmTokenService.getUserTokens.mockResolvedValueOnce([
-        { token: 'token1', platform: 'android' },
-        { token: 'token2', platform: 'ios' },
+        { token: 'token1', fcmPlatform: 'android' },
+        { token: 'token2', fcmPlatform: 'ios' },
       ] as any);
 
       mockFirebaseService.sendToTokens.mockResolvedValueOnce({
@@ -404,7 +404,7 @@ describe('PushNotificationService', () => {
 
   describe('Token management delegation', () => {
     it('should delegate saveToken to FcmTokenService', async () => {
-      const tokenData = { userId: 'user-1', token: 'token-1', platform: 'android' } as any;
+      const tokenData = { userId: 'user-1', token: 'token-1', fcmPlatform: 'android' } as any;
       mockFcmTokenService.saveToken.mockResolvedValueOnce(tokenData);
 
       const result = await pushNotificationService.saveToken(tokenData);

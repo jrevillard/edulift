@@ -197,7 +197,7 @@ export class FamilyController {
   async inviteMember(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { familyId } = req.params;
-      const { email, role, personalMessage, platform } = req.body;
+      const { email, role, personalMessage } = req.body;
 
       // Validate input
       if (!email) {
@@ -235,7 +235,7 @@ export class FamilyController {
         email,
         role: role || FamilyRole.MEMBER,
         personalMessage,
-      }, req.user.id, platform || 'web');
+      }, req.user.id);
 
       res.status(201).json({
         success: true,

@@ -22,9 +22,8 @@ export class NotificationService {
   }
 
   async notifyScheduleSlotChange(
-    scheduleSlotId: string, 
+    scheduleSlotId: string,
     changeType: ScheduleSlotNotificationData['changeType'],
-    platform: 'web' | 'native' = 'web',
   ): Promise<void> {
     try {
       // Get schedule slot details with all related data
@@ -73,7 +72,7 @@ export class NotificationService {
 
       // Send email notifications to all relevant members
       const emailNotificationPromises = recipientsToNotify.map(member =>
-        this.emailService.sendScheduleSlotNotification(member.email, notificationData, platform)
+        this.emailService.sendScheduleSlotNotification(member.email, notificationData)
           .catch(error => {
             logger.error(`Failed to send schedule slot email notification to ${member.email}:`, { error: error instanceof Error ? error.message : String(error) });
           }),
@@ -105,7 +104,7 @@ export class NotificationService {
     }
   }
 
-  async sendDailyReminders(groupId: string, platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendDailyReminders(groupId: string): Promise<void> {
     try {
       // Get tomorrow's date
       const tomorrow = new Date();
@@ -198,7 +197,6 @@ export class NotificationService {
           member.user.email,
           group.name,
           formattedSlots,
-          platform,
         ).catch(error => {
           logger.error(`Failed to send daily reminder to ${member.user.email}`, { error });
         });
@@ -212,7 +210,7 @@ export class NotificationService {
     }
   }
 
-  async sendWeeklySchedule(groupId: string, week: string, platform: 'web' | 'native' = 'web'): Promise<void> {
+  async sendWeeklySchedule(groupId: string, week: string): Promise<void> {
     try {
       // Get group members and group info
       const groupMembers = await this.userRepository.getGroupMembers(groupId);
@@ -269,7 +267,6 @@ export class NotificationService {
           group.name,
           week,
           scheduleData,
-          platform,
         ).catch(error => {
           logger.error(`Failed to send weekly schedule to ${member.user.email}`, { email: member.user.email, error });
         }),

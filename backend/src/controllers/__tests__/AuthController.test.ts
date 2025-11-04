@@ -67,7 +67,7 @@ describe('AuthController', () => {
 
       await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
 
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, platform: 'web', code_challenge: codeChallenge });
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, code_challenge: codeChallenge });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -113,7 +113,7 @@ describe('AuthController', () => {
 
       await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
 
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, platform: 'web', code_challenge: codeChallenge });
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, code_challenge: codeChallenge });
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -133,7 +133,7 @@ describe('AuthController', () => {
 
       await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
 
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, platform: 'web', code_challenge: codeChallenge });
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, code_challenge: codeChallenge });
       expect(mockResponse.status).toHaveBeenCalledWith(422);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -159,10 +159,9 @@ describe('AuthController', () => {
       await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
 
       expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ 
-        email, 
-        name, 
-        platform: 'web',
-        code_challenge: codeChallenge, 
+        email,
+        name,
+        code_challenge: codeChallenge,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({

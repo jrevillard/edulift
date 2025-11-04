@@ -128,7 +128,6 @@ describe('NotificationService - Family Based Notifications', () => {
           changeType: 'VEHICLE_ASSIGNED',
           assignedChildren: ['Alice'],
         }),
-        'web',
       );
 
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
@@ -137,8 +136,7 @@ describe('NotificationService - Family Based Notifications', () => {
           changeType: 'VEHICLE_ASSIGNED',
           assignedChildren: ['Alice'],
         }),
-        'web',
-      );
+              );
     });
 
     it('should notify only relevant family members and drivers', async () => {
@@ -212,23 +210,19 @@ describe('NotificationService - Family Based Notifications', () => {
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
         expect.anything(),
-        'web',
-      );
+              );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent2@example.com',
         expect.anything(),
-        'web',
-      );
+              );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'driver@example.com',
         expect.anything(),
-        'web',
-      );
+              );
       expect(mockEmailService.sendScheduleSlotNotification).not.toHaveBeenCalledWith(
         'other@example.com',
         expect.anything(),
-        'web',
-      );
+              );
     });
   });
 
@@ -284,8 +278,7 @@ describe('NotificationService - Family Based Notifications', () => {
           changeType: 'CHILD_ADDED',
           assignedChildren: ['Alice'],
         }),
-        'web',
-      );
+              );
     });
 
     it('should handle multiple children from different families', async () => {
@@ -358,18 +351,15 @@ describe('NotificationService - Family Based Notifications', () => {
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
         expect.anything(),
-        'web',
-      );
+              );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent2@example.com',
         expect.anything(),
-        'web',
-      );
+              );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent3@example.com',
         expect.anything(),
-        'web',
-      );
+              );
     });
   });
 
@@ -438,15 +428,13 @@ describe('NotificationService - Family Based Notifications', () => {
         expect.objectContaining({
           changeType: 'SLOT_CANCELLED',
         }),
-        'web',
-      );
+              );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'driver@example.com',
         expect.objectContaining({
           changeType: 'SLOT_CANCELLED',
         }),
-        'web',
-      );
+              );
     });
   });
 

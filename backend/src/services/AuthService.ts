@@ -51,7 +51,6 @@ export interface MagicLinkRequestOptions {
   name?: string;
   timezone?: string; // Optional user timezone (IANA format)
   inviteCode?: string; // Optional invitation context
-  platform?: string; // Platform type for magic link generation
   code_challenge: string; // PKCE: SHA256 hash of code_verifier, base64url encoded - REQUIRED
 }
 
@@ -73,7 +72,7 @@ export class AuthService {
     // PKCE is now mandatory - no overloads without code_challenge
     const options_internal = options;
 
-    const { email, name: userName, timezone, inviteCode, platform = 'web', code_challenge } = options_internal;
+    const { email, name: userName, timezone, inviteCode, code_challenge } = options_internal;
 
     // SECURITY: Validate PKCE code_challenge - MANDATORY for all requests
     if (!code_challenge || code_challenge.length < 43 || code_challenge.length > 128) {
@@ -105,11 +104,11 @@ export class AuthService {
       codeChallenge: code_challenge, // Store PKCE challenge for later verification - REQUIRED
     });
 
-    // Generate magic link URL based on platform
-    const magicLinkUrl = this.generateMagicLinkUrl(magicLink.token, platform, inviteCode);
+    // Generate magic link URL
+    const magicLinkUrl = this.generateMagicLinkUrl(magicLink.token, inviteCode);
     
-    // Send magic link email with platform-specific URL
-    logger.debug('🔍 DEBUG: AuthService sending magic link:', { platform, inviteCode, url: magicLinkUrl });
+    // Send magic link email
+    logger.debug('🔍 DEBUG: AuthService sending magic link:', { inviteCode, url: magicLinkUrl });
     await this.emailService.sendMagicLink(email, magicLink.token, inviteCode, magicLinkUrl);
 
     return { success: true, userExists };
@@ -287,18 +286,26 @@ export class AuthService {
   }
 
   /**
-   * Generate magic link URL based on platform type
+   * Generate magic link URL using DEEP_LINK_BASE_URL with fallbacks
    */
-  private generateMagicLinkUrl(token: string, platform: string, inviteCode?: string): string {
-    const baseUrl = platform === 'native' 
-      ? 'edulift://auth/verify' 
-      : `${process.env.FRONTEND_URL || 'https://app.edulift.com'}/auth/verify`;
-    
+  private generateMagicLinkUrl(token: string, inviteCode?: string): string {
+    const baseUrl = process.env.DEEP_LINK_BASE_URL ||
+                    process.env.FRONTEND_URL ||
+                    'https://app.edulift.com';
+
+    // Determine separator based on URL scheme
+    let separator = '/auth/verify';
+    if (baseUrl.startsWith('edulift://')) {
+      separator = 'auth/verify';
+    } else {
+      separator = '/auth/verify';
+    }
+
     const params = new URLSearchParams({ token });
     if (inviteCode) {
       params.append('inviteCode', inviteCode);
     }
-    
-    return `${baseUrl}?${params.toString()}`;
+
+    return `${baseUrl}${separator}?${params.toString()}`;
   }
 }

@@ -125,7 +125,6 @@ export class UnifiedInvitationService {
     familyId: string,
     inviteData: CreateFamilyInvitationData,
     adminId: string,
-    platform: 'web' | 'native' = 'web',
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Verify admin permissions
@@ -204,7 +203,6 @@ export class UnifiedInvitationService {
           inviterName: adminMember.user.name,
           inviteCode,
           role: inviteData.role,
-          platform,
         };
         if (inviteData.personalMessage) {
           emailData.personalMessage = inviteData.personalMessage;
@@ -556,7 +554,6 @@ export class UnifiedInvitationService {
     groupId: string,
     inviteData: CreateGroupInvitationData,
     adminId: string,
-    platform: 'web' | 'native' = 'web',
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Verify group exists and admin permissions
@@ -662,7 +659,6 @@ export class UnifiedInvitationService {
             groupName: group.name,
             inviteCode,
             role: inviteData.role,
-            platform,
           };
           if (inviteData.personalMessage) {
             emailData.personalMessage = inviteData.personalMessage;
@@ -684,7 +680,6 @@ export class UnifiedInvitationService {
             groupName: group.name,
             inviteCode,
             role: inviteData.role,
-            platform,
           };
           if (inviteData.personalMessage) {
             emailData.personalMessage = inviteData.personalMessage;

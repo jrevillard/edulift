@@ -263,7 +263,7 @@ export class FamilyService implements IFamilyService {
     email: string;
     role: FamilyRole;
     personalMessage?: string;
-  }, invitedBy: string, platform: 'web' | 'native' = 'web'): Promise<any> {
+  }, invitedBy: string): Promise<any> {
     this.logger.info(`Inviting member to family ${familyId}`, { email: inviteData.email });
 
     try {
@@ -272,7 +272,6 @@ export class FamilyService implements IFamilyService {
         familyId,
         inviteData,
         invitedBy,
-        platform,
       );
 
       // Get complete invitation with relations from database

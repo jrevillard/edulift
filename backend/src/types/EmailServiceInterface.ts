@@ -28,7 +28,6 @@ export interface GroupInvitationData {
   inviteCode: string;
   role: string;
   personalMessage?: string;
-  platform?: 'web' | 'native';
 }
 
 export interface FamilyInvitationData {
@@ -37,16 +36,15 @@ export interface FamilyInvitationData {
   inviteCode: string;
   personalMessage?: string;
   role: string;
-  platform?: 'web' | 'native';
 }
 
 export interface EmailServiceInterface {
   sendMagicLink(email: string, token: string, inviteCode?: string, magicLinkUrl?: string): Promise<void>;
-  sendScheduleNotification(email: string, groupName: string, weekInfo: string, platform?: 'web' | 'native'): Promise<void>;
+  sendScheduleNotification(email: string, groupName: string, weekInfo: string): Promise<void>;
   sendGroupInvitation(data: GroupInvitationData): Promise<void>;
   sendFamilyInvitation(email: string, invitationData: FamilyInvitationData): Promise<void>;
-  sendScheduleSlotNotification(email: string, data: ScheduleSlotNotificationData, platform?: 'web' | 'native'): Promise<void>;
-  sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[], platform?: 'web' | 'native'): Promise<void>;
-  sendWeeklySchedule(email: string, groupName: string, weekInfo: string, scheduleData: any, platform?: 'web' | 'native'): Promise<void>;
+  sendScheduleSlotNotification(email: string, data: ScheduleSlotNotificationData): Promise<void>;
+  sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[]): Promise<void>;
+  sendWeeklySchedule(email: string, groupName: string, weekInfo: string, scheduleData: any): Promise<void>;
   verifyConnection(): Promise<boolean>;
 }

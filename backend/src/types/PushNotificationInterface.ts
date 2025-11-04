@@ -15,7 +15,7 @@ export interface FcmTokenData {
   userId: string;
   token: string;
   deviceId?: string | null;
-  platform: 'android' | 'ios' | 'web';
+  fcmPlatform: 'android' | 'ios' | 'web';
   isActive?: boolean;
   lastUsed?: Date;
 }

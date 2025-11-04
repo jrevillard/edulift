@@ -434,13 +434,12 @@ describe('GroupController', () => {
   });
 
   describe('inviteFamilyToGroup', () => {
-    it('should invite family to group successfully with platform parameter', async () => {
+    it('should invite family to group successfully', async () => {
       const groupId = 'group-1';
       const inviteData = {
         familyId: 'family-1',
         role: 'MEMBER',
         personalMessage: 'Welcome to our group!',
-        platform: 'native',
       };
       const mockResult = {
         invitationId: 'invitation-123',
@@ -467,7 +466,6 @@ describe('GroupController', () => {
           personalMessage: 'Welcome to our group!',
         },
         'user-1',
-        'native', // Platform parameter should be passed
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -476,7 +474,7 @@ describe('GroupController', () => {
       });
     });
 
-    it('should default to web platform when platform not provided', async () => {
+    it('should invite family to group without platform parameter', async () => {
       const groupId = 'group-1';
       const inviteData = {
         familyId: 'family-1',
@@ -500,17 +498,15 @@ describe('GroupController', () => {
           role: 'ADMIN',
         },
         'user-1',
-        'web', // Should default to 'web'
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
     });
 
-    it('should handle validation errors for invalid platform', async () => {
+    it('should handle validation errors for missing required fields', async () => {
       const groupId = 'group-1';
       const inviteData = {
-        familyId: 'family-1',
         role: 'MEMBER',
-        platform: 'invalid', // Invalid platform
+        // familyId is missing - this should cause validation error
       };
 
       mockRequest.params = { groupId };

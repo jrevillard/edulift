@@ -67,11 +67,13 @@ describe('Email Platform Integration Tests', () => {
 
     // Clear environment variables
     delete process.env.FRONTEND_URL;
+    delete process.env.DEEP_LINK_BASE_URL;
   });
 
   afterEach(() => {
     jest.clearAllMocks();
     delete process.env.FRONTEND_URL;
+    delete process.env.DEEP_LINK_BASE_URL;
   });
 
   describe('AuthService Magic Links', () => {
@@ -95,11 +97,12 @@ describe('Email Platform Integration Tests', () => {
       });
     });
 
-    it('should generate native deeplink for magic links when platform is native', async () => {
+    it('should generate native deeplink for magic links when DEEP_LINK_BASE_URL is native', async () => {
+      process.env.DEEP_LINK_BASE_URL = 'edulift://';
+
       await authService.requestMagicLink({
         email: 'test@example.com',
         name: 'Test User',
-        platform: 'native',
         code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
@@ -111,11 +114,29 @@ describe('Email Platform Integration Tests', () => {
       );
     });
 
-    it('should generate web URL for magic links when platform is web', async () => {
+    it('should generate web URL for magic links when DEEP_LINK_BASE_URL is web-based', async () => {
+      process.env.DEEP_LINK_BASE_URL = 'https://app.edulift.com';
+
       await authService.requestMagicLink({
         email: 'test@example.com',
         name: 'Test User',
-        platform: 'web',
+        code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+      });
+
+      expect(mockEmailService.sendMagicLink).toHaveBeenCalledWith(
+        'test@example.com',
+        'token123',
+        undefined,
+        expect.stringContaining('/auth/verify'),
+      );
+    });
+
+    it('should fall back to FRONTEND_URL when DEEP_LINK_BASE_URL is not set', async () => {
+      process.env.FRONTEND_URL = 'https://app.edulift.com';
+
+      await authService.requestMagicLink({
+        email: 'test@example.com',
+        name: 'Test User',
         code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
 
@@ -128,10 +149,11 @@ describe('Email Platform Integration Tests', () => {
     });
 
     it('should include invite code in magic link URL', async () => {
+      process.env.DEEP_LINK_BASE_URL = 'edulift://';
+
       await authService.requestMagicLink({
         email: 'test@example.com',
         name: 'Test User',
-        platform: 'native',
         inviteCode: 'INV123',
         code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
@@ -145,7 +167,7 @@ describe('Email Platform Integration Tests', () => {
     });
   });
 
-  describe('NotificationService Platform Support', () => {
+  describe('NotificationService Support', () => {
     beforeEach(() => {
       mockScheduleSlotRepository.findByIdWithDetails.mockResolvedValue({
         id: 'slot123',
@@ -179,7 +201,7 @@ describe('Email Platform Integration Tests', () => {
       });
 
       mockScheduleSlotRepository.getWeeklyScheduleByDateRange.mockResolvedValue([]);
-      
+
       // Add proper mock for findSlotsByDateTimeRange with schedule slots for daily reminders
       mockScheduleSlotRepository.findSlotsByDateTimeRange.mockResolvedValue([
         {
@@ -214,8 +236,8 @@ describe('Email Platform Integration Tests', () => {
       };
     });
 
-    it('should pass platform parameter to schedule slot notifications', async () => {
-      await notificationService.notifyScheduleSlotChange('slot123', 'SLOT_CREATED', 'native');
+    it('should send schedule slot notifications without platform parameter', async () => {
+      await notificationService.notifyScheduleSlotChange('slot123', 'SLOT_CREATED');
 
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         expect.any(String),
@@ -223,39 +245,35 @@ describe('Email Platform Integration Tests', () => {
           scheduleSlotId: 'slot123',
           changeType: 'SLOT_CREATED',
         }),
-        'native',
       );
     });
 
-    it('should pass platform parameter to daily reminders', async () => {
-      const result = await notificationService.sendDailyReminders('group123', 'native');
-      
+    it('should send daily reminders without platform parameter', async () => {
+      const result = await notificationService.sendDailyReminders('group123');
+
       // Test passes if no error is thrown and function completes successfully
-      // The console output "Sent daily reminders to 1 users" confirms it works
       expect(result).toBeUndefined(); // Function completes without error
     });
 
-    it('should pass platform parameter to weekly schedule emails', async () => {
-      await notificationService.sendWeeklySchedule('group123', '2024-W03', 'native');
+    it('should send weekly schedule emails without platform parameter', async () => {
+      await notificationService.sendWeeklySchedule('group123', '2024-W03');
 
       expect(mockEmailService.sendWeeklySchedule).toHaveBeenCalledWith(
         expect.any(String),
         expect.any(String),
         expect.any(String),
         expect.any(Object),
-        'native',
       );
     });
   });
 
   describe('Email Content Verification', () => {
-    it('should verify that native URLs are correctly embedded in email content', async () => {
+    it('should verify that URLs are correctly embedded in email content', async () => {
       await mockEmailService.sendGroupInvitation({
         to: 'test@example.com',
         groupName: 'Test Group',
         inviteCode: 'GRP123',
         role: 'MEMBER',
-        platform: 'native',
       });
 
       expect(mockEmailService.sendGroupInvitation).toHaveBeenCalledWith({
@@ -263,17 +281,15 @@ describe('Email Platform Integration Tests', () => {
         groupName: 'Test Group',
         inviteCode: 'GRP123',
         role: 'MEMBER',
-        platform: 'native',
       });
     });
 
-    it('should verify that native URLs are correctly embedded in family invitation emails', async () => {
+    it('should verify that URLs are correctly embedded in family invitation emails', async () => {
       await mockEmailService.sendFamilyInvitation('test@example.com', {
         inviterName: 'John Doe',
         familyName: 'Test Family',
         inviteCode: 'FAM123',
         role: 'MEMBER',
-        platform: 'native',
       });
 
       expect(mockEmailService.sendFamilyInvitation).toHaveBeenCalledWith(
@@ -283,30 +299,27 @@ describe('Email Platform Integration Tests', () => {
           familyName: 'Test Family',
           inviteCode: 'FAM123',
           role: 'MEMBER',
-          platform: 'native',
         },
       );
     });
 
-    it('should include dashboard links in notification emails with correct platform', async () => {
+    it('should include dashboard links in notification emails', async () => {
       await mockEmailService.sendScheduleNotification(
         'test@example.com',
         'Test Group',
         '2024-W03',
-        'native',
       );
 
       expect(mockEmailService.sendScheduleNotification).toHaveBeenCalledWith(
         'test@example.com',
         'Test Group',
         '2024-W03',
-        'native',
       );
     });
   });
 
   describe('Backward Compatibility', () => {
-    it('should default to web platform when not specified', async () => {
+    it('should work correctly without platform parameter', async () => {
       // Make sure schedule slot exists for this test
       mockScheduleSlotRepository.findByIdWithDetails.mockResolvedValueOnce({
         id: 'slot123',
@@ -329,21 +342,20 @@ describe('Email Platform Integration Tests', () => {
       }] as any);
 
       const result = await notificationService.notifyScheduleSlotChange('slot123', 'SLOT_CREATED');
-      
-      // Test passes if no error is thrown - default platform behavior works
+
+      // Test passes if no error is thrown - new logic works without platform
       expect(result).toBeUndefined();
     });
 
-    it('should handle undefined platform parameter gracefully', async () => {
+    it('should handle new email methods without platform parameter', async () => {
       await mockEmailService.sendGroupInvitation({
         to: 'test@example.com',
         groupName: 'Test Group',
         inviteCode: 'GRP123',
         role: 'MEMBER',
-        // platform not specified
       });
 
-      // Should not throw an error and should default to web
+      // Should not throw an error and work with new logic
       expect(mockEmailService.sendGroupInvitation).toHaveBeenCalled();
     });
   });

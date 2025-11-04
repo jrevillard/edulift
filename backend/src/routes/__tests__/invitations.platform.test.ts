@@ -126,7 +126,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
 
-      // Verify the service was called with the correct platform parameter
+      // Verify the service was called without platform parameter
       expect(mockCreateFamilyInvitation).toHaveBeenCalledWith(
         familyInviteData.familyId,
         {
@@ -135,7 +135,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: familyInviteData.personalMessage,
         },
         testUser.id,
-        'native',
       );
     });
 
@@ -156,7 +155,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
 
-      // Verify the service was called with web as default platform
+      // Verify the service was called without platform parameter
       expect(mockCreateFamilyInvitation).toHaveBeenCalledWith(
         familyInviteData.familyId,
         {
@@ -165,7 +164,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: familyInviteData.personalMessage,
         },
         testUser.id,
-        'web',
       );
     });
 
@@ -189,7 +187,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
 
-      // Verify the service was called with web as fallback platform
+      // Verify the service was called without platform parameter
       expect(mockCreateFamilyInvitation).toHaveBeenCalledWith(
         familyInviteData.familyId,
         {
@@ -198,7 +196,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: familyInviteData.personalMessage,
         },
         testUser.id,
-        'web',
       );
     });
   });
@@ -232,7 +229,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
 
-      // Verify the service was called with the correct platform parameter
+      // Verify the service was called without platform parameter
       expect(mockCreateGroupInvitation).toHaveBeenCalledWith(
         groupInviteData.groupId,
         {
@@ -242,7 +239,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: groupInviteData.personalMessage,
         },
         testUser.id,
-        'native',
       );
     });
 
@@ -263,7 +259,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
 
-      // Verify the service was called with web as default platform
+      // Verify the service was called without platform parameter
       expect(mockCreateGroupInvitation).toHaveBeenCalledWith(
         groupInviteData.groupId,
         {
@@ -273,7 +269,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
           personalMessage: groupInviteData.personalMessage,
         },
         testUser.id,
-        'web',
       );
     });
   });

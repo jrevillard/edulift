@@ -69,7 +69,7 @@ describe('FCM Tokens API Integration Tests', () => {
       const tokenData = {
         token: 'fcm-token-123',
         deviceId: 'device-123',
-        platform: 'android',
+        fcmPlatform: 'android',
       };
 
       const response = await request(app)
@@ -78,7 +78,7 @@ describe('FCM Tokens API Integration Tests', () => {
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.platform).toBe('android');
+      expect(response.body.data.fcmPlatform).toBe('android');
       expect(response.body.data.isActive).toBe(true);
 
       // Verify token was saved in database
@@ -102,7 +102,7 @@ describe('FCM Tokens API Integration Tests', () => {
       const updateData = {
         token: 'fcm-token-123',
         deviceId: 'new-device-123',
-        platform: 'ios',
+        fcmPlatform: 'ios',
       };
 
       const response = await request(app)
@@ -111,7 +111,7 @@ describe('FCM Tokens API Integration Tests', () => {
         .expect(201);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.platform).toBe('ios');
+      expect(response.body.data.fcmPlatform).toBe('ios');
 
       // Verify token was updated in database
       const updatedToken = await prisma.fcmToken.findUnique({
@@ -121,10 +121,10 @@ describe('FCM Tokens API Integration Tests', () => {
       expect(updatedToken!.deviceId).toBe('new-device-123');
     });
 
-    it('should reject invalid platform', async () => {
+    it('should reject invalid fcmPlatform', async () => {
       const tokenData = {
         token: 'fcm-token-123',
-        platform: 'invalid-platform',
+        fcmPlatform: 'invalid-platform',
       };
 
       const response = await request(app)
@@ -146,7 +146,7 @@ describe('FCM Tokens API Integration Tests', () => {
 
       const tokenData = {
         token: 'fcm-token-123',
-        platform: 'android',
+        fcmPlatform: 'android',
       };
 
       await request(app)
@@ -192,8 +192,8 @@ describe('FCM Tokens API Integration Tests', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2); // Only active tokens
-      expect(response.body.data[0].platform).toMatch(/android|ios/);
-      expect(response.body.data[1].platform).toMatch(/android|ios/);
+      expect(response.body.data[0].fcmPlatform).toMatch(/android|ios/);
+      expect(response.body.data[1].fcmPlatform).toMatch(/android|ios/);
     });
 
     it('should return empty array when user has no active tokens', async () => {

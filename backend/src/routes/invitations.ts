@@ -67,7 +67,7 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
 
 // Family invitation endpoints
 router.post('/family', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  const { familyId, email, role, personalMessage, platform } = req.body;
+  const { familyId, email, role, personalMessage } = req.body;
   const adminId = req.user.id;
 
   if (!familyId || !role) {
@@ -78,15 +78,11 @@ router.post('/family', authenticateToken, asyncHandler(async (req: Authenticated
     return;
   }
 
-  // Validate platform parameter if provided
-  const validPlatform = platform === 'native' ? 'native' : 'web';
-
   try {
     const invitation = await invitationService.createFamilyInvitation(
       familyId,
       { email, role, personalMessage },
       adminId,
-      validPlatform,
     );
 
     res.status(201).json({
@@ -181,7 +177,7 @@ router.post('/family/:code/accept', authenticateToken, asyncHandler(async (req: 
 
 // Group invitation endpoints
 router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, _next: NextFunction): Promise<void> => {
-  const { groupId, targetFamilyId, email, role, personalMessage, platform } = req.body;
+  const { groupId, targetFamilyId, email, role, personalMessage } = req.body;
   const adminId = req.user.id;
 
   if (!groupId || !role) {
@@ -192,15 +188,11 @@ router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedR
     return;
   }
 
-  // Validate platform parameter if provided
-  const validPlatform = platform === 'native' ? 'native' : 'web';
-
   try {
     const invitation = await invitationService.createGroupInvitation(
       groupId,
       { targetFamilyId, email, role, personalMessage },
       adminId,
-      validPlatform,
     );
 
     res.status(201).json({

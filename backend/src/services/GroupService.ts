@@ -1048,7 +1048,7 @@ export class GroupService {
     }
   }
 
-  async inviteFamilyToGroup(groupId: string, familyId: string, inviterId: string, personalMessage?: string, platform: 'web' | 'native' = 'web'): Promise<any> {
+  async inviteFamilyToGroup(groupId: string, familyId: string, inviterId: string, personalMessage?: string): Promise<any> {
     try {
       // Delegate to UnifiedInvitationService
       await this.unifiedInvitationService.createGroupInvitation(
@@ -1059,7 +1059,6 @@ export class GroupService {
           ...(personalMessage !== undefined && { personalMessage }),
         },
         inviterId,
-        platform,
       );
 
       // Get actual family and group names for response
@@ -1144,7 +1143,7 @@ export class GroupService {
   }
 
 
-  async inviteFamilyById(groupId: string, inviteData: { familyId: string; role: GroupRole; personalMessage?: string }, invitedBy: string, platform: 'web' | 'native' = 'web') {
+  async inviteFamilyById(groupId: string, inviteData: { familyId: string; role: GroupRole; personalMessage?: string }, invitedBy: string) {
     try {
       // Delegate to UnifiedInvitationService
       const invitation = await this.unifiedInvitationService.createGroupInvitation(
@@ -1155,7 +1154,6 @@ export class GroupService {
           ...(inviteData.personalMessage !== undefined && { personalMessage: inviteData.personalMessage }),
         },
         invitedBy,
-        platform,
       );
 
       // Return the created invitation for mobile app compatibility
@@ -1169,7 +1167,7 @@ export class GroupService {
     }
   }
 
-  async inviteFamilyByEmail(groupId: string, inviteData: { email: string; role?: GroupRole; personalMessage?: string }, invitedBy: string, platform: 'web' | 'native' = 'web') {
+  async inviteFamilyByEmail(groupId: string, inviteData: { email: string; role?: GroupRole; personalMessage?: string }, invitedBy: string) {
     try {
       // Delegate to UnifiedInvitationService
       await this.unifiedInvitationService.createGroupInvitation(
@@ -1180,7 +1178,6 @@ export class GroupService {
           ...(inviteData.personalMessage !== undefined && { personalMessage: inviteData.personalMessage }),
         },
         invitedBy,
-        platform,
       );
 
       return []; // Return empty array - invitation created successfully

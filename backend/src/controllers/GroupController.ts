@@ -28,7 +28,6 @@ const InviteFamilySchema = z.object({
   familyId: z.string().min(1, 'Family ID is required'),
   role: z.enum(['MEMBER', 'ADMIN'], { required_error: 'Valid role is required' }).default('MEMBER'),
   personalMessage: z.string().optional(),
-  platform: z.enum(['web', 'native']).default('web'),
 });
 
 const UpdateGroupSchema = z.object({
@@ -588,7 +587,6 @@ export class GroupController {
         groupId,
         familyId: inviteData.familyId,
         role: inviteData.role,
-        platform: inviteData.platform,
         hasPersonalMessage: !!inviteData.personalMessage,
         userEmail: authReq.user?.email,
       });
@@ -608,7 +606,6 @@ export class GroupController {
         invitingUserId: authReq.userId,
         targetFamilyId: inviteData.familyId,
         role: inviteData.role,
-        platform: inviteData.platform,
       });
 
       const result = await this.groupService.inviteFamilyById(
@@ -619,7 +616,6 @@ export class GroupController {
           ...(inviteData.personalMessage !== undefined && { personalMessage: inviteData.personalMessage }),
         },
         authReq.userId,
-        inviteData.platform,
       );
 
       this.logger.debug('inviteFamilyToGroup: Family invited successfully', {
@@ -627,7 +623,6 @@ export class GroupController {
         familyId: inviteData.familyId,
         invitationId: result.id,
         role: inviteData.role,
-        platform: inviteData.platform,
       });
 
       const response: ApiResponse = {
