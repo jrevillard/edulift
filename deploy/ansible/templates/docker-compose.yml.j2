@@ -200,7 +200,6 @@ services:
     volumes:
       - {{ compose_project_name }}_backend_uploads:/app/uploads
       - ./logs:/app/logs
-      - ./.well-known:/app/.well-known:ro
     networks:
       - {{ compose_project_name }}-network
     depends_on:
@@ -260,6 +259,9 @@ services:
       VITE_API_URL: {{ backend_url }}/v1
       VITE_SOCKET_URL: {{ backend_base_url }}
       VITE_SOCKET_FORCE_POLLING: "false"
+    volumes:
+      # Android App Links and iOS Universal Links verification files
+      - ./.well-known:/usr/share/nginx/html/.well-known:ro
     networks:
       - {{ compose_project_name }}-network
     depends_on:
