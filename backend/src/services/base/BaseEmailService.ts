@@ -278,7 +278,8 @@ export abstract class BaseEmailService implements EmailServiceInterface {
       // Import modules dynamically to avoid require statements
       const fs = await import('fs');
       const path = await import('path');
-      const logoPath = path.join(__dirname, '../../assets/logo-192.png');
+      // Use process.cwd() instead of __dirname for ESM compatibility
+      const logoPath = path.join(process.cwd(), 'assets/logo-192.png');
 
       if (fs.existsSync(logoPath)) {
         const logoBuffer = fs.readFileSync(logoPath);
