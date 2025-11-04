@@ -250,18 +250,13 @@ const LoginPage: React.FC = () => {
 
         <div className="text-white relative z-10">
           <div className="flex flex-col items-center gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-background/20 rounded-xl">
-                <img
-                  src="/logo-64.png"
-                  alt="EduLift"
-                  className="w-12 h-12 object-contain"
-                  data-testid="edu-lift-login-logo"
-                />
-              </div>
-              <div className="p-2 bg-background/20 rounded-xl">
-                <Sparkles className="w-6 h-6" />
-              </div>
+            <div className="p-3 bg-background/20 rounded-xl">
+              <img
+                src="/logo-64.png"
+                alt="EduLift"
+                className="w-12 h-12 object-contain"
+                data-testid="edu-lift-login-logo"
+              />
             </div>
             <h1 className="text-4xl font-bold">EduLift</h1>
           </div>
@@ -322,7 +317,11 @@ const LoginPage: React.FC = () => {
           <div className="text-center">
             <div className="flex justify-center mb-4">
               <div className="p-3 bg-primary/10 rounded-2xl animate-pulse">
-                <Sparkles className="w-8 h-8 text-primary" />
+                <img
+                  src="/logo-64.png"
+                  alt="EduLift"
+                  className="w-8 h-8 object-contain"
+                />
               </div>
             </div>
             <h2 className="text-3xl font-bold text-foreground" data-testid="LoginPage-Heading-welcome">
