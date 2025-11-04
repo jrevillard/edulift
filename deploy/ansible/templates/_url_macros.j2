@@ -73,3 +73,21 @@ PathPrefix(`{{ path }}`)
 {{ host }}
 {%- endif %}
 {%- endmacro %}
+
+{#
+  Generate DEEP_LINK_BASE_URL based on environment and port configuration
+  Uses https_port dynamically like other URLs in the system
+  Examples:
+    - environment="development" -> "edulift://"
+    - environment="staging", protocol="https", domain="example.com", port=50443 -> "https://example.com:50443/"
+    - environment="production", protocol="https", domain="example.com", port=443 -> "https://example.com/"
+#}
+{% macro deep_link_url(environment, protocol, domain, https_port) -%}
+{% if environment in ['development', 'e2e'] %}
+edulift://
+{% elif environment == 'staging' %}
+{{ protocol }}://{{ domain }}{% if https_port != 443 %}:{{ https_port }}{% endif %}/
+{% elif environment == 'production' %}
+{{ protocol }}://{{ domain }}{% if https_port != 443 %}:{{ https_port }}{% endif %}/
+{% endif %}
+{%- endmacro %}
