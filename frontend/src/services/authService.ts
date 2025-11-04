@@ -237,13 +237,13 @@ class AuthService {
       
       // Check if we have PKCE data
       if (!hasPKCEData()) {
-        throw new Error('Authentication session expired. Please request a new magic link.');
+        throw new Error('This magic link must be opened in the same browser/app where it was requested. Please return to your original browser/app and click the link again, or request a new magic link.');
       }
 
       // Retrieve the code verifier for this authentication attempt
       const codeVerifier = getPKCEVerifier();
       if (!codeVerifier) {
-        throw new Error('Authentication security data not found. Please request a new magic link.');
+        throw new Error('Authentication security data not found. Please open this link in the same browser/app where you requested it, or request a new magic link.');
       }
 
       const url = `${API_BASE_URL}/auth/verify${inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : ''}`;

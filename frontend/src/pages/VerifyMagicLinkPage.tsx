@@ -27,9 +27,11 @@ const VerifyMagicLinkPage: React.FC = () => {
   const [verificationState, setVerificationState] = useState<{
     isVerifying: boolean;
     error: string | null;
+    hasAttempted: boolean;
   }>({
     isVerifying: true,
     error: null,
+    hasAttempted: false,
   });
   const [invitationState, setInvitationState] = useState<{
     showProposal: boolean;
@@ -49,7 +51,8 @@ const VerifyMagicLinkPage: React.FC = () => {
       if (!token) {
         setVerificationState({
           isVerifying: false,
-          error: 'No verification token provided'
+          error: 'No verification token provided',
+          hasAttempted: true,
         });
         return;
       }
@@ -59,8 +62,13 @@ const VerifyMagicLinkPage: React.FC = () => {
         return;
       }
 
+      // Prevent re-attempting verification after an error
+      if (verificationState.hasAttempted) {
+        return;
+      }
+
       try {
-        setVerificationState({ isVerifying: true, error: null });
+        setVerificationState({ isVerifying: true, error: null, hasAttempted: true });
         const result = await verifyMagicLink(token, inviteCode || undefined);
         
         // Check if invitation was processed automatically by backend
@@ -85,20 +93,22 @@ const VerifyMagicLinkPage: React.FC = () => {
             console.log('🔍 DEBUG: Invitation processing failed:', invitationResult.reason);
             setVerificationState({
               isVerifying: false,
-              error: invitationResult.reason || 'Failed to process invitation'
+              error: invitationResult.reason || 'Failed to process invitation',
+              hasAttempted: true,
             });
             return;
           }
         }
-        
+
         // No invitation processing needed, auth successful
-        setVerificationState({ isVerifying: false, error: null });
+        setVerificationState({ isVerifying: false, error: null, hasAttempted: true });
         // User will be redirected by the Navigate component below
       } catch (error) {
         console.error('Magic link verification failed:', error);
         setVerificationState({
           isVerifying: false,
-          error: error instanceof Error ? error.message : 'Verification failed'
+          error: error instanceof Error ? error.message : 'Verification failed',
+          hasAttempted: true,
         });
       }
     };
@@ -107,7 +117,7 @@ const VerifyMagicLinkPage: React.FC = () => {
     if (!authLoading) {
       handleVerification();
     }
-  }, [token, inviteCode, navigate, verifyMagicLink, isAuthenticated, authLoading]);
+  }, [token, inviteCode, navigate, verifyMagicLink, isAuthenticated, authLoading, verificationState.hasAttempted]);
 
   // Handle accepting the family invitation
   const handleAcceptInvitation = async () => {

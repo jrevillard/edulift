@@ -236,7 +236,7 @@ describe('AuthService PKCE Integration', () => {
       mockedPkceUtils.hasPKCEData.mockReturnValue(false);
 
       await expect(authService.verifyMagicLink(testToken)).rejects.toThrow(
-        'Authentication session expired. Please request a new magic link.'
+        'This magic link must be opened in the same browser/app where it was requested'
       );
 
       expect(mockedAxios.post).not.toHaveBeenCalled();
@@ -247,7 +247,7 @@ describe('AuthService PKCE Integration', () => {
       mockedPkceUtils.getPKCEVerifier.mockReturnValue(null);
 
       await expect(authService.verifyMagicLink(testToken)).rejects.toThrow(
-        'Authentication security data not found. Please request a new magic link.'
+        'Authentication security data not found. Please open this link in the same browser/app where you requested it'
       );
 
       expect(mockedAxios.post).not.toHaveBeenCalled();

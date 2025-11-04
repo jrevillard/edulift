@@ -102,7 +102,7 @@ const renderWithRouter = (initialEntries: string[]) => {
 describe('VerifyMagicLinkPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
     // Reset auth service defaults
     mockAuthService.isAuthenticated.mockReturnValue(false)
     mockAuthService.getUser.mockReturnValue(null)
@@ -110,10 +110,10 @@ describe('VerifyMagicLinkPage', () => {
   })
 
   it('shows loading state while verifying token', () => {
-    mockAuthService.verifyMagicLink.mockImplementationOnce(() => new Promise(() => {}))
-    
+    mockAuthService.verifyMagicLink.mockImplementationOnce(() => new Promise(() => { }))
+
     renderWithRouter(['/auth/verify?token=valid-token'])
-    
+
     expect(screen.getByTestId('edu-lift-title')).toHaveTextContent(/eduLift/i)
     expect(screen.getByTestId('verifying-message')).toHaveTextContent(/verifying your magic link/i)
     expect(screen.getByTestId('verification-loading-spinner')).toBeInTheDocument(); // Loading spinner
@@ -121,25 +121,25 @@ describe('VerifyMagicLinkPage', () => {
 
   it('shows error when no token is provided', async () => {
     renderWithRouter(['/auth/verify'])
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/no verification token provided/i)
     })
-    
+
     expect(screen.getByTestId('back-to-login-button')).toBeInTheDocument()
   })
 
   it('shows error when token verification fails', async () => {
     mockAuthService.verifyMagicLink.mockRejectedValueOnce(new Error('Invalid token'))
-    
+
     renderWithRouter(['/auth/verify?token=invalid-token'])
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/invalid token/i)
     })
-    
+
     expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith('invalid-token', undefined)
     // UI elements like back to login button would be tested here if implemented
   })
@@ -151,19 +151,19 @@ describe('VerifyMagicLinkPage', () => {
       name: 'Test User',
       timezone: 'UTC',
     }
-    
+
     mockAuthService.verifyMagicLink.mockResolvedValueOnce({
       user: mockUser,
       token: 'jwt-token',
       expiresAt: new Date().toISOString()
     })
-    
+
     renderWithRouter(['/auth/verify?token=valid-token'])
-    
+
     await waitFor(() => {
       expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith('valid-token', undefined)
     })
-    
+
     // The component should redirect to dashboard when authenticated
     // We would test this by checking if Navigate component is rendered with correct props
     // In a real app, we'd use a navigation spy to verify the redirect
@@ -176,9 +176,9 @@ describe('VerifyMagicLinkPage', () => {
       email: 'test@example.com',
       name: 'Test User'
     })
-    
+
     renderWithRouter(['/auth/verify?token=some-token'])
-    
+
     // Should immediately redirect without showing verification content
     expect(screen.queryByTestId('verifying-message')).not.toBeInTheDocument()
     expect(screen.queryByTestId('verification-failed-title')).not.toBeInTheDocument()
@@ -186,37 +186,37 @@ describe('VerifyMagicLinkPage', () => {
 
   it('navigates back to login when back button is clicked', async () => {
     const user = userEvent.setup()
-    
+
     renderWithRouter(['/auth/verify'])
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/no verification token provided/i)
     })
-    
+
     const backButton = screen.getByTestId('back-to-login-button')
     await user.click(backButton)
-    
+
     expect(mockNavigate).toHaveBeenCalledWith('/login')
   })
 
   it('shows appropriate error message for expired token', async () => {
     mockAuthService.verifyMagicLink.mockRejectedValueOnce(new Error('Token has expired'))
-    
+
     renderWithRouter(['/auth/verify?token=expired-token'])
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/token has expired/i)
     })
-    
+
     // UI text assertion for expired token would go here if implemented
   })
 
   it('handles network errors gracefully', async () => {
     mockAuthService.verifyMagicLink.mockRejectedValueOnce(new Error('Network error'))
-    
+
     renderWithRouter(['/auth/verify?token=some-token'])
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/network error/i)
@@ -226,18 +226,18 @@ describe('VerifyMagicLinkPage', () => {
   it('does not verify token if user is already authenticated', async () => {
     mockAuthService.isAuthenticated.mockReturnValue(true)
     mockAuthService.getUser.mockReturnValue({
-      id: 'user-1', 
+      id: 'user-1',
       email: 'test@example.com',
       name: 'Test User'
     })
-    
+
     renderWithRouter(['/auth/verify?token=some-token'])
-    
+
     // Wait for the component to render and check that it doesn't attempt verification
     await waitFor(() => {
       expect(screen.queryByTestId('verifying-message')).not.toBeInTheDocument()
     })
-    
+
     expect(mockAuthService.verifyMagicLink).not.toHaveBeenCalled()
   })
 
@@ -245,19 +245,49 @@ describe('VerifyMagicLinkPage', () => {
     // Mock the auth context to simulate loading state
     // This would require modifying the test setup to mock the auth context loading state
     renderWithRouter(['/auth/verify?token=some-token'])
-    
+
     // Initial render should show loading
     expect(screen.getByTestId('verifying-message')).toHaveTextContent(/verifying your magic link/i)
   })
 
   it('provides helpful instructions for failed verification', async () => {
     renderWithRouter(['/auth/verify'])
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/no verification token provided/i)
     })
-    
+
     expect(screen.getByTestId('verification-help-text')).toHaveTextContent(/the magic link may have expired or been used already/i)
     expect(screen.getByTestId('verification-help-text')).toHaveTextContent(/please request a new one from the login page/i)
+  })
+
+  it('does not retry verification after failure (prevents infinite loop)', async () => {
+    mockAuthService.verifyMagicLink.mockRejectedValue(new Error('PKCE data not found'))
+
+    renderWithRouter(['/auth/verify?token=some-token'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('verification-error-message')).toBeInTheDocument()
+    })
+
+    // Wait a bit more to ensure no additional calls are made
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // verifyMagicLink should only have been called once, not multiple times in a loop
+    expect(mockAuthService.verifyMagicLink).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows clear error message when PKCE data is missing (cross-context)', async () => {
+    const pkceError = new Error('This magic link must be opened in the same browser/app where it was requested. Please return to your original browser/app and click the link again, or request a new magic link.')
+    mockAuthService.verifyMagicLink.mockRejectedValueOnce(pkceError)
+
+    renderWithRouter(['/auth/verify?token=some-token'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/same browser\/app where it was requested/i)
+    })
+
+    // Should not retry after this error
+    expect(mockAuthService.verifyMagicLink).toHaveBeenCalledTimes(1)
   })
 })
