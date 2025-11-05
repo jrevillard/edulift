@@ -9,7 +9,11 @@ export class MockEmailService extends BaseEmailService {
     super();
   }
 
-  protected async _send(to: string, subject: string, html: string): Promise<void> {
+  protected async _send(to: string, subject: string, html: string, attachments?: any[]): Promise<void> {
+    // Log attachments for debugging (in development mode)
+    if (attachments && attachments.length > 0) {
+      logger.info(`📎 Email includes ${attachments.length} attachment(s)`);
+    }
     // Extract key information for better console logging
     if (subject.includes('Secure Login')) {
       // Magic Link Email - Extract URL from HTML

@@ -109,7 +109,7 @@ describe('Rate Limiting Middleware', () => {
       await request(app).get('/test').expect(429);
 
       // Wait for window to reset (add extra margin for timing issues)
-      await new Promise(resolve => setTimeout(resolve, 250));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // Should work again after reset
       const response = await request(app).get('/test');

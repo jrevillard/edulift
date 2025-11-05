@@ -2,7 +2,7 @@
 import { EmailServiceInterface, ScheduleSlotNotificationData, GroupInvitationData, FamilyInvitationData, DailyReminderSlot } from '../../types/EmailServiceInterface';
 
 export abstract class BaseEmailService implements EmailServiceInterface {
-  protected abstract _send(to: string, subject: string, html: string, from?: string): Promise<void>;
+  protected abstract _send(to: string, subject: string, html: string, attachments?: any[], from?: string): Promise<void>;
 
   /**
    * Validates a base URL to ensure it's safe for use in email links
@@ -101,9 +101,9 @@ export abstract class BaseEmailService implements EmailServiceInterface {
       if (url && typeof url === 'string' && url.length > 0) {
         // Show only first 20 characters and last 10 characters
         if (url.length <= 30) {
-          maskedUrl = `${url.substring(0, 10)  }***`;
+          maskedUrl = `${url.substring(0, 10)}***`;
         } else {
-          maskedUrl = `${url.substring(0, 20)  }***${  url.substring(url.length - 10)}`;
+          maskedUrl = `${url.substring(0, 20)}***${url.substring(url.length - 10)}`;
         }
       } else {
         maskedUrl = '[null/empty]';
@@ -225,13 +225,15 @@ export abstract class BaseEmailService implements EmailServiceInterface {
 
     const subject = 'EduLift - Secure Login';
     const html = await this.generateMagicLinkEmail(finalMagicLinkUrl);
-    await this._send(email, subject, html);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   async sendScheduleNotification(email: string, groupName: string, weekInfo: string): Promise<void> {
     const subject = `EduLift - New schedule available for ${groupName}`;
     const html = await this.generateScheduleNotificationEmail(groupName, weekInfo);
-    await this._send(email, subject, html);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   async sendGroupInvitation(data: GroupInvitationData): Promise<void> {
@@ -239,7 +241,8 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     const inviteUrl = await this.generateUrl('groups/join', params);
     const subject = `EduLift - Invitation to group ${data.groupName}`;
     const html = await this.generateGroupInvitationEmail(data.groupName, inviteUrl);
-    await this._send(data.to, subject, html);
+    const logoAttachment = this.getLogoAttachment();
+    await this._send(data.to, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   async sendFamilyInvitation(email: string, invitationData: FamilyInvitationData): Promise<void> {
@@ -247,79 +250,78 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     const inviteUrl = await this.generateUrl('families/join', params);
     const subject = `EduLift - Invitation to family ${invitationData.familyName}`;
     const html = await this.generateFamilyInvitationEmail(invitationData.familyName, inviteUrl, invitationData.personalMessage);
-    await this._send(email, subject, html);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   async sendScheduleSlotNotification(email: string, data: ScheduleSlotNotificationData): Promise<void> {
     const subject = this.getScheduleSlotNotificationSubject(data);
     const html = await this.generateScheduleSlotNotificationEmail(data);
-    await this._send(email, subject, html);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   async sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[]): Promise<void> {
     const subject = `EduLift - Reminder for tomorrow's trips (${groupName})`;
     const html = await this.generateDailyReminderEmail(groupName, tomorrowTrips);
-    await this._send(email, subject, html);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   async sendWeeklySchedule(email: string, groupName: string, weekInfo: string, scheduleData: any): Promise<void> {
     const subject = `EduLift - Weekly schedule ${weekInfo} (${groupName})`;
     const html = await this.generateWeeklyScheduleEmail(groupName, weekInfo, scheduleData);
-    await this._send(email, subject, html);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
   abstract verifyConnection(): Promise<boolean>;
 
   /**
-   * Generate email header with embedded logo and fallback
+   * Generate email header with CID-based embedded logo
    */
-  private async generateEmailHeader(): Promise<string> {
+  private generateEmailHeader(): string {
+    // Use Content-ID (CID) for embedded logo
+    // This avoids quoted-printable encoding issues with base64 data URLs
+    const logoCid = 'edulift-logo@edulift.app';
+
+    return `
+      <div style="text-align: center; margin-bottom: 30px;">
+        <!-- Embedded image using CID -->
+        <div style="text-align: center;">
+          <img src="cid:${logoCid}" alt="EduLift - Transport Scolaire Collaboratif"
+               width="64" height="64"
+               style="max-width: 64px; height: auto; display: inline-block; margin: 0 auto;"
+               border="0" />
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Get logo attachment for email embedding
+   */
+  protected async getLogoAttachment(): Promise<any> {
     try {
       // Import modules dynamically to avoid require statements
       const fs = await import('fs');
       const path = await import('path');
       // Use process.cwd() instead of __dirname for ESM compatibility
-      const logoPath = path.join(process.cwd(), 'assets/logo-192.png');
+      const logoPath = path.join(process.cwd(), 'assets/logo-64.png');
 
       if (fs.existsSync(logoPath)) {
-        const logoBuffer = fs.readFileSync(logoPath);
-        const logoBase64 = `data:image/png;base64,${logoBuffer.toString('base64')}`;
-
-        return `
-          <div style="text-align: center; margin-bottom: 30px;">
-            <!-- Fallback text first -->
-            <div style="font-size: 24px; font-weight: bold; color: #2563eb; margin-bottom: 10px; display: none;" id="logoFallback">
-              🚐 EduLift
-            </div>
-            <!-- Embedded image -->
-            <img src="${logoBase64}" alt="EduLift - Transport Scolaire Collaboratif"
-                 style="max-width: 120px; height: auto; display: block;"
-                 onerror="this.style.display='none'; document.getElementById('logoFallback').style.display='block';" />
-            <!-- Alternative text for email clients that don't support onerror -->
-            <noscript>
-              <div style="font-size: 24px; font-weight: bold; color: #2563eb; margin-bottom: 10px;">
-                🚐 EduLift
-              </div>
-            </noscript>
-          </div>
-        `;
+        return {
+          filename: 'logo-64.png',
+          path: logoPath,
+          cid: 'edulift-logo@edulift.app', // Same CID as used in generateEmailHeader
+          contentType: 'image/png',
+        };
       }
     } catch (error) {
-      // Fallback if logo file is not accessible
-      console.warn('Could not embed logo:', error);
+      console.warn('Could not create logo attachment:', error);
     }
 
-    // Fallback header
-    return `
-      <div style="text-align: center; margin-bottom: 30px;">
-        <div style="font-size: 24px; font-weight: bold; color: #2563eb;">
-          🚐 EduLift
-        </div>
-        <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">
-          Transport Scolaire Collaboratif
-        </p>
-      </div>
-    `;
+    return null;
   }
 
   /**

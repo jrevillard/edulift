@@ -3,7 +3,7 @@ import { ScheduleSlotNotificationData, GroupInvitationData, FamilyInvitationData
 
 // Concrete implementation for testing
 class TestEmailService extends BaseEmailService {
-  protected async _send(_to: string, _subject: string, _html: string, _from?: string): Promise<void> {
+  protected async _send(_to: string, _subject: string, _html: string, _attachments?: any[], _from?: string): Promise<void> {
     // Mock implementation for testing
   }
 

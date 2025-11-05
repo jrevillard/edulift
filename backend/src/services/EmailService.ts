@@ -24,12 +24,13 @@ export class EmailService extends BaseEmailService {
     this.fromEmail = config.auth.user;
   }
 
-  protected async _send(to: string, subject: string, html: string): Promise<void> {
+  protected async _send(to: string, subject: string, html: string, attachments?: any[]): Promise<void> {
     const mailOptions = {
       from: this.fromEmail,
       to,
       subject,
       html,
+      attachments,
       encoding: 'utf8',
     };
 

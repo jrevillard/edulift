@@ -46,6 +46,7 @@ describe('EmailService', () => {
         email,
         'EduLift - Secure Login',
         expect.stringContaining(token),
+        expect.any(Array), // attachments array
       );
     });
 
@@ -61,6 +62,7 @@ describe('EmailService', () => {
             email,
             'EduLift - Secure Login',
             expect.stringContaining(magicLinkUrl),
+            expect.any(Array), // attachments array
         );
     });
   });
@@ -82,6 +84,7 @@ describe('EmailService', () => {
         to,
         subject,
         html,
+        attachments: undefined, // no attachments in this test
         encoding: 'utf8',
       });
     });
