@@ -22,7 +22,21 @@ vi.mock('../../stores/connectionStore', () => {
   };
 });
 
-// Mock localStorage
+// Mock secureStorage
+const mockSecureStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  hasItem: vi.fn(),
+  getKeys: vi.fn(),
+};
+
+vi.mock('@/utils/secureStorage', () => ({
+  secureStorage: mockSecureStorage
+}));
+
+// Mock localStorage for non-secure storage (redirectAfterLogin)
 const localStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
@@ -56,10 +70,10 @@ describe('AuthService 401 Redirect', () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
-    // Reset localStorage mock
-    localStorageMock.getItem.mockReturnValue(null);
-    
+
+    // Reset secureStorage mock
+    mockSecureStorage.getItem.mockResolvedValue(null);
+
     // Reset location mock
     mockLocation.pathname = '/schedule';
     mockLocation.search = '?test=1';
@@ -104,10 +118,10 @@ describe('AuthService 401 Redirect', () => {
 
   it('should save redirect location and clear auth on 401 response', async () => {
     // Mock token in storage
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'authToken') return 'test-token';
-      if (key === 'userData') return JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' });
-      return null;
+    mockSecureStorage.getItem.mockImplementation((key) => {
+      if (key === 'authToken') return Promise.resolve('test-token');
+      if (key === 'userData') return Promise.resolve(JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' }));
+      return Promise.resolve(null);
     });
 
     // Simulate a 401 error
@@ -125,10 +139,10 @@ describe('AuthService 401 Redirect', () => {
 
     // Should save current location
     expect(localStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/schedule?test=1');
-    
+
     // Should clear auth
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('userData');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('userData');
     
     // Should return resolved promise (not throw)
     expect(result).toBeUndefined();
@@ -151,7 +165,7 @@ describe('AuthService 401 Redirect', () => {
     
     // Should clear auth and return resolved promise
     expect(result).toBeUndefined();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
   });
 
   it('should not save redirect for login page', async () => {
@@ -186,7 +200,7 @@ describe('AuthService 401 Redirect', () => {
     await expect(responseErrorInterceptor(error)).rejects.toEqual(error);
     
     // Should not clear auth
-    expect(localStorageMock.removeItem).not.toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).not.toHaveBeenCalledWith('authToken');
   });
 
   it('should handle network errors without redirecting', async () => {
@@ -198,7 +212,7 @@ describe('AuthService 401 Redirect', () => {
     await expect(responseErrorInterceptor(error)).rejects.toEqual(error);
     
     // Should not clear auth
-    expect(localStorageMock.removeItem).not.toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).not.toHaveBeenCalledWith('authToken');
   });
 
   it('should save redirect location on 401 from API endpoints', async () => {
@@ -254,7 +268,7 @@ describe('AuthService 401 Redirect', () => {
     
     // Should clear auth immediately without attempting another refresh
     expect(result).toBeUndefined();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
   });
 
   it('should handle 401 for verify magic link endpoint', async () => {
@@ -271,15 +285,15 @@ describe('AuthService 401 Redirect', () => {
     
     // Should clear auth like any other 401
     expect(result).toBeUndefined();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
   });
 
   it('should clear auth data on 401 redirect', async () => {
     // Set initial auth data
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'authToken') return 'existing-token';
-      if (key === 'userData') return JSON.stringify({ id: '1', email: 'user@example.com', name: 'User', timezone: 'UTC' });
-      return null;
+    mockSecureStorage.getItem.mockImplementation((key) => {
+      if (key === 'authToken') return Promise.resolve('existing-token');
+      if (key === 'userData') return Promise.resolve(JSON.stringify({ id: '1', email: 'user@example.com', name: 'User', timezone: 'UTC' }));
+      return Promise.resolve(null);
     });
 
     const error = {
@@ -293,16 +307,16 @@ describe('AuthService 401 Redirect', () => {
 
     await responseErrorInterceptor(error);
 
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('userData');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('userData');
     expect(authChangeCallback).toHaveBeenCalled();
   });
 
   it('should include auth token in API requests', async () => {
     // Mock token in storage
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'authToken') return 'test-auth-token';
-      return null;
+    mockSecureStorage.getItem.mockImplementation((key) => {
+      if (key === 'authToken') return Promise.resolve('test-auth-token');
+      return Promise.resolve(null);
     });
 
     // Re-import to pick up the token
@@ -333,10 +347,10 @@ describe('AuthService 401 Redirect', () => {
 
   it('should attempt token refresh when user has token and gets 401', async () => {
     // Mock user has token
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'authToken') return 'old-token';
-      if (key === 'userData') return JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' });
-      return null;
+    mockSecureStorage.getItem.mockImplementation((key) => {
+      if (key === 'authToken') return Promise.resolve('old-token');
+      if (key === 'userData') return Promise.resolve(JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' }));
+      return Promise.resolve(null);
     });
 
     // Re-import to pick up the token
@@ -363,16 +377,16 @@ describe('AuthService 401 Redirect', () => {
     expect(authService.refreshToken).toHaveBeenCalled();
     
     // After refresh fails, should clear auth
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
     expect(result).toBeUndefined();
   });
 
   it('should retry request after successful token refresh', async () => {
     // Mock user has token
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'authToken') return 'old-token';
-      if (key === 'userData') return JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' });
-      return null;
+    mockSecureStorage.getItem.mockImplementation((key) => {
+      if (key === 'authToken') return Promise.resolve('old-token');
+      if (key === 'userData') return Promise.resolve(JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' }));
+      return Promise.resolve(null);
     });
 
     // Re-import to pick up the token
@@ -412,10 +426,10 @@ describe('AuthService 401 Redirect', () => {
 
   it('should prevent infinite loop when refresh token endpoint returns 401', async () => {
     // Mock user has token
-    localStorageMock.getItem.mockImplementation((key) => {
-      if (key === 'authToken') return 'expired-token';
-      if (key === 'userData') return JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' });
-      return null;
+    mockSecureStorage.getItem.mockImplementation((key) => {
+      if (key === 'authToken') return Promise.resolve('expired-token');
+      if (key === 'userData') return Promise.resolve(JSON.stringify({ id: '1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' }));
+      return Promise.resolve(null);
     });
 
     // Re-import to pick up the token
@@ -442,8 +456,8 @@ describe('AuthService 401 Redirect', () => {
 
     // Should immediately clear auth without attempting another refresh
     expect(result).toBeUndefined();
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('userData');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
+    expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('userData');
     expect(authChangeCallback).toHaveBeenCalled();
     
     // Should not attempt another refresh (no recursive call)

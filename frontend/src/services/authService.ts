@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { ApiResponse } from '@/types';
+import { secureStorage } from '@/utils/secureStorage';
 
 import { API_BASE_URL } from '@/config/runtime';
 
@@ -35,21 +36,47 @@ class AuthService {
   private onAuthChanged?: () => void;
 
   constructor() {
-    // Initialize from localStorage
-    this.token = localStorage.getItem('authToken');
-    this.storedRefreshToken = localStorage.getItem('refreshToken');
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        this.user = JSON.parse(userData);
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-        this.clearAuth();
-      }
-    }
+    // Initialize from secure storage (async operation)
+    this.initializeFromSecureStorage();
 
     // Set up axios interceptors
     this.setupAxiosInterceptors();
+  }
+
+  private async initializeFromSecureStorage(): Promise<void> {
+    try {
+      // Load from secure storage
+      this.token = await secureStorage.getItem('authToken');
+      this.storedRefreshToken = await secureStorage.getItem('refreshToken');
+      const userData = await secureStorage.getItem('userData');
+
+      if (userData) {
+        try {
+          this.user = JSON.parse(userData);
+        } catch (error) {
+          console.error('Failed to parse user data:', error);
+          await this.clearAuth();
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize from secure storage:', error);
+      // Fallback to localStorage for migration
+      this.token = localStorage.getItem('authToken');
+      this.storedRefreshToken = localStorage.getItem('refreshToken');
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          this.user = JSON.parse(userData);
+          // Migrate to secure storage
+          if (this.token && this.user) {
+            await this.setAuth(this.token, this.user, this.storedRefreshToken || undefined);
+          }
+        } catch (parseError) {
+          console.error('Failed to parse user data:', parseError);
+          await this.clearAuth();
+        }
+      }
+    }
   }
 
   private setupAxiosInterceptors() {
@@ -60,8 +87,8 @@ class AuthService {
     // Request interceptor to add auth header
     axios.interceptors.request.use(
       (config) => {
-        // Always check localStorage for the latest token (important for E2E tests)
-        const currentToken = localStorage.getItem('authToken') || this.token;
+        // Use token from memory (synchronously) - secureStorage is async so we rely on the cached token
+        const currentToken = this.token;
         if (currentToken && config.url?.startsWith(API_BASE_URL)) {
           config.headers.Authorization = `Bearer ${currentToken}`;
         }
@@ -114,7 +141,7 @@ class AuthService {
           // Check if this is a refresh token request that failed
           if (error.config?.url?.includes('/auth/refresh')) {
             console.log('🚫 Refresh token request failed with 401 - logging out');
-            this.clearAuth();
+            this.clearAuth(); // Fire and forget - async but we don't await in interceptor
             this.redirectToLogin();
             return Promise.resolve();
           }
@@ -128,7 +155,7 @@ class AuthService {
             } catch {
               // Refresh failed, logout user and redirect
               console.log('🔄 Token refresh failed - logging out');
-              this.clearAuth();
+              this.clearAuth(); // Fire and forget - async but we don't await in interceptor
               this.redirectToLogin();
               // Return a resolved promise to prevent further error handling
               return Promise.resolve();
@@ -257,7 +284,7 @@ class AuthService {
       }
 
       const authData = response.data.data;
-      this.setAuth(authData.token, authData.user, authData.refreshToken);
+      await this.setAuth(authData.token, authData.user, authData.refreshToken);
 
       // Clear PKCE data after successful authentication
       clearPKCEData();
@@ -327,8 +354,20 @@ class AuthService {
       // Update both access token and refresh token (token rotation)
       this.token = response.data.data.accessToken;
       this.storedRefreshToken = response.data.data.refreshToken;
-      localStorage.setItem('authToken', this.token);
-      localStorage.setItem('refreshToken', this.storedRefreshToken);
+
+      // Store securely
+      try {
+        await secureStorage.setItem('authToken', this.token);
+        await secureStorage.setItem('refreshToken', this.storedRefreshToken);
+        // Also clear from localStorage for migration
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+      } catch (error) {
+        console.error('Failed to store refreshed tokens securely, falling back to localStorage:', error);
+        // Fallback to localStorage
+        localStorage.setItem('authToken', this.token);
+        localStorage.setItem('refreshToken', this.storedRefreshToken);
+      }
 
       console.log('✅ Token refreshed successfully');
     } finally {
@@ -343,20 +382,39 @@ class AuthService {
       // Continue with logout even if server request fails
       console.error('Logout request failed:', error);
     } finally {
-      this.clearAuth();
+      await this.clearAuth();
     }
   }
 
-  private setAuth(token: string, user: User, refreshToken?: string): void {
+  private async setAuth(token: string, user: User, refreshToken?: string): Promise<void> {
     this.token = token;
     this.user = user;
-    localStorage.setItem('authToken', token);
-    localStorage.setItem('userData', JSON.stringify(user));
 
-    // Store refresh token if provided
-    if (refreshToken) {
-      this.storedRefreshToken = refreshToken;
-      localStorage.setItem('refreshToken', refreshToken);
+    try {
+      // Store in secure storage
+      await secureStorage.setItem('authToken', token);
+      await secureStorage.setItem('userData', JSON.stringify(user));
+
+      // Store refresh token if provided
+      if (refreshToken) {
+        this.storedRefreshToken = refreshToken;
+        await secureStorage.setItem('refreshToken', refreshToken);
+      }
+
+      // Also clear from localStorage for migration
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userData');
+      localStorage.removeItem('refreshToken');
+    } catch (error) {
+      console.error('Failed to store auth data securely, falling back to localStorage:', error);
+      // Fallback to localStorage
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('userData', JSON.stringify(user));
+
+      if (refreshToken) {
+        this.storedRefreshToken = refreshToken;
+        localStorage.setItem('refreshToken', refreshToken);
+      }
     }
   }
 
@@ -368,13 +426,28 @@ class AuthService {
     localStorage.removeItem('redirectAfterLogin');
   }
 
-  private clearAuth(): void {
+  private async clearAuth(): Promise<void> {
     this.token = null;
     this.storedRefreshToken = null;
     this.user = null;
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userData');
+
+    try {
+      // Clear from secure storage
+      secureStorage.removeItem('authToken');
+      secureStorage.removeItem('refreshToken');
+      secureStorage.removeItem('userData');
+
+      // Also clear from localStorage for migration
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userData');
+    } catch (error) {
+      console.error('Failed to clear secure storage:', error);
+      // Still clear from localStorage
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userData');
+    }
 
     // Clear PKCE data on auth clear to prevent security issues
     try {
@@ -415,7 +488,7 @@ class AuthService {
     // Clear auth data - this will trigger the AuthContext callback
     // which will update React state and cause ProtectedRoute to redirect
     console.log('🔀 Clearing auth - React Router will handle redirect');
-    this.clearAuth();
+    this.clearAuth(); // Fire and forget - async but we don't await in redirect method
   }
 
   isAuthenticated(): boolean {
@@ -430,15 +503,29 @@ class AuthService {
     return this.token;
   }
 
-  // Method to refresh token from localStorage (useful for E2E tests)
-  refreshTokenFromStorage(): void {
-    this.token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        this.user = JSON.parse(userData);
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
+  // Method to refresh token from secure storage (useful for E2E tests)
+  async refreshTokenFromStorage(): Promise<void> {
+    try {
+      this.token = await secureStorage.getItem('authToken');
+      const userData = await secureStorage.getItem('userData');
+      if (userData) {
+        try {
+          this.user = JSON.parse(userData);
+        } catch (error) {
+          console.error('Failed to parse user data:', error);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to refresh token from secure storage:', error);
+      // Fallback to localStorage
+      this.token = localStorage.getItem('authToken');
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        try {
+          this.user = JSON.parse(userData);
+        } catch (parseError) {
+          console.error('Failed to parse user data:', parseError);
+        }
       }
     }
   }
@@ -476,7 +563,7 @@ class AuthService {
       }
 
       const updatedUser = response.data.data;
-      this.setAuth(this.token, updatedUser);
+      await this.setAuth(this.token, updatedUser);
 
       return updatedUser;
     } catch (error) {
@@ -525,7 +612,7 @@ class AuthService {
       }
 
       const updatedUser = response.data.data;
-      this.setAuth(this.token, updatedUser);
+      await this.setAuth(this.token, updatedUser);
 
       // Notify auth context of change
       if (this.onAuthChanged) {
