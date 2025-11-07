@@ -164,6 +164,11 @@ describe('DashboardService', () => {
               id: 'assignment-1',
               vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [
+                {
+                  child: { id: 'child-1', name: 'Emma' },
+                },
+              ],
             },
           ],
           childAssignments: [
@@ -200,14 +205,18 @@ describe('DashboardService', () => {
     it('should handle afternoon trips correctly', async () => {
       // Arrange
       const userId = 'user-123';
+      const testDatetime = new Date('2024-01-15T15:30:00Z');
       const mockScheduleSlots = [
         {
           id: 'slot-2',
           time: '15:30',
+          datetime: testDatetime,
           vehicleAssignments: [
             {
+              id: 'assignment-2',
               vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-456', name: 'Jane Smith' },
+              childAssignments: [],
             },
           ],
           childAssignments: [],
@@ -223,6 +232,8 @@ describe('DashboardService', () => {
       // Assert
       expect(result[0].destination).toBe('Home'); // Afternoon trip goes home
       expect(result[0].type).toBe('dropoff');
+      expect(result[0].time).toBe('15:30'); // Should be formatted from datetime
+      expect(result[0].datetime).toBe(testDatetime.toISOString());
     });
 
     it('should return empty array when no today trips', async () => {

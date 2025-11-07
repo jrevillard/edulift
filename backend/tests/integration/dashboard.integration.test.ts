@@ -1,10 +1,16 @@
 import { prisma } from '../tests/setup';
+import { DashboardService } from '../../src/services/DashboardService';
+import { PrismaClient } from '@prisma/client';
 
 describe('DashboardService Integration Tests', () => {
   let testData: any;
+  let dashboardService: DashboardService;
 
   beforeEach(async () => {
     testData = await createTestData();
+    // Create a new PrismaClient instance for DashboardService to avoid type issues
+    const prismaClient = new PrismaClient();
+    dashboardService = new DashboardService(prismaClient);
   });
 
   afterEach(async () => {
@@ -32,10 +38,11 @@ describe('DashboardService Integration Tests', () => {
 
   describe('getWeeklyDashboard - Real Database Testing', () => {
     it('should return 7 days with empty transports when no slots exist', async () => {
-      const result = await prisma.dashboardService.getWeeklyDashboard(testData.user.id);
+      const result = await dashboardService.getWeeklyDashboard(testData.user.id);
 
-      expect(result).toHaveLength(7);
-      expect(result.every(day => day.transports.length === 0)).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data?.days).toHaveLength(7);
+      expect(result.data?.days.every(day => day.transports.length === 0)).toBe(true);
     });
 
     it('should correctly filter slots with DB-level queries', async () => {
@@ -112,13 +119,14 @@ describe('DashboardService Integration Tests', () => {
       });
 
       // Test le service
-      const result = await prisma.dashboardService.getWeeklyDashboard(testData.user.id);
+      const result = await dashboardService.getWeeklyDashboard(testData.user.id);
 
       // Vérifications
-      expect(result).toHaveLength(7);
+      expect(result.success).toBe(true);
+      expect(result.data?.days).toHaveLength(7);
 
       // Trouver le jour avec slot-1
-      const dayWithTransports = result.find(d => d.transports.length > 0);
+      const dayWithTransports = result.data?.days.find(d => d.transports.length > 0);
       expect(dayWithTransports).toBeDefined();
 
       // Seulement le jour avec slot-1 devrait avoir un seul transport
@@ -193,9 +201,9 @@ describe('DashboardService Integration Tests', () => {
       });
 
       // Test le résultat
-      const result = await prisma.dashboardService.getWeeklyDashboard(testData.user.id);
+      const result = await dashboardService.getWeeklyDashboard(testData.user.id);
 
-      const dayWithTransports = result.find(d => d.transports.length > 0);
+      const dayWithTransports = result.data?.days.find(d => d.transports.length > 0);
       expect(dayWithTransports).toBeDefined();
 
       // Doit contenir 3 véhicules:
@@ -226,6 +234,9 @@ describe('DashboardService Integration Tests', () => {
 
       const child2 = await prisma.child.create({ data: { name: 'Child 2', familyId: family2.id } });
       const child3 = await prisma.child.create({ data: { name: 'Child 3', familyId: family3.id } });
+
+      const vehicle2 = await prisma.vehicle.create({ data: { name: 'Vehicle 2', capacity: 4, familyId: family2.id } });
+      const vehicle3 = await prisma.vehicle.create({ data: { name: 'Vehicle 3', capacity: 4, familyId: family3.id } });
 
       const group2 = await prisma.group.create({ data: { name: 'Group 2', familyId: family2.id } });
       const group3 = await prisma.group.create({ data: { name: 'Group 3', familyId: family3.id } });
@@ -285,12 +296,13 @@ describe('DashboardService Integration Tests', () => {
       });
 
       // Tester le service
-      const result = await prisma.dashboardService.getWeeklyDashboard(testData.user.id);
+      const result = await dashboardService.getWeeklyDashboard(testData.user.id);
 
       // Le résultat devrait inclure les slots de tous les groupes où la famille est membre
-      expect(result).toHaveLength(7);
+      expect(result.success).toBe(true);
+      expect(result.data?.days).toHaveLength(7);
 
-      const transportsWithVehicles = result.filter(d => d.transports.length > 0);
+      const transportsWithVehicles = result.data?.days.filter(d => d.transports.length > 0);
       expect(transportsWithVehicles.length).toBeGreaterThan(2);
 
       // Vérifier que chaque transport a au moins un véhicule
@@ -314,9 +326,9 @@ describe('DashboardService Integration Tests', () => {
         },
       });
 
-      await expect(
-        prisma.dashboardService.getWeeklyDashboard(userNoFamily.id)
-      ).rejects.toThrow('User has no family');
+      const result = await dashboardService.getWeeklyDashboard(userNoFamily.id);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User has no family');
     });
   });
 });
@@ -338,20 +350,20 @@ async function createTestData() {
       data: {
         name: 'Test Group',
         inviteCode: 'INTEGRATION_TEST',
-        familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }))!.id,
+        familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }}))!.id,
       },
     }),
     vehicle: await prisma.vehicle.create({
       data: {
         name: 'Integration Vehicle',
         capacity: 6,
-        familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }))!.id,
+        familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }}))!.id,
       },
     }),
     child: await prisma.child.create({
       data: {
         name: 'Integration Child',
-        familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }))!.id,
+        familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }}))!.id,
       },
     },
   };

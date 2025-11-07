@@ -203,4 +203,88 @@ export class DashboardController {
       });
     }
   }
+
+  async getWeeklyDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      logger.debug('getWeeklyDashboard: Received request', {
+        userId: req.user?.id,
+        userEmail: req.user?.email,
+      });
+
+      // Per specification lines 94-101: Extract familyId from authenticated user
+      const authenticatedUserId = req.user?.id;
+
+      if (!authenticatedUserId) {
+        logger.error('getWeeklyDashboard: Authentication required', { userId: req.userId });
+        res.status(401).json({
+          success: false,
+          error: 'Unauthorized',
+        });
+        return;
+      }
+
+      // Get user's family ID using the service method
+      const authenticatedFamilyId = await this.dashboardService.getUserFamilyId(authenticatedUserId);
+
+      if (!authenticatedFamilyId) {
+        logger.error('getWeeklyDashboard: No family associated with user', { userId: authenticatedUserId });
+        res.status(401).json({
+          success: false,
+          error: 'No family associated with user',
+        });
+        return;
+      }
+
+      // Parse optional startDate parameter per specification lines 116-124
+      let startDate: Date | undefined;
+      if (req.query.startDate) {
+        const parsed = new Date(req.query.startDate as string);
+        if (isNaN(parsed.getTime())) {
+          res.status(400).json({
+            success: false,
+            error: 'Invalid date format. Use YYYY-MM-DD format.',
+          });
+          return;
+        }
+        startDate = parsed;
+      }
+
+      logger.debug('getWeeklyDashboard: Getting weekly dashboard', {
+        userId: authenticatedUserId,
+        familyId: authenticatedFamilyId,
+        startDate,
+      });
+
+      // Use the service method which now returns WeeklyDashboardResponse
+      const dashboardResponse = await this.dashboardService.getWeeklyDashboard(authenticatedUserId, startDate);
+
+      logger.debug('getWeeklyDashboard: Weekly dashboard retrieved', {
+        userId: authenticatedUserId,
+        familyId: authenticatedFamilyId,
+        startDate,
+        success: dashboardResponse.success,
+        hasData: !!dashboardResponse.data,
+      });
+
+      // Return the response directly from the service
+      if (dashboardResponse.success) {
+        res.status(200).json(dashboardResponse);
+      } else {
+        // Handle error responses from service
+        const statusCode = dashboardResponse.statusCode || 500;
+        res.status(statusCode).json(dashboardResponse);
+      }
+    } catch (error) {
+      logger.error('getWeeklyDashboard: Error occurred', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId: req.user?.id,
+      });
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        statusCode: 500,
+      });
+    }
+  }
 }

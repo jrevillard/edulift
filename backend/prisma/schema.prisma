@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
@@ -12,188 +9,156 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  timezone  String   @default("UTC") // IANA timezone (e.g., "Europe/Paris")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  familyGroupsAdded     GroupFamilyMember[]   @relation("GroupFamilyMemberAddedBy")
-  drivenVehicles        ScheduleSlotVehicle[] @relation("ScheduleSlotVehicleDriver")
-  magicLinks            MagicLink[]
-  addedChildrenToGroups GroupChildMember[]    @relation("GroupChildMemberAddedBy")
-  activityLogs          ActivityLog[]
-  familyMemberships     FamilyMember[]
-  fcmTokens             FcmToken[]           // FCM tokens for push notifications
-  refreshTokens         RefreshToken[]       // Refresh tokens for auth
-
-  // Family invitation relations
-  sentFamilyInvitations    FamilyInvitation[] @relation("FamilyInvitationsInvitedBy")
-  createdFamilyInvitations FamilyInvitation[] @relation("FamilyInvitationsCreatedBy")
-  acceptedFamilyInvitations FamilyInvitation[] @relation("FamilyInvitationsAcceptedBy")
-
-  // Group invitation relations
-  sentGroupInvitations    GroupInvitation[] @relation("GroupInvitationsInvitedBy")
-  createdGroupInvitations GroupInvitation[] @relation("GroupInvitationsCreatedBy")
-  acceptedGroupInvitations GroupInvitation[] @relation("GroupInvitationsAcceptedBy")
+  id                        String                @id @default(cuid())
+  email                     String                @unique
+  name                      String
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+  timezone                  String                @default("UTC")
+  activityLogs              ActivityLog[]
+  acceptedFamilyInvitations FamilyInvitation[]    @relation("FamilyInvitationsAcceptedBy")
+  createdFamilyInvitations  FamilyInvitation[]    @relation("FamilyInvitationsCreatedBy")
+  sentFamilyInvitations     FamilyInvitation[]    @relation("FamilyInvitationsInvitedBy")
+  familyMemberships         FamilyMember[]
+  fcmTokens                 FcmToken[]
+  addedChildrenToGroups     GroupChildMember[]    @relation("GroupChildMemberAddedBy")
+  familyGroupsAdded         GroupFamilyMember[]   @relation("GroupFamilyMemberAddedBy")
+  acceptedGroupInvitations  GroupInvitation[]     @relation("GroupInvitationsAcceptedBy")
+  createdGroupInvitations   GroupInvitation[]     @relation("GroupInvitationsCreatedBy")
+  sentGroupInvitations      GroupInvitation[]     @relation("GroupInvitationsInvitedBy")
+  magicLinks                MagicLink[]
+  refreshTokens             RefreshToken[]
+  drivenVehicles            ScheduleSlotVehicle[] @relation("ScheduleSlotVehicleDriver")
 
   @@map("users")
 }
 
 model Group {
-  id              String   @id @default(cuid())
-  name            String
-  description     String?  // Optional group description
-  inviteCode      String   @unique  // Unique invite code for joining the group
-  familyId        String   // Owning family (creator/owner of the group)
-  timezone        String   @default("UTC") // IANA timezone for the group (e.g., "Asia/Tokyo", "Europe/Paris")
-  operatingHours  Json?    // Operating hours constraint: { "start_hour": "08:00", "end_hour": "20:00" }
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  ownerFamily            Family                    @relation("GroupFamily", fields: [familyId], references: [id], onDelete: Cascade)
-  familyMembers          GroupFamilyMember[]       // Other families participating in this group
-  scheduleSlots          ScheduleSlot[]
-  childMembers           GroupChildMember[]
-  invitations            GroupInvitation[]
-  scheduleConfig         GroupScheduleConfig?      // Optional schedule configuration
+  id             String               @id @default(cuid())
+  name           String
+  inviteCode     String               @unique
+  familyId       String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  description    String?
+  operatingHours Json?
+  timezone       String               @default("UTC")
+  childMembers   GroupChildMember[]
+  familyMembers  GroupFamilyMember[]
+  invitations    GroupInvitation[]
+  scheduleConfig GroupScheduleConfig?
+  ownerFamily    Family               @relation("GroupFamily", fields: [familyId], references: [id], onDelete: Cascade)
+  scheduleSlots  ScheduleSlot[]
 
   @@map("groups")
 }
 
 model GroupScheduleConfig {
   id            String   @id @default(cuid())
-  groupId       String   @unique // One-to-one relationship with Group
-  scheduleHours Json     // JSON structure: { 'MONDAY': ['07:00', '07:30'], 'TUESDAY': ['08:00'], ... }
+  groupId       String   @unique
+  scheduleHours Json
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-
-  // Relations
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group         Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@map("group_schedule_configs")
 }
 
-// Family-level group membership
-// Note: This represents which families can participate in which groups
-// Group administration is determined by Family ADMIN members, not this role
 model GroupFamilyMember {
-  familyId String
-  groupId  String
-  role     GroupRole @default(MEMBER) // ADMIN=full group access, MEMBER=limited access
-  addedBy  String    // User who added the family to the group
-  joinedAt DateTime  @default(now())
-
-  // Relations
-  family      Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  group       Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  addedByUser User   @relation("GroupFamilyMemberAddedBy", fields: [addedBy], references: [id], onDelete: Cascade)
+  familyId    String
+  groupId     String
+  role        GroupRole @default(MEMBER)
+  addedBy     String
+  joinedAt    DateTime  @default(now())
+  addedByUser User      @relation("GroupFamilyMemberAddedBy", fields: [addedBy], references: [id], onDelete: Cascade)
+  family      Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  group       Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@id([familyId, groupId])
   @@map("group_family_members")
 }
 
-enum GroupRole {
-  ADMIN
-  MEMBER
-}
-
 model GroupChildMember {
-  childId String
-  groupId String
-  addedBy String
-  addedAt DateTime @default(now())
-
-  // Relations
-  child       Child @relation(fields: [childId], references: [id], onDelete: Cascade)
-  group       Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  addedByUser User  @relation("GroupChildMemberAddedBy", fields: [addedBy], references: [id], onDelete: Cascade)
+  childId     String
+  groupId     String
+  addedBy     String
+  addedAt     DateTime @default(now())
+  addedByUser User     @relation("GroupChildMemberAddedBy", fields: [addedBy], references: [id], onDelete: Cascade)
+  child       Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@id([childId, groupId])
   @@map("group_child_members")
 }
 
 model Child {
-  id       String @id @default(cuid())
-  name     String
-  age      Int?
-  familyId String  // Required - child must belong to a family
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  family Family @relation("FamilyChildren", fields: [familyId], references: [id], onDelete: Cascade)
+  id                      String              @id @default(cuid())
+  name                    String
+  age                     Int?
+  familyId                String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  family                  Family              @relation("FamilyChildren", fields: [familyId], references: [id], onDelete: Cascade)
+  groupMemberships        GroupChildMember[]
   scheduleSlotAssignments ScheduleSlotChild[]
-  groupMemberships GroupChildMember[]
 
   @@map("children")
 }
 
 model Vehicle {
-  id       String @id @default(cuid())
-  name     String
-  capacity Int
-  familyId String  // Required - vehicle must belong to a family
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  family Family @relation("FamilyVehicles", fields: [familyId], references: [id], onDelete: Cascade)
+  id                      String                @id @default(cuid())
+  name                    String
+  capacity                Int
+  familyId                String
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
   scheduleSlotAssignments ScheduleSlotVehicle[]
+  family                  Family                @relation("FamilyVehicles", fields: [familyId], references: [id], onDelete: Cascade)
 
   @@map("vehicles")
 }
 
 model ScheduleSlot {
-  id        String   @id @default(cuid())
-  groupId   String
-  datetime  DateTime // UTC datetime when the schedule slot occurs (stored as UTC, client handles timezone conversion)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  id                 String                @id @default(cuid())
+  groupId            String
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  datetime           DateTime
+  childAssignments   ScheduleSlotChild[]
   vehicleAssignments ScheduleSlotVehicle[]
-  childAssignments ScheduleSlotChild[]
+  group              Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, datetime])
   @@map("schedule_slots")
 }
 
 model ScheduleSlotVehicle {
-  id             String @id @default(cuid())
-  scheduleSlotId String
-  vehicleId      String
-  driverId       String?
-  seatOverride   Int? // Override the default vehicle capacity for this specific assignment
-  createdAt      DateTime @default(now())
-
-  // Relations
-  scheduleSlot     ScheduleSlot      @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
-  vehicle          Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  driver           User?             @relation("ScheduleSlotVehicleDriver", fields: [driverId], references: [id], onDelete: SetNull)
-  childAssignments ScheduleSlotChild[] // Children assigned to this specific vehicle
+  id               String              @id @default(cuid())
+  scheduleSlotId   String
+  vehicleId        String
+  driverId         String?
+  createdAt        DateTime            @default(now())
+  seatOverride     Int?
+  childAssignments ScheduleSlotChild[]
+  driver           User?               @relation("ScheduleSlotVehicleDriver", fields: [driverId], references: [id])
+  scheduleSlot     ScheduleSlot        @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
+  vehicle          Vehicle             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
   @@unique([scheduleSlotId, vehicleId])
   @@map("schedule_slot_vehicles")
 }
 
 model ScheduleSlotChild {
-  scheduleSlotId       String
-  childId              String
-  vehicleAssignmentId  String
-  assignedAt           DateTime @default(now())
-
-  // Relations
-  scheduleSlot         ScheduleSlot        @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
-  child                Child               @relation(fields: [childId], references: [id], onDelete: Cascade)
-  vehicleAssignment    ScheduleSlotVehicle @relation(fields: [vehicleAssignmentId], references: [id], onDelete: Cascade)
+  scheduleSlotId      String
+  childId             String
+  vehicleAssignmentId String
+  assignedAt          DateTime            @default(now())
+  child               Child               @relation(fields: [childId], references: [id], onDelete: Cascade)
+  scheduleSlot        ScheduleSlot        @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
+  vehicleAssignment   ScheduleSlotVehicle @relation(fields: [vehicleAssignmentId], references: [id], onDelete: Cascade)
 
   @@id([scheduleSlotId, childId])
-  @@unique([vehicleAssignmentId, childId]) // Ensure child can't be assigned to same vehicle twice
+  @@unique([vehicleAssignmentId, childId])
   @@map("schedule_slot_children")
 }
 
@@ -203,10 +168,8 @@ model MagicLink {
   userId        String
   expiresAt     DateTime
   used          Boolean  @default(false)
-  codeChallenge String  // PKCE: SHA256 hash of code_verifier, base64url encoded (43-128 chars)
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeChallenge String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([codeChallenge])
   @@index([token, codeChallenge])
@@ -214,88 +177,147 @@ model MagicLink {
 }
 
 model ActivityLog {
-  id               String   @id @default(cuid())
-  userId           String
-  actionType       String   // GROUP_JOIN, GROUP_CREATE, CHILD_ADD, VEHICLE_ADD, SCHEDULE_UPDATE, etc.
-  actionDescription String   // Human-readable description
-  entityType       String?  // group, child, vehicle, schedule, etc.
-  entityId         String?  // The ID of the entity involved
-  entityName       String?  // The name of the entity for display
-  metadata         Json?    // Additional data about the action
-  createdAt        DateTime @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  userId            String
+  actionType        String
+  actionDescription String
+  entityType        String?
+  entityId          String?
+  entityName        String?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("activity_logs")
 }
 
-// Family system models
 model Family {
-  id          String   @id @default(cuid())
-  name        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  members                FamilyMember[]
-  children               Child[]                    @relation("FamilyChildren")
-  vehicles               Vehicle[]                  @relation("FamilyVehicles")
-  invitations            FamilyInvitation[]
-  ownedGroups            Group[]                    @relation("GroupFamily")           // Groups owned by this family
-  groupMembers           GroupFamilyMember[]                                          // Groups this family participates in
-  targetedGroupInvitations GroupInvitation[]        @relation("GroupInvitationTargetFamily") // Group invitations targeting this family
+  id                       String              @id @default(cuid())
+  name                     String
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  children                 Child[]             @relation("FamilyChildren")
+  invitations              FamilyInvitation[]
+  members                  FamilyMember[]
+  groupMembers             GroupFamilyMember[]
+  targetedGroupInvitations GroupInvitation[]   @relation("GroupInvitationTargetFamily")
+  ownedGroups              Group[]             @relation("GroupFamily")
+  vehicles                 Vehicle[]           @relation("FamilyVehicles")
 
   @@map("families")
 }
 
 model FamilyMember {
-  id        String   @id @default(cuid())
-  familyId  String
-  userId    String
-  role      FamilyRole @default(MEMBER)
-  joinedAt  DateTime @default(now())
-
-  // Relations
-  family    Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String     @id @default(cuid())
+  familyId String
+  userId   String
+  role     FamilyRole @default(MEMBER)
+  joinedAt DateTime   @default(now())
+  family   Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([familyId, userId])
   @@map("family_members")
 }
 
-enum FamilyRole {
+model FamilyInvitation {
+  id              String                 @id @default(cuid())
+  familyId        String
+  email           String?
+  role            FamilyRole             @default(MEMBER)
+  personalMessage String?
+  invitedBy       String
+  status          FamilyInvitationStatus @default(PENDING)
+  inviteCode      String
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  acceptedBy      String?
+  createdBy       String
+  acceptedByUser  User?                  @relation("FamilyInvitationsAcceptedBy", fields: [acceptedBy], references: [id])
+  createdByUser   User                   @relation("FamilyInvitationsCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  family          Family                 @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  invitedByUser   User                   @relation("FamilyInvitationsInvitedBy", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@index([inviteCode, status])
+  @@index([familyId, status, expiresAt])
+  @@index([email, status, expiresAt])
+  @@map("family_invitations")
+}
+
+model GroupInvitation {
+  id              String                @id @default(cuid())
+  groupId         String
+  email           String?
+  role            String                @default("MEMBER")
+  personalMessage String?
+  invitedBy       String
+  status          GroupInvitationStatus @default(PENDING)
+  inviteCode      String
+  expiresAt       DateTime
+  acceptedAt      DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  acceptedBy      String?
+  createdBy       String
+  targetFamilyId  String?
+  acceptedByUser  User?                 @relation("GroupInvitationsAcceptedBy", fields: [acceptedBy], references: [id])
+  createdByUser   User                  @relation("GroupInvitationsCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  group           Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitedByUser   User                  @relation("GroupInvitationsInvitedBy", fields: [invitedBy], references: [id], onDelete: Cascade)
+  targetFamily    Family?               @relation("GroupInvitationTargetFamily", fields: [targetFamilyId], references: [id], onDelete: Cascade)
+
+  @@index([inviteCode, status])
+  @@index([groupId, status, expiresAt])
+  @@index([targetFamilyId, status, expiresAt])
+  @@index([email, status, expiresAt])
+  @@map("group_invitations")
+}
+
+model FcmToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  deviceId  String?
+  platform  String
+  isActive  Boolean  @default(true)
+  lastUsed  DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isActive])
+  @@index([token])
+  @@index([lastUsed])
+  @@map("fcm_tokens")
+}
+
+model RefreshToken {
+  id          String    @id @default(cuid())
+  userId      String
+  token       String    @unique
+  tokenFamily String    @default(cuid())
+  isRevoked   Boolean   @default(false)
+  usedAt      DateTime?
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenFamily])
+  @@map("refresh_tokens")
+}
+
+enum GroupRole {
   ADMIN
   MEMBER
 }
 
-model FamilyInvitation {
-  id              String   @id @default(cuid())
-  familyId        String
-  email           String?  // Nullable for public invitations
-  role            FamilyRole @default(MEMBER)
-  personalMessage String?
-  invitedBy       String
-  createdBy       String   // Who created the invitation
-  acceptedBy      String?  // Who accepted the invitation
-  status          FamilyInvitationStatus @default(PENDING)
-  inviteCode      String   // Code d'invitation utilisé
-  expiresAt       DateTime
-  acceptedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  family          Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  invitedByUser   User   @relation("FamilyInvitationsInvitedBy", fields: [invitedBy], references: [id], onDelete: Cascade)
-  createdByUser   User   @relation("FamilyInvitationsCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
-  acceptedByUser  User?  @relation("FamilyInvitationsAcceptedBy", fields: [acceptedBy], references: [id], onDelete: SetNull)
-
-  @@index([inviteCode, status]) // Index for fast invitation validation
-  @@index([familyId, status, expiresAt]) // Index for listing family invitations
-  @@index([email, status, expiresAt]) // Index for finding user's pending invitations
-  @@map("family_invitations")
+enum FamilyRole {
+  ADMIN
+  MEMBER
 }
 
 enum FamilyInvitationStatus {
@@ -305,82 +327,9 @@ enum FamilyInvitationStatus {
   CANCELLED
 }
 
-model GroupInvitation {
-  id              String   @id @default(cuid())
-  groupId         String
-  targetFamilyId  String?  // Target family for family-based invitations
-  email           String?  // Nullable for public invitations
-  role            String   @default("MEMBER") // ADMIN, MEMBER
-  personalMessage String?
-  invitedBy       String
-  createdBy       String   // Who created the invitation
-  acceptedBy      String?  // Who accepted the invitation
-  status          GroupInvitationStatus @default(PENDING)
-  inviteCode      String   // Code d'invitation utilisé
-  expiresAt       DateTime
-  acceptedAt      DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  group           Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  targetFamily    Family? @relation("GroupInvitationTargetFamily", fields: [targetFamilyId], references: [id], onDelete: Cascade)
-  invitedByUser   User  @relation("GroupInvitationsInvitedBy", fields: [invitedBy], references: [id], onDelete: Cascade)
-  createdByUser   User  @relation("GroupInvitationsCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
-  acceptedByUser  User? @relation("GroupInvitationsAcceptedBy", fields: [acceptedBy], references: [id], onDelete: SetNull)
-
-  @@index([inviteCode, status]) // Index for fast invitation validation
-  @@index([groupId, status, expiresAt]) // Index for listing group invitations
-  @@index([targetFamilyId, status, expiresAt]) // Index for family-targeted invitations
-  @@index([email, status, expiresAt]) // Index for finding user's pending invitations
-  @@map("group_invitations")
-}
-
 enum GroupInvitationStatus {
   PENDING
   ACCEPTED
   EXPIRED
   CANCELLED
 }
-
-// FCM (Firebase Cloud Messaging) tokens for push notifications
-model FcmToken {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique // FCM registration token
-  deviceId  String?  // Optional device identifier for deduplication
-  platform  String   // 'android', 'ios', 'web'
-  isActive  Boolean  @default(true) // For soft deletion/deactivation
-  lastUsed  DateTime @default(now()) // Track when token was last confirmed valid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, isActive]) // Index for retrieving user's active tokens
-  @@index([token]) // Index for token lookup
-  @@index([lastUsed]) // Index for cleanup operations
-  @@map("fcm_tokens")
-}
-
-// Refresh tokens for secure authentication with rotation
-model RefreshToken {
-  id           String   @id @default(cuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  token        String   @unique  // Hashed SHA256
-  tokenFamily  String   @default(cuid())  // For detecting token theft
-
-  isRevoked    Boolean  @default(false)
-  usedAt       DateTime?  // For detecting reuse attacks
-
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-
-  @@index([userId])
-  @@index([tokenFamily])
-  @@map("refresh_tokens")
-}
-

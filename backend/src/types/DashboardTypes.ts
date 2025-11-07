@@ -29,12 +29,30 @@ export interface VehicleAssignmentSummary {
   driver?: {
     id: string;
     name: string;
-  };
+  } | undefined;
+  // Optional children details for API responses
+  children?: {
+    childId: string;
+    childName: string;
+    childFamilyId: string;
+    isFamilyChild: boolean;
+  }[];
 }
 
 export interface WeeklyDashboardResponse {
   success: boolean;
-  data: {
+  data?: {
     days: DayTransportSummary[];
+    startDate?: string;
+    endDate?: string;
+    generatedAt?: string;
+    metadata?: {
+      familyId?: string;
+      familyName?: string;
+      totalGroups?: number;
+      totalChildren?: number;
+    };
   };
+  error?: string;
+  statusCode?: number;
 }

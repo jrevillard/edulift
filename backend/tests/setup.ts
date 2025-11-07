@@ -1,48 +1,20 @@
-import { PrismaClient } from '@prisma/client';
-import { execSync } from 'child_process';
-import * as path from 'path';
-import * as fs from 'fs';
+import { createDashboardExtension } from '../src/extensions/prisma-dashboard-extension';
 
-// Configuration pour la base de données de test SQLite
-const testDatabaseUrl = 'file:./test.db';
+// Use the same Prisma client configuration as the main application
+// This ensures tests run against the same database type
+import { prisma as mainPrisma } from '../src/config/database';
 
-// Prisma client pour les tests d'intégration
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: testDatabaseUrl,
-    },
-  },
-  log: ['query', 'info', 'warn', 'error'],
-});
+const basePrisma = mainPrisma;
+
+// Extend Prisma with dashboard service functionality
+export const prisma = createDashboardExtension(basePrisma);
 
 // Configuration de la base de données de test
 beforeAll(async () => {
-  // S'assurer que le fichier de base de données n'existe pas
-  const dbPath = path.join(__dirname, 'test.db');
-  if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath);
-  }
-
-  // Appliquer le schéma Prisma
+  // Use the existing database connection
   try {
     await prisma.$connect();
-
-    // Exécuter les migrations de test si nécessaire
-    try {
-      execSync('npx prisma db push --skip-seed', {
-        cwd: '/workspace/backend',
-        env: {
-          DATABASE_URL: testDatabaseUrl,
-          NODE_ENV: 'test'
-        },
-        stdio: 'pipe'
-      });
-    } catch (error) {
-      // Si les migrations n'existent pas, créer les tables directement
-      console.log('Creating test database schema...');
-      // Ici on peut créer les tables manuellement si nécessaire
-    }
+    console.log('Connected to test database successfully');
   } catch (error) {
     console.error('Failed to connect to test database:', error);
     throw error;
@@ -52,12 +24,6 @@ beforeAll(async () => {
 // Nettoyage après les tests
 afterAll(async () => {
   await prisma.$disconnect();
-
-  // Supprimer le fichier de base de données de test
-  const dbPath = path.join(__dirname, 'test.db');
-  if (fs.existsSync(dbPath)) {
-    fs.unlinkSync(dbPath);
-  }
 });
 
 // Utilitaires pour créer des données de test réalistes
@@ -175,13 +141,13 @@ afterEach(async () => {
     'group',
     'groupFamilyMember',
     'familyMember',
-    'user'
+    'user',
   ];
 
   for (const table of tables) {
       try {
-        await prisma[table].deleteMany({});
-      } catch (error) {
+        await (prisma as any)[table].deleteMany({});
+      } catch {
         // Ignorer les erreurs de nettoyage
       }
     }
