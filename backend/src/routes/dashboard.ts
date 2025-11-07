@@ -21,11 +21,6 @@ router.get('/today-schedule', asyncHandler(async (req: AuthenticatedRequest, res
   await dashboardController.getTodaySchedule(req, res);
 }));
 
-// Weekly schedule
-router.get('/weekly-schedule', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  await dashboardController.getWeeklySchedule(req, res);
-}));
-
 // Weekly dashboard (main endpoint)
 router.get('/weekly', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   await dashboardController.getWeeklyDashboard(req, res);

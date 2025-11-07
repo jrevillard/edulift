@@ -100,49 +100,7 @@ export class DashboardController {
     }
   }
 
-  async getWeeklySchedule(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
-      logger.debug('getWeeklySchedule: Received request', {
-        userId: req.user?.id,
-        userEmail: req.user?.email,
-      });
-
-      // Check authentication
-      if (!req.user) {
-        logger.error('getWeeklySchedule: Authentication required', { userId: req.userId });
-        res.status(401).json({
-          success: false,
-          error: 'Unauthorized',
-        });
-        return;
-      }
-
-      const userId = req.user.id;
-      logger.debug('getWeeklySchedule: Calling service', { userId });
-      const upcomingTrips = await this.dashboardService.getWeeklyTripsForUser(userId);
-
-      logger.debug('getWeeklySchedule: Weekly schedule retrieved', {
-        userId,
-        tripCount: upcomingTrips.length,
-      });
-
-      res.status(200).json({
-        success: true,
-        data: { upcomingTrips },
-      });
-    } catch (error) {
-      logger.error('getWeeklySchedule: Error occurred', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        userId: req.user?.id,
-      });
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
-      });
-    }
-  }
-
+  
   async getRecentActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       logger.debug('getRecentActivity: Received request', {

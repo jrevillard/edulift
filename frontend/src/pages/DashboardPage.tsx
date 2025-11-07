@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/empty-states';
 import { GroupMembershipWarning } from '../components/GroupMembershipWarning';
 import { PageLayout, LoadingState } from '@/components/ui/page-layout';
 import { formatDatetimeInTimezone } from '../utils/timezoneUtils';
+import type { WeeklyDashboardResponse } from '../types/dashboard';
 import {
   Users,
   Car,
@@ -26,6 +27,46 @@ import {
   Sparkles,
   User
 } from 'lucide-react';
+
+// Helper function to transform new WeeklyDashboardResponse format to legacy TodayTrip format
+const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardResponse | undefined) => {
+  if (!weeklyDashboard?.data?.days) return [];
+
+  const trips: any[] = [];
+
+  weeklyDashboard.data.days.forEach(day => {
+    day.transports.forEach(transport => {
+      transport.vehicleAssignmentSummaries.forEach(vehicle => {
+        // Create a trip object compatible with existing component
+        trips.push({
+          id: `${day.date}-${transport.time}-${vehicle.vehicleId}`,
+          time: transport.time,
+          datetime: `${day.date}T${transport.time}:00Z`,
+          destination: transport.destination,
+          type: transport.destination.toLowerCase().includes('school') ? 'pickup' : 'dropoff',
+          date: day.date,
+          vehicle: {
+            id: vehicle.vehicleId,
+            name: vehicle.vehicleName,
+            capacity: vehicle.vehicleCapacity
+          },
+          driver: vehicle.driver,
+          children: vehicle.children?.map(child => ({
+            id: child.childId,
+            name: child.childName
+          })) || [],
+          group: {
+            id: 'default-group',
+            name: 'Default Group'
+          }
+        });
+      });
+    });
+  });
+
+  // Sort by datetime
+  return trips.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+};
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
@@ -41,8 +82,8 @@ const DashboardPage: React.FC = () => {
 
 
   // Fetch this week's trips with shorter cache for real-time updates
-  const { data: weeklySchedule, isLoading: scheduleLoading, error: scheduleError } = useQuery({
-    queryKey: ['weekly-schedule', user?.id],
+  const { data: weeklyDashboard, isLoading: scheduleLoading, error: scheduleError } = useQuery({
+    queryKey: ['weekly-dashboard', user?.id],
     queryFn: () => apiService.getDashboardWeeklySchedule(),
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes for weekly data
@@ -61,6 +102,9 @@ const DashboardPage: React.FC = () => {
   });
 
   const isDataLoading = scheduleLoading || activityLoading;
+
+  // Transform weekly dashboard data to legacy format for compatibility
+  const upcomingTrips = transformWeeklyDashboardToTrips(weeklyDashboard);
 
 
   const quickActions = [
@@ -298,9 +342,9 @@ const DashboardPage: React.FC = () => {
                     className="border-0 shadow-none"
                     data-testid="DashboardPage-Container-unableToLoadSchedule"
                   />
-                ) : weeklySchedule?.upcomingTrips?.length ? (
+                ) : upcomingTrips?.length ? (
                   <div className="space-y-4">
-                    {weeklySchedule.upcomingTrips.map((trip) => (
+                    {upcomingTrips.map((trip) => (
                       <div key={trip.id} className="group p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-md hover:border-primary/30 transition-all duration-200">
                         <div className="flex items-start gap-4">
                           <Badge 
@@ -347,7 +391,7 @@ const DashboardPage: React.FC = () => {
                               <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30">
                                 <User className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                                 <div className="flex flex-wrap gap-2">
-                                  {trip.children.map((child) => (
+                                  {trip.children.map((child: any) => (
                                     <Badge key={child.id} variant="outline" className="text-xs font-medium bg-white dark:bg-slate-800">
                                       {child.name}
                                     </Badge>

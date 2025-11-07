@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { ApiResponse } from '@/types';
+import type { WeeklyDashboardResponse } from '@/types/dashboard';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -228,6 +229,49 @@ export interface RecentActivity {
   activities: ActivityItem[];
 }
 
+// Weekly Dashboard Types (backend correspondence)
+export type CapacityStatus = 'available' | 'limited' | 'full' | 'overcapacity';
+
+export interface DayTransportSummary {
+  date: string; // ISO date (YYYY-MM-DD)
+  transports: TransportSlotSummary[];
+  totalChildrenInVehicles: number;
+  totalVehiclesWithAssignments: number;
+  hasScheduledTransports: boolean;
+}
+
+export interface TransportSlotSummary {
+  time: string; // Format HH:mm
+  destination: string;
+  vehicleAssignmentSummaries: VehicleAssignmentSummary[];
+  totalChildrenAssigned: number;
+  totalCapacity: number;
+  overallCapacityStatus: CapacityStatus;
+}
+
+export interface VehicleAssignmentSummary {
+  vehicleId: string;
+  vehicleName: string;
+  vehicleCapacity: number;
+  assignedChildrenCount: number;
+  availableSeats: number;
+  capacityStatus: CapacityStatus;
+  vehicleFamilyId: string;
+  isFamilyVehicle: boolean;
+  driver?: {
+    id: string;
+    name: string;
+  } | undefined;
+  // Optional children details for API responses
+  children?: {
+    childId: string;
+    childName: string;
+    childFamilyId: string;
+    isFamilyChild: boolean;
+  }[];
+}
+
+
 export interface FamilySearchResult {
   id: string;
   name: string;
@@ -269,23 +313,6 @@ export interface PendingGroupInvitation {
     id: string;
     name: string;
     inviteCode: string;
-  };
-}
-
-export interface GroupInvitationEligibility {
-  canJoin?: boolean;
-  requiresAccountCreation?: boolean;
-  requiresFamilyCreation?: boolean;
-  cannotJoin?: boolean;
-  reason?: string;
-  redirectTo?: string;
-  userFamily?: {
-    id: string;
-    name: string;
-  };
-  groupInfo?: {
-    id: string;
-    name: string;
   };
 }
 
@@ -820,14 +847,14 @@ class ApiService {
     return response.data.data;
   }
 
-  async getDashboardWeeklySchedule(): Promise<TodaySchedule> {
-    const response = await axios.get<ApiResponse<TodaySchedule>>(`${API_BASE_URL}/dashboard/weekly-schedule`);
+  async getDashboardWeeklySchedule(): Promise<WeeklyDashboardResponse> {
+    const response = await axios.get<WeeklyDashboardResponse>(`${API_BASE_URL}/dashboard/weekly`);
 
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.error || 'Failed to fetch weekly schedule');
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to fetch weekly dashboard');
     }
 
-    return response.data.data;
+    return response.data;
   }
 
   async getRecentActivity(): Promise<RecentActivity> {
@@ -838,6 +865,17 @@ class ApiService {
     }
 
     return response.data.data;
+  }
+
+  async getWeeklyDashboard(startDate?: string): Promise<WeeklyDashboardResponse> {
+    const queryParams = startDate ? `?startDate=${startDate}` : '';
+    const response = await axios.get<WeeklyDashboardResponse>(`${API_BASE_URL}/dashboard/weekly${queryParams}`);
+
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to fetch weekly dashboard');
+    }
+
+    return response.data;
   }
 
   // Pending Group Invitation Management

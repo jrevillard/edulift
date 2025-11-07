@@ -156,11 +156,24 @@ export class DashboardService {
 
   async getWeeklyTripsForUser(userId: string): Promise<TodayTrip[]> {
     try {
-      // Get this week's schedule slots for the user
-      const weeklySlots = await this.getWeeklyScheduleSlotsForUser(userId);
+      // Get user's family first for optimized queries
+      const userFamily = await this.getUserFamily(userId);
+      if (!userFamily) {
+        return [];
+      }
+
+      // Get week date range
+      const today = new Date();
+      const weekStart = this.getWeekStartDate(today);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setUTCHours(23, 59, 59, 999);
+
+      // Get this week's schedule slots using optimized method
+      const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, weekStart, weekEnd);
 
       // Transform schedule slots to trip format with optimized data
-      const trips: TodayTrip[] = weeklySlots.map(slot => ({
+      const trips: TodayTrip[] = weeklySlots.map((slot: any) => ({
         id: slot.id,
         time: this.formatTimeFromDatetime(slot.datetime),
         datetime: slot.datetime.toISOString(), // Include full datetime for frontend timezone conversion
@@ -976,135 +989,4 @@ export class DashboardService {
     return familyMember?.family || null;
   }
 
-  private async getWeeklyScheduleSlotsForUser(userId: string): Promise<any[]> {
-    try {
-      // Get current week date range
-      const today = new Date();
-      const weekStart = this.getWeekStartDate(today);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      weekEnd.setUTCHours(23, 59, 59, 999);
-
-      // Find all schedule slots for this week where user is involved
-      const scheduleSlots = await this.prisma.scheduleSlot.findMany({
-        where: {
-          datetime: {
-            gte: weekStart,
-            lte: weekEnd,
-          },
-          OR: [
-            // User's family has access to the group
-            {
-              group: {
-                OR: [
-                  // User's family owns the group
-                  {
-                    ownerFamily: {
-                      members: {
-                        some: {
-                          userId,
-                        },
-                      },
-                    },
-                  },
-                  // User's family is a member of the group
-                  {
-                    familyMembers: {
-                      some: {
-                        family: {
-                          members: {
-                            some: {
-                              userId,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                ],
-              },
-            },
-            // User is driving a vehicle in this slot
-            {
-              vehicleAssignments: {
-                some: {
-                  driverId: userId,
-                },
-              },
-            },
-            // User's family children are assigned to this slot
-            {
-              childAssignments: {
-                some: {
-                  child: {
-                    family: {
-                      members: {
-                        some: {
-                          userId,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          group: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          vehicleAssignments: {
-            include: {
-              vehicle: {
-                select: {
-                  id: true,
-                  name: true,
-                  capacity: true,
-                },
-              },
-              driver: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-          childAssignments: {
-            include: {
-              child: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-            where: {
-              child: {
-                family: {
-                  members: {
-                    some: {
-                      userId, // Only include user's family children
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: [
-          { datetime: 'asc' },
-        ],
-      });
-
-      return scheduleSlots;
-    } catch (error) {
-      logger.error('Failed to fetch weekly schedule slots', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, userId });
-      return [];
-    }
   }
-}
