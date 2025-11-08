@@ -16,7 +16,7 @@ services:
     networks:
       - edulift-dev-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U edulift -d edulift_dev"]
+      test: [ "CMD-SHELL", "pg_isready -U edulift -d edulift_dev" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -32,7 +32,7 @@ services:
     networks:
       - edulift-dev-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -57,7 +57,7 @@ services:
       EMAIL_PASSWORD: ""
       EMAIL_FROM: noreply@edulift-dev.com
       FRONTEND_URL: http://localhost:3000
-      DEEP_LINK_BASE_URL: edulift://
+      DEEP_LINK_BASE_URL: http://localhost:3000
       CORS_ORIGIN: "*"
     volumes:
       # Allow write access to uploads directory  
