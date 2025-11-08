@@ -24,13 +24,13 @@ describe('DashboardService Integration Tests', () => {
       'group',
       'groupFamilyMember',
       'familyMember',
-      'user'
+      'user',
     ];
 
     for (const table of tables) {
       try {
         await prisma[table].deleteMany({});
-      } catch (error) {
+      } catch {
         // Ignorer les erreurs de nettoyage
       }
     }
@@ -111,7 +111,7 @@ describe('DashboardService Integration Tests', () => {
       });
 
       // Slot sans véhicules - doit être filtré
-      const slot3 = await prisma.scheduleSlot.create({
+      const _slot3 = await prisma.scheduleSlot.create({
         data: {
           groupId: testData.group.id,
           datetime: new Date(Date.now() + 4 * 60 * 60 * 1000),
@@ -214,15 +214,15 @@ describe('DashboardService Integration Tests', () => {
       expect(dayTransports.length).toBe(3);
 
       const familyVehicles = dayTransports.filter(t =>
-        t.vehicleAssignmentSummaries.some(v => v.isFamilyVehicle)
+        t.vehicleAssignmentSummaries.some(v => v.isFamilyVehicle),
       );
       expect(familyVehicles.length).toBe(1);
 
       const hasFamilyChildren = dayTransports.every(t =>
         t.vehicleAssignmentSummaries.some(v =>
           v.assignedChildrenCount > 0 &&
-          v.children.some(c => c.childId === testData.child.id)
-        )
+          v.children.some(c => c.childId === testData.child.id),
+        ),
       );
       expect(hasFamilyChildren).toBe(true);
     });
@@ -311,8 +311,8 @@ describe('DashboardService Integration Tests', () => {
       // Vérifier que les enfants de famille sont bien inclus
       const hasFamilyChildrenInEach = transportsWithVehicles.every(d =>
         d.vehicleAssignmentSummaries.some(v =>
-          v.children.some(c => c.childId === testData.child.id)
-        )
+          v.children.some(c => c.childId === testData.child.id),
+        ),
       );
       expect(hasFamilyChildrenInEach).toBe(true);
     });
@@ -365,7 +365,7 @@ async function createTestData() {
         name: 'Integration Child',
         familyId: (await prisma.family.findFirst({ where: { name: 'Test Family' }}))!.id,
       },
-    },
+    }),
   };
 }
 

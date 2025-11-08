@@ -8,6 +8,36 @@ import { DayTransportSummary, TransportSlotSummary, VehicleAssignmentSummary, Ca
 
 const logger = createLogger('DashboardService');
 
+// Type definitions for Prisma entities to avoid 'any' types
+interface ScheduleSlotVehicleWithRelations {
+  id: string;
+  vehicle: {
+    id: string;
+    name: string;
+    capacity: number;
+  };
+  driver?: {
+    id: string;
+    name: string;
+  } | null;
+  childAssignments?: Array<{
+    child: {
+      id: string;
+      name: string;
+    };
+  }>;
+}
+
+interface ScheduleSlotWithRelations {
+  id: string;
+  datetime: Date;
+  group?: {
+    id: string;
+    name: string;
+  } | null;
+  vehicleAssignments?: ScheduleSlotVehicleWithRelations[];
+}
+
 export interface TrendData {
   value: string;
   direction: 'up' | 'down' | 'neutral';
@@ -123,8 +153,8 @@ export class DashboardService {
         destination: this.determineDestination(this.formatTimeFromDatetime(slot.datetime), slot.group?.name),
         type: this.determineType(this.formatTimeFromDatetime(slot.datetime)),
         date: 'Today',
-        children: slot.vehicleAssignments?.flatMap((va: any) =>
-          va.childAssignments?.map((assignment: { child: { id: string; name: string } }) => ({
+        children: slot.vehicleAssignments?.flatMap((va: ScheduleSlotVehicleWithRelations) =>
+          va.childAssignments?.map((assignment) => ({
             id: assignment.child.id,
             name: assignment.child.name,
           })) || [],
@@ -173,15 +203,15 @@ export class DashboardService {
       const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, weekStart, weekEnd);
 
       // Transform schedule slots to trip format with optimized data
-      const trips: TodayTrip[] = weeklySlots.map((slot: any) => ({
+      const trips: TodayTrip[] = weeklySlots.map((slot: ScheduleSlotWithRelations) => ({
         id: slot.id,
         time: this.formatTimeFromDatetime(slot.datetime),
         datetime: slot.datetime.toISOString(), // Include full datetime for frontend timezone conversion
         destination: this.determineDestination(this.formatTimeFromDatetime(slot.datetime), slot.group?.name),
         type: this.determineType(this.formatTimeFromDatetime(slot.datetime)),
         date: this.formatDateFromDatetime(slot.datetime),
-        children: slot.vehicleAssignments?.flatMap((va: any) =>
-          va.childAssignments?.map((assignment: { child: { id: string; name: string } }) => ({
+        children: slot.vehicleAssignments?.flatMap((va: ScheduleSlotVehicleWithRelations) =>
+          va.childAssignments?.map((assignment) => ({
             id: assignment.child.id,
             name: assignment.child.name,
           })) || [],
