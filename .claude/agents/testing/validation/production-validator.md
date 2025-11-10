@@ -290,7 +290,7 @@ const validateEnvironment = () => {
     'REDIS_URL', 
     'API_KEY',
     'SMTP_HOST',
-    'JWT_SECRET'
+    'JWT_ACCESS_SECRET'
   ];
   
   const missing = required.filter(key => !process.env[key]);

@@ -61,8 +61,6 @@ export interface TodayTrip {
   id: string;
   time: string; // UTC time in HH:MM format for backward compatibility
   datetime: string; // ISO 8601 datetime string for timezone conversion on frontend
-  destination: string;
-  type: 'pickup' | 'dropoff';
   date: string;
   children: {
     id: string;
@@ -150,8 +148,6 @@ export class DashboardService {
         id: slot.id,
         time: this.formatTimeFromDatetime(slot.datetime),
         datetime: slot.datetime.toISOString(), // Include full datetime for frontend timezone conversion
-        destination: this.determineDestination(this.formatTimeFromDatetime(slot.datetime), slot.group?.name),
-        type: this.determineType(this.formatTimeFromDatetime(slot.datetime)),
         date: 'Today',
         children: slot.vehicleAssignments?.flatMap((va: ScheduleSlotVehicleWithRelations) =>
           va.childAssignments?.map((assignment) => ({
@@ -169,7 +165,7 @@ export class DashboardService {
           name: slot.vehicleAssignments[0].driver.name,
         } : undefined,
         group: slot.group ? {
-          id: slot.group.id,
+          id: slot.group.id || '',
           name: slot.group.name,
         } : { id: '', name: 'Unknown Group' },
       }));
@@ -207,8 +203,6 @@ export class DashboardService {
         id: slot.id,
         time: this.formatTimeFromDatetime(slot.datetime),
         datetime: slot.datetime.toISOString(), // Include full datetime for frontend timezone conversion
-        destination: this.determineDestination(this.formatTimeFromDatetime(slot.datetime), slot.group?.name),
-        type: this.determineType(this.formatTimeFromDatetime(slot.datetime)),
         date: this.formatDateFromDatetime(slot.datetime),
         children: slot.vehicleAssignments?.flatMap((va: ScheduleSlotVehicleWithRelations) =>
           va.childAssignments?.map((assignment) => ({
@@ -226,7 +220,7 @@ export class DashboardService {
           name: slot.vehicleAssignments[0].driver.name,
         } : undefined,
         group: slot.group ? {
-          id: slot.group.id,
+          id: slot.group.id || '',
           name: slot.group.name,
         } : { id: '', name: 'Unknown Group' },
       }));
@@ -308,17 +302,8 @@ export class DashboardService {
     }
   }
 
-  // Helper methods
-  private determineDestination(time: string, groupName?: string): string {
-    const hour = parseInt(time.split(':')[0]);
-    return hour < 12 ? (groupName || 'School') : 'Home';
-  }
-
-  private determineType(time: string): 'pickup' | 'dropoff' {
-    const hour = parseInt(time.split(':')[0]);
-    return hour < 12 ? 'pickup' : 'dropoff';
-  }
-
+  
+  
   private formatRelativeTime(date: Date): string {
     const now = Date.now();
     const diffMs = now - date.getTime();
@@ -911,7 +896,6 @@ export class DashboardService {
 
     const firstSlot = slots[0];
     const time = this.formatTimeFromDatetime(firstSlot.datetime);
-    const destination = this.determineDestination(time, firstSlot.group?.name);
 
     // Collect all vehicle assignments from all slots at this time
     const allVehicleAssignments: any[] = [];
@@ -963,7 +947,9 @@ export class DashboardService {
 
     return {
       time,
-      destination,
+      groupId: firstSlot.group?.id || '',
+      groupName: firstSlot.group?.name || 'Unknown Group',
+      scheduleSlotId: firstSlot.id,
       vehicleAssignmentSummaries,
       totalChildrenAssigned,
       totalCapacity,

@@ -121,7 +121,6 @@ La migration échouait en raison de problèmes avec les migrations existantes. L
 
 ```bash
 # JWT Secrets (CHANGEZ EN PRODUCTION!)
-JWT_SECRET=development-jwt-secret-key
 JWT_ACCESS_SECRET=10eafa1551c037d4f0a37c8781fc352e...
 JWT_REFRESH_SECRET=b758da69f48e1c3a1761bfb9f89030559...
 

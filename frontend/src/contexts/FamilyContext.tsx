@@ -17,19 +17,20 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { 
-  Family, 
+import type {
+  Family,
   FamilyContextState,
   FamilyRole,
   FamilyInvitation
 } from '../types/family';
 import {
   createFamilyError,
-  FAMILY_ERROR_CODES 
+  FAMILY_ERROR_CODES
 } from '../types/family';
 import { familyApiService } from '../services/familyApiService';
 import { authService } from '../services/authService';
 import { useAuth } from './AuthContext';
+import { secureStorage } from '@/utils/secureStorage';
 
 interface FamilyContextType extends FamilyContextState {
   // Family operations
@@ -38,21 +39,21 @@ interface FamilyContextType extends FamilyContextState {
   leaveFamily: () => Promise<void>;
   refreshFamily: () => Promise<void>;
   updateFamilyName: (name: string) => Promise<void>;
-  
+
   // Member operations
   inviteMember: (email: string, role: string, personalMessage?: string) => Promise<void>;
   updateMemberRole: (memberId: string, role: string) => Promise<void>;
   removeMember: (memberId: string) => Promise<void>;
   generateInviteCode: () => Promise<string>;
-  
+
   // Invitation operations
   getPendingInvitations: () => Promise<FamilyInvitation[]>;
   cancelInvitation: (invitationId: string) => Promise<void>;
-  
+
   // Utility functions
   clearError: () => void;
   hasFamily: boolean;
-  
+
   // Mandatory family requirement
   requiresFamily: boolean;
   isCheckingFamily: boolean;
@@ -87,12 +88,13 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   // Initialize family data when user is authenticated
   useEffect(() => {
     const loadUserFamily = async () => {
+      console.log('🔍 DEBUG FAMILYCONTEXT: loadUserFamily called, user =', !!user);
       if (!user) return;
 
-      // Check if user is marked as new user (for E2E tests)
-      const authStorage = localStorage.getItem('auth-storage');
-      if (authStorage) {
-        try {
+      // Check if user is marked as new user (for E2E tests) - use secure storage
+      try {
+        const authStorage = await secureStorage.getItem('auth-storage');
+        if (authStorage) {
           const authData = JSON.parse(authStorage);
 
           // DEBUG: Log auth storage state for troubleshooting
@@ -107,7 +109,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
             console.warn('🔍 DEBUG: Clearing potentially stale isNewUser flag');
             // Force clear stale isNewUser flag
             const updatedAuthData = { ...authData, state: { ...authData.state, isNewUser: false } };
-            localStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
+            await secureStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
 
             // Only redirect to onboarding if we're sure this is a different user (not just stale data)
             if (authData.state?.user?.id !== user?.id) {
@@ -116,75 +118,85 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
               // This prevents false redirects for existing users with families
             }
           }
-        } catch (error) {
-          console.warn('Failed to parse auth storage for isNewUser check:', error);
         }
+      } catch (error) {
+        console.warn('Failed to parse auth storage for isNewUser check:', error);
       }
 
-    setState(prev => ({ ...prev, isCheckingFamily: true, error: null }));
+      setState(prev => ({ ...prev, isCheckingFamily: true, error: null }));
 
-    try {
-      // Refresh authService token to ensure it has the latest token from localStorage
-      authService.refreshTokenFromStorage();
-      const family = await familyApiService.getCurrentFamily();
-      
-      if (family) {
-        // User has a family - load permissions
-        const permissions = await familyApiService.getUserPermissions(family.id);
-        
-        setState(prev => ({
-          ...prev,
-          currentFamily: family,
-          userPermissions: permissions,
-          requiresFamily: false,  // User has a family
-          isCheckingFamily: false,
-          isLoading: false
-        }));
-      } else {
-        // User doesn't have a family - mandatory to create or join one
-        setState(prev => ({
-          ...prev,
-          currentFamily: null,
-          userPermissions: null,
-          requiresFamily: true,   // MANDATORY: User must create or join a family
-          isCheckingFamily: false,
-          isLoading: false
-        }));
+      try {
+        console.log('🔍 DEBUG FAMILYCONTEXT: About to call getCurrentFamily');
+        // Refresh authService token to ensure it has the latest token from localStorage
+        authService.refreshTokenFromStorage();
+        const family = await familyApiService.getCurrentFamily();
+        console.log('🔍 DEBUG FAMILYCONTEXT: getCurrentFamily succeeded, family =', family);
+
+        if (family) {
+          // User has a family - load permissions
+          const permissions = await familyApiService.getUserPermissions(family.id);
+
+          setState(prev => ({
+            ...prev,
+            currentFamily: family,
+            userPermissions: permissions,
+            requiresFamily: false,  // User has a family
+            isCheckingFamily: false,
+            isLoading: false
+          }));
+        } else {
+          // User doesn't have a family - mandatory to create or join one
+          setState(prev => ({
+            ...prev,
+            currentFamily: null,
+            userPermissions: null,
+            requiresFamily: true,   // MANDATORY: User must create or join a family
+            isCheckingFamily: false,
+            isLoading: false
+          }));
+        }
+      } catch (error) {
+        console.error('🔍 DEBUG FAMILYCONTEXT: Failed to load user family:', error);
+
+        // Check if this is a network/connection error or server startup issue
+        const isNetworkError = error instanceof Error && (
+          error.message.includes('Failed to fetch') ||
+          error.message.includes('NetworkError') ||
+          error.message.includes('ERR_CONNECTION_REFUSED') ||
+          error.message.includes('ERR_NETWORK') ||
+          error.message.includes('500') ||
+          error.message.includes('502') ||
+          error.message.includes('503') ||
+          error.message.includes('504')
+        );
+
+        console.log('🔍 DEBUG FAMILYCONTEXT: isNetworkError =', isNetworkError);
+        console.log('🔍 DEBUG FAMILYCONTEXT: error.message =', error instanceof Error ? error.message : error);
+
+        // Be more conservative - only require family if we're certain it's not a network/server issue
+        // Also check if user previously had a family (in session) to avoid false redirects
+        setState(prev => {
+          const hadPreviousFamily = !!prev.currentFamily;
+          console.log('🔍 DEBUG FAMILYCONTEXT: Setting error state to:', error instanceof Error ? error.message : 'Failed to load family');
+          return {
+            ...prev,
+            currentFamily: null,
+            userPermissions: null,
+            requiresFamily: !isNetworkError && !hadPreviousFamily,   // Don't require family on network errors or if user previously had one
+            isCheckingFamily: false,
+            isLoading: false,
+            error: error instanceof Error ? error.message : 'Failed to load family'
+          };
+        });
       }
-    } catch (error) {
-      console.error('Failed to load user family:', error);
+    };
 
-      // Check if this is a network/connection error or server startup issue
-      const isNetworkError = error instanceof Error && (
-        error.message.includes('Failed to fetch') ||
-        error.message.includes('NetworkError') ||
-        error.message.includes('ERR_CONNECTION_REFUSED') ||
-        error.message.includes('ERR_NETWORK') ||
-        error.message.includes('500') ||
-        error.message.includes('502') ||
-        error.message.includes('503') ||
-        error.message.includes('504')
-      );
-
-      // Be more conservative - only require family if we're certain it's not a network/server issue
-      // Also check if user previously had a family (in session) to avoid false redirects
-      const hadPreviousFamily = !!state.currentFamily;
-
-      setState(prev => ({
-        ...prev,
-        currentFamily: null,
-        userPermissions: null,
-        requiresFamily: !isNetworkError && !hadPreviousFamily,   // Don't require family on network errors or if user previously had one
-        isCheckingFamily: false,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load family'
-      }));
-    }
-  };
-
+    console.log('🔍 DEBUG FAMILYCONTEXT: useEffect triggered, isAuthenticated =', isAuthenticated, ', user =', !!user);
     if (isAuthenticated && user) {
+      console.log('🔍 DEBUG FAMILYCONTEXT: Calling loadUserFamily()');
       loadUserFamily();
     } else {
+      console.log('🔍 DEBUG FAMILYCONTEXT: Clearing family data');
       // Clear family data when user logs out
       setState(prev => ({
         ...prev,
@@ -201,7 +213,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     try {
       const family = await familyApiService.createFamily({ name });
       const permissions = await familyApiService.getUserPermissions(family.id);
-      
+
       setState(prev => ({
         ...prev,
         currentFamily: family,
@@ -228,7 +240,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     try {
       const family = await familyApiService.joinFamily({ inviteCode });
       const permissions = await familyApiService.getUserPermissions(family.id);
-      
+
       setState(prev => ({
         ...prev,
         currentFamily: family,
@@ -245,7 +257,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         isLoading: false,
         error: errorMessage
       }));
-      
+
       // Determine error code based on message
       let errorCode: string = FAMILY_ERROR_CODES.INVALID_INVITE_CODE;
       if (errorMessage.includes('already in family')) {
@@ -253,7 +265,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       } else if (errorMessage.includes('full')) {
         errorCode = FAMILY_ERROR_CODES.FAMILY_FULL;
       }
-      
+
       throw createFamilyError(errorCode, errorMessage);
     }
   }, []);
@@ -265,7 +277,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
     try {
       await familyApiService.leaveFamily(state.currentFamily.id);
-      
+
       setState(prev => ({
         ...prev,
         currentFamily: null,
@@ -290,7 +302,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       const family = await familyApiService.getCurrentFamily();
       if (family) {
         const permissions = await familyApiService.getUserPermissions(family.id);
-        
+
         console.log('✅ FamilyContext: Family refresh successful:', {
           familyId: family.id,
           familyName: family.name,
@@ -298,7 +310,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           adminCount: family.members?.filter(m => m.role === 'ADMIN').length || 0,
           currentUserRole: permissions?.canManageMembers ? 'ADMIN' : 'MEMBER'
         });
-        
+
         setState(prev => ({
           ...prev,
           currentFamily: family,
@@ -326,8 +338,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   }, []);
 
   const inviteMember = useCallback(async (
-    email: string, 
-    role: string, 
+    email: string,
+    role: string,
     personalMessage?: string
   ): Promise<void> => {
     if (!state.currentFamily) {
@@ -342,10 +354,10 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         role: role as FamilyRole,
         personalMessage
       });
-      
+
       // Refresh family to get updated invitations
       await refreshFamily();
-      
+
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to invite member';
@@ -359,7 +371,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   }, [state.currentFamily, refreshFamily]);
 
   const updateMemberRole = useCallback(async (
-    memberId: string, 
+    memberId: string,
     role: string
   ): Promise<void> => {
     if (!state.currentFamily) {
@@ -370,10 +382,10 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
     try {
       await familyApiService.updateMemberRole(state.currentFamily.id, memberId, { role: role as FamilyRole });
-      
+
       // Refresh family to get updated member roles
       await refreshFamily();
-      
+
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update member role';
@@ -382,14 +394,14 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         isLoading: false,
         error: errorMessage
       }));
-      
+
       let errorCode: string = FAMILY_ERROR_CODES.UNAUTHORIZED;
       if (errorMessage.includes('last admin')) {
         errorCode = FAMILY_ERROR_CODES.LAST_ADMIN;
       } else if (errorMessage.includes('not found')) {
         errorCode = FAMILY_ERROR_CODES.MEMBER_NOT_FOUND;
       }
-      
+
       throw createFamilyError(errorCode, errorMessage);
     }
   }, [state.currentFamily, refreshFamily]);
@@ -403,10 +415,10 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
     try {
       await familyApiService.removeMember(state.currentFamily.id, memberId);
-      
+
       // Refresh family to get updated member list
       await refreshFamily();
-      
+
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to remove member';
@@ -415,14 +427,14 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         isLoading: false,
         error: errorMessage
       }));
-      
+
       let errorCode: string = FAMILY_ERROR_CODES.UNAUTHORIZED;
       if (errorMessage.includes('cannot remove self')) {
         errorCode = FAMILY_ERROR_CODES.CANNOT_REMOVE_SELF;
       } else if (errorMessage.includes('not found')) {
         errorCode = FAMILY_ERROR_CODES.MEMBER_NOT_FOUND;
       }
-      
+
       throw createFamilyError(errorCode, errorMessage);
     }
   }, [state.currentFamily, refreshFamily]);
@@ -450,7 +462,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
     try {
       const updatedFamily = await familyApiService.updateFamilyName(name);
-      
+
       setState(prev => ({
         ...prev,
         currentFamily: updatedFamily,

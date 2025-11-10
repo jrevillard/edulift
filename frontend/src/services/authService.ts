@@ -45,7 +45,7 @@ class AuthService {
 
   private async initializeFromSecureStorage(): Promise<void> {
     try {
-      // Load from secure storage
+      // Load from secure storage only
       this.token = await secureStorage.getItem('authToken');
       this.storedRefreshToken = await secureStorage.getItem('refreshToken');
       const userData = await secureStorage.getItem('userData');
@@ -60,22 +60,10 @@ class AuthService {
       }
     } catch (error) {
       console.error('Failed to initialize from secure storage:', error);
-      // Fallback to localStorage for migration
-      this.token = localStorage.getItem('authToken');
-      this.storedRefreshToken = localStorage.getItem('refreshToken');
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        try {
-          this.user = JSON.parse(userData);
-          // Migrate to secure storage
-          if (this.token && this.user) {
-            await this.setAuth(this.token, this.user, this.storedRefreshToken || undefined);
-          }
-        } catch (parseError) {
-          console.error('Failed to parse user data:', parseError);
-          await this.clearAuth();
-        }
-      }
+      // No fallback - secure storage is required for security
+      this.token = null;
+      this.storedRefreshToken = null;
+      this.user = null;
     }
   }
 
@@ -222,7 +210,7 @@ class AuthService {
       // Clear PKCE data on error to prevent security issues
       try {
         const { clearPKCEData } = await import('../utils/pkceUtils');
-        clearPKCEData();
+        await clearPKCEData();
       } catch (clearError) {
         console.error('Failed to clear PKCE data after error:', clearError);
       }
@@ -263,12 +251,12 @@ class AuthService {
       const { getPKCEVerifier, clearPKCEData, hasPKCEData } = await import('../utils/pkceUtils');
       
       // Check if we have PKCE data
-      if (!hasPKCEData()) {
+      if (!(await hasPKCEData())) {
         throw new Error('This magic link must be opened in the same browser/app where it was requested. Please return to your original browser/app and click the link again, or request a new magic link.');
       }
 
       // Retrieve the code verifier for this authentication attempt
-      const codeVerifier = getPKCEVerifier();
+      const codeVerifier = await getPKCEVerifier();
       if (!codeVerifier) {
         throw new Error('Authentication security data not found. Please open this link in the same browser/app where you requested it, or request a new magic link.');
       }
@@ -287,7 +275,7 @@ class AuthService {
       await this.setAuth(authData.token, authData.user, authData.refreshToken);
 
       // Clear PKCE data after successful authentication
-      clearPKCEData();
+      await clearPKCEData();
       console.log('✅ Magic link verified successfully with PKCE');
       
       // Include invitation result in the response
@@ -299,7 +287,7 @@ class AuthService {
       // Clear PKCE data on error to prevent reuse
       try {
         const { clearPKCEData } = await import('../utils/pkceUtils');
-        clearPKCEData();
+        await clearPKCEData();
       } catch (clearError) {
         console.error('Failed to clear PKCE data after verification error:', clearError);
       }
@@ -355,18 +343,13 @@ class AuthService {
       this.token = response.data.data.accessToken;
       this.storedRefreshToken = response.data.data.refreshToken;
 
-      // Store securely
+      // Store securely only
       try {
         await secureStorage.setItem('authToken', this.token);
         await secureStorage.setItem('refreshToken', this.storedRefreshToken);
-        // Also clear from localStorage for migration
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('refreshToken');
       } catch (error) {
-        console.error('Failed to store refreshed tokens securely, falling back to localStorage:', error);
-        // Fallback to localStorage
-        localStorage.setItem('authToken', this.token);
-        localStorage.setItem('refreshToken', this.storedRefreshToken);
+        console.error('Failed to store refreshed tokens securely:', error);
+        throw new Error('Secure storage required for authentication');
       }
 
       console.log('✅ Token refreshed successfully');
@@ -391,7 +374,7 @@ class AuthService {
     this.user = user;
 
     try {
-      // Store in secure storage
+      // Store in secure storage only
       await secureStorage.setItem('authToken', token);
       await secureStorage.setItem('userData', JSON.stringify(user));
 
@@ -400,30 +383,27 @@ class AuthService {
         this.storedRefreshToken = refreshToken;
         await secureStorage.setItem('refreshToken', refreshToken);
       }
-
-      // Also clear from localStorage for migration
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userData');
-      localStorage.removeItem('refreshToken');
     } catch (error) {
-      console.error('Failed to store auth data securely, falling back to localStorage:', error);
-      // Fallback to localStorage
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('userData', JSON.stringify(user));
-
-      if (refreshToken) {
-        this.storedRefreshToken = refreshToken;
-        localStorage.setItem('refreshToken', refreshToken);
-      }
+      console.error('Failed to store auth data securely:', error);
+      throw new Error('Secure storage required for authentication');
     }
   }
 
   getRedirectAfterLogin(): string | null {
-    return localStorage.getItem('redirectAfterLogin');
+    try {
+      return sessionStorage.getItem('redirectAfterLogin');
+    } catch (error) {
+      console.error('Failed to get redirect URL:', error);
+      return null;
+    }
   }
 
   clearRedirectAfterLogin(): void {
-    localStorage.removeItem('redirectAfterLogin');
+    try {
+      sessionStorage.removeItem('redirectAfterLogin');
+    } catch (error) {
+      console.error('Failed to clear redirect URL:', error);
+    }
   }
 
   private async clearAuth(): Promise<void> {
@@ -432,27 +412,19 @@ class AuthService {
     this.user = null;
 
     try {
-      // Clear from secure storage
+      // Clear from secure storage only
       secureStorage.removeItem('authToken');
       secureStorage.removeItem('refreshToken');
       secureStorage.removeItem('userData');
-
-      // Also clear from localStorage for migration
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('userData');
     } catch (error) {
       console.error('Failed to clear secure storage:', error);
-      // Still clear from localStorage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('userData');
+      // Continue even if secure storage fails
     }
 
     // Clear PKCE data on auth clear to prevent security issues
     try {
-      import('../utils/pkceUtils').then(({ clearPKCEData }) => {
-        clearPKCEData();
+      import('../utils/pkceUtils').then(async ({ clearPKCEData }) => {
+        await clearPKCEData();
       }).catch(error => {
         console.error('Failed to clear PKCE data during auth clear:', error);
       });
@@ -480,8 +452,12 @@ class AuthService {
       console.log('Current path to store:', currentPath);
       
       if (currentPath !== '/' && currentPath !== '/login') {
-        localStorage.setItem('redirectAfterLogin', currentPath);
-        console.log(`📍 Storing redirect path: ${currentPath}`);
+        try {
+          sessionStorage.setItem('redirectAfterLogin', currentPath);
+          console.log(`📍 Storing redirect path: ${currentPath}`);
+        } catch (error) {
+          console.error('Failed to store redirect path:', error);
+        }
       }
     }
     
@@ -517,16 +493,9 @@ class AuthService {
       }
     } catch (error) {
       console.error('Failed to refresh token from secure storage:', error);
-      // Fallback to localStorage
-      this.token = localStorage.getItem('authToken');
-      const userData = localStorage.getItem('userData');
-      if (userData) {
-        try {
-          this.user = JSON.parse(userData);
-        } catch (parseError) {
-          console.error('Failed to parse user data:', parseError);
-        }
-      }
+      // No fallback - secure storage is required
+      this.token = null;
+      this.user = null;
     }
   }
 

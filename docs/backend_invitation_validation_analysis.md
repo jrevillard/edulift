@@ -170,7 +170,7 @@ if (authHeader && authHeader.startsWith('Bearer ')) {
   try {
     const jwt = require('jsonwebtoken');
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     currentUserId = (decoded as any).userId;
   } catch (jwtError) {
     // Invalid token - continue without authentication

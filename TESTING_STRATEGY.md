@@ -377,7 +377,7 @@ describe('Data Isolation Security', () => {
 
     // Verify no unauthorized data is included
     const allGroups = result.flatMap(d =>
-      d.transports.map(t => t.destination)
+      d.transports.map(t => t.groupName)
     );
 
     expect(allGroups).not.toContain('Restricted Group');

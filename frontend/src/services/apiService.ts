@@ -189,7 +189,9 @@ export interface TodayTrip {
   id: string;
   time: string; // UTC time in HH:MM format for backward compatibility
   datetime: string; // ISO 8601 datetime string for timezone conversion
-  destination: string;
+  groupId: string;
+  groupName: string;
+  scheduleSlotId: string;
   type: 'pickup' | 'dropoff';
   date: string;
   children: {
@@ -242,7 +244,9 @@ export interface DayTransportSummary {
 
 export interface TransportSlotSummary {
   time: string; // Format HH:mm
-  destination: string;
+  groupId: string;
+  groupName: string;
+  scheduleSlotId: string;
   vehicleAssignmentSummaries: VehicleAssignmentSummary[];
   totalChildrenAssigned: number;
   totalCapacity: number;

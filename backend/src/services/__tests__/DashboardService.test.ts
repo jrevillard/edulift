@@ -192,8 +192,6 @@ describe('DashboardService', () => {
         id: 'slot-1',
         time: '08:00',
         datetime: testDatetime.toISOString(),
-        destination: 'Maple Street Families', // Morning trip goes to school
-        type: 'pickup',
         date: 'Today',
         children: [{ id: 'child-1', name: 'Emma' }],
         vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
@@ -230,8 +228,7 @@ describe('DashboardService', () => {
       const result = await dashboardService.getTodayTripsForUser(userId);
 
       // Assert
-      expect(result[0].destination).toBe('Home'); // Afternoon trip goes home
-      expect(result[0].type).toBe('dropoff');
+      expect(result[0].group.name).toBe('Maple Street Families'); // Now uses actual group name instead of derived destination
       expect(result[0].time).toBe('15:30'); // Should be formatted from datetime
       expect(result[0].datetime).toBe(testDatetime.toISOString());
     });
@@ -247,6 +244,195 @@ describe('DashboardService', () => {
 
       // Assert
       expect(result).toEqual([]);
+    });
+
+    it('should handle null group gracefully', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const testDatetime = new Date('2024-01-15T08:00:00Z');
+      const mockScheduleSlots = [
+        {
+          id: 'slot-1',
+          groupId: null,
+          day: 'MONDAY',
+          time: '08:00',
+          datetime: testDatetime,
+          week: '2024-03',
+          vehicleAssignments: [
+            {
+              id: 'assignment-1',
+              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [
+                {
+                  child: { id: 'child-1', name: 'Emma' },
+                },
+              ],
+            },
+          ],
+          childAssignments: [
+            {
+              vehicleAssignmentId: 'assignment-1',
+              child: { id: 'child-1', name: 'Emma' },
+            },
+          ],
+          group: null,
+        },
+      ];
+
+      jest.spyOn(dashboardService as any, 'getTodayScheduleSlotsForUser').mockResolvedValue(mockScheduleSlots as any);
+
+      // Act
+      const result = await dashboardService.getTodayTripsForUser(userId);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].group).toEqual({ id: '', name: 'Unknown Group' });
+      expect(result[0].date).toBe('Today');
+      expect(result[0].time).toBe('08:00');
+      expect(result[0].datetime).toBe(testDatetime.toISOString());
+    });
+
+    it('should handle empty group name gracefully', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const testDatetime = new Date('2024-01-15T08:00:00Z');
+      const mockScheduleSlots = [
+        {
+          id: 'slot-1',
+          groupId: 'group-1',
+          day: 'MONDAY',
+          time: '08:00',
+          datetime: testDatetime,
+          week: '2024-03',
+          vehicleAssignments: [
+            {
+              id: 'assignment-1',
+              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [
+                {
+                  child: { id: 'child-1', name: 'Emma' },
+                },
+              ],
+            },
+          ],
+          childAssignments: [
+            {
+              vehicleAssignmentId: 'assignment-1',
+              child: { id: 'child-1', name: 'Emma' },
+            },
+          ],
+          group: { id: 'group-1', name: '' },
+        },
+      ];
+
+      jest.spyOn(dashboardService as any, 'getTodayScheduleSlotsForUser').mockResolvedValue(mockScheduleSlots as any);
+
+      // Act
+      const result = await dashboardService.getTodayTripsForUser(userId);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].group).toEqual({ id: 'group-1', name: '' });
+      expect(result[0].date).toBe('Today');
+      expect(result[0].time).toBe('08:00');
+      expect(result[0].datetime).toBe(testDatetime.toISOString());
+    });
+
+    it('should handle missing group ID but with group name', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const testDatetime = new Date('2024-01-15T08:00:00Z');
+      const mockScheduleSlots = [
+        {
+          id: 'slot-1',
+          groupId: null,
+          day: 'MONDAY',
+          time: '08:00',
+          datetime: testDatetime,
+          week: '2024-03',
+          vehicleAssignments: [
+            {
+              id: 'assignment-1',
+              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [
+                {
+                  child: { id: 'child-1', name: 'Emma' },
+                },
+              ],
+            },
+          ],
+          childAssignments: [
+            {
+              vehicleAssignmentId: 'assignment-1',
+              child: { id: 'child-1', name: 'Emma' },
+            },
+          ],
+          group: { id: null, name: 'School District' },
+        },
+      ];
+
+      jest.spyOn(dashboardService as any, 'getTodayScheduleSlotsForUser').mockResolvedValue(mockScheduleSlots as any);
+
+      // Act
+      const result = await dashboardService.getTodayTripsForUser(userId);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].group).toEqual({ id: '', name: 'School District' });
+      expect(result[0].date).toBe('Today');
+      expect(result[0].time).toBe('08:00');
+      expect(result[0].datetime).toBe(testDatetime.toISOString());
+    });
+
+    it('should preserve group identification fields in trip data', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const testDatetime = new Date('2024-01-15T08:00:00Z');
+      const mockScheduleSlots = [
+        {
+          id: 'slot-1',
+          groupId: 'group-123',
+          day: 'MONDAY',
+          time: '08:00',
+          datetime: testDatetime,
+          week: '2024-03',
+          vehicleAssignments: [
+            {
+              id: 'assignment-1',
+              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [
+                {
+                  child: { id: 'child-1', name: 'Emma' },
+                },
+              ],
+            },
+          ],
+          childAssignments: [
+            {
+              vehicleAssignmentId: 'assignment-1',
+              child: { id: 'child-1', name: 'Emma' },
+            },
+          ],
+          group: { id: 'group-123', name: 'Oak Avenue Families' },
+        },
+      ];
+
+      jest.spyOn(dashboardService as any, 'getTodayScheduleSlotsForUser').mockResolvedValue(mockScheduleSlots as any);
+
+      // Act
+      const result = await dashboardService.getTodayTripsForUser(userId);
+
+      // Assert
+      expect(result).toHaveLength(1);
+      expect(result[0].group.id).toBe('group-123');
+      expect(result[0].group.name).toBe('Oak Avenue Families');
+      expect(result[0].date).toBe('Today');
+      expect(result[0].time).toBe('08:00');
+      expect(result[0].datetime).toBe(testDatetime.toISOString());
     });
   });
 
@@ -355,6 +541,149 @@ describe('DashboardService', () => {
       const result = formatTimeFromDatetime(utcDatetime);
 
       expect(result).toBe('23:59');
+    });
+  });
+
+  describe('getWeeklyDashboard', () => {
+    it('should return weekly dashboard with new group identification fields', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const startDate = new Date('2024-01-15T00:00:00Z');
+
+      const mockScheduleSlots = [
+        {
+          id: 'slot-1',
+          datetime: new Date('2024-01-15T08:00:00Z'),
+          group: { id: 'group-1', name: 'Maple Street Families' },
+          vehicleAssignments: [
+            {
+              id: 'va-1',
+              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4, familyId: 'family-1' },
+              driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [
+                { child: { id: 'child-1', name: 'Emma', familyId: 'family-1' } },
+              ],
+            },
+          ],
+        },
+        {
+          id: 'slot-2',
+          datetime: new Date('2024-01-16T15:30:00Z'),
+          group: { id: 'group-2', name: 'Oak Avenue Families' },
+          vehicleAssignments: [
+            {
+              id: 'va-2',
+              vehicle: { id: 'vehicle-2', name: 'Toyota Sienna', capacity: 6, familyId: 'family-2' },
+              driver: { id: 'user-456', name: 'Jane Smith' },
+              childAssignments: [],
+            },
+          ],
+        },
+      ];
+
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
+
+      // Act
+      const result = await dashboardService.getWeeklyDashboard(userId, startDate);
+
+      // Assert
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+      expect(result.data?.days).toHaveLength(7);
+
+      // Check Monday has the first slot
+      const mondayTransports = result.data?.days.find(d => d.date === '2024-01-15')?.transports || [];
+      expect(mondayTransports).toHaveLength(1);
+      expect(mondayTransports[0]).toMatchObject({
+        time: '08:00',
+        groupId: 'group-1',
+        groupName: 'Maple Street Families',
+        scheduleSlotId: 'slot-1',
+        totalChildrenAssigned: 1,
+        totalCapacity: 4,
+      });
+
+      // Check Tuesday has the second slot
+      const tuesdayTransports = result.data?.days.find(d => d.date === '2024-01-16')?.transports || [];
+      expect(tuesdayTransports).toHaveLength(1);
+      expect(tuesdayTransports[0]).toMatchObject({
+        time: '15:30',
+        groupId: 'group-2',
+        groupName: 'Oak Avenue Families',
+        scheduleSlotId: 'slot-2',
+        totalChildrenAssigned: 0,
+        totalCapacity: 6,
+      });
+    });
+
+    it('should handle null group in weekly dashboard', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const startDate = new Date('2024-01-15T00:00:00Z');
+
+      const mockScheduleSlots = [
+        {
+          id: 'slot-1',
+          datetime: new Date('2024-01-15T08:00:00Z'),
+          group: null,
+          vehicleAssignments: [
+            {
+              id: 'va-1',
+              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4, familyId: 'family-1' },
+              driver: { id: 'user-123', name: 'John Doe' },
+              childAssignments: [],
+            },
+          ],
+        },
+      ];
+
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
+
+      // Act
+      const result = await dashboardService.getWeeklyDashboard(userId, startDate);
+
+      // Assert
+      expect(result.success).toBe(true);
+      const mondayTransports = result.data?.days.find(d => d.date === '2024-01-15')?.transports || [];
+      expect(mondayTransports[0]).toMatchObject({
+        time: '08:00',
+        groupId: '',
+        groupName: 'Unknown Group',
+        scheduleSlotId: 'slot-1',
+      });
+    });
+
+    it('should return error when user has no family', async () => {
+      // Arrange
+      const userId = 'user-123';
+
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue(null);
+
+      // Act
+      const result = await dashboardService.getWeeklyDashboard(userId);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User has no family');
+      expect(result.statusCode).toBe(401);
+    });
+
+    it('should handle service errors gracefully', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const errorMessage = 'Database connection failed';
+
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockRejectedValue(new Error(errorMessage));
+
+      // Act
+      const result = await dashboardService.getWeeklyDashboard(userId);
+
+      // Assert
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Internal server error');
+      expect(result.statusCode).toBe(500);
     });
   });
 });

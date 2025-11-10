@@ -114,7 +114,9 @@ function getCapacityStatus(available: number, total: number): CapacityStatus {
         "transports": [
           {
             "time": "08:00",
-            "destination": "School Group",
+            "groupId": "group-123",
+            "groupName": "School Group",
+            "scheduleSlotId": "slot-456",
             "vehicleAssignmentSummaries": [
               {
                 "vehicleId": "...",

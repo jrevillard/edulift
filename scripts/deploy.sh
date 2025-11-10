@@ -22,7 +22,7 @@ fi
 source .env
 
 # Check required environment variables
-required_vars=("POSTGRES_PASSWORD" "JWT_SECRET")
+required_vars=("POSTGRES_PASSWORD" "JWT_ACCESS_SECRET")
 for var in "${required_vars[@]}"; do
     if [ -z "${!var}" ]; then
         echo "❌ Required environment variable $var is not set in .env file"

@@ -23,26 +23,39 @@ export class MockEmailService extends BaseEmailService {
         const magicLinkUrl = match[1];
         const url = new URL(magicLinkUrl);
         
-        logger.info('\n🔗 DEVELOPMENT MODE - Magic Link Email');
-        logger.info('=====================================');
-        logger.info(`📧 To: ${to}`);
+        const emailLogData: any = {
+          type: 'Magic Link Email',
+          to,
+          magicLinkUrl,
+          isEduliftUrl: magicLinkUrl.startsWith('edulift://'),
+        };
+
         if (url.searchParams.has('token')) {
-          logger.info(`🔑 Token: ${url.searchParams.get('token')}`);
+          emailLogData.token = url.searchParams.get('token');
         }
         if (url.searchParams.has('inviteCode')) {
-          logger.info(`🎫 Invite Code: ${url.searchParams.get('inviteCode')}`);
+          emailLogData.inviteCode = url.searchParams.get('inviteCode');
         }
-        logger.info(`🌐 Magic Link: ${magicLinkUrl}`);
-        logger.info('=====================================');
 
-        // Add helper command for devcontainer
-        if (magicLinkUrl.startsWith('edulift://')) {
-          logger.info('💡 To open in Flutter app:');
-          logger.info(`   edulift "${magicLinkUrl}"`);
-          logger.info('   OR');
-          logger.info(`   xdg-open "${magicLinkUrl}"`);
-        }
-        logger.info('');
+        const logMessage = [
+          '🔗 DEVELOPMENT MODE - Magic Link Email',
+          '=====================================',
+          `📧 Type: ${emailLogData.type}`,
+          `📧 To: ${emailLogData.to}`,
+          ...(emailLogData.token ? [`🔑 Token: ${emailLogData.token}`] : []),
+          ...(emailLogData.inviteCode ? [`🎫 Invite Code: ${emailLogData.inviteCode}`] : []),
+          `🌐 Magic Link: ${emailLogData.magicLinkUrl}`,
+          ...(emailLogData.isEduliftUrl ? [
+            '',
+            '💡 To open in Flutter app:',
+            `   edulift "${emailLogData.magicLinkUrl}"`,
+            '   OR',
+            `   xdg-open "${emailLogData.magicLinkUrl}"`,
+          ] : []),
+          '=====================================',
+        ].join('\n');
+
+        logger.info(logMessage);
       }
     } else if (subject.includes('Invitation')) {
       // Invitation Email - Extract invitation URL
@@ -53,22 +66,39 @@ export class MockEmailService extends BaseEmailService {
         const url = new URL(inviteUrl);
         const isGroupInvitation = subject.includes('group');
         
-        logger.info(`\n${isGroupInvitation ? '👥' : '👨‍👩‍👧‍👦'} DEVELOPMENT MODE - ${isGroupInvitation ? 'Group' : 'Family'} Invitation`);
-        logger.info('=====================================');
-        logger.info(`📧 To: ${to}`);
+        const invitationLogData: any = {
+          type: `${isGroupInvitation ? 'Group' : 'Family'} Invitation`,
+          to,
+          inviteUrl,
+        };
+
         if (url.searchParams.has('code')) {
-          logger.info(`🔗 Invite Code: ${url.searchParams.get('code')}`);
+          invitationLogData.inviteCode = url.searchParams.get('code');
         }
-        logger.info(`🌐 Invite URL: ${inviteUrl}`);
-        logger.info('=====================================\n');
+
+        const invitationLogMessage = [
+          `${isGroupInvitation ? '👥' : '👨‍👩‍👧‍👦'} DEVELOPMENT MODE - ${isGroupInvitation ? 'Group' : 'Family'} Invitation`,
+          '=====================================',
+          `📧 Type: ${invitationLogData.type}`,
+          `📧 To: ${invitationLogData.to}`,
+          ...(invitationLogData.inviteCode ? [`🔗 Invite Code: ${invitationLogData.inviteCode}`] : []),
+          `🌐 Invite URL: ${invitationLogData.inviteUrl}`,
+          '=====================================',
+        ].join('\n');
+
+        logger.info(invitationLogMessage);
       }
     } else {
       // Other emails - generic format
-      logger.info('\n📧 DEVELOPMENT MODE - Email');
-      logger.info('==========================');
-      logger.info(`📧 To: ${to}`);
-      logger.info(`📝 Subject: ${subject}`);
-      logger.info('==========================\n');
+      const genericLogMessage = [
+        '📧 DEVELOPMENT MODE - Email',
+        '==========================',
+        `📧 To: ${to}`,
+        `📝 Subject: ${subject}`,
+        '==========================',
+      ].join('\n');
+
+      logger.info(genericLogMessage);
     }
     
     // In development, we simulate successful email sending

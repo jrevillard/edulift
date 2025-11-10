@@ -24,7 +24,7 @@ const generateBrowserFingerprint = async (): Promise<string> => {
     new Date().getTimezoneOffset(),
     navigator.hardwareConcurrency || 'unknown',
       // deviceMemory is not in TypeScript types but exists in Chrome
-    ((navigator as any).deviceMemory as number) || 'unknown',
+    ((navigator as Navigator & { deviceMemory?: number }).deviceMemory as number) || 'unknown',
     canvas.toDataURL()
   ].join('|');
 

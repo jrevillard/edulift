@@ -4,7 +4,25 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'config-js-plugin',
+      configureServer(server) {
+        server.middlewares.use('/config.js', (_req, res) => {
+          res.setHeader('Content-Type', 'application/javascript');
+          res.end(`
+// Runtime configuration for development
+window.__ENV__ = {
+  VITE_API_URL: "${process.env.VITE_API_URL || 'http://localhost:3000/api/v1'}",
+  VITE_SOCKET_URL: "${process.env.VITE_SOCKET_URL || 'http://localhost:3000'}",
+  VITE_SOCKET_FORCE_POLLING: "${process.env.VITE_SOCKET_FORCE_POLLING || 'false'}"
+};
+          `);
+        });
+      },
+    },
+  ],
   base: '/',
   css: {
     postcss: './postcss.config.js',

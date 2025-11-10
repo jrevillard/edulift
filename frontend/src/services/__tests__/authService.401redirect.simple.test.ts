@@ -1,17 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authService } from '../authService';
+import { secureStorage } from '@/utils/secureStorage';
 
-// Mock localStorage
-const localStorageMock = {
+const mockSecureStorage = vi.mocked(secureStorage);
+
+// Mock sessionStorage for redirect paths
+const sessionStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
 
-Object.defineProperty(global, 'localStorage', {
-  value: localStorageMock,
+Object.defineProperty(global, 'sessionStorage', {
+  value: sessionStorageMock,
 });
+
+// Mock secureStorage
+vi.mock('@/utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  },
+}));
 
 // Mock window.location
 const mockLocation = {
@@ -27,8 +40,10 @@ Object.defineProperty(global, 'location', {
 
 describe('AuthService 401 Redirect - Simple Test', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue(null);
+    vi.resetAllMocks();
+
+    mockSecureStorage.getItem.mockResolvedValue(null);
+    sessionStorageMock.getItem.mockReturnValue(null);
     mockLocation.pathname = '/schedule';
     mockLocation.search = '?test=1';
   });
@@ -46,20 +61,20 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       expect(callback).toHaveBeenCalled();
     });
 
-    it('should clear localStorage when auth is cleared', () => {
+    it('should clear secureStorage when auth is cleared', () => {
       (authService as unknown as { clearAuth: () => void }).clearAuth();
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('authToken');
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('userData');
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('userData');
     });
 
     it('should store redirect path correctly', () => {
       const redirectToLogin = (authService as unknown as { redirectToLogin: () => void }).redirectToLogin.bind(authService);
-      
+
       redirectToLogin();
 
       // Should store the current path
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
         'redirectAfterLogin',
         '/schedule?test=1'
       );
@@ -73,7 +88,7 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       redirectToLogin();
 
       // Should not store root path
-      expect(localStorageMock.setItem).not.toHaveBeenCalledWith(
+      expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith(
         'redirectAfterLogin',
         expect.any(String)
       );
@@ -87,7 +102,7 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       redirectToLogin();
 
       // Should not store login path
-      expect(localStorageMock.setItem).not.toHaveBeenCalledWith(
+      expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith(
         'redirectAfterLogin',
         expect.any(String)
       );
@@ -101,18 +116,18 @@ describe('AuthService 401 Redirect - Simple Test', () => {
     });
 
     it('should get redirect after login path', () => {
-      localStorageMock.getItem.mockImplementation((key) => {
-        if (key === 'redirectAfterLogin') return '/schedule';
+      sessionStorageMock.getItem.mockImplementation((key) => {
+        if (key === 'redirectAfterLogin') return '/schedule?test=1';
         return null;
       });
 
-      expect(authService.getRedirectAfterLogin()).toBe('/schedule');
+      expect(authService.getRedirectAfterLogin()).toBe('/schedule?test=1');
     });
 
     it('should clear redirect after login path', () => {
       authService.clearRedirectAfterLogin();
-      
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
+
+      expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
     });
   });
 
@@ -129,19 +144,19 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       it(`should ${shouldStore ? 'store' : 'not store'} path: ${expected}`, () => {
         mockLocation.pathname = path;
         mockLocation.search = search;
-        
-        localStorageMock.setItem.mockClear();
+
+        sessionStorageMock.setItem.mockClear();
 
         const redirectToLogin = (authService as unknown as { redirectToLogin: () => void }).redirectToLogin.bind(authService);
         redirectToLogin();
 
         if (shouldStore) {
-          expect(localStorageMock.setItem).toHaveBeenCalledWith(
+          expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
             'redirectAfterLogin',
             expected
           );
         } else {
-          expect(localStorageMock.setItem).not.toHaveBeenCalledWith(
+          expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith(
             'redirectAfterLogin',
             expect.any(String)
           );

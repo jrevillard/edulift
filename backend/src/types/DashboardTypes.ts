@@ -10,7 +10,9 @@ export interface DayTransportSummary {
 
 export interface TransportSlotSummary {
   time: string; // Format HH:mm
-  destination: string;
+  groupId: string;
+  groupName: string;
+  scheduleSlotId: string;
   vehicleAssignmentSummaries: VehicleAssignmentSummary[];
   totalChildrenAssigned: number;
   totalCapacity: number;

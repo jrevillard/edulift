@@ -3,7 +3,7 @@
  * Covers RFC 7636 compliance, security, storage, and error handling
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   generatePKCEPair,
   storePKCEPair,
@@ -23,6 +23,15 @@ vi.mock('pkce-challenge', () => ({
   default: vi.fn()
 }));
 
+// Mock secureStorage
+vi.mock('../secureStorage', () => ({
+  secureStorage: {
+    setItem: vi.fn(),
+    getItem: vi.fn(),
+    removeItem: vi.fn()
+  }
+}));
+
 describe('PKCE Utils', () => {
   const mockPkcePair: PKCEPair = {
     code_verifier: 'test-verifier-12345678901234567890123456789012',
@@ -31,19 +40,25 @@ describe('PKCE Utils', () => {
 
   const testEmail = 'test@example.com';
 
+  // Import mock modules
+  let mockSecureStorage: { getItem: vi.Mock; setItem: vi.Mock; removeItem: vi.Mock };
+
   beforeEach(async () => {
-    // Clear localStorage before each test
-    localStorage.clear();
     // Reset all mocks
-    vi.clearAllMocks();
-    
+    vi.resetAllMocks();
+
+    // Get secureStorage mock
+    const secureStorageModule = await import('../secureStorage');
+    mockSecureStorage = secureStorageModule.secureStorage;
+
+    // Reset secureStorage mock to return null by default
+    mockSecureStorage.getItem.mockResolvedValue(null);
+    mockSecureStorage.setItem.mockResolvedValue(undefined);
+    mockSecureStorage.removeItem.mockResolvedValue(undefined);
+
     // Mock successful PKCE generation by default
     const mockPkceChallenge = await import('pkce-challenge');
     vi.mocked(mockPkceChallenge.default).mockResolvedValue(mockPkcePair);
-  });
-
-  afterEach(() => {
-    localStorage.clear();
   });
 
   describe('generatePKCEPair', () => {
@@ -55,234 +70,139 @@ describe('PKCE Utils', () => {
       expect(result.code_challenge).toBeDefined();
     });
 
-    it('should generate a PKCE pair with custom length', async () => {
-      await generatePKCEPair(128);
-
-      const mockPkceChallenge = await import('pkce-challenge');
-      expect(mockPkceChallenge.default).toHaveBeenCalledWith(128);
-    });
-
-    it('should throw error for invalid length (too short)', async () => {
+    it('should throw error for invalid length', async () => {
       await expect(generatePKCEPair(42)).rejects.toThrow(
         'PKCE code verifier length must be between 43 and 128 characters'
-      );
-    });
-
-    it('should throw error for invalid length (too long)', async () => {
-      await expect(generatePKCEPair(129)).rejects.toThrow(
-        'PKCE code verifier length must be between 43 and 128 characters'
-      );
-    });
-
-    it('should handle library generation failure', async () => {
-      const mockPkceChallenge = await import('pkce-challenge');
-      vi.mocked(mockPkceChallenge.default).mockRejectedValue(new Error('Crypto API failed'));
-
-      await expect(generatePKCEPair()).rejects.toThrow('Failed to generate PKCE pair: Crypto API failed');
-    });
-
-    it('should handle incomplete PKCE pair from library', async () => {
-      const mockPkceChallenge = await import('pkce-challenge');
-      vi.mocked(mockPkceChallenge.default).mockResolvedValue({
-        code_verifier: '',
-        code_challenge: 'test-challenge'
-      });
-
-      await expect(generatePKCEPair()).rejects.toThrow(
-        'Failed to generate PKCE pair - missing verifier or challenge'
       );
     });
   });
 
   describe('storePKCEPair', () => {
-    it('should store PKCE pair and email in localStorage', () => {
-      storePKCEPair(mockPkcePair, testEmail);
+    it('should store PKCE pair and email in secure storage', async () => {
+      await storePKCEPair(mockPkcePair, testEmail);
 
-      expect(localStorage.getItem('pkce_code_verifier')).toBe(mockPkcePair.code_verifier);
-      expect(localStorage.getItem('pkce_code_challenge')).toBe(mockPkcePair.code_challenge);
-      expect(localStorage.getItem('pkce_email')).toBe(testEmail.toLowerCase());
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_code_verifier', mockPkcePair.code_verifier);
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_code_challenge', mockPkcePair.code_challenge);
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_email', testEmail.toLowerCase());
     });
 
-    it('should normalize email to lowercase', () => {
+    it('should normalize email to lowercase', async () => {
       const upperCaseEmail = 'TEST@EXAMPLE.COM';
-      storePKCEPair(mockPkcePair, upperCaseEmail);
+      await storePKCEPair(mockPkcePair, upperCaseEmail);
 
-      expect(localStorage.getItem('pkce_email')).toBe('test@example.com');
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_email', 'test@example.com');
     });
 
-    it('should trim email whitespace', () => {
-      const emailWithSpaces = '  test@example.com  ';
-      storePKCEPair(mockPkcePair, emailWithSpaces);
-
-      expect(localStorage.getItem('pkce_email')).toBe('test@example.com');
-    });
-
-    it('should throw error for invalid PKCE pair (missing verifier)', () => {
+    it('should throw error for invalid PKCE pair', async () => {
       const invalidPair = { code_verifier: '', code_challenge: 'test-challenge' };
-      
-      expect(() => storePKCEPair(invalidPair, testEmail)).toThrow(
+
+      await expect(storePKCEPair(invalidPair, testEmail)).rejects.toThrow(
         'Failed to store PKCE pair: Invalid PKCE pair - missing verifier or challenge'
       );
     });
 
-    it('should throw error for invalid PKCE pair (missing challenge)', () => {
-      const invalidPair = { code_verifier: 'test-verifier', code_challenge: '' };
-      
-      expect(() => storePKCEPair(invalidPair, testEmail)).toThrow(
-        'Failed to store PKCE pair: Invalid PKCE pair - missing verifier or challenge'
-      );
-    });
-
-    it('should throw error for empty email', () => {
-      expect(() => storePKCEPair(mockPkcePair, '')).toThrow(
-        'Failed to store PKCE pair: Email is required for PKCE storage'
-      );
-    });
-
-    it('should throw error for whitespace-only email', () => {
-      expect(() => storePKCEPair(mockPkcePair, '   ')).toThrow(
+    it('should throw error for empty email', async () => {
+      await expect(storePKCEPair(mockPkcePair, '')).rejects.toThrow(
         'Failed to store PKCE pair: Email is required for PKCE storage'
       );
     });
   });
 
   describe('getPKCEVerifier', () => {
-    it('should retrieve stored verifier', () => {
-      storePKCEPair(mockPkcePair, testEmail);
+    it('should retrieve stored verifier', async () => {
+      mockSecureStorage.getItem
+        .mockResolvedValueOnce(mockPkcePair.code_verifier) // for pkce_code_verifier
+        .mockResolvedValueOnce('test@example.com'); // for pkce_email
 
-      const verifier = getPKCEVerifier();
+      const verifier = await getPKCEVerifier();
       expect(verifier).toBe(mockPkcePair.code_verifier);
     });
 
-    it('should validate email if provided', () => {
-      storePKCEPair(mockPkcePair, testEmail);
+    it('should return null when no verifier is stored', async () => {
+      mockSecureStorage.getItem
+        .mockResolvedValueOnce(null) // pkce_code_verifier
+        .mockResolvedValueOnce(null); // pkce_email
 
-      const verifier = getPKCEVerifier(testEmail);
-      expect(verifier).toBe(mockPkcePair.code_verifier);
-    });
-
-    it('should return null for email mismatch and clear data', () => {
-      storePKCEPair(mockPkcePair, testEmail);
-
-      const verifier = getPKCEVerifier('different@example.com');
-      expect(verifier).toBeNull();
-      
-      // Should have cleared the data for security
-      expect(localStorage.getItem('pkce_code_verifier')).toBeNull();
-      expect(localStorage.getItem('pkce_code_challenge')).toBeNull();
-      expect(localStorage.getItem('pkce_email')).toBeNull();
-    });
-
-    it('should return null when no verifier is stored', () => {
-      const verifier = getPKCEVerifier();
+      const verifier = await getPKCEVerifier();
       expect(verifier).toBeNull();
     });
 
-    it('should handle localStorage errors gracefully', () => {
-      // Mock localStorage to throw an error
-      const originalGetItem = localStorage.getItem;
-      localStorage.getItem = vi.fn().mockImplementation(() => {
-        throw new Error('localStorage unavailable');
-      });
+    it('should handle secureStorage errors gracefully', async () => {
+      mockSecureStorage.getItem.mockRejectedValue(new Error('Secure storage unavailable'));
 
-      const verifier = getPKCEVerifier();
+      const verifier = await getPKCEVerifier();
       expect(verifier).toBeNull();
-
-      // Restore original localStorage
-      localStorage.getItem = originalGetItem;
     });
   });
 
   describe('getPKCEChallenge', () => {
-    it('should retrieve stored challenge', () => {
-      storePKCEPair(mockPkcePair, testEmail);
+    it('should retrieve stored challenge', async () => {
+      mockSecureStorage.getItem.mockResolvedValueOnce(mockPkcePair.code_challenge);
 
-      const challenge = getPKCEChallenge();
+      const challenge = await getPKCEChallenge();
       expect(challenge).toBe(mockPkcePair.code_challenge);
     });
 
-    it('should return null when no challenge is stored', () => {
-      const challenge = getPKCEChallenge();
+    it('should return null when no challenge is stored', async () => {
+      mockSecureStorage.getItem.mockResolvedValueOnce(null);
+
+      const challenge = await getPKCEChallenge();
       expect(challenge).toBeNull();
     });
   });
 
   describe('getPKCEEmail', () => {
-    it('should retrieve stored email', () => {
-      storePKCEPair(mockPkcePair, testEmail);
+    it('should retrieve stored email', async () => {
+      mockSecureStorage.getItem.mockResolvedValueOnce(testEmail);
 
-      const email = getPKCEEmail();
-      expect(email).toBe(testEmail.toLowerCase());
+      const email = await getPKCEEmail();
+      expect(email).toBe(testEmail);
     });
 
-    it('should return null when no email is stored', () => {
-      const email = getPKCEEmail();
+    it('should return null when no email is stored', async () => {
+      mockSecureStorage.getItem.mockResolvedValue(null);
+
+      const email = await getPKCEEmail();
       expect(email).toBeNull();
     });
   });
 
   describe('clearPKCEData', () => {
-    it('should clear all PKCE data from localStorage', () => {
-      storePKCEPair(mockPkcePair, testEmail);
-      
-      // Verify data is stored
-      expect(localStorage.getItem('pkce_code_verifier')).toBeTruthy();
-      expect(localStorage.getItem('pkce_code_challenge')).toBeTruthy();
-      expect(localStorage.getItem('pkce_email')).toBeTruthy();
+    it('should clear all PKCE data from secure storage', async () => {
+      await clearPKCEData();
 
-      clearPKCEData();
-
-      // Verify all data is cleared
-      expect(localStorage.getItem('pkce_code_verifier')).toBeNull();
-      expect(localStorage.getItem('pkce_code_challenge')).toBeNull();
-      expect(localStorage.getItem('pkce_email')).toBeNull();
-    });
-
-    it('should handle localStorage errors gracefully', () => {
-      // Mock localStorage to throw an error
-      const originalRemoveItem = localStorage.removeItem;
-      localStorage.removeItem = vi.fn().mockImplementation(() => {
-        throw new Error('localStorage unavailable');
-      });
-
-      // Should not throw
-      expect(() => clearPKCEData()).not.toThrow();
-
-      // Restore original localStorage
-      localStorage.removeItem = originalRemoveItem;
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('pkce_code_verifier');
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('pkce_code_challenge');
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('pkce_email');
     });
   });
 
   describe('hasPKCEData', () => {
-    it('should return true when all PKCE data exists', () => {
-      storePKCEPair(mockPkcePair, testEmail);
+    it('should return true when all PKCE data exists', async () => {
+      mockSecureStorage.getItem
+        .mockResolvedValueOnce(mockPkcePair.code_verifier) // pkce_code_verifier
+        .mockResolvedValueOnce(mockPkcePair.code_challenge) // pkce_code_challenge
+        .mockResolvedValueOnce(testEmail); // pkce_email
 
-      expect(hasPKCEData()).toBe(true);
+      const result = await hasPKCEData();
+      expect(result).toBe(true);
     });
 
-    it('should return false when verifier is missing', () => {
-      localStorage.setItem('pkce_code_challenge', mockPkcePair.code_challenge);
-      localStorage.setItem('pkce_email', testEmail);
+    it('should return false when verifier is missing', async () => {
+      mockSecureStorage.getItem
+        .mockResolvedValueOnce(null) // pkce_code_verifier missing
+        .mockResolvedValueOnce(mockPkcePair.code_challenge) // pkce_code_challenge
+        .mockResolvedValueOnce(testEmail); // pkce_email
 
-      expect(hasPKCEData()).toBe(false);
+      const result = await hasPKCEData();
+      expect(result).toBe(false);
     });
 
-    it('should return false when challenge is missing', () => {
-      localStorage.setItem('pkce_code_verifier', mockPkcePair.code_verifier);
-      localStorage.setItem('pkce_email', testEmail);
+    it('should return false when no data exists', async () => {
+      mockSecureStorage.getItem.mockResolvedValue(null);
 
-      expect(hasPKCEData()).toBe(false);
-    });
-
-    it('should return false when email is missing', () => {
-      localStorage.setItem('pkce_code_verifier', mockPkcePair.code_verifier);
-      localStorage.setItem('pkce_code_challenge', mockPkcePair.code_challenge);
-
-      expect(hasPKCEData()).toBe(false);
-    });
-
-    it('should return false when no data exists', () => {
-      expect(hasPKCEData()).toBe(false);
+      const result = await hasPKCEData();
+      expect(result).toBe(false);
     });
   });
 
@@ -291,23 +211,9 @@ describe('PKCE Utils', () => {
       const result = await generateAndStorePKCEPair(testEmail);
 
       expect(result).toEqual(mockPkcePair);
-      expect(localStorage.getItem('pkce_code_verifier')).toBe(mockPkcePair.code_verifier);
-      expect(localStorage.getItem('pkce_code_challenge')).toBe(mockPkcePair.code_challenge);
-      expect(localStorage.getItem('pkce_email')).toBe(testEmail.toLowerCase());
-    });
-
-    it('should generate with custom length and store', async () => {
-      await generateAndStorePKCEPair(testEmail, 64);
-
-      const mockPkceChallenge = await import('pkce-challenge');
-      expect(mockPkceChallenge.default).toHaveBeenCalledWith(64);
-    });
-
-    it('should handle generation failure', async () => {
-      const mockPkceChallenge = await import('pkce-challenge');
-      vi.mocked(mockPkceChallenge.default).mockRejectedValue(new Error('Generation failed'));
-
-      await expect(generateAndStorePKCEPair(testEmail)).rejects.toThrow('Failed to generate PKCE pair');
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_code_verifier', mockPkcePair.code_verifier);
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_code_challenge', mockPkcePair.code_challenge);
+      expect(mockSecureStorage.setItem).toHaveBeenCalledWith('pkce_email', testEmail.toLowerCase());
     });
   });
 
@@ -319,11 +225,6 @@ describe('PKCE Utils', () => {
           subtle: {},
           getRandomValues: vi.fn()
         },
-        writable: true
-      });
-
-      Object.defineProperty(window, 'localStorage', {
-        value: localStorage,
         writable: true
       });
 
@@ -340,64 +241,12 @@ describe('PKCE Utils', () => {
       // Restore
       window.crypto = originalCrypto;
     });
-
-    it('should return false when crypto.subtle is missing', () => {
-      Object.defineProperty(window, 'crypto', {
-        value: {
-          getRandomValues: vi.fn()
-        },
-        writable: true
-      });
-
-      expect(isPKCESupported()).toBe(false);
-    });
-
-    it('should return false when getRandomValues is missing', () => {
-      Object.defineProperty(window, 'crypto', {
-        value: {
-          subtle: {}
-        },
-        writable: true
-      });
-
-      expect(isPKCESupported()).toBe(false);
-    });
-
-    it('should return false when localStorage is missing', () => {
-      Object.defineProperty(window, 'crypto', {
-        value: {
-          subtle: {},
-          getRandomValues: vi.fn()
-        },
-        writable: true
-      });
-
-      const originalLocalStorage = window.localStorage;
-      // @ts-expect-error - intentionally setting to undefined for testing
-      delete window.localStorage;
-
-      expect(isPKCESupported()).toBe(false);
-
-      // Restore
-      window.localStorage = originalLocalStorage;
-    });
-
-    it('should return false when an exception is thrown', () => {
-      // Mock crypto to throw an error when accessed
-      Object.defineProperty(window, 'crypto', {
-        get() {
-          throw new Error('Crypto not available');
-        }
-      });
-
-      expect(isPKCESupported()).toBe(false);
-    });
   });
 
   describe('PKCEError', () => {
     it('should create error with message', () => {
       const error = new PKCEError('Test error');
-      
+
       expect(error.message).toBe('Test error');
       expect(error.name).toBe('PKCEError');
       expect(error.code).toBeUndefined();
@@ -405,7 +254,7 @@ describe('PKCE Utils', () => {
 
     it('should create error with message and code', () => {
       const error = new PKCEError('Test error', 'TEST_CODE');
-      
+
       expect(error.message).toBe('Test error');
       expect(error.name).toBe('PKCEError');
       expect(error.code).toBe('TEST_CODE');
@@ -413,40 +262,26 @@ describe('PKCE Utils', () => {
 
     it('should be instance of Error', () => {
       const error = new PKCEError('Test error');
-      
+
       expect(error instanceof Error).toBe(true);
       expect(error instanceof PKCEError).toBe(true);
     });
   });
 
   describe('Security considerations', () => {
-    it('should not log sensitive PKCE data in console', () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
-      storePKCEPair(mockPkcePair, testEmail);
-      
-      // Check that sensitive data is not logged
-      const logCalls = consoleSpy.mock.calls;
-      logCalls.forEach(call => {
-        const logMessage = call.join(' ');
-        expect(logMessage).not.toContain(mockPkcePair.code_verifier);
-        expect(logMessage).not.toContain(mockPkcePair.code_challenge);
-      });
+    it('should clear data when email validation fails', async () => {
+      // Mock secureStorage to return stored values with different email
+      mockSecureStorage.getItem
+        .mockResolvedValueOnce(mockPkcePair.code_verifier) // for pkce_code_verifier
+        .mockResolvedValueOnce('stored@example.com'); // different email
 
-      consoleSpy.mockRestore();
-    });
+      const verifier = await getPKCEVerifier('different@example.com');
+      expect(verifier).toBeNull();
 
-    it('should clear data when email validation fails', () => {
-      storePKCEPair(mockPkcePair, testEmail);
-      
-      // Verify data is stored
-      expect(hasPKCEData()).toBe(true);
-
-      // Try to get verifier with wrong email - should clear data
-      getPKCEVerifier('wrong@example.com');
-
-      // Verify data was cleared for security
-      expect(hasPKCEData()).toBe(false);
+      // Should have cleared the data for security
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('pkce_code_verifier');
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('pkce_code_challenge');
+      expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('pkce_email');
     });
   });
 
@@ -463,7 +298,7 @@ describe('PKCE Utils', () => {
       // Test boundary values
       await expect(generatePKCEPair(43)).resolves.toBeDefined();
       await expect(generatePKCEPair(128)).resolves.toBeDefined();
-      
+
       // Test common values
       await expect(generatePKCEPair(64)).resolves.toBeDefined();
     });

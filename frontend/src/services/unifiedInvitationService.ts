@@ -6,6 +6,7 @@
  */
 
 import { API_BASE_URL } from '@/config/runtime';
+import { secureStorage } from '@/utils/secureStorage';
 
 // Import proper types for roles
 export type FamilyRole = 'ADMIN' | 'MEMBER';
@@ -63,12 +64,24 @@ class UnifiedInvitationService {
   private baseUrl = API_BASE_URL;
 
   /**
+   * Get authentication token from secure storage
+   */
+  private async getAuthToken(): Promise<string | null> {
+    try {
+      return await secureStorage.getItem('authToken');
+    } catch (error) {
+      console.error('Failed to get auth token from secure storage:', error);
+      return null;
+    }
+  }
+
+  /**
    * Validate a family invitation code
    */
   async validateFamilyInvitation(inviteCode: string): Promise<FamilyInvitationValidation> {
     try {
       const url = `${this.baseUrl}/invitations/family/${inviteCode}/validate`;
-      const token = localStorage.getItem('authToken');
+      const token = await this.getAuthToken();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -147,11 +160,11 @@ class UnifiedInvitationService {
    * Accept a family invitation
    */
   async acceptFamilyInvitation(
-    inviteCode: string, 
+    inviteCode: string,
     options?: { leaveCurrentFamily?: boolean }
   ): Promise<AcceptFamilyResult> {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await this.getAuthToken();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -191,7 +204,7 @@ class UnifiedInvitationService {
    */
   async acceptGroupInvitation(inviteCode: string): Promise<AcceptGroupResult> {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await this.getAuthToken();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -246,7 +259,7 @@ class UnifiedInvitationService {
     createdBy: string;
   }) {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await this.getAuthToken();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
@@ -287,7 +300,7 @@ class UnifiedInvitationService {
     createdBy: string;
   }) {
     try {
-      const token = localStorage.getItem('authToken');
+      const token = await this.getAuthToken();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };

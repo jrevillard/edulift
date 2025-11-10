@@ -393,7 +393,7 @@ export class FamilyService implements IFamilyService {
       // Validate the new name
       this.logger.info(`Validating family name: "${newName}" (length: ${newName.length})`);
       this.validateFamilyName(newName);
-      this.logger.info('Family name validation passed');
+      this.logger.info(`Family name validation passed for "${newName}"`);
 
       return await this.prisma.$transaction(async (tx: any) => {
         this.logger.info('Starting database transaction');

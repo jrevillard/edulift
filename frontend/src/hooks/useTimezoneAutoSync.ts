@@ -30,7 +30,7 @@ import { toast } from 'sonner';
  * ```
  */
 export function useTimezoneAutoSync(): void {
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const lastSyncedTimezone = useRef<string | null>(null);
   const isSyncing = useRef(false);
 
@@ -70,6 +70,12 @@ export function useTimezoneAutoSync(): void {
    * Check and sync timezone if conditions are met
    */
   const checkAndSyncTimezone = useCallback(async () => {
+    // Attendre que l'authentification soit prête
+    if (authLoading || !user) {
+      console.log('[useTimezoneAutoSync] Auth not ready (authLoading:', authLoading, ', user:', !!user, '), skipping check');
+      return;
+    }
+
     // Prevent concurrent sync attempts
     if (isSyncing.current) {
       return;
@@ -79,7 +85,7 @@ export function useTimezoneAutoSync(): void {
     const savedPreference = safeLocalStorageGet(STORAGE_KEYS.AUTO_SYNC_TIMEZONE);
     const autoSyncEnabled = savedPreference === null ? true : savedPreference === 'true';
 
-    if (!autoSyncEnabled || !user) {
+    if (!autoSyncEnabled) {
       return;
     }
 
@@ -97,6 +103,14 @@ export function useTimezoneAutoSync(): void {
       isSyncing.current = true;
 
       try {
+        // Verify token is valid before making request
+        const token = authService.getToken();
+        if (!token) {
+          console.log('[useTimezoneAutoSync] No token available, skipping auto-sync');
+          isSyncing.current = false; // Reset flag to allow future attempts
+          return;
+        }
+
         console.log(`[useTimezoneAutoSync] Auto-syncing timezone from ${user.timezone} to ${browserTz}`);
         await authService.updateTimezone(browserTz);
 
@@ -120,14 +134,35 @@ export function useTimezoneAutoSync(): void {
         isSyncing.current = false;
       }
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   /**
-   * Check timezone on mount (app startup)
+   * Subscribe to auth changes instead of arbitrary delay
    */
   useEffect(() => {
-    checkAndSyncTimezone();
+    // S'abonner aux changements d'authentification
+    authService.setAuthChangeCallback(() => {
+      console.log('[useTimezoneAutoSync] Auth state changed, checking if sync needed...');
+      // Ce callback est appelé UNIQUEMENT quand l'auth est vraiment stabilisée
+      checkAndSyncTimezone();
+    });
+
+    // Pas de unsubscribe nécessaire car le callback est remplacé par setAuthChangeCallback
+    return () => {
+      // Nettoyer en retirant le callback
+      authService.setAuthChangeCallback(() => {});
+    };
   }, [checkAndSyncTimezone]);
+
+  /**
+   * Check timezone on initial mount (only when auth is ready)
+   */
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log('[useTimezoneAutoSync] Initial auth ready, checking timezone...');
+      checkAndSyncTimezone();
+    }
+  }, [authLoading, user, checkAndSyncTimezone]);
 
   // Store latest callback in ref to prevent event listener churn
   const checkAndSyncRef = useRef(checkAndSyncTimezone);

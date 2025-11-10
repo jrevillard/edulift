@@ -78,6 +78,18 @@ vi.mock('../../services/familyApiService', () => ({
   },
 }));
 
+// Mock SocketContext to prevent connection attempts
+vi.mock('../../contexts/SocketContext', () => ({
+  useSocket: () => ({
+    socket: null,
+    isConnected: false,
+    emit: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+  }),
+  SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
 // Mock connection store
 vi.mock('@/stores/connectionStore', () => ({
   useConnectionStore: vi.fn(() => ({
@@ -88,6 +100,7 @@ vi.mock('@/stores/connectionStore', () => ({
     setWsStatus: vi.fn(),
   })),
 }));
+
 
 // TestWrapper is now handled by test-utils.tsx
 
@@ -140,7 +153,7 @@ describe('ManageGroupPage - Group Update Functionality', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful API calls
     mockApiService.getUserGroups.mockResolvedValue([{
       id: 'group123',
@@ -414,7 +427,7 @@ describe('ManageGroupPage - Group Update Functionality', () => {
       // Update both fields
       const nameInput = screen.getByTestId('ManageGroupPage-Input-editGroupName');
       const descriptionTextarea = screen.getByTestId('ManageGroupPage-Textarea-editGroupDescription');
-      
+
       fireEvent.change(nameInput, { target: { value: 'New Name' } });
       fireEvent.change(descriptionTextarea, { target: { value: 'New description' } });
 

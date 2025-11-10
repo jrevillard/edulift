@@ -1,4 +1,11 @@
 import '@testing-library/jest-dom'
+import { cleanup } from '@testing-library/react'
+import { afterEach } from 'vitest'
+
+// Automatic cleanup after each test
+afterEach(() => {
+  cleanup()
+})
 
 // Mock window.matchMedia (required for some components)
 if (typeof window !== 'undefined') {
@@ -8,18 +15,18 @@ if (typeof window !== 'undefined') {
       matches: false,
       media: query,
       onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => {},
+      addListener: () => { },
+      removeListener: () => { },
+      addEventListener: () => { },
+      removeEventListener: () => { },
+      dispatchEvent: () => { },
     }),
   })
 }
 
 // Mock IntersectionObserver
 (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver = class IntersectionObserver {
-  constructor() {}
+  constructor() { }
   observe() {
     return null
   }
@@ -33,14 +40,14 @@ if (typeof window !== 'undefined') {
 
 // Mock scrollIntoView (required for Radix UI components)
 if (typeof Element !== 'undefined') {
-  Element.prototype.scrollIntoView = function() {
+  Element.prototype.scrollIntoView = function () {
     // Mock implementation - do nothing
   }
 }
 
 // Mock getBoundingClientRect
 if (typeof Element !== 'undefined') {
-  Element.prototype.getBoundingClientRect = function() {
+  Element.prototype.getBoundingClientRect = function () {
     return {
       top: 0,
       left: 0,
@@ -50,7 +57,7 @@ if (typeof Element !== 'undefined') {
       height: 0,
       x: 0,
       y: 0,
-      toJSON: () => {}
+      toJSON: () => { }
     }
   }
 }

@@ -22,42 +22,81 @@ import {
   Plus,
   Activity,
   Clock,
-  MapPin,
   ArrowRight,
   Sparkles,
   User
 } from 'lucide-react';
 
+// Types for transformed trip data
+interface TripChild {
+  id: string;
+  name: string;
+  familyId: string;
+  isFamilyChild: boolean;
+}
+
+interface TripVehicle {
+  id: string;
+  name: string;
+  capacity: number;
+}
+
+interface TripGroup {
+  id: string;
+  name: string;
+}
+
+interface TransformedTrip {
+  id: string;
+  time: string;
+  datetime: string;
+  groupId: string;
+  groupName: string;
+  scheduleSlotId: string;
+  date: string;
+  vehicle: TripVehicle;
+  driver?: {
+    id: string;
+    name: string;
+  };
+  children: TripChild[];
+  group: TripGroup;
+}
+
 // Helper function to transform new WeeklyDashboardResponse format to legacy TodayTrip format
 const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardResponse | undefined) => {
   if (!weeklyDashboard?.data?.days) return [];
 
-  const trips: any[] = [];
+  const trips: TransformedTrip[] = [];
 
   weeklyDashboard.data.days.forEach(day => {
     day.transports.forEach(transport => {
       transport.vehicleAssignmentSummaries.forEach(vehicle => {
         // Create a trip object compatible with existing component
+        // Using the REAL API structure from backend (children at vehicle level per VehicleAssignmentSummary)
         trips.push({
           id: `${day.date}-${transport.time}-${vehicle.vehicleId}`,
           time: transport.time,
           datetime: `${day.date}T${transport.time}:00Z`,
-          destination: transport.destination,
-          type: transport.destination.toLowerCase().includes('school') ? 'pickup' : 'dropoff',
+          groupId: transport.groupId,
+          groupName: transport.groupName,
+          scheduleSlotId: transport.scheduleSlotId,
           date: day.date,
           vehicle: {
             id: vehicle.vehicleId,
             name: vehicle.vehicleName,
             capacity: vehicle.vehicleCapacity
           },
-          driver: vehicle.driver,
+          driver: vehicle.driver, // Present according to API spec (optional)
           children: vehicle.children?.map(child => ({
             id: child.childId,
-            name: child.childName
-          })) || [],
+            name: child.childName,
+            familyId: child.childFamilyId,
+            isFamilyChild: child.isFamilyChild
+          })) || [], // Children ARE at vehicle level in the API!
           group: {
-            id: 'default-group',
-            name: 'Default Group'
+            id: transport.groupId || 'unknown-group',
+            name: transport.groupName || 'Unknown Group'
           }
         });
       });
@@ -347,8 +386,8 @@ const DashboardPage: React.FC = () => {
                     {upcomingTrips.map((trip) => (
                       <div key={trip.id} className="group p-5 rounded-2xl border border-slate-200 dark:border-slate-700 bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:shadow-md hover:border-primary/30 transition-all duration-200">
                         <div className="flex items-start gap-4">
-                          <Badge 
-                            variant={trip.type === 'pickup' ? 'default' : 'secondary'}
+                          <Badge
+                            variant="default"
                             className="text-sm font-semibold px-3 py-1.5 mt-1"
                             data-testid={`DashboardPage-Badge-tripTime-${trip.id}`}
                           >
@@ -356,16 +395,30 @@ const DashboardPage: React.FC = () => {
                           </Badge>
                           <div className="flex-1 min-w-0 space-y-3">
                             <div className="flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-primary" />
-                              <p className="text-base font-semibold text-slate-900 dark:text-slate-100 truncate" data-testid={`DashboardPage-Text-tripDestination-${trip.id}`}>
-                                {trip.destination}
-                              </p>
+                              <Users className="h-4 w-4 text-primary" />
+                              <button
+                                onClick={() => {
+                                  if (trip.groupId && trip.groupId !== 'unknown-group') {
+                                    navigate(`/groups/${trip.groupId}`);
+                                  }
+                                }}
+                                className={`text-base font-semibold transition-colors duration-200 truncate ${
+                                  trip.groupId && trip.groupId !== 'unknown-group'
+                                    ? 'text-primary hover:text-primary/80 hover:underline cursor-pointer'
+                                    : 'text-muted-foreground cursor-not-allowed'
+                                }`}
+                                data-testid={`DashboardPage-Button-tripGroup-${trip.id}`}
+                                title={
+                                  trip.groupId && trip.groupId !== 'unknown-group'
+                                    ? `View ${trip.groupName} details`
+                                    : 'Group details not available'
+                                }
+                                disabled={!trip.groupId || trip.groupId === 'unknown-group'}
+                              >
+                                {trip.groupName}
+                              </button>
                             </div>
                             <div className="flex items-center gap-3 text-sm">
-                              <span className="font-medium text-muted-foreground" data-testid={`DashboardPage-Text-tripType-${trip.id}`}>
-                                {trip.type === 'pickup' ? 'Pick up' : 'Drop off'}
-                              </span>
-                              <span className="text-muted-foreground">•</span>
                               <span className="font-medium text-primary" data-testid={`DashboardPage-Text-tripDate-${trip.id}`}>
                                 {trip.date}
                               </span>
@@ -391,7 +444,7 @@ const DashboardPage: React.FC = () => {
                               <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30">
                                 <User className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5" />
                                 <div className="flex flex-wrap gap-2">
-                                  {trip.children.map((child: any) => (
+                                  {trip.children.map((child: TripChild) => (
                                     <Badge key={child.id} variant="outline" className="text-xs font-medium bg-white dark:bg-slate-800">
                                       {child.name}
                                     </Badge>

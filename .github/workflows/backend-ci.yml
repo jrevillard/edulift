@@ -90,7 +90,7 @@ jobs:
           PORT=3001
           DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db
           REDIS_URL=redis://localhost:6379
-          JWT_SECRET=test_jwt_secret_key_for_ci
+          JWT_ACCESS_SECRET=test_jwt_secret_key_for_ci
           EMAIL_HOST=localhost
           EMAIL_PORT=587
           EMAIL_USER=test@example.com
@@ -134,7 +134,7 @@ jobs:
           NODE_ENV: test
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test_jwt_secret_key_for_ci
+          JWT_ACCESS_SECRET: test_jwt_secret_key_for_ci
           EMAIL_HOST: localhost
           EMAIL_PORT: 587
           EMAIL_USER: test@example.com
@@ -166,7 +166,7 @@ jobs:
           NODE_ENV: production
           DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379
-          JWT_SECRET: test_jwt_secret_key_for_ci
+          JWT_ACCESS_SECRET: test_jwt_secret_key_for_ci
           EMAIL_HOST: localhost
           EMAIL_PORT: 587
           EMAIL_USER: test@example.com

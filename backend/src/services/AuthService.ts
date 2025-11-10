@@ -63,8 +63,11 @@ export class AuthService {
     private magicLinkRepository: MagicLinkRepository,
     private emailService: EmailServiceInterface,
   ) {
-    // Access token secret for JWT generation
-    this.jwtAccessSecret = process.env.JWT_ACCESS_SECRET || 'fallback-secret-key';
+    // Access token secret for JWT generation - MUST be set
+    if (!process.env.JWT_ACCESS_SECRET) {
+      throw new Error('JWT_ACCESS_SECRET environment variable must be set - application cannot start');
+    }
+    this.jwtAccessSecret = process.env.JWT_ACCESS_SECRET;
     this.refreshTokenService = new RefreshTokenService();
   }
 
@@ -106,7 +109,7 @@ export class AuthService {
 
     // Generate magic link URL
     const magicLinkUrl = this.generateMagicLinkUrl(magicLink.token, inviteCode);
-    
+
     // Send magic link email
     logger.debug('🔍 DEBUG: AuthService sending magic link:', { inviteCode, url: magicLinkUrl });
     await this.emailService.sendMagicLink(email, magicLink.token, inviteCode, magicLinkUrl);
@@ -290,8 +293,8 @@ export class AuthService {
    */
   private generateMagicLinkUrl(token: string, inviteCode?: string): string {
     const baseUrl = process.env.DEEP_LINK_BASE_URL ||
-                    process.env.FRONTEND_URL ||
-                    'https://app.edulift.com';
+      process.env.FRONTEND_URL ||
+      'https://app.edulift.com';
 
     // Determine separator based on URL scheme
     let separator = '/auth/verify';

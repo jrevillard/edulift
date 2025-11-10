@@ -10,7 +10,7 @@ services:
     networks:
       - edulift-e2e
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U edulift_user -d edulift_e2e"]
+      test: [ "CMD-SHELL", "pg_isready -U edulift_user -d edulift_e2e" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -23,7 +23,7 @@ services:
     networks:
       - edulift-e2e
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,12 +33,12 @@ services:
     container_name: edulift-mailhog-e2e
     restart: unless-stopped
     ports:
-      - "8025:8025"  # Web UI
-      - "1025:1025"  # SMTP Server
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP Server
     networks:
       - edulift-e2e
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025"]
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8025" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -54,7 +54,6 @@ services:
       NODE_ENV: test
       DATABASE_URL: postgresql://edulift_user:edulift_password@postgres-e2e:5432/edulift_e2e?connection_limit=3&pool_timeout=5&connect_timeout=5
       REDIS_URL: redis://redis-e2e:6379
-      JWT_SECRET: e2e-test-access-secret-key-very-long
       JWT_ACCESS_SECRET: e2e-test-access-secret-key-very-long
       JWT_REFRESH_SECRET: e2e-test-refresh-secret-key-very-long
       # Email configuration for MailHog

@@ -17,11 +17,7 @@ services:
     networks:
       - edulift-prod-network
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-edulift} -d ${POSTGRES_DB:-edulift}",
-        ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-edulift} -d ${POSTGRES_DB:-edulift}" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -43,7 +39,7 @@ services:
     networks:
       - edulift-prod-network
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -64,7 +60,8 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-edulift}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-edulift}?connection_limit=20&pool_timeout=20&connect_timeout=10
       REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_EXPIRY_DAYS: ${JWT_REFRESH_EXPIRY_DAYS:-60}
       EMAIL_HOST: ${EMAIL_HOST}
       EMAIL_PORT: ${EMAIL_PORT}
       EMAIL_USER: ${EMAIL_USER}
@@ -82,13 +79,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "const http = require('http'); http.get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })",
-        ]
+      test: [ "CMD", "node", "-e", "const http = require('http'); http.get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -111,15 +102,7 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:80/health",
-        ]
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health" ]
       interval: 30s
       timeout: 10s
       retries: 3

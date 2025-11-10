@@ -42,7 +42,7 @@ FRONTEND_URL=http://localhost:3000
 PORT=3001
 DATABASE_URL=postgresql://dev:dev@localhost:5432/edulift_dev
 REDIS_URL=redis://localhost:6379
-JWT_SECRET=dev-jwt-secret
+JWT_ACCESS_SECRET=dev-jwt-secret
 LOG_LEVEL=debug
 ```
 

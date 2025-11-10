@@ -50,6 +50,12 @@ class PinoAppLogger implements Logger {
           colorize: true,
           translateTime: 'HH:MM:ss Z',
           ignore: 'pid,hostname',
+          // Preserve newlines in message content
+          messageFormat: '{msg}',
+          // Handle multiline messages properly
+          crlf: false,
+          // Don't escape special characters in messages
+          escapeString: false,
         },
       };
     }
@@ -58,19 +64,32 @@ class PinoAppLogger implements Logger {
   }
 
   info(message: string, meta?: Record<string, unknown>): void {
-    this.logger.info({ message, ...meta });
+    // Pass message as raw string with metadata to preserve newlines
+    this.logger.info({
+      message: message.replace(/\n/g, '\n'), // Ensure newlines are preserved
+      ...meta,
+    });
   }
 
   error(message: string, meta?: Record<string, unknown>): void {
-    this.logger.error({ message, ...meta });
+    this.logger.error({
+      message: message.replace(/\n/g, '\n'),
+      ...meta,
+    });
   }
 
   warn(message: string, meta?: Record<string, unknown>): void {
-    this.logger.warn({ message, ...meta });
+    this.logger.warn({
+      message: message.replace(/\n/g, '\n'),
+      ...meta,
+    });
   }
 
   debug(message: string, meta?: Record<string, unknown>): void {
-    this.logger.debug({ message, ...meta });
+    this.logger.debug({
+      message: message.replace(/\n/g, '\n'),
+      ...meta,
+    });
   }
 }
 

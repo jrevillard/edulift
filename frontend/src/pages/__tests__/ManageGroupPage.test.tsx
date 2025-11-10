@@ -56,6 +56,7 @@ vi.mock('@/stores/connectionStore', () => ({
   })),
 }));
 
+
 // Mock auth service to ensure user is authenticated
 vi.mock('../../services/authService', () => ({
   authService: {
@@ -89,6 +90,18 @@ vi.mock('../../services/familyApiService', () => ({
       canCreateGroups: true,
     }),
   },
+}));
+
+// Mock SocketContext to prevent connection attempts
+vi.mock('../../contexts/SocketContext', () => ({
+  useSocket: () => ({
+    socket: null,
+    isConnected: false,
+    emit: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+  }),
+  SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
 const mockApiService = apiService.apiService as MockedApiService;
@@ -151,20 +164,20 @@ describe('ManageGroupPage', () => {
 
   describe('Basic Rendering', () => {
     it('renders loading state initially', async () => {
-      mockApiService.getGroupFamilies.mockImplementation(() => new Promise(() => {}));
-      
+      mockApiService.getGroupFamilies.mockImplementation(() => new Promise(() => { }));
+
       render(<ManageGroupPage />);
-      
+
       expect(screen.getByTestId('ManageGroupPage-Container-loading')).toBeInTheDocument();
     });
 
     it('renders group information correctly', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Heading-pageTitle')).toBeInTheDocument();
       });
-      
+
       expect(screen.getByTestId('ManageGroupPage-Input-groupName')).toHaveValue('Test Group');
       expect(screen.getByTestId('ManageGroupPage-Label-ownerFamily')).toHaveTextContent('Owner Family');
       expect(screen.getByTestId('ManageGroupPage-Text-ownerFamilyName')).toHaveTextContent('Test Family');
@@ -173,11 +186,11 @@ describe('ManageGroupPage', () => {
 
     it('displays families list with correct information', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('GroupFamily-Text-name-family-1')).toHaveTextContent('Test Family');
       });
-      
+
       expect(screen.getByTestId('GroupFamily-Badge-owner-family-1')).toHaveTextContent('Owner');
       expect(screen.getByTestId('GroupFamily-Text-name-family-2')).toHaveTextContent('Member Family');
       expect(screen.getByTestId('GroupFamily-Badge-member-family-2')).toHaveTextContent('Member');
@@ -185,11 +198,11 @@ describe('ManageGroupPage', () => {
 
     it('navigates back to groups page when back button is clicked', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-backToGroups')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('ManageGroupPage-Button-backToGroups'));
       expect(mockNavigate).toHaveBeenCalledWith('/groups');
     });
@@ -198,11 +211,11 @@ describe('ManageGroupPage', () => {
   describe('Admin Features', () => {
     it('shows admin-only features for admin users', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Title-dangerZone')).toHaveTextContent('Danger Zone');
       });
-      
+
       // Should show delete group button
       expect(screen.getByTestId('ManageGroupPage-Button-deleteGroup')).toBeInTheDocument();
     });
@@ -215,19 +228,19 @@ describe('ManageGroupPage', () => {
         },
       ];
       mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByDisplayValue('Test Group')).toBeInTheDocument();
       });
-      
+
       // Should show danger zone for non-admins (with leave group)
       expect(screen.getByTestId('ManageGroupPage-Title-dangerZone')).toHaveTextContent('Danger Zone');
-      
+
       // Should show leave group button for non-admins
       expect(screen.getByTestId('ManageGroupPage-Button-leaveGroup')).toBeInTheDocument();
-      
+
       // Should not show delete group button
       expect(screen.queryByTestId('ManageGroupPage-Button-deleteGroup')).not.toBeInTheDocument();
     });
@@ -237,11 +250,11 @@ describe('ManageGroupPage', () => {
   describe('Family Management', () => {
     it('shows family role badges correctly', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('GroupFamily-Text-name-family-1')).toHaveTextContent('Test Family');
       });
-      
+
       // Check for role badges
       expect(screen.getByTestId('GroupFamily-Badge-owner-family-1')).toHaveTextContent('Owner');
       expect(screen.getByTestId('GroupFamily-Badge-member-family-2')).toHaveTextContent('Member');
@@ -252,37 +265,37 @@ describe('ManageGroupPage', () => {
         success: true,
         data: { message: 'Family role updated successfully' }
       });
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('GroupFamily-Text-name-family-2')).toHaveTextContent('Member Family');
       });
-      
+
       // Find the actions button for the family
       const actionsButton = screen.getByTestId('GroupFamily-Button-actions-family-2');
       await user.click(actionsButton);
-      
+
       // Wait for dropdown menu to appear and click promote option
       await waitFor(() => {
         const promoteButton = screen.getByTestId('GroupFamily-Button-promote-family-2');
         expect(promoteButton).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('GroupFamily-Button-promote-family-2'));
-      
+
       // Wait for confirmation dialog and confirm
       await waitFor(() => {
         expect(screen.getByText(/Change Family Role/)).toBeInTheDocument();
       });
-      
+
       const confirmButton = screen.getByTestId('ManageGroupPage-Button-confirmRoleChange');
       await user.click(confirmButton);
-      
+
       await waitFor(() => {
         expect(mockApiService.updateFamilyRole).toHaveBeenCalledWith('group-1', 'family-2', 'ADMIN');
       });
-      
+
       expect(screen.getByTestId('ManageGroupPage-Alert-successMessage')).toHaveTextContent('Family role updated successfully');
     });
   });
@@ -290,34 +303,34 @@ describe('ManageGroupPage', () => {
   describe('Group Deletion', () => {
     it('deletes group when admin confirms deletion', async () => {
       mockApiService.deleteGroup.mockResolvedValue(undefined);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-deleteGroup')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('ManageGroupPage-Button-deleteGroup'));
-      
+
       // Confirm deletion in dialog
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Text-deleteConfirmation')).toHaveTextContent(/Are you sure you want to delete/);
       });
-      
+
       // First type the group name to enable the button
       const nameInput = screen.getByTestId('ManageGroupPage-Input-confirmGroupName');
       await user.type(nameInput, 'Test Group');
-      
+
       await waitFor(() => {
         const confirmDeleteButton = screen.getByTestId('ManageGroupPage-Button-confirmDelete');
         expect(confirmDeleteButton).not.toBeDisabled();
         return user.click(confirmDeleteButton);
       });
-      
+
       await waitFor(() => {
         expect(mockApiService.deleteGroup).toHaveBeenCalledWith('group-1');
       });
-      
+
       expect(mockNavigate).toHaveBeenCalledWith('/groups');
     });
   });
@@ -331,9 +344,9 @@ describe('ManageGroupPage', () => {
         },
       ];
       mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-leaveGroup')).toBeInTheDocument();
       });
@@ -348,27 +361,27 @@ describe('ManageGroupPage', () => {
       ];
       mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
       mockApiService.leaveGroup.mockResolvedValue(undefined);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-leaveGroup')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('ManageGroupPage-Button-leaveGroup'));
-      
+
       // Confirm leaving in dialog
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Text-leaveConfirmation')).toHaveTextContent(/Are you sure you want to leave/);
       });
-      
+
       const confirmLeaveButton = screen.getByTestId('ManageGroupPage-Button-confirmLeave');
       await user.click(confirmLeaveButton);
-      
+
       await waitFor(() => {
         expect(mockApiService.leaveGroup).toHaveBeenCalledWith('group-1');
       });
-      
+
       expect(mockNavigate).toHaveBeenCalledWith('/groups');
     });
 
@@ -381,20 +394,20 @@ describe('ManageGroupPage', () => {
       ];
       mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
       mockApiService.leaveGroup.mockRejectedValue(new Error('Failed to leave group'));
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-leaveGroup')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('ManageGroupPage-Button-leaveGroup'));
-      
+
       await waitFor(() => {
         const confirmLeaveButton = screen.getByTestId('ManageGroupPage-Button-confirmLeave');
         return user.click(confirmLeaveButton);
       });
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Alert-errorMessage')).toHaveTextContent('Failed to leave group');
       });
@@ -402,11 +415,11 @@ describe('ManageGroupPage', () => {
 
     it('does not show leave group button for admin users', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Title-dangerZone')).toHaveTextContent('Danger Zone');
       });
-      
+
       expect(screen.queryByTestId('ManageGroupPage-Button-leaveGroup')).not.toBeInTheDocument();
     });
   });
@@ -414,25 +427,25 @@ describe('ManageGroupPage', () => {
   describe('Enhanced Delete Confirmation', () => {
     it('requires typing group name to enable delete button', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-deleteGroup')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('ManageGroupPage-Button-deleteGroup'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Label-confirmName')).toHaveTextContent(/Type the group name to confirm/);
       });
-      
+
       // Delete button should be disabled initially
       const confirmDeleteButton = screen.getByTestId('ManageGroupPage-Button-confirmDelete');
       expect(confirmDeleteButton).toBeDisabled();
-      
+
       // Type group name
       const nameInput = screen.getByTestId('ManageGroupPage-Input-confirmGroupName');
       await user.type(nameInput, 'Test Group');
-      
+
       // Delete button should now be enabled
       await waitFor(() => {
         expect(confirmDeleteButton).not.toBeDisabled();
@@ -441,20 +454,20 @@ describe('ManageGroupPage', () => {
 
     it('keeps delete button disabled if group name does not match', async () => {
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Button-deleteGroup')).toBeInTheDocument();
       });
-      
+
       await user.click(screen.getByTestId('ManageGroupPage-Button-deleteGroup'));
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Input-confirmGroupName')).toBeInTheDocument();
       });
-      
+
       const nameInput = screen.getByTestId('ManageGroupPage-Input-confirmGroupName');
       await user.type(nameInput, 'Wrong Name');
-      
+
       await waitFor(() => {
         const confirmDeleteButton = screen.getByTestId('ManageGroupPage-Button-confirmDelete');
         expect(confirmDeleteButton).toBeDisabled();
@@ -465,9 +478,9 @@ describe('ManageGroupPage', () => {
   describe('Error Handling', () => {
     it('shows error state when families loading fails', async () => {
       mockApiService.getGroupFamilies.mockRejectedValue(new Error('Failed to fetch families'));
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         expect(screen.getByTestId('ErrorState-Container-error')).toBeInTheDocument();
       });
@@ -492,27 +505,27 @@ describe('ManageGroupPage', () => {
 
       mockApiService.getGroupFamilies.mockResolvedValue([mockOtherFamily, mockFamilyWithInvitation]);
       mockApiService.cancelGroupInvitation.mockResolvedValue(undefined);
-      
+
       render(<ManageGroupPage />);
-      
+
       // Wait for component to load and find the pending family
       await waitFor(() => {
         expect(screen.getByTestId('GroupFamily-Text-name-family-2')).toBeInTheDocument();
       });
-      
+
       // Find and click the cancel invitation button in the dropdown
       const dropdownTrigger = screen.getByTestId('GroupFamily-Button-actions-family-2');
       expect(dropdownTrigger).toBeInTheDocument();
-      
+
       await user.click(dropdownTrigger!);
-      
+
       // Wait for dropdown menu to appear and click cancel invitation
       await waitFor(() => {
         const cancelButton = screen.getByTestId('GroupFamily-Button-cancelInvitation-family-2');
         expect(cancelButton).toBeInTheDocument();
         return user.click(cancelButton);
       });
-      
+
       // Verify API call was made
       await waitFor(() => {
         expect(mockApiService.cancelGroupInvitation).toHaveBeenCalledWith('group-1', 'invitation-123');
@@ -534,21 +547,21 @@ describe('ManageGroupPage', () => {
 
       mockApiService.getGroupFamilies.mockResolvedValue([mockOtherFamily, mockFamilyWithInvitation]);
       mockApiService.cancelGroupInvitation.mockResolvedValue(undefined);
-      
+
       render(<ManageGroupPage />);
-      
+
       // Wait for component to load
       await waitFor(() => {
         expect(screen.getByTestId('GroupFamily-Text-name-family-2')).toBeInTheDocument();
       });
-      
+
       // Open dropdown and cancel invitation
       const dropdownTrigger = screen.getByTestId('GroupFamily-Button-actions-family-2');
       await user.click(dropdownTrigger!);
-      
+
       const cancelButton = await waitFor(() => screen.getByTestId('GroupFamily-Button-cancelInvitation-family-2'));
       await user.click(cancelButton);
-      
+
       // Check for success message
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Alert-successMessage')).toHaveTextContent('Invitation canceled successfully');
@@ -568,9 +581,9 @@ describe('ManageGroupPage', () => {
       };
 
       mockApiService.getGroupFamilies.mockResolvedValue([familyWithSingleAdmin]);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         const adminDisplay = screen.getByTestId('AdminDisplay-Text-single-family-single');
         expect(adminDisplay).toBeInTheDocument();
@@ -595,9 +608,9 @@ describe('ManageGroupPage', () => {
       };
 
       mockApiService.getGroupFamilies.mockResolvedValue([familyWithMultipleAdmins]);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         // Should show first admin name with count
         const adminTrigger = screen.getByTestId('AdminDisplay-Trigger-multiple-family-multiple');
@@ -608,7 +621,7 @@ describe('ManageGroupPage', () => {
       // Hover over the admin display to show tooltip
       const adminDisplay = screen.getByTestId('AdminDisplay-Trigger-multiple-family-multiple');
       await user.hover(adminDisplay);
-      
+
       await waitFor(() => {
         const headers = screen.getAllByTestId('AdminDisplay-Text-header-family-multiple');
         expect(headers.length).toBeGreaterThan(0);
@@ -636,9 +649,9 @@ describe('ManageGroupPage', () => {
       };
 
       mockApiService.getGroupFamilies.mockResolvedValue([familyWithMissingAdmins]);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         const adminDisplay = screen.getByTestId('AdminDisplay-Text-single-family-missing');
         expect(adminDisplay).toBeInTheDocument();
@@ -662,23 +675,23 @@ describe('ManageGroupPage', () => {
       };
 
       mockApiService.getGroupFamilies.mockResolvedValue([pendingFamily]);
-      
+
       render(<ManageGroupPage />);
-      
+
       await waitFor(() => {
         // Check family name is displayed
         expect(screen.getByTestId('GroupFamily-Text-name-family-pending')).toBeInTheDocument();
         expect(screen.getByTestId('GroupFamily-Text-name-family-pending')).toHaveTextContent('Display Test Family');
-        
+
         // Check PENDING badge
         expect(screen.getByTestId('GroupFamily-Badge-pending-family-pending')).toBeInTheDocument();
         expect(screen.getByTestId('GroupFamily-Badge-pending-family-pending')).toHaveTextContent('Pending Invitation');
-        
+
         // Check expiration date is displayed
         const expirationDate = new Date('2024-01-08T00:00:00Z').toLocaleString();
         expect(screen.getByTestId('GroupFamily-Text-expires-family-pending')).toBeInTheDocument();
         expect(screen.getByTestId('GroupFamily-Text-expires-family-pending')).toHaveTextContent(`Expires: ${expirationDate}`);
-        
+
         // Check that dropdown menu button is present (cancel invitation is inside the dropdown)
         expect(screen.getByTestId('GroupFamily-Button-actions-family-pending')).toBeInTheDocument();
       });

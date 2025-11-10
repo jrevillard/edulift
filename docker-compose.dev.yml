@@ -50,7 +50,7 @@ services:
       PORT: 3001
       DATABASE_URL: postgresql://edulift:edulift_password@postgres:5432/edulift_dev?connection_limit=5&pool_timeout=10&connect_timeout=5
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: development-jwt-secret-key
+      JWT_ACCESS_SECRET: development-jwt-access-secret-key
       EMAIL_HOST: smtp.gmail.com
       EMAIL_PORT: 587
       EMAIL_USER: ""

@@ -42,9 +42,10 @@ export const authenticateToken = async (
   }
 
   try {
+    // JWT secret MUST be set - no fallback for security
     const jwtAccessSecret = process.env.JWT_ACCESS_SECRET;
     if (!jwtAccessSecret) {
-      throw new Error('JWT_ACCESS_SECRET environment variable not set');
+      throw new Error('JWT_ACCESS_SECRET environment variable must be set - application cannot start');
     }
 
     const decoded = jwt.verify(token, jwtAccessSecret) as JwtPayload;
@@ -116,7 +117,18 @@ export const authenticateToken = async (
       return;
     }
 
-    logger.error('Token verification error:', { error });
+    // ✅ IMPROVED: Enhanced error logging for debugging
+    logger.error('Token verification error:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : error,
+      tokenPreview: token ? `${token.substring(0, 10)}...` : 'no-token',
+      userAgent: req.headers['user-agent'],
+      ip: req.ip,
+      timestamp: new Date().toISOString(),
+    });
 
     // ✅ 401 = Invalid token (any other JWT verification error)
     // Could be malformed, wrong signature, etc. - all auth issues, not permissions
@@ -126,12 +138,12 @@ export const authenticateToken = async (
     };
     res.status(401).json(response);
   }
-};
+};;
 
 export const requireGroupMembership = (req: Request, res: Response, next: NextFunction): void => {
   // Cast to AuthenticatedRequest since this middleware should be used after authenticateToken
   const authReq = req as AuthenticatedRequest;
-  
+
   if (!authReq.userId) {
     const response: ApiResponse = {
       success: false,
@@ -233,7 +245,7 @@ export const requireGroupAdmin = async (
 ): Promise<void> => {
   // Cast to AuthenticatedRequest since this middleware should be used after authenticateToken
   const authReq = req as AuthenticatedRequest;
-  
+
   if (!authReq.userId) {
     const response: ApiResponse = {
       success: false,
@@ -301,16 +313,16 @@ export const requireGroupAdmin = async (
     let hasAdminPermissions = false;
 
     // Check if user is admin of the owner family
-    const isOwnerFamilyAdmin = group.ownerFamily.members.length > 0 && 
-                              group.ownerFamily.members[0].role === 'ADMIN';
+    const isOwnerFamilyAdmin = group.ownerFamily.members.length > 0 &&
+      group.ownerFamily.members[0].role === 'ADMIN';
 
     if (isOwnerFamilyAdmin) {
       hasAdminPermissions = true;
     } else {
       // Check if user's family has admin role in the group
       const userFamilyMembership = group.familyMembers[0];
-      if (userFamilyMembership && userFamilyMembership.role === 'ADMIN' && 
-          userFamily.role === 'ADMIN') {
+      if (userFamilyMembership && userFamilyMembership.role === 'ADMIN' &&
+        userFamily.role === 'ADMIN') {
         hasAdminPermissions = true;
       }
     }
@@ -327,7 +339,7 @@ export const requireGroupAdmin = async (
     next();
   } catch (error) {
     logger.error('Group admin check error:', { error });
-    
+
     const response: ApiResponse = {
       success: false,
       error: 'Failed to verify admin privileges',

@@ -4,6 +4,7 @@
  */
 
 import pkceChallenge from 'pkce-challenge';
+import { secureStorage } from './secureStorage';
 
 /**
  * PKCE key pair structure
@@ -14,7 +15,7 @@ export interface PKCEPair {
 }
 
 /**
- * Storage keys for PKCE data in localStorage
+ * Storage keys for PKCE data in secure storage
  */
 const STORAGE_KEYS = {
   CODE_VERIFIER: 'pkce_code_verifier',
@@ -51,14 +52,14 @@ export async function generatePKCEPair(length: number = 43): Promise<PKCEPair> {
 }
 
 /**
- * Store PKCE pair and associated email in localStorage
+ * Store PKCE pair and associated email in secure storage
  * This ensures the verifier can be retrieved for token exchange
- * 
+ *
  * @param pair - The PKCE pair to store
  * @param email - Associated email address for validation
  * @throws Error if storage fails
  */
-export function storePKCEPair(pair: PKCEPair, email: string): void {
+export async function storePKCEPair(pair: PKCEPair, email: string): Promise<void> {
   try {
     if (!pair.code_verifier || !pair.code_challenge) {
       throw new Error('Invalid PKCE pair - missing verifier or challenge');
@@ -68,11 +69,14 @@ export function storePKCEPair(pair: PKCEPair, email: string): void {
       throw new Error('Email is required for PKCE storage');
     }
 
-    localStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, pair.code_verifier);
-    localStorage.setItem(STORAGE_KEYS.CODE_CHALLENGE, pair.code_challenge);
-    localStorage.setItem(STORAGE_KEYS.EMAIL, email.trim().toLowerCase());
-    
-    console.log('🔐 PKCE pair stored successfully');
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Store in secure storage with encryption
+    await secureStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, pair.code_verifier);
+    await secureStorage.setItem(STORAGE_KEYS.CODE_CHALLENGE, pair.code_challenge);
+    await secureStorage.setItem(STORAGE_KEYS.EMAIL, normalizedEmail);
+
+    console.log('🔐 PKCE pair stored successfully in secure storage');
   } catch (error) {
     console.error('PKCE storage failed:', error);
     throw new Error(`Failed to store PKCE pair: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -81,25 +85,25 @@ export function storePKCEPair(pair: PKCEPair, email: string): void {
 
 /**
  * Retrieve stored PKCE verifier for token exchange
- * 
+ *
  * @param email - Email to validate against stored email
- * @returns string | null - The code verifier or null if not found/invalid
+ * @returns Promise<string | null> - The code verifier or null if not found/invalid
  */
-export function getPKCEVerifier(email?: string): string | null {
+export async function getPKCEVerifier(email?: string): Promise<string | null> {
   try {
-    const storedVerifier = localStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
-    
+    const storedVerifier = await secureStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
+
     if (!storedVerifier) {
-      console.warn('No PKCE verifier found in storage');
+      console.warn('No PKCE verifier found in secure storage');
       return null;
     }
 
     // If email provided, validate it matches stored email
     if (email) {
-      const storedEmail = localStorage.getItem(STORAGE_KEYS.EMAIL);
+      const storedEmail = await secureStorage.getItem(STORAGE_KEYS.EMAIL);
       if (storedEmail && email.trim().toLowerCase() !== storedEmail) {
         console.warn('PKCE verifier email mismatch - security risk detected');
-        clearPKCEData(); // Clear potentially compromised data
+        await clearPKCEData(); // Clear potentially compromised data
         return null;
       }
     }
@@ -113,12 +117,12 @@ export function getPKCEVerifier(email?: string): string | null {
 
 /**
  * Get stored PKCE challenge for magic link request
- * 
- * @returns string | null - The code challenge or null if not found
+ *
+ * @returns Promise<string | null> - The code challenge or null if not found
  */
-export function getPKCEChallenge(): string | null {
+export async function getPKCEChallenge(): Promise<string | null> {
   try {
-    return localStorage.getItem(STORAGE_KEYS.CODE_CHALLENGE);
+    return await secureStorage.getItem(STORAGE_KEYS.CODE_CHALLENGE);
   } catch (error) {
     console.error('Failed to retrieve PKCE challenge:', error);
     return null;
@@ -127,12 +131,12 @@ export function getPKCEChallenge(): string | null {
 
 /**
  * Get the email associated with the current PKCE pair
- * 
- * @returns string | null - The stored email or null if not found
+ *
+ * @returns Promise<string | null> - The stored email or null if not found
  */
-export function getPKCEEmail(): string | null {
+export async function getPKCEEmail(): Promise<string | null> {
   try {
-    return localStorage.getItem(STORAGE_KEYS.EMAIL);
+    return await secureStorage.getItem(STORAGE_KEYS.EMAIL);
   } catch (error) {
     console.error('Failed to retrieve PKCE email:', error);
     return null;
@@ -140,31 +144,31 @@ export function getPKCEEmail(): string | null {
 }
 
 /**
- * Clear all PKCE data from localStorage
+ * Clear all PKCE data from secure storage
  * Should be called after successful authentication or on error
  */
-export function clearPKCEData(): void {
+export async function clearPKCEData(): Promise<void> {
   try {
-    localStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
-    localStorage.removeItem(STORAGE_KEYS.CODE_CHALLENGE);
-    localStorage.removeItem(STORAGE_KEYS.EMAIL);
-    console.log('🧹 PKCE data cleared from storage');
+    secureStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
+    secureStorage.removeItem(STORAGE_KEYS.CODE_CHALLENGE);
+    secureStorage.removeItem(STORAGE_KEYS.EMAIL);
+    console.log('🧹 PKCE data cleared from secure storage');
   } catch (error) {
     console.error('Failed to clear PKCE data:', error);
   }
 }
 
 /**
- * Check if PKCE data exists and is complete
- * 
- * @returns boolean - True if complete PKCE data exists
+ * Check if PKCE data exists and is complete in secure storage
+ *
+ * @returns Promise<boolean> - True if complete PKCE data exists
  */
-export function hasPKCEData(): boolean {
+export async function hasPKCEData(): Promise<boolean> {
   try {
-    const verifier = localStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
-    const challenge = localStorage.getItem(STORAGE_KEYS.CODE_CHALLENGE);
-    const email = localStorage.getItem(STORAGE_KEYS.EMAIL);
-    
+    const verifier = await secureStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
+    const challenge = await secureStorage.getItem(STORAGE_KEYS.CODE_CHALLENGE);
+    const email = await secureStorage.getItem(STORAGE_KEYS.EMAIL);
+
     return !!(verifier && challenge && email);
   } catch (error) {
     console.error('Failed to check PKCE data:', error);
@@ -175,7 +179,7 @@ export function hasPKCEData(): boolean {
 /**
  * Generate a new PKCE pair and store it with the associated email
  * This is a convenience function that combines generation and storage
- * 
+ *
  * @param email - Email address to associate with the PKCE pair
  * @param length - Length of the code verifier (43-128 characters, default 43)
  * @returns Promise<PKCEPair> - The generated and stored PKCE pair
@@ -183,7 +187,7 @@ export function hasPKCEData(): boolean {
  */
 export async function generateAndStorePKCEPair(email: string, length: number = 43): Promise<PKCEPair> {
   const pair = await generatePKCEPair(length);
-  storePKCEPair(pair, email);
+  await storePKCEPair(pair, email);
   return pair;
 }
 

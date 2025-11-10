@@ -1,14 +1,13 @@
 # Backend Dashboard API - Spécification Complète
 
-## ✅ STATUT: IMPLÉMENTÉ
+## ✅ STATUT: IMPLÉMENTÉ ET ALIGNÉ
 
 Endpoint implémenté: `GET /api/v1/dashboard/weekly`
 
-**⚠️ DIFFÉRENCES IMPLEMENTATION vs SPEC ORIGINALE:**
-1. **Champ `status` absent:** Le schéma Prisma n'a PAS de champ `status` sur `ScheduleSlotChild`. Le filtrage se fait uniquement sur `familyId`.
-2. **Driver optionnel ajouté:** Le champ `driver` (optionnel) a été ajouté à `VehicleAssignmentSummary` car disponible dans le schéma.
-3. **Utilisation de Prisma:** Implémentation avec Prisma ORM, pas Sequelize.
-4. **Filtrage DB-level:** Performance optimisée avec filtrage au niveau base de données.
+**⚠️ DOCUMENTATION MISE À JOUR POUR CORRESPONDRE À L'API RÉELLE:**
+- Tous les types et structures ont été vérifiés contre l'implémentation backend
+- Les champs optionnels et logiques réelles sont documentés
+- Les comportements de calcul sont expliqués (type) et l'identification de groupe est documentée
 
 ---
 
@@ -60,7 +59,9 @@ interface DayTransportSummary {
 
 interface TransportSlotSummary {
   time: string; // Format HH:mm
-  destination: string;
+  groupId: string; // ID du groupe pour ce transport
+  groupName: string; // Nom du groupe pour identification
+  scheduleSlotId: string; // ID unique du slot de transport
   vehicleAssignmentSummaries: VehicleAssignmentSummary[];
   totalChildrenAssigned: number;
   totalCapacity: number;
@@ -74,13 +75,63 @@ interface VehicleAssignmentSummary {
   assignedChildrenCount: number;
   availableSeats: number;
   capacityStatus: 'available' | 'limited' | 'full' | 'overcapacity';
-  // IMPORTANT: Inclure ces infos pour identifier la famille propriétaire
   vehicleFamilyId: string; // Pour savoir si c'est un véhicule de la famille
   isFamilyVehicle: boolean; // true si vehicleFamilyId === authenticatedFamily.id
-  // OPTIONAL: Info conducteur si assigné
   driver?: {
     id: string;
     name: string;
+  };
+  // OPTIONAL: Info conducteur si assigné
+  // OPTIONAL: Details des enfants assignés à ce véhicule
+  children?: {
+    childId: string;
+    childName: string;
+    childFamilyId: string;
+    isFamilyChild: boolean;
+  }[];
+}
+```
+
+---
+
+## 🎯 Règles Métier - TRÈS IMPORTANT
+
+### 🆕 **Logiques de Calcul Backend** (Implémentation réelle)
+
+#### Group Identification
+Chaque transport inclut maintenant des informations de groupe pour une identification claire:
+- **groupId**: ID unique du groupe associé au transport
+- **groupName**: Nom lisible du groupe pour l'interface utilisateur
+- **scheduleSlotId**: ID unique du slot de transport pour référence
+
+**Important**: Ces champs remplacent le champ "destination" précédemment utilisé
+
+#### Calcul de Type (NON INCLUS DANS LA RÉPONSE API)
+```typescript
+private determineType(time: string): 'pickup' | 'dropoff' {
+  const hour = parseInt(time.split(':')[0]);
+  return hour < 12 ? 'pickup' : 'dropoff';
+}
+```
+- **Matin (< 12h)** : `pickup`
+- **Après-midi (≥ 12h)** : `dropoff`
+- **Note** : Ce champ est calculé par le backend mais **N'EST PAS inclus** dans la réponse API
+
+#### Réponse API Complète
+```typescript
+interface WeeklyDashboardResponse {
+  success: boolean;
+  data?: {
+    days: DayTransportSummary[];
+    startDate?: string; // YYYY-MM-DD
+    endDate?: string;   // YYYY-MM-DD
+    generatedAt?: string; // ISO timestamp
+    metadata?: {
+      familyId?: string;
+      familyName?: string;
+      totalGroups?: number;
+      totalChildren?: number;
+    };
   };
 }
 ```
@@ -126,7 +177,7 @@ endDate.setDate(endDate.getDate() + 6); // +6 jours = 7 jours total
 ### 4. Filtrage des Transports (Schedule Slots)
 **Inclure:** Seulement les transports où au moins un enfant de la famille est assigné
 
-**⚠️ NOTE IMPLEMENTATION:** Le schéma Prisma actuel n'a PAS de champ `status` sur `ScheduleSlotChild`.
+**✅ NOTE IMPLEMENTATION:** Les enfants sont au niveau `VehicleAssignmentSummary`, pas `ScheduleSlotChild`.
 Le filtrage se fait uniquement sur `familyId`, sans filtrage par statut.
 
 ```typescript
@@ -135,7 +186,7 @@ const scheduleSlots = await prisma.scheduleSlot.findMany({
   where: {
     groupId: { in: groupIds },
     datetime: { gte: startDate, lte: endDate },
-    // Filtre DB-level: seulement les slots avec enfants de la famille
+    // Filtre DB-level: seulement les slots avec véhicules ayant des enfants de la famille
     vehicleAssignments: {
       some: {
         childAssignments: {
@@ -152,7 +203,8 @@ const scheduleSlots = await prisma.scheduleSlot.findMany({
 ```
 
 **⚠️ IMPORTANT:** Ne PAS inclure les transports où:
-- Aucun enfant de la famille n'est assigné
+- Aucun enfant de la famille n'est assigné aux véhicules
+- Aucun véhicule assigné (slots sans véhicules sont ignorés)
 
 ### 5. Filtrage des Véhicules
 Pour chaque transport (schedule slot), inclure:
@@ -198,12 +250,12 @@ Pour chaque véhicule:
 ```typescript
 interface VehicleAssignmentSummary {
   vehicleCapacity: number; // vehicle.capacity OU seatOverride si défini
-  assignedChildrenCount: number; // COUNT(child_assignments WHERE status='assigned')
+  assignedChildrenCount: number; // COUNT(child_assignments)
   availableSeats: number; // capacity - assignedChildrenCount
   capacityStatus: CapacityStatus;
 }
 
-// Détermination du status
+// Détermination du status (calculé dans le backend)
 function getCapacityStatus(available: number, total: number): CapacityStatus {
   const ratio = available / total;
   if (ratio <= 0) return 'overcapacity'; // Surbooké
@@ -211,6 +263,11 @@ function getCapacityStatus(available: number, total: number): CapacityStatus {
   if (ratio <= 0.3) return 'limited'; // >= 70% plein
   return 'available'; // < 70% plein
 }
+```
+
+**✅ IMPLEMENTATION RÉELLE:** Les enfants sont assignés au niveau véhicule, pas transport
+```typescript
+const assignedChildrenCount = assignedChildren.length; // childAssignments au niveau véhicule
 ```
 
 ### 7. Agrégation Multi-Groupes

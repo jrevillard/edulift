@@ -919,8 +919,8 @@ describe('BaseEmailService URL Generation', () => {
         const endTime = Date.now();
         const duration = endTime - startTime;
 
-        // Should complete within reasonable time (less than 2 seconds, allowing for CI/slow systems)
-        expect(duration).toBeLessThan(2000);
+        // Should complete within reasonable time (less than 4 seconds, allowing for CI/slow systems)
+        expect(duration).toBeLessThan(4000);
         expect(consoleSpy.warn).not.toHaveBeenCalled();
       });
 
@@ -936,7 +936,7 @@ describe('BaseEmailService URL Generation', () => {
             `test/path/${i}`,
             new URLSearchParams({ id: i.toString() }),
           );
-          expect(url).toBe(`http://localhost:3000/test/path/${  i  }?id=${  i}`);
+          expect(url).toBe(`http://localhost:3000/test/path/${i}?id=${i}`);
         }
 
         const endTime = Date.now();

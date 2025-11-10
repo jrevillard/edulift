@@ -129,7 +129,7 @@ export const createMockApiService = () => ({
   createChild: vi.fn().mockResolvedValue(mockChild),
   updateChild: vi.fn().mockResolvedValue(mockChild),
   deleteChild: vi.fn().mockResolvedValue(undefined),
-  
+
   // Groups API
   getUserGroups: vi.fn().mockResolvedValue([{
     userId: 'user-1',
@@ -154,13 +154,13 @@ export const createMockApiService = () => ({
   deleteGroup: vi.fn().mockResolvedValue(undefined),
   joinGroup: vi.fn().mockResolvedValue(mockGroup),
   leaveGroup: vi.fn().mockResolvedValue(undefined),
-  
+
   // Vehicles API
   getVehicles: vi.fn().mockResolvedValue([mockVehicle]),
   createVehicle: vi.fn().mockResolvedValue(mockVehicle),
   updateVehicle: vi.fn().mockResolvedValue(mockVehicle),
   deleteVehicle: vi.fn().mockResolvedValue(undefined),
-  
+
   // Dashboard API
   getDashboardStats: vi.fn().mockResolvedValue({
     groups: 1,
@@ -184,7 +184,7 @@ export const createMockApiService = () => ({
   }),
   getTodaySchedule: vi.fn().mockResolvedValue({ upcomingTrips: [] }),
   getRecentActivity: vi.fn().mockResolvedValue({ activities: [] }),
-  
+
   // Schedule API
   getWeeklySchedule: vi.fn().mockResolvedValue({
     trips: [],
@@ -206,13 +206,13 @@ export const createMockApiService = () => ({
     availableSeats: 0
   }),
   assignChildToScheduleSlot: vi.fn().mockResolvedValue(undefined),
-  
+
   // Group members API
   getGroupFamilies: vi.fn().mockResolvedValue([]),
   inviteGroupMember: vi.fn().mockResolvedValue(undefined),
   updateGroupMemberRole: vi.fn().mockResolvedValue(undefined),
   removeGroupMember: vi.fn().mockResolvedValue(undefined),
-  
+
   // Default catch-all for any missing methods
   [Symbol.for('defaultMethod')]: vi.fn().mockResolvedValue(undefined)
 })

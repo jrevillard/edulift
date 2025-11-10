@@ -117,30 +117,56 @@ describe('DashboardPage Real Data Integration', () => {
     });
 
     mockApiService.getDashboardWeeklySchedule.mockResolvedValue({
-      upcomingTrips: [
-        {
-          id: 'trip-1',
-          time: '08:00',
-          destination: 'Maple Street Families',
-          type: 'pickup' as const,
-          date: 'Monday',
-          children: [{ id: 'child-1', name: 'Emma' }],
-          vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-          driver: { id: 'user-123', name: 'John Doe' },
-          group: { id: 'group-1', name: 'Maple Street Families' },
-        },
-        {
-          id: 'trip-2',
-          time: '15:30',
-          destination: 'Home',
-          type: 'dropoff' as const,
-          date: 'Friday',
-          children: [{ id: 'child-1', name: 'Emma' }],
-          vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-          driver: { id: 'user-456', name: 'Jane Smith' },
-          group: { id: 'group-1', name: 'Maple Street Families' },
-        },
-      ],
+      data: {
+        days: [
+          {
+            date: '2024-01-15', // Monday
+            dayName: 'Monday',
+            transports: [
+              {
+                id: 'transport-1',
+                time: '08:00',
+                groupName: 'Maple Street Families',
+                groupId: 'group-1',
+                scheduleSlotId: 'slot-1',
+                vehicleAssignmentSummaries: [
+                  {
+                    vehicleId: 'vehicle-1',
+                    vehicleName: 'Honda Civic',
+                    vehicleCapacity: 4,
+                    vehicleType: 'sedan',
+                    driverId: 'user-123',
+                    driverName: 'John Doe',
+                    children: [
+                      { childId: 'child-1', childName: 'Emma', childFamilyId: 'family-1', isFamilyChild: true }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'transport-2',
+                time: '15:30',
+                groupName: 'Maple Street Families',
+                groupId: 'group-1',
+                scheduleSlotId: 'slot-2',
+                vehicleAssignmentSummaries: [
+                  {
+                    vehicleId: 'vehicle-1',
+                    vehicleName: 'Honda Civic',
+                    vehicleCapacity: 4,
+                    vehicleType: 'sedan',
+                    driverId: 'user-123',
+                    driverName: 'John Doe',
+                    children: [
+                      { childId: 'child-1', childName: 'Emma', childFamilyId: 'family-1', isFamilyChild: true }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
     });
 
     mockApiService.getRecentActivity.mockResolvedValue({
@@ -196,12 +222,12 @@ describe('DashboardPage Real Data Integration', () => {
 
     // Check that weekly trips are displayed
     await waitFor(() => {
-      expect(screen.getByTestId('DashboardPage-Badge-tripTime-trip-1')).toHaveTextContent('08:00');
-      expect(screen.getByTestId('DashboardPage-Badge-tripTime-trip-2')).toHaveTextContent('15:30');
-      expect(screen.getByTestId('DashboardPage-Text-tripDestination-trip-1')).toHaveTextContent('Maple Street Families');
-      expect(screen.getByTestId('DashboardPage-Text-tripDestination-trip-2')).toHaveTextContent('Home');
-      expect(screen.getByTestId('DashboardPage-Text-tripDate-trip-1')).toHaveTextContent('Monday');
-      expect(screen.getByTestId('DashboardPage-Text-tripDate-trip-2')).toHaveTextContent('Friday');
+      expect(screen.getByTestId('DashboardPage-Badge-tripTime-2024-01-15-08:00-vehicle-1')).toHaveTextContent('08:00');
+      expect(screen.getByTestId('DashboardPage-Badge-tripTime-2024-01-15-15:30-vehicle-1')).toHaveTextContent('15:30');
+      expect(screen.getByTestId('DashboardPage-Button-tripGroup-2024-01-15-08:00-vehicle-1')).toHaveTextContent('Maple Street Families');
+      expect(screen.getByTestId('DashboardPage-Button-tripGroup-2024-01-15-15:30-vehicle-1')).toHaveTextContent('Maple Street Families');
+      expect(screen.getByTestId('DashboardPage-Text-tripDate-2024-01-15-08:00-vehicle-1')).toHaveTextContent('2024-01-15');
+      expect(screen.getByTestId('DashboardPage-Text-tripDate-2024-01-15-15:30-vehicle-1')).toHaveTextContent('2024-01-15');
     });
   });
 

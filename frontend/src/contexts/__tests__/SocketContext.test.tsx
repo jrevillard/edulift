@@ -12,7 +12,15 @@ const mockSocket = {
   on: vi.fn(),
   emit: vi.fn(),
   close: vi.fn(),
-  connect: vi.fn(),
+  connect: vi.fn(() => {
+    // Simulate successful connection
+    mockSocket.connected = true;
+    // Trigger the 'connect' event if there's a handler
+    const connectHandler = eventHandlers['connect'];
+    if (connectHandler) {
+      connectHandler();
+    }
+  }),
   disconnect: vi.fn(),
   connected: false,
   id: 'mock-socket-id',
@@ -22,10 +30,30 @@ vi.mock('socket.io-client', () => ({
   io: vi.fn(() => mockSocket),
 }))
 
+// Mock secureStorage
+vi.mock('@/utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+  },
+}))
+
 // Mock the authentication context
 vi.mock('../AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: vi.fn(),
+}))
+
+// Mock authService
+vi.mock('@/services/authService', () => ({
+  authService: {
+    getToken: vi.fn(),
+    login: vi.fn(),
+    logout: vi.fn(),
+    verifyMagicLink: vi.fn(),
+    refreshToken: vi.fn(),
+  },
 }))
 
 // Mock the connection store
@@ -39,10 +67,14 @@ vi.mock('@/stores/connectionStore', () => ({
 import { useAuth } from '../AuthContext'
 import { useConnectionStore } from '@/stores/connectionStore'
 import { io } from 'socket.io-client'
+import { secureStorage } from '@/utils/secureStorage'
+import { authService } from '@/services/authService'
 
 const mockUseAuth = vi.mocked(useAuth)
 const mockUseConnectionStore = vi.mocked(useConnectionStore)
 const mockIo = vi.mocked(io)
+const mockSecureStorage = vi.mocked(secureStorage)
+const mockAuthService = vi.mocked(authService)
 
 describe('SocketContext', () => {
   let queryClient: QueryClient
@@ -50,6 +82,9 @@ describe('SocketContext', () => {
   let eventHandlers: Record<string, (...args: unknown[]) => void>
 
   beforeEach(() => {
+    // Reset all mocks first
+    vi.resetAllMocks()
+
     // Create a new QueryClient for each test
     queryClient = new QueryClient({
       defaultOptions: {
@@ -69,18 +104,22 @@ describe('SocketContext', () => {
       setWsStatus: mockSetWsStatus,
     })
 
-    // Reset localStorage
-    localStorage.clear()
-    localStorage.setItem('authToken', 'mock-token')
+    // Mock authService to return token for authentication (default to true)
+    mockAuthService.getToken.mockReturnValue('mock-token')
+
+    // Mock secureStorage to return token for authentication
+    mockSecureStorage.getItem.mockImplementation((key: string) => {
+      if (key === 'authToken') return Promise.resolve('mock-token')
+      return Promise.resolve(null)
+    })
 
     // Reset event handlers
     eventHandlers = {}
+    mockSocket.connected = false;
     mockSocket.on.mockImplementation((event: string, handler: unknown) => {
       eventHandlers[event] = handler
     })
 
-    // Reset all mocks
-    vi.clearAllMocks()
     mockIo.mockReturnValue(mockSocket)
   })
 
@@ -89,6 +128,7 @@ describe('SocketContext', () => {
   })
 
   const createWrapper = ({ authenticated = true } = {}) => {
+    // Configure mockUseAuth based on authentication status
     mockUseAuth.mockReturnValue({
       isAuthenticated: authenticated,
       user: authenticated ? mockUser : null,
@@ -97,7 +137,11 @@ describe('SocketContext', () => {
       logout: vi.fn(),
       verifyMagicLink: vi.fn(),
       refreshToken: vi.fn(),
+      getToken: () => authenticated ? 'mock-token' : null,
     })
+
+    // Configure mockAuthService based on authentication status
+    mockAuthService.getToken.mockReturnValue(authenticated ? 'mock-token' : null)
 
     return ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>
@@ -542,6 +586,7 @@ describe('SocketContext', () => {
       logout: vi.fn(),
       verifyMagicLink: vi.fn(),
       refreshToken: vi.fn(),
+      getToken: () => null,
     })
 
     rerender()

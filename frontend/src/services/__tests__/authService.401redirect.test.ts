@@ -36,15 +36,15 @@ vi.mock('@/utils/secureStorage', () => ({
   secureStorage: mockSecureStorage
 }));
 
-// Mock localStorage for non-secure storage (redirectAfterLogin)
-const localStorageMock = {
+// Mock sessionStorage for non-secure storage (redirectAfterLogin)
+const sessionStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
   writable: true,
 });
 
@@ -137,16 +137,16 @@ describe('AuthService 401 Redirect', () => {
     // Call the error interceptor
     const result = await responseErrorInterceptor(error);
 
-    // Should save current location
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/schedule?test=1');
+    // Should save current location to sessionStorage
+    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/schedule?test=1');
 
     // Should clear auth
     expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
     expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('userData');
-    
+
     // Should return resolved promise (not throw)
     expect(result).toBeUndefined();
-    
+
     // Should call auth change callback
     expect(authChangeCallback).toHaveBeenCalled();
   });
@@ -162,10 +162,13 @@ describe('AuthService 401 Redirect', () => {
     };
 
     const result = await responseErrorInterceptor(error);
-    
+
     // Should clear auth and return resolved promise
     expect(result).toBeUndefined();
     expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
+
+    // Should save redirect for all 401 responses (including auth endpoints)
+    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/schedule?test=1');
   });
 
   it('should not save redirect for login page', async () => {
@@ -184,7 +187,7 @@ describe('AuthService 401 Redirect', () => {
     await responseErrorInterceptor(error);
 
     // Should not save login page as redirect
-    expect(localStorageMock.setItem).not.toHaveBeenCalledWith('redirectAfterLogin', expect.any(String));
+    expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith('redirectAfterLogin', expect.any(String));
   });
 
   it('should handle non-401 errors without redirecting', async () => {
@@ -198,8 +201,8 @@ describe('AuthService 401 Redirect', () => {
     };
 
     await expect(responseErrorInterceptor(error)).rejects.toEqual(error);
-    
-    // Should not clear auth
+
+    // Should not clear auth for non-401 errors
     expect(mockSecureStorage.removeItem).not.toHaveBeenCalledWith('authToken');
   });
 
@@ -231,7 +234,7 @@ describe('AuthService 401 Redirect', () => {
 
     await responseErrorInterceptor(error);
 
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/children?filter=active');
+    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/children?filter=active');
   });
 
   it('should save redirect for onboarding pages', async () => {
@@ -251,7 +254,7 @@ describe('AuthService 401 Redirect', () => {
     await responseErrorInterceptor(error);
 
     // Current implementation saves all non-login paths
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/onboarding');
+    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/onboarding');
   });
 
   it('should handle 401 for refresh token endpoint', async () => {

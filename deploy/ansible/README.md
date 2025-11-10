@@ -254,7 +254,6 @@ postgres_password: "secure_password"
 redis_password: "secure_redis_password"
 
 # Application secrets
-jwt_secret: "secure_jwt_secret"
 jwt_access_secret: "secure_access_secret"
 jwt_refresh_secret: "secure_refresh_secret"
 
