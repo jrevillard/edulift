@@ -106,6 +106,9 @@ describe('FamilyContext - Network Error Handling', () => {
     });
 
     it('should NOT set requiresFamily to true on NetworkError', async () => {
+      // Reset mock to ensure clean state
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
       // Mock NetworkError
       console.log('🔍 DEBUG TEST: Setting up NetworkError mock');
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
