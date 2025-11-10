@@ -198,6 +198,9 @@ describe('FamilyContext - Network Error Handling', () => {
     });
 
     it('should NOT set requiresFamily to true on 502/503/504 errors', async () => {
+      // Reset mock to ensure clean state
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
       // Mock 503 service unavailable error
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('503 Service Unavailable')
@@ -272,6 +275,9 @@ describe('FamilyContext - Network Error Handling', () => {
     });
 
     it('should set requiresFamily to true on not found errors', async () => {
+      // Reset mock to ensure clean state
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
       // Mock not found error that's not network-related
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('User not found in family system')

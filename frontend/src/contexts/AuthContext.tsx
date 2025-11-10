@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { authService } from '../services/authService';
 import type { User, AuthResponse } from '../services/authService';
@@ -50,40 +50,57 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [family] = useState<Family | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const initializationPromise = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     // Register callback with authService to handle auth changes from interceptors
     const handleAuthChange = () => {
       setUser(authService.getUser());
     };
-    
+
     try {
       authService.setAuthChangeCallback(handleAuthChange);
     } catch (error) {
       console.error('Failed to register auth change callback:', error);
     }
-    
-    // Initialize auth state from localStorage
+
+    // Initialize auth state with promise-based locking
     const initializeAuth = async () => {
-      try {
-        if (authService.isAuthenticated() && !authService.isTokenExpired()) {
-          setUser(authService.getUser());
-        } else if (authService.getToken()) {
-          // Token exists but might be expired, try to refresh
-          try {
-            await authService.refreshToken();
-            setUser(authService.getUser());
-          } catch (error) {
-            // Refresh failed, clear auth
-            console.error('Token refresh failed:', error);
-            await authService.logout();
-          }
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        setIsLoading(false);
+      // If initialization is already in progress, wait for it
+      if (initializationPromise.current) {
+        await initializationPromise.current;
+        return;
       }
+
+      // Create new initialization promise
+      initializationPromise.current = (async () => {
+        console.log('🔄 Initializing auth...');
+
+        try {
+          if (authService.isAuthenticated() && !authService.isTokenExpired()) {
+            setUser(authService.getUser());
+          } else if (authService.getToken()) {
+            // Token exists but might be expired, try to refresh
+            try {
+              await authService.refreshToken();
+              setUser(authService.getUser());
+            } catch (error) {
+              // Refresh failed, clear auth
+              console.error('Token refresh failed:', error);
+              await authService.logout();
+            }
+          }
+        } catch (error) {
+          console.error('Auth initialization error:', error);
+        } finally {
+          setIsLoading(false);
+          console.log('✅ Auth initialization completed');
+          // Clear the promise after completion
+          initializationPromise.current = null;
+        }
+      })();
+
+      await initializationPromise.current;
     };
 
     initializeAuth();

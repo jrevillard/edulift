@@ -105,10 +105,10 @@ const SchedulePage: React.FC = () => {
     if (socket && selectedGroup && isConnected) {
       // Join the group room for real-time updates using standardized event name
       socket.emit(SOCKET_EVENTS.GROUP_JOIN, { groupId: selectedGroup });
-      
+
       // NOTE: Individual event listeners removed - now handled centrally in SocketContext
       // This prevents duplicate event handling and improves performance
-      
+
       return () => {
         socket.emit(SOCKET_EVENTS.GROUP_LEAVE, { groupId: selectedGroup });
       };
@@ -120,12 +120,12 @@ const SchedulePage: React.FC = () => {
     queryKey: ['user-groups'],
     queryFn: () => apiService.getUserGroups(),
   });
-  
-  const { 
-    data: groups, 
-    shouldShowLoading, 
-    shouldShowError, 
-    shouldShowEmpty 
+
+  const {
+    data: groups,
+    shouldShowLoading,
+    shouldShowError,
+    shouldShowEmpty
   } = usePageState(groupsQuery);
 
   // Fetch weekly schedule
@@ -229,27 +229,27 @@ const SchedulePage: React.FC = () => {
       console.log(`🔍 DEBUG: No schedule slots found in response`);
       return {};
     }
-    
+
     console.log(`🔍 DEBUG: Found ${schedule.scheduleSlots.length} schedule slots`);
-    
+
     // Transform schedule data for display
     const grouped: { [day: string]: ScheduleSlot[] } = {};
     schedule.scheduleSlots.forEach((slot: ScheduleSlot) => {
       // Extract day from datetime using UTC to match server timezone
       const slotDate = new Date(slot.datetime);
-      const dayKey = slotDate.toLocaleDateString('en-US', { 
+      const dayKey = slotDate.toLocaleDateString('en-US', {
         weekday: 'long',
         timeZone: 'UTC'
       }).toUpperCase();
-      
+
       console.log(`🔍 DEBUG: Slot datetime: ${slot.datetime}, parsed as: ${slotDate.toISOString()}, dayKey: ${dayKey} (UTC)`);
-      
+
       if (!grouped[dayKey]) {
         grouped[dayKey] = [];
       }
       grouped[dayKey].push(slot);
     });
-    
+
     console.log(`🔍 DEBUG: Grouped schedule by day:`, grouped);
     return grouped;
   }, [schedule]);
@@ -404,36 +404,36 @@ const SchedulePage: React.FC = () => {
         const slotTime = getTimeInTimezone(slot.datetime, user?.timezone || 'UTC');
         return slotTime === time;
       });
-      
+
       if (!scheduleSlot) {
         // Create schedule slot with vehicle atomically
-        scheduleSlot = await createScheduleSlotWithVehicleMutation.mutateAsync({ 
-          day, 
-          time, 
-          vehicleId, 
-          driverId: user!.id 
+        scheduleSlot = await createScheduleSlotWithVehicleMutation.mutateAsync({
+          day,
+          time,
+          vehicleId,
+          driverId: user!.id
         });
       } else {
         // Check if this vehicle is already assigned to this schedule slot
         const isVehicleAlreadyAssigned = scheduleSlot.vehicleAssignments?.some(
           (va: ScheduleSlotVehicle) => va.vehicle.id === vehicleId
         );
-        
+
         if (isVehicleAlreadyAssigned) {
           toast.error("Vehicle already assigned", {
             description: "This vehicle is already assigned to this time slot"
           });
           return;
         }
-        
+
         // Assign vehicle to existing schedule slot
         await apiService.assignVehicleToScheduleSlot(scheduleSlot.id, vehicleId, user!.id);
       }
-      
+
       // Refresh schedule - force refetch
       await queryClient.invalidateQueries({ queryKey: ['weekly-schedule', selectedGroup, currentWeek] });
       await queryClient.refetchQueries({ queryKey: ['weekly-schedule', selectedGroup, currentWeek] });
-      
+
       if (socket) {
         socket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, { groupId: selectedGroup, scheduleSlotId: scheduleSlot.id });
       }
@@ -469,14 +469,14 @@ const SchedulePage: React.FC = () => {
     const weekdayTimeSlots = localScheduleHours[weekday.key] || [];
     const isTimeSlotAvailable = weekdayTimeSlots.includes(time);
 
-    // Debug logs pour comprendre le problème
-    console.log('🔍 DEBUG renderTimeSlot:', {
-      weekdayKey: weekday.key,
-      time,
-      localScheduleHours,
-      weekdayTimeSlots,
-      isTimeSlotAvailable
-    });
+    // // Debug logs pour comprendre le problème
+    // console.log('🔍 DEBUG renderTimeSlot:', {
+    //   weekdayKey: weekday.key,
+    //   time,
+    //   localScheduleHours,
+    //   weekdayTimeSlots,
+    //   isTimeSlotAvailable
+    // });
 
     // If time slot is not available for this weekday, render empty cell
     if (!isTimeSlotAvailable) {
@@ -494,7 +494,7 @@ const SchedulePage: React.FC = () => {
     }
 
     const daySchedule = scheduleByDay[weekday.key] || [];
-    
+
     const scheduleSlot = daySchedule.find((slot: ScheduleSlot) => {
       // Convert UTC datetime to local time for matching
       const slotTime = getTimeInTimezone(slot.datetime, user?.timezone || 'UTC');
@@ -524,13 +524,12 @@ const SchedulePage: React.FC = () => {
     }
 
     return (
-      <div 
-        key={`${weekday.key}-${time}`} 
-        className={`border border-gray-200 p-2 min-h-[140px] relative text-xs ${
-          isInPast 
-            ? 'bg-gray-100 opacity-60 cursor-not-allowed' 
+      <div
+        key={`${weekday.key}-${time}`}
+        className={`border border-gray-200 p-2 min-h-[140px] relative text-xs ${isInPast
+            ? 'bg-gray-100 opacity-60 cursor-not-allowed'
             : 'bg-white hover:bg-gray-50'
-        }`}
+          }`}
         data-testid={`schedule-slot-${weekday.key}-${time}`}
         onDragOver={(e) => {
           if (isInPast) {
@@ -554,9 +553,9 @@ const SchedulePage: React.FC = () => {
           }
           e.preventDefault();
           e.currentTarget.classList.remove('bg-blue-50', 'border-blue-300', 'border-2');
-          
+
           const vehicleId = e.dataTransfer.getData('vehicleId');
-          
+
           if (vehicleId) {
             handleVehicleDrop(weekday.key, time, vehicleId);
           } else {
@@ -571,16 +570,16 @@ const SchedulePage: React.FC = () => {
             {/* Modern vehicle cards */}
             {scheduleSlot.vehicleAssignments?.map((vehicleAssignment: ScheduleSlotVehicle) => {
               // Calculate children assigned to this specific vehicle
-              const vehicleChildren = scheduleSlot.childAssignments.filter((ca) => 
+              const vehicleChildren = scheduleSlot.childAssignments.filter((ca) =>
                 ca.vehicleAssignmentId === vehicleAssignment.id
               );
-              
-              
+
+
               const currentCapacity = vehicleChildren.length;
               const maxCapacity = getEffectiveCapacity(vehicleAssignment);
               const isAtCapacity = currentCapacity >= maxCapacity;
               const capacityPercentage = (currentCapacity / maxCapacity) * 100;
-              
+
               // Determine status and colors based on vehicle-specific capacity
               const getStatusColor = () => {
                 if (currentCapacity === 0) return 'bg-gray-50 border-gray-200 text-gray-700';
@@ -588,7 +587,7 @@ const SchedulePage: React.FC = () => {
                 if (capacityPercentage >= 75) return 'bg-orange-50 border-orange-200 text-orange-800';
                 return 'bg-green-50 border-green-200 text-green-800';
               };
-              
+
               return (
                 <div
                   key={vehicleAssignment.id}
@@ -603,7 +602,7 @@ const SchedulePage: React.FC = () => {
                       <div className="w-2 h-2 rounded-full bg-current opacity-60"></div>
                       <span className="font-medium text-sm" data-testid={`schedule-vehicle-name-${vehicleAssignment.vehicle.id}`}>{vehicleAssignment.vehicle.name}</span>
                       {hasSeatOverride(vehicleAssignment) && (
-                        <div 
+                        <div
                           title={`Seat override: ${vehicleAssignment.seatOverride} seats (original: ${vehicleAssignment.vehicle.capacity})`}
                           data-testid={`seat-override-indicator-${vehicleAssignment.id}`}
                         >
@@ -634,7 +633,7 @@ const SchedulePage: React.FC = () => {
                       )}
                     </div>
                     <div className="w-full bg-white/50 rounded-full h-1.5">
-                      <div 
+                      <div
                         className="bg-current h-1.5 rounded-full transition-all opacity-60"
                         style={{ width: `${Math.min(capacityPercentage, 100)}%` }}
                       ></div>
@@ -666,8 +665,8 @@ const SchedulePage: React.FC = () => {
                   </div>
                 </div>
               );
-              }) || []}
-            
+            }) || []}
+
             {/* Add vehicle button */}
             {vehicles.length > 0 && !isInPast && (
               <button
@@ -711,7 +710,7 @@ const SchedulePage: React.FC = () => {
                       const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Convert to Monday=0, Tuesday=1, etc.
                       const weekStart = new Date(jan4);
                       weekStart.setDate(jan4.getDate() - jan4DayOfWeek + (weekNum - 1) * 7);
-                      
+
                       const dayOffsets: Record<string, number> = {
                         'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4
                       };
@@ -720,7 +719,7 @@ const SchedulePage: React.FC = () => {
                       targetDate.setDate(weekStart.getDate() + dayOffset);
                       const [hours, minutes] = time.split(':').map(Number);
                       targetDate.setHours(hours, minutes, 0, 0);
-                      
+
                       setSelectedScheduleSlot({
                         id: '',
                         groupId: selectedGroup,
@@ -760,8 +759,8 @@ const SchedulePage: React.FC = () => {
   if (shouldShowLoading) {
     return (
       <PageLayout variant="schedule">
-        <PageHeader 
-          title="Weekly Schedule" 
+        <PageHeader
+          title="Weekly Schedule"
           subtitle="Loading your groups..."
           data-testid="SchedulePage-Header-weeklySchedule"
         />
@@ -774,8 +773,8 @@ const SchedulePage: React.FC = () => {
   if (shouldShowError) {
     return (
       <PageLayout variant="schedule">
-        <PageHeader 
-          title="Weekly Schedule" 
+        <PageHeader
+          title="Weekly Schedule"
           subtitle="Coordinate school transport with your groups"
           data-testid="SchedulePage-Header-weeklySchedule"
         />
@@ -792,8 +791,8 @@ const SchedulePage: React.FC = () => {
   if (shouldShowEmpty) {
     return (
       <PageLayout variant="schedule">
-        <PageHeader 
-          title="Weekly Schedule" 
+        <PageHeader
+          title="Weekly Schedule"
           subtitle="Coordinate school transport with your groups"
           data-testid="SchedulePage-Header-weeklySchedule"
         />
@@ -815,8 +814,8 @@ const SchedulePage: React.FC = () => {
   if (!selectedGroup && groups.length > 0) {
     return (
       <PageLayout variant="schedule">
-        <PageHeader 
-          title="Weekly Schedule" 
+        <PageHeader
+          title="Weekly Schedule"
           subtitle="Choose a group to view its weekly schedule"
           data-testid="SchedulePage-Header-weeklySchedule"
         />
@@ -846,8 +845,8 @@ const SchedulePage: React.FC = () => {
   if (scheduleLoading) {
     return (
       <PageLayout variant="schedule">
-        <PageHeader 
-          title="Weekly Schedule" 
+        <PageHeader
+          title="Weekly Schedule"
           subtitle="Loading schedule..."
           data-testid="SchedulePage-Header-weeklySchedule"
         />
@@ -864,13 +863,13 @@ const SchedulePage: React.FC = () => {
         {/* My Vehicles Sidebar - Modern Design */}
         <div className={`${isSidebarVisible ? 'block' : 'hidden'} w-full lg:w-64 order-2 lg:order-1`}>
           <ModernCard className="h-fit"
-            >
+          >
             <div className="p-4 lg:p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Car className="h-5 w-5 text-primary" />
                 <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">My Vehicles</h3>
               </div>
-              
+
               {vehicles.length > 0 ? (
                 <div className="space-y-3">
                   {vehicles.map(vehicle => (
@@ -925,7 +924,7 @@ const SchedulePage: React.FC = () => {
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-slate-100" data-testid="SchedulePage-Title-weeklySchedule">Weekly Schedule</h1>
                 {!isSidebarVisible && (
                   <Button
-                    variant="outline" 
+                    variant="outline"
                     size="sm"
                     onClick={() => setSidebarVisible(true)}
                     className="ml-auto lg:hidden"
@@ -939,10 +938,10 @@ const SchedulePage: React.FC = () => {
                 <span className="font-medium" data-testid="GroupCard-Heading-groupName">{selectedGroupData?.name}</span>
               </div>
             </div>
-            
+
             {isSidebarVisible && (
               <Button
-                variant="outline" 
+                variant="outline"
                 size="sm"
                 onClick={() => setSidebarVisible(false)}
                 className="lg:hidden"
@@ -963,13 +962,13 @@ const SchedulePage: React.FC = () => {
               <ChevronLeft className="h-4 w-4" />
               Previous Week
             </Button>
-            
+
             <div className="text-center">
               <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100" data-testid="week-range-header">
                 {formatWeekRangeDisplay(currentWeek)}
               </h2>
             </div>
-            
+
             <Button
               variant="outline"
               onClick={() => navigateWeek('next')}
@@ -1050,7 +1049,7 @@ const SchedulePage: React.FC = () => {
                 <ChevronLeft className="h-4 w-4" />
                 Previous
               </Button>
-              
+
               <div className="text-center">
                 <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   {visibleDays.map(d => d.shortLabel).join(' - ')}
@@ -1059,7 +1058,7 @@ const SchedulePage: React.FC = () => {
                   {daysToShow} of 5 days
                 </div>
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
@@ -1088,7 +1087,7 @@ const SchedulePage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               {timeSlots.map(time => (
                 <div key={time} className="grid border-b border-slate-200 dark:border-slate-700 last:border-b-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors" style={{ gridTemplateColumns: gridColumns }}>
                   <div className="p-4 bg-slate-100/50 dark:bg-slate-900/50 font-medium text-slate-700 dark:text-slate-300 text-center text-sm">
@@ -1114,16 +1113,16 @@ const SchedulePage: React.FC = () => {
         week={currentWeek}
       />
 
-        {/* Child Assignment Modal */}
-        {selectedScheduleSlot && (
-          <ChildAssignmentModal
-            scheduleSlot={selectedScheduleSlot}
-            isOpen={isChildModalOpen}
-            onClose={closeChildModal}
-            preSelectedVehicleAssignmentId={selectedVehicleAssignmentId}
-          />
-        )}
-      </PageLayout>
+      {/* Child Assignment Modal */}
+      {selectedScheduleSlot && (
+        <ChildAssignmentModal
+          scheduleSlot={selectedScheduleSlot}
+          isOpen={isChildModalOpen}
+          onClose={closeChildModal}
+          preSelectedVehicleAssignmentId={selectedVehicleAssignmentId}
+        />
+      )}
+    </PageLayout>
   );
 };
 

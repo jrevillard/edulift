@@ -80,9 +80,9 @@ const LoginPage: React.FC = () => {
       let redirectPath = null;
       
       try {
-        redirectPath = localStorage.getItem('redirectAfterLogin');
+        redirectPath = sessionStorage.getItem('redirectAfterLogin');
       } catch (error) {
-        console.error('Error accessing localStorage:', error);
+        console.error('Error accessing sessionStorage:', error);
       }
       
       const from = redirectTo || redirectPath || location.state?.from?.pathname || "/dashboard";
@@ -90,9 +90,9 @@ const LoginPage: React.FC = () => {
       // Clear the stored redirect path
       if (redirectPath) {
         try {
-          localStorage.removeItem('redirectAfterLogin');
+          sessionStorage.removeItem('redirectAfterLogin');
         } catch (error) {
-          console.error('Error removing item from localStorage:', error);
+          console.error('Error removing item from sessionStorage:', error);
         }
       }
       
@@ -117,7 +117,7 @@ const LoginPage: React.FC = () => {
     const redirectTo = searchParams.get('returnTo');
     console.log('🔍 DEBUG: LoginPage - redirectTo from searchParams (using returnTo):', redirectTo);
     if (redirectTo) {
-      localStorage.setItem('redirectAfterLogin', redirectTo);
+      sessionStorage.setItem('redirectAfterLogin', redirectTo);
     }
 
     // Extract invite code from redirectTo URL if it contains a family join page

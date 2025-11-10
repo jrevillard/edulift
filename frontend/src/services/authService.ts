@@ -36,11 +36,12 @@ class AuthService {
   private onAuthChanged?: () => void;
 
   constructor() {
-    // Initialize from secure storage (async operation)
-    this.initializeFromSecureStorage();
-
-    // Set up axios interceptors
+    // Set up axios interceptors first
     this.setupAxiosInterceptors();
+
+    // Initialize from secure storage (async operation)
+    // Note: This will update tokens asynchronously, interceptors will handle null tokens initially
+    this.initializeFromSecureStorage();
   }
 
   private async initializeFromSecureStorage(): Promise<void> {
@@ -56,7 +57,13 @@ class AuthService {
         } catch (error) {
           console.error('Failed to parse user data:', error);
           await this.clearAuth();
+          return;
         }
+      }
+
+      // Notify auth context that tokens are loaded
+      if (this.onAuthChanged) {
+        this.onAuthChanged();
       }
     } catch (error) {
       console.error('Failed to initialize from secure storage:', error);
@@ -64,6 +71,11 @@ class AuthService {
       this.token = null;
       this.storedRefreshToken = null;
       this.user = null;
+
+      // Still notify to update loading state
+      if (this.onAuthChanged) {
+        this.onAuthChanged();
+      }
     }
   }
 
@@ -317,7 +329,17 @@ class AuthService {
 
   async refreshToken(): Promise<void> {
     if (!this.storedRefreshToken) {
-      throw new Error('No refresh token available');
+      console.warn('🔄 Refresh token not in memory, checking secure storage...');
+      // Try to fetch from secure storage as fallback
+      try {
+        this.storedRefreshToken = await secureStorage.getItem('refreshToken');
+        if (!this.storedRefreshToken) {
+          throw new Error('No refresh token available');
+        }
+      } catch (error) {
+        console.error('Failed to fetch refresh token from storage:', error);
+        throw new Error('No refresh token available');
+      }
     }
 
     // Prevent concurrent refresh attempts
@@ -328,12 +350,23 @@ class AuthService {
     this.isRefreshInProgress = true;
 
     try {
+      // Send refresh token to backend
+    if (this.storedRefreshToken) {
+      console.log('🔄 Refreshing token...');
+    } else {
+      console.warn('🔄 No refresh token available');
+    }
+
       const response = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number; tokenType: string }>>(
         `${API_BASE_URL}/auth/refresh`,
         {
           refreshToken: this.storedRefreshToken
         }
       );
+
+      if (!response.data) {
+        throw new Error('No response data from server');
+      }
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || 'Failed to refresh token');
@@ -373,6 +406,14 @@ class AuthService {
     this.token = token;
     this.user = user;
 
+    // Store refresh token in memory if provided
+    if (refreshToken) {
+      this.storedRefreshToken = refreshToken;
+    }
+
+    // Authentication successful
+    console.log('✅ Authentication successful');
+
     try {
       // Store in secure storage only
       await secureStorage.setItem('authToken', token);
@@ -380,8 +421,8 @@ class AuthService {
 
       // Store refresh token if provided
       if (refreshToken) {
-        this.storedRefreshToken = refreshToken;
         await secureStorage.setItem('refreshToken', refreshToken);
+        console.log('✅ DEBUG: Stored refresh token in memory and secure storage');
       }
     } catch (error) {
       console.error('Failed to store auth data securely:', error);

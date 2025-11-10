@@ -22,15 +22,15 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock localStorage
-const localStorageMock = {
+// Mock sessionStorage
+const sessionStorageMock = {
   getItem: vi.fn(),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
 };
-Object.defineProperty(window, 'localStorage', {
-  value: localStorageMock,
+Object.defineProperty(window, 'sessionStorage', {
+  value: sessionStorageMock,
 });
 
 describe('LoginPage 401 Redirect Handling', () => {
@@ -47,7 +47,7 @@ describe('LoginPage 401 Redirect Handling', () => {
     });
 
     // Reset localStorage mock
-    localStorageMock.getItem.mockReturnValue(null);
+    sessionStorageMock.getItem.mockReturnValue(null);
     
     // Default auth mock - not authenticated
     mockUseAuth.mockReturnValue({
@@ -74,7 +74,7 @@ describe('LoginPage 401 Redirect Handling', () => {
   describe('Redirect After Login', () => {
     it('should redirect to stored path from localStorage after authentication', async () => {
       // Simulate stored redirect path from 401
-      localStorageMock.getItem.mockImplementation((key) => {
+      sessionStorageMock.getItem.mockImplementation((key) => {
         if (key === 'redirectAfterLogin') return '/schedule?test=1';
         return null;
       });
@@ -101,12 +101,12 @@ describe('LoginPage 401 Redirect Handling', () => {
       });
 
       // Should clear the stored path
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
+      expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
     });
 
     it('should redirect to location.state.from if no stored path', async () => {
       // No stored redirect path
-      localStorageMock.getItem.mockReturnValue(null);
+      sessionStorageMock.getItem.mockReturnValue(null);
 
       // Render with location state (from ProtectedRoute)
       renderLoginPage({ from: { pathname: '/dashboard' } });
@@ -130,12 +130,12 @@ describe('LoginPage 401 Redirect Handling', () => {
       });
 
       // Should not try to remove non-existent stored path
-      expect(localStorageMock.removeItem).not.toHaveBeenCalledWith('redirectAfterLogin');
+      expect(sessionStorageMock.removeItem).not.toHaveBeenCalledWith('redirectAfterLogin');
     });
 
     it('should prioritize stored path over location state', async () => {
       // Both stored path and location state exist
-      localStorageMock.getItem.mockImplementation((key) => {
+      sessionStorageMock.getItem.mockImplementation((key) => {
         if (key === 'redirectAfterLogin') return '/schedule';
         return null;
       });
@@ -160,12 +160,12 @@ describe('LoginPage 401 Redirect Handling', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/schedule', { replace: true });
       });
 
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
+      expect(sessionStorageMock.removeItem).toHaveBeenCalledWith('redirectAfterLogin');
     });
 
     it('should redirect to default dashboard if no redirect info', async () => {
       // No stored path, no location state
-      localStorageMock.getItem.mockReturnValue(null);
+      sessionStorageMock.getItem.mockReturnValue(null);
 
       renderLoginPage();
 
@@ -202,7 +202,7 @@ describe('LoginPage 401 Redirect Handling', () => {
 
     testPaths.forEach(path => {
       it(`should redirect to stored path: ${path}`, async () => {
-        localStorageMock.getItem.mockImplementation((key) => {
+        sessionStorageMock.getItem.mockImplementation((key) => {
           if (key === 'redirectAfterLogin') return path;
           return null;
         });
@@ -231,7 +231,7 @@ describe('LoginPage 401 Redirect Handling', () => {
 
   describe('Authentication States', () => {
     it('should not redirect when still loading', async () => {
-      localStorageMock.getItem.mockImplementation((key) => {
+      sessionStorageMock.getItem.mockImplementation((key) => {
         if (key === 'redirectAfterLogin') return '/schedule';
         return null;
       });
@@ -254,7 +254,7 @@ describe('LoginPage 401 Redirect Handling', () => {
     });
 
     it('should not redirect when not authenticated', async () => {
-      localStorageMock.getItem.mockImplementation((key) => {
+      sessionStorageMock.getItem.mockImplementation((key) => {
         if (key === 'redirectAfterLogin') return '/schedule';
         return null;
       });
@@ -280,7 +280,7 @@ describe('LoginPage 401 Redirect Handling', () => {
   describe('Edge Cases', () => {
     it('should handle malformed stored redirect path', async () => {
       // Invalid path
-      localStorageMock.getItem.mockImplementation((key) => {
+      sessionStorageMock.getItem.mockImplementation((key) => {
         if (key === 'redirectAfterLogin') return 'invalid-path';
         return null;
       });
@@ -307,7 +307,7 @@ describe('LoginPage 401 Redirect Handling', () => {
 
     it('should handle localStorage errors gracefully', async () => {
       // Simulate localStorage error
-      localStorageMock.getItem.mockImplementation(() => {
+      sessionStorageMock.getItem.mockImplementation(() => {
         throw new Error('localStorage error');
       });
 
@@ -336,7 +336,7 @@ describe('LoginPage 401 Redirect Handling', () => {
     });
 
     it('should handle multiple authentication state changes', async () => {
-      localStorageMock.getItem.mockImplementation((key) => {
+      sessionStorageMock.getItem.mockImplementation((key) => {
         if (key === 'redirectAfterLogin') return '/schedule';
         return null;
       });
