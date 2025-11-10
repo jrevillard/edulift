@@ -105,7 +105,7 @@ describe('GroupService - Family-Based Architecture', () => {
         },
         familyMembers: [],
         _count: {
-          familyMembers: 1,
+          familyMembers: 0,
           scheduleSlots: 0,
         },
       });
@@ -262,7 +262,7 @@ describe('GroupService - Family-Based Architecture', () => {
           { familyId: 'family-123', role: 'MEMBER' },
         ],
         _count: {
-          familyMembers: 2,
+          familyMembers: 1,
           scheduleSlots: 0,
         },
       });

@@ -154,7 +154,7 @@ describe('GroupService.updateGroup', () => {
         updatedAt: expect.any(String),
         userRole: 'ADMIN', // Changed from 'OWNER' to 'ADMIN'
         ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers,
+        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -196,7 +196,7 @@ describe('GroupService.updateGroup', () => {
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
         ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers,
+        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -239,7 +239,7 @@ describe('GroupService.updateGroup', () => {
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
         ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers,
+        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -272,7 +272,7 @@ describe('GroupService.updateGroup', () => {
         userRole: 'ADMIN',
         inviteCode: mockUpdatedGroup.inviteCode,
         ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers,
+        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -305,7 +305,7 @@ describe('GroupService.updateGroup', () => {
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
         ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers,
+        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });

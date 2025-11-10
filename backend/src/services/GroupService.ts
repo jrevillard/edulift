@@ -225,6 +225,15 @@ export class GroupService {
     // Calculate userRole using shared logic
     const userRole = await this.calculateUserRoleInGroup(group, userId);
 
+    // Family count is the number of distinct families participating in the group
+    // This includes the owner family plus any member families
+    let familyCount = group._count?.familyMembers ?? 0;
+    
+    // Always add 1 for owner family since they're not counted in familyMembers
+    if (group.ownerFamily) {
+      familyCount += 1;
+    }
+
     // Return enriched format matching getUserGroups() response
     return {
       id: group.id,
@@ -239,7 +248,7 @@ export class GroupService {
         id: group.ownerFamily.id,
         name: group.ownerFamily.name,
       } : undefined,
-      familyCount: group._count?.familyMembers ?? 0,
+      familyCount,
       scheduleCount: group._count?.scheduleSlots ?? 0,
     };
   }
