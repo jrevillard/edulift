@@ -63,6 +63,8 @@ services:
       # API and dashboard
       - "--api.dashboard=true"
       - "--api.insecure=false"
+      # Ping endpoint for healthcheck
+      - "--ping=true"
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -126,7 +128,7 @@ services:
       # Basic auth for dashboard
       - "traefik.http.middlewares.{{ compose_project_name }}-traefik-auth.basicauth.users={{ edulift_services.traefik.security.middlewares.auth_users }}"
     healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/ping"]
       interval: {{ edulift_services.common.healthcheck.interval }}
       timeout: {{ edulift_services.common.healthcheck.timeout }}
       retries: {{ edulift_services.common.healthcheck.retries }}
