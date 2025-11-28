@@ -60,9 +60,23 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-            # Add PR-specific tags for easy identification
-            type=raw,value=pr-${{ github.event.number }},enable={{ github.event_name == 'pull_request' }}
-            type=ref,event=branch,suffix=-pr,enable={{ github.event_name == 'pull_request' }}
+
+      # Generate additional tags for pull requests
+      - name: Generate PR-specific tags
+        id: meta-backend-pr
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "docker_tags=${{ steps.meta-backend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.head_ref }}-pr,${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-backend:${{ github.head_ref }}-pr" >> $GITHUB_OUTPUT
+
+      # Use appropriate tags for docker build
+      - name: Set Docker tags
+        id: prepare-tags-backend
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "docker_tags=${{ steps.meta-backend-pr.outputs.docker_tags }}" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tags=${{ steps.meta-backend.outputs.tags }}" >> $GITHUB_OUTPUT
+          fi
 
       # Build and push backend image with registry cache
       - name: Build and push backend image
@@ -73,7 +87,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta-backend.outputs.labels }}
-          tags: ${{ steps.meta-backend.outputs.tags }}
+          tags: ${{ steps.prepare-tags-backend.outputs.docker_tags }}
           cache-from: |
             type=gha
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache
@@ -96,9 +110,23 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
-            # Add PR-specific tags for easy identification
-            type=raw,value=pr-${{ github.event.number }},enable={{ github.event_name == 'pull_request' }}
-            type=ref,event=branch,suffix=-pr,enable={{ github.event_name == 'pull_request' }}
+
+      # Generate additional tags for pull requests (frontend)
+      - name: Generate PR-specific tags (frontend)
+        id: meta-frontend-pr
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "docker_tags=${{ steps.meta-frontend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.head_ref }}-pr,${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-frontend:${{ github.head_ref }}-pr" >> $GITHUB_OUTPUT
+
+      # Use appropriate tags for docker build (frontend)
+      - name: Set Docker tags (frontend)
+        id: prepare-tags-frontend
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "docker_tags=${{ steps.meta-frontend-pr.outputs.docker_tags }}" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tags=${{ steps.meta-frontend.outputs.tags }}" >> $GITHUB_OUTPUT
+          fi
 
       # Build and push frontend image with registry cache
       - name: Build and push frontend image
@@ -109,7 +137,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta-frontend.outputs.labels }}
-          tags: ${{ steps.meta-frontend.outputs.tags }}
+          tags: ${{ steps.prepare-tags-frontend.outputs.docker_tags }}
           cache-from: |
             type=gha
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache
