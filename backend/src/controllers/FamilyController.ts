@@ -20,7 +20,7 @@ export class FamilyController {
   constructor(
     private familyService: FamilyService,
     private familyAuthService: FamilyAuthService,
-    private logger: Logger,
+    private logger: Logger = familyLogger,
   ) {}
 
   async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {

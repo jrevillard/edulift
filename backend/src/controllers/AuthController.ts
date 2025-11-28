@@ -17,7 +17,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private unifiedInvitationService: UnifiedInvitationService,
-    private logger: Logger,
+    private logger: Logger = authLogger,
   ) {}
 
   requestMagicLink = async (req: Request, res: Response): Promise<void> => {
