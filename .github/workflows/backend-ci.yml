@@ -130,24 +130,32 @@ jobs:
         run: |
           cd backend
 
-          # Generate OpenAPI in temporary directory
+          # Save current swagger.json
+          cp docs/openapi/swagger.json docs/openapi/swagger.json.committed
+
+          # Generate OpenAPI in current directory
           npm run swagger:generate
 
-          # Compare with committed version
-          if ! git diff --quiet --exit-code 1 docs/openapi/swagger.json; then
+          # Compare files
+          if ! diff docs/openapi/swagger.json.committed docs/openapi/swagger.json > /dev/null; then
             echo "❌ ERROR: OpenAPI specification is out of date!"
             echo ""
             echo "The swagger.json in your commit does not match the generated specification."
-            echo "Please run 'npm run swagger:generate' and commit the updated docs/openapi/swagger.json"
             echo ""
             echo "Generated changes:"
-            git diff docs/openapi/swagger.json
+            diff -u docs/openapi/swagger.json.committed docs/openapi/swagger.json || true
             echo ""
             echo "Command to fix:"
             echo "  cd backend && npm run swagger:generate && git add docs/openapi/swagger.json && git commit -m 'docs: update OpenAPI specification'"
+
+            # Restore original file
+            cp docs/openapi/swagger.json.committed docs/openapi/swagger.json
+            rm docs/openapi/swagger.json.committed
+
             exit 1
           else
             echo "✅ OpenAPI specification is up to date"
+            rm docs/openapi/swagger.json.committed
           fi
 
       - name: Run backend tests (with tsx runtime)
