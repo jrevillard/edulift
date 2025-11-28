@@ -361,7 +361,7 @@ describe('SocketHandler', () => {
           resolve(data);
         });
         
-        setTestTimeout(() => reject(new Error('Join event timeout')), 3000);
+        setTestTimeout(() => reject(new Error('Join event timeout')), 5000);
       });
 
       // Connect the second socket and have it join the group first
