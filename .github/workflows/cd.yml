@@ -66,7 +66,9 @@ jobs:
         id: meta-backend-pr
         if: github.event_name == 'pull_request'
         run: |
-          echo "docker_tags=${{ steps.meta-backend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.head_ref }}-pr,${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-backend:${{ github.head_ref }}-pr" >> $GITHUB_OUTPUT
+          # Clean branch name for Docker tags (replace invalid characters)
+          BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          echo "docker_tags=${{ steps.meta-backend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-backend:${BRANCH_NAME_CLEAN}-pr" >> $GITHUB_OUTPUT
 
       # Use appropriate tags for docker build
       - name: Set Docker tags
@@ -116,7 +118,9 @@ jobs:
         id: meta-frontend-pr
         if: github.event_name == 'pull_request'
         run: |
-          echo "docker_tags=${{ steps.meta-frontend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.head_ref }}-pr,${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-frontend:${{ github.head_ref }}-pr" >> $GITHUB_OUTPUT
+          # Clean branch name for Docker tags (replace invalid characters)
+          BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          echo "docker_tags=${{ steps.meta-frontend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-frontend:${BRANCH_NAME_CLEAN}-pr" >> $GITHUB_OUTPUT
 
       # Use appropriate tags for docker build (frontend)
       - name: Set Docker tags (frontend)
@@ -167,12 +171,16 @@ jobs:
             echo "### GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
             echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
             echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
-            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.head_ref }}-pr\`" >> $GITHUB_STEP_SUMMARY
-            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.head_ref }}-pr\`" >> $GITHUB_STEP_SUMMARY
+            # Use cleaned branch name for display
+            BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### Docker Hub" >> $GITHUB_STEP_SUMMARY
             echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
             echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "## 🚀 Quick Test Commands" >> $GITHUB_STEP_SUMMARY
             echo '```bash' >> $GITHUB_STEP_SUMMARY
