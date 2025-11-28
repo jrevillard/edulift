@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 env:
@@ -57,6 +60,9 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            # Add PR-specific tags for easy identification
+            type=raw,value=pr-${{ github.event.number }},enable={{ github.event_name == 'pull_request' }}
+            type=ref,event=branch,suffix=-pr,enable={{ github.event_name == 'pull_request' }}
 
       # Build and push backend image with registry cache
       - name: Build and push backend image
@@ -90,6 +96,9 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
+            # Add PR-specific tags for easy identification
+            type=raw,value=pr-${{ github.event.number }},enable={{ github.event_name == 'pull_request' }}
+            type=ref,event=branch,suffix=-pr,enable={{ github.event_name == 'pull_request' }}
 
       # Build and push frontend image with registry cache
       - name: Build and push frontend image
@@ -117,19 +126,53 @@ jobs:
     steps:
       - name: Create deployment summary
         run: |
-          echo "# Docker Images Deployed 🐳" >> $GITHUB_STEP_SUMMARY
+          echo "# 🐳 Docker Images Deployed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
-          echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend\`" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "## 🔀 Pull Request Build" >> $GITHUB_STEP_SUMMARY
+            echo "- **PR #**: ${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch**: \`${{ github.head_ref }}\` → \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Title**: ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🏷️ PR-Specific Tags" >> $GITHUB_STEP_SUMMARY
+            echo "### GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.head_ref }}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.head_ref }}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Docker Hub" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🚀 Quick Test Commands" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo '# Pull and test PR images' >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💡 **Note**: These are temporary testing images for PR #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🏷️ Production Tags" >> $GITHUB_STEP_SUMMARY
+            echo "### GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Docker Hub (Legacy)" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Docker Hub (Legacy)" >> $GITHUB_STEP_SUMMARY
-          echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Cache Strategy" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Registry cache (type=registry) - Shared across all builds" >> $GITHUB_STEP_SUMMARY
-          echo "✅ GitHub Actions cache (type=gha) - Job-specific cache" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏗️ Build Configuration" >> $GITHUB_STEP_SUMMARY
           echo "✅ Multi-platform (linux/amd64,linux/arm64)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Registry cache (type=registry)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ GitHub Actions cache (type=gha)" >> $GITHUB_STEP_SUMMARY
 
   
