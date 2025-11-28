@@ -68,7 +68,24 @@ jobs:
         run: |
           # Clean branch name for Docker tags (replace invalid characters)
           BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
-          echo "docker_tags=${{ steps.meta-backend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-backend:${BRANCH_NAME_CLEAN}-pr" >> $GITHUB_OUTPUT
+
+          # Get existing tags and format them properly (remove newlines)
+          EXISTING_TAGS=$(echo '${{ steps.meta-backend.outputs.tags }}' | tr '\n' ',' | sed 's/,*$//')
+
+          # Add PR-specific tags
+          PR_TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-backend:${BRANCH_NAME_CLEAN}-pr"
+
+          # Combine all tags
+          if [ -n "$EXISTING_TAGS" ]; then
+            COMBINED_TAGS="${EXISTING_TAGS},${PR_TAGS}"
+          else
+            COMBINED_TAGS="$PR_TAGS"
+          fi
+
+          # Remove duplicate tags and empty entries
+          FINAL_TAGS=$(echo "$COMBINED_TAGS" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+
+          echo "docker_tags=$FINAL_TAGS" >> $GITHUB_OUTPUT
 
       # Use appropriate tags for docker build
       - name: Set Docker tags
@@ -120,7 +137,24 @@ jobs:
         run: |
           # Clean branch name for Docker tags (replace invalid characters)
           BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
-          echo "docker_tags=${{ steps.meta-frontend.outputs.tags }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-frontend:${BRANCH_NAME_CLEAN}-pr" >> $GITHUB_OUTPUT
+
+          # Get existing tags and format them properly (remove newlines)
+          EXISTING_TAGS=$(echo '${{ steps.meta-frontend.outputs.tags }}' | tr '\n' ',' | sed 's/,*$//')
+
+          # Add PR-specific tags
+          PR_TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-frontend:${BRANCH_NAME_CLEAN}-pr"
+
+          # Combine all tags
+          if [ -n "$EXISTING_TAGS" ]; then
+            COMBINED_TAGS="${EXISTING_TAGS},${PR_TAGS}"
+          else
+            COMBINED_TAGS="$PR_TAGS"
+          fi
+
+          # Remove duplicate tags and empty entries
+          FINAL_TAGS=$(echo "$COMBINED_TAGS" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+
+          echo "docker_tags=$FINAL_TAGS" >> $GITHUB_OUTPUT
 
       # Use appropriate tags for docker build (frontend)
       - name: Set Docker tags (frontend)
