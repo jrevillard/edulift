@@ -4,6 +4,9 @@ import { FamilyController } from '../FamilyController';
 import { FamilyRole } from '../../types/family';
 import { validateBody } from '../../middleware/validation';
 import { CreateFamilySchema } from '../../schemas/families';
+import { createLogger } from '../../utils/logger';
+
+const familyLogger = createLogger('FamilyController');
 
 // Mock services
 const mockFamilyService = {
@@ -38,6 +41,7 @@ describe('FamilyController', () => {
     familyController = new FamilyController(
       mockFamilyService,
       mockFamilyAuthService,
+      familyLogger,
     );
 
     app = express();

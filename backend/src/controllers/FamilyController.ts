@@ -2,9 +2,11 @@ import { Request, Response } from 'express';
 import { FamilyService } from '../services/FamilyService';
 import { FamilyAuthService } from '../services/FamilyAuthService';
 import { FamilyRole } from '../types/family';
-import { createLogger } from '../utils/logger';
+import { createLogger, Logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
+
+const familyLogger = createLogger('FamilyController');
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -15,11 +17,10 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class FamilyController {
-  private logger = createLogger('FamilyController');
-
   constructor(
     private familyService: FamilyService,
     private familyAuthService: FamilyAuthService,
+    private logger: Logger,
   ) {}
 
   async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -494,5 +495,5 @@ export const createFamilyController = (): FamilyController => {
   const familyService = new FamilyService(prisma, logger, undefined, emailService);
   const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
 
-  return new FamilyController(familyService, familyAuthService);
+  return new FamilyController(familyService, familyAuthService, familyLogger);
 };
