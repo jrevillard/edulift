@@ -13,7 +13,7 @@ export class DashboardController {
     this.logger = logger;
   }
 
-  async getStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getStats = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       this.logger.debug('getStats: Received request', {
         userId: req.user?.id,
@@ -55,9 +55,9 @@ export class DashboardController {
         error: error instanceof Error ? error.message : 'Internal server error',
       });
     }
-  }
+  };
 
-  async getTodaySchedule(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getTodaySchedule = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       this.logger.debug('getTodaySchedule: Received request', {
         userId: req.user?.id,
@@ -98,10 +98,10 @@ export class DashboardController {
         error: error instanceof Error ? error.message : 'Internal server error',
       });
     }
-  }
+  };
 
-  
-  async getRecentActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
+
+  getRecentActivity = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       this.logger.debug('getRecentActivity: Received request', {
         userId: req.user?.id,
@@ -160,9 +160,9 @@ export class DashboardController {
         error: error instanceof Error ? error.message : 'Internal server error',
       });
     }
-  }
+  };
 
-  async getWeeklyDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getWeeklyDashboard = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       this.logger.debug('getWeeklyDashboard: Received request', {
         userId: req.user?.id,
@@ -244,5 +244,5 @@ export class DashboardController {
         statusCode: 500,
       });
     }
-  }
+  };
 }

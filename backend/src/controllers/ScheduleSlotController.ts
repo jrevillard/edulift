@@ -31,7 +31,7 @@ export class ScheduleSlotController {
     });
 
     if (!vehicleId) {
-      logger.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId: authReq.userId, groupId });
+      this.logger.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId: authReq.userId, groupId });
       throw createError('Vehicle ID is required to create a schedule slot', 400);
     }
 

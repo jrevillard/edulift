@@ -23,7 +23,7 @@ export class FamilyController {
     private logger: Logger = familyLogger,
   ) {}
 
-  async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  createFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { name } = req.body;
 
@@ -60,9 +60,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async joinFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  joinFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { inviteCode } = req.body;
 
@@ -86,9 +86,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async getCurrentFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getCurrentFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const family = await this.familyService.getUserFamily(req.user.id);
 
@@ -110,15 +110,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async getUserPermissions(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getUserPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId } = req.params;
-      
+
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -139,9 +139,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async updateMemberRole(req: AuthenticatedRequest, res: Response): Promise<void> {
+  updateMemberRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { memberId } = req.params;
       const { role } = req.body;
@@ -171,9 +171,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async generateInviteCode(req: AuthenticatedRequest, res: Response): Promise<void> {
+  generateInviteCode = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       // Check permissions (only admins can generate invite codes)
       await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
@@ -187,9 +187,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async inviteMember(req: AuthenticatedRequest, res: Response): Promise<void> {
+  inviteMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId } = req.params;
       const { email, role, personalMessage } = req.body;
@@ -214,7 +214,7 @@ export class FamilyController {
 
       // Verify user belongs to this family and has admin permissions
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -245,15 +245,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async getPendingInvitations(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getPendingInvitations = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId } = req.params;
 
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -275,15 +275,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async cancelInvitation(req: AuthenticatedRequest, res: Response): Promise<void> {
+  cancelInvitation = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId, invitationId } = req.params;
 
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -309,9 +309,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async updateFamilyName(req: AuthenticatedRequest, res: Response): Promise<void> {
+  updateFamilyName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { name } = req.body;
       this.logger.debug('updateFamilyName called', { name, userId: req.user.id });
@@ -358,15 +358,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async removeMember(req: AuthenticatedRequest, res: Response): Promise<void> {
+  removeMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId, memberId } = req.params;
 
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -392,9 +392,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async validateInviteCode(req: Request, res: Response): Promise<void> {
+  validateInviteCode = async (req: Request, res: Response): Promise<void> => {
     try {
       const { inviteCode } = req.body;
 
@@ -439,9 +439,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async leaveFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  leaveFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       await this.familyService.leaveFamily(req.user.id);
 
@@ -453,7 +453,7 @@ export class FamilyController {
       });
     } catch (error) {
       this.logger.error('Leave family error:', { error: error instanceof Error ? error.message : String(error) });
-      
+
       // Handle specific business rule errors
       if (error instanceof Error && error.message.includes('LAST_ADMIN')) {
         res.status(400).json({
@@ -476,7 +476,7 @@ export class FamilyController {
         error: 'Failed to leave family',
       });
     }
-  }
+  };
 
 }
 
