@@ -15,12 +15,6 @@ const mockFamilyAuthService = {
   requireFamilyRole: jest.fn(),
 } as unknown as FamilyAuthService;
 
-const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-};
 
 describe('FamilyController - inviteMember', () => {
   let familyController: FamilyController;
@@ -28,7 +22,7 @@ describe('FamilyController - inviteMember', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    familyController = new FamilyController(mockFamilyService, mockFamilyAuthService, mockLogger);
+    familyController = new FamilyController(mockFamilyService, mockFamilyAuthService);
     
     app = express();
     app.use(express.json());

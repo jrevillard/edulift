@@ -15,10 +15,11 @@ interface AuthenticatedRequest extends Request {
 }
 
 export class FamilyController {
+  private logger = createLogger('FamilyController');
+
   constructor(
     private familyService: FamilyService,
     private familyAuthService: FamilyAuthService,
-    private logger: any,
   ) {}
 
   async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -31,17 +32,8 @@ export class FamilyController {
         userEmail: req.user?.email,
       });
 
-      if (!name || name.trim().length === 0) {
-        this.logger.warn('createFamily: Validation failed - Family name is required', {
-          userId: req.user?.id,
-          name,
-        });
-        res.status(400).json({
-          success: false,
-          error: 'Family name is required',
-        });
-        return;
-      }
+      // Validation is handled by middleware (CreateFamilySchema)
+      // No need for manual validation - Zod ensures name is valid and non-empty
 
       this.logger.debug('createFamily: Creating family', { userId: req.user.id, name: name.trim() });
       const family = await this.familyService.createFamily(req.user.id, name);
@@ -502,5 +494,5 @@ export const createFamilyController = (): FamilyController => {
   const familyService = new FamilyService(prisma, logger, undefined, emailService);
   const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
 
-  return new FamilyController(familyService, familyAuthService, logger);
+  return new FamilyController(familyService, familyAuthService);
 };
