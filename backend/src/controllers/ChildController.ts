@@ -5,21 +5,20 @@ import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { createError } from '../middleware/errorHandler';
 import { PrismaClient } from '@prisma/client';
-import { createLogger } from '../utils/logger';
-
-const childLogger = createLogger('ChildController');
+import { createLogger, Logger } from '../utils/logger';
 
 export class ChildController {
   constructor(
     private childService: ChildService,
     private childAssignmentService: ChildAssignmentService,
+    private logger: Logger = createLogger('ChildController'),
   ) {}
 
   createChild = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
     const { name, age } = req.body; // Validated by middleware
 
-    childLogger.debug('createChild: Received request', {
+    this.logger.debug('createChild: Received request', {
       userId: authReq.userId,
       name,
       age,
@@ -27,41 +26,41 @@ export class ChildController {
     });
 
     if (!authReq.userId) {
-      childLogger.error('createChild: Authentication required', { userId: authReq.userId });
+      this.logger.error('createChild: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('createChild: Authentication validated', { userId: authReq.userId });
+    this.logger.debug('createChild: Authentication validated', { userId: authReq.userId });
 
     // Get user's family - children must belong to a family
-    childLogger.debug('createChild: Getting user family', { userId: authReq.userId });
+    this.logger.debug('createChild: Getting user family', { userId: authReq.userId });
     const userFamily = await this.childService.getUserFamily(authReq.userId);
     if (!userFamily) {
-      childLogger.warn('createChild: User not part of any family', { userId: authReq.userId });
+      this.logger.warn('createChild: User not part of any family', { userId: authReq.userId });
       throw createError('User must belong to a family to add children', 403);
     }
 
-    childLogger.debug('createChild: Family found', {
+    this.logger.debug('createChild: Family found', {
       userId: authReq.userId,
       familyId: userFamily.id,
       familyName: userFamily.name,
     });
 
     // Verify user has permission to add children to the family
-    childLogger.debug('createChild: Checking permissions', {
+    this.logger.debug('createChild: Checking permissions', {
       userId: authReq.userId,
       familyId: userFamily.id,
     });
     const canModifyChildren = await this.childService.canUserModifyFamilyChildren(authReq.userId, userFamily.id);
     if (!canModifyChildren) {
-      childLogger.warn('createChild: Insufficient permissions', {
+      this.logger.warn('createChild: Insufficient permissions', {
         userId: authReq.userId,
         familyId: userFamily.id,
       });
       throw createError('Insufficient permissions to add children to family', 403);
     }
 
-    childLogger.debug('createChild: Permissions validated', { userId: authReq.userId });
+    this.logger.debug('createChild: Permissions validated', { userId: authReq.userId });
 
     const childData: {
       name: string;
@@ -76,13 +75,13 @@ export class ChildController {
       childData.age = age;
     }
 
-    childLogger.debug('createChild: Creating child', {
+    this.logger.debug('createChild: Creating child', {
       userId: authReq.userId,
       childData: { name: childData.name, familyId: childData.familyId, age: childData.age },
     });
     const child = await this.childService.createChild(childData);
 
-    childLogger.debug('createChild: Child created successfully', {
+    this.logger.debug('createChild: Child created successfully', {
       userId: authReq.userId,
       childId: child.id,
       childName: child.name,
@@ -94,7 +93,7 @@ export class ChildController {
       data: child,
     };
 
-    childLogger.debug('createChild: Sending response', {
+    this.logger.debug('createChild: Sending response', {
       userId: authReq.userId,
       success: true,
       childId: child.id,
@@ -105,20 +104,20 @@ export class ChildController {
   getChildren = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
 
-    childLogger.debug('getChildren: Received request', {
+    this.logger.debug('getChildren: Received request', {
       userId: authReq.userId,
       userEmail: authReq.user?.email,
     });
 
     if (!authReq.userId) {
-      childLogger.error('getChildren: Authentication required', { userId: authReq.userId });
+      this.logger.error('getChildren: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('getChildren: Calling service', { userId: authReq.userId });
+    this.logger.debug('getChildren: Calling service', { userId: authReq.userId });
     const children = await this.childService.getChildrenByUser(authReq.userId);
 
-    childLogger.debug('getChildren: Service result', {
+    this.logger.debug('getChildren: Service result', {
       userId: authReq.userId,
       childCount: children.length,
     });
@@ -128,7 +127,7 @@ export class ChildController {
       data: children,
     };
 
-    childLogger.debug('getChildren: Sending response', {
+    this.logger.debug('getChildren: Sending response', {
       userId: authReq.userId,
       success: true,
       childCount: children.length,
@@ -140,21 +139,21 @@ export class ChildController {
     const authReq = req as AuthenticatedRequest;
     const { childId } = req.params; // Validated by middleware
 
-    childLogger.debug('getChild: Received request', {
+    this.logger.debug('getChild: Received request', {
       userId: authReq.userId,
       childId,
       userEmail: authReq.user?.email,
     });
 
     if (!authReq.userId) {
-      childLogger.error('getChild: Authentication required', { userId: authReq.userId });
+      this.logger.error('getChild: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('getChild: Calling service', { childId, userId: authReq.userId });
+    this.logger.debug('getChild: Calling service', { childId, userId: authReq.userId });
     const child = await this.childService.getChildById(childId, authReq.userId);
 
-    childLogger.debug('getChild: Child found', {
+    this.logger.debug('getChild: Child found', {
       childId,
       childName: child.name,
       familyId: child.familyId,
@@ -166,7 +165,7 @@ export class ChildController {
       data: child,
     };
 
-    childLogger.debug('getChild: Sending response', {
+    this.logger.debug('getChild: Sending response', {
       childId,
       success: true,
     });
@@ -178,7 +177,7 @@ export class ChildController {
     const { childId } = req.params; // Validated by middleware
     const rawUpdateData = req.body; // Validated by middleware
 
-    childLogger.debug('updateChild: Received request', {
+    this.logger.debug('updateChild: Received request', {
       userId: authReq.userId,
       childId,
       updateData: rawUpdateData,
@@ -186,7 +185,7 @@ export class ChildController {
     });
 
     if (!authReq.userId) {
-      childLogger.error('updateChild: Authentication required', { userId: authReq.userId });
+      this.logger.error('updateChild: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
@@ -203,14 +202,14 @@ export class ChildController {
     }
 
     if (Object.keys(updateData).length === 0) {
-      childLogger.warn('updateChild: No update data provided', { userId: authReq.userId, childId });
+      this.logger.warn('updateChild: No update data provided', { userId: authReq.userId, childId });
       throw createError('No update data provided', 400);
     }
 
-    childLogger.debug('updateChild: Calling service', { childId, userId: authReq.userId, updateData });
+    this.logger.debug('updateChild: Calling service', { childId, userId: authReq.userId, updateData });
     const updatedChild = await this.childService.updateChild(childId, authReq.userId, updateData);
 
-    childLogger.debug('updateChild: Child updated successfully', {
+    this.logger.debug('updateChild: Child updated successfully', {
       childId,
       updatedName: updatedChild.name,
       updatedAge: updatedChild.age,
@@ -221,7 +220,7 @@ export class ChildController {
       data: updatedChild,
     };
 
-    childLogger.debug('updateChild: Sending response', {
+    this.logger.debug('updateChild: Sending response', {
       childId,
       success: true,
     });
@@ -232,21 +231,21 @@ export class ChildController {
     const authReq = req as AuthenticatedRequest;
     const { childId } = req.params; // Validated by middleware
 
-    childLogger.debug('deleteChild: Received request', {
+    this.logger.debug('deleteChild: Received request', {
       userId: authReq.userId,
       childId,
       userEmail: authReq.user?.email,
     });
 
     if (!authReq.userId) {
-      childLogger.error('deleteChild: Authentication required', { userId: authReq.userId });
+      this.logger.error('deleteChild: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('deleteChild: Calling service', { childId, userId: authReq.userId });
+    this.logger.debug('deleteChild: Calling service', { childId, userId: authReq.userId });
     const result = await this.childService.deleteChild(childId, authReq.userId);
 
-    childLogger.debug('deleteChild: Child deleted successfully', {
+    this.logger.debug('deleteChild: Child deleted successfully', {
       childId,
       deleted: result.success,
     });
@@ -256,7 +255,7 @@ export class ChildController {
       data: result,
     };
 
-    childLogger.debug('deleteChild: Sending response', {
+    this.logger.debug('deleteChild: Sending response', {
       childId,
       success: true,
     });
@@ -268,7 +267,7 @@ export class ChildController {
     const { childId } = req.params; // Validated by middleware
     const { week } = req.query as { week?: string }; // Validated by middleware
 
-    childLogger.debug('getChildAssignments: Received request', {
+    this.logger.debug('getChildAssignments: Received request', {
       userId: authReq.userId,
       childId,
       week,
@@ -276,14 +275,14 @@ export class ChildController {
     });
 
     if (!authReq.userId) {
-      childLogger.error('getChildAssignments: Authentication required', { userId: authReq.userId });
+      this.logger.error('getChildAssignments: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('getChildAssignments: Calling service', { childId, userId: authReq.userId, week });
+    this.logger.debug('getChildAssignments: Calling service', { childId, userId: authReq.userId, week });
     const assignments = await this.childService.getChildScheduleAssignments(childId, authReq.userId, week);
 
-    childLogger.debug('getChildAssignments: Assignments retrieved', {
+    this.logger.debug('getChildAssignments: Assignments retrieved', {
       childId,
       assignmentCount: assignments.length,
       week,
@@ -294,7 +293,7 @@ export class ChildController {
       data: assignments,
     };
 
-    childLogger.debug('getChildAssignments: Sending response', {
+    this.logger.debug('getChildAssignments: Sending response', {
       childId,
       success: true,
       assignmentCount: assignments.length,
@@ -307,7 +306,7 @@ export class ChildController {
     const authReq = req as AuthenticatedRequest;
     const { childId, groupId } = req.params; // Validated by middleware
 
-    childLogger.debug('addChildToGroup: Received request', {
+    this.logger.debug('addChildToGroup: Received request', {
       userId: authReq.userId,
       childId,
       groupId,
@@ -315,18 +314,18 @@ export class ChildController {
     });
 
     if (!authReq.userId) {
-      childLogger.error('addChildToGroup: Authentication required', { userId: authReq.userId });
+      this.logger.error('addChildToGroup: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('addChildToGroup: Calling service', { childId, groupId, userId: authReq.userId });
+    this.logger.debug('addChildToGroup: Calling service', { childId, groupId, userId: authReq.userId });
     const membership = await this.childAssignmentService.addChildToGroup(
       childId,
       groupId,
       authReq.userId,
     );
 
-    childLogger.debug('addChildToGroup: Child added to group', {
+    this.logger.debug('addChildToGroup: Child added to group', {
       childId,
       groupId,
       membershipId: (membership as any).id,
@@ -337,7 +336,7 @@ export class ChildController {
       data: membership,
     };
 
-    childLogger.debug('addChildToGroup: Sending response', {
+    this.logger.debug('addChildToGroup: Sending response', {
       childId,
       groupId,
       success: true,
@@ -349,7 +348,7 @@ export class ChildController {
     const authReq = req as AuthenticatedRequest;
     const { childId, groupId } = req.params; // Validated by middleware
 
-    childLogger.debug('removeChildFromGroup: Received request', {
+    this.logger.debug('removeChildFromGroup: Received request', {
       userId: authReq.userId,
       childId,
       groupId,
@@ -357,18 +356,18 @@ export class ChildController {
     });
 
     if (!authReq.userId) {
-      childLogger.error('removeChildFromGroup: Authentication required', { userId: authReq.userId });
+      this.logger.error('removeChildFromGroup: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('removeChildFromGroup: Calling service', { childId, groupId, userId: authReq.userId });
+    this.logger.debug('removeChildFromGroup: Calling service', { childId, groupId, userId: authReq.userId });
     const result = await this.childAssignmentService.removeChildFromGroup(
       childId,
       groupId,
       authReq.userId,
     );
 
-    childLogger.debug('removeChildFromGroup: Child removed from group', {
+    this.logger.debug('removeChildFromGroup: Child removed from group', {
       childId,
       groupId,
       removed: result.success,
@@ -379,7 +378,7 @@ export class ChildController {
       data: result,
     };
 
-    childLogger.debug('removeChildFromGroup: Sending response', {
+    this.logger.debug('removeChildFromGroup: Sending response', {
       childId,
       groupId,
       success: true,
@@ -391,24 +390,24 @@ export class ChildController {
     const authReq = req as AuthenticatedRequest;
     const { childId } = req.params; // Validated by middleware
 
-    childLogger.debug('getChildGroupMemberships: Received request', {
+    this.logger.debug('getChildGroupMemberships: Received request', {
       userId: authReq.userId,
       childId,
       userEmail: authReq.user?.email,
     });
 
     if (!authReq.userId) {
-      childLogger.error('getChildGroupMemberships: Authentication required', { userId: authReq.userId });
+      this.logger.error('getChildGroupMemberships: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    childLogger.debug('getChildGroupMemberships: Calling service', { childId, userId: authReq.userId });
+    this.logger.debug('getChildGroupMemberships: Calling service', { childId, userId: authReq.userId });
     const memberships = await this.childAssignmentService.getChildGroupMemberships(
       childId,
       authReq.userId,
     );
 
-    childLogger.debug('getChildGroupMemberships: Memberships retrieved', {
+    this.logger.debug('getChildGroupMemberships: Memberships retrieved', {
       childId,
       membershipCount: memberships.length,
     });
@@ -418,7 +417,7 @@ export class ChildController {
       data: memberships,
     };
 
-    childLogger.debug('getChildGroupMemberships: Sending response', {
+    this.logger.debug('getChildGroupMemberships: Sending response', {
       childId,
       success: true,
       membershipCount: memberships.length,

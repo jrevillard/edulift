@@ -4,17 +4,17 @@ import { GroupScheduleConfigService } from '../services/GroupScheduleConfigServi
 import { AppError } from '../middleware/errorHandler';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '../types';
-import { createLogger } from '../utils/logger';
-
-const logger = createLogger('GroupScheduleConfigController');
+import { createLogger, Logger } from '../utils/logger';
 
 export class GroupScheduleConfigController {
   private service: GroupScheduleConfigService;
   private prisma: PrismaClient;
+  private logger: Logger;
 
-  constructor() {
+  constructor(logger: Logger = createLogger('GroupScheduleConfigController')) {
     this.prisma = new PrismaClient();
     this.service = new GroupScheduleConfigService(this.prisma);
+    this.logger = logger;
   }
 
   /**
@@ -23,23 +23,23 @@ export class GroupScheduleConfigController {
    */
   getGroupScheduleConfig = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { groupId } = req.params;
-    logger.debug('getGroupScheduleConfig: Received request', { groupId, userId: req.user?.id });
+    this.logger.debug('getGroupScheduleConfig: Received request', { groupId, userId: req.user?.id });
 
     if (!req.user) {
-      logger.error('getGroupScheduleConfig: User not authenticated', { groupId });
+      this.logger.error('getGroupScheduleConfig: User not authenticated', { groupId });
       throw new AppError('User not authenticated', 401);
     }
     const userId = req.user.id;
 
-    logger.debug('getGroupScheduleConfig: Calling service', { groupId, userId });
+    this.logger.debug('getGroupScheduleConfig: Calling service', { groupId, userId });
     const config = await this.service.getGroupScheduleConfig(groupId, userId);
 
     if (!config) {
-      logger.warn('getGroupScheduleConfig: No config found for group', { groupId, userId });
+      this.logger.warn('getGroupScheduleConfig: No config found for group', { groupId, userId });
       throw new AppError('Group schedule configuration not found. Please contact an administrator to configure schedule slots.', 404);
     }
 
-    logger.debug('getGroupScheduleConfig: Config found', {
+    this.logger.debug('getGroupScheduleConfig: Config found', {
       groupId,
       configId: config.id,
       hasScheduleHours: !!config.scheduleHours,
@@ -54,7 +54,7 @@ export class GroupScheduleConfigController {
       },
     };
 
-    logger.debug('getGroupScheduleConfig: Sending response', { groupId, success: true });
+    this.logger.debug('getGroupScheduleConfig: Sending response', { groupId, success: true });
     res.json(response);
   };
 
@@ -66,27 +66,27 @@ export class GroupScheduleConfigController {
     const { groupId } = req.params;
     const { weekday } = req.query;
 
-    logger.debug('getGroupTimeSlots: Received request', {
+    this.logger.debug('getGroupTimeSlots: Received request', {
       groupId,
       weekday,
       userId: req.user?.id,
     });
 
     if (!req.user) {
-      logger.error('getGroupTimeSlots: User not authenticated', { groupId });
+      this.logger.error('getGroupTimeSlots: User not authenticated', { groupId });
       throw new AppError('User not authenticated', 401);
     }
     const userId = req.user.id;
 
     if (!weekday || typeof weekday !== 'string') {
-      logger.warn('getGroupTimeSlots: Weekday parameter is required', { groupId, userId, weekday });
+      this.logger.warn('getGroupTimeSlots: Weekday parameter is required', { groupId, userId, weekday });
       throw new AppError('Weekday parameter is required', 400);
     }
 
-    logger.debug('getGroupTimeSlots: Calling service', { groupId, weekday, userId });
+    this.logger.debug('getGroupTimeSlots: Calling service', { groupId, weekday, userId });
     const timeSlots = await this.service.getGroupTimeSlots(groupId, weekday, userId);
 
-    logger.debug('getGroupTimeSlots: Time slots retrieved', {
+    this.logger.debug('getGroupTimeSlots: Time slots retrieved', {
       groupId,
       weekday,
       userId,
@@ -102,7 +102,7 @@ export class GroupScheduleConfigController {
       },
     };
 
-    logger.debug('getGroupTimeSlots: Sending response', {
+    this.logger.debug('getGroupTimeSlots: Sending response', {
       groupId,
       weekday,
       success: true,
@@ -119,24 +119,24 @@ export class GroupScheduleConfigController {
     const { groupId } = req.params;
     const { scheduleHours } = req.body;
 
-    logger.debug('updateGroupScheduleConfig: Received request', {
+    this.logger.debug('updateGroupScheduleConfig: Received request', {
       groupId,
       scheduleHoursKeys: scheduleHours ? Object.keys(scheduleHours) : [],
       userId: req.user?.id,
     });
 
     if (!req.user) {
-      logger.error('updateGroupScheduleConfig: User not authenticated', { groupId });
+      this.logger.error('updateGroupScheduleConfig: User not authenticated', { groupId });
       throw new AppError('User not authenticated', 401);
     }
     const userId = req.user.id;
 
     if (!scheduleHours || typeof scheduleHours !== 'object') {
-      logger.warn('updateGroupScheduleConfig: Schedule hours are required', { groupId, userId });
+      this.logger.warn('updateGroupScheduleConfig: Schedule hours are required', { groupId, userId });
       throw new AppError('Schedule hours are required', 400);
     }
 
-    logger.debug('updateGroupScheduleConfig: Getting user timezone', { userId });
+    this.logger.debug('updateGroupScheduleConfig: Getting user timezone', { userId });
     // Fetch timezone from authenticated user's database record (single source of truth)
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -144,13 +144,13 @@ export class GroupScheduleConfigController {
     });
 
     if (!user) {
-      logger.error('updateGroupScheduleConfig: User not found', { userId });
+      this.logger.error('updateGroupScheduleConfig: User not found', { userId });
       throw new AppError('User not found', 404);
     }
 
     const userTimezone = user.timezone || 'UTC';
 
-    logger.debug('updateGroupScheduleConfig: Updating config', {
+    this.logger.debug('updateGroupScheduleConfig: Updating config', {
       groupId,
       userId,
       userTimezone,
@@ -163,7 +163,7 @@ export class GroupScheduleConfigController {
       userTimezone,
     );
 
-    logger.debug('updateGroupScheduleConfig: Config updated successfully', {
+    this.logger.debug('updateGroupScheduleConfig: Config updated successfully', {
       groupId,
       userId,
       configId: config.id,
@@ -177,7 +177,7 @@ export class GroupScheduleConfigController {
       },
     };
 
-    logger.debug('updateGroupScheduleConfig: Sending response', {
+    this.logger.debug('updateGroupScheduleConfig: Sending response', {
       groupId,
       success: true,
     });
@@ -191,21 +191,21 @@ export class GroupScheduleConfigController {
   resetGroupScheduleConfig = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const { groupId } = req.params;
 
-    logger.debug('resetGroupScheduleConfig: Received request', {
+    this.logger.debug('resetGroupScheduleConfig: Received request', {
       groupId,
       userId: req.user?.id,
     });
 
     if (!req.user) {
-      logger.error('resetGroupScheduleConfig: User not authenticated', { groupId });
+      this.logger.error('resetGroupScheduleConfig: User not authenticated', { groupId });
       throw new AppError('User not authenticated', 401);
     }
     const userId = req.user.id;
 
-    logger.debug('resetGroupScheduleConfig: Resetting config to default', { groupId, userId });
+    this.logger.debug('resetGroupScheduleConfig: Resetting config to default', { groupId, userId });
     const config = await this.service.resetGroupScheduleConfig(groupId, userId);
 
-    logger.debug('resetGroupScheduleConfig: Config reset successfully', {
+    this.logger.debug('resetGroupScheduleConfig: Config reset successfully', {
       groupId,
       userId,
       configId: config.id,
@@ -219,7 +219,7 @@ export class GroupScheduleConfigController {
       },
     };
 
-    logger.debug('resetGroupScheduleConfig: Sending response', {
+    this.logger.debug('resetGroupScheduleConfig: Sending response', {
       groupId,
       success: true,
     });
@@ -231,11 +231,11 @@ export class GroupScheduleConfigController {
    * GET /api/groups/schedule-config/default
    */
   getDefaultScheduleHours = async (_req: Request, res: Response): Promise<void> => {
-    logger.debug('getDefaultScheduleHours: Received request');
+    this.logger.debug('getDefaultScheduleHours: Received request');
 
     const defaultHours = GroupScheduleConfigService.getDefaultScheduleHours();
 
-    logger.debug('getDefaultScheduleHours: Default hours retrieved', {
+    this.logger.debug('getDefaultScheduleHours: Default hours retrieved', {
       hourKeys: Object.keys(defaultHours),
     });
 
@@ -247,7 +247,7 @@ export class GroupScheduleConfigController {
       },
     };
 
-    logger.debug('getDefaultScheduleHours: Sending response', { success: true });
+    this.logger.debug('getDefaultScheduleHours: Sending response', { success: true });
     res.json(response);
   };
 }

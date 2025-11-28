@@ -6,14 +6,13 @@ import { CreateScheduleSlotData, AssignVehicleToSlotData, ApiResponse } from '..
 import { AuthenticatedRequest } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { SocketEmitter } from '../utils/socketEmitter';
-import { createLogger } from '../utils/logger';
-
-const logger = createLogger('ScheduleSlotController');
+import { createLogger, Logger } from '../utils/logger';
 
 export class ScheduleSlotController {
   constructor(
     private scheduleSlotService: ScheduleSlotService,
     private childAssignmentService: ChildAssignmentService,
+    private logger: Logger = createLogger('ScheduleSlotController'),
   ) {}
 
   createScheduleSlotWithVehicle = async (req: Request, res: Response): Promise<void> => {
@@ -21,7 +20,7 @@ export class ScheduleSlotController {
     const { groupId } = req.params;
     const { datetime, vehicleId, driverId, seatOverride } = req.body;
 
-    logger.debug('createScheduleSlotWithVehicle: Received request', {
+    this.logger.debug('createScheduleSlotWithVehicle: Received request', {
       userId: authReq.userId,
       groupId,
       datetime,
@@ -37,7 +36,7 @@ export class ScheduleSlotController {
     }
 
     if (!authReq.userId) {
-      logger.error('createScheduleSlotWithVehicle: Authentication required', { userId: authReq.userId });
+      this.logger.error('createScheduleSlotWithVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
@@ -47,7 +46,7 @@ export class ScheduleSlotController {
         datetime,
       };
 
-      logger.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
+      this.logger.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
         groupId,
         userId: authReq.userId,
         vehicleId,
@@ -57,7 +56,7 @@ export class ScheduleSlotController {
 
       // Emit WebSocket event for real-time updates
       if (slot) {
-        logger.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
+        this.logger.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
           groupId,
           slotId: slot.id,
         });
@@ -65,7 +64,7 @@ export class ScheduleSlotController {
         SocketEmitter.broadcastScheduleUpdate(groupId);
       }
 
-      logger.debug('createScheduleSlotWithVehicle: Slot created successfully', {
+      this.logger.debug('createScheduleSlotWithVehicle: Slot created successfully', {
         groupId,
         slotId: slot.id,
         vehicleId,
@@ -76,14 +75,14 @@ export class ScheduleSlotController {
         data: slot,
       };
 
-      logger.debug('createScheduleSlotWithVehicle: Sending response', {
+      this.logger.debug('createScheduleSlotWithVehicle: Sending response', {
         groupId,
         slotId: slot.id,
         success: true,
       });
       res.status(201).json(response);
     } catch (error) {
-      logger.error('createScheduleSlotWithVehicle: Error occurred', {
+      this.logger.error('createScheduleSlotWithVehicle: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: authReq.userId,
@@ -274,16 +273,16 @@ export class ScheduleSlotController {
     const { groupId } = req.params;
     const { startDate, endDate } = req.query;
 
-    logger.debug(`🎯 getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
+    this.logger.debug(`🎯 getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
 
-    logger.debug('🔄 Calling scheduleSlotService.getSchedule...');
+    this.logger.debug('🔄 Calling scheduleSlotService.getSchedule...');
     const schedule = await this.scheduleSlotService.getSchedule(
       groupId,
       startDate as string | undefined,
       endDate as string | undefined,
     );
 
-    logger.debug('📤 Controller sending response:', { schedule });
+    this.logger.debug('📤 Controller sending response:', { schedule });
 
     const response: ApiResponse = {
       success: true,

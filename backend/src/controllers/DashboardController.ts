@@ -2,27 +2,27 @@ import { Response } from 'express';
 import { DashboardService } from '../services/DashboardService';
 import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { createLogger } from '../utils/logger';
-
-const logger = createLogger('DashboardController');
+import { createLogger, Logger } from '../utils/logger';
 
 export class DashboardController {
   private dashboardService: DashboardService;
+  private logger: Logger;
 
-  constructor(prisma?: PrismaClient) {
+  constructor(prisma?: PrismaClient, logger: Logger = createLogger('DashboardController')) {
     this.dashboardService = new DashboardService(prisma);
+    this.logger = logger;
   }
 
   async getStats(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      logger.debug('getStats: Received request', {
+      this.logger.debug('getStats: Received request', {
         userId: req.user?.id,
         userEmail: req.user?.email,
       });
 
       // Check authentication
       if (!req.user) {
-        logger.error('getStats: Authentication required', { userId: req.userId });
+        this.logger.error('getStats: Authentication required', { userId: req.userId });
         res.status(401).json({
           success: false,
           error: 'Unauthorized',
@@ -31,10 +31,10 @@ export class DashboardController {
       }
 
       const userId = req.user.id;
-      logger.debug('getStats: Calling service', { userId });
+      this.logger.debug('getStats: Calling service', { userId });
       const stats = await this.dashboardService.calculateUserStats(userId);
 
-      logger.debug('getStats: Stats calculated successfully', {
+      this.logger.debug('getStats: Stats calculated successfully', {
         userId,
         hasStats: !!stats,
         statsKeys: stats ? Object.keys(stats) : [],
@@ -45,7 +45,7 @@ export class DashboardController {
         data: stats,
       });
     } catch (error) {
-      logger.error('getStats: Error occurred', {
+      this.logger.error('getStats: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
@@ -59,14 +59,14 @@ export class DashboardController {
 
   async getTodaySchedule(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      logger.debug('getTodaySchedule: Received request', {
+      this.logger.debug('getTodaySchedule: Received request', {
         userId: req.user?.id,
         userEmail: req.user?.email,
       });
 
       // Check authentication
       if (!req.user) {
-        logger.error('getTodaySchedule: Authentication required', { userId: req.userId });
+        this.logger.error('getTodaySchedule: Authentication required', { userId: req.userId });
         res.status(401).json({
           success: false,
           error: 'Unauthorized',
@@ -75,10 +75,10 @@ export class DashboardController {
       }
 
       const userId = req.user.id;
-      logger.debug('getTodaySchedule: Calling service', { userId });
+      this.logger.debug('getTodaySchedule: Calling service', { userId });
       const upcomingTrips = await this.dashboardService.getTodayTripsForUser(userId);
 
-      logger.debug('getTodaySchedule: Today schedule retrieved', {
+      this.logger.debug('getTodaySchedule: Today schedule retrieved', {
         userId,
         tripCount: upcomingTrips.length,
       });
@@ -88,7 +88,7 @@ export class DashboardController {
         data: { upcomingTrips },
       });
     } catch (error) {
-      logger.error('getTodaySchedule: Error occurred', {
+      this.logger.error('getTodaySchedule: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
@@ -103,14 +103,14 @@ export class DashboardController {
   
   async getRecentActivity(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      logger.debug('getRecentActivity: Received request', {
+      this.logger.debug('getRecentActivity: Received request', {
         userId: req.user?.id,
         userEmail: req.user?.email,
       });
 
       // Check authentication
       if (!req.user) {
-        logger.error('getRecentActivity: Authentication required', { userId: req.userId });
+        this.logger.error('getRecentActivity: Authentication required', { userId: req.userId });
         res.status(401).json({
           success: false,
           error: 'Unauthorized',
@@ -120,7 +120,7 @@ export class DashboardController {
 
       const userId = req.user.id;
 
-      logger.debug('getRecentActivity: Getting user family', { userId });
+      this.logger.debug('getRecentActivity: Getting user family', { userId });
       // Get user's family to show family-wide activity
       const userWithFamily = await this.dashboardService.getUserWithFamily(userId);
 
@@ -129,17 +129,17 @@ export class DashboardController {
       if (userWithFamily?.familyMemberships?.[0]?.familyId) {
         // Use family-based activity if user belongs to a family
         const familyId = userWithFamily.familyMemberships[0].familyId;
-        logger.debug('getRecentActivity: Getting family activity', { userId, familyId });
+        this.logger.debug('getRecentActivity: Getting family activity', { userId, familyId });
         activities = await this.dashboardService.getRecentActivityForFamily(familyId);
         activitySource = 'family';
       } else {
         // Fallback to user-based activity if no family
-        logger.debug('getRecentActivity: Getting user activity (no family)', { userId });
+        this.logger.debug('getRecentActivity: Getting user activity (no family)', { userId });
         activities = await this.dashboardService.getRecentActivityForUser(userId);
         activitySource = 'user';
       }
 
-      logger.debug('getRecentActivity: Activity retrieved', {
+      this.logger.debug('getRecentActivity: Activity retrieved', {
         userId,
         activitySource,
         activityCount: activities.length,
@@ -150,7 +150,7 @@ export class DashboardController {
         data: { activities },
       });
     } catch (error) {
-      logger.error('getRecentActivity: Error occurred', {
+      this.logger.error('getRecentActivity: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
@@ -164,7 +164,7 @@ export class DashboardController {
 
   async getWeeklyDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      logger.debug('getWeeklyDashboard: Received request', {
+      this.logger.debug('getWeeklyDashboard: Received request', {
         userId: req.user?.id,
         userEmail: req.user?.email,
       });
@@ -173,7 +173,7 @@ export class DashboardController {
       const authenticatedUserId = req.user?.id;
 
       if (!authenticatedUserId) {
-        logger.error('getWeeklyDashboard: Authentication required', { userId: req.userId });
+        this.logger.error('getWeeklyDashboard: Authentication required', { userId: req.userId });
         res.status(401).json({
           success: false,
           error: 'Unauthorized',
@@ -185,7 +185,7 @@ export class DashboardController {
       const authenticatedFamilyId = await this.dashboardService.getUserFamilyId(authenticatedUserId);
 
       if (!authenticatedFamilyId) {
-        logger.error('getWeeklyDashboard: No family associated with user', { userId: authenticatedUserId });
+        this.logger.error('getWeeklyDashboard: No family associated with user', { userId: authenticatedUserId });
         res.status(401).json({
           success: false,
           error: 'No family associated with user',
@@ -207,7 +207,7 @@ export class DashboardController {
         startDate = parsed;
       }
 
-      logger.debug('getWeeklyDashboard: Getting weekly dashboard', {
+      this.logger.debug('getWeeklyDashboard: Getting weekly dashboard', {
         userId: authenticatedUserId,
         familyId: authenticatedFamilyId,
         startDate,
@@ -216,7 +216,7 @@ export class DashboardController {
       // Use the service method which now returns WeeklyDashboardResponse
       const dashboardResponse = await this.dashboardService.getWeeklyDashboard(authenticatedUserId, startDate);
 
-      logger.debug('getWeeklyDashboard: Weekly dashboard retrieved', {
+      this.logger.debug('getWeeklyDashboard: Weekly dashboard retrieved', {
         userId: authenticatedUserId,
         familyId: authenticatedFamilyId,
         startDate,
@@ -233,7 +233,7 @@ export class DashboardController {
         res.status(statusCode).json(dashboardResponse);
       }
     } catch (error) {
-      logger.error('getWeeklyDashboard: Error occurred', {
+      this.logger.error('getWeeklyDashboard: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,

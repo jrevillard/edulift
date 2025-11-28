@@ -3,24 +3,20 @@ import { VehicleService } from '../services/VehicleService';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { createError } from '../middleware/errorHandler';
-import { createLogger } from '../utils/logger';
+import { createLogger, Logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
 
-const vehicleLogger = createLogger('VehicleController');
-
-
-
-
-
-
 export class VehicleController {
-  constructor(private vehicleService: VehicleService) {}
+  constructor(
+    private vehicleService: VehicleService,
+    private logger: Logger = createLogger('VehicleController'),
+  ) {}
 
   createVehicle = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
     const { name, capacity } = req.body; // Validated by middleware
 
-    vehicleLogger.debug('createVehicle: Received request', {
+    this.logger.debug('createVehicle: Received request', {
       userId: authReq.userId,
       name,
       capacity,
@@ -28,43 +24,43 @@ export class VehicleController {
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('createVehicle: Authentication required', { userId: authReq.userId });
+      this.logger.error('createVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    vehicleLogger.debug('createVehicle: Authentication validated', { userId: authReq.userId });
+    this.logger.debug('createVehicle: Authentication validated', { userId: authReq.userId });
 
     // Get user's family - vehicles must belong to a family
-    vehicleLogger.debug('createVehicle: Getting user family', { userId: authReq.userId });
+    this.logger.debug('createVehicle: Getting user family', { userId: authReq.userId });
     const userFamily = await this.vehicleService.getUserFamily(authReq.userId);
 
     if (!userFamily) {
-      vehicleLogger.warn('createVehicle: User not part of any family', { userId: authReq.userId });
+      this.logger.warn('createVehicle: User not part of any family', { userId: authReq.userId });
       throw createError('User must belong to a family to add vehicles', 403);
     }
 
-    vehicleLogger.debug('createVehicle: Family found', {
+    this.logger.debug('createVehicle: Family found', {
       userId: authReq.userId,
       familyId: userFamily.id,
       familyName: userFamily.name,
     });
 
     // Verify user has permission to add vehicles to the family
-    vehicleLogger.debug('createVehicle: Checking vehicle modification permissions', {
+    this.logger.debug('createVehicle: Checking vehicle modification permissions', {
       userId: authReq.userId,
       familyId: userFamily.id,
     });
     const canModifyVehicles = await this.vehicleService.canUserModifyFamilyVehicles(authReq.userId, userFamily.id);
 
     if (!canModifyVehicles) {
-      vehicleLogger.warn('createVehicle: Insufficient permissions to modify vehicles', {
+      this.logger.warn('createVehicle: Insufficient permissions to modify vehicles', {
         userId: authReq.userId,
         familyId: userFamily.id,
       });
       throw createError('Insufficient permissions to add vehicles to family', 403);
     }
 
-    vehicleLogger.debug('createVehicle: Permissions validated, creating vehicle', {
+    this.logger.debug('createVehicle: Permissions validated, creating vehicle', {
       userId: authReq.userId,
       familyId: userFamily.id,
       vehicleName: name,
@@ -77,7 +73,7 @@ export class VehicleController {
       familyId: userFamily.id,
     }, authReq.userId);
 
-    vehicleLogger.debug('createVehicle: Vehicle created successfully', {
+    this.logger.debug('createVehicle: Vehicle created successfully', {
       userId: authReq.userId,
       vehicleId: vehicle.id,
       vehicleName: vehicle.name,
@@ -89,7 +85,7 @@ export class VehicleController {
       data: vehicle,
     };
 
-    vehicleLogger.debug('createVehicle: Sending response', {
+    this.logger.debug('createVehicle: Sending response', {
       userId: authReq.userId,
       vehicleId: vehicle.id,
       success: true,
@@ -100,16 +96,16 @@ export class VehicleController {
 
   getVehicles = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
-    vehicleLogger.debug('getVehicles: Received request', {
+    this.logger.debug('getVehicles: Received request', {
       userId: authReq.userId,
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('getVehicles: Authentication required', { userId: authReq.userId });
+      this.logger.error('getVehicles: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    vehicleLogger.debug('getVehicles: Calling service', { userId: authReq.userId });
+    this.logger.debug('getVehicles: Calling service', { userId: authReq.userId });
     const vehicles = await this.vehicleService.getVehiclesByUser(authReq.userId);
 
     const response: ApiResponse = {
@@ -117,7 +113,7 @@ export class VehicleController {
       data: vehicles,
     };
 
-    vehicleLogger.debug('getVehicles: Sending response', {
+    this.logger.debug('getVehicles: Sending response', {
       userId: authReq.userId,
       vehicleCount: vehicles.length,
     });
@@ -128,23 +124,23 @@ export class VehicleController {
     const authReq = req as AuthenticatedRequest;
     const { vehicleId } = req.params; // Validated by middleware
 
-    vehicleLogger.debug('getVehicle: Received request', {
+    this.logger.debug('getVehicle: Received request', {
       userId: authReq.userId,
       vehicleId,
       userEmail: authReq.user?.email,
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('getVehicle: Authentication required', { userId: authReq.userId });
+      this.logger.error('getVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    vehicleLogger.debug('getVehicle: Authentication validated', { userId: authReq.userId, vehicleId });
+    this.logger.debug('getVehicle: Authentication validated', { userId: authReq.userId, vehicleId });
 
-    vehicleLogger.debug('getVehicle: Calling service', { vehicleId, userId: authReq.userId });
+    this.logger.debug('getVehicle: Calling service', { vehicleId, userId: authReq.userId });
     const vehicle = await this.vehicleService.getVehicleById(vehicleId, authReq.userId);
 
-    vehicleLogger.debug('getVehicle: Vehicle found', {
+    this.logger.debug('getVehicle: Vehicle found', {
       vehicleId,
       vehicleName: vehicle.name,
       capacity: vehicle.capacity,
@@ -156,7 +152,7 @@ export class VehicleController {
       data: vehicle,
     };
 
-    vehicleLogger.debug('getVehicle: Sending response', {
+    this.logger.debug('getVehicle: Sending response', {
       vehicleId,
       userId: authReq.userId,
       success: true,
@@ -170,7 +166,7 @@ export class VehicleController {
     const { vehicleId } = req.params; // Validated by middleware
     const rawUpdateData = req.body; // Validated by middleware
 
-    vehicleLogger.debug('updateVehicle: Received request', {
+    this.logger.debug('updateVehicle: Received request', {
       userId: authReq.userId,
       vehicleId,
       updateData: rawUpdateData,
@@ -178,7 +174,7 @@ export class VehicleController {
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('updateVehicle: Authentication required', { userId: authReq.userId });
+      this.logger.error('updateVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
@@ -195,14 +191,14 @@ export class VehicleController {
     }
 
     if (Object.keys(updateData).length === 0) {
-      vehicleLogger.warn('updateVehicle: No update data provided', { userId: authReq.userId, vehicleId });
+      this.logger.warn('updateVehicle: No update data provided', { userId: authReq.userId, vehicleId });
       throw createError('No update data provided', 400);
     }
 
-    vehicleLogger.debug('updateVehicle: Calling service', { vehicleId, userId: authReq.userId, updateData });
+    this.logger.debug('updateVehicle: Calling service', { vehicleId, userId: authReq.userId, updateData });
     const updatedVehicle = await this.vehicleService.updateVehicle(vehicleId, authReq.userId, updateData);
 
-    vehicleLogger.debug('updateVehicle: Vehicle updated successfully', {
+    this.logger.debug('updateVehicle: Vehicle updated successfully', {
       vehicleId,
       updatedName: updatedVehicle.name,
       updatedCapacity: updatedVehicle.capacity,
@@ -213,7 +209,7 @@ export class VehicleController {
       data: updatedVehicle,
     };
 
-    vehicleLogger.debug('updateVehicle: Sending response', {
+    this.logger.debug('updateVehicle: Sending response', {
       vehicleId,
       success: true,
     });
@@ -224,21 +220,21 @@ export class VehicleController {
     const authReq = req as AuthenticatedRequest;
     const { vehicleId } = req.params; // Validated by middleware
 
-    vehicleLogger.debug('deleteVehicle: Received request', {
+    this.logger.debug('deleteVehicle: Received request', {
       userId: authReq.userId,
       vehicleId,
       userEmail: authReq.user?.email,
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('deleteVehicle: Authentication required', { userId: authReq.userId });
+      this.logger.error('deleteVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    vehicleLogger.debug('deleteVehicle: Calling service', { vehicleId, userId: authReq.userId });
+    this.logger.debug('deleteVehicle: Calling service', { vehicleId, userId: authReq.userId });
     const result = await this.vehicleService.deleteVehicle(vehicleId, authReq.userId);
 
-    vehicleLogger.debug('deleteVehicle: Vehicle deleted successfully', {
+    this.logger.debug('deleteVehicle: Vehicle deleted successfully', {
       vehicleId,
       deleted: result.success,
     });
@@ -248,7 +244,7 @@ export class VehicleController {
       data: result,
     };
 
-    vehicleLogger.debug('deleteVehicle: Sending response', {
+    this.logger.debug('deleteVehicle: Sending response', {
       vehicleId,
       success: true,
     });
@@ -260,7 +256,7 @@ export class VehicleController {
     const { vehicleId } = req.params; // Validated by middleware
     const { week } = req.query as { week?: string }; // Validated by middleware
 
-    vehicleLogger.debug('getVehicleSchedule: Received request', {
+    this.logger.debug('getVehicleSchedule: Received request', {
       userId: authReq.userId,
       vehicleId,
       week,
@@ -268,14 +264,14 @@ export class VehicleController {
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('getVehicleSchedule: Authentication required', { userId: authReq.userId });
+      this.logger.error('getVehicleSchedule: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    vehicleLogger.debug('getVehicleSchedule: Calling service', { vehicleId, userId: authReq.userId, week });
+    this.logger.debug('getVehicleSchedule: Calling service', { vehicleId, userId: authReq.userId, week });
     const schedule = await this.vehicleService.getVehicleSchedule(vehicleId, authReq.userId, week);
 
-    vehicleLogger.debug('getVehicleSchedule: Schedule retrieved', {
+    this.logger.debug('getVehicleSchedule: Schedule retrieved', {
       vehicleId,
       week,
       scheduleItems: Array.isArray(schedule) ? schedule.length : Object.keys(schedule).length,
@@ -286,7 +282,7 @@ export class VehicleController {
       data: schedule,
     };
 
-    vehicleLogger.debug('getVehicleSchedule: Sending response', {
+    this.logger.debug('getVehicleSchedule: Sending response', {
       vehicleId,
       success: true,
     });
@@ -297,7 +293,7 @@ export class VehicleController {
     const authReq = req as AuthenticatedRequest;
     const { groupId, timeSlotId } = req.params; // Validated by middleware
 
-    vehicleLogger.debug('getAvailableVehicles: Received request', {
+    this.logger.debug('getAvailableVehicles: Received request', {
       userId: authReq.userId,
       groupId,
       timeSlotId,
@@ -305,14 +301,14 @@ export class VehicleController {
     });
 
     if (!authReq.userId) {
-      vehicleLogger.error('getAvailableVehicles: Authentication required', { userId: authReq.userId });
+      this.logger.error('getAvailableVehicles: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
-    vehicleLogger.debug('getAvailableVehicles: Calling service', { groupId, timeSlotId, userId: authReq.userId });
+    this.logger.debug('getAvailableVehicles: Calling service', { groupId, timeSlotId, userId: authReq.userId });
     const availableVehicles = await this.vehicleService.getAvailableVehiclesForScheduleSlot(groupId, timeSlotId);
 
-    vehicleLogger.debug('getAvailableVehicles: Available vehicles retrieved', {
+    this.logger.debug('getAvailableVehicles: Available vehicles retrieved', {
       groupId,
       timeSlotId,
       vehicleCount: availableVehicles.length,
@@ -323,7 +319,7 @@ export class VehicleController {
       data: availableVehicles,
     };
 
-    vehicleLogger.debug('getAvailableVehicles: Sending response', {
+    this.logger.debug('getAvailableVehicles: Sending response', {
       groupId,
       timeSlotId,
       success: true,

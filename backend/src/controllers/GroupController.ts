@@ -7,14 +7,13 @@ import { ApiResponse } from '../types';
 import { createError, AppError } from '../middleware/errorHandler';
 import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
-import { createLogger } from '../utils/logger';
+import { createLogger, Logger } from '../utils/logger';
 
 export class GroupController {
-  private logger = createLogger('group-controller');
-
   constructor(
     private groupService: GroupService,
     private schedulingService: SchedulingService,
+    private logger: Logger = createLogger('group-controller'),
   ) {}
 
   // Group Management Methods
