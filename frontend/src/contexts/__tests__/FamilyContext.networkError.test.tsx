@@ -71,10 +71,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
-      // Wait for family checking to complete
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('Failed to fetch');
         },
         { timeout: 10000 }
       );
@@ -87,13 +88,20 @@ describe('FamilyContext - Network Error Handling', () => {
   // Unified isolated test block for maximum mock isolation
   describe('Unified Network Test Isolation', () => {
     beforeEach(() => {
-      // Complete mock reset for absolute isolation
-      vi.clearAllMocks();
+      // Reset only specific mocks to avoid breaking useAuth
+      mockFamilyApiService.getCurrentFamily.mockReset();
+    });
+
+    afterEach(() => {
+      // Complete cleanup after each test
       mockFamilyApiService.getCurrentFamily.mockReset();
     });
 
     it('should NOT set requiresFamily to true on NetworkError', async () => {
-      // Mock NetworkError AFTER beforeEach to preserve it
+      // Ensure complete mock isolation for this specific test
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
+      // Mock NetworkError AFTER reset to preserve it
       console.log('🔍 DEBUG TEST: Setting up NetworkError mock');
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('NetworkError')
@@ -106,9 +114,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('NetworkError');
         },
         { timeout: 10000 }
       );
@@ -119,7 +129,23 @@ describe('FamilyContext - Network Error Handling', () => {
     });
 
     it('should NOT set requiresFamily to true on connection refused errors', async () => {
-      // Mock connection refused error AFTER beforeEach to preserve it
+      // Ensure complete mock isolation for this specific test
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
+      // Ensure useAuth mock is properly configured (critical for this test)
+      mockUseAuth.mockReturnValue({
+        user: { id: 'user-1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' },
+        isAuthenticated: true,
+        isLoading: false,
+        family: null,
+        login: vi.fn(),
+        verifyMagicLink: vi.fn(),
+        logout: vi.fn(),
+        refreshToken: vi.fn(),
+        updateUser: vi.fn()
+      });
+
+      // Mock connection refused error AFTER reset to preserve it
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('ERR_CONNECTION_REFUSED')
       );
@@ -130,9 +156,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('ERR_CONNECTION_REFUSED');
         },
         { timeout: 10000 }
       );
@@ -157,25 +185,18 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
-      console.log('🔍 DEBUG TEST ERR_NETWORK: Starting waitFor');
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
-          const isCheckingText = getByTestId('is-checking').textContent;
-          console.log('🔍 DEBUG TEST ERR_NETWORK: is-checking.textContent =', isCheckingText);
-          expect(isCheckingText).toBe('false');
+          expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('ERR_NETWORK');
         },
         { timeout: 10000 }
       );
-      console.log('🔍 DEBUG TEST ERR_NETWORK: waitFor completed');
 
       // Should NOT require family on network error
-      const requiresFamilyText = getByTestId('requires-family').textContent;
-      const errorText = getByTestId('error').textContent;
-      console.log('🔍 DEBUG TEST ERR_NETWORK: requires-family.textContent =', requiresFamilyText);
-      console.log('🔍 DEBUG TEST ERR_NETWORK: error.textContent =', errorText);
-
-      expect(requiresFamilyText).toBe('false');
-      expect(errorText).toBe('ERR_NETWORK');
+      expect(getByTestId('requires-family').textContent).toBe('false');
+      expect(getByTestId('error').textContent).toBe('ERR_NETWORK');
     });
 
     it('should NOT set requiresFamily to true on 500 server errors', async () => {
@@ -190,9 +211,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('500 Internal Server Error');
         },
         { timeout: 10000 }
       );
@@ -203,7 +226,10 @@ describe('FamilyContext - Network Error Handling', () => {
     });
 
     it('should set requiresFamily to true on permission errors', async () => {
-      // Mock permission error AFTER beforeEach to preserve it
+      // Ensure complete mock isolation for this specific test
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
+      // Mock permission error AFTER reset to preserve it
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('Forbidden')
       );
@@ -214,9 +240,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('Forbidden');
         },
         { timeout: 10000 }
       );
@@ -227,7 +255,10 @@ describe('FamilyContext - Network Error Handling', () => {
     });
 
     it('should NOT set requiresFamily to true on 502/503/504 errors', async () => {
-      // Mock 503 service unavailable error AFTER beforeEach to preserve it
+      // Ensure complete mock isolation for this specific test
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
+      // Mock 503 service unavailable error AFTER reset to preserve it
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('503 Service Unavailable')
       );
@@ -238,9 +269,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('503 Service Unavailable');
         },
         { timeout: 10000 }
       );
@@ -252,10 +285,17 @@ describe('FamilyContext - Network Error Handling', () => {
   });
 
   describe('Non-Network Errors - Should require family', () => {
-    it('should set requiresFamily to true on authentication errors', async () => {
-      // Reset mock to ensure clean state
+    beforeEach(() => {
+      // Reset mocks for isolation
       mockFamilyApiService.getCurrentFamily.mockReset();
+    });
 
+    afterEach(() => {
+      // Complete cleanup after each test
+      mockFamilyApiService.getCurrentFamily.mockReset();
+    });
+
+    it('should set requiresFamily to true on authentication errors', async () => {
       // Ensure clean state by re-rendering FamilyProvider
       const { unmount } = render(
         <FamilyProvider>
@@ -278,9 +318,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('Unauthorized');
         },
         { timeout: 10000 }
       );
@@ -292,7 +334,10 @@ describe('FamilyContext - Network Error Handling', () => {
 
 
     it('should set requiresFamily to true on not found errors', async () => {
-      // Mock not found error AFTER beforeEach to preserve it
+      // Ensure complete mock isolation for this specific test
+      mockFamilyApiService.getCurrentFamily.mockReset();
+
+      // Mock not found error AFTER reset to preserve it
       mockFamilyApiService.getCurrentFamily.mockRejectedValue(
         new Error('User not found in family system')
       );
@@ -303,9 +348,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND error to be set
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('error').textContent).toBe('User not found in family system');
         },
         { timeout: 10000 }
       );
@@ -317,20 +364,23 @@ describe('FamilyContext - Network Error Handling', () => {
   });
 
   describe('Success Cases', () => {
+
     it('should set requiresFamily to true when family is null (no error)', async () => {
-      // Reset mock to ensure clean state
+      // Ensure complete mock isolation for this specific test
       mockFamilyApiService.getCurrentFamily.mockReset();
 
-      // Ensure clean state by re-rendering FamilyProvider
-      const { unmount } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
-      );
-      unmount();
-
-      // Add small delay to ensure state cleanup
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // Ensure useAuth mock is properly configured (critical for this test)
+      mockUseAuth.mockReturnValue({
+        user: { id: 'user-1', email: 'test@example.com', name: 'Test User', timezone: 'UTC' },
+        isAuthenticated: true,
+        isLoading: false,
+        family: null,
+        login: vi.fn(),
+        verifyMagicLink: vi.fn(),
+        logout: vi.fn(),
+        refreshToken: vi.fn(),
+        updateUser: vi.fn()
+      });
 
       // Mock successful response with no family
       mockFamilyApiService.getCurrentFamily.mockResolvedValue(null);
@@ -341,9 +391,11 @@ describe('FamilyContext - Network Error Handling', () => {
         </FamilyProvider>
       );
 
+      // Wait for both isCheckingFamily to be false AND requiresFamily to be true
       await waitFor(
         () => {
           expect(getByTestId('is-checking').textContent).toBe('false');
+          expect(getByTestId('requires-family').textContent).toBe('true');
         },
         { timeout: 10000 }
       );
