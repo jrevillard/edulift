@@ -1,0 +1,935 @@
+{
+  "capturedAt": "2025-11-26T08:38:33.258Z",
+  "nodeVersion": "v20.19.5",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/health/database",
+      "fullPath": "/api/health/database",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/logout",
+      "fullPath": "/api/v1/auth/logout",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateTokenForRevocation",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/magic-link",
+      "fullPath": "/api/v1/auth/magic-link",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/profile",
+      "fullPath": "/api/v1/auth/profile",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/profile",
+      "fullPath": "/api/v1/auth/profile",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/refresh",
+      "fullPath": "/api/v1/auth/refresh",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/test-config",
+      "fullPath": "/api/v1/auth/test-config",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/timezone",
+      "fullPath": "/api/v1/auth/timezone",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/verify",
+      "fullPath": "/api/v1/auth/verify",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "fullPath": "/api/v1/children/",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "fullPath": "/api/v1/children/",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:childId",
+      "fullPath": "/api/v1/children/:childId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:childId",
+      "fullPath": "/api/v1/children/:childId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/:childId",
+      "fullPath": "/api/v1/children/:childId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/:childId",
+      "fullPath": "/api/v1/children/:childId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:childId/assignments",
+      "fullPath": "/api/v1/children/:childId/assignments",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:childId/groups",
+      "fullPath": "/api/v1/children/:childId/groups",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:childId/groups/:groupId",
+      "fullPath": "/api/v1/children/:childId/groups/:groupId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:childId/groups/:groupId",
+      "fullPath": "/api/v1/children/:childId/groups/:groupId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/recent-activity",
+      "fullPath": "/api/v1/dashboard/recent-activity",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/stats",
+      "fullPath": "/api/v1/dashboard/stats",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/today-schedule",
+      "fullPath": "/api/v1/dashboard/today-schedule",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/weekly",
+      "fullPath": "/api/v1/dashboard/weekly",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "fullPath": "/api/v1/families/",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:familyId/invitations",
+      "fullPath": "/api/v1/families/:familyId/invitations",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:familyId/invitations/:invitationId",
+      "fullPath": "/api/v1/families/:familyId/invitations/:invitationId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:familyId/invite",
+      "fullPath": "/api/v1/families/:familyId/invite",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:familyId/leave",
+      "fullPath": "/api/v1/families/:familyId/leave",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:familyId/members/:memberId",
+      "fullPath": "/api/v1/families/:familyId/members/:memberId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:familyId/permissions",
+      "fullPath": "/api/v1/families/:familyId/permissions",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/current",
+      "fullPath": "/api/v1/families/current",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/invite-code",
+      "fullPath": "/api/v1/families/invite-code",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/join",
+      "fullPath": "/api/v1/families/join",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/members/:memberId/role",
+      "fullPath": "/api/v1/families/members/:memberId/role",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/name",
+      "fullPath": "/api/v1/families/name",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/validate-invite",
+      "fullPath": "/api/v1/families/validate-invite",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "fullPath": "/api/v1/fcm-tokens/",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "fullPath": "/api/v1/fcm-tokens/",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:token",
+      "fullPath": "/api/v1/fcm-tokens/:token",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/stats",
+      "fullPath": "/api/v1/fcm-tokens/stats",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/subscribe",
+      "fullPath": "/api/v1/fcm-tokens/subscribe",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/test",
+      "fullPath": "/api/v1/fcm-tokens/test",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/unsubscribe",
+      "fullPath": "/api/v1/fcm-tokens/unsubscribe",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/validate",
+      "fullPath": "/api/v1/fcm-tokens/validate",
+      "requiresAuth": false,
+      "middlewares": [
+        "requireAuth",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "fullPath": "/api/v1/groups/",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:groupId",
+      "fullPath": "/api/v1/groups/:groupId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/:groupId",
+      "fullPath": "/api/v1/groups/:groupId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:groupId/families",
+      "fullPath": "/api/v1/groups/:groupId/families",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "requireGroupMembership",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:groupId/families/:familyId",
+      "fullPath": "/api/v1/groups/:groupId/families/:familyId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/:groupId/families/:familyId/role",
+      "fullPath": "/api/v1/groups/:groupId/families/:familyId/role",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:groupId/invitations",
+      "fullPath": "/api/v1/groups/:groupId/invitations",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:groupId/invitations/:invitationId",
+      "fullPath": "/api/v1/groups/:groupId/invitations/:invitationId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:groupId/invite",
+      "fullPath": "/api/v1/groups/:groupId/invite",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:groupId/leave",
+      "fullPath": "/api/v1/groups/:groupId/leave",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "requireGroupMembership",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/groups/:groupId/schedule",
+      "fullPath": "/api/v1/groups/:groupId/schedule",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:groupId/schedule-config",
+      "fullPath": "/api/v1/groups/:groupId/schedule-config",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "requireGroupMembership",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PUT",
+      "path": "/:groupId/schedule-config",
+      "fullPath": "/api/v1/groups/:groupId/schedule-config",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:groupId/schedule-config/reset",
+      "fullPath": "/api/v1/groups/:groupId/schedule-config/reset",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:groupId/schedule-config/time-slots",
+      "fullPath": "/api/v1/groups/:groupId/schedule-config/time-slots",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "requireGroupMembership",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/groups/:groupId/schedule-slots",
+      "fullPath": "/api/v1/groups/:groupId/schedule-slots",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/:groupId/search-families",
+      "fullPath": "/api/v1/groups/:groupId/search-families",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/join",
+      "fullPath": "/api/v1/groups/join",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/my-groups",
+      "fullPath": "/api/v1/groups/my-groups",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/schedule-config/default",
+      "fullPath": "/api/v1/groups/schedule-config/default",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/validate-invite",
+      "fullPath": "/api/v1/groups/validate-invite",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/validate-invite-auth",
+      "fullPath": "/api/v1/groups/validate-invite-auth",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/family",
+      "fullPath": "/api/v1/invitations/family",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/family/:code/accept",
+      "fullPath": "/api/v1/invitations/family/:code/accept",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/family/:code/validate",
+      "fullPath": "/api/v1/invitations/family/:code/validate",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/family/:invitationId",
+      "fullPath": "/api/v1/invitations/family/:invitationId",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/group",
+      "fullPath": "/api/v1/invitations/group",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/group/:code/accept",
+      "fullPath": "/api/v1/invitations/group/:code/accept",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/group/:code/validate",
+      "fullPath": "/api/v1/invitations/group/:code/validate",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/group/:invitationId",
+      "fullPath": "/api/v1/invitations/group/:invitationId",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/user",
+      "fullPath": "/api/v1/invitations/user",
+      "requiresAuth": true,
+      "middlewares": [
+        "authenticateToken",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/validate/:code",
+      "fullPath": "/api/v1/invitations/validate/:code",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/schedule-slots/:scheduleSlotId",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/schedule-slots/:scheduleSlotId/available-children",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/available-children",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/schedule-slots/:scheduleSlotId/children",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/children",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/schedule-slots/:scheduleSlotId/children/:childId",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/children/:childId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/schedule-slots/:scheduleSlotId/conflicts",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/conflicts",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/schedule-slots/:scheduleSlotId/vehicles",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/vehicles",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/schedule-slots/:scheduleSlotId/vehicles",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/vehicles",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/schedule-slots/:scheduleSlotId/vehicles/:vehicleId/driver",
+      "fullPath": "/api/v1/schedule-slots/:scheduleSlotId/vehicles/:vehicleId/driver",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/vehicle-assignments/:vehicleAssignmentId/seat-override",
+      "fullPath": "/api/v1/vehicle-assignments/:vehicleAssignmentId/seat-override",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "fullPath": "/api/v1/vehicles/",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/",
+      "fullPath": "/api/v1/vehicles/",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "DELETE",
+      "path": "/:vehicleId",
+      "fullPath": "/api/v1/vehicles/:vehicleId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:vehicleId",
+      "fullPath": "/api/v1/vehicles/:vehicleId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "PATCH",
+      "path": "/:vehicleId",
+      "fullPath": "/api/v1/vehicles/:vehicleId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/:vehicleId/schedule",
+      "fullPath": "/api/v1/vehicles/:vehicleId/schedule",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/available/:groupId/:timeSlotId",
+      "fullPath": "/api/v1/vehicles/available/:groupId/:timeSlotId",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>",
+        "<anonymous>"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "fullPath": "/health",
+      "requiresAuth": false,
+      "middlewares": [
+        "<anonymous>"
+      ]
+    }
+  ],
+  "summary": {
+    "totalRoutes": 93,
+    "methodBreakdown": {
+      "GET": 35,
+      "POST": 33,
+      "PUT": 5,
+      "PATCH": 7,
+      "DELETE": 13
+    },
+    "authProtectedRoutes": 11,
+    "publicRoutes": 82
+  }
+}

@@ -169,43 +169,8 @@ describe('GroupController.updateGroup', () => {
       });
     });
 
-    it('should reject name that is too long', async () => {
-      const longName = 'a'.repeat(101);
-      mockRequest.body = { name: longName };
-
-      await groupController.updateGroup(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Invalid input data',
-        validationErrors: expect.arrayContaining([
-          expect.objectContaining({
-            field: 'name',
-            message: 'Group name too long',
-          }),
-        ]),
-      });
-    });
-
-    it('should reject description that is too long', async () => {
-      const longDescription = 'a'.repeat(501);
-      mockRequest.body = { description: longDescription };
-
-      await groupController.updateGroup(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Invalid input data',
-        validationErrors: expect.arrayContaining([
-          expect.objectContaining({
-            field: 'description',
-            message: 'Description too long',
-          }),
-        ]),
-      });
-    });
+    // Validation tests are moved to middleware validation tests.
+    // Controller now assumes data is pre-validated by middleware.
   });
 
   describe('service errors', () => {
@@ -253,25 +218,7 @@ describe('GroupController.updateGroup', () => {
       );
     });
 
-    it('should handle null description correctly', async () => {
-      const updateData = { name: 'New Name', description: null };
-
-      mockRequest.body = updateData;
-
-      await groupController.updateGroup(mockRequest as Request, mockResponse as Response);
-
-      // Null description should cause a validation error since Zod expects string or undefined
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Invalid input data',
-        validationErrors: expect.arrayContaining([
-          expect.objectContaining({
-            field: 'description',
-            message: expect.any(String),
-          }),
-        ]),
-      });
-    });
+    // Validation test moved to middleware validation tests.
+    // Controller now assumes pre-validated data.
   });
 });

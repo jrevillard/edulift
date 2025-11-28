@@ -419,7 +419,7 @@ export class GroupScheduleConfigService {
 
       // Check if this time slot would be removed in the new configuration
       const proposedTimes = proposedScheduleHours[weekday] || [];
-      
+
       if (!proposedTimes.includes(timeSlot) && slot._count.childAssignments > 0) {
         conflicts.push(`${weekday} ${timeSlot} (${slot._count.childAssignments} children assigned)`);
       }
@@ -427,45 +427,9 @@ export class GroupScheduleConfigService {
 
     if (conflicts.length > 0) {
       throw new AppError(
-        `Cannot remove time slots with existing bookings: ${conflicts.join(', ')}`, 
+        `Cannot remove time slots with existing bookings: ${conflicts.join(', ')}`,
         400,
       );
-    }
-  }
-
-  /**
-   * Initialize default configurations for existing groups (required for all groups)
-   */
-  async initializeDefaultConfigs(): Promise<void> {
-    try {
-      // Get all groups without schedule configurations
-      const groupsWithoutConfig = await this.prisma.group.findMany({
-        where: {
-          scheduleConfig: null,
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      });
-
-      logger.info('Initializing required schedule configurations', { groupCount: groupsWithoutConfig.length });
-
-      for (const group of groupsWithoutConfig) {
-        await this.prisma.groupScheduleConfig.create({
-          data: {
-            groupId: group.id,
-            scheduleHours: DEFAULT_SCHEDULE_HOURS,
-          },
-        });
-
-        logger.info('Initialized configuration for group', { groupId: group.id, groupName: group.name });
-      }
-
-      logger.info('Required schedule configurations initialized successfully', { groupCount: groupsWithoutConfig.length });
-    } catch (error) {
-      logger.error('Failed to initialize schedule configurations', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
-      throw new AppError('Failed to initialize schedule configurations', 500);
     }
   }
 

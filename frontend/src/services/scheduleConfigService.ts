@@ -82,18 +82,6 @@ class ScheduleConfigService {
     }
     throw new Error(apiResponse.error || 'Failed to get default schedule hours');
   }
-
-  /**
-   * Initialize default configurations for all groups
-   */
-  async initializeDefaultConfigs(): Promise<{ message: string }> {
-    const response = await apiService.post('/groups/schedule-config/initialize');
-    const apiResponse = response.data as ApiResponse<{ message: string }>;
-    if (apiResponse.success && apiResponse.data) {
-      return apiResponse.data;
-    }
-    throw new Error(apiResponse.error || 'Failed to initialize default configurations');
-  }
 }
 
 export const scheduleConfigService = new ScheduleConfigService();

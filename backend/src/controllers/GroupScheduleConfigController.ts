@@ -250,32 +250,6 @@ export class GroupScheduleConfigController {
     logger.debug('getDefaultScheduleHours: Sending response', { success: true });
     res.json(response);
   };
-
-  /**
-   * Initialize default configurations for all groups (admin endpoint)
-   * POST /api/groups/schedule-config/initialize
-   */
-  initializeDefaultConfigs = async (_req: Request, res: Response): Promise<void> => {
-    logger.debug('initializeDefaultConfigs: Received request');
-
-    // This endpoint could be restricted to super admins or system administrators
-    // For now, we'll allow any authenticated user (you may want to add admin middleware)
-
-    logger.debug('initializeDefaultConfigs: Initializing default configs');
-    await this.service.initializeDefaultConfigs();
-
-    logger.debug('initializeDefaultConfigs: Default configs initialized successfully');
-
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        message: 'Default schedule configurations initialized successfully',
-      },
-    };
-
-    logger.debug('initializeDefaultConfigs: Sending response', { success: true });
-    res.json(response);
-  };
 }
 
 export const createGroupScheduleConfigController = (): GroupScheduleConfigController => {

@@ -10,20 +10,8 @@ import { createLogger, Logger } from '../utils/logger';
 
 const authLogger = createLogger('AuthController');
 import { AuthenticatedRequest } from '../middleware/auth';
-import { z } from 'zod';
-import {
-  RequestMagicLinkSchema,
-  UpdateProfileSchema,
-  UpdateTimezoneSchema,
-} from '../utils/validation';
 import { sanitizeSecurityError, logSecurityEvent } from '../utils/security';
 import { isValidTimezone } from '../utils/timezoneUtils';
-
-const VerifyMagicLinkSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
-  code_verifier: z.string().min(43).max(128), // PKCE: Original random string used to generate code_challenge - REQUIRED
-  // inviteCode is now extracted from query parameters, not request body
-});
 
 export class AuthController {
   constructor(
@@ -34,7 +22,7 @@ export class AuthController {
 
   requestMagicLink = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email, name, timezone, inviteCode, code_challenge } = RequestMagicLinkSchema.parse(req.body);
+      const { email, name, timezone, inviteCode, code_challenge } = req.body;
 
       this.logger.debug('AuthController received magic link request', {
         inviteCode,
@@ -56,7 +44,7 @@ export class AuthController {
       if (name) options.name = name;
       if (timezone) options.timezone = timezone;
       if (inviteCode) options.inviteCode = inviteCode;
-      
+
       // @ts-expect-error - MagicLinkRequestOptions type issue
       const result = await this.authService.requestMagicLink(options);
 
@@ -72,7 +60,7 @@ export class AuthController {
     } catch (error) {
       // SECURITY: Use sanitized error messages for production
       const securityError = sanitizeSecurityError(error as Error);
-      
+
       // Log security-related failures for monitoring
       logSecurityEvent('AUTH_REQUEST_FAILED', {
         error: securityError.logMessage,
@@ -80,19 +68,6 @@ export class AuthController {
         userAgent: req.headers?.['user-agent'],
         ip: req.ip,
       }, 'warn');
-      
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
 
       // Special handling for common validation errors that should pass through
       if (error instanceof Error && error.message === 'Name is required for new users') {
@@ -103,7 +78,7 @@ export class AuthController {
         res.status(422).json(response);
         return;
       }
-      
+
       const response: ApiResponse = {
         success: false,
         error: securityError.userMessage,
@@ -115,7 +90,7 @@ export class AuthController {
   verifyMagicLink = async (req: Request, res: Response): Promise<void> => {
     try {
       // SECURITY: PKCE - Get token, code_verifier from request body and inviteCode from query
-      const { token, code_verifier } = VerifyMagicLinkSchema.parse(req.body);
+      const { token, code_verifier } = req.body;
       const inviteCode = req.query.inviteCode as string | undefined;
 
       this.logger.debug('AuthController verifyMagicLink', {
@@ -222,27 +197,14 @@ export class AuthController {
     } catch (error) {
       // SECURITY: Use sanitized error messages for production
       const securityError = sanitizeSecurityError(error as Error);
-      
+
       // Log full details for security monitoring
       logSecurityEvent('AUTH_VERIFY_FAILED', {
         error: securityError.logMessage,
-        token: `${req.body?.token?.substring(0, 10)  }...`,
+        token: `${req.body?.token?.substring(0, 10)}...`,
         userAgent: req.headers?.['user-agent'],
         ip: req.ip,
       }, 'error');
-      
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
 
       const response: ApiResponse = {
         success: false,
@@ -350,7 +312,7 @@ export class AuthController {
       this.logger.debug('updateProfile: Authentication validated', { userId });
 
       // Validate the request body
-      const profileData = UpdateProfileSchema.parse(req.body);
+      const profileData = req.body;
 
       this.logger.debug('updateProfile: Profile data validated', {
         userId,
@@ -406,23 +368,6 @@ export class AuthController {
         profileData: req.body,
       });
 
-      if (error instanceof z.ZodError) {
-        this.logger.warn('updateProfile: Validation error', {
-          validationErrors: error.errors,
-          userId: (req as AuthenticatedRequest).user?.id,
-        });
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
-
       const response: ApiResponse = {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update profile',
@@ -447,18 +392,9 @@ export class AuthController {
         return;
       }
 
-      const { timezone } = UpdateTimezoneSchema.parse(req.body);
+      const { timezone } = req.body;
 
-      // Validate timezone format
-      if (!isValidTimezone(timezone)) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
-        };
-        res.status(400).json(response);
-        return;
-      }
-
+      // Timezone validation is handled by middleware Zod schema
       // Update timezone via profile update
       const updatedUser = await this.authService.updateProfile(userId, { timezone });
 
@@ -471,19 +407,6 @@ export class AuthController {
       res.status(200).json(response);
     } catch (error) {
       this.logger.error('Update timezone error', { error: (error as Error).message });
-
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
 
       const response: ApiResponse = {
         success: false,

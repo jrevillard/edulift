@@ -78,29 +78,34 @@ describe('AuthController', () => {
       });
     });
 
-    it('should handle invalid email format', async () => {
-      mockRequest.body = { email: 'invalid-email', name: 'Test User' };
+    // Validation tests are moved to middleware validation tests.
+    // Controller now assumes data is pre-validated by middleware.
+    it('should handle magic link request with valid data', async () => {
+      mockRequest.body = { email: 'valid@email.com', name: 'Test User' };
+
+      mockAuthService.requestMagicLink.mockResolvedValue({
+        success: true,
+        message: 'Magic link sent to your email',
+        userExists: false,
+      } as any);
 
       await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
 
-      expect(mockAuthService.requestMagicLink).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: 'Invalid input data',
-        }),
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith(
+        { email: 'valid@email.com', name: 'Test User', code_challenge: undefined },
       );
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          message: 'Magic link sent to your email',
+          userExists: false,
+        },
+      });
     });
 
-    it('should handle missing email', async () => {
-      mockRequest.body = { name: 'Test User' };
-
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestMagicLink).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-    });
+    // This test is moved to middleware validation tests.
+    // Missing email should be caught by validation middleware.
 
     it('should handle service errors', async () => {
       const email = 'test@example.com';
@@ -173,23 +178,8 @@ describe('AuthController', () => {
       });
     });
 
-    it('should reject magic link request with invalid PKCE code_challenge format', async () => {
-      const email = 'test@example.com';
-      const name = 'Test User';
-      const invalidCodeChallenge = 'too-short';
-      mockRequest.body = { email, name, code_challenge: invalidCodeChallenge };
-
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestMagicLink).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: 'Invalid input data',
-        }),
-      );
-    });
+    // Validation test moved to middleware validation tests.
+    // PKCE validation should be handled by validation middleware.
   });
 
   describe('verifyMagicLink', () => {
@@ -223,14 +213,8 @@ describe('AuthController', () => {
       });
     });
 
-    it('should handle invalid token', async () => {
-      mockRequest.body = { token: '' };
-
-      await authController.verifyMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.verifyMagicLink).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-    });
+    // Validation test moved to middleware validation tests.
+    // Empty token validation should be handled by validation middleware.
 
     it('should handle verification failure', async () => {
       const token = 'invalid-token';
@@ -297,22 +281,8 @@ describe('AuthController', () => {
       );
     });
 
-    it('should reject magic link verification when code_verifier is missing (schema validation)', async () => {
-      const token = 'valid-token';
-      mockRequest.body = { token }; // Missing code_verifier - should fail schema validation
-
-      await authController.verifyMagicLink(mockRequest as Request, mockResponse as Response);
-
-      // Should not call service because schema validation fails first
-      expect(mockAuthService.verifyMagicLink).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: 'Invalid input data',
-        }),
-      );
-    });
+    // Validation test moved to middleware validation tests.
+    // Missing code_verifier validation should be handled by validation middleware.
   });
 
   describe('refreshToken', () => {
@@ -396,43 +366,9 @@ describe('AuthController', () => {
       });
     });
 
-    it('should handle invalid timezone format', async () => {
-      const userId = 'user-123';
-      mockRequest.body = { timezone: 'Invalid/Timezone' };
-      (mockRequest as any).user = { id: userId };
-
-      await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Invalid input data',
-        validationErrors: [
-          {
-            field: 'timezone',
-            message: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
-          },
-        ],
-      });
-    });
-
-    it('should handle missing timezone in request body', async () => {
-      const userId = 'user-123';
-      mockRequest.body = {};
-      (mockRequest as any).user = { id: userId };
-
-      await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          success: false,
-          error: 'Invalid input data',
-        }),
-      );
-    });
+    // Validation tests moved to middleware validation tests.
+    // Timezone validation is now handled by Zod middleware.
+    // Controller assumes pre-validated data.
 
     it('should handle service errors', async () => {
       const userId = 'user-123';

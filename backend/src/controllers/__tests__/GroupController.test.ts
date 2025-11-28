@@ -390,11 +390,13 @@ describe('GroupController', () => {
       expect(mockGroupService.updateGroup).not.toHaveBeenCalled();
     });
 
-    it('should handle validation errors', async () => {
+    // Validation tests are moved to middleware validation tests.
+    // Controller now assumes data is pre-validated by middleware.
+    it('should handle empty update data', async () => {
       const groupId = 'group-1';
 
       mockRequest.params = { groupId };
-      mockRequest.body = { name: '' }; // Invalid: empty name
+      mockRequest.body = { name: '', description: null }; // will be filtered as empty
 
       await groupController.updateGroup(
         mockRequest as AuthenticatedRequest,
@@ -405,7 +407,7 @@ describe('GroupController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
           success: false,
-          error: 'Invalid input data',
+          error: 'No update data provided',
         }),
       );
       expect(mockGroupService.updateGroup).not.toHaveBeenCalled();
@@ -502,28 +504,7 @@ describe('GroupController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(201);
     });
 
-    it('should handle validation errors for missing required fields', async () => {
-      const groupId = 'group-1';
-      const inviteData = {
-        role: 'MEMBER',
-        // familyId is missing - this should cause validation error
-      };
-
-      mockRequest.params = { groupId };
-      mockRequest.body = inviteData;
-
-      await groupController.inviteFamilyToGroup(
-        mockRequest as AuthenticatedRequest,
-        mockResponse as Response,
-      );
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Validation failed',
-        details: expect.any(Array),
-      });
-      expect(mockGroupService.inviteFamilyById).not.toHaveBeenCalled();
-    });
+    // Validation test moved to middleware validation tests.
+    // Missing required fields validation should be handled by validation middleware.
   });
 });

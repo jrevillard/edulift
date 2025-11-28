@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import { FamilyService } from '../services/FamilyService';
 import { FamilyAuthService } from '../services/FamilyAuthService';
 import { FamilyRole } from '../types/family';
-import { Logger } from '../utils/logger';
+import { createLogger } from '../utils/logger';
+import { PrismaClient } from '@prisma/client';
+import { EmailServiceFactory } from '../services/EmailServiceFactory';
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -16,7 +18,7 @@ export class FamilyController {
   constructor(
     private familyService: FamilyService,
     private familyAuthService: FamilyAuthService,
-    private logger: Logger,
+    private logger: any,
   ) {}
 
   async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -484,3 +486,21 @@ export class FamilyController {
   }
 
 }
+
+// Factory function to create controller with dependencies
+export const createFamilyController = (): FamilyController => {
+  const prisma = new PrismaClient();
+  const logger = createLogger('FamilyController');
+  const emailService = EmailServiceFactory.getInstance();
+
+  // Mock cache service for now (should be replaced with real cache service)
+  const mockCacheService = {
+    async get(_key: string): Promise<null> { return null; },
+    async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
+  };
+
+  const familyService = new FamilyService(prisma, logger, undefined, emailService);
+  const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
+
+  return new FamilyController(familyService, familyAuthService, logger);
+};

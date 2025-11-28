@@ -21,14 +21,15 @@ COPY prisma ./prisma/
 # Generate Prisma client
 RUN npx prisma generate
 
-# Copy source code
+# Copy source code and scripts
 COPY src ./src/
+COPY scripts ./scripts/
 
 # Copy assets (logo for emails)
 COPY assets ./assets/
 
 # Create necessary directories
-RUN mkdir -p uploads && chown -R node:node /app
+RUN mkdir -p uploads docs/openapi && chown -R node:node /app
 
 # Expose port
 EXPOSE 3001
