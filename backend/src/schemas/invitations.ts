@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi';
+import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -18,22 +18,22 @@ extendZodWithOpenApi(z);
 
 export const InvitationTypeEnum = z.enum(['FAMILY', 'GROUP']).openapi({
   description: 'Type of invitation',
-  examples: ['FAMILY', 'GROUP'],
+  example: 'FAMILY',
 });
 
 export const InvitationStatusEnum = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']).openapi({
   description: 'Status of an invitation',
-  examples: ['PENDING', 'ACCEPTED'],
+  example: 'PENDING',
 });
 
 export const FamilyRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
   description: 'Role of a user within a family',
-  examples: ['ADMIN', 'MEMBER'],
+  example: 'ADMIN',
 });
 
 export const GroupRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
   description: 'Role of a user within a group',
-  examples: ['ADMIN', 'MEMBER'],
+  example: 'ADMIN',
 });
 
 // ============================================================================
@@ -437,31 +437,19 @@ export const CancelInvitationResponseSchema = z.object({
 registry.register('CreateFamilyInvitationRequest', CreateFamilyInvitationSchema);
 registry.register('CreateGroupInvitationRequest', CreateGroupInvitationSchema);
 registry.register('AcceptFamilyInvitationRequest', AcceptFamilyInvitationSchema);
-registry.register('ValidateInvitationCodeRequest', ValidateInvitationCodeSchema);
 
 // Register parameter schemas
-registry.register('InvitationCodeParams', InvitationCodeParamsSchema);
-registry.register('InvitationIdParams', InvitationIdParamsSchema);
 
 // Register response schemas
-registry.register('User', UserSchema);
-registry.register('Family', FamilySchema);
-registry.register('Group', GroupSchema);
-registry.register('FamilyInvitation', FamilyInvitationResponseSchema);
-registry.register('GroupInvitation', GroupInvitationResponseSchema);
-registry.register('InvitationValidation', InvitationValidationSchema);
-registry.register('UserInvitations', UserInvitationsSchema);
-registry.register('AcceptInvitationResponse', AcceptInvitationResponseSchema);
-registry.register('CancelInvitationResponse', CancelInvitationResponseSchema);
 
 // ============================================================================
 // API PATHS REGISTRATION
 // ============================================================================
 
 // Public validation endpoint (no auth required)
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/invitations/validate/{code}',
+  path: '/invitations/validate/{code}',
   tags: ['Invitations'],
   summary: 'Validate invitation code (public)',
   description: 'Validate an invitation code without authentication. Checks both family and group invitations.',
@@ -500,9 +488,9 @@ registry.registerPath({
 });
 
 // Family invitation endpoints
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/invitations/family',
+  path: '/invitations/family',
   tags: ['Invitations'],
   summary: 'Create family invitation',
   description: 'Create a new family invitation. Requires family admin permissions.',
@@ -511,7 +499,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateFamilyInvitationSchema,
+          schema: { $ref: '#/components/schemas/CreateFamilyInvitationRequest' },
         },
       },
     },
@@ -543,9 +531,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/invitations/family/{code}/validate',
+  path: '/invitations/family/{code}/validate',
   tags: ['Invitations'],
   summary: 'Validate family invitation code',
   description: 'Validate a family invitation code. Authentication is optional.',
@@ -576,9 +564,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/invitations/family/{code}/accept',
+  path: '/invitations/family/{code}/accept',
   tags: ['Invitations'],
   summary: 'Accept family invitation',
   description: 'Accept a family invitation using the invitation code',
@@ -588,7 +576,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: AcceptFamilyInvitationSchema,
+          schema: { $ref: '#/components/schemas/AcceptFamilyInvitationRequest' },
         },
       },
     },
@@ -618,9 +606,9 @@ registry.registerPath({
 });
 
 // Group invitation endpoints
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/invitations/group',
+  path: '/invitations/group',
   tags: ['Invitations'],
   summary: 'Create group invitation',
   description: 'Create a new group invitation. Requires group admin permissions.',
@@ -629,7 +617,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateGroupInvitationSchema,
+          schema: { $ref: '#/components/schemas/CreateGroupInvitationRequest' },
         },
       },
     },
@@ -667,9 +655,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/invitations/group/{code}/validate',
+  path: '/invitations/group/{code}/validate',
   tags: ['Invitations'],
   summary: 'Validate group invitation code',
   description: 'Validate a group invitation code. Authentication is optional.',
@@ -700,9 +688,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/invitations/group/{code}/accept',
+  path: '/invitations/group/{code}/accept',
   tags: ['Invitations'],
   summary: 'Accept group invitation',
   description: 'Accept a group invitation using the invitation code',
@@ -735,9 +723,9 @@ registry.registerPath({
 });
 
 // User invitations endpoint
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/invitations/user',
+  path: '/invitations/user',
   tags: ['Invitations'],
   summary: 'Get user invitations',
   description: 'Retrieve all pending invitations for the authenticated user',
@@ -764,9 +752,9 @@ registry.registerPath({
 });
 
 // Cancel invitation endpoints
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/invitations/family/{invitationId}',
+  path: '/invitations/family/{invitationId}',
   tags: ['Invitations'],
   summary: 'Cancel family invitation',
   description: 'Cancel a pending family invitation. Requires family admin permissions.',
@@ -804,9 +792,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/invitations/group/{invitationId}',
+  path: '/invitations/group/{invitationId}',
   tags: ['Invitations'],
   summary: 'Cancel group invitation',
   description: 'Cancel a pending group invitation. Requires group admin permissions.',

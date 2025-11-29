@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi';
+import { registry, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -18,12 +18,12 @@ extendZodWithOpenApi(z);
 
 export const FamilyRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
   description: 'Role of a user within a family',
-  examples: ['ADMIN', 'MEMBER'],
+  example: 'MEMBER',
 });
 
 export const InvitationStatusEnum = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']).openapi({
   description: 'Status of a family invitation',
-  examples: ['PENDING', 'ACCEPTED'],
+  example: 'PENDING',
 });
 
 // ============================================================================
@@ -91,6 +91,7 @@ export const InviteMemberSchema = z.object({
   }),
   personalMessage: z.string()
     .max(500, 'Personal message too long')
+    .nullable()
     .optional()
     .openapi({
       example: 'Welcome to our family!',
@@ -553,30 +554,17 @@ registry.register('InviteMemberRequest', InviteMemberSchema);
 registry.register('ValidateInviteCodeRequest', ValidateInviteCodeSchema);
 
 // Register parameter schemas
-registry.register('FamilyIdParams', FamilyIdParamsSchema);
-registry.register('MemberIdParams', MemberIdParamsSchema);
-registry.register('FamilyMemberParams', FamilyMemberParamsSchema);
-registry.register('FamilyInvitationParams', FamilyInvitationParamsSchema);
 
 // Register response schemas
-registry.register('Family', FamilyResponseSchema);
-registry.register('FamilyMember', FamilyMemberSchema);
-registry.register('Child', ChildSchema);
-registry.register('Vehicle', VehicleSchema);
-registry.register('User', UserSchema);
-registry.register('FamilyPermissions', FamilyPermissionsSchema);
-registry.register('FamilyInvitation', FamilyInvitationSchema);
-registry.register('InviteCodeValidation', InviteCodeValidationSchema);
-registry.register('LeaveFamilyResponse', LeaveFamilyResponseSchema);
 
 // ============================================================================
 // API PATHS REGISTRATION
 // ============================================================================
 
 // Public route (no auth required)
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/families/validate-invite',
+  path: '/families/validate-invite',
   tags: ['Families'],
   summary: 'Validate family invite code (public)',
   description: 'Validate a family invitation code without authentication',
@@ -584,7 +572,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: ValidateInviteCodeSchema,
+          schema: { $ref: '#/components/schemas/ValidateInviteCodeRequest' },
         },
       },
     },
@@ -622,9 +610,9 @@ registry.registerPath({
 });
 
 // Authenticated routes
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/families',
+  path: '/families',
   tags: ['Families'],
   summary: 'Create family',
   description: 'Create a new family',
@@ -633,7 +621,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateFamilySchema,
+          schema: { $ref: '#/components/schemas/CreateFamilyRequest' },
         },
       },
     },
@@ -662,9 +650,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/families/join',
+  path: '/families/join',
   tags: ['Families'],
   summary: 'Join family by invite code',
   description: 'Join a family using an invitation code',
@@ -673,7 +661,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: JoinFamilySchema,
+          schema: { $ref: '#/components/schemas/JoinFamilyRequest' },
         },
       },
     },
@@ -699,9 +687,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/families/current',
+  path: '/families/current',
   tags: ['Families'],
   summary: 'Get current family',
   description: 'Retrieve the current family of the authenticated user',
@@ -727,9 +715,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/families/{familyId}/permissions',
+  path: '/families/{familyId}/permissions',
   tags: ['Families'],
   summary: 'Get user permissions in family',
   description: 'Retrieve user permissions for a specific family',
@@ -761,9 +749,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'put',
-  path: '/api/v1/families/members/{memberId}/role',
+  path: '/families/members/{memberId}/role',
   tags: ['Families'],
   summary: 'Update member role',
   description: 'Update a family member role. Requires family admin permissions.',
@@ -773,7 +761,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateMemberRoleSchema,
+          schema: { $ref: '#/components/schemas/UpdateMemberRoleRequest' },
         },
       },
     },
@@ -802,9 +790,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/families/invite-code',
+  path: '/families/invite-code',
   tags: ['Families'],
   summary: 'Generate invite code (deprecated)',
   description: 'Generate permanent invite code for family. This endpoint is deprecated.',
@@ -830,9 +818,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/families/{familyId}/invite',
+  path: '/families/{familyId}/invite',
   tags: ['Families'],
   summary: 'Invite family member',
   description: 'Invite a new member to join the family. Requires family admin permissions.',
@@ -842,7 +830,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: InviteMemberSchema,
+          schema: { $ref: '#/components/schemas/InviteMemberRequest' },
         },
       },
     },
@@ -872,9 +860,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/families/{familyId}/invitations',
+  path: '/families/{familyId}/invitations',
   tags: ['Families'],
   summary: 'Get pending invitations',
   description: 'Retrieve all pending invitations for a family. Requires family membership.',
@@ -906,9 +894,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/families/{familyId}/invitations/{invitationId}',
+  path: '/families/{familyId}/invitations/{invitationId}',
   tags: ['Families'],
   summary: 'Cancel invitation',
   description: 'Cancel a pending family invitation. Requires family admin permissions.',
@@ -940,9 +928,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'put',
-  path: '/api/v1/families/name',
+  path: '/families/name',
   tags: ['Families'],
   summary: 'Update family name',
   description: 'Update family name. Requires family admin permissions.',
@@ -951,7 +939,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateFamilyNameSchema,
+          schema: { $ref: '#/components/schemas/UpdateFamilyNameRequest' },
         },
       },
     },
@@ -981,9 +969,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/families/{familyId}/members/{memberId}',
+  path: '/families/{familyId}/members/{memberId}',
   tags: ['Families'],
   summary: 'Remove family member',
   description: 'Remove a member from the family. Requires family admin permissions.',
@@ -1015,9 +1003,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/families/{familyId}/leave',
+  path: '/families/{familyId}/leave',
   tags: ['Families'],
   summary: 'Leave family',
   description: 'Leave the current family as a member',

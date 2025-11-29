@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi.js';
+import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -18,12 +18,12 @@ extendZodWithOpenApi(z);
 
 export const GroupRoleEnum = z.enum(['MEMBER', 'ADMIN']).openapi({
   description: 'Role of a family within a group',
-  examples: ['MEMBER', 'ADMIN'],
+  example: 'MEMBER',
 });
 
 export const UserRoleEnum = z.enum(['OWNER', 'ADMIN', 'MEMBER']).openapi({
   description: 'User\'s role within a group context',
-  examples: ['OWNER', 'ADMIN', 'MEMBER'],
+  example: 'MEMBER',
 });
 
 export const WeekdayEnum = z.enum([
@@ -31,21 +31,21 @@ export const WeekdayEnum = z.enum([
   'FRIDAY', 'SATURDAY', 'SUNDAY',
 ]).openapi({
   description: 'Day of the week',
-  examples: ['MONDAY', 'FRIDAY'],
+  example: 'MONDAY',
 });
 
 const UserStatusEnum = z.enum([
   'NO_FAMILY', 'FAMILY_MEMBER', 'FAMILY_ADMIN', 'ALREADY_MEMBER',
 ]).openapi({
   description: 'User family status for invitation validation',
-  examples: ['FAMILY_MEMBER', 'FAMILY_ADMIN'],
+  example: 'FAMILY_MEMBER',
 });
 
 const ActionRequiredEnum = z.enum([
   'CREATE_FAMILY', 'CONTACT_ADMIN', 'ALREADY_ACCEPTED', 'READY_TO_JOIN',
 ]).openapi({
   description: 'Action required for user to join group',
-  examples: ['READY_TO_JOIN', 'CREATE_FAMILY'],
+  example: 'READY_TO_JOIN',
 });
 
 // ============================================================================
@@ -680,26 +680,14 @@ registry.register('SearchFamiliesRequest', SearchFamiliesSchema);
 registry.register('ValidateInviteRequest', ValidateInviteSchema);
 registry.register('UpdateScheduleConfigRequest', UpdateScheduleConfigSchema);
 
-registry.register('GroupParams', GroupParamsSchema);
-registry.register('InvitationParams', InvitationParamsSchema);
-registry.register('FamilyRoleParams', FamilyRoleParamsSchema);
-registry.register('WeekdayQuery', WeekdayQuerySchema);
 
-registry.register('Group', GroupResponseSchema);
-registry.register('FamilySearchResult', FamilySearchResultSchema);
-registry.register('GroupInvitation', GroupInvitationSchema);
-registry.register('InvitationValidation', InvitationValidationSchema);
-registry.register('GroupMembership', GroupMembershipSchema);
-registry.register('ScheduleConfig', ScheduleConfigSchema);
-registry.register('TimeSlotsResponse', TimeSlotsResponseSchema);
-registry.register('DefaultScheduleResponse', DefaultScheduleResponseSchema);
 
 // Register API paths following Auth pattern
 
 // Public route (no auth required)
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/validate-invite',
+  path: '/groups/validate-invite',
   tags: ['Groups'],
   summary: 'Validate invitation code (public)',
   description: 'Validate a group invitation code without authentication',
@@ -707,7 +695,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: ValidateInviteSchema,
+          schema: { $ref: '#/components/schemas/ValidateInviteRequest' },
         },
       },
     },
@@ -734,9 +722,9 @@ registry.registerPath({
 });
 
 // Authenticated invitation validation
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/validate-invite-auth',
+  path: '/groups/validate-invite-auth',
   tags: ['Groups'],
   summary: 'Validate invitation code (authenticated)',
   description: 'Validate a group invitation code with user context',
@@ -745,7 +733,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: ValidateInviteSchema,
+          schema: { $ref: '#/components/schemas/ValidateInviteRequest' },
         },
       },
     },
@@ -775,9 +763,9 @@ registry.registerPath({
 });
 
 // Group CRUD operations
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups',
+  path: '/groups',
   tags: ['Groups'],
   summary: 'Create group',
   description: 'Create a new group. Requires family admin permissions.',
@@ -786,7 +774,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateGroupSchema,
+          schema: { $ref: '#/components/schemas/CreateGroupRequest' },
         },
       },
     },
@@ -815,9 +803,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/join',
+  path: '/groups/join',
   tags: ['Groups'],
   summary: 'Join group by invite code',
   description: 'Join a group using an invitation code',
@@ -826,7 +814,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: JoinGroupSchema,
+          schema: { $ref: '#/components/schemas/JoinGroupRequest' },
         },
       },
     },
@@ -852,9 +840,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/groups/my-groups',
+  path: '/groups/my-groups',
   tags: ['Groups'],
   summary: 'Get user groups',
   description: 'Retrieve all groups the authenticated user belongs to',
@@ -877,9 +865,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/groups/{groupId}/families',
+  path: '/groups/{groupId}/families',
   tags: ['Groups'],
   summary: 'Get group families',
   description: 'Retrieve all families in a group. Requires group membership.',
@@ -914,9 +902,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/groups/{groupId}',
+  path: '/groups/{groupId}',
   tags: ['Groups'],
   summary: 'Update group (PATCH)',
   description: 'Update group information. Requires group admin permissions.',
@@ -926,7 +914,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateGroupSchema,
+          schema: { $ref: '#/components/schemas/UpdateGroupRequest' },
         },
       },
     },
@@ -958,9 +946,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/groups/{groupId}',
+  path: '/groups/{groupId}',
   tags: ['Groups'],
   summary: 'Delete group',
   description: 'Delete a group. Requires group admin permissions.',
@@ -998,9 +986,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/{groupId}/leave',
+  path: '/groups/{groupId}/leave',
   tags: ['Groups'],
   summary: 'Leave group',
   description: 'Leave a group as a family member',
@@ -1039,9 +1027,9 @@ registry.registerPath({
 });
 
 // Family management endpoints
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/groups/{groupId}/families/{familyId}/role',
+  path: '/groups/{groupId}/families/{familyId}/role',
   tags: ['Groups'],
   summary: 'Update family role',
   description: 'Update a family role within a group. Requires group admin permissions.',
@@ -1051,7 +1039,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateFamilyRoleSchema,
+          schema: { $ref: '#/components/schemas/UpdateFamilyRoleRequest' },
         },
       },
     },
@@ -1083,9 +1071,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/groups/{groupId}/families/{familyId}',
+  path: '/groups/{groupId}/families/{familyId}',
   tags: ['Groups'],
   summary: 'Remove family from group',
   description: 'Remove a family from a group. Requires group admin permissions.',
@@ -1124,9 +1112,9 @@ registry.registerPath({
 });
 
 // Invitation management endpoints
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/{groupId}/search-families',
+  path: '/groups/{groupId}/search-families',
   tags: ['Groups'],
   summary: 'Search families for invitation',
   description: 'Search for families to invite to the group. Requires group admin permissions.',
@@ -1136,7 +1124,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: SearchFamiliesSchema,
+          schema: { $ref: '#/components/schemas/SearchFamiliesRequest' },
         },
       },
     },
@@ -1168,9 +1156,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/{groupId}/invite',
+  path: '/groups/{groupId}/invite',
   tags: ['Groups'],
   summary: 'Invite family to group',
   description: 'Invite a family to join the group. Requires group admin permissions.',
@@ -1180,7 +1168,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: InviteFamilySchema,
+          schema: { $ref: '#/components/schemas/InviteFamilyRequest' },
         },
       },
     },
@@ -1212,9 +1200,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/groups/{groupId}/invitations',
+  path: '/groups/{groupId}/invitations',
   tags: ['Groups'],
   summary: 'Get pending invitations',
   description: 'Retrieve all pending invitations for a group. Requires group admin permissions.',
@@ -1249,9 +1237,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/groups/{groupId}/invitations/{invitationId}',
+  path: '/groups/{groupId}/invitations/{invitationId}',
   tags: ['Groups'],
   summary: 'Cancel invitation',
   description: 'Cancel a pending group invitation. Requires group admin permissions.',
@@ -1290,9 +1278,9 @@ registry.registerPath({
 });
 
 // Schedule configuration endpoints
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/groups/schedule-config/default',
+  path: '/groups/schedule-config/default',
   tags: ['Groups'],
   summary: 'Get default schedule hours',
   description: 'Retrieve default schedule hours configuration',
@@ -1315,9 +1303,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/groups/{groupId}/schedule-config',
+  path: '/groups/{groupId}/schedule-config',
   tags: ['Groups'],
   summary: 'Get group schedule configuration',
   description: 'Retrieve schedule configuration for a group. Requires group membership.',
@@ -1352,9 +1340,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/groups/{groupId}/schedule-config/time-slots',
+  path: '/groups/{groupId}/schedule-config/time-slots',
   tags: ['Groups'],
   summary: 'Get time slots for weekday',
   description: 'Retrieve available time slots for a specific weekday. Requires group membership.',
@@ -1390,9 +1378,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'put',
-  path: '/api/v1/groups/{groupId}/schedule-config',
+  path: '/groups/{groupId}/schedule-config',
   tags: ['Groups'],
   summary: 'Update group schedule configuration',
   description: 'Update schedule configuration for a group. Requires group admin permissions.',
@@ -1402,7 +1390,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateScheduleConfigSchema,
+          schema: { $ref: '#/components/schemas/UpdateScheduleConfigRequest' },
         },
       },
     },
@@ -1434,9 +1422,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/groups/{groupId}/schedule-config/reset',
+  path: '/groups/{groupId}/schedule-config/reset',
   tags: ['Groups'],
   summary: 'Reset group schedule configuration',
   description: 'Reset group schedule configuration to default. Requires group admin permissions.',

@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi.js';
+import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -338,20 +338,3 @@ export const FcmTokenStatsSuccessSchema = z.object({
 });
 
 // Register all schemas with OpenAPI registry
-registry.register('SaveToken', SaveTokenSchema);
-registry.register('ValidateToken', ValidateTokenSchema);
-registry.register('SubscribeTopic', SubscribeTopicSchema);
-registry.register('TestNotification', TestNotificationSchema);
-registry.register('FcmTokenParams', FcmTokenParamsSchema);
-registry.register('FcmTokenResponse', FcmTokenResponseSchema);
-registry.register('FcmTokenValidationResponse', FcmTokenValidationResponseSchema);
-registry.register('TopicSubscriptionResponse', TopicSubscriptionResponseSchema);
-registry.register('TestNotificationResponse', TestNotificationResponseSchema);
-registry.register('FcmTokenStatsResponse', FcmTokenStatsResponseSchema);
-registry.register('SaveTokenSuccess', SaveTokenSuccessSchema);
-registry.register('GetTokensSuccess', GetTokensSuccessSchema);
-registry.register('DeleteTokenSuccess', DeleteTokenSuccessSchema);
-registry.register('ValidateTokenSuccess', ValidateTokenSuccessSchema);
-registry.register('TopicSubscriptionSuccess', TopicSubscriptionSuccessSchema);
-registry.register('TestNotificationSuccess', TestNotificationSuccessSchema);
-registry.register('FcmTokenStatsSuccess', FcmTokenStatsSuccessSchema);

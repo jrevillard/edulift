@@ -115,6 +115,25 @@ try {
   const generator = new OpenApiGeneratorV3(registry.definitions);
   const docs = generator.generateDocument(config.openapi);
 
+  // Fix known library limitation: nullable without type in additionalProperties
+  // This is a workaround for z.unknown() generating invalid OpenAPI
+  const fixNullableWithoutType = (obj: any): void => {
+    if (obj && typeof obj === 'object') {
+      if (obj.nullable === true && !obj.type && obj !== null) {
+        // Remove nullable when there's no type (invalid in OpenAPI 3.0)
+        delete obj.nullable;
+      }
+      // Recursively process all properties
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          fixNullableWithoutType(obj[key]);
+        }
+      }
+    }
+  };
+
+  fixNullableWithoutType(docs);
+
   // Write generated spec to file
   const outputPath = path.join(__dirname, '../docs/openapi/swagger.json');
   fs.writeFileSync(outputPath, JSON.stringify(docs, null, 2));

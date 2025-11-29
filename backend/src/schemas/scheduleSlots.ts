@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi.js';
+import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -476,7 +476,24 @@ export const ScheduleSlotConflictSchema = z.object({
       example: 'MEDIUM',
       description: 'Conflict severity level',
     }),
-  details: z.record(z.string(), z.unknown())
+  details: z.object({
+      vehicleId: z.string().nullable().optional().openapi({
+        example: 'cl123456789012345678901237',
+        description: 'Vehicle ID involved in conflict',
+      }),
+      currentAssignments: z.number().int().openapi({
+        example: 6,
+        description: 'Current number of assignments',
+      }),
+      vehicleCapacity: z.number().int().openapi({
+        example: 5,
+        description: 'Maximum vehicle capacity',
+      }),
+      overbookedBy: z.number().int().openapi({
+        example: 1,
+        description: 'Number of overbooked slots',
+      }),
+    })
     .optional()
     .openapi({
       example: {
@@ -531,31 +548,19 @@ registry.register('VehicleIdRequest', VehicleIdSchema);
 registry.register('UpdateSeatOverrideRequest', UpdateSeatOverrideSchema);
 
 // Parameter schemas
-registry.register('ScheduleSlotParams', ScheduleSlotParamsSchema);
-registry.register('GroupParams', GroupParamsSchema);
-registry.register('VehicleAssignmentParams', VehicleAssignmentParamsSchema);
-registry.register('ScheduleSlotVehicleParams', ScheduleSlotVehicleParamsSchema);
-registry.register('ScheduleSlotChildParams', ScheduleSlotChildParamsSchema);
 
 // Query schemas
-registry.register('DateRangeQuery', DateRangeQuerySchema);
 
 // Response schemas
-registry.register('ScheduleSlot', ScheduleSlotSchema);
-registry.register('VehicleAssignment', VehicleAssignmentSchema);
-registry.register('ChildAssignment', ChildAssignmentSchema);
-registry.register('AvailableChild', AvailableChildSchema);
-registry.register('ScheduleSlotConflict', ScheduleSlotConflictSchema);
-registry.register('ScheduleResponse', ScheduleResponseSchema);
 
 // ============================================================================
 // REGISTRY - API PATHS REGISTRATION
 // ============================================================================
 
 // Create schedule slot with vehicle for a group
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/schedule-slots/groups/{groupId}/schedule-slots',
+  path: '/schedule-slots/groups/{groupId}/schedule-slots',
   tags: ['Schedule Slots'],
   summary: 'Create schedule slot with vehicle',
   description: 'Create a new schedule slot with vehicle assignment for a group',
@@ -565,7 +570,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateScheduleSlotWithVehicleSchema,
+          schema: { $ref: '#/components/schemas/CreateScheduleSlotWithVehicleRequest' },
         },
       },
     },
@@ -598,9 +603,9 @@ registry.registerPath({
 });
 
 // Get schedule for a group (with optional date range)
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/schedule-slots/groups/{groupId}/schedule',
+  path: '/schedule-slots/groups/{groupId}/schedule',
   tags: ['Schedule Slots'],
   summary: 'Get group schedule',
   description: 'Retrieve schedule for a group with optional date range filtering',
@@ -637,9 +642,9 @@ registry.registerPath({
 });
 
 // Get schedule slot details
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}',
+  path: '/schedule-slots/{scheduleSlotId}',
   tags: ['Schedule Slots'],
   summary: 'Get schedule slot details',
   description: 'Retrieve detailed information for a specific schedule slot',
@@ -675,9 +680,9 @@ registry.registerPath({
 });
 
 // Assign vehicle to schedule slot
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/vehicles',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles',
   tags: ['Schedule Slots'],
   summary: 'Assign vehicle to schedule slot',
   description: 'Assign a vehicle to an existing schedule slot',
@@ -687,7 +692,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: AssignVehicleSchema,
+          schema: { $ref: '#/components/schemas/AssignVehicleRequest' },
         },
       },
     },
@@ -720,9 +725,9 @@ registry.registerPath({
 });
 
 // Remove vehicle from schedule slot
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/vehicles',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles',
   tags: ['Schedule Slots'],
   summary: 'Remove vehicle from schedule slot',
   description: 'Remove a vehicle assignment from a schedule slot',
@@ -732,7 +737,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: VehicleIdSchema,
+          schema: { $ref: '#/components/schemas/VehicleIdRequest' },
         },
       },
     },
@@ -768,9 +773,9 @@ registry.registerPath({
 });
 
 // Update vehicle driver assignment
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver',
   tags: ['Schedule Slots'],
   summary: 'Update vehicle driver assignment',
   description: 'Update or remove driver for a vehicle assignment in a schedule slot',
@@ -780,7 +785,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateDriverSchema,
+          schema: { $ref: '#/components/schemas/UpdateDriverRequest' },
         },
       },
     },
@@ -813,9 +818,9 @@ registry.registerPath({
 });
 
 // Assign child to schedule slot
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/children',
+  path: '/schedule-slots/{scheduleSlotId}/children',
   tags: ['Schedule Slots'],
   summary: 'Assign child to schedule slot',
   description: 'Assign a child to a specific vehicle assignment in a schedule slot',
@@ -825,7 +830,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: AssignChildSchema,
+          schema: { $ref: '#/components/schemas/AssignChildRequest' },
         },
       },
     },
@@ -858,9 +863,9 @@ registry.registerPath({
 });
 
 // Remove child from schedule slot
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}',
+  path: '/schedule-slots/{scheduleSlotId}/children/{childId}',
   tags: ['Schedule Slots'],
   summary: 'Remove child from schedule slot',
   description: 'Remove a child assignment from a schedule slot',
@@ -899,9 +904,9 @@ registry.registerPath({
 });
 
 // Get available children for schedule slot
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/available-children',
+  path: '/schedule-slots/{scheduleSlotId}/available-children',
   tags: ['Schedule Slots'],
   summary: 'Get available children for schedule slot',
   description: 'Retrieve list of children available for assignment to a schedule slot',
@@ -937,9 +942,9 @@ registry.registerPath({
 });
 
 // Get schedule slot conflicts
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/schedule-slots/{scheduleSlotId}/conflicts',
+  path: '/schedule-slots/{scheduleSlotId}/conflicts',
   tags: ['Schedule Slots'],
   summary: 'Get schedule slot conflicts',
   description: 'Retrieve list of conflicts for a schedule slot',
@@ -975,9 +980,9 @@ registry.registerPath({
 });
 
 // Update seat override for vehicle assignment
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/schedule-slots/vehicle-assignments/{vehicleAssignmentId}/seat-override',
+  path: '/schedule-slots/vehicle-assignments/{vehicleAssignmentId}/seat-override',
   tags: ['Schedule Slots'],
   summary: 'Update seat override for vehicle assignment',
   description: 'Update seat capacity override for a vehicle assignment',
@@ -987,7 +992,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateSeatOverrideSchema,
+          schema: { $ref: '#/components/schemas/UpdateSeatOverrideRequest' },
         },
       },
     },

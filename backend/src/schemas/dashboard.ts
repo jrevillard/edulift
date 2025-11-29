@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi';
+import { registry, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -19,12 +19,12 @@ extendZodWithOpenApi(z);
 
 export const TrendDirectionEnum = z.enum(['up', 'down', 'neutral']).openapi({
   description: 'Direction of a trend indicator',
-  examples: ['up', 'down', 'neutral'],
+  example: 'up',
 });
 
 export const ActivityTypeEnum = z.enum(['group', 'vehicle', 'child', 'schedule']).openapi({
   description: 'Type of activity in the dashboard',
-  examples: ['group', 'vehicle', 'child', 'schedule'],
+  example: 'group',
 });
 
 // ============================================================================
@@ -372,19 +372,8 @@ export const WeeklyDashboardResponseSchema = z.object({
 // ============================================================================
 
 // Register query parameter schemas
-registry.register('WeeklyDashboardQuery', WeeklyDashboardQuerySchema);
 
 // Register response schemas
-registry.register('TrendData', TrendDataSchema);
-registry.register('DashboardStats', DashboardStatsSchema);
-registry.register('TripChild', TripChildSchema);
-registry.register('TripVehicle', TripVehicleSchema);
-registry.register('TripDriver', TripDriverSchema);
-registry.register('TripGroup', TripGroupSchema);
-registry.register('TodayTrip', TodayTripSchema);
-registry.register('TodayScheduleResponse', TodayScheduleResponseSchema);
-registry.register('ActivityItem', ActivityItemSchema);
-registry.register('RecentActivityResponse', RecentActivityResponseSchema);
 registry.register('WeeklyDashboardResponse', WeeklyDashboardResponseSchema);
 
 // ============================================================================
@@ -392,9 +381,9 @@ registry.register('WeeklyDashboardResponse', WeeklyDashboardResponseSchema);
 // ============================================================================
 
 // All dashboard routes require authentication
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/dashboard/stats',
+  path: '/dashboard/stats',
   tags: ['Dashboard'],
   summary: 'Get dashboard statistics',
   description: 'Retrieve user dashboard statistics including counts and trends',
@@ -436,9 +425,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/dashboard/today-schedule',
+  path: '/dashboard/today-schedule',
   tags: ['Dashboard'],
   summary: 'Get today\'s schedule',
   description: 'Retrieve today\'s trips and schedule for the authenticated user',
@@ -480,9 +469,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/dashboard/weekly',
+  path: '/dashboard/weekly',
   tags: ['Dashboard'],
   summary: 'Get weekly dashboard',
   description: 'Retrieve complete weekly dashboard with schedules and summary statistics',
@@ -495,7 +484,7 @@ registry.registerPath({
       description: 'Weekly dashboard retrieved successfully',
       content: {
         'application/json': {
-          schema: WeeklyDashboardResponseSchema,
+          schema: { $ref: '#/components/schemas/WeeklyDashboardResponse' },
         },
       },
     },
@@ -535,9 +524,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/dashboard/recent-activity',
+  path: '/dashboard/recent-activity',
   tags: ['Dashboard'],
   summary: 'Get recent activity',
   description: 'Retrieve recent activity log for the user and their family',

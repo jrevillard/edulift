@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi.js';
+import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle.js';
 
 // Extend Zod with OpenAPI capabilities
@@ -291,18 +291,11 @@ export const VehicleAssignmentSchema = z.object({
 // Register schemas with OpenAPI registry
 registry.register('CreateVehicleRequest', CreateVehicleSchema);
 registry.register('UpdateVehicleRequest', UpdateVehicleSchema);
-registry.register('VehicleParams', VehicleParamsSchema);
-registry.register('AvailableVehiclesParams', AvailableVehiclesParamsSchema);
-registry.register('VehicleWeekQuery', WeekQuerySchema);
-registry.register('VehicleResponse', VehicleResponseSchema);
-registry.register('AvailableVehicle', AvailableVehicleSchema);
-registry.register('VehicleSchedule', VehicleScheduleSchema);
-registry.register('VehicleAssignment', VehicleAssignmentSchema);
 
 // Register API paths following Auth/Children pattern
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/vehicles',
+  path: '/vehicles',
   tags: ['Vehicles'],
   summary: 'Create a new vehicle',
   description: 'Add a new vehicle to the authenticated user family. Requires family admin permissions.',
@@ -311,7 +304,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateVehicleSchema,
+          schema: { $ref: '#/components/schemas/CreateVehicleRequest' },
         },
       },
     },
@@ -340,9 +333,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/vehicles',
+  path: '/vehicles',
   tags: ['Vehicles'],
   summary: 'Get user vehicles',
   description: 'Retrieve all vehicles belonging to the authenticated user family',
@@ -368,9 +361,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/vehicles/available/{groupId}/{timeSlotId}',
+  path: '/vehicles/available/{groupId}/{timeSlotId}',
   tags: ['Vehicles'],
   summary: 'Get available vehicles',
   description: 'Retrieve available vehicles for a specific group and time slot combination',
@@ -405,9 +398,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/vehicles/{vehicleId}',
+  path: '/vehicles/{vehicleId}',
   tags: ['Vehicles'],
   summary: 'Get specific vehicle',
   description: 'Retrieve detailed information about a specific vehicle by ID',
@@ -442,9 +435,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/vehicles/{vehicleId}',
+  path: '/vehicles/{vehicleId}',
   tags: ['Vehicles'],
   summary: 'Update vehicle',
   description: 'Partially update vehicle information. Requires family admin permissions.',
@@ -454,7 +447,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateVehicleSchema,
+          schema: { $ref: '#/components/schemas/UpdateVehicleRequest' },
         },
       },
     },
@@ -486,9 +479,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/vehicles/{vehicleId}',
+  path: '/vehicles/{vehicleId}',
   tags: ['Vehicles'],
   summary: 'Delete vehicle',
   description: 'Remove a vehicle from the family. Requires family admin permissions.',
@@ -526,9 +519,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/vehicles/{vehicleId}/schedule',
+  path: '/vehicles/{vehicleId}/schedule',
   tags: ['Vehicles'],
   summary: 'Get vehicle schedule',
   description: 'Retrieve schedule information for a specific vehicle, optionally filtered by week',

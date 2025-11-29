@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi.js';
+import type { BearerAuthSecurity } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -43,7 +44,7 @@ export const RequestMagicLinkSchema = z.object({
     .min(43, 'PKCE code challenge must be at least 43 characters')
     .max(128, 'PKCE code challenge must be at most 128 characters')
     .openapi({
-      example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890',
+      example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
       description: 'PKCE code challenge for security (optional but recommended)',
     }),
 }).openapi({
@@ -62,7 +63,7 @@ export const VerifyMagicLinkSchema = z.object({
     .min(43, 'PKCE code verifier must be at least 43 characters')
     .max(128, 'PKCE code verifier must be at most 128 characters')
     .openapi({
-      example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890',
+      example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
       description: 'PKCE code verifier for security (required)',
     }),
 }).openapi({
@@ -300,6 +301,23 @@ export const RefreshTokenResponseSchema = z.object({
   description: 'Token refresh response with new JWT tokens',
 });
 
+// Dedicated response schemas for profile endpoints
+export const ProfileUpdateResponseSchema = z.object({
+  success: z.literal(true),
+  data: UserResponseSchema,
+}).openapi({
+  title: 'Profile Update Response',
+  description: 'Successful profile update response with user data',
+});
+
+export const ProfileGetResponseSchema = z.object({
+  success: z.literal(true),
+  data: UserResponseSchema,
+}).openapi({
+  title: 'Profile Get Response',
+  description: 'Successful profile retrieval response with user data',
+});
+
 // Register schemas with OpenAPI registry
 registry.register('RequestMagicLink', RequestMagicLinkSchema);
 registry.register('VerifyMagicLink', VerifyMagicLinkSchema);
@@ -307,15 +325,16 @@ registry.register('RefreshTokenRequest', RefreshTokenSchema);
 registry.register('LogoutRequest', LogoutSchema);
 registry.register('UpdateProfileRequest', UpdateProfileSchema);
 registry.register('UpdateTimezoneRequest', UpdateTimezoneSchema);
-registry.register('UserResponse', UserResponseSchema);
 registry.register('AuthResponse', AuthResponseSchema);
 registry.register('RefreshTokenResponse', RefreshTokenResponseSchema);
+registry.register('ProfileUpdateResponse', ProfileUpdateResponseSchema);
+registry.register('ProfileGetResponse', ProfileGetResponseSchema);
 
 
 // Register API paths with simplified response schemas
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/auth/magic-link',
+  path: '/auth/magic-link',
   tags: ['Authentication'],
   summary: 'Request magic link for authentication',
   description: 'Send a magic link to the user email for passwordless authentication',
@@ -323,7 +342,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: RequestMagicLinkSchema,
+          schema: { $ref: '#/components/schemas/RequestMagicLink' },
         },
       },
     },
@@ -352,9 +371,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/auth/verify',
+  path: '/auth/verify',
   tags: ['Authentication'],
   summary: 'Verify magic link and get JWT token',
   description: 'Verify the magic link token and code verifier to authenticate the user and receive JWT tokens',
@@ -362,7 +381,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: VerifyMagicLinkSchema,
+          schema: { $ref: '#/components/schemas/VerifyMagicLink' },
         },
       },
     },
@@ -375,7 +394,7 @@ registry.registerPath({
       description: 'Authentication successful',
       content: {
         'application/json': {
-          schema: AuthResponseSchema,
+          schema: { $ref: '#/components/schemas/AuthResponse' },
         },
       },
     },
@@ -388,9 +407,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/auth/refresh',
+  path: '/auth/refresh',
   tags: ['Authentication'],
   summary: 'Refresh JWT token',
   description: 'Refresh the JWT access token using a valid refresh token with token rotation',
@@ -398,7 +417,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: RefreshTokenSchema,
+          schema: { $ref: '#/components/schemas/RefreshTokenRequest' },
         },
       },
     },
@@ -408,7 +427,7 @@ registry.registerPath({
       description: 'Token refreshed successfully',
       content: {
         'application/json': {
-          schema: RefreshTokenResponseSchema,
+          schema: { $ref: '#/components/schemas/RefreshTokenResponse' },
         },
       },
     },
@@ -421,9 +440,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/auth/logout',
+  path: '/auth/logout',
   tags: ['Authentication'],
   summary: 'Logout and revoke refresh tokens',
   description: 'Revoke the refresh token to logout the user (RFC 7009 compliant)',
@@ -432,7 +451,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: LogoutSchema,
+          schema: { $ref: '#/components/schemas/LogoutRequest' },
         },
       },
     },
@@ -447,9 +466,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'put',
-  path: '/api/v1/auth/profile',
+  path: '/auth/profile',
   tags: ['Authentication'],
   summary: 'Update user profile',
   description: 'Update the authenticated user profile information',
@@ -458,7 +477,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateProfileSchema,
+          schema: { $ref: '#/components/schemas/UpdateProfileRequest' },
         },
       },
     },
@@ -468,10 +487,7 @@ registry.registerPath({
       description: 'Profile updated successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: UserResponseSchema,
-          }),
+          schema: { $ref: '#/components/schemas/ProfileUpdateResponse' },
         },
       },
     },
@@ -484,9 +500,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/auth/timezone',
+  path: '/auth/timezone',
   tags: ['Authentication'],
   summary: 'Update user timezone',
   description: 'Update the authenticated user timezone setting',
@@ -495,7 +511,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateTimezoneSchema,
+          schema: { $ref: '#/components/schemas/UpdateTimezoneRequest' },
         },
       },
     },
@@ -505,10 +521,7 @@ registry.registerPath({
       description: 'Timezone updated successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: UserResponseSchema,
-          }),
+          schema: { $ref: '#/components/schemas/ProfileUpdateResponse' },
         },
       },
     },
@@ -521,9 +534,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/auth/profile',
+  path: '/auth/profile',
   tags: ['Authentication'],
   summary: 'Get user profile',
   description: 'Get the authenticated user profile information',
@@ -533,10 +546,7 @@ registry.registerPath({
       description: 'Profile retrieved successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: UserResponseSchema,
-          }),
+          schema: { $ref: '#/components/schemas/ProfileGetResponse' },
         },
       },
     },

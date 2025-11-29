@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi.js';
+import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -248,17 +248,11 @@ export const ChildAssignmentSchema = z.object({
 // Register schemas with OpenAPI registry
 registry.register('CreateChildRequest', CreateChildSchema);
 registry.register('UpdateChildRequest', UpdateChildSchema);
-registry.register('ChildParams', ChildParamsSchema);
-registry.register('ChildGroupParams', ChildGroupParamsSchema);
-registry.register('WeekQuery', WeekQuerySchema);
-registry.register('ChildResponse', ChildResponseSchema);
-registry.register('ChildGroupMembership', ChildGroupMembershipSchema);
-registry.register('ChildAssignment', ChildAssignmentSchema);
 
 // Register API paths following Auth pattern
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/children',
+  path: '/children',
   tags: ['Children'],
   summary: 'Create a new child',
   description: 'Add a new child to the authenticated user family. Requires family admin permissions.',
@@ -267,7 +261,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: CreateChildSchema,
+          schema: { $ref: '#/components/schemas/CreateChildRequest' },
         },
       },
     },
@@ -296,9 +290,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/children',
+  path: '/children',
   tags: ['Children'],
   summary: 'Get user children',
   description: 'Retrieve all children belonging to the authenticated user family',
@@ -321,9 +315,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/children/{childId}',
+  path: '/children/{childId}',
   tags: ['Children'],
   summary: 'Get specific child',
   description: 'Retrieve detailed information about a specific child by ID',
@@ -358,9 +352,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'put',
-  path: '/api/v1/children/{childId}',
+  path: '/children/{childId}',
   tags: ['Children'],
   summary: 'Update child (PUT)',
   description: 'Update child information completely. Requires family admin permissions.',
@@ -370,7 +364,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateChildSchema,
+          schema: { $ref: '#/components/schemas/UpdateChildRequest' },
         },
       },
     },
@@ -402,9 +396,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'patch',
-  path: '/api/v1/children/{childId}',
+  path: '/children/{childId}',
   tags: ['Children'],
   summary: 'Update child (PATCH)',
   description: 'Partially update child information. Requires family admin permissions.',
@@ -414,7 +408,7 @@ registry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: UpdateChildSchema,
+          schema: { $ref: '#/components/schemas/UpdateChildRequest' },
         },
       },
     },
@@ -446,9 +440,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/children/{childId}',
+  path: '/children/{childId}',
   tags: ['Children'],
   summary: 'Delete child',
   description: 'Remove a child from the family. Requires family admin permissions.',
@@ -486,9 +480,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/children/{childId}/assignments',
+  path: '/children/{childId}/assignments',
   tags: ['Children'],
   summary: 'Get child trip assignments',
   description: 'Retrieve all trip assignments for a specific child, optionally filtered by week',
@@ -524,9 +518,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'post',
-  path: '/api/v1/children/{childId}/groups/{groupId}',
+  path: '/children/{childId}/groups/{groupId}',
   tags: ['Children'],
   summary: 'Add child to group',
   description: 'Add a child to a group. Requires appropriate permissions.',
@@ -564,9 +558,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'delete',
-  path: '/api/v1/children/{childId}/groups/{groupId}',
+  path: '/children/{childId}/groups/{groupId}',
   tags: ['Children'],
   summary: 'Remove child from group',
   description: 'Remove a child from a group. Requires appropriate permissions.',
@@ -604,9 +598,9 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registerPath({
   method: 'get',
-  path: '/api/v1/children/{childId}/groups',
+  path: '/children/{childId}/groups',
   tags: ['Children'],
   summary: 'Get child group memberships',
   description: 'Retrieve all group memberships for a specific child',
