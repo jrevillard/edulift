@@ -115,6 +115,9 @@ export interface SocketEvents {
 export interface ValidationError {
   field: string;
   message: string;
+  code?: string;
+  expected?: any;
+  received?: any;
 }
 
 export interface ApiResponse<T = unknown> {

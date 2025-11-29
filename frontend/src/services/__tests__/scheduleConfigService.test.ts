@@ -242,34 +242,6 @@ describe('ScheduleConfigService', () => {
     });
   });
 
-  describe('initializeDefaultConfigs', () => {
-    it('should initialize default configurations for all groups', async () => {
-      const mockResponse = {
-        message: 'Default configurations initialized successfully'
-      };
-
-      mockApiService.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockResponse
-        }
-      });
-
-      const result = await scheduleConfigService.initializeDefaultConfigs();
-
-      expect(mockApiService.post).toHaveBeenCalledWith('/groups/schedule-config/initialize');
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should handle errors during initialization', async () => {
-      const error = new Error('Failed to initialize configurations');
-      mockApiService.post.mockRejectedValue(error);
-
-      await expect(scheduleConfigService.initializeDefaultConfigs())
-        .rejects.toThrow('Failed to initialize configurations');
-    });
-  });
-
   describe('edge cases and data validation', () => {
     it('should handle invalid group ID', async () => {
       const error = new Error('Group not found');

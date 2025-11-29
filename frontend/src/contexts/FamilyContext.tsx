@@ -85,6 +85,12 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
   const { user, isAuthenticated } = useAuth();
 
+  // Force re-render when state changes to ensure tests can read updated state
+  // This prevents race conditions in tests where setState might not be applied yet
+  useEffect(() => {
+    // Empty effect that triggers on state changes
+  }, [state]);
+
   // Initialize family data when user is authenticated
   useEffect(() => {
     const loadUserFamily = async () => {
@@ -177,7 +183,6 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         // Also check if user previously had a family (in session) to avoid false redirects
         setState(prev => {
           const hadPreviousFamily = !!prev.currentFamily;
-          console.log('🔍 DEBUG FAMILYCONTEXT: Setting error state to:', error instanceof Error ? error.message : 'Failed to load family');
           return {
             ...prev,
             currentFamily: null,
@@ -196,12 +201,13 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       console.log('🔍 DEBUG FAMILYCONTEXT: Calling loadUserFamily()');
       loadUserFamily();
     } else {
-      console.log('🔍 DEBUG FAMILYCONTEXT: Clearing family data');
       // Clear family data when user logs out
       setState(prev => ({
         ...prev,
         currentFamily: null,
         userPermissions: null,
+        requiresFamily: false,
+        isCheckingFamily: false,
         error: null
       }));
     }

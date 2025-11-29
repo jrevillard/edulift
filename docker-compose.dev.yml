@@ -59,6 +59,10 @@ services:
       FRONTEND_URL: http://localhost:3000
       DEEP_LINK_BASE_URL: http://localhost:3000
       CORS_ORIGIN: "*"
+      # Swagger configuration
+      SWAGGER_ENABLED: "true"
+      SWAGGER_HOST: localhost
+      SWAGGER_PORT: 3001
     volumes:
       # Allow write access to uploads directory  
       - ./backend/uploads:/app/uploads

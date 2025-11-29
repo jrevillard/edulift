@@ -5,29 +5,14 @@ import { ChildAssignmentService } from '../services/ChildAssignmentService';
 import { CreateScheduleSlotData, AssignVehicleToSlotData, ApiResponse } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
-import { z } from 'zod';
 import { SocketEmitter } from '../utils/socketEmitter';
-import { createLogger } from '../utils/logger';
-
-const logger = createLogger('ScheduleSlotController');
-
-const AssignChildSchema = z.object({
-  childId: z.string().cuid('Invalid child ID format'),
-  vehicleAssignmentId: z.string().cuid('Invalid vehicle assignment ID format'),
-});
-
-const ScheduleSlotParamsSchema = z.object({
-  scheduleSlotId: z.string().cuid('Invalid schedule slot ID format'),
-});
-
-const ChildParamsSchema = z.object({
-  childId: z.string().cuid('Invalid child ID format'),
-});
+import { createLogger, Logger } from '../utils/logger';
 
 export class ScheduleSlotController {
   constructor(
     private scheduleSlotService: ScheduleSlotService,
     private childAssignmentService: ChildAssignmentService,
+    private logger: Logger = createLogger('ScheduleSlotController'),
   ) {}
 
   createScheduleSlotWithVehicle = async (req: Request, res: Response): Promise<void> => {
@@ -35,7 +20,7 @@ export class ScheduleSlotController {
     const { groupId } = req.params;
     const { datetime, vehicleId, driverId, seatOverride } = req.body;
 
-    logger.debug('createScheduleSlotWithVehicle: Received request', {
+    this.logger.debug('createScheduleSlotWithVehicle: Received request', {
       userId: authReq.userId,
       groupId,
       datetime,
@@ -46,12 +31,12 @@ export class ScheduleSlotController {
     });
 
     if (!vehicleId) {
-      logger.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId: authReq.userId, groupId });
+      this.logger.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId: authReq.userId, groupId });
       throw createError('Vehicle ID is required to create a schedule slot', 400);
     }
 
     if (!authReq.userId) {
-      logger.error('createScheduleSlotWithVehicle: Authentication required', { userId: authReq.userId });
+      this.logger.error('createScheduleSlotWithVehicle: Authentication required', { userId: authReq.userId });
       throw createError('Authentication required', 401);
     }
 
@@ -61,7 +46,7 @@ export class ScheduleSlotController {
         datetime,
       };
 
-      logger.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
+      this.logger.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
         groupId,
         userId: authReq.userId,
         vehicleId,
@@ -71,7 +56,7 @@ export class ScheduleSlotController {
 
       // Emit WebSocket event for real-time updates
       if (slot) {
-        logger.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
+        this.logger.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
           groupId,
           slotId: slot.id,
         });
@@ -79,7 +64,7 @@ export class ScheduleSlotController {
         SocketEmitter.broadcastScheduleUpdate(groupId);
       }
 
-      logger.debug('createScheduleSlotWithVehicle: Slot created successfully', {
+      this.logger.debug('createScheduleSlotWithVehicle: Slot created successfully', {
         groupId,
         slotId: slot.id,
         vehicleId,
@@ -90,14 +75,14 @@ export class ScheduleSlotController {
         data: slot,
       };
 
-      logger.debug('createScheduleSlotWithVehicle: Sending response', {
+      this.logger.debug('createScheduleSlotWithVehicle: Sending response', {
         groupId,
         slotId: slot.id,
         success: true,
       });
       res.status(201).json(response);
     } catch (error) {
-      logger.error('createScheduleSlotWithVehicle: Error occurred', {
+      this.logger.error('createScheduleSlotWithVehicle: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: authReq.userId,
@@ -288,16 +273,16 @@ export class ScheduleSlotController {
     const { groupId } = req.params;
     const { startDate, endDate } = req.query;
 
-    logger.debug(`🎯 getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
+    this.logger.debug(`🎯 getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
 
-    logger.debug('🔄 Calling scheduleSlotService.getSchedule...');
+    this.logger.debug('🔄 Calling scheduleSlotService.getSchedule...');
     const schedule = await this.scheduleSlotService.getSchedule(
       groupId,
       startDate as string | undefined,
       endDate as string | undefined,
     );
 
-    logger.debug('📤 Controller sending response:', { schedule });
+    this.logger.debug('📤 Controller sending response:', { schedule });
 
     const response: ApiResponse = {
       success: true,
@@ -329,129 +314,80 @@ export class ScheduleSlotController {
 
   // New child assignment methods
   assignChildToScheduleSlot = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const { scheduleSlotId } = ScheduleSlotParamsSchema.parse(req.params);
-      const { childId, vehicleAssignmentId } = AssignChildSchema.parse(req.body);
-      
-      if (!authReq.userId) {
-        throw createError('Authentication required', 401);
-      }
+    const authReq = req as AuthenticatedRequest;
+    const { scheduleSlotId } = req.params; // Validated by middleware
+    const { childId, vehicleAssignmentId } = req.body; // Validated by middleware
 
-      // Get the schedule slot first to obtain groupId for WebSocket emissions
-      const scheduleSlot = await this.scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
-      if (!scheduleSlot) {
-        throw createError('Schedule slot not found', 404);
-      }
-      
-      const assignment = await this.childAssignmentService.assignChildToScheduleSlot(
-        scheduleSlotId, 
-        childId, 
-        vehicleAssignmentId,
-        authReq.userId,
-      );
-
-      // Emit WebSocket event for real-time updates
-      SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, assignment);
-      SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-
-      const response: ApiResponse = {
-        success: true,
-        data: assignment,
-      };
-
-      res.status(201).json(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
-      throw error;
+    if (!authReq.userId) {
+      throw createError('Authentication required', 401);
     }
+
+    // Get the schedule slot first to obtain groupId for WebSocket emissions
+    const scheduleSlot = await this.scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+    if (!scheduleSlot) {
+      throw createError('Schedule slot not found', 404);
+    }
+
+    const assignment = await this.childAssignmentService.assignChildToScheduleSlot(
+      scheduleSlotId,
+      childId,
+      vehicleAssignmentId,
+      authReq.userId,
+    );
+
+    // Emit WebSocket event for real-time updates
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, assignment);
+    SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+
+    const response: ApiResponse = {
+      success: true,
+      data: assignment,
+    };
+
+    res.status(201).json(response);
   };
 
   removeChildFromScheduleSlot = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const { scheduleSlotId } = ScheduleSlotParamsSchema.parse(req.params);
-      const { childId } = ChildParamsSchema.parse(req.params);
-      
-      if (!authReq.userId) {
-        throw createError('Authentication required', 401);
-      }
+    const authReq = req as AuthenticatedRequest;
+    const { scheduleSlotId, childId } = req.params; // Validated by middleware
 
-      const result = await this.childAssignmentService.removeChildFromScheduleSlot(
-        scheduleSlotId, 
-        childId, 
-        authReq.userId,
-      );
-
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
-
-      res.status(200).json(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid parameters',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
-      throw error;
+    if (!authReq.userId) {
+      throw createError('Authentication required', 401);
     }
+
+    const result = await this.childAssignmentService.removeChildFromScheduleSlot(
+      scheduleSlotId,
+      childId,
+      authReq.userId,
+    );
+
+    const response: ApiResponse = {
+      success: true,
+      data: result,
+    };
+
+    res.status(200).json(response);
   };
 
   getAvailableChildrenForSlot = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authReq = req as AuthenticatedRequest;
-      const { scheduleSlotId } = ScheduleSlotParamsSchema.parse(req.params);
-      
-      if (!authReq.userId) {
-        throw createError('Authentication required', 401);
-      }
+    const authReq = req as AuthenticatedRequest;
+    const { scheduleSlotId } = req.params; // Validated by middleware
 
-      const children = await this.childAssignmentService.getAvailableChildrenForScheduleSlot(
-        scheduleSlotId, 
-        authReq.userId,
-      );
-
-      const response: ApiResponse = {
-        success: true,
-        data: children,
-      };
-
-      res.status(200).json(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid parameters',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
-      throw error;
+    if (!authReq.userId) {
+      throw createError('Authentication required', 401);
     }
+
+    const children = await this.childAssignmentService.getAvailableChildrenForScheduleSlot(
+      scheduleSlotId,
+      authReq.userId,
+    );
+
+    const response: ApiResponse = {
+      success: true,
+      data: children,
+    };
+
+    res.status(200).json(response);
   };
 
   updateSeatOverride = async (req: Request, res: Response): Promise<void> => {

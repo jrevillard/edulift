@@ -374,28 +374,6 @@ describe('GroupScheduleConfigService', () => {
     });
   });
 
-  describe('initializeDefaultConfigs', () => {
-    it('should initialize default configurations for groups without configs', async () => {
-      const groupsWithoutConfig = [
-        { id: 'group1', name: 'Group 1' },
-        { id: 'group2', name: 'Group 2' },
-      ];
-
-      (mockPrisma.group.findMany as jest.Mock).mockResolvedValue(groupsWithoutConfig);
-      (mockPrisma.groupScheduleConfig.create as jest.Mock).mockResolvedValue({});
-
-      await service.initializeDefaultConfigs();
-
-      expect(mockPrisma.group.findMany).toHaveBeenCalledWith({
-        where: { scheduleConfig: null },
-        select: { id: true, name: true },
-      });
-
-      expect(mockPrisma.groupScheduleConfig.create).toHaveBeenCalledTimes(2);
-      // Logger calls are now handled by the mocked logger module
-    });
-  });
-
   describe('getDefaultScheduleHours', () => {
     it('should return default schedule hours', () => {
       const defaultHours = GroupScheduleConfigService.getDefaultScheduleHours();

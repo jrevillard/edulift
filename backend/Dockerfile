@@ -13,9 +13,10 @@ COPY package*.json ./
 # Install dependencies (tsx is needed for runtime)
 RUN npm ci && npm cache clean --force
 
-# Copy source code and prisma
+# Copy source code, prisma, and scripts
 COPY src/ ./src/
 COPY prisma/ ./prisma/
+COPY scripts/ ./scripts/
 COPY tsconfig.json ./
 
 # Copy assets (logo for emails)
@@ -24,8 +25,8 @@ COPY assets/ ./assets/
 # Generate Prisma client
 RUN npx prisma generate
 
-# Create uploads directory
-RUN mkdir -p uploads && chown node:node uploads
+# Create uploads and docs directories
+RUN mkdir -p uploads docs/openapi && chown node:node uploads docs/openapi
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

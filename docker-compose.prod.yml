@@ -68,6 +68,11 @@ services:
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_FROM: ${EMAIL_FROM}
       FRONTEND_URL: ${FRONTEND_URL}
+      # Swagger configuration
+      REVERSE_PROXY_URL: ${REVERSE_PROXY_URL:-${FRONTEND_URL}}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+      SWAGGER_HOST: ${SWAGGER_HOST:-localhost}
+      SWAGGER_PORT: ${SWAGGER_PORT:-3001}
     volumes:
       - edulift_backend_uploads:/app/uploads
       - ./logs:/app/logs

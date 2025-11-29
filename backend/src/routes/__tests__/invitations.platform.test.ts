@@ -100,7 +100,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
   describe('Family Invitation Platform Parameter', () => {
     const familyInviteData = {
-      familyId: 'test-family-id',
+      familyId: 'cl123456789012345678901234',
       email: 'invitee@example.com',
       role: 'MEMBER',
       personalMessage: 'Welcome to our family!',
@@ -118,10 +118,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await request(app)
         .post('/invitations/family')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          ...familyInviteData,
-          platform: 'native',
-        });
+        .send(familyInviteData);
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -202,8 +199,8 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
   describe('Group Invitation Platform Parameter', () => {
     const groupInviteData = {
-      groupId: 'test-group-id',
-      targetFamilyId: 'test-target-family-id',
+      groupId: 'cl123456789012345678901235',
+      targetFamilyId: 'cl123456789012345678901236',
       email: 'invitee@example.com',
       role: 'MEMBER',
       personalMessage: 'Welcome to our group!',
@@ -221,10 +218,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await request(app)
         .post('/invitations/group')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({
-          ...groupInviteData,
-          platform: 'native',
-        });
+        .send(groupInviteData);
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -281,10 +275,9 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
         .post('/invitations/family')
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          familyId: 'test-family-id',
+          familyId: 'cl123456789012345678901234',
           email: 'test@example.com',
           role: 'MEMBER',
-          platform: 'native',
         });
 
       expect(response.status).toBe(500);
@@ -296,13 +289,12 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           email: 'test@example.com',
-          platform: 'native',
           // Missing familyId and role
         });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Family ID and role are required');
+      expect(response.body.error).toBe('Invalid request data');
     });
   });
 });

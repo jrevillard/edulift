@@ -2,6 +2,11 @@ import request from 'supertest';
 import express from 'express';
 import { FamilyController } from '../FamilyController';
 import { FamilyRole } from '../../types/family';
+import { validateBody } from '../../middleware/validation';
+import { CreateFamilySchema } from '../../schemas/families';
+import { createLogger } from '../../utils/logger';
+
+const familyLogger = createLogger('FamilyController');
 
 // Mock services
 const mockFamilyService = {
@@ -19,12 +24,6 @@ const mockFamilyAuthService = {
   requireFamilyRole: jest.fn(),
 } as any;
 
-const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-};
 
 // Mock auth middleware
 const mockAuthMiddleware = (req: any, _res: any, next: () => void): void => {
@@ -42,7 +41,7 @@ describe('FamilyController', () => {
     familyController = new FamilyController(
       mockFamilyService,
       mockFamilyAuthService,
-      mockLogger,
+      familyLogger,
     );
 
     app = express();
@@ -50,7 +49,7 @@ describe('FamilyController', () => {
     app.use(mockAuthMiddleware);
 
     // Setup routes
-    app.post('/families', (req, res) => familyController.createFamily(req as any, res));
+    app.post('/families', validateBody(CreateFamilySchema), (req, res) => familyController.createFamily(req as any, res));
     app.post('/families/join', (req, res) => familyController.joinFamily(req as any, res));
     app.get('/families/current', (req, res) => familyController.getCurrentFamily(req as any, res));
     app.put('/families/members/:memberId/role', (req, res) => familyController.updateMemberRole(req as any, res));
@@ -97,7 +96,15 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: false,
-        error: 'Family name is required',
+        error: 'Invalid request body',
+        statusCode: 400,
+        validationErrors: [
+          {
+            code: 'too_small',
+            field: 'name',
+            message: 'Family name is required',
+          },
+        ],
       });
     });
 

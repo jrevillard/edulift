@@ -5,42 +5,15 @@ import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { ApiResponse } from '../types';
 import { createError, AppError } from '../middleware/errorHandler';
-import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
-import { createLogger } from '../utils/logger';
-
-const CreateGroupSchema = z.object({
-  name: z.string().min(1, 'Group name is required').max(100, 'Group name too long'),
-  description: z.string().max(500, 'Description too long').optional(),
-});
-
-const JoinGroupSchema = z.object({
-  inviteCode: z.string().min(1, 'Invite code is required'),
-});
-
-const UpdateMemberRoleSchema = z.object({
-  role: z.enum(['MEMBER', 'ADMIN'], { required_error: 'Valid role is required' }),
-});
-
-
-const InviteFamilySchema = z.object({
-  familyId: z.string().min(1, 'Family ID is required'),
-  role: z.enum(['MEMBER', 'ADMIN'], { required_error: 'Valid role is required' }).default('MEMBER'),
-  personalMessage: z.string().optional(),
-});
-
-const UpdateGroupSchema = z.object({
-  name: z.string().min(1, 'Group name is required').max(100, 'Group name too long').optional(),
-  description: z.string().max(500, 'Description too long').optional(),
-});
+import { createLogger, Logger } from '../utils/logger';
 
 export class GroupController {
-  private logger = createLogger('group-controller');
-
   constructor(
     private groupService: GroupService,
     private schedulingService: SchedulingService,
+    private logger: Logger = createLogger('group-controller'),
   ) {}
 
   // Group Management Methods
@@ -48,7 +21,7 @@ export class GroupController {
   createGroup = async (req: Request, res: Response): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
-      const { name, description } = CreateGroupSchema.parse(req.body);
+      const { name, description } = req.body;
 
       this.logger.debug('createGroup: Received request', {
         userId: authReq.userId,
@@ -107,19 +80,6 @@ export class GroupController {
         stack: error instanceof Error ? error.stack : undefined,
         userId: (req as AuthenticatedRequest).userId,
       });
-
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
       throw error;
     }
   };
@@ -127,7 +87,7 @@ export class GroupController {
   joinGroup = async (req: Request, res: Response): Promise<void> => {
     try {
       const authReq = req as AuthenticatedRequest;
-      const { inviteCode } = JoinGroupSchema.parse(req.body);
+      const { inviteCode } = req.body;
 
       this.logger.debug('joinGroup: Received request', {
         userId: authReq.userId,
@@ -177,23 +137,6 @@ export class GroupController {
         userId: (req as AuthenticatedRequest).userId,
         inviteCode: req.body?.inviteCode ? `${req.body.inviteCode.substring(0, 8)}...` : undefined,
       });
-
-      if (error instanceof z.ZodError) {
-        this.logger.warn('joinGroup: Validation error', {
-          validationErrors: error.errors,
-          userId: (req as AuthenticatedRequest).userId,
-        });
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
       throw error;
     }
   };
@@ -270,10 +213,9 @@ export class GroupController {
   };
 
   updateFamilyRole = async (req: Request, res: Response): Promise<void> => {
-    try {
       const authReq = req as AuthenticatedRequest;
       const { groupId, familyId } = req.params;
-      const { role } = UpdateMemberRoleSchema.parse(req.body);
+      const { role } = req.body;
       
       if (!authReq.userId) {
         throw createError('Authentication required', 401);
@@ -305,22 +247,7 @@ export class GroupController {
       };
 
       res.status(200).json(response);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
-      throw error;
-    }
-  };
+      };
 
   removeFamilyFromGroup = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
@@ -344,7 +271,7 @@ export class GroupController {
     try {
       const authReq = req as AuthenticatedRequest;
       const { groupId } = req.params;
-      const updateData = UpdateGroupSchema.parse(req.body);
+      const updateData = req.body;
 
       this.logger.debug('updateGroup: Received request', {
         userId: authReq.userId,
@@ -358,9 +285,9 @@ export class GroupController {
         throw createError('Authentication required', 401);
       }
 
-      this.logger.debug('updateGroup: Authentication validated', { 
+      this.logger.debug('updateGroup: Authentication validated', {
         userId: authReq.userId,
-        groupId, 
+        groupId,
       });
 
       // Filter out undefined values for strict typing
@@ -368,7 +295,7 @@ export class GroupController {
       if (updateData.name !== undefined && updateData.name.trim()) {
         filteredUpdateData.name = updateData.name.trim();
       }
-      if (updateData.description !== undefined) {
+      if (updateData.description !== undefined && updateData.description !== null) {
         filteredUpdateData.description = updateData.description.trim();
       }
 
@@ -421,23 +348,6 @@ export class GroupController {
         groupId: req.params?.groupId,
         updateData: req.body,
       });
-
-      if (error instanceof z.ZodError) {
-        this.logger.warn('updateGroup: Validation error', {
-          validationErrors: error.errors,
-          userId: (req as AuthenticatedRequest).userId,
-        });
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invalid input data',
-          validationErrors: error.errors.map(err => ({
-            field: err.path.join('.'),
-            message: err.message,
-          })),
-        };
-        res.status(400).json(response);
-        return;
-      }
       throw error;
     }
   };
@@ -580,7 +490,7 @@ export class GroupController {
     try {
       const authReq = req as AuthenticatedRequest;
       const { groupId } = req.params;
-      const inviteData = InviteFamilySchema.parse(req.body);
+      const inviteData = req.body;
 
       this.logger.debug('inviteFamilyToGroup: Received request', {
         userId: authReq.userId,
@@ -646,19 +556,6 @@ export class GroupController {
         groupId: req.params?.groupId,
         familyId: req.body?.familyId,
       });
-
-      if (error instanceof z.ZodError) {
-        this.logger.warn('inviteFamilyToGroup: Validation error', {
-          validationErrors: error.errors,
-          userId: (req as AuthenticatedRequest).userId,
-        });
-        res.status(400).json({
-          success: false,
-          error: 'Validation failed',
-          details: error.errors,
-        });
-        return;
-      }
 
       if (error instanceof AppError) {
         this.logger.warn('inviteFamilyToGroup: Application error', {

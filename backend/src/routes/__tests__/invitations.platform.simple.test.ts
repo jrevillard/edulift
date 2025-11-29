@@ -54,8 +54,8 @@ describe('Platform Parameter Fix Verification', () => {
       'utf8',
     );
 
-    // Verify the email data is correctly extracted from req.body
-    expect(routesFile).toContain('const { familyId, email, role, personalMessage } = req.body;');
+    // Verify the email data is correctly extracted from validated body data
+    expect(routesFile).toContain('const { familyId, email, role, personalMessage } = bodyValidation.data;');
 
     // Verify the old platform validation is gone
     expect(routesFile).not.toContain('const validPlatform = platform === \'native\' ? \'native\' : \'web\';');

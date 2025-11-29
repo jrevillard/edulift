@@ -11,8 +11,20 @@ import { UserRepository } from '../repositories/UserRepository';
 import { authenticateToken } from '../middleware/auth';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
-import { z } from 'zod';
-import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
+import {
+  ScheduleSlotParamsSchema,
+  GroupParamsSchema,
+  VehicleAssignmentParamsSchema,
+  ScheduleSlotVehicleParamsSchema,
+  ScheduleSlotChildParamsSchema,
+  DateRangeQuerySchema,
+  CreateScheduleSlotWithVehicleSchema,
+  AssignVehicleSchema,
+  AssignChildSchema,
+  UpdateDriverSchema,
+  VehicleIdSchema,
+  UpdateSeatOverrideSchema,
+} from '../schemas/scheduleSlots';
 
 
 const scheduleSlotRepository = new ScheduleSlotRepository(prisma);
@@ -32,49 +44,7 @@ const router = Router();
 // Apply authentication to all routes
 router.use(authenticateToken);
 
-// Validation schemas
-const ScheduleSlotParamsSchema = z.object({
-  scheduleSlotId: z.string().cuid('Invalid schedule slot ID format'),
-});
-
-const GroupParamsSchema = z.object({
-  groupId: z.string().cuid('Invalid group ID format'),
-});
-
-const DateRangeQuerySchema = z.object({
-  startDate: z.string().datetime('Start date must be a valid ISO 8601 datetime string').optional(),
-  endDate: z.string().datetime('End date must be a valid ISO 8601 datetime string').optional(),
-});
-
-const CreateScheduleSlotWithVehicleSchema = z.object({
-  datetime: z.string().datetime('DateTime must be a valid ISO 8601 UTC datetime string'),
-  vehicleId: z.string().cuid('Invalid vehicle ID format'),
-  driverId: z.string().cuid('Invalid driver ID format').optional(),
-  seatOverride: z.number().int().min(0).max(VEHICLE_CONSTRAINTS.MAX_CAPACITY).optional(),
-});
-
-const AssignVehicleSchema = z.object({
-  vehicleId: z.string().cuid('Invalid vehicle ID format'),
-  driverId: z.string().cuid('Invalid driver ID format').optional(),
-  seatOverride: z.number().int().min(0).max(VEHICLE_CONSTRAINTS.MAX_CAPACITY).optional(),
-});
-
-const AssignChildSchema = z.object({
-  childId: z.string().cuid('Invalid child ID format'),
-  vehicleAssignmentId: z.string().cuid('Invalid vehicle assignment ID format'),
-});
-
-const UpdateDriverSchema = z.object({
-  driverId: z.string().cuid('Invalid driver ID format').nullable(),
-});
-
-const VehicleIdSchema = z.object({
-  vehicleId: z.string().cuid('Invalid vehicle ID format'),
-});
-
-const UpdateSeatOverrideSchema = z.object({
-  seatOverride: z.number().int().min(0).max(VEHICLE_CONSTRAINTS.MAX_CAPACITY).optional(),
-});
+// Validation schemas imported from ../schemas/scheduleSlots
 
 // Routes
 
@@ -96,14 +66,14 @@ router.get(
 
 // Get schedule slot details
 router.get(
-  '/schedule-slots/:scheduleSlotId',
+  '/:scheduleSlotId',
   validateParams(ScheduleSlotParamsSchema),
   asyncHandler(scheduleSlotController.getScheduleSlotDetails),
 );
 
 // Assign vehicle to schedule slot
 router.post(
-  '/schedule-slots/:scheduleSlotId/vehicles',
+  '/:scheduleSlotId/vehicles',
   validateParams(ScheduleSlotParamsSchema),
   validateBody(AssignVehicleSchema),
   asyncHandler(scheduleSlotController.assignVehicleToSlot),
@@ -111,7 +81,7 @@ router.post(
 
 // Remove vehicle from schedule slot
 router.delete(
-  '/schedule-slots/:scheduleSlotId/vehicles',
+  '/:scheduleSlotId/vehicles',
   validateParams(ScheduleSlotParamsSchema),
   validateBody(VehicleIdSchema),
   asyncHandler(scheduleSlotController.removeVehicleFromSlot),
@@ -119,18 +89,15 @@ router.delete(
 
 // Update vehicle driver assignment
 router.patch(
-  '/schedule-slots/:scheduleSlotId/vehicles/:vehicleId/driver',
-  validateParams(z.object({
-    scheduleSlotId: z.string().cuid('Invalid schedule slot ID format'),
-    vehicleId: z.string().cuid('Invalid vehicle ID format'),
-  })),
+  '/:scheduleSlotId/vehicles/:vehicleId/driver',
+  validateParams(ScheduleSlotVehicleParamsSchema),
   validateBody(UpdateDriverSchema),
   asyncHandler(scheduleSlotController.updateVehicleDriver),
 );
 
 // Assign child to schedule slot (NEW METHOD)
 router.post(
-  '/schedule-slots/:scheduleSlotId/children',
+  '/:scheduleSlotId/children',
   validateParams(ScheduleSlotParamsSchema),
   validateBody(AssignChildSchema),
   asyncHandler(scheduleSlotController.assignChildToScheduleSlot),
@@ -138,24 +105,21 @@ router.post(
 
 // Remove child from schedule slot (NEW METHOD)
 router.delete(
-  '/schedule-slots/:scheduleSlotId/children/:childId',
-  validateParams(z.object({
-    scheduleSlotId: z.string().cuid('Invalid schedule slot ID format'),
-    childId: z.string().cuid('Invalid child ID format'),
-  })),
+  '/:scheduleSlotId/children/:childId',
+  validateParams(ScheduleSlotChildParamsSchema),
   asyncHandler(scheduleSlotController.removeChildFromScheduleSlot),
 );
 
 // Get available children for schedule slot (NEW ENDPOINT)
 router.get(
-  '/schedule-slots/:scheduleSlotId/available-children',
+  '/:scheduleSlotId/available-children',
   validateParams(ScheduleSlotParamsSchema),
   asyncHandler(scheduleSlotController.getAvailableChildrenForSlot),
 );
 
 // Get schedule slot conflicts
 router.get(
-  '/schedule-slots/:scheduleSlotId/conflicts',
+  '/:scheduleSlotId/conflicts',
   validateParams(ScheduleSlotParamsSchema),
   asyncHandler(scheduleSlotController.getScheduleSlotConflicts),
 );
@@ -163,9 +127,7 @@ router.get(
 // Update seat override for vehicle assignment
 router.patch(
   '/vehicle-assignments/:vehicleAssignmentId/seat-override',
-  validateParams(z.object({
-    vehicleAssignmentId: z.string().cuid('Invalid vehicle assignment ID format'),
-  })),
+  validateParams(VehicleAssignmentParamsSchema),
   validateBody(UpdateSeatOverrideSchema),
   asyncHandler(scheduleSlotController.updateSeatOverride),
 );

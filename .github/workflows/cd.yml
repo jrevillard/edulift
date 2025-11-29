@@ -4,6 +4,9 @@ on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
 
 env:
@@ -58,6 +61,42 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
+      # Generate additional tags for pull requests
+      - name: Generate PR-specific tags
+        id: meta-backend-pr
+        if: github.event_name == 'pull_request'
+        run: |
+          # Clean branch name for Docker tags (replace invalid characters)
+          BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+
+          # Get existing tags and format them properly (remove newlines)
+          EXISTING_TAGS=$(echo '${{ steps.meta-backend.outputs.tags }}' | tr '\n' ',' | sed 's/,*$//')
+
+          # Add PR-specific tags
+          PR_TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-backend:${BRANCH_NAME_CLEAN}-pr"
+
+          # Combine all tags
+          if [ -n "$EXISTING_TAGS" ]; then
+            COMBINED_TAGS="${EXISTING_TAGS},${PR_TAGS}"
+          else
+            COMBINED_TAGS="$PR_TAGS"
+          fi
+
+          # Remove duplicate tags and empty entries
+          FINAL_TAGS=$(echo "$COMBINED_TAGS" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+
+          echo "docker_tags=$FINAL_TAGS" >> $GITHUB_OUTPUT
+
+      # Use appropriate tags for docker build
+      - name: Set Docker tags
+        id: prepare-tags-backend
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "docker_tags=${{ steps.meta-backend-pr.outputs.docker_tags }}" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tags=${{ steps.meta-backend.outputs.tags }}" >> $GITHUB_OUTPUT
+          fi
+
       # Build and push backend image with registry cache
       - name: Build and push backend image
         uses: docker/build-push-action@v5
@@ -67,7 +106,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta-backend.outputs.labels }}
-          tags: ${{ steps.meta-backend.outputs.tags }}
+          tags: ${{ steps.prepare-tags-backend.outputs.docker_tags }}
           cache-from: |
             type=gha
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:buildcache
@@ -91,6 +130,42 @@ jobs:
             type=sha
             type=raw,value=latest,enable={{is_default_branch}}
 
+      # Generate additional tags for pull requests (frontend)
+      - name: Generate PR-specific tags (frontend)
+        id: meta-frontend-pr
+        if: github.event_name == 'pull_request'
+        run: |
+          # Clean branch name for Docker tags (replace invalid characters)
+          BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+
+          # Get existing tags and format them properly (remove newlines)
+          EXISTING_TAGS=$(echo '${{ steps.meta-frontend.outputs.tags }}' | tr '\n' ',' | sed 's/,*$//')
+
+          # Add PR-specific tags
+          PR_TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${BRANCH_NAME_CLEAN}-pr,${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }},${{ env.DOCKER_USERNAME }}/edulift-frontend:${BRANCH_NAME_CLEAN}-pr"
+
+          # Combine all tags
+          if [ -n "$EXISTING_TAGS" ]; then
+            COMBINED_TAGS="${EXISTING_TAGS},${PR_TAGS}"
+          else
+            COMBINED_TAGS="$PR_TAGS"
+          fi
+
+          # Remove duplicate tags and empty entries
+          FINAL_TAGS=$(echo "$COMBINED_TAGS" | tr ',' '\n' | sort -u | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+
+          echo "docker_tags=$FINAL_TAGS" >> $GITHUB_OUTPUT
+
+      # Use appropriate tags for docker build (frontend)
+      - name: Set Docker tags (frontend)
+        id: prepare-tags-frontend
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "docker_tags=${{ steps.meta-frontend-pr.outputs.docker_tags }}" >> $GITHUB_OUTPUT
+          else
+            echo "docker_tags=${{ steps.meta-frontend.outputs.tags }}" >> $GITHUB_OUTPUT
+          fi
+
       # Build and push frontend image with registry cache
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -100,7 +175,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           labels: ${{ steps.meta-frontend.outputs.labels }}
-          tags: ${{ steps.meta-frontend.outputs.tags }}
+          tags: ${{ steps.prepare-tags-frontend.outputs.docker_tags }}
           cache-from: |
             type=gha
             type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:buildcache
@@ -117,19 +192,57 @@ jobs:
     steps:
       - name: Create deployment summary
         run: |
-          echo "# Docker Images Deployed 🐳" >> $GITHUB_STEP_SUMMARY
+          echo "# 🐳 Docker Images Deployed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
-          echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend\`" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "## 🔀 Pull Request Build" >> $GITHUB_STEP_SUMMARY
+            echo "- **PR #**: ${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch**: \`${{ github.head_ref }}\` → \`${{ github.base_ref }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Title**: ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🏷️ PR-Specific Tags" >> $GITHUB_STEP_SUMMARY
+            echo "### GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            # Use cleaned branch name for display
+            BRANCH_NAME_CLEAN=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Docker Hub" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend:pr-${{ github.event.number }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend:${BRANCH_NAME_CLEAN}-pr\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🚀 Quick Test Commands" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo '# Pull and test PR images' >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:pr-${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo "docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:pr-${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "💡 **Note**: These are temporary testing images for PR #${{ github.event.number }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🏷️ Production Tags" >> $GITHUB_STEP_SUMMARY
+            echo "### GitHub Container Registry" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Docker Hub (Legacy)" >> $GITHUB_STEP_SUMMARY
+            echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend\`" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Docker Hub (Legacy)" >> $GITHUB_STEP_SUMMARY
-          echo "- Backend: \`${{ env.DOCKER_USERNAME }}/edulift-backend\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Frontend: \`${{ env.DOCKER_USERNAME }}/edulift-frontend\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Cache Strategy" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Registry cache (type=registry) - Shared across all builds" >> $GITHUB_STEP_SUMMARY
-          echo "✅ GitHub Actions cache (type=gha) - Job-specific cache" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏗️ Build Configuration" >> $GITHUB_STEP_SUMMARY
           echo "✅ Multi-platform (linux/amd64,linux/arm64)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Registry cache (type=registry)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ GitHub Actions cache (type=gha)" >> $GITHUB_STEP_SUMMARY
 
   

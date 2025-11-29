@@ -1,0 +1,25 @@
+# Redocly OpenAPI Linting Configuration
+# Documentation: https://redocly.com/docs/cli/configuration/
+
+apiDefinitions:
+  main:
+    root: docs/openapi/swagger.json
+
+lint:
+  extends:
+    - recommended
+
+  rules:
+    # Development server localhost is acceptable
+    no-server-example.com: warn
+
+    # Deprecated endpoint /families/invite-code intentionally has no 2XX response
+    # It returns 410 Gone to indicate permanent deprecation
+    operation-2xx-response: warn
+
+    # Unused components are intentional - they serve as reusable schema library
+    # These schemas can be referenced by API clients and documentation tools
+    no-unused-components: warn
+
+    # License is now included (MIT)
+    info-license: error

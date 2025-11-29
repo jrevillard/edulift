@@ -2,7 +2,11 @@ import { Request, Response } from 'express';
 import { FamilyService } from '../services/FamilyService';
 import { FamilyAuthService } from '../services/FamilyAuthService';
 import { FamilyRole } from '../types/family';
-import { Logger } from '../utils/logger';
+import { createLogger, Logger } from '../utils/logger';
+import { PrismaClient } from '@prisma/client';
+import { EmailServiceFactory } from '../services/EmailServiceFactory';
+
+const familyLogger = createLogger('FamilyController');
 
 interface AuthenticatedRequest extends Request {
   user: {
@@ -16,10 +20,10 @@ export class FamilyController {
   constructor(
     private familyService: FamilyService,
     private familyAuthService: FamilyAuthService,
-    private logger: Logger,
+    private logger: Logger = familyLogger,
   ) {}
 
-  async createFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  createFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { name } = req.body;
 
@@ -29,17 +33,8 @@ export class FamilyController {
         userEmail: req.user?.email,
       });
 
-      if (!name || name.trim().length === 0) {
-        this.logger.warn('createFamily: Validation failed - Family name is required', {
-          userId: req.user?.id,
-          name,
-        });
-        res.status(400).json({
-          success: false,
-          error: 'Family name is required',
-        });
-        return;
-      }
+      // Validation is handled by middleware (CreateFamilySchema)
+      // No need for manual validation - Zod ensures name is valid and non-empty
 
       this.logger.debug('createFamily: Creating family', { userId: req.user.id, name: name.trim() });
       const family = await this.familyService.createFamily(req.user.id, name);
@@ -65,9 +60,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async joinFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  joinFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { inviteCode } = req.body;
 
@@ -91,9 +86,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async getCurrentFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getCurrentFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const family = await this.familyService.getUserFamily(req.user.id);
 
@@ -115,15 +110,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async getUserPermissions(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getUserPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId } = req.params;
-      
+
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -144,9 +139,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async updateMemberRole(req: AuthenticatedRequest, res: Response): Promise<void> {
+  updateMemberRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { memberId } = req.params;
       const { role } = req.body;
@@ -176,9 +171,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async generateInviteCode(req: AuthenticatedRequest, res: Response): Promise<void> {
+  generateInviteCode = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       // Check permissions (only admins can generate invite codes)
       await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
@@ -192,9 +187,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async inviteMember(req: AuthenticatedRequest, res: Response): Promise<void> {
+  inviteMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId } = req.params;
       const { email, role, personalMessage } = req.body;
@@ -219,7 +214,7 @@ export class FamilyController {
 
       // Verify user belongs to this family and has admin permissions
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -250,15 +245,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async getPendingInvitations(req: AuthenticatedRequest, res: Response): Promise<void> {
+  getPendingInvitations = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId } = req.params;
 
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -280,15 +275,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async cancelInvitation(req: AuthenticatedRequest, res: Response): Promise<void> {
+  cancelInvitation = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId, invitationId } = req.params;
 
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -314,9 +309,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async updateFamilyName(req: AuthenticatedRequest, res: Response): Promise<void> {
+  updateFamilyName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { name } = req.body;
       this.logger.debug('updateFamilyName called', { name, userId: req.user.id });
@@ -363,15 +358,15 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async removeMember(req: AuthenticatedRequest, res: Response): Promise<void> {
+  removeMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { familyId, memberId } = req.params;
 
       // Verify user belongs to this family
       const userFamily = await this.familyService.getUserFamily(req.user.id);
-      
+
       if (!userFamily || userFamily.id !== familyId) {
         res.status(403).json({
           success: false,
@@ -397,9 +392,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async validateInviteCode(req: Request, res: Response): Promise<void> {
+  validateInviteCode = async (req: Request, res: Response): Promise<void> => {
     try {
       const { inviteCode } = req.body;
 
@@ -444,9 +439,9 @@ export class FamilyController {
         error: (error as Error).message,
       });
     }
-  }
+  };
 
-  async leaveFamily(req: AuthenticatedRequest, res: Response): Promise<void> {
+  leaveFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       await this.familyService.leaveFamily(req.user.id);
 
@@ -458,7 +453,7 @@ export class FamilyController {
       });
     } catch (error) {
       this.logger.error('Leave family error:', { error: error instanceof Error ? error.message : String(error) });
-      
+
       // Handle specific business rule errors
       if (error instanceof Error && error.message.includes('LAST_ADMIN')) {
         res.status(400).json({
@@ -481,6 +476,24 @@ export class FamilyController {
         error: 'Failed to leave family',
       });
     }
-  }
+  };
 
 }
+
+// Factory function to create controller with dependencies
+export const createFamilyController = (): FamilyController => {
+  const prisma = new PrismaClient();
+  const logger = createLogger('FamilyController');
+  const emailService = EmailServiceFactory.getInstance();
+
+  // Mock cache service for now (should be replaced with real cache service)
+  const mockCacheService = {
+    async get(_key: string): Promise<null> { return null; },
+    async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
+  };
+
+  const familyService = new FamilyService(prisma, logger, undefined, emailService);
+  const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
+
+  return new FamilyController(familyService, familyAuthService, familyLogger);
+};

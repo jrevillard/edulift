@@ -1,25 +1,26 @@
 import { Router } from 'express';
 import { createGroupController } from '../controllers/GroupController';
 import { createGroupScheduleConfigController } from '../controllers/GroupScheduleConfigController';
-import { validateParams } from '../middleware/validation';
+import { validateBody, validateParams, validateQuery } from '../middleware/validation';
 import { authenticateToken, requireGroupMembership, requireGroupAdmin } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
-import { z } from 'zod';
+import {
+  WeekdayQuerySchema,
+  GroupParamsSchema,
+  InvitationParamsSchema,
+  FamilyRoleParamsSchema,
+} from '../schemas/groups';
+import {
+  CreateGroupSchema,
+  UpdateGroupSchema,
+  JoinGroupSchema,
+  UpdateMemberRoleSchema,
+  InviteFamilySchema,
+} from '../utils/validation';
 
 const groupController = createGroupController();
 const groupScheduleConfigController = createGroupScheduleConfigController();
 const router = Router();
-
-// Validation schemas
-const GroupParamsSchema = z.object({
-  groupId: z.string().cuid('Invalid group ID format'),
-});
-
-
-const InvitationParamsSchema = z.object({
-  groupId: z.string().cuid('Invalid group ID format'),
-  invitationId: z.string().cuid('Invalid invitation ID format'),
-});
 
 // Public routes (no authentication required)
 router.post('/validate-invite', asyncHandler(groupController.validateInviteCode));
@@ -33,10 +34,10 @@ router.use(authenticateToken);
 router.post('/validate-invite-auth', asyncHandler(groupController.validateInviteCodeWithAuth));
 
 // Create new group
-router.post('/', asyncHandler(groupController.createGroup));
+router.post('/', validateBody(CreateGroupSchema, { operationName: 'createGroup' }), asyncHandler(groupController.createGroup));
 
 // Join group by invite code
-router.post('/join', asyncHandler(groupController.joinGroup));
+router.post('/join', validateBody(JoinGroupSchema, { operationName: 'joinGroup' }), asyncHandler(groupController.joinGroup));
 
 // Get user's groups
 router.get('/my-groups', asyncHandler(groupController.getUserGroups));
@@ -50,11 +51,6 @@ router.get('/:groupId/families',
   asyncHandler(groupController.getGroupFamilies),
 );
 
-// NOTE: Schedule slot creation moved to scheduleSlots.ts for better organization
-// and to enforce business rule that schedule slots must contain at least 1 vehicle
-
-// NOTE: Weekly schedule route moved to scheduleSlots.ts for better organization
-// and to use the updated ScheduleSlotService with proper vehicleAssignmentId handling
 
 // Leave group (member action)
 router.post(
@@ -69,10 +65,8 @@ router.post(
 // Update family role (admin only)
 router.patch(
   '/:groupId/families/:familyId/role',
-  validateParams(z.object({
-    groupId: z.string().cuid(),
-    familyId: z.string().cuid(),
-  })),
+  validateParams(FamilyRoleParamsSchema),
+  validateBody(UpdateMemberRoleSchema, { operationName: 'updateFamilyRole' }),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupController.updateFamilyRole),
 );
@@ -80,24 +74,22 @@ router.patch(
 // Remove family from group (admin only)
 router.delete(
   '/:groupId/families/:familyId',
-  validateParams(z.object({
-    groupId: z.string().cuid(),
-    familyId: z.string().cuid(),
-  })),
+  validateParams(FamilyRoleParamsSchema),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupController.removeFamilyFromGroup),
 );
 
 
 // Update group settings (admin only)
-router.patch('/:groupId', 
+router.patch('/:groupId',
   validateParams(GroupParamsSchema),
+  validateBody(UpdateGroupSchema, { operationName: 'updateGroup' }),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupController.updateGroup),
 );
 
 // Delete group (admin only)
-router.delete('/:groupId', 
+router.delete('/:groupId',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupController.deleteGroup),
@@ -117,6 +109,7 @@ router.post(
 router.post(
   '/:groupId/invite',
   validateParams(GroupParamsSchema),
+  validateBody(InviteFamilySchema, { operationName: 'inviteFamilyToGroup' }),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupController.inviteFamilyToGroup),
 );
@@ -140,38 +133,34 @@ router.delete(
 // Group Schedule Configuration routes
 
 // Get default schedule hours (public for authenticated users)
-router.get('/schedule-config/default', 
+router.get('/schedule-config/default',
   asyncHandler(groupScheduleConfigController.getDefaultScheduleHours),
 );
 
-// Initialize default configurations for all groups (admin utility)
-router.post('/schedule-config/initialize', 
-  asyncHandler(groupScheduleConfigController.initializeDefaultConfigs),
-);
-
 // Get group schedule configuration (group member access)
-router.get('/:groupId/schedule-config', 
+router.get('/:groupId/schedule-config',
   validateParams(GroupParamsSchema),
   requireGroupMembership,
   asyncHandler(groupScheduleConfigController.getGroupScheduleConfig),
 );
 
 // Get time slots for specific weekday (group member access)
-router.get('/:groupId/schedule-config/time-slots', 
+router.get('/:groupId/schedule-config/time-slots',
   validateParams(GroupParamsSchema),
+  validateQuery(WeekdayQuerySchema),
   requireGroupMembership,
   asyncHandler(groupScheduleConfigController.getGroupTimeSlots),
 );
 
 // Update group schedule configuration (admin only)
-router.put('/:groupId/schedule-config', 
+router.put('/:groupId/schedule-config',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupScheduleConfigController.updateGroupScheduleConfig),
 );
 
 // Reset group schedule configuration to default (admin only)
-router.post('/:groupId/schedule-config/reset', 
+router.post('/:groupId/schedule-config/reset',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupScheduleConfigController.resetGroupScheduleConfig),

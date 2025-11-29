@@ -6,6 +6,15 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { UnifiedInvitationService } from '../services/UnifiedInvitationService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { createLogger } from '../utils/logger';
+import {
+  // Request schemas
+  CreateFamilyInvitationSchema,
+  CreateGroupInvitationSchema,
+  AcceptFamilyInvitationSchema,
+  // Parameter schemas
+  InvitationCodeParamsSchema,
+  InvitationIdParamsSchema,
+} from '../schemas/invitations';
 
 
 const logger = createLogger('InvitationsRoute');
@@ -18,7 +27,17 @@ const invitationService = new UnifiedInvitationService(prisma, logger, emailServ
 
 // Public validation endpoint (no auth required)
 router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { code } = req.params;
+  // Validate parameters
+  const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid invitation code format',
+    });
+    return;
+  }
+
+  const { code } = paramsValidation.data;
 
   logger.debug('General invitation validation endpoint called with code:', { code });
 
@@ -67,21 +86,28 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
 
 // Family invitation endpoints
 router.post('/family', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  const { familyId, email, role, personalMessage } = req.body;
-  const adminId = req.user.id;
-
-  if (!familyId || !role) {
+  // Validate request body
+  const bodyValidation = CreateFamilyInvitationSchema.safeParse(req.body);
+  if (!bodyValidation.success) {
     res.status(400).json({
       success: false,
-      error: 'Family ID and role are required',
+      error: 'Invalid request data',
     });
     return;
   }
 
+  const { familyId, email, role, personalMessage } = bodyValidation.data;
+  const adminId = req.user.id;
+
   try {
+    const invitationData: any = { email, role };
+    if (personalMessage !== undefined) {
+      invitationData.personalMessage = personalMessage;
+    }
+
     const invitation = await invitationService.createFamilyInvitation(
       familyId,
-      { email, role, personalMessage },
+      invitationData,
       adminId,
     );
 
@@ -105,15 +131,17 @@ router.post('/family', authenticateToken, asyncHandler(async (req: Authenticated
 }));
 
 router.get('/family/:code/validate', asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { code } = req.params;
-
-  if (!code) {
+  // Validate parameters
+  const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
     res.status(400).json({
       success: false,
-      error: 'Invitation code is required',
+      error: 'Invalid invitation code format',
     });
     return;
   }
+
+  const { code } = paramsValidation.data;
 
   try {
     // Extract user ID from token if present (optional authentication)
@@ -143,8 +171,28 @@ router.get('/family/:code/validate', asyncHandler(async (req: Request, res: Resp
 }));
 
 router.post('/family/:code/accept', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  const { code } = req.params;
-  const { leaveCurrentFamily } = req.body;
+  // Validate parameters
+  const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid invitation code format',
+    });
+    return;
+  }
+
+  // Validate request body
+  const bodyValidation = AcceptFamilyInvitationSchema.safeParse(req.body);
+  if (!bodyValidation.success) {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid request data',
+    });
+    return;
+  }
+
+  const { code } = paramsValidation.data;
+  const { leaveCurrentFamily } = bodyValidation.data;
   const userId = req.user.id;
 
   try {
@@ -177,21 +225,34 @@ router.post('/family/:code/accept', authenticateToken, asyncHandler(async (req: 
 
 // Group invitation endpoints
 router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, _next: NextFunction): Promise<void> => {
-  const { groupId, targetFamilyId, email, role, personalMessage } = req.body;
-  const adminId = req.user.id;
-
-  if (!groupId || !role) {
+  // Validate request body
+  const bodyValidation = CreateGroupInvitationSchema.safeParse(req.body);
+  if (!bodyValidation.success) {
     res.status(400).json({
       success: false,
-      error: 'Group ID and role are required',
+      error: 'Invalid request data',
     });
     return;
   }
 
+  const { groupId, targetFamilyId, email, role, personalMessage } = bodyValidation.data;
+  const adminId = req.user.id;
+
   try {
+    const invitationData: any = { role };
+    if (targetFamilyId !== undefined) {
+      invitationData.targetFamilyId = targetFamilyId;
+    }
+    if (email !== undefined) {
+      invitationData.email = email;
+    }
+    if (personalMessage !== undefined) {
+      invitationData.personalMessage = personalMessage;
+    }
+
     const invitation = await invitationService.createGroupInvitation(
       groupId,
-      { targetFamilyId, email, role, personalMessage },
+      invitationData,
       adminId,
     );
 
@@ -239,15 +300,17 @@ router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedR
 }));
 
 router.get('/group/:code/validate', asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const { code } = req.params;
-
-  if (!code) {
+  // Validate parameters
+  const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
     res.status(400).json({
       success: false,
-      error: 'Invitation code is required',
+      error: 'Invalid invitation code format',
     });
     return;
   }
+
+  const { code } = paramsValidation.data;
 
   try {
     // Extract user ID from token if present (optional authentication)
@@ -277,7 +340,17 @@ router.get('/group/:code/validate', asyncHandler(async (req: Request, res: Respo
 }));
 
 router.post('/group/:code/accept', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  const { code } = req.params;
+  // Validate parameters
+  const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid invitation code format',
+    });
+    return;
+  }
+
+  const { code } = paramsValidation.data;
   const userId = req.user.id;
 
   try {
@@ -312,7 +385,17 @@ router.get('/user', authenticateToken, asyncHandler(async (req: AuthenticatedReq
 
 // Cancel family invitation
 router.delete('/family/:invitationId', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  const { invitationId } = req.params;
+  // Validate parameters
+  const paramsValidation = InvitationIdParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid invitation ID format',
+    });
+    return;
+  }
+
+  const { invitationId } = paramsValidation.data;
   const adminId = req.user.id;
 
   try {
@@ -330,7 +413,17 @@ router.delete('/family/:invitationId', authenticateToken, asyncHandler(async (re
 
 // Cancel group invitation
 router.delete('/group/:invitationId', authenticateToken, asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
-  const { invitationId } = req.params;
+  // Validate parameters
+  const paramsValidation = InvitationIdParamsSchema.safeParse(req.params);
+  if (!paramsValidation.success) {
+    res.status(400).json({
+      success: false,
+      error: 'Invalid invitation ID format',
+    });
+    return;
+  }
+
+  const { invitationId } = paramsValidation.data;
   const adminId = req.user.id;
 
   try {

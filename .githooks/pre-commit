@@ -44,6 +44,39 @@ if [ "$BACKEND_CHANGED" = true ]; then
     # Navigate to backend directory
     cd backend
 
+    # Check if API files have changed
+    API_FILES_CHANGED=$(git diff --cached --name-only | grep -E "(src/routes/|src/schemas/|src/controllers/)" | wc -l)
+
+    if [ "$API_FILES_CHANGED" -gt 0 ]; then
+        print_info "API files detected. Generating OpenAPI specification..."
+
+        # Generate OpenAPI specification
+        if npm run swagger:generate; then
+            print_success "OpenAPI generation successful"
+
+            # Check if swagger.json was actually modified
+            if ! git diff --quiet docs/openapi/swagger.json; then
+                print_info "Staging updated OpenAPI specification..."
+                git add docs/openapi/swagger.json
+            else
+                print_info "OpenAPI specification already up to date"
+            fi
+
+            # Validate OpenAPI specification
+            if npx @redocly/cli lint docs/openapi/swagger.json 2>/dev/null; then
+                print_success "OpenAPI validation passed"
+            else
+                print_error "OpenAPI validation failed"
+                echo "Please fix the OpenAPI issues before committing."
+                exit 1
+            fi
+        else
+            print_error "OpenAPI generation failed"
+            echo "Please fix the generation errors before committing."
+            exit 1
+        fi
+    fi
+
     # TypeScript type checking
     echo "🔎 Running TypeScript type checking..."
     if npm run typecheck; then
@@ -67,7 +100,7 @@ if [ "$BACKEND_CHANGED" = true ]; then
 
     # Run tests - mandatory
     print_info "Running tests..."
-    if npm run test:run; then
+    if npm run test:ci; then
         print_success "Tests passed"
     else
         print_error "Tests failed"
@@ -110,7 +143,7 @@ if [ "$FRONTEND_CHANGED" = true ]; then
 
     # Run tests - mandatory
     print_info "Running tests..."
-    if npm run test:run; then
+    if npm run test:ci; then
         print_success "Tests passed"
     else
         print_error "Tests failed"

@@ -126,6 +126,38 @@ jobs:
           cd backend
           npx tsc --outDir /tmp/tsc-validate
 
+      - name: Check OpenAPI specification is up to date
+        run: |
+          cd backend
+
+          # Save current swagger.json
+          cp docs/openapi/swagger.json docs/openapi/swagger.json.committed
+
+          # Generate OpenAPI in current directory
+          npm run swagger:generate
+
+          # Compare files
+          if ! diff docs/openapi/swagger.json.committed docs/openapi/swagger.json > /dev/null; then
+            echo "❌ ERROR: OpenAPI specification is out of date!"
+            echo ""
+            echo "The swagger.json in your commit does not match the generated specification."
+            echo ""
+            echo "Generated changes:"
+            diff -u docs/openapi/swagger.json.committed docs/openapi/swagger.json || true
+            echo ""
+            echo "Command to fix:"
+            echo "  cd backend && npm run swagger:generate && git add docs/openapi/swagger.json && git commit -m 'docs: update OpenAPI specification'"
+
+            # Restore original file
+            cp docs/openapi/swagger.json.committed docs/openapi/swagger.json
+            rm docs/openapi/swagger.json.committed
+
+            exit 1
+          else
+            echo "✅ OpenAPI specification is up to date"
+            rm docs/openapi/swagger.json.committed
+          fi
+
       - name: Run backend tests (with tsx runtime)
         run: |
           cd backend

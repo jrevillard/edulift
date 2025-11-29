@@ -4,6 +4,9 @@ import { FamilyController } from '../FamilyController';
 import { FamilyService } from '../../services/FamilyService';
 import { FamilyAuthService } from '../../services/FamilyAuthService';
 import { FamilyRole } from '../../types/family';
+import { createLogger } from '../../utils/logger';
+
+const familyLogger = createLogger('FamilyController');
 
 // Mock services
 const mockFamilyService = {
@@ -15,12 +18,6 @@ const mockFamilyAuthService = {
   requireFamilyRole: jest.fn(),
 } as unknown as FamilyAuthService;
 
-const mockLogger = {
-  info: jest.fn(),
-  error: jest.fn(),
-  warn: jest.fn(),
-  debug: jest.fn(),
-};
 
 describe('FamilyController - inviteMember', () => {
   let familyController: FamilyController;
@@ -28,7 +25,7 @@ describe('FamilyController - inviteMember', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    familyController = new FamilyController(mockFamilyService, mockFamilyAuthService, mockLogger);
+    familyController = new FamilyController(mockFamilyService, mockFamilyAuthService, familyLogger);
     
     app = express();
     app.use(express.json());
