@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -62,8 +62,7 @@ export const UpdateChildSchema = z.object({
 });
 
 export const ChildParamsSchema = z.object({
-  childId: z.string()
-    .cuid('Invalid child ID format')
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
@@ -74,14 +73,12 @@ export const ChildParamsSchema = z.object({
 });
 
 export const ChildGroupParamsSchema = z.object({
-  childId: z.string()
-    .cuid('Invalid child ID format')
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
     }),
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique group identifier (CUID format)',
@@ -105,8 +102,7 @@ export const WeekQuerySchema = z.object({
 
 // Response Schemas
 export const ChildResponseSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
@@ -122,31 +118,28 @@ export const ChildResponseSchema = z.object({
       example: 8,
       description: 'Child age (null if not specified)',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Family identifier the child belongs to',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Child creation timestamp',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Last update timestamp',
     }),
   groupMemberships: z.array(z.object({
-    id: z.string().cuid(),
-    childId: z.string().cuid(),
-    groupId: z.string().cuid(),
-    joinedAt: z.string().datetime(),
+    id: z.cuid(),
+    childId: z.cuid(),
+    groupId: z.cuid(),
+    joinedAt: z.iso.datetime(),
     group: z.object({
-      id: z.string().cuid(),
+      id: z.cuid(),
       name: z.string(),
     }),
   })).optional()
@@ -159,33 +152,28 @@ export const ChildResponseSchema = z.object({
 });
 
 export const ChildGroupMembershipSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Unique membership identifier (CUID format)',
     }),
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Child identifier',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
     }),
-  joinedAt: z.string()
-    .datetime()
+  joinedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the child joined the group',
     }),
   group: z.object({
-    id: z.string()
-      .cuid()
+    id: z.cuid()
       .openapi({
         example: 'cl123456789012345678901235',
         description: 'Group identifier',
@@ -205,20 +193,17 @@ export const ChildGroupMembershipSchema = z.object({
 });
 
 export const ChildAssignmentSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Unique assignment identifier (CUID format)',
     }),
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Child identifier',
     }),
-  tripDate: z.string()
-    .date()
+  tripDate: z.iso.date()
     .openapi({
       example: '2023-04-15',
       description: 'Date of the assigned trip',
@@ -234,7 +219,7 @@ export const ChildAssignmentSchema = z.object({
       description: 'Assignment status',
     }),
   group: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({

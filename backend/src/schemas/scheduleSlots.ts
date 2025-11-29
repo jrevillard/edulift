@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -17,8 +17,7 @@ extendZodWithOpenApi(z);
 // ============================================================================
 
 export const ScheduleSlotParamsSchema = z.object({
-  scheduleSlotId: z.string()
-    .cuid('Invalid schedule slot ID format')
+  scheduleSlotId: z.cuid('Invalid schedule slot ID format')
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique schedule slot identifier (CUID format)',
@@ -29,8 +28,7 @@ export const ScheduleSlotParamsSchema = z.object({
 });
 
 export const GroupParamsSchema = z.object({
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid('Invalid group ID format')
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique group identifier (CUID format)',
@@ -41,8 +39,7 @@ export const GroupParamsSchema = z.object({
 });
 
 export const VehicleAssignmentParamsSchema = z.object({
-  vehicleAssignmentId: z.string()
-    .cuid('Invalid vehicle assignment ID format')
+  vehicleAssignmentId: z.cuid('Invalid vehicle assignment ID format')
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Unique vehicle assignment identifier (CUID format)',
@@ -53,14 +50,12 @@ export const VehicleAssignmentParamsSchema = z.object({
 });
 
 export const ScheduleSlotVehicleParamsSchema = z.object({
-  scheduleSlotId: z.string()
-    .cuid('Invalid schedule slot ID format')
+  scheduleSlotId: z.cuid('Invalid schedule slot ID format')
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique schedule slot identifier (CUID format)',
     }),
-  vehicleId: z.string()
-    .cuid('Invalid vehicle ID format')
+  vehicleId: z.cuid('Invalid vehicle ID format')
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Unique vehicle identifier (CUID format)',
@@ -71,14 +66,12 @@ export const ScheduleSlotVehicleParamsSchema = z.object({
 });
 
 export const ScheduleSlotChildParamsSchema = z.object({
-  scheduleSlotId: z.string()
-    .cuid('Invalid schedule slot ID format')
+  scheduleSlotId: z.cuid('Invalid schedule slot ID format')
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique schedule slot identifier (CUID format)',
     }),
-  childId: z.string()
-    .cuid('Invalid child ID format')
+  childId: z.cuid('Invalid child ID format')
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Unique child identifier (CUID format)',
@@ -93,15 +86,13 @@ export const ScheduleSlotChildParamsSchema = z.object({
 // ============================================================================
 
 export const DateRangeQuerySchema = z.object({
-  startDate: z.string()
-    .datetime('Start date must be a valid ISO 8601 datetime string')
+  startDate: z.iso.datetime('Start date must be a valid ISO 8601 datetime string')
     .optional()
     .openapi({
       example: '2023-12-01T00:00:00.000Z',
       description: 'Start date for schedule filtering (ISO 8601 format)',
     }),
-  endDate: z.string()
-    .datetime('End date must be a valid ISO 8601 datetime string')
+  endDate: z.iso.datetime('End date must be a valid ISO 8601 datetime string')
     .optional()
     .openapi({
       example: '2023-12-31T23:59:59.999Z',
@@ -117,20 +108,17 @@ export const DateRangeQuerySchema = z.object({
 // ============================================================================
 
 export const CreateScheduleSlotWithVehicleSchema = z.object({
-  datetime: z.string()
-    .datetime('DateTime must be a valid ISO 8601 UTC datetime string')
+  datetime: z.iso.datetime('DateTime must be a valid ISO 8601 UTC datetime string')
     .openapi({
       example: '2023-12-15T08:00:00.000Z',
       description: 'Schedule slot datetime (ISO 8601 UTC format)',
     }),
-  vehicleId: z.string()
-    .cuid('Invalid vehicle ID format')
+  vehicleId: z.cuid('Invalid vehicle ID format')
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Vehicle identifier for assignment',
     }),
-  driverId: z.string()
-    .cuid('Invalid driver ID format')
+  driverId: z.cuid('Invalid driver ID format')
     .optional()
     .openapi({
       example: 'cl123456789012345678901239',
@@ -151,14 +139,12 @@ export const CreateScheduleSlotWithVehicleSchema = z.object({
 });
 
 export const AssignVehicleSchema = z.object({
-  vehicleId: z.string()
-    .cuid('Invalid vehicle ID format')
+  vehicleId: z.cuid('Invalid vehicle ID format')
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Vehicle identifier to assign',
     }),
-  driverId: z.string()
-    .cuid('Invalid driver ID format')
+  driverId: z.cuid('Invalid driver ID format')
     .optional()
     .openapi({
       example: 'cl123456789012345678901239',
@@ -179,14 +165,12 @@ export const AssignVehicleSchema = z.object({
 });
 
 export const AssignChildSchema = z.object({
-  childId: z.string()
-    .cuid('Invalid child ID format')
+  childId: z.cuid('Invalid child ID format')
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Child identifier to assign',
     }),
-  vehicleAssignmentId: z.string()
-    .cuid('Invalid vehicle assignment ID format')
+  vehicleAssignmentId: z.cuid('Invalid vehicle assignment ID format')
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Vehicle assignment identifier for the child',
@@ -197,8 +181,7 @@ export const AssignChildSchema = z.object({
 });
 
 export const UpdateDriverSchema = z.object({
-  driverId: z.string()
-    .cuid('Invalid driver ID format')
+  driverId: z.cuid('Invalid driver ID format')
     .nullable()
     .openapi({
       example: 'cl123456789012345678901239',
@@ -210,8 +193,7 @@ export const UpdateDriverSchema = z.object({
 });
 
 export const VehicleIdSchema = z.object({
-  vehicleId: z.string()
-    .cuid('Invalid vehicle ID format')
+  vehicleId: z.cuid('Invalid vehicle ID format')
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Vehicle identifier to remove',
@@ -241,26 +223,22 @@ export const UpdateSeatOverrideSchema = z.object({
 // ============================================================================
 
 export const VehicleAssignmentSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Vehicle assignment identifier',
     }),
-  scheduleSlotId: z.string()
-    .cuid()
+  scheduleSlotId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Schedule slot identifier',
     }),
-  vehicleId: z.string()
-    .cuid()
+  vehicleId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Vehicle identifier',
     }),
-  driverId: z.string()
-    .cuid()
+  driverId: z.cuid()
     .nullable()
     .openapi({
       example: 'cl123456789012345678901239',
@@ -273,21 +251,21 @@ export const VehicleAssignmentSchema = z.object({
       description: 'Seat capacity override (null if using default)',
     }),
   vehicle: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     make: z.string(),
     model: z.string(),
     licensePlate: z.string(),
     capacity: z.number(),
-    familyId: z.string().cuid(),
+    familyId: z.cuid(),
   }).optional()
     .openapi({
       description: 'Vehicle information (included when requested)',
     }),
   driver: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     firstName: z.string(),
     lastName: z.string(),
-    email: z.string().email(),
+    email: z.email(),
   }).nullable().optional()
     .openapi({
       description: 'Driver information (included when requested)',
@@ -308,42 +286,37 @@ export const VehicleAssignmentSchema = z.object({
 });
 
 export const ChildAssignmentSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901240',
       description: 'Child assignment identifier',
     }),
-  scheduleSlotId: z.string()
-    .cuid()
+  scheduleSlotId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Schedule slot identifier',
     }),
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Child identifier',
     }),
-  vehicleAssignmentId: z.string()
-    .cuid()
+  vehicleAssignmentId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Vehicle assignment identifier',
     }),
-  assignedAt: z.string()
-    .datetime()
+  assignedAt: z.iso.datetime()
     .openapi({
       example: '2023-12-01T08:00:00.000Z',
       description: 'Assignment timestamp',
     }),
   child: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     firstName: z.string(),
     lastName: z.string(),
-    dateOfBirth: z.string().datetime(),
-    familyId: z.string().cuid(),
+    dateOfBirth: z.iso.datetime(),
+    familyId: z.cuid(),
   }).optional()
     .openapi({
       description: 'Child information (included when requested)',
@@ -358,32 +331,27 @@ export const ChildAssignmentSchema = z.object({
 });
 
 export const ScheduleSlotSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Schedule slot identifier',
     }),
-  datetime: z.string()
-    .datetime()
+  datetime: z.iso.datetime()
     .openapi({
       example: '2023-12-15T08:00:00.000Z',
       description: 'Schedule slot datetime',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-12-01T08:00:00.000Z',
       description: 'Schedule slot creation timestamp',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-12-01T08:00:00.000Z',
       description: 'Schedule slot update timestamp',
@@ -417,8 +385,7 @@ export const ScheduleSlotSchema = z.object({
 });
 
 export const AvailableChildSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Child identifier',
@@ -433,8 +400,7 @@ export const AvailableChildSchema = z.object({
       example: 'Johnson',
       description: 'Child last name',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901241',
       description: 'Family identifier',
@@ -477,23 +443,23 @@ export const ScheduleSlotConflictSchema = z.object({
       description: 'Conflict severity level',
     }),
   details: z.object({
-      vehicleId: z.string().nullable().optional().openapi({
-        example: 'cl123456789012345678901237',
-        description: 'Vehicle ID involved in conflict',
-      }),
-      currentAssignments: z.number().int().openapi({
-        example: 6,
-        description: 'Current number of assignments',
-      }),
-      vehicleCapacity: z.number().int().openapi({
-        example: 5,
-        description: 'Maximum vehicle capacity',
-      }),
-      overbookedBy: z.number().int().openapi({
-        example: 1,
-        description: 'Number of overbooked slots',
-      }),
-    })
+    vehicleId: z.string().nullable().optional().openapi({
+      example: 'cl123456789012345678901237',
+      description: 'Vehicle ID involved in conflict',
+    }),
+    currentAssignments: z.number().int().openapi({
+      example: 6,
+      description: 'Current number of assignments',
+    }),
+    vehicleCapacity: z.number().int().openapi({
+      example: 5,
+      description: 'Maximum vehicle capacity',
+    }),
+    overbookedBy: z.number().int().openapi({
+      example: 1,
+      description: 'Number of overbooked slots',
+    }),
+  })
     .optional()
     .openapi({
       example: {
@@ -518,11 +484,11 @@ export const ScheduleResponseSchema = z.object({
     description: 'Total number of schedule slots',
   }),
   dateRange: z.object({
-    startDate: z.string().datetime().openapi({
+    startDate: z.iso.datetime().openapi({
       example: '2023-12-01T00:00:00.000Z',
       description: 'Start date of the schedule range',
     }),
-    endDate: z.string().datetime().openapi({
+    endDate: z.iso.datetime().openapi({
       example: '2023-12-31T23:59:59.999Z',
       description: 'End date of the schedule range',
     }),

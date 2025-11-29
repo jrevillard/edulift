@@ -55,7 +55,7 @@ if [ "$BACKEND_CHANGED" = true ]; then
             print_success "OpenAPI generation successful"
 
             # Check if swagger.json was actually modified
-            if git diff --quiet --exit-code 1 docs/openapi/swagger.json; then
+            if ! git diff --quiet docs/openapi/swagger.json; then
                 print_info "Staging updated OpenAPI specification..."
                 git add docs/openapi/swagger.json
             else
@@ -63,7 +63,7 @@ if [ "$BACKEND_CHANGED" = true ]; then
             fi
 
             # Validate OpenAPI specification
-            if npx @redocly/cli lint docs/openapi/swagger.json --quiet; then
+            if npx @redocly/cli lint docs/openapi/swagger.json 2>/dev/null; then
                 print_success "OpenAPI validation passed"
             else
                 print_error "OpenAPI validation failed"

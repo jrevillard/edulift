@@ -7,15 +7,14 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi.js';
-import type { BearerAuthSecurity } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
 
 // Request Schemas
 export const RequestMagicLinkSchema = z.object({
-  email: z.email('Invalid email format')
+  email: z.email()
     .openapi({
       example: 'user@example.com',
       description: 'User email address for authentication',
@@ -110,8 +109,7 @@ export const UpdateProfileSchema = z.object({
       example: 'John Doe',
       description: 'User display name',
     }),
-  email: z.string()
-    .email('Valid email required')
+  email: z.email()
     .optional()
     .openapi({
       example: 'user@example.com',
@@ -150,8 +148,7 @@ export const UserResponseSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'User ID',
     }),
-  email: z.string()
-    .email()
+  email: z.email()
     .openapi({
       example: 'user@example.com',
       description: 'User email address',
@@ -167,14 +164,12 @@ export const UserResponseSchema = z.object({
       example: 'America/New_York',
       description: 'User timezone (IANA format)',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'User creation timestamp',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Last update timestamp',
@@ -219,8 +214,7 @@ export const AuthResponseSchema = z.object({
         example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
         description: 'Legacy access token field (deprecated, use accessToken)',
       }),
-    expiresAt: z.string()
-      .datetime()
+    expiresAt: z.iso.datetime()
       .optional()
       .openapi({
         example: '2023-01-01T00:15:00.000Z',

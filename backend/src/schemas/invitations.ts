@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -41,14 +41,12 @@ export const GroupRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
 // ============================================================================
 
 export const CreateFamilyInvitationSchema = z.object({
-  familyId: z.string()
-    .cuid('Invalid family ID format')
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Family identifier to invite to',
     }),
-  email: z.string()
-    .email('Invalid email format')
+  email: z.email()
     .openapi({
       example: 'john.smith@example.com',
       description: 'Email address of the person to invite',
@@ -70,21 +68,18 @@ export const CreateFamilyInvitationSchema = z.object({
 });
 
 export const CreateGroupInvitationSchema = z.object({
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier to invite to',
     }),
-  targetFamilyId: z.string()
-    .cuid('Invalid target family ID format')
+  targetFamilyId: z.cuid()
     .optional()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Target family identifier (optional)',
     }),
-  email: z.string()
-    .email('Invalid email format')
+  email: z.email()
     .optional()
     .openapi({
       example: 'john.smith@example.com',
@@ -147,8 +142,7 @@ export const InvitationCodeParamsSchema = z.object({
 });
 
 export const InvitationIdParamsSchema = z.object({
-  invitationId: z.string()
-    .cuid('Invalid invitation ID format')
+  invitationId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Unique invitation identifier (CUID format)',
@@ -163,14 +157,12 @@ export const InvitationIdParamsSchema = z.object({
 // ============================================================================
 
 export const UserSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'User identifier',
     }),
-  email: z.string()
-    .email()
+  email: z.email()
     .openapi({
       example: 'john.smith@example.com',
       description: 'User email address',
@@ -186,8 +178,7 @@ export const UserSchema = z.object({
 });
 
 export const FamilySchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Family identifier',
@@ -203,8 +194,7 @@ export const FamilySchema = z.object({
 });
 
 export const GroupSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
@@ -220,20 +210,17 @@ export const GroupSchema = z.object({
 });
 
 export const FamilyInvitationResponseSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Invitation identifier',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Family identifier',
     }),
-  email: z.string()
-    .email()
+  email: z.email()
     .openapi({
       example: 'john.smith@example.com',
       description: 'Invited email address',
@@ -250,14 +237,12 @@ export const FamilyInvitationResponseSchema = z.object({
     example: 'Welcome to our family!',
     description: 'Personal message from inviter',
   }),
-  expiresAt: z.string()
-    .datetime()
+  expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
       description: 'Invitation expiration timestamp',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
@@ -272,28 +257,24 @@ export const FamilyInvitationResponseSchema = z.object({
 });
 
 export const GroupInvitationResponseSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Invitation identifier',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
     }),
-  targetFamilyId: z.string()
-    .cuid()
+  targetFamilyId: z.cuid()
     .nullable()
     .optional()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Target family identifier',
     }),
-  email: z.string()
-    .email()
+  email: z.email()
     .nullable()
     .optional()
     .openapi({
@@ -312,14 +293,12 @@ export const GroupInvitationResponseSchema = z.object({
     example: 'Welcome to our group!',
     description: 'Personal message from inviter',
   }),
-  expiresAt: z.string()
-    .datetime()
+  expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
       description: 'Invitation expiration timestamp',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
@@ -351,8 +330,7 @@ export const InvitationValidationSchema = z.object({
     .openapi({
       description: 'Group information (if group invitation and valid)',
     }),
-  email: z.string()
-    .email()
+  email: z.email()
     .optional()
     .openapi({
       example: 'john.smith@example.com',
@@ -371,8 +349,7 @@ export const InvitationValidationSchema = z.object({
       example: 'Welcome to our family!',
       description: 'Personal message from inviter (if valid)',
     }),
-  expiresAt: z.string()
-    .datetime()
+  expiresAt: z.iso.datetime()
     .optional()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',

@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
+// This file uses inline schemas only - no registry registration needed
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -136,14 +136,12 @@ export const FcmTokenResponseSchema = z.object({
       example: true,
       description: 'Whether the token is currently active',
     }),
-  lastUsed: z.string()
-    .datetime()
+  lastUsed: z.iso.datetime()
     .openapi({
       example: '2024-01-15T10:30:00Z',
       description: 'Last time the token was used',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2024-01-15T10:30:00Z',
       description: 'Token creation timestamp',
@@ -267,8 +265,7 @@ export const SaveTokenSuccessSchema = z.object({
         example: true,
         description: 'Whether the token is active',
       }),
-    createdAt: z.string()
-      .datetime()
+    createdAt: z.iso.datetime()
       .openapi({
         example: '2024-01-15T10:30:00Z',
         description: 'Token creation timestamp',

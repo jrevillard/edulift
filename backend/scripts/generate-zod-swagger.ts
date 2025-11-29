@@ -117,7 +117,7 @@ try {
 
   // Fix known library limitation: nullable without type in additionalProperties
   // This is a workaround for z.unknown() generating invalid OpenAPI
-  const fixNullableWithoutType = (obj: any): void => {
+  const fixNullableWithoutType = (obj: Record<string, unknown>): void => {
     if (obj && typeof obj === 'object') {
       if (obj.nullable === true && !obj.type && obj !== null) {
         // Remove nullable when there's no type (invalid in OpenAPI 3.0)
@@ -125,8 +125,8 @@ try {
       }
       // Recursively process all properties
       for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-          fixNullableWithoutType(obj[key]);
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          fixNullableWithoutType(obj[key] as Record<string, unknown>);
         }
       }
     }

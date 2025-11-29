@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -202,8 +202,7 @@ export const UpdateScheduleConfigSchema = z.object({
 // PARAMETER SCHEMAS
 // ============================================================================
 export const GroupParamsSchema = z.object({
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique group identifier (CUID format)',
@@ -214,14 +213,12 @@ export const GroupParamsSchema = z.object({
 });
 
 export const InvitationParamsSchema = z.object({
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique group identifier (CUID format)',
     }),
-  invitationId: z.string()
-    .cuid('Invalid invitation ID format')
+  invitationId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique invitation identifier (CUID format)',
@@ -232,14 +229,12 @@ export const InvitationParamsSchema = z.object({
 });
 
 export const FamilyRoleParamsSchema = z.object({
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique group identifier (CUID format)',
     }),
-  familyId: z.string()
-    .cuid('Invalid family ID format')
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Unique family identifier (CUID format)',
@@ -263,8 +258,7 @@ export const WeekdayQuerySchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 export const OwnerFamilySchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Owner family identifier',
@@ -280,14 +274,12 @@ export const OwnerFamilySchema = z.object({
 });
 
 export const FamilyGroupMemberSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Family member identifier',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Family identifier',
@@ -296,14 +288,13 @@ export const FamilyGroupMemberSchema = z.object({
     example: 'MEMBER',
     description: 'Family role in the group',
   }),
-  joinedAt: z.string()
-    .datetime()
+  joinedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the family joined the group',
     }),
   family: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({
@@ -315,8 +306,7 @@ export const FamilyGroupMemberSchema = z.object({
 });
 
 export const GroupResponseSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique group identifier (CUID format)',
@@ -332,8 +322,7 @@ export const GroupResponseSchema = z.object({
       example: 'Carpool group for morning school transportation',
       description: 'Group description (null if not set)',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Owner family identifier',
@@ -343,14 +332,12 @@ export const GroupResponseSchema = z.object({
       example: 'ABC123XYZ',
       description: 'Group invitation code',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Group creation timestamp',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Last update timestamp',
@@ -387,8 +374,7 @@ export const GroupResponseSchema = z.object({
 });
 
 export const FamilySearchResultSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Family identifier',
@@ -404,8 +390,7 @@ export const FamilySearchResultSchema = z.object({
         example: 'John Smith',
         description: 'Admin contact name',
       }),
-    email: z.string()
-      .email()
+    email: z.email()
       .openapi({
         example: 'john.smith@example.com',
         description: 'Admin contact email',
@@ -429,20 +414,17 @@ export const FamilySearchResultSchema = z.object({
 });
 
 export const GroupInvitationSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901239',
       description: 'Invitation identifier',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
     }),
-  targetFamilyId: z.string()
-    .cuid()
+  targetFamilyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Target family identifier',
@@ -459,27 +441,25 @@ export const GroupInvitationSchema = z.object({
     example: 'Looking forward to carpooling with you!',
     description: 'Personal message from inviter',
   }),
-  expiresAt: z.string()
-    .datetime()
+  expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
       description: 'Invitation expiration timestamp',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
     }),
   group: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({
       description: 'Group information (included in some responses)',
     }),
   targetFamily: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({
@@ -501,15 +481,15 @@ export const InvitationValidationSchema = z.object({
     description: 'Error message if invalid',
   }),
   group: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({
       description: 'Group information (if valid)',
     }),
   invitation: z.object({
-    id: z.string().cuid(),
-    expiresAt: z.string().datetime(),
+    id: z.cuid(),
+    expiresAt: z.iso.datetime(),
     role: GroupRoleEnum,
   }).optional()
     .openapi({
@@ -520,7 +500,7 @@ export const InvitationValidationSchema = z.object({
     description: 'User family status (authenticated validation only)',
   }),
   familyInfo: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
     role: z.string(),
     adminName: z.string().optional(),
@@ -546,20 +526,17 @@ export const InvitationValidationSchema = z.object({
 });
 
 export const GroupMembershipSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Membership identifier',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Family identifier',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
@@ -568,21 +545,20 @@ export const GroupMembershipSchema = z.object({
     example: 'MEMBER',
     description: 'Family role in the group',
   }),
-  joinedAt: z.string()
-    .datetime()
+  joinedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the family joined the group',
     }),
   family: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({
       description: 'Family information',
     }),
   group: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({
@@ -594,14 +570,12 @@ export const GroupMembershipSchema = z.object({
 });
 
 export const ScheduleConfigSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901240',
       description: 'Schedule configuration identifier',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
@@ -613,14 +587,12 @@ export const ScheduleConfigSchema = z.object({
     },
     description: 'Schedule hours by day of week (HH:MM format)',
   }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Configuration creation timestamp',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Configuration update timestamp',
@@ -635,8 +607,7 @@ export const ScheduleConfigSchema = z.object({
 });
 
 export const TimeSlotsResponseSchema = z.object({
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',

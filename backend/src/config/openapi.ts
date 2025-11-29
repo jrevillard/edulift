@@ -39,7 +39,7 @@ const generateOperationId = (method: string, path: string): string => {
       // Handle path parameters like {childId} -> ByChildId
       if (p.startsWith('{') && p.endsWith('}')) {
         const param = p.slice(1, -1); // Remove { }
-        return 'By' + param.charAt(0).toUpperCase() + param.slice(1);
+        return `By${  param.charAt(0).toUpperCase()  }${param.slice(1)}`;
       }
       // Convert kebab-case to camelCase (e.g., 'magic-link' -> 'MagicLink')
       if (p.includes('-')) {

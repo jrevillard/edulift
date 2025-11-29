@@ -7,8 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, BearerAuthSecurity, registerPath } from '../config/openapi.js';
-import { VEHICLE_CONSTRAINTS } from '../constants/vehicle.js';
+import { registry, registerPath } from '../config/openapi';
+import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -62,8 +62,7 @@ export const UpdateVehicleSchema = z.object({
 });
 
 export const VehicleParamsSchema = z.object({
-  vehicleId: z.string()
-    .cuid('Invalid vehicle ID format')
+  vehicleId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique vehicle identifier (CUID format)',
@@ -74,14 +73,12 @@ export const VehicleParamsSchema = z.object({
 });
 
 export const AvailableVehiclesParamsSchema = z.object({
-  groupId: z.string()
-    .cuid('Invalid group ID format')
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique group identifier (CUID format)',
     }),
-  timeSlotId: z.string()
-    .cuid('Invalid time slot ID format')
+  timeSlotId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Unique time slot identifier (CUID format)',
@@ -105,8 +102,7 @@ export const WeekQuerySchema = z.object({
 
 // Response Schemas
 export const VehicleResponseSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique vehicle identifier (CUID format)',
@@ -122,20 +118,17 @@ export const VehicleResponseSchema = z.object({
       example: 7,
       description: 'Vehicle seating capacity',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Family identifier that owns the vehicle',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Vehicle creation timestamp',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Last update timestamp',
@@ -146,8 +139,7 @@ export const VehicleResponseSchema = z.object({
 });
 
 export const AvailableVehicleSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique vehicle identifier (CUID format)',
@@ -188,8 +180,7 @@ export const AvailableVehicleSchema = z.object({
 });
 
 export const VehicleScheduleSchema = z.object({
-  vehicleId: z.string()
-    .cuid()
+  vehicleId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Vehicle identifier',
@@ -200,14 +191,13 @@ export const VehicleScheduleSchema = z.object({
       description: 'Vehicle name',
     }),
   schedule: z.array(z.object({
-    date: z.string()
-      .date()
+    date: z.iso.date()
       .openapi({
         example: '2023-04-15',
         description: 'Date of the scheduled assignment',
       }),
     timeSlot: z.object({
-      id: z.string().cuid(),
+      id: z.cuid(),
       name: z.string(),
       startTime: z.string(),
       endTime: z.string(),
@@ -215,7 +205,7 @@ export const VehicleScheduleSchema = z.object({
       description: 'Time slot information',
     }),
     group: z.object({
-      id: z.string().cuid(),
+      id: z.cuid(),
       name: z.string(),
     }).openapi({
       description: 'Group information',
@@ -240,32 +230,27 @@ export const VehicleScheduleSchema = z.object({
 });
 
 export const VehicleAssignmentSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Unique assignment identifier (CUID format)',
     }),
-  vehicleId: z.string()
-    .cuid()
+  vehicleId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Vehicle identifier',
     }),
-  timeSlotId: z.string()
-    .cuid()
+  timeSlotId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Time slot identifier',
     }),
-  date: z.string()
-    .date()
+  date: z.iso.date()
     .openapi({
       example: '2023-04-15',
       description: 'Date of the assignment',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
@@ -276,8 +261,7 @@ export const VehicleAssignmentSchema = z.object({
       example: 3,
       description: 'Number of seats assigned for this trip',
     }),
-  driverId: z.string()
-    .cuid()
+  driverId: z.cuid()
     .nullable()
     .openapi({
       example: 'cl123456789012345678901239',

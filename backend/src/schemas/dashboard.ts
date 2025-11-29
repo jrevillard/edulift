@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi.js';
+import { registry, registerPath } from '../config/openapi';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -32,8 +32,7 @@ export const ActivityTypeEnum = z.enum(['group', 'vehicle', 'child', 'schedule']
 // ============================================================================
 
 export const WeeklyDashboardQuerySchema = z.object({
-  startDate: z.string()
-    .datetime()
+  startDate: z.iso.datetime()
     .optional()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
@@ -119,8 +118,7 @@ export const DashboardStatsSchema = z.object({
 });
 
 export const TripChildSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901239',
       description: 'Child identifier',
@@ -136,8 +134,7 @@ export const TripChildSchema = z.object({
 });
 
 export const TripVehicleSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901240',
       description: 'Vehicle identifier',
@@ -160,8 +157,7 @@ export const TripVehicleSchema = z.object({
 });
 
 export const TripDriverSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Driver identifier',
@@ -177,8 +173,7 @@ export const TripDriverSchema = z.object({
 });
 
 export const TripGroupSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901241',
       description: 'Group identifier',
@@ -194,8 +189,7 @@ export const TripGroupSchema = z.object({
 });
 
 export const TodayTripSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901242',
       description: 'Trip identifier',
@@ -205,8 +199,7 @@ export const TodayTripSchema = z.object({
       example: '08:30',
       description: 'Trip time in HH:MM format (UTC)',
     }),
-  datetime: z.string()
-    .datetime()
+  datetime: z.iso.datetime()
     .openapi({
       example: '2023-01-01T08:30:00.000Z',
       description: 'Full trip datetime in ISO 8601 format for timezone conversion',
@@ -243,8 +236,7 @@ export const TodayScheduleResponseSchema = z.object({
 });
 
 export const ActivityItemSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901243',
       description: 'Activity identifier',
@@ -259,8 +251,7 @@ export const ActivityItemSchema = z.object({
       example: '2 hours ago',
       description: 'Human-readable time since activity',
     }),
-  timestamp: z.string()
-    .datetime()
+  timestamp: z.iso.datetime()
     .openapi({
       example: '2023-01-01T12:00:00.000Z',
       description: 'Activity timestamp in ISO 8601 format',
@@ -269,8 +260,7 @@ export const ActivityItemSchema = z.object({
     example: 'child',
     description: 'Type of activity',
   }),
-  entityId: z.string()
-    .cuid()
+  entityId: z.cuid()
     .nullable()
     .optional()
     .openapi({
@@ -304,14 +294,12 @@ export const WeeklyDashboardResponseSchema = z.object({
       description: 'Operation success indicator',
     }),
   data: z.object({
-    weekStart: z.string()
-      .datetime()
+    weekStart: z.iso.datetime()
       .openapi({
         example: '2023-01-01T00:00:00.000Z',
         description: 'Week start date in ISO 8601 format',
       }),
-    weekEnd: z.string()
-      .datetime()
+    weekEnd: z.iso.datetime()
       .openapi({
         example: '2023-01-07T23:59:59.999Z',
         description: 'Week end date in ISO 8601 format',
@@ -328,18 +316,18 @@ export const WeeklyDashboardResponseSchema = z.object({
           description: 'Day name',
         }),
       transportSlots: z.array(z.object({
-        id: z.string().cuid(),
+        id: z.cuid(),
         time: z.string(),
-        groupId: z.string().cuid().nullable(),
+        groupId: z.cuid().nullable(),
         groupName: z.string(),
-        vehicleId: z.string().cuid().nullable(),
+        vehicleId: z.cuid().nullable(),
         vehicleName: z.string().nullable(),
-        driverId: z.string().cuid().nullable(),
+        driverId: z.cuid().nullable(),
         driverName: z.string().nullable(),
         children: z.array(z.object({
-          id: z.string().cuid(),
+          id: z.cuid(),
           name: z.string(),
-          familyId: z.string().cuid(),
+          familyId: z.cuid(),
           familyName: z.string(),
         })),
         capacity: z.number().int().min(0),
