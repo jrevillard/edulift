@@ -92,10 +92,13 @@ jobs:
         id: prepare-tags-backend
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "docker_tags=${{ steps.meta-backend-pr.outputs.docker_tags }}" >> $GITHUB_OUTPUT
+            # For PRs, use the comma-separated tags from the PR step
+            TAGS="${{ steps.meta-backend-pr.outputs.docker_tags }}"
           else
-            echo "docker_tags=${{ steps.meta-backend.outputs.tags }}" >> $GITHUB_OUTPUT
+            # For pushes, convert newlines to commas for proper formatting
+            TAGS=$(echo '${{ steps.meta-backend.outputs.tags }}' | tr '\n' ',' | sed 's/,$//')
           fi
+          echo "docker_tags=$TAGS" >> $GITHUB_OUTPUT
 
       # Build and push backend image with registry cache
       - name: Build and push backend image
@@ -161,10 +164,13 @@ jobs:
         id: prepare-tags-frontend
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "docker_tags=${{ steps.meta-frontend-pr.outputs.docker_tags }}" >> $GITHUB_OUTPUT
+            # For PRs, use the comma-separated tags from the PR step
+            TAGS="${{ steps.meta-frontend-pr.outputs.docker_tags }}"
           else
-            echo "docker_tags=${{ steps.meta-frontend.outputs.tags }}" >> $GITHUB_OUTPUT
+            # For pushes, convert newlines to commas for proper formatting
+            TAGS=$(echo '${{ steps.meta-frontend.outputs.tags }}' | tr '\n' ',' | sed 's/,$//')
           fi
+          echo "docker_tags=$TAGS" >> $GITHUB_OUTPUT
 
       # Build and push frontend image with registry cache
       - name: Build and push frontend image
