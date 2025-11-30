@@ -64,6 +64,8 @@ services:
       EMAIL_PASSWORD: test-password
       FRONTEND_URL: http://localhost:8001
       DEEP_LINK_BASE_URL: edulift://
+      VITE_APP_STORE_URL: https://apps.apple.com/app/edulift
+      VITE_PLAY_STORE_URL: https://play.google.com/store/apps/details?id=com.edulift
       CORS_ORIGIN: "http://localhost:8001,http://frontend-e2e:3000"
       PORT: 3001
     networks:
@@ -97,6 +99,8 @@ services:
       VITE_API_URL: http://localhost:8002/api/v1
       VITE_SOCKET_URL: http://localhost:8002
       VITE_HMR_CLIENT_PORT: 8001
+      VITE_APP_STORE_URL: https://apps.apple.com/app/edulift
+      VITE_PLAY_STORE_URL: https://play.google.com/store/apps/details?id=com.edulift
       NODE_ENV: test
     depends_on:
       - backend-e2e

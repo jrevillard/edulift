@@ -12,6 +12,8 @@ interface RuntimeConfig {
   VITE_API_URL: string;
   VITE_SOCKET_URL: string;
   VITE_SOCKET_FORCE_POLLING: string;
+  VITE_APP_STORE_URL: string;
+  VITE_PLAY_STORE_URL: string;
 }
 
 // Extend Window interface to include our runtime config
@@ -38,6 +40,8 @@ function getRuntimeConfig(): RuntimeConfig {
     VITE_API_URL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1',
     VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001',
     VITE_SOCKET_FORCE_POLLING: import.meta.env.VITE_SOCKET_FORCE_POLLING || 'false',
+    VITE_APP_STORE_URL: import.meta.env.VITE_APP_STORE_URL || 'https://apps.apple.com/app/edulift',
+    VITE_PLAY_STORE_URL: import.meta.env.VITE_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.edulift',
   };
 }
 
@@ -48,3 +52,5 @@ export const config = getRuntimeConfig();
 export const API_BASE_URL = config.VITE_API_URL;
 export const SOCKET_URL = config.VITE_SOCKET_URL;
 export const SOCKET_FORCE_POLLING = config.VITE_SOCKET_FORCE_POLLING === 'true';
+export const APP_STORE_URL = config.VITE_APP_STORE_URL;
+export const PLAY_STORE_URL = config.VITE_PLAY_STORE_URL;

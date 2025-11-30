@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
+import { useMobileDetection } from '../hooks/useMobileDetection';
+import { attemptMobileAppOpen, parseSearchParams } from '../utils/mobileRedirection';
 import { unifiedInvitationService, type FamilyRole } from '../services/unifiedInvitationService';
 import { authService } from '../services/authService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -9,7 +11,8 @@ import { Alert, AlertDescription } from './ui/alert';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Loader2, AlertCircle, CheckCircle, Users } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle, Users, Smartphone, ExternalLink } from 'lucide-react';
+import { APP_STORE_URL, PLAY_STORE_URL } from '../config/runtime';
 
 interface SignupFormData {
   email: string;
@@ -49,9 +52,44 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
   const [signupData, setSignupData] = useState<SignupFormData>({ email: '', name: '' });
   const [manualCode, setManualCode] = useState('');
 
+  // Mobile detection state
+  const [mobileState, setMobileState] = useState<{
+    hasAttemptedRedirect: boolean;
+    showMobileFallback: boolean;
+  }>({
+    hasAttemptedRedirect: false,
+    showMobileFallback: false,
+  });
+
+  const mobileDetection = useMobileDetection();
   const inviteCode = searchParams.get('code');
 
   useEffect(() => {
+    // Attempt mobile redirect if on mobile device and not yet attempted
+    if (mobileDetection.isMobile && inviteCode && !mobileState.hasAttemptedRedirect) {
+      const params = parseSearchParams(searchParams);
+
+      attemptMobileAppOpen(
+        '/families/join',
+        params,
+        mobileDetection,
+        {
+          fallbackDelay: 2500,
+          onAttempt: (customUrl) => {
+            console.log(`📱 Attempting to open mobile app for family invitation: ${customUrl}`);
+            setMobileState(prev => ({ ...prev, hasAttemptedRedirect: true }));
+          },
+          onFallback: () => {
+            console.log('📱 Mobile app not detected, continuing on web');
+            setMobileState(prev => ({
+              ...prev,
+              showMobileFallback: true
+            }));
+          }
+        }
+      );
+    }
+
     if (inviteCode) {
       validateInvitation();
     } else {
@@ -275,6 +313,74 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
           <CardContent className="pt-6">
             <div className="flex justify-center">
               <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show mobile fallback UI when app is not detected
+  if (mobileState.showMobileFallback) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Smartphone className="h-12 w-12 text-blue-600" />
+            </div>
+            <CardTitle className="text-blue-600">
+              Family Invitation
+            </CardTitle>
+            <CardDescription>
+              Open in Mobile App
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                It looks like you're on a mobile device but the EduLift app isn't installed.
+              </p>
+              <p className="text-sm font-medium">
+                Would you like to download the app to join this family?
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                onClick={() => window.open(APP_STORE_URL, '_blank', 'noopener,noreferrer')}
+                className="w-full"
+                variant="outline"
+                aria-label="Download EduLift from the App Store"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden="true" />
+                Download on App Store
+              </Button>
+
+              <Button
+                onClick={() => window.open(PLAY_STORE_URL, '_blank', 'noopener,noreferrer')}
+                className="w-full"
+                variant="outline"
+                aria-label="Download EduLift from Google Play Store"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden="true" />
+                Download on Google Play
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setMobileState(prev => ({ ...prev, showMobileFallback: false }));
+                }}
+                className="w-full"
+              >
+                Continue in Browser
+              </Button>
+            </div>
+
+            <div className="text-center text-xs text-muted-foreground">
+              <p>
+                You can also join this family using the web browser.
+              </p>
             </div>
           </CardContent>
         </Card>

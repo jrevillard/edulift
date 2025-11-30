@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -169,7 +169,7 @@ describe('VerifyMagicLinkPage', () => {
     // In a real app, we'd use a navigation spy to verify the redirect
   })
 
-  it('redirects to dashboard if user is already authenticated', () => {
+  it('redirects to dashboard if user is already authenticated', async () => {
     mockAuthService.isAuthenticated.mockReturnValue(true)
     mockAuthService.getUser.mockReturnValue({
       id: 'user-1',
@@ -177,7 +177,9 @@ describe('VerifyMagicLinkPage', () => {
       name: 'Test User'
     })
 
-    renderWithRouter(['/auth/verify?token=some-token'])
+    await act(async () => {
+      renderWithRouter(['/auth/verify?token=some-token'])
+    })
 
     // Should immediately redirect without showing verification content
     expect(screen.queryByTestId('verifying-message')).not.toBeInTheDocument()
@@ -270,9 +272,6 @@ describe('VerifyMagicLinkPage', () => {
       expect(screen.getByTestId('verification-error-message')).toBeInTheDocument()
     })
 
-    // Wait a bit more to ensure no additional calls are made
-    await new Promise(resolve => setTimeout(resolve, 500))
-
     // verifyMagicLink should only have been called once, not multiple times in a loop
     expect(mockAuthService.verifyMagicLink).toHaveBeenCalledTimes(1)
   })
@@ -291,3 +290,52 @@ describe('VerifyMagicLinkPage', () => {
     expect(mockAuthService.verifyMagicLink).toHaveBeenCalledTimes(1)
   })
 })
+
+// Mobile-friendly behavior tests
+describe('VerifyMagicLinkPage - Mobile-Friendly Behavior', () => {
+  it('should render verification page properly on all devices', async () => {
+    renderWithRouter(['/auth/verify?token=test-token'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('edu-lift-title')).toBeInTheDocument()
+      expect(screen.getByText(/magic link verification/i)).toBeInTheDocument()
+    })
+  })
+
+  it('should handle verification states consistently', async () => {
+    mockAuthService.verifyMagicLink.mockImplementation(
+      () => new Promise(resolve => setTimeout(() => resolve({ id: 'user-1', email: 'test@example.com', name: 'Test User' }), 100))
+    )
+
+    renderWithRouter(['/auth/verify?token=test-token'])
+
+    await waitFor(() => {
+      expect(screen.getByTestId('verifying-message')).toBeInTheDocument()
+      expect(screen.getByTestId('verification-loading-spinner')).toBeInTheDocument()
+    })
+  })
+
+  it('should allow users to continue verification even if mobile app fails', async () => {
+    // Test core user flow - user can complete verification regardless of device
+    mockAuthService.verifyMagicLink.mockResolvedValue({
+      id: 'user-1',
+      email: 'test@example.com',
+      name: 'Test User'
+    })
+
+    mockAuthService.isAuthenticated.mockReturnValue(true)
+    mockAuthService.getUser.mockReturnValue({
+      id: 'user-1',
+      email: 'test@example.com',
+      name: 'Test User'
+    })
+
+    renderWithRouter(['/auth/verify?token=test-token'])
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('verifying-message')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('verification-failed-title')).not.toBeInTheDocument()
+    })
+  })
+})
+

@@ -69,6 +69,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network={{ compose_project_name }}-network"
+      - "--providers.docker.constraints=Label(`com.docker.compose.project`, `{{ compose_project_name }}`)"
       # Entrypoints
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
@@ -109,6 +110,7 @@ services:
     labels:
       # Dashboard routing
       - "traefik.enable=true"
+      - "traefik.docker.network={{ compose_project_name }}-network"
       - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.rule={{ url.traefik_rule(traefik_url) }}"
       - "traefik.http.routers.{{ compose_project_name }}-traefik-dashboard.entrypoints=websecure"
 {% if deployment_environment in ['staging', 'production'] %}
@@ -211,6 +213,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network={{ compose_project_name }}-network"
       # Backend service - simple configuration for single instance
       - "traefik.http.services.{{ compose_project_name }}-backend.loadbalancer.server.port={{ edulift_services.backend.port }}"
       - "traefik.http.services.{{ compose_project_name }}-backend.loadbalancer.passhostheader=true"
@@ -261,6 +264,10 @@ services:
       VITE_API_URL: {{ backend_url }}/v1
       VITE_SOCKET_URL: {{ backend_base_url }}
       VITE_SOCKET_FORCE_POLLING: "false"
+
+      # Mobile Store URLs (for deep links)
+      VITE_APP_STORE_URL: {{ edulift_stores.app_store_url }}
+      VITE_PLAY_STORE_URL: {{ edulift_stores.play_store_url }}
     volumes:
       # Android App Links and iOS Universal Links verification files
       - ./.well-known:/usr/share/nginx/html/.well-known:ro
@@ -270,6 +277,7 @@ services:
       - backend
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network={{ compose_project_name }}-network"
       # Frontend routes (root and all non-api paths)
       - "traefik.http.routers.{{ compose_project_name }}-frontend.rule={{ url.traefik_rule(frontend_url) }}"
       - "traefik.http.routers.{{ compose_project_name }}-frontend.entrypoints=websecure"

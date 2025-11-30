@@ -1,0 +1,12 @@
+# Host variables
+# Ansible Inventory Host Variables
+# This file contains host-specific overrides for group_vars files
+
+# EduLift Store URLs
+VITE_APP_STORE_URL: https://apps.apple.com/app/edulift
+VITE_PLAY_STORE_URL: https://play.google.com/store/apps/details?id=com.edulift
+
+# Development Overrides (optional)
+# Override specific URLs for testing
+# VITE_APP_STORE_URL: https://appstore.connect/test-app-id
+# VITE_PLAY_STORE_URL: https://play.google.com/store/apps/details?id=com.edulift-test

@@ -3,10 +3,13 @@ import { useSearchParams, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { FamilyInvitationProposal } from '../components/family/FamilyInvitationProposal';
+import { useMobileDetection } from '../hooks/useMobileDetection';
+import { attemptMobileAppOpen, parseSearchParams } from '../utils/mobileRedirection';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Smartphone, ExternalLink } from 'lucide-react';
+import { APP_STORE_URL, PLAY_STORE_URL } from '../config/runtime';
 
 interface PendingInvitation {
   id: string;
@@ -43,6 +46,20 @@ const VerifyMagicLinkPage: React.FC = () => {
     joinError: null,
   });
 
+  // Mobile detection state
+  const [mobileState, setMobileState] = useState<{
+    hasAttemptedRedirect: boolean;
+    mobileAppDetected: boolean;
+    showMobileFallback: boolean;
+    isRedirecting: boolean;
+  }>({
+    hasAttemptedRedirect: false,
+    mobileAppDetected: false,
+    showMobileFallback: false,
+    isRedirecting: false,
+  });
+
+  const mobileDetection = useMobileDetection();
   const token = searchParams.get('token');
   const inviteCode = searchParams.get('inviteCode');
 
@@ -55,6 +72,38 @@ const VerifyMagicLinkPage: React.FC = () => {
           hasAttempted: true,
         });
         return;
+      }
+
+      // Attempt mobile redirect if on mobile device and not yet attempted
+      if (mobileDetection.isMobile && !mobileState.hasAttemptedRedirect) {
+        setMobileState(prev => ({ ...prev, isRedirecting: true }));
+        const params = parseSearchParams(searchParams);
+
+        attemptMobileAppOpen(
+          '/auth/verify',
+          params,
+          mobileDetection,
+          {
+            fallbackDelay: 2500,
+            onAttempt: (customUrl) => {
+              console.log(`📱 Attempting to open mobile app: ${customUrl}`);
+              setMobileState(prev => ({
+                ...prev,
+                hasAttemptedRedirect: true,
+                isRedirecting: false
+              }));
+            },
+            onFallback: () => {
+              console.log('📱 Mobile app not detected, continuing on web');
+              setMobileState(prev => ({
+                ...prev,
+                mobileAppDetected: false,
+                showMobileFallback: true,
+                isRedirecting: false
+              }));
+            }
+          }
+        );
       }
 
       // If user is already authenticated, don't verify again
@@ -183,6 +232,93 @@ const VerifyMagicLinkPage: React.FC = () => {
           onDecline={handleDeclineInvitation}
           error={invitationState.joinError || undefined}
         />
+      </div>
+    );
+  }
+
+  // Show redirecting state while attempting mobile app launch
+  if (mobileState.isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold" data-testid="edu-lift-title">EduLift</CardTitle>
+            <CardDescription>
+              Opening Mobile App...
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" role="status" aria-label="Opening mobile app" />
+            <p className="text-sm text-muted-foreground" role="status" aria-live="polite">
+              Launching EduLift mobile application...
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show mobile fallback UI when app is not detected
+  if (mobileState.showMobileFallback) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold" data-testid="edu-lift-title">EduLift</CardTitle>
+            <CardDescription id="mobile-fallback-description">
+              Get the Mobile App
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center space-y-2">
+              <Smartphone className="h-12 w-12 mx-auto text-muted-foreground" aria-hidden="true" />
+              <p className="text-sm text-muted-foreground">
+                It looks like you're on a mobile device but the EduLift app isn't installed.
+              </p>
+              <p className="text-sm font-medium">
+                Would you like to download it?
+              </p>
+            </div>
+
+            <div className="space-y-3" role="group" aria-labelledby="mobile-fallback-description">
+              <Button
+                onClick={() => window.open(APP_STORE_URL, '_blank', 'noopener,noreferrer')}
+                className="w-full"
+                variant="outline"
+                aria-label="Download EduLift from the App Store"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden="true" />
+                Download on App Store
+              </Button>
+
+              <Button
+                onClick={() => window.open(PLAY_STORE_URL, '_blank', 'noopener,noreferrer')}
+                className="w-full"
+                variant="outline"
+                aria-label="Download EduLift from Google Play Store"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden="true" />
+                Download on Google Play
+              </Button>
+
+              <Button
+                onClick={() => {
+                  setMobileState(prev => ({ ...prev, showMobileFallback: false }));
+                }}
+                className="w-full"
+                aria-label="Continue using EduLift in web browser"
+              >
+                Continue in Browser
+              </Button>
+            </div>
+
+            <div className="text-center text-xs text-muted-foreground">
+              <p>
+                You can also continue using EduLift in your web browser.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
