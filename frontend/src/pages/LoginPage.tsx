@@ -490,14 +490,14 @@ const LoginPage: React.FC = () => {
           <p className="text-center text-sm text-muted-foreground">
             By continuing, you agree to our{" "}
             <a
-              href="#"
+              href="/terms-of-service"
               className="font-medium text-primary hover:text-primary/80 hover:underline"
             >
               terms of service
             </a>{" "}
             and{" "}
             <a
-              href="#"
+              href="/privacy-policy"
               className="font-medium text-primary hover:text-primary/80 hover:underline"
             >
               privacy policy

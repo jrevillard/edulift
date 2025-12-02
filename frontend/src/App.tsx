@@ -13,6 +13,9 @@ import BackendConnectionAlert from './components/common/BackendConnectionAlert';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import VerifyMagicLinkPage from './pages/VerifyMagicLinkPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import AccountDeletionPage from './pages/AccountDeletionPage';
 import { UnifiedFamilyInvitationPage } from './components/UnifiedFamilyInvitationPage';
 import { UnifiedGroupInvitationPage } from './components/UnifiedGroupInvitationPage';
 import DashboardPage from './pages/DashboardPage';
@@ -81,6 +84,9 @@ function AppContent() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth/verify" element={<VerifyMagicLinkPage />} />
+            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/account-deletion" element={<AccountDeletionPage />} />
             <Route path="/families/join" element={<UnifiedFamilyInvitationPage />} />
             <Route path="/groups/join" element={<UnifiedGroupInvitationPage />} />
             
