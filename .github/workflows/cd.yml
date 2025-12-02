@@ -8,6 +8,10 @@ on:
     branches: [ main, develop ]
     types: [opened, synchronize, reopened]
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Frontend CI Pipeline", "Backend CI Pipeline"]
+    types: [completed]
+    branches: [main]
 
 env:
   DOCKER_USERNAME: jrevillard
@@ -22,6 +26,13 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+    # Only run CD if CI workflows succeeded
+    if: >
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout code
@@ -193,7 +204,7 @@ jobs:
     name: Deployment Info
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: always()
+    if: always() && (needs.build-and-push.result == 'success' || needs.build-and-push.result == 'failure')
 
     steps:
       - name: Create deployment summary
