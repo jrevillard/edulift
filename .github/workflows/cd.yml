@@ -3,7 +3,7 @@ name: CD Pipeline
 on:
   # Only deploy after CI successfully completes
   workflow_run:
-    workflows: ["Frontend CI Pipeline", "Backend CI Pipeline"]
+    workflows: ["Frontend CI Pipeline", "Backend CI Pipeline", "CI for Workflow Changes"]
     types: [completed]
     branches: [main]
 
