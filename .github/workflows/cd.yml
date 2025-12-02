@@ -1,17 +1,23 @@
 name: CD Pipeline
 
 on:
-  push:
-    branches: [ main ]
-    tags: [ 'v*' ]
-  pull_request:
-    branches: [ main, develop ]
-    types: [opened, synchronize, reopened]
-  workflow_dispatch:
+  # Only deploy after CI successfully completes
   workflow_run:
     workflows: ["Frontend CI Pipeline", "Backend CI Pipeline"]
     types: [completed]
     branches: [main]
+
+  # For releases (tags) - these should still trigger deployment directly
+  push:
+    tags: [ 'v*' ]
+
+  # For pull requests (testing only)
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+
+  # Manual trigger
+  workflow_dispatch:
 
 env:
   DOCKER_USERNAME: jrevillard
@@ -27,12 +33,12 @@ jobs:
       contents: read
       packages: write
 
-    # Only run CD if CI workflows succeeded
+    # Only run CD if CI workflows succeeded, or for tags/PRs/manual dispatch
     if: >
-      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       github.event_name == 'pull_request' ||
-      github.event_name == 'workflow_dispatch'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/'))
 
     steps:
       - name: Checkout code
