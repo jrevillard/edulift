@@ -9,16 +9,13 @@ import { NotificationService } from '../services/NotificationService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { UserRepository } from '../repositories/UserRepository';
 import { authenticateToken } from '../middleware/auth';
-import { validateBody, validateParams, validateQuery } from '../middleware/validation';
+import { validateBody, validateParams } from '../middleware/validation';
 import { asyncHandler } from '../middleware/errorHandler';
 import {
   ScheduleSlotParamsSchema,
-  GroupParamsSchema,
   VehicleAssignmentParamsSchema,
   ScheduleSlotVehicleParamsSchema,
   ScheduleSlotChildParamsSchema,
-  DateRangeQuerySchema,
-  CreateScheduleSlotWithVehicleSchema,
   AssignVehicleSchema,
   AssignChildSchema,
   UpdateDriverSchema,
@@ -47,22 +44,6 @@ router.use(authenticateToken);
 // Validation schemas imported from ../schemas/scheduleSlots
 
 // Routes
-
-// Create schedule slot with vehicle for a group
-router.post(
-  '/groups/:groupId/schedule-slots',
-  validateParams(GroupParamsSchema),
-  validateBody(CreateScheduleSlotWithVehicleSchema),
-  asyncHandler(scheduleSlotController.createScheduleSlotWithVehicle),
-);
-
-// Get schedule for a group (with optional date range)
-router.get(
-  '/groups/:groupId/schedule',
-  validateParams(GroupParamsSchema),
-  validateQuery(DateRangeQuerySchema),
-  asyncHandler(scheduleSlotController.getSchedule),
-);
 
 // Get schedule slot details
 router.get(

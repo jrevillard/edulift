@@ -6802,6 +6802,251 @@
         }
       }
     },
+    "/groups/{groupId}/schedule": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Get group schedule",
+        "description": "Retrieve schedule for a group with optional date range filtering. Requires group membership.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "operationId": "getgroupsByGroupIdSchedule",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Group schedule retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "scheduleSlots": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "datetime": {
+                                "type": "string"
+                              },
+                              "vehicle": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "capacity": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "capacity"
+                                ]
+                              },
+                              "driver": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "datetime"
+                            ]
+                          }
+                        }
+                      },
+                      "required": [
+                        "scheduleSlots"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          },
+          "404": {
+            "description": "Not found - Group does not exist"
+          }
+        }
+      }
+    },
+    "/groups/{groupId}/schedule-slots": {
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Create schedule slot for group",
+        "description": "Create a new schedule slot with vehicle for a group. Requires group membership.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "operationId": "postgroupsByGroupIdScheduleSlots",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "datetime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "vehicleId": {
+                    "type": "string",
+                    "format": "cuid"
+                  },
+                  "driverId": {
+                    "type": "string",
+                    "format": "cuid"
+                  },
+                  "seatOverride": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 8
+                  }
+                },
+                "required": [
+                  "datetime",
+                  "vehicleId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Schedule slot created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "datetime": {
+                          "type": "string"
+                        },
+                        "groupId": {
+                          "type": "string"
+                        },
+                        "vehicleId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "datetime",
+                        "groupId",
+                        "vehicleId"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          },
+          "404": {
+            "description": "Not found - Group does not exist"
+          }
+        }
+      }
+    },
     "/families/validate-invite": {
       "post": {
         "tags": [
@@ -11229,985 +11474,6 @@
           },
           "500": {
             "description": "Internal server error"
-          }
-        }
-      }
-    },
-    "/schedule-slots/groups/{groupId}/schedule-slots": {
-      "post": {
-        "tags": [
-          "Schedule Slots"
-        ],
-        "summary": "Create schedule slot with vehicle",
-        "description": "Create a new schedule slot with vehicle assignment for a group",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "operationId": "postScheduleSlotsGroupsByGroupIdScheduleSlots",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901235",
-              "description": "Unique group identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique group identifier (CUID format)",
-            "name": "groupId",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleSlotWithVehicleRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Schedule slot created successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Schedule slot identifier"
-                        },
-                        "datetime": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-15T08:00:00.000Z",
-                          "description": "Schedule slot datetime"
-                        },
-                        "groupId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901235",
-                          "description": "Group identifier"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-01T08:00:00.000Z",
-                          "description": "Schedule slot creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-01T08:00:00.000Z",
-                          "description": "Schedule slot update timestamp"
-                        },
-                        "vehicleAssignments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901236",
-                                "description": "Vehicle assignment identifier"
-                              },
-                              "scheduleSlotId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901234",
-                                "description": "Schedule slot identifier"
-                              },
-                              "vehicleId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901237",
-                                "description": "Vehicle identifier"
-                              },
-                              "driverId": {
-                                "type": "string",
-                                "nullable": true,
-                                "format": "cuid",
-                                "example": "cl123456789012345678901239",
-                                "description": "Driver identifier (null if not assigned)"
-                              },
-                              "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
-                                "example": 6,
-                                "description": "Seat capacity override (null if using default)"
-                              },
-                              "vehicle": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "make": {
-                                    "type": "string"
-                                  },
-                                  "model": {
-                                    "type": "string"
-                                  },
-                                  "licensePlate": {
-                                    "type": "string"
-                                  },
-                                  "capacity": {
-                                    "type": "number"
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "make",
-                                  "model",
-                                  "licensePlate",
-                                  "capacity",
-                                  "familyId"
-                                ],
-                                "description": "Vehicle information (included when requested)"
-                              },
-                              "driver": {
-                                "type": "object",
-                                "nullable": true,
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "firstName": {
-                                    "type": "string"
-                                  },
-                                  "lastName": {
-                                    "type": "string"
-                                  },
-                                  "email": {
-                                    "type": "string",
-                                    "format": "email"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "firstName",
-                                  "lastName",
-                                  "email"
-                                ],
-                                "description": "Driver information (included when requested)"
-                              },
-                              "_count": {
-                                "type": "object",
-                                "properties": {
-                                  "childAssignments": {
-                                    "type": "number",
-                                    "example": 3,
-                                    "description": "Number of children assigned to this vehicle"
-                                  }
-                                },
-                                "required": [
-                                  "childAssignments"
-                                ],
-                                "description": "Count information (included when requested)"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "scheduleSlotId",
-                              "vehicleId",
-                              "driverId",
-                              "seatOverride"
-                            ],
-                            "title": "Vehicle Assignment",
-                            "description": "Vehicle assignment information for a schedule slot"
-                          },
-                          "description": "Vehicle assignments (included when requested)"
-                        },
-                        "childAssignments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901240",
-                                "description": "Child assignment identifier"
-                              },
-                              "scheduleSlotId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901234",
-                                "description": "Schedule slot identifier"
-                              },
-                              "childId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Child identifier"
-                              },
-                              "vehicleAssignmentId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901236",
-                                "description": "Vehicle assignment identifier"
-                              },
-                              "assignedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-12-01T08:00:00.000Z",
-                                "description": "Assignment timestamp"
-                              },
-                              "child": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "firstName": {
-                                    "type": "string"
-                                  },
-                                  "lastName": {
-                                    "type": "string"
-                                  },
-                                  "dateOfBirth": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "firstName",
-                                  "lastName",
-                                  "dateOfBirth",
-                                  "familyId"
-                                ],
-                                "description": "Child information (included when requested)"
-                              },
-                              "vehicleAssignment": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901236",
-                                    "description": "Vehicle assignment identifier"
-                                  },
-                                  "scheduleSlotId": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901234",
-                                    "description": "Schedule slot identifier"
-                                  },
-                                  "vehicleId": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901237",
-                                    "description": "Vehicle identifier"
-                                  },
-                                  "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901239",
-                                    "description": "Driver identifier (null if not assigned)"
-                                  },
-                                  "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
-                                    "example": 6,
-                                    "description": "Seat capacity override (null if using default)"
-                                  },
-                                  "vehicle": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "format": "cuid"
-                                      },
-                                      "make": {
-                                        "type": "string"
-                                      },
-                                      "model": {
-                                        "type": "string"
-                                      },
-                                      "licensePlate": {
-                                        "type": "string"
-                                      },
-                                      "capacity": {
-                                        "type": "number"
-                                      },
-                                      "familyId": {
-                                        "type": "string",
-                                        "format": "cuid"
-                                      }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "make",
-                                      "model",
-                                      "licensePlate",
-                                      "capacity",
-                                      "familyId"
-                                    ],
-                                    "description": "Vehicle information (included when requested)"
-                                  },
-                                  "driver": {
-                                    "type": "object",
-                                    "nullable": true,
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "format": "cuid"
-                                      },
-                                      "firstName": {
-                                        "type": "string"
-                                      },
-                                      "lastName": {
-                                        "type": "string"
-                                      },
-                                      "email": {
-                                        "type": "string",
-                                        "format": "email"
-                                      }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "firstName",
-                                      "lastName",
-                                      "email"
-                                    ],
-                                    "description": "Driver information (included when requested)"
-                                  },
-                                  "_count": {
-                                    "type": "object",
-                                    "properties": {
-                                      "childAssignments": {
-                                        "type": "number",
-                                        "example": 3,
-                                        "description": "Number of children assigned to this vehicle"
-                                      }
-                                    },
-                                    "required": [
-                                      "childAssignments"
-                                    ],
-                                    "description": "Count information (included when requested)"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "scheduleSlotId",
-                                  "vehicleId",
-                                  "driverId",
-                                  "seatOverride"
-                                ],
-                                "title": "Vehicle Assignment",
-                                "description": "Vehicle assignment information (included when requested)"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "scheduleSlotId",
-                              "childId",
-                              "vehicleAssignmentId",
-                              "assignedAt"
-                            ],
-                            "title": "Child Assignment",
-                            "description": "Child assignment information for a schedule slot"
-                          },
-                          "description": "Child assignments (included when requested)"
-                        },
-                        "_count": {
-                          "type": "object",
-                          "properties": {
-                            "vehicleAssignments": {
-                              "type": "number",
-                              "example": 2,
-                              "description": "Number of vehicle assignments"
-                            },
-                            "childAssignments": {
-                              "type": "number",
-                              "example": 8,
-                              "description": "Number of child assignments"
-                            }
-                          },
-                          "required": [
-                            "vehicleAssignments",
-                            "childAssignments"
-                          ],
-                          "description": "Count information (included when requested)"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "datetime",
-                        "groupId",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Schedule Slot",
-                      "description": "Schedule slot information"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid input data"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          },
-          "403": {
-            "description": "Forbidden - Insufficient permissions"
-          },
-          "404": {
-            "description": "Not found - Group or vehicle does not exist"
-          }
-        }
-      }
-    },
-    "/schedule-slots/groups/{groupId}/schedule": {
-      "get": {
-        "tags": [
-          "Schedule Slots"
-        ],
-        "summary": "Get group schedule",
-        "description": "Retrieve schedule for a group with optional date range filtering",
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "operationId": "getScheduleSlotsGroupsByGroupIdSchedule",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901235",
-              "description": "Unique group identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique group identifier (CUID format)",
-            "name": "groupId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-12-01T00:00:00.000Z",
-              "description": "Start date for schedule filtering (ISO 8601 format)"
-            },
-            "required": false,
-            "description": "Start date for schedule filtering (ISO 8601 format)",
-            "name": "startDate",
-            "in": "query"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "format": "date-time",
-              "example": "2023-12-31T23:59:59.999Z",
-              "description": "End date for schedule filtering (ISO 8601 format)"
-            },
-            "required": false,
-            "description": "End date for schedule filtering (ISO 8601 format)",
-            "name": "endDate",
-            "in": "query"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Group schedule retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "scheduleSlots": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901234",
-                                "description": "Schedule slot identifier"
-                              },
-                              "datetime": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-12-15T08:00:00.000Z",
-                                "description": "Schedule slot datetime"
-                              },
-                              "groupId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901235",
-                                "description": "Group identifier"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-12-01T08:00:00.000Z",
-                                "description": "Schedule slot creation timestamp"
-                              },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-12-01T08:00:00.000Z",
-                                "description": "Schedule slot update timestamp"
-                              },
-                              "vehicleAssignments": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901236",
-                                      "description": "Vehicle assignment identifier"
-                                    },
-                                    "scheduleSlotId": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901234",
-                                      "description": "Schedule slot identifier"
-                                    },
-                                    "vehicleId": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901237",
-                                      "description": "Vehicle identifier"
-                                    },
-                                    "driverId": {
-                                      "type": "string",
-                                      "nullable": true,
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901239",
-                                      "description": "Driver identifier (null if not assigned)"
-                                    },
-                                    "seatOverride": {
-                                      "type": "number",
-                                      "nullable": true,
-                                      "example": 6,
-                                      "description": "Seat capacity override (null if using default)"
-                                    },
-                                    "vehicle": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "make": {
-                                          "type": "string"
-                                        },
-                                        "model": {
-                                          "type": "string"
-                                        },
-                                        "licensePlate": {
-                                          "type": "string"
-                                        },
-                                        "capacity": {
-                                          "type": "number"
-                                        },
-                                        "familyId": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "make",
-                                        "model",
-                                        "licensePlate",
-                                        "capacity",
-                                        "familyId"
-                                      ],
-                                      "description": "Vehicle information (included when requested)"
-                                    },
-                                    "driver": {
-                                      "type": "object",
-                                      "nullable": true,
-                                      "properties": {
-                                        "id": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "firstName": {
-                                          "type": "string"
-                                        },
-                                        "lastName": {
-                                          "type": "string"
-                                        },
-                                        "email": {
-                                          "type": "string",
-                                          "format": "email"
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "firstName",
-                                        "lastName",
-                                        "email"
-                                      ],
-                                      "description": "Driver information (included when requested)"
-                                    },
-                                    "_count": {
-                                      "type": "object",
-                                      "properties": {
-                                        "childAssignments": {
-                                          "type": "number",
-                                          "example": 3,
-                                          "description": "Number of children assigned to this vehicle"
-                                        }
-                                      },
-                                      "required": [
-                                        "childAssignments"
-                                      ],
-                                      "description": "Count information (included when requested)"
-                                    }
-                                  },
-                                  "required": [
-                                    "id",
-                                    "scheduleSlotId",
-                                    "vehicleId",
-                                    "driverId",
-                                    "seatOverride"
-                                  ],
-                                  "title": "Vehicle Assignment",
-                                  "description": "Vehicle assignment information for a schedule slot"
-                                },
-                                "description": "Vehicle assignments (included when requested)"
-                              },
-                              "childAssignments": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901240",
-                                      "description": "Child assignment identifier"
-                                    },
-                                    "scheduleSlotId": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901234",
-                                      "description": "Schedule slot identifier"
-                                    },
-                                    "childId": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901238",
-                                      "description": "Child identifier"
-                                    },
-                                    "vehicleAssignmentId": {
-                                      "type": "string",
-                                      "format": "cuid",
-                                      "example": "cl123456789012345678901236",
-                                      "description": "Vehicle assignment identifier"
-                                    },
-                                    "assignedAt": {
-                                      "type": "string",
-                                      "format": "date-time",
-                                      "example": "2023-12-01T08:00:00.000Z",
-                                      "description": "Assignment timestamp"
-                                    },
-                                    "child": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "firstName": {
-                                          "type": "string"
-                                        },
-                                        "lastName": {
-                                          "type": "string"
-                                        },
-                                        "dateOfBirth": {
-                                          "type": "string",
-                                          "format": "date-time"
-                                        },
-                                        "familyId": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "firstName",
-                                        "lastName",
-                                        "dateOfBirth",
-                                        "familyId"
-                                      ],
-                                      "description": "Child information (included when requested)"
-                                    },
-                                    "vehicleAssignment": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string",
-                                          "format": "cuid",
-                                          "example": "cl123456789012345678901236",
-                                          "description": "Vehicle assignment identifier"
-                                        },
-                                        "scheduleSlotId": {
-                                          "type": "string",
-                                          "format": "cuid",
-                                          "example": "cl123456789012345678901234",
-                                          "description": "Schedule slot identifier"
-                                        },
-                                        "vehicleId": {
-                                          "type": "string",
-                                          "format": "cuid",
-                                          "example": "cl123456789012345678901237",
-                                          "description": "Vehicle identifier"
-                                        },
-                                        "driverId": {
-                                          "type": "string",
-                                          "nullable": true,
-                                          "format": "cuid",
-                                          "example": "cl123456789012345678901239",
-                                          "description": "Driver identifier (null if not assigned)"
-                                        },
-                                        "seatOverride": {
-                                          "type": "number",
-                                          "nullable": true,
-                                          "example": 6,
-                                          "description": "Seat capacity override (null if using default)"
-                                        },
-                                        "vehicle": {
-                                          "type": "object",
-                                          "properties": {
-                                            "id": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            },
-                                            "make": {
-                                              "type": "string"
-                                            },
-                                            "model": {
-                                              "type": "string"
-                                            },
-                                            "licensePlate": {
-                                              "type": "string"
-                                            },
-                                            "capacity": {
-                                              "type": "number"
-                                            },
-                                            "familyId": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            }
-                                          },
-                                          "required": [
-                                            "id",
-                                            "make",
-                                            "model",
-                                            "licensePlate",
-                                            "capacity",
-                                            "familyId"
-                                          ],
-                                          "description": "Vehicle information (included when requested)"
-                                        },
-                                        "driver": {
-                                          "type": "object",
-                                          "nullable": true,
-                                          "properties": {
-                                            "id": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            },
-                                            "firstName": {
-                                              "type": "string"
-                                            },
-                                            "lastName": {
-                                              "type": "string"
-                                            },
-                                            "email": {
-                                              "type": "string",
-                                              "format": "email"
-                                            }
-                                          },
-                                          "required": [
-                                            "id",
-                                            "firstName",
-                                            "lastName",
-                                            "email"
-                                          ],
-                                          "description": "Driver information (included when requested)"
-                                        },
-                                        "_count": {
-                                          "type": "object",
-                                          "properties": {
-                                            "childAssignments": {
-                                              "type": "number",
-                                              "example": 3,
-                                              "description": "Number of children assigned to this vehicle"
-                                            }
-                                          },
-                                          "required": [
-                                            "childAssignments"
-                                          ],
-                                          "description": "Count information (included when requested)"
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "scheduleSlotId",
-                                        "vehicleId",
-                                        "driverId",
-                                        "seatOverride"
-                                      ],
-                                      "title": "Vehicle Assignment",
-                                      "description": "Vehicle assignment information (included when requested)"
-                                    }
-                                  },
-                                  "required": [
-                                    "id",
-                                    "scheduleSlotId",
-                                    "childId",
-                                    "vehicleAssignmentId",
-                                    "assignedAt"
-                                  ],
-                                  "title": "Child Assignment",
-                                  "description": "Child assignment information for a schedule slot"
-                                },
-                                "description": "Child assignments (included when requested)"
-                              },
-                              "_count": {
-                                "type": "object",
-                                "properties": {
-                                  "vehicleAssignments": {
-                                    "type": "number",
-                                    "example": 2,
-                                    "description": "Number of vehicle assignments"
-                                  },
-                                  "childAssignments": {
-                                    "type": "number",
-                                    "example": 8,
-                                    "description": "Number of child assignments"
-                                  }
-                                },
-                                "required": [
-                                  "vehicleAssignments",
-                                  "childAssignments"
-                                ],
-                                "description": "Count information (included when requested)"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "datetime",
-                              "groupId",
-                              "createdAt",
-                              "updatedAt"
-                            ],
-                            "title": "Schedule Slot",
-                            "description": "Schedule slot information"
-                          },
-                          "description": "Schedule slots within the date range"
-                        },
-                        "totalCount": {
-                          "type": "number",
-                          "example": 15,
-                          "description": "Total number of schedule slots"
-                        },
-                        "dateRange": {
-                          "type": "object",
-                          "properties": {
-                            "startDate": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-12-01T00:00:00.000Z",
-                              "description": "Start date of the schedule range"
-                            },
-                            "endDate": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-12-31T23:59:59.999Z",
-                              "description": "End date of the schedule range"
-                            }
-                          },
-                          "required": [
-                            "startDate",
-                            "endDate"
-                          ],
-                          "description": "Date range applied to the schedule (if specified)"
-                        }
-                      },
-                      "required": [
-                        "scheduleSlots",
-                        "totalCount"
-                      ],
-                      "title": "Schedule Response",
-                      "description": "Group schedule information"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid group ID or date range"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          },
-          "403": {
-            "description": "Forbidden - Not a group member"
-          },
-          "404": {
-            "description": "Not found - Group does not exist"
           }
         }
       }

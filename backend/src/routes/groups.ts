@@ -1,6 +1,15 @@
 import { Router } from 'express';
 import { createGroupController } from '../controllers/GroupController';
 import { createGroupScheduleConfigController } from '../controllers/GroupScheduleConfigController';
+import { ScheduleSlotController } from '../controllers/ScheduleSlotController';
+import { ScheduleSlotService } from '../services/ScheduleSlotService';
+import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
+import { ScheduleSlotValidationService } from '../services/ScheduleSlotValidationService';
+import { NotificationService } from '../services/NotificationService';
+import { EmailServiceFactory } from '../services/EmailServiceFactory';
+import { UserRepository } from '../repositories/UserRepository';
+import { ChildAssignmentService } from '../services/ChildAssignmentService';
+import { prisma } from '../config/database';
 import { validateBody, validateParams, validateQuery } from '../middleware/validation';
 import { authenticateToken, requireGroupMembership, requireGroupAdmin } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
@@ -17,6 +26,20 @@ import {
   UpdateMemberRoleSchema,
   InviteFamilySchema,
 } from '../utils/validation';
+import {
+  DateRangeQuerySchema,
+  CreateScheduleSlotWithVehicleSchema,
+} from '../schemas/scheduleSlots';
+
+// Setup dependencies for ScheduleSlotController
+const scheduleSlotRepository = new ScheduleSlotRepository(prisma);
+const userRepository = new UserRepository(prisma);
+const emailService = EmailServiceFactory.getInstance();
+const notificationService = new NotificationService(emailService, userRepository, scheduleSlotRepository, prisma);
+const scheduleSlotValidationService = new ScheduleSlotValidationService(prisma);
+const scheduleSlotService = new ScheduleSlotService(scheduleSlotRepository, notificationService, scheduleSlotValidationService);
+const childAssignmentService = new ChildAssignmentService(prisma);
+const scheduleSlotController = new ScheduleSlotController(scheduleSlotService, childAssignmentService);
 
 const groupController = createGroupController();
 const groupScheduleConfigController = createGroupScheduleConfigController();
@@ -164,6 +187,26 @@ router.post('/:groupId/schedule-config/reset',
   validateParams(GroupParamsSchema),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupScheduleConfigController.resetGroupScheduleConfig),
+);
+
+// Group Schedule routes
+
+// Create schedule slot with vehicle for a group
+router.post(
+  '/:groupId/schedule-slots',
+  validateParams(GroupParamsSchema),
+  validateBody(CreateScheduleSlotWithVehicleSchema),
+  requireGroupMembership,
+  asyncHandler(scheduleSlotController.createScheduleSlotWithVehicle),
+);
+
+// Get schedule for a group (with optional date range)
+router.get(
+  '/:groupId/schedule',
+  validateParams(GroupParamsSchema),
+  validateQuery(DateRangeQuerySchema),
+  requireGroupMembership,
+  asyncHandler(scheduleSlotController.getSchedule),
 );
 
 export default router;

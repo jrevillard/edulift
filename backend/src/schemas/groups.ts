@@ -1429,3 +1429,114 @@ registerPath({
     },
   },
 });
+
+// ============================================================================
+// GROUP SCHEDULE ROUTES
+// ============================================================================
+
+// Get group schedule
+registerPath({
+  method: 'get',
+  path: '/groups/{groupId}/schedule',
+  tags: ['Groups'],
+  summary: 'Get group schedule',
+  description: 'Retrieve schedule for a group with optional date range filtering. Requires group membership.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: GroupParamsSchema,
+  },
+  responses: {
+    200: {
+      description: 'Group schedule retrieved successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              scheduleSlots: z.array(z.object({
+                id: z.string(),
+                datetime: z.string(),
+                vehicle: z.object({
+                  id: z.string(),
+                  name: z.string(),
+                  capacity: z.number(),
+                }).optional(),
+                driver: z.object({
+                  id: z.string(),
+                  name: z.string(),
+                }).optional(),
+              })),
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad request - Invalid parameters',
+    },
+    401: {
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      description: 'Forbidden - Insufficient permissions',
+    },
+    404: {
+      description: 'Not found - Group does not exist',
+    },
+  },
+});
+
+// Create schedule slot for group
+registerPath({
+  method: 'post',
+  path: '/groups/{groupId}/schedule-slots',
+  tags: ['Groups'],
+  summary: 'Create schedule slot for group',
+  description: 'Create a new schedule slot with vehicle for a group. Requires group membership.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: GroupParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            datetime: z.string().datetime('DateTime must be a valid ISO 8601 UTC datetime string'),
+            vehicleId: z.string().cuid('Invalid vehicle ID format'),
+            driverId: z.string().cuid('Invalid driver ID format').optional(),
+            seatOverride: z.number().int().min(0).max(8).optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: 'Schedule slot created successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              id: z.string(),
+              datetime: z.string(),
+              groupId: z.string(),
+              vehicleId: z.string(),
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad request - Invalid parameters',
+    },
+    401: {
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      description: 'Forbidden - Insufficient permissions',
+    },
+    404: {
+      description: 'Not found - Group does not exist',
+    },
+  },
+});

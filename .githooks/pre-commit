@@ -42,7 +42,7 @@ if [ "$BACKEND_CHANGED" = true ]; then
     print_info "Backend files modified. Running backend checks..."
 
     # Navigate to backend directory
-    cd backend
+    cd /workspace/backend
 
     # Check if API files have changed
     API_FILES_CHANGED=$(git diff --cached --name-only | grep -E "(src/routes/|src/schemas/|src/controllers/)" | wc -l)
@@ -100,7 +100,7 @@ if [ "$BACKEND_CHANGED" = true ]; then
 
     # Run tests - mandatory
     print_info "Running tests..."
-    if npm run test:run; then
+    if npm run test:ci; then
         print_success "Tests passed"
     else
         print_error "Tests failed"
@@ -118,7 +118,7 @@ if [ "$FRONTEND_CHANGED" = true ]; then
     print_info "Frontend files modified. Running frontend checks..."
 
     # Navigate to frontend directory
-    cd frontend
+    cd /workspace/frontend
 
     # TypeScript type checking
     echo "🔎 Running TypeScript type checking..."
