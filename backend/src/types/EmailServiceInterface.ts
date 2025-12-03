@@ -48,5 +48,6 @@ export interface EmailServiceInterface {
   sendScheduleSlotNotification(email: string, data: ScheduleSlotNotificationData): Promise<void>;
   sendDailyReminder(email: string, groupName: string, tomorrowTrips: DailyReminderSlot[]): Promise<void>;
   sendWeeklySchedule(email: string, groupName: string, weekInfo: string, scheduleData: any): Promise<void>;
+  sendAccountDeletionRequest(email: string, userName: string, deletionUrl: string): Promise<void>;
   verifyConnection(): Promise<boolean>;
 }

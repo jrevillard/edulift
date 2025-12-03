@@ -1,10 +1,15 @@
 import { Request, Response } from 'express';
 import { VehicleService } from '../services/VehicleService';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { ApiResponse } from '../types';
 import { createError } from '../middleware/errorHandler';
 import { createLogger, Logger } from '../utils/logger';
 import { PrismaClient } from '@prisma/client';
+import { sendSuccessResponse } from '../utils/responseValidation';
+import {
+  VehicleSuccessResponseSchema,
+  VehiclesSuccessResponseSchema,
+  SimpleSuccessResponseSchema,
+} from '../schemas/responses';
 
 export class VehicleController {
   constructor(
@@ -80,18 +85,16 @@ export class VehicleController {
       familyId: vehicle.familyId,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: vehicle,
-    };
-
     this.logger.debug('createVehicle: Sending response', {
       userId: authReq.userId,
       vehicleId: vehicle.id,
       success: true,
     });
 
-    res.status(201).json(response);
+    sendSuccessResponse(res, 201, VehicleSuccessResponseSchema, {
+      success: true,
+      data: vehicle,
+    });
   };
 
   getVehicles = async (req: Request, res: Response): Promise<void> => {
@@ -108,16 +111,14 @@ export class VehicleController {
     this.logger.debug('getVehicles: Calling service', { userId: authReq.userId });
     const vehicles = await this.vehicleService.getVehiclesByUser(authReq.userId);
 
-    const response: ApiResponse = {
-      success: true,
-      data: vehicles,
-    };
-
     this.logger.debug('getVehicles: Sending response', {
       userId: authReq.userId,
       vehicleCount: vehicles.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, VehiclesSuccessResponseSchema, {
+      success: true,
+      data: vehicles,
+    });
   };
 
   getVehicle = async (req: Request, res: Response): Promise<void> => {
@@ -147,18 +148,16 @@ export class VehicleController {
       familyId: vehicle.familyId,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: vehicle,
-    };
-
     this.logger.debug('getVehicle: Sending response', {
       vehicleId,
       userId: authReq.userId,
       success: true,
     });
 
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
+      success: true,
+      data: vehicle,
+    });
   };
 
   updateVehicle = async (req: Request, res: Response): Promise<void> => {
@@ -204,16 +203,14 @@ export class VehicleController {
       updatedCapacity: updatedVehicle.capacity,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: updatedVehicle,
-    };
-
     this.logger.debug('updateVehicle: Sending response', {
       vehicleId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
+      success: true,
+      data: updatedVehicle,
+    });
   };
 
   deleteVehicle = async (req: Request, res: Response): Promise<void> => {
@@ -239,16 +236,14 @@ export class VehicleController {
       deleted: result.success,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
     this.logger.debug('deleteVehicle: Sending response', {
       vehicleId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: true,
+      data: result,
+    });
   };
 
   getVehicleSchedule = async (req: Request, res: Response): Promise<void> => {
@@ -277,16 +272,14 @@ export class VehicleController {
       scheduleItems: Array.isArray(schedule) ? schedule.length : Object.keys(schedule).length,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: schedule,
-    };
-
     this.logger.debug('getVehicleSchedule: Sending response', {
       vehicleId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: true,
+      data: schedule,
+    });
   };
 
   getAvailableVehicles = async (req: Request, res: Response): Promise<void> => {
@@ -314,18 +307,16 @@ export class VehicleController {
       vehicleCount: availableVehicles.length,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: availableVehicles,
-    };
-
     this.logger.debug('getAvailableVehicles: Sending response', {
       groupId,
       timeSlotId,
       success: true,
       vehicleCount: availableVehicles.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, VehiclesSuccessResponseSchema, {
+      success: true,
+      data: availableVehicles,
+    });
   };
 }
 

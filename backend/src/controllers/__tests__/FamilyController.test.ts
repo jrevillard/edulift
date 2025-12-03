@@ -239,7 +239,9 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        message: 'Member role updated successfully',
+        data: {
+          message: 'Member role updated successfully',
+        },
       });
 
       expect(mockFamilyAuthService.requireFamilyRole).toHaveBeenCalledWith('user-123', FamilyRole.ADMIN);
@@ -294,7 +296,9 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        message: 'Member removed successfully',
+        data: {
+          message: 'Member removed successfully',
+        },
       });
 
       expect(mockFamilyService.getUserFamily).toHaveBeenCalledWith('user-123');
@@ -404,7 +408,9 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        message: 'Member removed successfully',
+        data: {
+          message: 'Member removed successfully',
+        },
       });
 
       expect(mockFamilyService.removeMember).toHaveBeenCalledWith('user-123', 'admin-member-456');

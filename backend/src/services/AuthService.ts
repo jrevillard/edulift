@@ -1,12 +1,14 @@
 import jwt from 'jsonwebtoken';
 import { UserRepository } from '../repositories/UserRepository';
-import { MagicLinkRepository } from '../repositories/MagicLinkRepository';
+import { SecureTokenRepository } from '../repositories/SecureTokenRepository';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { CreateUserData, UpdateProfileData } from '../types';
 import { verifyChallenge } from 'pkce-challenge';
 import crypto from 'crypto';
 import { RefreshTokenService } from './RefreshTokenService';
+import { PrismaClient } from '@prisma/client';
 import { logger } from '../utils/logger';
+import { UrlGenerator } from '../utils/UrlGenerator';
 
 /**
  * SECURITY: Timing-safe comparison for PKCE verification
@@ -54,14 +56,20 @@ export interface MagicLinkRequestOptions {
   code_challenge: string; // PKCE: SHA256 hash of code_verifier, base64url encoded - REQUIRED
 }
 
+export interface AccountDeletionRequestOptions {
+  userId: string;
+  code_challenge: string; // PKCE: SHA256 hash of code_verifier, base64url encoded - REQUIRED
+}
+
 export class AuthService {
   private jwtAccessSecret: string;
   private refreshTokenService: RefreshTokenService;
 
   constructor(
     private userRepository: UserRepository,
-    private magicLinkRepository: MagicLinkRepository,
+    private secureTokenRepository: SecureTokenRepository,
     private emailService: EmailServiceInterface,
+    private prisma: PrismaClient,
   ) {
     // Access token secret for JWT generation - MUST be set
     if (!process.env.JWT_ACCESS_SECRET) {
@@ -101,7 +109,7 @@ export class AuthService {
 
     // Create magic link that expires in 15 minutes
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-    const magicLink = await this.magicLinkRepository.create({
+    const magicLink = await this.secureTokenRepository.createMagicLink({
       userId: user.id,
       expiresAt,
       codeChallenge: code_challenge, // Store PKCE challenge for later verification - REQUIRED
@@ -117,8 +125,61 @@ export class AuthService {
     return { success: true, userExists };
   }
 
+  /**
+   * Request account deletion confirmation via email
+   * Generates secure token with PKCE protection and sends confirmation email
+   */
+  async requestAccountDeletion(options: AccountDeletionRequestOptions): Promise<{ success: boolean; message: string }> {
+    const { userId, code_challenge } = options;
+
+    // SECURITY: Validate PKCE code_challenge - MANDATORY for all requests
+    if (!code_challenge || code_challenge.length < 43 || code_challenge.length > 128) {
+      throw new Error('code_challenge is required and must be 43-128 characters for PKCE validation');
+    }
+
+    // Validate user exists
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    logger.info('requestAccountDeletion: Processing deletion request', {
+      userId,
+      userEmail: user.email,
+      userName: user.name,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Create account deletion token that expires in 15 minutes
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    const magicLink = await this.secureTokenRepository.createAccountDeletionToken({
+      userId,
+      expiresAt,
+      codeChallenge: code_challenge, // Store PKCE challenge for later verification - REQUIRED
+    });
+
+    // Generate account deletion URL using the same pattern as magic links
+    const deletionUrl = this.generateAccountDeletionUrl(magicLink.token);
+
+    // Send account deletion confirmation email
+    await this.emailService.sendAccountDeletionRequest(user.email, user.name || 'User', deletionUrl);
+
+    logger.info('requestAccountDeletion: Deletion email sent', {
+      userId,
+      userEmail: user.email,
+      userName: user.name,
+      tokenId: `${magicLink.token.substring(0, 10)  }...`,
+      expiresAt: magicLink.expiresAt.toISOString(),
+    });
+
+    return {
+      success: true,
+      message: 'Account deletion confirmation sent to your email',
+    };
+  }
+
   async verifyMagicLink(token: string, code_verifier?: string): Promise<any | null> {
-    const magicLink = await this.magicLinkRepository.findValidToken(token);
+    const magicLink = await this.secureTokenRepository.findValidMagicLinkWithPKCE(token, code_verifier);
 
     if (!magicLink) {
       return null;
@@ -144,7 +205,7 @@ export class AuthService {
     }
 
     // Mark magic link as used
-    await this.magicLinkRepository.markAsUsed(token);
+    await this.secureTokenRepository.markAsUsed(token);
 
     // ✅ NEW: Generate short-lived access token (15 minutes) + refresh token (60 days SLIDING)
     const accessToken = this.generateAccessToken(user);
@@ -171,6 +232,65 @@ export class AuthService {
       // Legacy fields for backward compatibility
       token: accessToken,
       expiresAt: new Date(Date.now() + expiresIn * 1000),
+    };
+  }
+
+  /**
+   * Confirm and execute account deletion using PKCE-protected token
+   */
+  async confirmAccountDeletion(token: string, code_verifier?: string): Promise<{ success: boolean; message: string; deletedAt: string }> {
+    // Find valid token using existing repository method
+    const magicLink = await this.secureTokenRepository.findValidAccountDeletionTokenWithPKCE(token, code_verifier);
+
+    if (!magicLink) {
+      throw new Error('Invalid or expired deletion token');
+    }
+
+    // SECURITY: PKCE validation to prevent cross-user attacks - MANDATORY for all tokens
+    if (!code_verifier) {
+      throw new Error('code_verifier required for PKCE validation');
+    }
+
+    // SECURITY: Use timing-safe PKCE validation to prevent timing attacks
+    const isValid = await timingSafeVerifyChallenge(code_verifier, magicLink.codeChallenge);
+    if (!isValid) {
+      // Invalid PKCE validation - potential cross-user attack
+      logger.warn(`🚨 SECURITY: Invalid PKCE validation for deletion token ${token} - potential cross-user attack`);
+      throw new Error('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
+    }
+
+    // Get user for logging
+    const user = await this.userRepository.findById(magicLink.userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    logger.info('confirmAccountDeletion: Proceeding with account deletion', {
+      userId: magicLink.userId,
+      userEmail: user.email,
+      userName: user.name,
+      tokenId: `${token.substring(0, 10)  }...`,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Mark token as used first to prevent reuse
+    await this.secureTokenRepository.markAsUsed(token);
+
+    // Execute account deletion directly
+    const deletionResult = await this.performAccountDeletion(magicLink.userId, user);
+
+    logger.info('confirmAccountDeletion: Account deleted successfully via email confirmation', {
+      userId: magicLink.userId,
+      userEmail: user.email,
+      userName: user.name,
+      deletedAt: deletionResult.deletedAt,
+      timestamp: new Date().toISOString(),
+    });
+
+    return {
+      success: true,
+      message: 'Account deleted successfully via email confirmation',
+      deletedAt: deletionResult.deletedAt,
     };
   }
 
@@ -289,26 +409,205 @@ export class AuthService {
   }
 
   /**
-   * Generate magic link URL using DEEP_LINK_BASE_URL with fallbacks
+   * Private helper method to perform account deletion (used by confirmAccountDeletion)
+   */
+  private async performAccountDeletion(userId: string, user: any): Promise<{success: boolean; message: string; deletedAt: string}> {
+    const startTime = Date.now();
+
+    logger.info('performAccountDeletion: Starting account deletion', {
+      userId,
+      userEmail: user.email,
+      timestamp: new Date().toISOString(),
+    });
+
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        // Step 1: Analyze family membership
+        const familyMembership = await tx.familyMember.findFirst({
+          where: { userId },
+          include: {
+            family: {
+              include: {
+                members: {
+                  include: { user: true },
+                },
+                children: true,
+                vehicles: true,
+              },
+            },
+          },
+        });
+
+        if (familyMembership) {
+          const family = familyMembership.family;
+          const admins = family.members.filter(m => m.role === 'ADMIN');
+
+          logger.debug('performAccountDeletion: Found family membership', {
+            userId,
+            familyId: family.id,
+            familyName: family.name,
+            totalMembers: family.members.length,
+            adminCount: admins.length,
+          });
+
+          if (admins.length === 1) {
+            // LAST ADMIN = delete complete family
+            logger.warn('performAccountDeletion: Last admin - deleting family', {
+              userId,
+              familyId: family.id,
+              familyName: family.name,
+              childrenCount: family.children?.length || 0,
+              vehicleCount: family.vehicles?.length || 0,
+            });
+
+            // Family deletion will cascade to children, vehicles, groups
+            await tx.family.delete({ where: { id: family.id } });
+
+            logger.info('performAccountDeletion: Family deleted successfully', {
+              userId,
+              familyId: family.id,
+            });
+          } else {
+            // OTHER ADMIN = delete member only
+            logger.debug('performAccountDeletion: Multiple admins - deleting member only', {
+              userId,
+              familyId: family.id,
+              familyName: family.name,
+              remainingAdmins: admins.filter(a => a.id !== userId).length,
+            });
+
+            await tx.familyMember.delete({ where: { id: familyMembership.id } });
+
+            logger.info('performAccountDeletion: Family member deleted successfully', {
+              userId,
+              familyId: family.id,
+            });
+          }
+        }
+
+        // Step 2: Cleanup group relationships
+        const groupRelationsDeleted = await tx.groupFamilyMember.deleteMany({
+          where: { addedBy: userId },
+        });
+        const childRelationsDeleted = await tx.groupChildMember.deleteMany({
+          where: { addedBy: userId },
+        });
+
+        logger.debug('performAccountDeletion: Group relationships cleaned up', {
+          userId,
+          groupFamilyMembersDeleted: groupRelationsDeleted.count,
+          groupChildMembersDeleted: childRelationsDeleted.count,
+        });
+
+        // Step 3: Cleanup personal data
+        await tx.activityLog.deleteMany({ where: { userId } });
+        await tx.secureToken.deleteMany({ where: { userId } });
+        await tx.fcmToken.deleteMany({ where: { userId } });
+        await tx.refreshToken.deleteMany({ where: { userId } });
+
+        logger.debug('performAccountDeletion: Personal data cleaned up', {
+          userId,
+          activityLogsDeleted: true,
+          secureTokensDeleted: true,
+          fcmTokensDeleted: true,
+          refreshTokensDeleted: true,
+        });
+
+        // Step 4: Clean up created invitations
+        // Delete invitations created by the user (since fields are not nullable)
+        const familyInvitationsDeleted = await tx.familyInvitation.deleteMany({
+          where: {
+            OR: [
+              { invitedBy: userId },
+              { createdBy: userId },
+            ],
+          },
+        });
+
+        const groupInvitationsDeleted = await tx.groupInvitation.deleteMany({
+          where: {
+            OR: [
+              { invitedBy: userId },
+              { createdBy: userId },
+            ],
+          },
+        });
+
+        const vehicleAssignmentsUpdated = await tx.scheduleSlotVehicle.updateMany({
+          where: { driverId: userId },
+          data: { driverId: null },
+        });
+
+        logger.debug('performAccountDeletion: References cleaned up', {
+          userId,
+          familyInvitationsDeleted: familyInvitationsDeleted.count,
+          groupInvitationsDeleted: groupInvitationsDeleted.count,
+          vehicleAssignmentsUpdated: vehicleAssignmentsUpdated.count,
+        });
+
+        // Step 5: Delete the user
+        await tx.user.delete({ where: { id: userId } });
+
+        logger.info('performAccountDeletion: User deleted successfully', {
+          userId,
+          email: user.email,
+          name: user.name,
+          duration: Date.now() - startTime,
+        });
+      });
+
+      return {
+        success: true,
+        message: 'Account deleted successfully',
+        deletedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      logger.error('Perform account deletion error:', {
+        error: error instanceof Error ? error.message : String(error),
+        userId,
+        stack: error instanceof Error ? error.stack : undefined,
+        duration: Date.now() - startTime,
+      });
+
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      throw new Error('Failed to delete account');
+    }
+  }
+
+  /**
+   * Helper method to get user by ID (used by controller for validation)
+   */
+  async getUserById(userId: string): Promise<any> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      return null;
+    }
+
+    // Return only safe user fields
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      timezone: user.timezone,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  /**
+   * Generate magic link URL using centralized UrlGenerator
    */
   private generateMagicLinkUrl(token: string, inviteCode?: string): string {
-    const baseUrl = process.env.DEEP_LINK_BASE_URL ||
-      process.env.FRONTEND_URL ||
-      'https://app.edulift.com';
+    return UrlGenerator.generateMagicLinkUrl(token, inviteCode);
+  }
 
-    // Determine separator based on URL scheme
-    let separator = '/auth/verify';
-    if (baseUrl.startsWith('edulift://')) {
-      separator = 'auth/verify';
-    } else {
-      separator = '/auth/verify';
-    }
-
-    const params = new URLSearchParams({ token });
-    if (inviteCode) {
-      params.append('inviteCode', inviteCode);
-    }
-
-    return `${baseUrl}${separator}?${params.toString()}`;
+  /**
+   * Generate account deletion URL using centralized UrlGenerator
+   */
+  private generateAccountDeletionUrl(token: string): string {
+    return UrlGenerator.generateAccountDeletionUrl(token);
   }
 }

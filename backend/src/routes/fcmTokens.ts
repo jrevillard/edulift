@@ -1,11 +1,14 @@
 import { prisma } from '../config/database';
 import { Router, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import { PushNotificationServiceFactory } from '../services/PushNotificationServiceFactory';
 import { FcmTokenData } from '../types/PushNotificationInterface';
 import { createLogger } from '../utils/logger';
 import { AuthenticatedRequest, authenticateToken } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { validateBody, validateParams } from '../middleware/validation';
+import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
+import { SimpleSuccessResponseSchema } from '../schemas/responses';
 
 // Import centralized schemas to trigger OpenAPI registration (Pattern 100%)
 // This ensures all FCM schemas are properly documented in the OpenAPI specification
@@ -48,35 +51,33 @@ router.use(authenticateToken);
  *             schema:
  *               $ref: '#/components/schemas/SaveTokenSuccess'
  *       '400':
- *         description: Validation error
+ *         description: Invalid request data
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.post('/',
-  validateBody(SaveTokenSchema),
-  asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const { token, deviceId, fcmPlatform } = req.body;
-    const userId = req.user.id;
+router.post('/', validateBody(SaveTokenSchema), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { token, deviceId, fcmPlatform } = req.body;
+  const userId = req.userId;
 
+  logger.info('Saving FCM token:', { userId, deviceId, fcmPlatform });
+
+  if (!token || !fcmPlatform) {
+    return sendErrorResponse(res, 400, 'FCM token and platform are required');
+  }
+
+  try {
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
 
     const tokenData: FcmTokenData = {
-      userId,
+      userId: userId!,
       token,
       deviceId: deviceId || null,
       fcmPlatform,
@@ -84,25 +85,15 @@ router.post('/',
 
     const savedToken = await pushService.saveToken(tokenData);
 
-    res.status(201).json({
-      success: true,
-      data: {
-        id: savedToken.id,
-        fcmPlatform: savedToken.fcmPlatform,
-        isActive: savedToken.isActive,
-        createdAt: savedToken.lastUsed,
-      },
+    sendSuccessResponse(res, 201, SimpleSuccessResponseSchema, {
+      id: savedToken.id,
+      fcmPlatform: savedToken.fcmPlatform,
+      isActive: savedToken.isActive,
+      createdAt: savedToken.lastUsed,
     });
   } catch (error) {
     logger.error('Error saving FCM token:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SAVE_TOKEN_ERROR',
-        message: 'Failed to save FCM token',
-        details: (error as Error).message,
-      },
-    });
+    sendErrorResponse(res, 500, 'Failed to save FCM token');
   }
 }));
 
@@ -122,70 +113,63 @@ router.post('/',
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/GetTokensSuccess'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/TokensList'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.get('/', asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.get('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId;
+
   try {
-    const userId = req.user.id;
-    const pushService = PushNotificationServiceFactory.getInstance(prisma);
-
-    const tokens = await pushService.getUserTokens(userId);
-
-    const responseData = tokens.map(token => ({
-      id: token.id,
-      fcmPlatform: token.fcmPlatform,
-      deviceId: token.deviceId,
-      isActive: token.isActive,
-      lastUsed: token.lastUsed,
-      createdAt: token.lastUsed, // Using lastUsed as createdAt for simplicity
-    }));
-
-    res.json({
-      success: true,
-      data: responseData,
-    });
-  } catch (error) {
-    logger.error('Error fetching FCM tokens:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'FETCH_TOKENS_ERROR',
-        message: 'Failed to fetch FCM tokens',
-        details: (error as Error).message,
+    const tokens = await prisma.fcmToken.findMany({
+      where: {
+        userId: userId!,
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        deviceId: true,
+        platform: true,
+        isActive: true,
+        createdAt: true,
+        lastUsed: true,
+        // Don't return the actual token in list for security
       },
     });
+
+    logger.info('Retrieved FCM tokens:', { userId, tokenCount: tokens.length });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { tokens });
+  } catch (error) {
+    logger.error('Error retrieving FCM tokens:', { error: error instanceof Error ? error.message : String(error) });
+    sendErrorResponse(res, 500, 'Failed to retrieve FCM tokens');
   }
 }));
 
 /**
  * @swagger
- * /api/fcm-tokens/{token}:
+ * /api/fcm-tokens/{tokenId}:
  *   delete:
  *     tags:
  *       - FCM Tokens
- *     summary: Delete a specific FCM token
- *     description: Delete a specific FCM token that belongs to the authenticated user
+ *     summary: Delete an FCM token
+ *     description: Delete a specific FCM token for the authenticated user
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: token
+ *         name: tokenId
  *         required: true
  *         schema:
  *           type: string
- *         description: FCM token to delete
+ *         description: FCM token ID
  *     responses:
  *       '200':
  *         description: FCM token deleted successfully
@@ -193,68 +177,50 @@ router.get('/', asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequ
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/DeleteTokenSuccess'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
  *       '404':
- *         description: FCM token not found
+ *         description: Token not found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:token',
-  validateParams(FcmTokenParamsSchema),
-  asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const { token } = req.params;
-    const userId = req.user.id;
+router.delete('/:tokenId', validateParams(FcmTokenParamsSchema), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { tokenId } = req.params;
+  const userId = req.userId;
 
-    // Verify the token belongs to the authenticated user
-    const userTokens = await prisma.fcmToken.findFirst({
+  try {
+    // First check if the token belongs to the authenticated user
+    const token = await prisma.fcmToken.findFirst({
       where: {
-        token,
-        userId,
+        id: tokenId,
+        userId: userId!,
       },
     });
 
-    if (!userTokens) {
-      res.status(404).json({
-        success: false,
-        error: {
-          code: 'TOKEN_NOT_FOUND',
-          message: 'FCM token not found or does not belong to user',
-        },
-      });
-      return;
+    if (!token) {
+      return sendErrorResponse(res, 404, 'FCM token not found');
     }
 
+    // Get the platform service to unsubscribe from all topics
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
-    await pushService.deleteToken(token);
 
-    res.json({
-      success: true,
+    // Delete the token (this will also handle platform-specific cleanup)
+    await pushService.deleteToken(tokenId);
+
+    logger.info('FCM token deleted successfully:', { tokenId, userId, platform: token.platform });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       message: 'FCM token deleted successfully',
     });
   } catch (error) {
-    logger.error('Error deleting FCM token:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'DELETE_TOKEN_ERROR',
-        message: 'Failed to delete FCM token',
-        details: (error as Error).message,
-      },
-    });
+    logger.error('Error deleting FCM token:', { error: error instanceof Error ? error.message : String(error), tokenId });
+    sendErrorResponse(res, 500, 'Failed to delete FCM token');
   }
 }));
 
@@ -265,7 +231,7 @@ router.delete('/:token',
  *     tags:
  *       - FCM Tokens
  *     summary: Validate an FCM token
- *     description: Validate an FCM token that belongs to the authenticated user
+ *     description: Validate if an FCM token is still valid and active
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -276,94 +242,71 @@ router.delete('/:token',
  *             $ref: '#/components/schemas/ValidateToken'
  *     responses:
  *       '200':
- *         description: FCM token validation result
+ *         description: Token validation result
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/ValidateTokenSuccess'
  *       '400':
- *         description: Validation error
+ *         description: Invalid request data
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '404':
- *         description: FCM token not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.post('/validate',
-  validateBody(ValidateTokenSchema),
-  asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.post('/validate', validateBody(ValidateTokenSchema), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { token, fcmPlatform } = req.body;
+  const userId = req.userId;
+
+  if (!token || !fcmPlatform) {
+    return sendErrorResponse(res, 400, 'FCM token and platform are required');
+  }
+
   try {
-    const { token } = req.body;
-    const userId = req.user.id;
-
-    // Verify the token belongs to the authenticated user
-    const userToken = await prisma.fcmToken.findFirst({
-      where: {
-        token,
-        userId,
-      },
-    });
-
-    if (!userToken) {
-      res.status(404).json({
-        success: false,
-        error: {
-          code: 'TOKEN_NOT_FOUND',
-          message: 'FCM token not found or does not belong to user',
-        },
-      });
-      return;
-    }
-
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
+
     const isValid = await pushService.validateToken(token);
 
-    res.json({
-      success: true,
-      data: {
-        token,
-        isValid,
-        isServiceAvailable: pushService.isAvailable(),
-      },
+    // Update lastUsed timestamp if token is valid
+    if (isValid) {
+      await prisma.fcmToken.updateMany({
+        where: {
+          userId: userId!,
+          token,
+          platform: fcmPlatform,
+        },
+        data: {
+          lastUsed: new Date(),
+        },
+      });
+    }
+
+    logger.info('Token validation result:', { userId, fcmPlatform, isValid });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      isValid,
+      lastChecked: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Error validating FCM token:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'VALIDATE_TOKEN_ERROR',
-        message: 'Failed to validate FCM token',
-        details: (error as Error).message,
-      },
-    });
+    sendErrorResponse(res, 500, 'Failed to validate FCM token');
   }
 }));
 
 /**
  * @swagger
- * /api/fcm-tokens/subscribe:
+ * /api/fcm-tokens/subscribe-topic:
  *   post:
  *     tags:
  *       - FCM Tokens
- *     summary: Subscribe a token to a topic
- *     description: Subscribe an FCM token to a specific topic for notifications
+ *     summary: Subscribe to a topic
+ *     description: Subscribe the authenticated user's FCM token(s) to a specific topic
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -374,95 +317,93 @@ router.post('/validate',
  *             $ref: '#/components/schemas/SubscribeTopic'
  *     responses:
  *       '200':
- *         description: Topic subscription result
+ *         description: Successfully subscribed to topic
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/TopicSubscriptionSuccess'
+ *               $ref: '#/components/schemas/SubscribeTopicSuccess'
  *       '400':
- *         description: Validation error
+ *         description: Invalid request data
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '404':
- *         description: FCM token not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.post('/subscribe',
-  validateBody(SubscribeTopicSchema),
-  asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const { token, topic } = req.body;
-    const userId = req.user.id;
+router.post('/subscribe-topic', validateBody(SubscribeTopicSchema), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { topic, fcmPlatform, deviceId } = req.body;
+  const userId = req.userId;
 
-    // Verify the token belongs to the authenticated user
-    const userToken = await prisma.fcmToken.findFirst({
+  if (!topic || !fcmPlatform) {
+    return sendErrorResponse(res, 400, 'Topic and platform are required');
+  }
+
+  try {
+    const pushService = PushNotificationServiceFactory.getInstance(prisma);
+
+    // Get active tokens for the user, optionally filtered by device
+    const tokens = await prisma.fcmToken.findMany({
       where: {
-        token,
-        userId,
+        userId: userId!,
+        platform: fcmPlatform,
         isActive: true,
+        ...(deviceId && { deviceId }),
       },
     });
 
-    if (!userToken) {
-      res.status(404).json({
-        success: false,
-        error: {
-          code: 'TOKEN_NOT_FOUND',
-          message: 'Active FCM token not found or does not belong to user',
-        },
-      });
-      return;
+    if (tokens.length === 0) {
+      return sendErrorResponse(res, 404, 'No active FCM tokens found for this platform');
     }
 
-    const pushService = PushNotificationServiceFactory.getInstance(prisma);
-    const success = await pushService.subscribeToTopic(token, topic);
+    // Subscribe each token individually since batch method doesn't exist
+    const subscriptionPromises = tokens.map((t: Prisma.FcmTokenGetPayload<{ select: { token: true } }>) =>
+      pushService.subscribeToTopic(t.token, topic),
+    );
+    const subscriptionResults = await Promise.all(subscriptionPromises);
 
-    res.json({
-      success,
-      data: {
-        token,
-        topic,
-        subscribed: success,
-      },
+    const successfulSubscriptions = subscriptionResults.filter(Boolean).length;
+    const results = tokens.map((t: Prisma.FcmTokenGetPayload<{ select: { token: true } }>, index: number) => ({
+      token: t.token,
+      success: subscriptionResults[index] || false,
+    }));
+
+    if (successfulSubscriptions === 0) {
+      return sendErrorResponse(res, 500, 'Failed to subscribe to topic');
+    }
+
+    logger.info('Topic subscription completed:', {
+      userId,
+      topic,
+      fcmPlatform,
+      totalTokens: tokens.length,
+      successfulSubscriptions,
+    });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      topic,
+      subscribedTokens: successfulSubscriptions,
+      totalTokens: tokens.length,
+      results,
     });
   } catch (error) {
-    logger.error('Error subscribing to topic:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SUBSCRIBE_ERROR',
-        message: 'Failed to subscribe to topic',
-        details: (error as Error).message,
-      },
-    });
+    logger.error('Error subscribing to topic:', { error: error instanceof Error ? error.message : String(error), topic });
+    sendErrorResponse(res, 500, 'Failed to subscribe to topic');
   }
 }));
 
 /**
  * @swagger
- * /api/fcm-tokens/unsubscribe:
+ * /api/fcm-tokens/unsubscribe-topic:
  *   post:
  *     tags:
  *       - FCM Tokens
- *     summary: Unsubscribe a token from a topic
- *     description: Unsubscribe an FCM token from a specific topic
+ *     summary: Unsubscribe from a topic
+ *     description: Unsubscribe the authenticated user's FCM token(s) from a specific topic
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -470,98 +411,92 @@ router.post('/subscribe',
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SubscribeTopic'
+ *             $ref: '#/components/schemas/SubscribeTopic' // Reuse same schema for unsubscribe
  *     responses:
  *       '200':
- *         description: Topic unsubscription result
+ *         description: Successfully unsubscribed from topic
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/TopicSubscriptionSuccess'
+ *               $ref: '#/components/schemas/SubscribeTopicSuccess'
  *       '400':
- *         description: Validation error
+ *         description: Invalid request data
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '404':
- *         description: FCM token not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.post('/unsubscribe',
-  validateBody(SubscribeTopicSchema),
-  asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const { token, topic } = req.body;
-    const userId = req.user.id;
+router.post('/unsubscribe-topic', validateBody(SubscribeTopicSchema), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { topic, fcmPlatform, deviceId } = req.body;
+  const userId = req.userId;
 
-    // Verify the token belongs to the authenticated user
-    const userToken = await prisma.fcmToken.findFirst({
+  if (!topic || !fcmPlatform) {
+    return sendErrorResponse(res, 400, 'Topic and platform are required');
+  }
+
+  try {
+    const pushService = PushNotificationServiceFactory.getInstance(prisma);
+
+    // Get active tokens for the user, optionally filtered by device
+    const tokens = await prisma.fcmToken.findMany({
       where: {
-        token,
-        userId,
+        userId: userId!,
+        platform: fcmPlatform,
         isActive: true,
+        ...(deviceId && { deviceId }),
       },
     });
 
-    if (!userToken) {
-      res.status(404).json({
-        success: false,
-        error: {
-          code: 'TOKEN_NOT_FOUND',
-          message: 'Active FCM token not found or does not belong to user',
-        },
-      });
-      return;
+    if (tokens.length === 0) {
+      return sendErrorResponse(res, 404, 'No active FCM tokens found for this platform');
     }
 
-    const pushService = PushNotificationServiceFactory.getInstance(prisma);
-    const success = await pushService.unsubscribeFromTopic(token, topic);
+    // Unsubscribe each token individually since batch method doesn't exist
+    const unsubscriptionPromises = tokens.map((t: Prisma.FcmTokenGetPayload<{ select: { token: true } }>) =>
+      pushService.unsubscribeFromTopic(t.token, topic),
+    );
+    const unsubscriptionResults = await Promise.all(unsubscriptionPromises);
 
-    res.json({
-      success,
-      data: {
-        token,
-        topic,
-        unsubscribed: success,
-      },
+    const successfulUnsubscriptions = unsubscriptionResults.filter(Boolean).length;
+    const results = tokens.map((t: Prisma.FcmTokenGetPayload<{ select: { token: true } }>, index: number) => ({
+      token: t.token,
+      success: unsubscriptionResults[index] || false,
+    }));
+
+    logger.info('Topic unsubscription completed:', {
+      userId,
+      topic,
+      fcmPlatform,
+      totalTokens: tokens.length,
+      successfulUnsubscriptions,
+    });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      topic,
+      unsubscribedTokens: successfulUnsubscriptions,
+      totalTokens: tokens.length,
+      results,
     });
   } catch (error) {
-    logger.error('Error unsubscribing from topic:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'UNSUBSCRIBE_ERROR',
-        message: 'Failed to unsubscribe from topic',
-        details: (error as Error).message,
-      },
-    });
+    logger.error('Error unsubscribing from topic:', { error: error instanceof Error ? error.message : String(error), topic });
+    sendErrorResponse(res, 500, 'Failed to unsubscribe from topic');
   }
 }));
 
 /**
  * @swagger
- * /api/fcm-tokens/test:
+ * /api/fcm-tokens/test-notification:
  *   post:
  *     tags:
  *       - FCM Tokens
  *     summary: Send a test notification
- *     description: Send a test notification to the authenticated user's devices
+ *     description: Send a test notification to the authenticated user's device(s)
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -578,144 +513,154 @@ router.post('/unsubscribe',
  *             schema:
  *               $ref: '#/components/schemas/TestNotificationSuccess'
  *       '400':
- *         description: Validation error
+ *         description: Invalid request data
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '401':
- *         description: Authentication required
+ *               $ref: '#/components/schemas/Error'
+ *       '404':
+ *         description: No active tokens found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       '503':
- *         description: Service unavailable
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.post('/test',
-  validateBody(TestNotificationSchema),
-  asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-  try {
-    const { title, body, data, priority } = req.body;
-    const userId = req.user.id;
+router.post('/test-notification', validateBody(TestNotificationSchema), asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const { title, body, fcmPlatform, deviceId } = req.body;
+  const userId = req.userId;
 
+  if (!title || !body || !fcmPlatform) {
+    return sendErrorResponse(res, 400, 'Title, body, and platform are required');
+  }
+
+  try {
     const pushService = PushNotificationServiceFactory.getInstance(prisma);
 
-    if (!pushService.isAvailable()) {
-      res.status(503).json({
-        success: false,
-        error: {
-          code: 'SERVICE_UNAVAILABLE',
-          message: 'Push notification service is not available',
-        },
-      });
-      return;
+    // Get active tokens for the user, optionally filtered by device
+    const tokens = await prisma.fcmToken.findMany({
+      where: {
+        userId: userId!,
+        platform: fcmPlatform,
+        isActive: true,
+        ...(deviceId && { deviceId }),
+      },
+    });
+
+    if (tokens.length === 0) {
+      return sendErrorResponse(res, 404, 'No active FCM tokens found for this platform');
     }
 
-    const notificationData = {
+    const notification = {
       title,
       body,
       data: {
         type: 'test_notification',
-        timestamp: Date.now().toString(),
-        ...data,
+        timestamp: new Date().toISOString(),
       },
-      priority: priority || 'normal' as const,
     };
 
-    const result = await pushService.sendToUser(userId, notificationData);
+    const results = await pushService.sendToTokens(tokens.map((t: Prisma.FcmTokenGetPayload<{ select: { token: true } }>) => t.token), notification);
 
-    res.json({
-      success: true,
-      data: {
-        successCount: result.successCount,
-        failureCount: result.failureCount,
-        invalidTokens: result.invalidTokens,
-        totalTokens: result.results.length,
-      },
+    const successfulSends = results.successCount;
+
+    logger.info('Test notification sent:', {
+      userId,
+      title,
+      fcmPlatform,
+      totalTokens: tokens.length,
+      successfulSends,
+    });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      message: 'Test notification sent',
+      totalTokens: tokens.length,
+      successfulSends,
+      failedSends: tokens.length - successfulSends,
+      results,
     });
   } catch (error) {
     logger.error('Error sending test notification:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'SEND_TEST_NOTIFICATION_ERROR',
-        message: 'Failed to send test notification',
-        details: (error as Error).message,
-      },
-    });
+    sendErrorResponse(res, 500, 'Failed to send test notification');
   }
 }));
 
 /**
  * @swagger
- * /api/fcm-tokens/stats:
- *   get:
+ * /api/fcm-tokens/cleanup-inactive:
+ *   delete:
  *     tags:
  *       - FCM Tokens
- *     summary: Get FCM token statistics
- *     description: Get FCM token statistics for the authenticated user
+ *     summary: Clean up inactive FCM tokens
+ *     description: Remove inactive FCM tokens for the authenticated user
  *     security:
  *       - BearerAuth: []
  *     responses:
  *       '200':
- *         description: FCM token statistics retrieved successfully
+ *         description: Inactive tokens cleaned up successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/FcmTokenStatsSuccess'
- *       '401':
- *         description: Authentication required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/CleanupSuccess'
  *       '500':
  *         description: Server error
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
+ *               $ref: '#/components/schemas/Error'
  */
-router.get('/stats', asyncHandler<AuthenticatedRequest>(async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+router.delete('/cleanup-inactive', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.userId;
+
   try {
-    const pushService = PushNotificationServiceFactory.getInstance(prisma);
+    // Find tokens that haven't been used in the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    // Get user's token count
-    const userId = req.user.id;
-    const userTokens = await pushService.getUserTokens(userId);
-
-    res.json({
-      success: true,
-      data: {
-        userTokenCount: userTokens.length,
-        serviceAvailable: pushService.isAvailable(),
-        platforms: userTokens.reduce((acc, token) => {
-          acc[token.fcmPlatform] = (acc[token.fcmPlatform] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
+    const inactiveTokens = await prisma.fcmToken.findMany({
+      where: {
+        userId: userId!,
+        lastUsed: {
+          lt: thirtyDaysAgo,
+        },
       },
+    });
+
+    if (inactiveTokens.length === 0) {
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+        message: 'No inactive tokens found',
+        cleanedUpTokens: 0,
+      });
+      return;
+    }
+
+    // Delete inactive tokens
+    await prisma.fcmToken.deleteMany({
+      where: {
+        userId: userId!,
+        lastUsed: {
+          lt: thirtyDaysAgo,
+        },
+      },
+    });
+
+    logger.info('Inactive FCM tokens cleaned up:', {
+      userId,
+      cleanedUpTokens: inactiveTokens.length,
+    });
+
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      message: 'Inactive tokens cleaned up successfully',
+      cleanedUpTokens: inactiveTokens.length,
     });
   } catch (error) {
-    logger.error('Error fetching FCM token stats:', { error: error instanceof Error ? error.message : String(error) });
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'FETCH_STATS_ERROR',
-        message: 'Failed to fetch FCM token statistics',
-        details: (error as Error).message,
-      },
-    });
+    logger.error('Error cleaning up inactive tokens:', { error: error instanceof Error ? error.message : String(error) });
+    sendErrorResponse(res, 500, 'Failed to clean up inactive tokens');
   }
 }));
 

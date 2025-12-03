@@ -12,6 +12,7 @@ const mockEmailService = {
   sendDailyReminder: jest.fn().mockResolvedValue(undefined),
   sendWeeklySchedule: jest.fn().mockResolvedValue(undefined),
   sendFamilyInvitation: jest.fn().mockResolvedValue(undefined),
+  sendAccountDeletionRequest: jest.fn().mockResolvedValue(undefined),
   verifyConnection: jest.fn().mockResolvedValue(true),
 };
 

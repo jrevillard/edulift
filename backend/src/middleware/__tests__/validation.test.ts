@@ -12,7 +12,7 @@ import {
 } from '../validation';
 import { ApiResponse } from '../../types';
 
-// Mock du logger
+// Mock logger
 jest.mock('../../utils/logger', () => ({
   createLogger: jest.fn(() => ({
     debug: jest.fn(),
@@ -246,7 +246,7 @@ describe('Validation Middleware', () => {
     });
 
     it('should catch and handle ZodError from controller', async () => {
-      // Créer une vraie erreur Zod pour éviter les problèmes de types
+      // Create a real Zod error to avoid type issues
       const testSchema = z.string();
       const zodError = testSchema.safeParse(123).error!;
 
@@ -309,21 +309,21 @@ describe('Validation Middleware', () => {
 
     describe('transformZodError', () => {
       it('should transform ZodError to ValidationError format', () => {
-        // Créer de vraies erreurs Zod pour éviter les problèmes de types
+        // Create real Zod errors to avoid type issues
         const stringSchema = z.string();
         const numberSchema = z.number().min(1);
 
         const stringError = stringSchema.safeParse(123).error!;
         const numberError = numberSchema.safeParse(0).error!;
 
-        // Combiner les erreurs en un seul ZodError
+        // Combine errors into a single ZodError
         const zodError = new z.ZodError([...stringError.issues, ...numberError.issues]);
 
         const validationErrors = transformZodError(zodError);
 
         expect(validationErrors).toHaveLength(2);
 
-        // Vérifier que les erreurs contiennent les champs attendus
+        // Verify errors contain expected fields
         expect(validationErrors[0]).toMatchObject({
           field: '',
           message: expect.stringContaining('string'),

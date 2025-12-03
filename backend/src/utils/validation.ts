@@ -130,3 +130,14 @@ export const VerifyMagicLinkSchema = z.object({
   code_verifier: z.string().min(43).max(128), // PKCE: Original random string used to generate code_challenge - REQUIRED
   // inviteCode is now extracted from query parameters, not request body
 });
+
+// Account deletion request validation
+export const RequestAccountDeletionSchema = z.object({
+  code_challenge: z.string().min(43, 'PKCE code_challenge must be at least 43 characters').max(128, 'PKCE code_challenge must be at most 128 characters'),
+});
+
+// Account deletion confirmation validation
+export const ConfirmAccountDeletionSchema = z.object({
+  token: z.string().min(1, 'Deletion token is required'),
+  code_verifier: z.string().min(43, 'PKCE code_verifier must be at least 43 characters').max(128, 'PKCE code_verifier must be at most 128 characters'),
+});

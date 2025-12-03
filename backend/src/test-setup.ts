@@ -5,8 +5,11 @@
  * particularly for WebSocket functionality that requires global state.
  */
 
-// Set test environment variables
-process.env.FRONTEND_URL = 'https://app.edulift.com';
+// Import test helpers
+import { setupTestEnvironment, TEST_ENVIRONMENTS } from './utils/testHelpers';
+
+// Set up default test environment variables
+setupTestEnvironment(TEST_ENVIRONMENTS.WEB);
 
 import { setGlobalSocketHandler } from './utils/socketEmitter';
 
@@ -39,3 +42,6 @@ beforeEach(() => {
 
 // Export the mock for tests that need to verify calls
 export { mockSocketHandler };
+
+// Export test helpers for convenience
+export { setupTestEnvironment, TEST_ENVIRONMENTS, MALICIOUS_URLS, setupMaliciousUrlTest } from './utils/testHelpers';

@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { ApiResponse, ValidationError } from '../types';
 import { createLogger } from '../utils/logger';
 
-// Logger pour le middleware de validation
+// Logger for validation middleware
 const validationLogger = createLogger('ValidationMiddleware');
 
-// Interface pour les options de validation
+// Interface for validation options
 export interface ValidationOptions {
   /** Message d'erreur personnalisé */
   errorMessage?: string;
@@ -20,7 +20,7 @@ export interface ValidationOptions {
   includeBusinessContext?: boolean;
 }
 
-// Interface pour le contexte de validation
+// Interface for validation context
 export interface ValidationContext {
   operation: string;
   endpoint: string;
@@ -30,7 +30,7 @@ export interface ValidationContext {
   businessContext?: Record<string, any>;
 }
 
-// Créer le contexte de logging pour une requête
+// Create logging context for a request
 const createValidationContext = (req: Request, operationName: string): ValidationContext => {
   const timestamp = new Date().toISOString();
   const endpoint = `${req.method} ${req.route?.path || req.path}`;
@@ -47,7 +47,7 @@ const createValidationContext = (req: Request, operationName: string): Validatio
   };
 };
 
-// Transformer les erreurs Zod en format standardisé
+// Transform Zod errors to standardized format
 const transformZodError = (error: z.ZodError): ValidationError[] => {
   return error.issues.map(err => {
     const validationError: ValidationError = {
@@ -56,7 +56,7 @@ const transformZodError = (error: z.ZodError): ValidationError[] => {
       code: err.code,
     };
 
-    // Ajouter expected/received seulement si disponibles
+    // Add expected/received only if available
     if ('expected' in err) {
       (validationError as any).expected = (err as any).expected;
     }
@@ -68,7 +68,7 @@ const transformZodError = (error: z.ZodError): ValidationError[] => {
   });
 };
 
-// Logger la validation avec contexte
+// Log validation with context
 const logValidation = (
   context: ValidationContext,
   dataType: 'body' | 'params' | 'query',
@@ -94,7 +94,7 @@ const logValidation = (
   }
 };
 
-// Middleware principal de validation avec logging contextuel
+// Main validation middleware with contextual logging
 const createValidationMiddleware = (
   schema: z.ZodSchema,
   dataType: 'body' | 'params' | 'query',
@@ -110,7 +110,7 @@ const createValidationMiddleware = (
   return (req: Request, res: Response, next: NextFunction): void => {
     const context = createValidationContext(req, operationName);
 
-    // Ajouter le contexte métier si demandé
+    // Add business context if requested
     let businessContext: Record<string, any> | undefined;
     if (includeBusinessContext) {
       businessContext = {
@@ -145,7 +145,7 @@ const createValidationMiddleware = (
       // Remplacer les données originales par les données validées
       (req as any)[targetProperty] = validatedData;
 
-      // Logger la validation réussie
+      // Log successful validation
       logValidation(context, dataType, true, undefined, businessContext);
 
       next();
@@ -153,7 +153,7 @@ const createValidationMiddleware = (
       if (error instanceof z.ZodError) {
         const validationErrors = transformZodError(error);
 
-        // Logger l'échec de validation
+        // Log validation failure
         logValidation(context, dataType, false, validationErrors, businessContext);
 
         // Construire la réponse d'erreur
@@ -174,7 +174,7 @@ const createValidationMiddleware = (
   };
 };
 
-// Middleware spécialisés avec options par défaut
+// Specialized middleware with default options
 export const validateBody = (schema: z.ZodSchema, options?: ValidationOptions) =>
   createValidationMiddleware(schema, 'body', {
     errorMessage: 'Invalid request body',
@@ -193,7 +193,7 @@ export const validateQuery = (schema: z.ZodSchema, options?: ValidationOptions) 
     ...options,
   });
 
-// Middleware combiné pour valider plusieurs types en une seule fois
+// Combined middleware to validate multiple types at once
 export const validateRequest = (
   schemas: {
     body?: z.ZodSchema;
@@ -234,7 +234,7 @@ export const validateRequest = (
   };
 };
 
-// Wrapper pour les contrôleurs qui gère automatiquement les erreurs Zod avec logging
+// Wrapper for controllers that automatically handles Zod errors with logging
 export const withZodErrorHandling = <T extends Request = Request>(
   handler: (req: T, res: Response) => Promise<void>,
   options: {
@@ -279,5 +279,5 @@ export const withZodErrorHandling = <T extends Request = Request>(
   };
 };
 
-// Exporter les utilitaires pour usage externe
+// Export utilities for external use
 export { createValidationContext, transformZodError, logValidation };

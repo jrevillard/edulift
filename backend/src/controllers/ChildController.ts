@@ -2,10 +2,15 @@ import { Request, Response } from 'express';
 import { ChildService } from '../services/ChildService';
 import { ChildAssignmentService } from '../services/ChildAssignmentService';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { ApiResponse } from '../types';
 import { createError } from '../middleware/errorHandler';
 import { PrismaClient } from '@prisma/client';
 import { createLogger, Logger } from '../utils/logger';
+import { sendSuccessResponse } from '../utils/responseValidation';
+import {
+  ChildSuccessResponseSchema,
+  ChildrenSuccessResponseSchema,
+  SimpleSuccessResponseSchema,
+} from '../schemas/responses';
 
 export class ChildController {
   constructor(
@@ -88,17 +93,15 @@ export class ChildController {
       familyId: child.familyId,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: child,
-    };
-
     this.logger.debug('createChild: Sending response', {
       userId: authReq.userId,
       success: true,
       childId: child.id,
     });
-    res.status(201).json(response);
+    sendSuccessResponse(res, 201, ChildSuccessResponseSchema, {
+      success: true,
+      data: child,
+    });
   };
 
   getChildren = async (req: Request, res: Response): Promise<void> => {
@@ -122,17 +125,15 @@ export class ChildController {
       childCount: children.length,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: children,
-    };
-
     this.logger.debug('getChildren: Sending response', {
       userId: authReq.userId,
       success: true,
       childCount: children.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, ChildrenSuccessResponseSchema, {
+      success: true,
+      data: children,
+    });
   };
 
   getChild = async (req: Request, res: Response): Promise<void> => {
@@ -160,16 +161,14 @@ export class ChildController {
       hasFamilyId: !!child.familyId,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: child,
-    };
-
     this.logger.debug('getChild: Sending response', {
       childId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, ChildSuccessResponseSchema, {
+      success: true,
+      data: child,
+    });
   };
 
   updateChild = async (req: Request, res: Response): Promise<void> => {
@@ -215,16 +214,14 @@ export class ChildController {
       updatedAge: updatedChild.age,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: updatedChild,
-    };
-
     this.logger.debug('updateChild: Sending response', {
       childId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, ChildSuccessResponseSchema, {
+      success: true,
+      data: updatedChild,
+    });
   };
 
   deleteChild = async (req: Request, res: Response): Promise<void> => {
@@ -250,16 +247,14 @@ export class ChildController {
       deleted: result.success,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
     this.logger.debug('deleteChild: Sending response', {
       childId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: true,
+      data: result,
+    });
   };
 
   getChildAssignments = async (req: Request, res: Response): Promise<void> => {
@@ -288,17 +283,15 @@ export class ChildController {
       week,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: assignments,
-    };
-
     this.logger.debug('getChildAssignments: Sending response', {
       childId,
       success: true,
       assignmentCount: assignments.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: true,
+      data: assignments,
+    });
   };
 
   // Group membership methods
@@ -331,17 +324,15 @@ export class ChildController {
       membershipId: (membership as any).id,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: membership,
-    };
-
     this.logger.debug('addChildToGroup: Sending response', {
       childId,
       groupId,
       success: true,
     });
-    res.status(201).json(response);
+    sendSuccessResponse(res, 201, SimpleSuccessResponseSchema, {
+      success: true,
+      data: membership,
+    });
   };
 
   removeChildFromGroup = async (req: Request, res: Response): Promise<void> => {
@@ -373,17 +364,15 @@ export class ChildController {
       removed: result.success,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
     this.logger.debug('removeChildFromGroup: Sending response', {
       childId,
       groupId,
       success: true,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: true,
+      data: result,
+    });
   };
 
   getChildGroupMemberships = async (req: Request, res: Response): Promise<void> => {
@@ -412,17 +401,15 @@ export class ChildController {
       membershipCount: memberships.length,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: memberships,
-    };
-
     this.logger.debug('getChildGroupMemberships: Sending response', {
       childId,
       success: true,
       membershipCount: memberships.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: true,
+      data: memberships,
+    });
   };
 }
 

@@ -3,6 +3,22 @@ import { DashboardService } from '../services/DashboardService';
 import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { createLogger, Logger } from '../utils/logger';
+import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
+import {
+  TodayScheduleSuccessResponseSchema,
+  RecentActivitySuccessResponseSchema,
+} from '../schemas/responses';
+import { DashboardStatsSchema, WeeklyDashboardResponseSchema } from '../schemas/dashboard';
+import { z } from 'zod';
+
+// Extract the data part of WeeklyDashboardResponseSchema for use with sendSuccessResponse
+const WeeklyDashboardDataSchema = WeeklyDashboardResponseSchema.shape.data;
+
+// Create proper user dashboard stats response schema
+const UserDashboardStatsSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  data: DashboardStatsSchema,
+});
 
 export class DashboardController {
   private dashboardService: DashboardService;
@@ -23,10 +39,7 @@ export class DashboardController {
       // Check authentication
       if (!req.user) {
         this.logger.error('getStats: Authentication required', { userId: req.userId });
-        res.status(401).json({
-          success: false,
-          error: 'Unauthorized',
-        });
+        sendErrorResponse(res, 401, 'Unauthorized');
         return;
       }
 
@@ -40,20 +53,15 @@ export class DashboardController {
         statsKeys: stats ? Object.keys(stats) : [],
       });
 
-      res.status(200).json({
-        success: true,
-        data: stats,
-      });
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, UserDashboardStatsSuccessResponseSchema, stats);
     } catch (error) {
       this.logger.error('getStats: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
       });
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
-      });
+      sendErrorResponse(res, 500, error instanceof Error ? error.message : 'Internal server error');
     }
   };
 
@@ -67,10 +75,7 @@ export class DashboardController {
       // Check authentication
       if (!req.user) {
         this.logger.error('getTodaySchedule: Authentication required', { userId: req.userId });
-        res.status(401).json({
-          success: false,
-          error: 'Unauthorized',
-        });
+        sendErrorResponse(res, 401, 'Unauthorized');
         return;
       }
 
@@ -83,20 +88,15 @@ export class DashboardController {
         tripCount: upcomingTrips.length,
       });
 
-      res.status(200).json({
-        success: true,
-        data: { upcomingTrips },
-      });
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, TodayScheduleSuccessResponseSchema, { upcomingTrips });
     } catch (error) {
       this.logger.error('getTodaySchedule: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
       });
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
-      });
+      sendErrorResponse(res, 500, error instanceof Error ? error.message : 'Internal server error');
     }
   };
 
@@ -111,10 +111,7 @@ export class DashboardController {
       // Check authentication
       if (!req.user) {
         this.logger.error('getRecentActivity: Authentication required', { userId: req.userId });
-        res.status(401).json({
-          success: false,
-          error: 'Unauthorized',
-        });
+        sendErrorResponse(res, 401, 'Unauthorized');
         return;
       }
 
@@ -145,20 +142,15 @@ export class DashboardController {
         activityCount: activities.length,
       });
 
-      res.status(200).json({
-        success: true,
-        data: { activities },
-      });
+    // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, RecentActivitySuccessResponseSchema, { activities });
     } catch (error) {
       this.logger.error('getRecentActivity: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
       });
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Internal server error',
-      });
+      sendErrorResponse(res, 500, error instanceof Error ? error.message : 'Internal server error');
     }
   };
 
@@ -174,10 +166,7 @@ export class DashboardController {
 
       if (!authenticatedUserId) {
         this.logger.error('getWeeklyDashboard: Authentication required', { userId: req.userId });
-        res.status(401).json({
-          success: false,
-          error: 'Unauthorized',
-        });
+        sendErrorResponse(res, 401, 'Unauthorized');
         return;
       }
 
@@ -186,10 +175,7 @@ export class DashboardController {
 
       if (!authenticatedFamilyId) {
         this.logger.error('getWeeklyDashboard: No family associated with user', { userId: authenticatedUserId });
-        res.status(401).json({
-          success: false,
-          error: 'No family associated with user',
-        });
+        sendErrorResponse(res, 401, 'No family associated with user');
         return;
       }
 
@@ -198,10 +184,7 @@ export class DashboardController {
       if (req.query.startDate) {
         const parsed = new Date(req.query.startDate as string);
         if (isNaN(parsed.getTime())) {
-          res.status(400).json({
-            success: false,
-            error: 'Invalid date format. Use YYYY-MM-DD format.',
-          });
+          sendErrorResponse(res, 400, 'Invalid date format. Use YYYY-MM-DD format.');
           return;
         }
         startDate = parsed;
@@ -224,13 +207,15 @@ export class DashboardController {
         hasData: !!dashboardResponse.data,
       });
 
-      // Return the response directly from the service
+      // Return the response using standardized response utility
       if (dashboardResponse.success) {
-        res.status(200).json(dashboardResponse);
+        // Send validated response using standardized response utility
+        // Use WeeklyDashboardDataSchema to validate just the data part
+        sendSuccessResponse(res, 200, WeeklyDashboardDataSchema, dashboardResponse.data);
       } else {
         // Handle error responses from service
         const statusCode = dashboardResponse.statusCode || 500;
-        res.status(statusCode).json(dashboardResponse);
+        sendErrorResponse(res, statusCode, dashboardResponse.error || 'Unknown error');
       }
     } catch (error) {
       this.logger.error('getWeeklyDashboard: Error occurred', {
@@ -238,11 +223,7 @@ export class DashboardController {
         stack: error instanceof Error ? error.stack : undefined,
         userId: req.user?.id,
       });
-      res.status(500).json({
-        success: false,
-        error: 'Internal server error',
-        statusCode: 500,
-      });
+      sendErrorResponse(res, 500, 'Internal server error');
     }
   };
 }

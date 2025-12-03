@@ -26,7 +26,7 @@ model User {
   acceptedGroupInvitations  GroupInvitation[]     @relation("GroupInvitationsAcceptedBy")
   createdGroupInvitations   GroupInvitation[]     @relation("GroupInvitationsCreatedBy")
   sentGroupInvitations      GroupInvitation[]     @relation("GroupInvitationsInvitedBy")
-  magicLinks                MagicLink[]
+  secureTokens             SecureToken[]
   refreshTokens             RefreshToken[]
   drivenVehicles            ScheduleSlotVehicle[] @relation("ScheduleSlotVehicleDriver")
 
@@ -140,7 +140,7 @@ model ScheduleSlotVehicle {
   createdAt        DateTime            @default(now())
   seatOverride     Int?
   childAssignments ScheduleSlotChild[]
-  driver           User?               @relation("ScheduleSlotVehicleDriver", fields: [driverId], references: [id])
+  driver           User?               @relation("ScheduleSlotVehicleDriver", fields: [driverId], references: [id], onDelete: Cascade)
   scheduleSlot     ScheduleSlot        @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
   vehicle          Vehicle             @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
@@ -160,20 +160,6 @@ model ScheduleSlotChild {
   @@id([scheduleSlotId, childId])
   @@unique([vehicleAssignmentId, childId])
   @@map("schedule_slot_children")
-}
-
-model MagicLink {
-  id            String   @id @default(cuid())
-  token         String   @unique
-  userId        String
-  expiresAt     DateTime
-  used          Boolean  @default(false)
-  codeChallenge String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([codeChallenge])
-  @@index([token, codeChallenge])
-  @@map("magic_links")
 }
 
 model ActivityLog {
@@ -308,6 +294,31 @@ model RefreshToken {
   @@index([userId])
   @@index([tokenFamily])
   @@map("refresh_tokens")
+}
+
+enum TokenType {
+  MAGIC_LINK           // Authentification existante (PKCE)
+  ACCOUNT_DELETION     // Suppression compte (PKCE déjà implémenté)
+  EMAIL_MODIFICATION   // Modification email (nouveau - PKCE)
+  // Note: FAMILY_INVITATION et GROUP_INVITATION n'utilisent pas PKCE
+}
+
+model SecureToken {
+  id            String     @id @default(cuid())
+  token         String     @unique
+  userId        String
+  expiresAt     DateTime
+  used          Boolean    @default(false)
+  codeChallenge String
+  type          TokenType  @default(MAGIC_LINK)
+  createdAt     DateTime   @default(now())
+  users         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([codeChallenge])
+  @@index([token, codeChallenge])
+  @@index([userId, type, used, expiresAt])
+  @@index([type, used, expiresAt])
+  @@map("secure_tokens")
 }
 
 enum GroupRole {

@@ -312,6 +312,13 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
+  async sendAccountDeletionRequest(email: string, userName: string, deletionUrl: string): Promise<void> {
+    const subject = 'EduLift - Confirm Account Deletion';
+    const html = await this.generateAccountDeletionEmail(userName, deletionUrl);
+    const logoAttachment = await this.getLogoAttachment();
+    await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
+  }
+
   abstract verifyConnection(): Promise<boolean>;
 
   /**
@@ -529,5 +536,82 @@ export abstract class BaseEmailService implements EmailServiceInterface {
       </body>
       </html>
     `;
+  }
+
+  private async generateAccountDeletionEmail(userName: string, deletionUrl: string): Promise<string> {
+    return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduLift - Confirm Account Deletion</title>
+</head>
+<body style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+${await this.generateEmailHeader()}
+<div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+<p style="font-size: 16px; line-height: 1.5;">Hello ${userName},</p>
+<p style="font-size: 16px; line-height: 1.5;">We received a request to permanently delete your EduLift account.</p>
+
+<div style="background: #fef2f2; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #dc2626;">
+  <p style="margin: 0; font-size: 14px; color: #991b1b; font-weight: bold;">
+    ⚠️ <strong>This action is permanent and cannot be undone.</strong>
+  </p>
+  <p style="margin: 10px 0 0 0; font-size: 13px; color: #7f1d1d;">
+    Deleting your account will permanently remove:<br>
+    • Your profile information<br>
+    • Family memberships and associated data<br>
+    • Group participation<br>
+    • All historical activity logs<br>
+    • Any children or vehicles you've registered
+  </p>
+</div>
+
+<p style="font-size: 16px; line-height: 1.5;">If you want to proceed with account deletion, click the button below:</p>
+
+<!-- Mobile-friendly button with fallback -->
+<div style="text-align: center; margin: 30px 0;">
+  <!--[if mso]>
+    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                 href="${deletionUrl}" style="height:50px;v-text-anchor:middle; width:200px;"
+                 arcsize="10%" stroke="f" fillcolor="#dc2626">
+      <w:anchorlock/>
+      <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px; font-weight:bold;">
+        Delete My Account
+      </center>
+    </v:roundrect>
+  <![endif]-->
+  <a href="${deletionUrl}"
+     style="background: #dc2626; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px;
+            display: inline-block; font-weight: bold; font-size: 16px; -webkit-text-size-adjust: none;">
+    Delete My Account
+  </a>
+</div>
+
+<!-- Copyable link fallback for mobile/Outlook -->
+<div style="background: #f1f5f9; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #dc2626;">
+  <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: bold;">
+    📱 If the button doesn't work on mobile:
+  </p>
+  <p style="margin: 0; font-size: 12px; color: #475569; word-break: break-all;">
+    <strong>Copy and paste this link in your browser:</strong><br>
+    <span style="background: white; padding: 8px; border-radius: 4px; display: inline-block; font-family: monospace;">
+      ${deletionUrl}
+    </span>
+  </p>
+</div>
+
+<p style="font-size: 13px; color: #64748b; margin: 20px 0 10px 0;">
+  ⏰ This link expires in 15 minutes and can only be used once.
+</p>
+<p style="font-size: 13px; color: #64748b; margin: 10px 0;">
+  🔒 If you did not request this deletion, you can safely ignore this email.
+</p>
+<p style="font-size: 13px; color: #64748b; margin: 10px 0;">
+  💝 Want to keep your account? Simply ignore this email and your account will remain active.
+</p>
+</div>
+${await this.generateEmailFooter()}
+</body>
+</html>`;
   }
 }

@@ -463,7 +463,6 @@ describe('DashboardController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: false,
         error: 'Internal server error',
-        statusCode: 500,
       });
     });
 

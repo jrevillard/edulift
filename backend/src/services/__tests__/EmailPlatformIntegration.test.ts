@@ -2,9 +2,10 @@ import { MockEmailService } from '../MockEmailService';
 import { AuthService } from '../AuthService';
 import { NotificationService } from '../NotificationService';
 import { UserRepository } from '../../repositories/UserRepository';
-import { MagicLinkRepository } from '../../repositories/MagicLinkRepository';
+import { SecureTokenRepository } from '../../repositories/SecureTokenRepository';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
 import { PrismaClient } from '@prisma/client';
+import { setupTestEnvironment, TEST_ENVIRONMENTS } from '../../utils/testHelpers';
 
 describe('Email Platform Integration Tests', () => {
   let mockEmailService: MockEmailService;
@@ -12,7 +13,7 @@ describe('Email Platform Integration Tests', () => {
   let notificationService: NotificationService;
   let mockPrisma: jest.Mocked<PrismaClient>;
   let mockUserRepository: jest.Mocked<UserRepository>;
-  let mockMagicLinkRepository: jest.Mocked<MagicLinkRepository>;
+  let mockSecureTokenRepository: jest.Mocked<SecureTokenRepository>;
   let mockScheduleSlotRepository: jest.Mocked<ScheduleSlotRepository>;
 
   beforeEach(() => {
@@ -39,10 +40,14 @@ describe('Email Platform Integration Tests', () => {
       getGroupById: jest.fn(),
     } as any;
 
-    mockMagicLinkRepository = {
+    mockSecureTokenRepository = {
       create: jest.fn(),
       findValidToken: jest.fn(),
       markAsUsed: jest.fn(),
+      createMagicLink: jest.fn(),
+      createAccountDeletionToken: jest.fn(),
+      findValidMagicLinkWithPKCE: jest.fn(),
+      findValidAccountDeletionTokenWithPKCE: jest.fn(),
     } as any;
 
     mockScheduleSlotRepository = {
@@ -51,10 +56,11 @@ describe('Email Platform Integration Tests', () => {
       findSlotsByDateTimeRange: jest.fn().mockResolvedValue([]),
     } as any;
 
-    authService = new AuthService(
+          authService = new AuthService(
       mockUserRepository,
-      mockMagicLinkRepository,
+      mockSecureTokenRepository,
       mockEmailService,
+      mockPrisma,
     );
 
     notificationService = new NotificationService(
@@ -87,18 +93,22 @@ describe('Email Platform Integration Tests', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-      mockMagicLinkRepository.create.mockResolvedValue({
-        id: 'link123',
-        token: 'token123',
-        userId: 'user123',
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-        used: false,
-        codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
-      });
+      const mockMagicLink = {
+      id: 'link123',
+      token: 'token123',
+      userId: 'user123',
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      used: false,
+      codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+      type: 'MAGIC_LINK' as any,
+      createdAt: new Date(),
+    };
+
+    mockSecureTokenRepository.createMagicLink.mockResolvedValue(mockMagicLink);
     });
 
     it('should generate native deeplink for magic links when DEEP_LINK_BASE_URL is native', async () => {
-      process.env.DEEP_LINK_BASE_URL = 'edulift://';
+      const cleanup = setupTestEnvironment(TEST_ENVIRONMENTS.DEEP_LINK);
 
       await authService.requestMagicLink({
         email: 'test@example.com',
@@ -112,10 +122,12 @@ describe('Email Platform Integration Tests', () => {
         undefined,
         expect.stringContaining('edulift://auth/verify'),
       );
+
+      cleanup();
     });
 
     it('should generate web URL for magic links when DEEP_LINK_BASE_URL is web-based', async () => {
-      process.env.DEEP_LINK_BASE_URL = 'https://app.edulift.com';
+      const cleanup = setupTestEnvironment(TEST_ENVIRONMENTS.WEB);
 
       await authService.requestMagicLink({
         email: 'test@example.com',
@@ -129,6 +141,8 @@ describe('Email Platform Integration Tests', () => {
         undefined,
         expect.stringContaining('/auth/verify'),
       );
+
+      cleanup();
     });
 
     it('should fall back to FRONTEND_URL when DEEP_LINK_BASE_URL is not set', async () => {

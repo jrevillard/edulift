@@ -222,6 +222,47 @@
         "title": "Update Timezone",
         "description": "Update user timezone setting"
       },
+      "RequestAccountDeletion": {
+        "type": "object",
+        "properties": {
+          "code_challenge": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 128,
+            "example": "aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG",
+            "description": "PKCE code challenge for secure account deletion confirmation email"
+          }
+        },
+        "required": [
+          "code_challenge"
+        ],
+        "title": "Request Account Deletion",
+        "description": "Request a secure account deletion confirmation email with PKCE-protected link"
+      },
+      "ConfirmAccountDeletion": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "description": "Deletion confirmation token received in email"
+          },
+          "code_verifier": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 128,
+            "example": "aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG",
+            "description": "PKCE code verifier to validate the deletion token"
+          }
+        },
+        "required": [
+          "token",
+          "code_verifier"
+        ],
+        "title": "Confirm Account Deletion",
+        "description": "Confirm account deletion using PKCE-protected token from email"
+      },
       "AuthResponse": {
         "type": "object",
         "properties": {
@@ -547,6 +588,42 @@
         ],
         "title": "Profile Get Response",
         "description": "Successful profile retrieval response with user data"
+      },
+      "DeleteAccountResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "message": {
+                "type": "string",
+                "example": "Account deleted successfully",
+                "description": "Confirmation message indicating successful account deletion"
+              },
+              "deletedAt": {
+                "type": "string",
+                "example": "2023-12-01T12:00:00.000Z",
+                "description": "Timestamp when the account was deleted (ISO 8601 format)"
+              }
+            },
+            "required": [
+              "message",
+              "deletedAt"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "Account Deletion Response",
+        "description": "Successful account deletion response with confirmation details"
       },
       "CreateChildRequest": {
         "type": "object",
@@ -1678,6 +1755,354 @@
           },
           "401": {
             "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/auth/profile/delete-request": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Request account deletion confirmation",
+        "description": "Send a confirmation email with PKCE-protected link for account deletion. This initiates a secure two-step deletion process to prevent accidental account loss.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "operationId": "postauthProfileDeleteRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestAccountDeletion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account deletion confirmation email sent successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "example": "Account deletion confirmation email sent. Please check your inbox and follow the link to confirm deletion.",
+                          "description": "Success message indicating the confirmation email has been sent"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "example": "2023-12-01T12:00:00.000Z",
+                          "description": "Expiration time of the deletion confirmation link (ISO 8601 format)"
+                        }
+                      },
+                      "required": [
+                        "message",
+                        "expiresAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid PKCE code challenge",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid PKCE code challenge format",
+                      "description": "Error message explaining the validation failure"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - User account not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error - Failed to send confirmation email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/profile/delete-confirm": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Confirm account deletion",
+        "description": "Confirm account deletion using PKCE-protected token from email. This permanently deletes the user account and all associated data including family relationships, group memberships, and personal information. This action is irreversible.",
+        "operationId": "postauthProfileDeleteConfirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmAccountDeletion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteAccountResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid token or PKCE code verifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid deletion token or PKCE verification failed",
+                      "description": "Error message explaining the validation failure"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Token expired or already used",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Deletion token has expired or already been used",
+                      "description": "Error message indicating token is no longer valid"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Invalid deletion token or user not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error - Failed to complete account deletion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
           }
         }
       }

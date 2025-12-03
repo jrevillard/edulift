@@ -141,6 +141,39 @@ export const UpdateTimezoneSchema = z.object({
   description: 'Update user timezone setting',
 });
 
+
+export const RequestAccountDeletionSchema = z.object({
+  code_challenge: z.string()
+    .min(43, 'PKCE code challenge must be at least 43 characters')
+    .max(128, 'PKCE code challenge must be at most 128 characters')
+    .openapi({
+      example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
+      description: 'PKCE code challenge for secure account deletion confirmation email',
+    }),
+}).openapi({
+  title: 'Request Account Deletion',
+  description: 'Request a secure account deletion confirmation email with PKCE-protected link',
+});
+
+export const ConfirmAccountDeletionSchema = z.object({
+  token: z.string()
+    .min(1, 'Deletion token is required')
+    .openapi({
+      example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      description: 'Deletion confirmation token received in email',
+    }),
+  code_verifier: z.string()
+    .min(43, 'PKCE code verifier must be at least 43 characters')
+    .max(128, 'PKCE code verifier must be at most 128 characters')
+    .openapi({
+      example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
+      description: 'PKCE code verifier to validate the deletion token',
+    }),
+}).openapi({
+  title: 'Confirm Account Deletion',
+  description: 'Confirm account deletion using PKCE-protected token from email',
+});
+
 // Response Schemas
 export const UserResponseSchema = z.object({
   id: z.string()
@@ -312,6 +345,26 @@ export const ProfileGetResponseSchema = z.object({
   description: 'Successful profile retrieval response with user data',
 });
 
+export const DeleteAccountResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.object({
+    message: z.string()
+      .openapi({
+        example: 'Account deleted successfully',
+        description: 'Confirmation message indicating successful account deletion',
+      }),
+    deletedAt: z.string()
+      .openapi({
+        example: '2023-12-01T12:00:00.000Z',
+        description: 'Timestamp when the account was deleted (ISO 8601 format)',
+      }),
+  }),
+}).openapi({
+  title: 'Account Deletion Response',
+  description: 'Successful account deletion response with confirmation details',
+});
+
+
 // Register schemas with OpenAPI registry
 registry.register('RequestMagicLink', RequestMagicLinkSchema);
 registry.register('VerifyMagicLink', VerifyMagicLinkSchema);
@@ -319,10 +372,13 @@ registry.register('RefreshTokenRequest', RefreshTokenSchema);
 registry.register('LogoutRequest', LogoutSchema);
 registry.register('UpdateProfileRequest', UpdateProfileSchema);
 registry.register('UpdateTimezoneRequest', UpdateTimezoneSchema);
+registry.register('RequestAccountDeletion', RequestAccountDeletionSchema);
+registry.register('ConfirmAccountDeletion', ConfirmAccountDeletionSchema);
 registry.register('AuthResponse', AuthResponseSchema);
 registry.register('RefreshTokenResponse', RefreshTokenResponseSchema);
 registry.register('ProfileUpdateResponse', ProfileUpdateResponseSchema);
 registry.register('ProfileGetResponse', ProfileGetResponseSchema);
+registry.register('DeleteAccountResponse', DeleteAccountResponseSchema);
 
 
 // Register API paths with simplified response schemas
@@ -551,10 +607,191 @@ registerPath({
 });
 
 
+registerPath({
+  method: 'post',
+  path: '/auth/profile/delete-request',
+  tags: ['Authentication'],
+  summary: 'Request account deletion confirmation',
+  description: 'Send a confirmation email with PKCE-protected link for account deletion. This initiates a secure two-step deletion process to prevent accidental account loss.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/RequestAccountDeletion' },
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Account deletion confirmation email sent successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(true),
+            data: z.object({
+              message: z.string()
+                .openapi({
+                  example: 'Account deletion confirmation email sent. Please check your inbox and follow the link to confirm deletion.',
+                  description: 'Success message indicating the confirmation email has been sent',
+                }),
+              expiresAt: z.string()
+                .openapi({
+                  example: '2023-12-01T12:00:00.000Z',
+                  description: 'Expiration time of the deletion confirmation link (ISO 8601 format)',
+                }),
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad request - Invalid PKCE code challenge',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string()
+              .openapi({
+                example: 'Invalid PKCE code challenge format',
+                description: 'Error message explaining the validation failure',
+              }),
+            validationErrors: z.array(z.object({
+              field: z.string(),
+              message: z.string(),
+              code: z.string(),
+            })).optional(),
+          }),
+        },
+      },
+    },
+    401: {
+      description: 'Unauthorized - Authentication required',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+    },
+    404: {
+      description: 'Not found - User account not found',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error - Failed to send confirmation email',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+registerPath({
+  method: 'post',
+  path: '/auth/profile/delete-confirm',
+  tags: ['Authentication'],
+  summary: 'Confirm account deletion',
+  description: 'Confirm account deletion using PKCE-protected token from email. This permanently deletes the user account and all associated data including family relationships, group memberships, and personal information. This action is irreversible.',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/ConfirmAccountDeletion' },
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Account deleted successfully',
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/DeleteAccountResponse' },
+        },
+      },
+    },
+    400: {
+      description: 'Bad request - Invalid token or PKCE code verifier',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string()
+              .openapi({
+                example: 'Invalid deletion token or PKCE verification failed',
+                description: 'Error message explaining the validation failure',
+              }),
+            validationErrors: z.array(z.object({
+              field: z.string(),
+              message: z.string(),
+              code: z.string(),
+            })).optional(),
+          }),
+        },
+      },
+    },
+    403: {
+      description: 'Forbidden - Token expired or already used',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string()
+              .openapi({
+                example: 'Deletion token has expired or already been used',
+                description: 'Error message indicating token is no longer valid',
+              }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: 'Not found - Invalid deletion token or user not found',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+    },
+    500: {
+      description: 'Internal server error - Failed to complete account deletion',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string(),
+          }),
+        },
+      },
+    },
+  },
+});
+
 // Export schemas for use in other parts of the application
 export {
   RequestMagicLinkSchema as MagicLinkRequest,
   VerifyMagicLinkSchema as MagicLinkVerifyRequest,
   RefreshTokenSchema as RefreshTokenRequest,
   LogoutSchema as LogoutRequest,
+  RequestAccountDeletionSchema as AccountDeletionRequest,
+  ConfirmAccountDeletionSchema as AccountDeletionConfirm,
 };

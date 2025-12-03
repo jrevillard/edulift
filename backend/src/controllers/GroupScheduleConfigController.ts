@@ -3,8 +3,12 @@ import { PrismaClient } from '@prisma/client';
 import { GroupScheduleConfigService } from '../services/GroupScheduleConfigService';
 import { AppError } from '../middleware/errorHandler';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { ApiResponse } from '../types';
 import { createLogger, Logger } from '../utils/logger';
+import { sendSuccessResponse } from '../utils/responseValidation';
+import {
+  SimpleSuccessResponseSchema,
+  GroupScheduleConfigSuccessResponseSchema,
+} from '../schemas/responses';
 
 export class GroupScheduleConfigController {
   private service: GroupScheduleConfigService;
@@ -46,16 +50,16 @@ export class GroupScheduleConfigController {
       scheduleHoursCount: Object.keys(config.scheduleHours || {}).length,
     });
 
-    const response: ApiResponse = {
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       success: true,
       data: {
         ...config,
         isDefault: false,
       },
-    };
+    });
 
     this.logger.debug('getGroupScheduleConfig: Sending response', { groupId, success: true });
-    res.json(response);
   };
 
   /**
@@ -93,14 +97,15 @@ export class GroupScheduleConfigController {
       timeSlotCount: timeSlots.length,
     });
 
-    const response: ApiResponse = {
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       success: true,
       data: {
         groupId,
         weekday: weekday.toUpperCase(),
         timeSlots,
       },
-    };
+    });
 
     this.logger.debug('getGroupTimeSlots: Sending response', {
       groupId,
@@ -108,7 +113,6 @@ export class GroupScheduleConfigController {
       success: true,
       timeSlotCount: timeSlots.length,
     });
-    res.json(response);
   };
 
   /**
@@ -169,19 +173,16 @@ export class GroupScheduleConfigController {
       configId: config.id,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: {
-        ...config,
-        isDefault: false,
-      },
-    };
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, GroupScheduleConfigSuccessResponseSchema, {
+      ...config,
+      isDefault: false,
+    });
 
     this.logger.debug('updateGroupScheduleConfig: Sending response', {
       groupId,
       success: true,
     });
-    res.json(response);
   };
 
   /**
@@ -211,19 +212,19 @@ export class GroupScheduleConfigController {
       configId: config.id,
     });
 
-    const response: ApiResponse = {
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       success: true,
       data: {
         ...config,
         isDefault: true,
       },
-    };
+    });
 
     this.logger.debug('resetGroupScheduleConfig: Sending response', {
       groupId,
       success: true,
     });
-    res.json(response);
   };
 
   /**
@@ -239,16 +240,16 @@ export class GroupScheduleConfigController {
       hourKeys: Object.keys(defaultHours),
     });
 
-    const response: ApiResponse = {
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       success: true,
       data: {
         scheduleHours: defaultHours,
         isDefault: true,
       },
-    };
+    });
 
     this.logger.debug('getDefaultScheduleHours: Sending response', { success: true });
-    res.json(response);
   };
 }
 

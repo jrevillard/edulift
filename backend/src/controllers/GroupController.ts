@@ -3,18 +3,26 @@ import { GroupService } from '../services/GroupService';
 import { SchedulingService } from '../services/SchedulingService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { AuthenticatedRequest } from '../middleware/auth';
-import { ApiResponse } from '../types';
 import { createError, AppError } from '../middleware/errorHandler';
 import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
 import { createLogger, Logger } from '../utils/logger';
+import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
+import {
+  GroupSuccessResponseSchema,
+  GroupsSuccessResponseSchema,
+  SimpleSuccessResponseSchema,
+  ScheduleSuccessResponseSchema,
+  PendingInvitationsSuccessResponseSchema,
+  InviteCodeValidationSuccessResponseSchema,
+} from '../schemas/responses';
 
 export class GroupController {
   constructor(
     private groupService: GroupService,
     private schedulingService: SchedulingService,
     private logger: Logger = createLogger('group-controller'),
-  ) {}
+  ) { }
 
   // Group Management Methods
 
@@ -63,17 +71,12 @@ export class GroupController {
         groupName: group.name,
       });
 
-      const response: ApiResponse = {
-        success: true,
-        data: group,
-      };
-
       this.logger.debug('createGroup: Sending response', {
         userId: authReq.userId,
         groupId: group.id,
         success: true,
       });
-      res.status(201).json(response);
+      sendSuccessResponse(res, 201, GroupSuccessResponseSchema, group);
     } catch (error) {
       this.logger.error('createGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -100,36 +103,32 @@ export class GroupController {
         throw createError('Authentication required', 401);
       }
 
-      this.logger.debug('joinGroup: Authentication validated', { 
+      this.logger.debug('joinGroup: Authentication validated', {
         userId: authReq.userId,
-        inviteCode: `${inviteCode.substring(0, 8)}...`, 
+        inviteCode: `${inviteCode.substring(0, 8)}...`,
       });
 
-      this.logger.debug('joinGroup: Calling service', { 
-        userId: authReq.userId, 
-        inviteCode: `${inviteCode.substring(0, 8)}...`, 
+      this.logger.debug('joinGroup: Calling service', {
+        userId: authReq.userId,
+        inviteCode: `${inviteCode.substring(0, 8)}...`,
       });
-      
+
       const membership = await this.groupService.joinGroupByInviteCode(inviteCode, authReq.userId);
 
       this.logger.debug('joinGroup: Group joined successfully', {
         userId: authReq.userId,
-        groupId: (membership as any).groupId,
-        membershipId: (membership as any).id,
+        groupId: membership.id,
+        groupName: membership.name,
       });
-
-      const response: ApiResponse = {
-        success: true,
-        data: membership,
-      };
 
       this.logger.debug('joinGroup: Sending response', {
         userId: authReq.userId,
-        groupId: (membership as any).groupId,
+        groupId: membership.id,
+        groupName: membership.name,
         success: true,
       });
 
-      res.status(200).json(response);
+      sendSuccessResponse(res, 200, GroupSuccessResponseSchema, membership);
     } catch (error) {
       this.logger.error('joinGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -162,17 +161,12 @@ export class GroupController {
       groupCount: groups.length,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: groups,
-    };
-
     this.logger.debug('getUserGroups: Sending response', {
       userId: authReq.userId,
       success: true,
       groupCount: groups.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, GroupsSuccessResponseSchema, groups);
   };
 
   getGroupFamilies = async (req: Request, res: Response): Promise<void> => {
@@ -199,55 +193,41 @@ export class GroupController {
       familyCount: families.length,
     });
 
-    const response: ApiResponse = {
-      success: true,
-      data: families,
-    };
-
     this.logger.debug('getGroupFamilies: Sending response', {
       groupId,
       success: true,
       familyCount: families.length,
     });
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, GroupsSuccessResponseSchema, families);
   };
 
   updateFamilyRole = async (req: Request, res: Response): Promise<void> => {
-      const authReq = req as AuthenticatedRequest;
-      const { groupId, familyId } = req.params;
-      const { role } = req.body;
-      
-      if (!authReq.userId) {
-        throw createError('Authentication required', 401);
-      }
+    const authReq = req as AuthenticatedRequest;
+    const { groupId, familyId } = req.params;
+    const { role } = req.body;
 
-      await this.groupService.updateFamilyRole(
-        groupId,
-        familyId,
-        role,
-        authReq.userId,
-      );
+    if (!authReq.userId) {
+      throw createError('Authentication required', 401);
+    }
 
-      // Fetch and return the updated family data
-      const groupFamilies = await this.groupService.getGroupFamilies(groupId, authReq.userId);
-      const updatedFamily = groupFamilies.find(f => f.id === familyId);
+    await this.groupService.updateFamilyRole(
+      groupId,
+      familyId,
+      role,
+      authReq.userId,
+    );
 
-      if (!updatedFamily) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Family not found after update',
-        };
-        res.status(404).json(response);
-        return;
-      }
+    // Fetch and return the updated family data
+    const groupFamilies = await this.groupService.getGroupFamilies(groupId, authReq.userId);
+    const updatedFamily = groupFamilies.find(f => f.id === familyId);
 
-      const response: ApiResponse = {
-        success: true,
-        data: updatedFamily,
-      };
+    if (!updatedFamily) {
+      sendErrorResponse(res, 404, 'Family not found after update');
+      return;
+    }
 
-      res.status(200).json(response);
-      };
+    sendSuccessResponse(res, 200, GroupSuccessResponseSchema, updatedFamily);
+  };
 
   removeFamilyFromGroup = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
@@ -259,12 +239,7 @@ export class GroupController {
 
     await this.groupService.removeFamilyFromGroup(groupId, familyId, authReq.userId);
 
-    const response: ApiResponse = {
-      success: true,
-      data: { message: 'Family removed from group successfully' },
-    };
-
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Family removed from group successfully' });
   };
 
   updateGroup = async (req: Request, res: Response): Promise<void> => {
@@ -301,15 +276,11 @@ export class GroupController {
 
       // Check if there's actually something to update
       if (Object.keys(filteredUpdateData).length === 0) {
-        this.logger.warn('updateGroup: No update data provided', { 
+        this.logger.warn('updateGroup: No update data provided', {
           userId: authReq.userId,
-          groupId, 
+          groupId,
         });
-        const response: ApiResponse = {
-          success: false,
-          error: 'No update data provided',
-        };
-        res.status(400).json(response);
+        sendErrorResponse(res, 400, 'No update data provided');
         return;
       }
 
@@ -328,18 +299,13 @@ export class GroupController {
         updatedDescription: result.description,
       });
 
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
-
       this.logger.debug('updateGroup: Sending response', {
         groupId,
         userId: authReq.userId,
         success: true,
       });
 
-      res.status(200).json(response);
+      sendSuccessResponse(res, 200, GroupSuccessResponseSchema, result);
     } catch (error) {
       this.logger.error('updateGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -368,9 +334,9 @@ export class GroupController {
         throw createError('Authentication required', 401);
       }
 
-      this.logger.debug('deleteGroup: Authentication validated', { 
+      this.logger.debug('deleteGroup: Authentication validated', {
         userId: authReq.userId,
-        groupId, 
+        groupId,
       });
 
       this.logger.debug('deleteGroup: Calling service to delete group', {
@@ -386,18 +352,14 @@ export class GroupController {
         deleted: result.success,
       });
 
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, result);
 
       this.logger.debug('deleteGroup: Sending response', {
         groupId,
         userId: authReq.userId,
         success: true,
       });
-
-      res.status(200).json(response);
     } catch (error) {
       this.logger.error('deleteGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -426,9 +388,9 @@ export class GroupController {
         throw createError('Authentication required', 401);
       }
 
-      this.logger.debug('leaveGroup: Authentication validated', { 
+      this.logger.debug('leaveGroup: Authentication validated', {
         userId: authReq.userId,
-        groupId, 
+        groupId,
       });
 
       this.logger.debug('leaveGroup: Calling service to leave group', {
@@ -444,18 +406,14 @@ export class GroupController {
         leftGroup: result.success,
       });
 
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, result);
 
       this.logger.debug('leaveGroup: Sending response', {
         groupId,
         userId: authReq.userId,
         success: true,
       });
-
-      res.status(200).json(response);
     } catch (error) {
       this.logger.error('leaveGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -476,12 +434,8 @@ export class GroupController {
 
     const schedule = await this.schedulingService.getWeeklySchedule(groupId, week);
 
-    const response: ApiResponse = {
-      success: true,
-      data: schedule,
-    };
-
-    res.status(200).json(response);
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, schedule);
   };
 
   // Group Invitation Methods
@@ -500,15 +454,15 @@ export class GroupController {
         hasPersonalMessage: !!inviteData.personalMessage,
         userEmail: authReq.user?.email,
       });
-      
+
       if (!authReq.userId) {
         this.logger.error('inviteFamilyToGroup: Authentication required', { userId: authReq.userId });
         throw createError('Authentication required', 401);
       }
 
-      this.logger.debug('inviteFamilyToGroup: Authentication validated', { 
+      this.logger.debug('inviteFamilyToGroup: Authentication validated', {
         userId: authReq.userId,
-        groupId, 
+        groupId,
       });
 
       this.logger.debug('inviteFamilyToGroup: Calling group service to invite family', {
@@ -535,10 +489,8 @@ export class GroupController {
         role: inviteData.role,
       });
 
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 201, GroupSuccessResponseSchema, result);
 
       this.logger.debug('inviteFamilyToGroup: Sending response', {
         groupId,
@@ -546,8 +498,6 @@ export class GroupController {
         success: true,
         invitationId: result.id,
       });
-
-      res.status(201).json(response);
     } catch (error) {
       this.logger.error('inviteFamilyToGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -563,17 +513,11 @@ export class GroupController {
           statusCode: error.statusCode,
           userId: (req as AuthenticatedRequest).userId,
         });
-        res.status(error.statusCode).json({
-          success: false,
-          error: error.message,
-        });
+        sendErrorResponse(res, error.statusCode, error.message);
         return;
       }
 
-      res.status(500).json({
-        success: false,
-        error: 'Failed to invite family to group',
-      });
+      sendErrorResponse(res, 500, 'Failed to invite family to group');
     }
   };
 
@@ -591,12 +535,8 @@ export class GroupController {
       authReq.userId,
     );
 
-    const response: ApiResponse = {
-      success: true,
-      data: invitations,
-    };
-
-    res.status(200).json(response);
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, PendingInvitationsSuccessResponseSchema, invitations);
   };
 
   cancelInvitation = async (req: Request, res: Response): Promise<void> => {
@@ -613,12 +553,8 @@ export class GroupController {
       authReq.userId,
     );
 
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
-    res.status(200).json(response);
+    // Send validated response ensuring OpenAPI compliance
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, result);
   };
 
   // Public endpoint for validating group invitation codes
@@ -627,37 +563,22 @@ export class GroupController {
       const { inviteCode } = req.body;
 
       if (!inviteCode || typeof inviteCode !== 'string') {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invitation code is required',
-        };
-        res.status(400).json(response);
+        sendErrorResponse(res, 400, 'Invitation code is required');
         return;
       }
 
       const result = await this.groupService.validateInvitationCode(inviteCode.trim());
 
       if (!result.valid) {
-        const response: ApiResponse = {
-          success: false,
-          error: result.error || 'Invalid invitation',
-        };
-        res.status(400).json(response);
+        sendErrorResponse(res, 400, result.error || 'Invalid invitation');
         return;
       }
 
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
-      res.status(200).json(response);
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, InviteCodeValidationSuccessResponseSchema, result);
     } catch (error) {
       this.logger.error('Validate invitation code error:', { error: error instanceof Error ? error.message : String(error) });
-      const response: ApiResponse = {
-        success: false,
-        error: 'Failed to validate invitation code',
-      };
-      res.status(500).json(response);
+      sendErrorResponse(res, 500, 'Failed to validate invitation code');
     }
   };
 
@@ -668,39 +589,26 @@ export class GroupController {
       const { inviteCode } = req.body;
 
       if (!authReq.userId) {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Authentication required',
-        };
-        res.status(401).json(response);
+        sendErrorResponse(res, 401, 'Authentication required');
         return;
       }
 
       if (!inviteCode || typeof inviteCode !== 'string') {
-        const response: ApiResponse = {
-          success: false,
-          error: 'Invitation code is required',
-        };
-        res.status(400).json(response);
+        sendErrorResponse(res, 400, 'Invitation code is required');
         return;
       }
 
       const result = await this.groupService.validateInvitationCodeWithUser(inviteCode.trim(), authReq.userId);
 
-      const response: ApiResponse = {
-        success: result.valid,
-        data: result,
-        ...(result.valid ? {} : { error: result.error || 'Invalid invitation code' }),
-      };
-      
-      res.status(result.valid ? 200 : 400).json(response);
+      // Send validated response ensuring OpenAPI compliance
+      if (result.valid) {
+        sendSuccessResponse(res, 200, InviteCodeValidationSuccessResponseSchema, result);
+      } else {
+        sendErrorResponse(res, 400, result.error || 'Invalid invitation code');
+      }
     } catch (error) {
       this.logger.error('Validate invitation code with auth error:', { error: error instanceof Error ? error.message : String(error) });
-      const response: ApiResponse = {
-        success: false,
-        error: 'Failed to validate invitation code',
-      };
-      res.status(500).json(response);
+      sendErrorResponse(res, 500, 'Failed to validate invitation code');
     }
   };
 
@@ -710,7 +618,7 @@ export class GroupController {
     try {
       const authReq = req as AuthenticatedRequest;
       const { groupId } = req.params;
-      
+
       // Support both query parameter and body parameter for search term
       const searchTerm = (req.query.q as string) || req.body.searchTerm;
 
@@ -729,19 +637,13 @@ export class GroupController {
         groupId,
       );
 
-      const response: ApiResponse = {
-        success: true,
-        data: families,
-      };
-
-      res.json(response);
+      // Send validated response ensuring OpenAPI compliance
+      sendSuccessResponse(res, 200, GroupsSuccessResponseSchema, families);
     } catch (error: any) {
       this.logger.error('Error searching families:', { error: error instanceof Error ? error.message : String(error) });
-      const response: ApiResponse = {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to search families',
-      };
-      res.status((error as Error & { statusCode?: number })?.statusCode || 500).json(response);
+      const statusCode = (error as Error & { statusCode?: number })?.statusCode || 500;
+      const errorMessage = error instanceof Error ? error.message : 'Failed to search families';
+      sendErrorResponse(res, statusCode, errorMessage);
     }
   };
 }
@@ -760,7 +662,7 @@ export const createGroupController = (): GroupController => {
   const schedulingService = new SchedulingService(scheduleSlotRepository, prisma);
 
   const controller = new GroupController(groupService, schedulingService);
-  
+
   // Bind all methods to maintain correct 'this' context
   return {
     createGroup: controller.createGroup.bind(controller),
