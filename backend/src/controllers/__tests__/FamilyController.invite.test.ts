@@ -86,8 +86,7 @@ describe('FamilyController - inviteMember', () => {
     expect(response.status).toBe(201);
     expect(response.body).toEqual({
       success: true,
-      data: mockInvitationResult,
-      message: 'Invitation sent successfully',
+      data: { ...mockInvitationResult, message: 'Invitation sent successfully' },
     });
 
     // Verify service calls

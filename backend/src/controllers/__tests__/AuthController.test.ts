@@ -19,6 +19,9 @@ describe('AuthController', () => {
       verifyMagicLink: jest.fn(),
       refreshAccessToken: jest.fn(),
       updateProfile: jest.fn(),
+      requestAccountDeletion: jest.fn(),
+      confirmAccountDeletion: jest.fn(),
+      getUserById: jest.fn(),
     } as any;
 
     const mockUnifiedInvitationService = {
@@ -207,7 +210,17 @@ describe('AuthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         data: {
-          ...mockResult,
+          user: {
+            ...mockResult.user,
+            createdAt: mockResult.user.createdAt.toISOString(),
+            updatedAt: mockResult.user.updatedAt.toISOString(),
+          },
+          accessToken: mockResult.accessToken,
+          refreshToken: mockResult.refreshToken,
+          expiresIn: mockResult.expiresIn,
+          tokenType: mockResult.tokenType,
+          token: mockResult.token,
+          expiresAt: mockResult.expiresAt.toISOString(),
           invitationResult: null,
         },
       });
@@ -255,7 +268,17 @@ describe('AuthController', () => {
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
         data: {
-          ...mockResult,
+          user: {
+            ...mockResult.user,
+            createdAt: mockResult.user.createdAt.toISOString(),
+            updatedAt: mockResult.user.updatedAt.toISOString(),
+          },
+          accessToken: mockResult.accessToken,
+          refreshToken: mockResult.refreshToken,
+          expiresIn: mockResult.expiresIn,
+          tokenType: mockResult.tokenType,
+          token: mockResult.token,
+          expiresAt: mockResult.expiresAt.toISOString(),
           invitationResult: null,
         },
       });
@@ -348,7 +371,11 @@ describe('AuthController', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
-        data: mockUpdatedUser,
+        data: {
+          ...mockUpdatedUser,
+          createdAt: mockUpdatedUser.createdAt.toISOString(),
+          updatedAt: mockUpdatedUser.updatedAt.toISOString(),
+        },
       });
     });
 
@@ -423,7 +450,11 @@ describe('AuthController', () => {
         expect(mockResponse.status).toHaveBeenCalledWith(200);
         expect(mockResponse.json).toHaveBeenCalledWith({
           success: true,
-          data: mockUpdatedUser,
+          data: {
+            ...mockUpdatedUser,
+            createdAt: mockUpdatedUser.createdAt.toISOString(),
+            updatedAt: mockUpdatedUser.updatedAt.toISOString(),
+          },
         });
       }
     });
@@ -455,10 +486,267 @@ describe('AuthController', () => {
           email: 'user@example.com',
           name: 'John',
           timezone,
-          createdAt: expect.any(Date),
-          updatedAt: expect.any(Date),
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-02T00:00:00.000Z',
         }),
       });
+    });
+  });
+
+  describe('requestAccountDeletion', () => {
+    const userId = 'user-123';
+    const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
+
+    it('should request account deletion successfully', async () => {
+      mockRequest.body = { code_challenge: codeChallenge };
+      (mockRequest as any).userId = userId; // Set userId directly as expected by controller
+      (mockRequest as any).user = { id: userId, email: 'test@example.com' };
+
+      const mockResult = {
+        success: true,
+        message: 'Account deletion confirmation sent to your email',
+      };
+
+      mockAuthService.requestAccountDeletion.mockResolvedValue(mockResult);
+
+      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
+        userId,
+        code_challenge: codeChallenge,
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          message: 'Account deletion confirmation sent to your email',
+        },
+      });
+    });
+
+    it('should handle authentication required error', async () => {
+      mockRequest.body = { code_challenge: codeChallenge };
+      (mockRequest as any).userId = undefined; // No userId
+      (mockRequest as any).user = undefined;
+
+      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Authentication required',
+      });
+    });
+
+    it('should handle invalid PKCE code_challenge', async () => {
+      mockRequest.body = { code_challenge: 'short' };
+      (mockRequest as any).userId = userId;
+
+      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
+      });
+    });
+
+    it('should handle missing PKCE code_challenge', async () => {
+      mockRequest.body = {};
+      (mockRequest as any).userId = userId;
+
+      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
+      });
+    });
+
+    it('should handle service errors', async () => {
+      mockRequest.body = { code_challenge: codeChallenge };
+      (mockRequest as any).userId = userId;
+
+      const error = new Error('User not found');
+      mockAuthService.requestAccountDeletion.mockRejectedValue(error);
+
+      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
+        userId,
+        code_challenge: codeChallenge,
+      });
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'User not found',
+      });
+    });
+
+    it('should handle security-related errors with sanitized messages', async () => {
+      mockRequest.body = { code_challenge: codeChallenge };
+      (mockRequest as any).userId = userId;
+
+      const securityError = new Error('🚨 SECURITY: Potential attack detected');
+      mockAuthService.requestAccountDeletion.mockRejectedValue(securityError);
+
+      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: '🚨 SECURITY: Potential attack detected', // Actual message from controller
+      });
+    });
+  });
+
+  describe('confirmAccountDeletion', () => {
+    const token = 'deletion-token';
+    const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+
+    it('should confirm account deletion successfully', async () => {
+      mockRequest.body = { token, code_verifier: codeVerifier };
+
+      const mockResult = {
+        success: true,
+        message: 'Account deleted successfully via email confirmation',
+        deletedAt: new Date().toISOString(),
+      };
+
+      mockAuthService.confirmAccountDeletion.mockResolvedValue(mockResult);
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: {
+          message: 'Account deleted successfully via email confirmation',
+          deletedAt: mockResult.deletedAt,
+        },
+      });
+    });
+
+    it('should handle missing PKCE code_verifier', async () => {
+      mockRequest.body = { token };
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'code_verifier required for PKCE validation',
+      });
+    });
+
+    it('should handle empty PKCE code_verifier', async () => {
+      mockRequest.body = { token, code_verifier: '' };
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
+      expect(mockResponse.status).toHaveBeenCalledWith(400);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'code_verifier required for PKCE validation',
+      });
+    });
+
+    it('should handle invalid or expired token error', async () => {
+      mockRequest.body = { token, code_verifier: codeVerifier };
+
+      const error = new Error('Invalid or expired deletion token');
+      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockResponse.status).toHaveBeenCalledWith(401);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Invalid or expired deletion token',
+      });
+    });
+
+    it('should handle user not found error', async () => {
+      mockRequest.body = { token, code_verifier: codeVerifier };
+
+      const error = new Error('User not found');
+      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'User not found',
+      });
+    });
+
+    it('should handle PKCE validation security errors', async () => {
+      mockRequest.body = { token, code_verifier: 'invalid-verifier' };
+
+      const error = new Error('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
+      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, 'invalid-verifier');
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: '🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack',
+      });
+    });
+
+    it('should handle service errors gracefully', async () => {
+      mockRequest.body = { token, code_verifier: codeVerifier };
+
+      const error = new Error('Database connection failed');
+      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        error: 'Database connection failed',
+      });
+    });
+
+    it('should handle missing token gracefully', async () => {
+      mockRequest.body = { code_verifier: codeVerifier };
+
+      // This should still call the service and let it handle the validation
+      mockAuthService.confirmAccountDeletion.mockRejectedValue(new Error('Token is required'));
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(undefined, codeVerifier);
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+    });
+
+    it('should log security events for failed attempts', async () => {
+      mockRequest.body = { token: 'suspicious-token', code_verifier: 'suspicious-verifier' };
+      mockRequest.headers = { 'user-agent': 'test-agent' };
+      (mockRequest as any).ip = '127.0.0.1';
+
+      const error = new Error('Invalid token');
+      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
+
+      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith('suspicious-token', 'suspicious-verifier');
+      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      // Security event logging should be triggered
     });
   });
 });

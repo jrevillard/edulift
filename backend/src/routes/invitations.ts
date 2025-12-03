@@ -6,6 +6,8 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { UnifiedInvitationService } from '../services/UnifiedInvitationService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { createLogger } from '../utils/logger';
+import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
+import { SimpleSuccessResponseSchema, InvitationCreationResponseSchema } from '../schemas/responses';
 import {
   // Request schemas
   CreateFamilyInvitationSchema,
@@ -30,10 +32,7 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
   // Validate parameters
   const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation code format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation code format');
     return;
   }
 
@@ -47,12 +46,9 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
     logger.debug('Family validation result:', { code, valid: familyValidation.valid, error: familyValidation.error });
 
     if (familyValidation.valid) {
-      res.json({
-        success: true,
-        data: {
-          type: 'FAMILY',
-          ...familyValidation,
-        },
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+        type: 'FAMILY',
+        ...familyValidation,
       });
       return;
     }
@@ -62,22 +58,16 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
     logger.debug('Group validation result:', { code, valid: groupValidation.valid, error: groupValidation.error });
 
     if (groupValidation.valid) {
-      res.json({
-        success: true,
-        data: {
-          type: 'GROUP',
-          ...groupValidation,
-        },
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+        type: 'GROUP',
+        ...groupValidation,
       });
       return;
     }
 
     // Neither found
     logger.debug('No valid invitation found for code:', { code });
-    res.status(404).json({
-      success: false,
-      error: 'Invalid invitation code',
-    });
+    sendErrorResponse(res, 404, 'Invalid invitation code');
   } catch (error: any) {
     next(error);
   }
@@ -89,10 +79,7 @@ router.post('/family', authenticateToken, asyncHandler(async (req: Authenticated
   // Validate request body
   const bodyValidation = CreateFamilyInvitationSchema.safeParse(req.body);
   if (!bodyValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid request data',
-    });
+    sendErrorResponse(res, 400, 'Invalid request data');
     return;
   }
 
@@ -111,18 +98,12 @@ router.post('/family', authenticateToken, asyncHandler(async (req: Authenticated
       adminId,
     );
 
-    res.status(201).json({
-      success: true,
-      data: invitation,
-    });
+    sendSuccessResponse(res, 201, InvitationCreationResponseSchema, invitation);
   } catch (error: any) {
     // Handle permission errors specifically
     const err = error as Error;
     if (err.message === 'Only family administrators can send invitations') {
-      res.status(403).json({
-        success: false,
-        error: err.message,
-      });
+      sendErrorResponse(res, 403, err.message);
       return;
     }
     // Re-throw other errors to be handled by global error handler
@@ -134,10 +115,7 @@ router.get('/family/:code/validate', asyncHandler(async (req: Request, res: Resp
   // Validate parameters
   const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation code format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation code format');
     return;
   }
 
@@ -160,10 +138,7 @@ router.get('/family/:code/validate', asyncHandler(async (req: Request, res: Resp
 
     const validation = await invitationService.validateFamilyInvitation(code, currentUserId);
 
-    res.json({
-      success: true,
-      data: validation,
-    });
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, validation);
     return;
   } catch (error: any) {
     next(error);
@@ -174,20 +149,14 @@ router.post('/family/:code/accept', authenticateToken, asyncHandler(async (req: 
   // Validate parameters
   const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation code format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation code format');
     return;
   }
 
   // Validate request body
   const bodyValidation = AcceptFamilyInvitationSchema.safeParse(req.body);
   if (!bodyValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid request data',
-    });
+    sendErrorResponse(res, 400, 'Invalid request data');
     return;
   }
 
@@ -202,20 +171,14 @@ router.post('/family/:code/accept', authenticateToken, asyncHandler(async (req: 
       { leaveCurrentFamily },
     );
 
-    res.json({
-      success: true,
-      data: {
-        success: result.success,
-      },
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      success: result.success,
     });
     return;
   } catch (error: any) {
     // Handle business logic errors with proper status codes
     if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
-      res.status(error.statusCode).json({
-        success: false,
-        error: error.message,
-      });
+      sendErrorResponse(res, error.statusCode, error.message);
       return;
     }
     // Re-throw unexpected errors to be handled by error middleware
@@ -228,10 +191,7 @@ router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedR
   // Validate request body
   const bodyValidation = CreateGroupInvitationSchema.safeParse(req.body);
   if (!bodyValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid request data',
-    });
+    sendErrorResponse(res, 400, 'Invalid request data');
     return;
   }
 
@@ -256,45 +216,30 @@ router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedR
       adminId,
     );
 
-    res.status(201).json({
-      success: true,
-      data: invitation,
-    });
+    sendSuccessResponse(res, 201, InvitationCreationResponseSchema, invitation);
     return;
   } catch (error: any) {
     // Handle permission errors specifically
     if (error.message === 'Only family administrators can send group invitations' ||
         error.message === 'Only group administrators can perform this action') {
-      res.status(403).json({
-        success: false,
-        error: error.message,
-      });
+      sendErrorResponse(res, 403, error.message);
       return;
     }
 
     if (error.message === 'Group not found' ||
         error.message === 'Target family not found') {
-      res.status(404).json({
-        success: false,
-        error: error.message,
-      });
+      sendErrorResponse(res, 404, error.message);
       return;
     }
 
     if (error.message === 'Family is already a member of this group' ||
         error.message === 'This family already has a pending invitation to this group') {
-      res.status(409).json({
-        success: false,
-        error: error.message,
-      });
+      sendErrorResponse(res, 409, error.message);
       return;
     }
 
     // Generic server error
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create group invitation',
-    });
+    sendErrorResponse(res, 500, 'Failed to create group invitation');
     return;
   }
 }));
@@ -303,10 +248,7 @@ router.get('/group/:code/validate', asyncHandler(async (req: Request, res: Respo
   // Validate parameters
   const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation code format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation code format');
     return;
   }
 
@@ -329,10 +271,7 @@ router.get('/group/:code/validate', asyncHandler(async (req: Request, res: Respo
 
     const validation = await invitationService.validateGroupInvitation(code, currentUserId);
 
-    res.json({
-      success: true,
-      data: validation,
-    });
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, validation);
     return;
   } catch (error: any) {
     next(error);
@@ -343,10 +282,7 @@ router.post('/group/:code/accept', authenticateToken, asyncHandler(async (req: A
   // Validate parameters
   const paramsValidation = InvitationCodeParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation code format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation code format');
     return;
   }
 
@@ -356,10 +292,7 @@ router.post('/group/:code/accept', authenticateToken, asyncHandler(async (req: A
   try {
     const result = await invitationService.acceptGroupInvitation(code, userId);
 
-    res.json({
-      success: true,
-      data: result,
-    });
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, result);
     return;
   } catch (error: any) {
     next(error);
@@ -373,10 +306,7 @@ router.get('/user', authenticateToken, asyncHandler(async (req: AuthenticatedReq
   try {
     const invitations = await invitationService.listUserInvitations(userId);
 
-    res.json({
-      success: true,
-      data: invitations,
-    });
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, invitations);
     return;
   } catch (error: any) {
     next(error);
@@ -388,10 +318,7 @@ router.delete('/family/:invitationId', authenticateToken, asyncHandler(async (re
   // Validate parameters
   const paramsValidation = InvitationIdParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation ID format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation ID format');
     return;
   }
 
@@ -401,8 +328,7 @@ router.delete('/family/:invitationId', authenticateToken, asyncHandler(async (re
   try {
     await invitationService.cancelFamilyInvitation(invitationId, adminId);
 
-    res.json({
-      success: true,
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       message: 'Invitation cancelled successfully',
     });
     return;
@@ -416,10 +342,7 @@ router.delete('/group/:invitationId', authenticateToken, asyncHandler(async (req
   // Validate parameters
   const paramsValidation = InvitationIdParamsSchema.safeParse(req.params);
   if (!paramsValidation.success) {
-    res.status(400).json({
-      success: false,
-      error: 'Invalid invitation ID format',
-    });
+    sendErrorResponse(res, 400, 'Invalid invitation ID format');
     return;
   }
 
@@ -429,8 +352,7 @@ router.delete('/group/:invitationId', authenticateToken, asyncHandler(async (req
   try {
     await invitationService.cancelGroupInvitation(invitationId, adminId);
 
-    res.json({
-      success: true,
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
       message: 'Invitation cancelled successfully',
     });
     return;

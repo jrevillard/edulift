@@ -6,6 +6,8 @@ import swaggerUi from 'swagger-ui-express';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { logger } from './utils/logger';
 import { prisma } from './config/database';
+import { sendSuccessResponse, sendErrorResponse } from './utils/responseValidation';
+import { SimpleSuccessResponseSchema } from './schemas/responses';
 import groupsRouter from './routes/groups';
 import authRouter from './routes/auth';
 import childrenRouter from './routes/children';
@@ -96,33 +98,30 @@ if (rateLimitEnabled) {
     const now = Date.now();
     const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000'); // Default: 1 minute
     const maxRequests = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300'); // Default: 300 requests per window
-    
+
     if (!rateLimitStore.has(ip)) {
       rateLimitStore.set(ip, { count: 1, resetTime: now + windowMs });
       return next();
     }
-    
+
     const clientData = rateLimitStore.get(ip);
-    
+
     if (now > clientData.resetTime) {
       clientData.count = 1;
       clientData.resetTime = now + windowMs;
       return next();
     }
-    
+
     if (clientData.count >= maxRequests) {
       logger.warn(`Rate limit exceeded for IP: ${ip}`, {
         count: clientData.count,
         max: maxRequests,
         window: `${windowMs}ms`,
       });
-      res.status(429).json({
-        success: false,
-        error: 'Too many requests, please try again later',
-      });
+      sendErrorResponse(res, 429, 'Too many requests, please try again later');
       return;
     }
-    
+
     clientData.count++;
     next();
   });
@@ -132,8 +131,8 @@ if (rateLimitEnabled) {
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN === '*' 
-      ? '*' 
+    origin: process.env.CORS_ORIGIN === '*'
+      ? '*'
       : process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim()),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -153,12 +152,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check
 app.get('/health', (_, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-    },
+  sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -167,20 +163,13 @@ app.get('/api/health/database', async (_, res) => {
   try {
     // Simple database query to verify connection
     await db.user.findFirst();
-    res.status(200).json({
-      success: true,
-      data: {
-        status: 'healthy',
-        database: 'connected',
-        timestamp: new Date().toISOString(),
-      },
+    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+      status: 'healthy',
+      database: 'connected',
+      timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Database connection failed',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    });
+  } catch {
+    sendErrorResponse(res, 500, 'Database connection failed');
   }
 });
 
@@ -201,7 +190,7 @@ app.get('/api/v1', (_, res) => {
   // Read version from package.json to avoid hardcoded version
   const packageJson = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'));
 
-  res.json({
+  sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
     message: 'EduLift API v1',
     version: packageJson.version,
     status: 'active',

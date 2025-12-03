@@ -1,12 +1,17 @@
-// @ts-nocheck
 import { Request, Response } from 'express';
 import { ScheduleSlotService } from '../services/ScheduleSlotService';
 import { ChildAssignmentService } from '../services/ChildAssignmentService';
-import { CreateScheduleSlotData, AssignVehicleToSlotData, ApiResponse } from '../types';
+import { CreateScheduleSlotData, AssignVehicleToSlotData } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { createError } from '../middleware/errorHandler';
 import { SocketEmitter } from '../utils/socketEmitter';
 import { createLogger, Logger } from '../utils/logger';
+import { sendSuccessResponse } from '../utils/responseValidation';
+import {
+  ScheduleSuccessResponseSchema,
+  ScheduleVehicleSuccessResponseSchema,
+  SimpleSuccessResponseSchema,
+} from '../schemas/responses';
 
 export class ScheduleSlotController {
   constructor(
@@ -52,7 +57,7 @@ export class ScheduleSlotController {
         vehicleId,
         datetime,
       });
-      const slot = await this.scheduleSlotService.createScheduleSlotWithVehicle(slotData, vehicleId, authReq.userId, driverId, seatOverride);
+      const slot = await this.scheduleSlotService.createScheduleSlotWithVehicle(slotData, vehicleId, authReq.userId, driverId, seatOverride) as any;
 
       // Emit WebSocket event for real-time updates
       if (slot) {
@@ -70,17 +75,12 @@ export class ScheduleSlotController {
         vehicleId,
       });
 
-      const response: ApiResponse = {
-        success: true,
-        data: slot,
-      };
-
       this.logger.debug('createScheduleSlotWithVehicle: Sending response', {
         groupId,
         slotId: slot.id,
         success: true,
       });
-      res.status(201).json(response);
+      sendSuccessResponse(res, 201, ScheduleSuccessResponseSchema, slot);
     } catch (error) {
       this.logger.error('createScheduleSlotWithVehicle: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -110,26 +110,21 @@ export class ScheduleSlotController {
       if (!scheduleSlot) {
         throw createError('Schedule slot not found', 404);
       }
-      
+
       const assignmentData: AssignVehicleToSlotData = {
         scheduleSlotId,
         vehicleId,
         driverId,
         seatOverride,
       };
-      
+
       const result = await this.scheduleSlotService.assignVehicleToSlot(assignmentData);
-      
+
       // Emit WebSocket event for real-time updates
       SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-      
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
 
-      res.status(201).json(response);
+      sendSuccessResponse(res, 201, ScheduleVehicleSuccessResponseSchema, result);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -155,9 +150,9 @@ export class ScheduleSlotController {
       if (!scheduleSlot) {
         throw createError('Schedule slot not found', 404);
       }
-      
-      const result = await this.scheduleSlotService.removeVehicleFromSlot(scheduleSlotId, vehicleId);
-      
+
+      const result = await this.scheduleSlotService.removeVehicleFromSlot(scheduleSlotId, vehicleId) as any;
+
       // Emit WebSocket event for real-time updates
       if (result.slotDeleted) {
         SocketEmitter.broadcastScheduleSlotDeleted(scheduleSlot.groupId, scheduleSlotId);
@@ -165,16 +160,12 @@ export class ScheduleSlotController {
         SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
       }
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-      
-      const response: ApiResponse = {
-        success: true,
-        data: { 
-          message: 'Vehicle removed successfully',
-          slotDeleted: result.slotDeleted || false,
-        },
-      };
 
-      res.status(200).json(response);
+      const responseData = {
+        message: 'Vehicle removed successfully',
+        slotDeleted: result.slotDeleted || false,
+      };
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, responseData);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -193,19 +184,14 @@ export class ScheduleSlotController {
       if (!scheduleSlot) {
         throw createError('Schedule slot not found', 404);
       }
-      
+
       const result = await this.scheduleSlotService.updateVehicleDriver(scheduleSlotId, vehicleId, driverId);
-      
+
       // Emit WebSocket event for real-time updates
       SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-      
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
 
-      res.status(200).json(response);
+      sendSuccessResponse(res, 200, ScheduleVehicleSuccessResponseSchema, result);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -224,19 +210,14 @@ export class ScheduleSlotController {
       if (!scheduleSlot) {
         throw createError('Schedule slot not found', 404);
       }
-      
+
       const result = await this.scheduleSlotService.removeChildFromSlot(scheduleSlotId, childId);
-      
+
       // Emit WebSocket event for real-time updates
       SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-      
-      const response: ApiResponse = {
-        success: true,
-        data: { message: 'Child removed successfully' },
-      };
 
-      res.status(200).json(response);
+      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Child removed successfully' });
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -250,17 +231,12 @@ export class ScheduleSlotController {
 
     try {
       const slot = await this.scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
-      
+
       if (!slot) {
         throw createError('Schedule slot not found', 404);
       }
-      
-      const response: ApiResponse = {
-        success: true,
-        data: slot,
-      };
 
-      res.status(200).json(response);
+      sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, slot);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -284,12 +260,7 @@ export class ScheduleSlotController {
 
     this.logger.debug('📤 Controller sending response:', { schedule });
 
-    const response: ApiResponse = {
-      success: true,
-      data: schedule,
-    };
-
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, schedule);
   };
 
   getScheduleSlotConflicts = async (req: Request, res: Response): Promise<void> => {
@@ -297,13 +268,8 @@ export class ScheduleSlotController {
 
     try {
       const conflicts = await this.scheduleSlotService.validateSlotConflicts(scheduleSlotId);
-      
-      const response: ApiResponse = {
-        success: true,
-        data: { conflicts },
-      };
 
-      res.status(200).json(response);
+      sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, { conflicts });
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -339,12 +305,7 @@ export class ScheduleSlotController {
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, assignment);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
-    const response: ApiResponse = {
-      success: true,
-      data: assignment,
-    };
-
-    res.status(201).json(response);
+    sendSuccessResponse(res, 201, ScheduleSuccessResponseSchema, assignment);
   };
 
   removeChildFromScheduleSlot = async (req: Request, res: Response): Promise<void> => {
@@ -361,12 +322,7 @@ export class ScheduleSlotController {
       authReq.userId,
     );
 
-    const response: ApiResponse = {
-      success: true,
-      data: result,
-    };
-
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, result);
   };
 
   getAvailableChildrenForSlot = async (req: Request, res: Response): Promise<void> => {
@@ -382,12 +338,7 @@ export class ScheduleSlotController {
       authReq.userId,
     );
 
-    const response: ApiResponse = {
-      success: true,
-      data: children,
-    };
-
-    res.status(200).json(response);
+    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, children);
   };
 
   updateSeatOverride = async (req: Request, res: Response): Promise<void> => {
@@ -399,15 +350,10 @@ export class ScheduleSlotController {
         vehicleAssignmentId,
         seatOverride,
       };
-      
-      const result = await this.scheduleSlotService.updateSeatOverride(updateData);
-      
-      const response: ApiResponse = {
-        success: true,
-        data: result,
-      };
 
-      res.status(200).json(response);
+      const result = await this.scheduleSlotService.updateSeatOverride(updateData);
+
+      sendSuccessResponse(res, 200, ScheduleVehicleSuccessResponseSchema, result);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
