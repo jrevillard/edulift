@@ -42,9 +42,10 @@ describe('EmailService', () => {
       await emailService.sendMagicLink(email, token);
 
       expect(_sendSpy).toHaveBeenCalledTimes(1);
+      // Check for either English or French subject due to internationalization
       expect(_sendSpy).toHaveBeenCalledWith(
         email,
-        'EduLift - Secure Login',
+        expect.stringMatching(/EduLift - (Secure Login|Connexion sécurisée)/),
         expect.stringContaining(token),
         expect.any(Array), // attachments array
       );
@@ -60,7 +61,7 @@ describe('EmailService', () => {
 
         expect(_sendSpy).toHaveBeenCalledWith(
             email,
-            'EduLift - Secure Login',
+            expect.stringMatching(/EduLift - (Secure Login|Connexion sécurisée)/),
             expect.stringContaining(magicLinkUrl),
             expect.any(Array), // attachments array
         );

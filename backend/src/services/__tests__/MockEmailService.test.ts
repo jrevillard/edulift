@@ -99,7 +99,7 @@ describe('MockEmailService', () => {
         });
 
         expect(loggerInfoSpy).toHaveBeenCalledWith(
-          expect.stringContaining('👥 DEVELOPMENT MODE - Group Invitation'),
+          expect.stringContaining('Invitation familiale'),
         );
         expect(loggerInfoSpy).toHaveBeenCalledWith(
           expect.stringContaining(`🔗 Invite Code: ${inviteCode}`),
