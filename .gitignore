@@ -116,6 +116,9 @@ frontend/.serena/cache/
 mobile_app/.serena/cache/
 .serena/
 
+# Git worktrees (local development)
+.worktrees/
+
 #Quick todo
 TODO
 
