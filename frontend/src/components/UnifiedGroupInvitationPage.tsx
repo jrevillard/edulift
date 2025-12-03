@@ -47,7 +47,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { currentFamily } = useFamily();
-  
+
   const [invitation, setInvitation] = useState<GroupInvitationData | null>(null);
   const [isValidating, setIsValidating] = useState(true);
   const [showSignupForm, setShowSignupForm] = useState(false);
@@ -74,41 +74,57 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
   console.log('🔍 DEBUG: UnifiedGroupInvitationPage - extracted inviteCode from URL:', inviteCode);
 
   useEffect(() => {
-    // Attempt mobile redirect if on mobile device and not yet attempted
-    if (mobileDetection.isMobile && inviteCode && !mobileState.hasAttemptedRedirect) {
-      const params = parseSearchParams(searchParams);
+    const handleInvitationFlow = () => {
+      if (!inviteCode) {
+        setIsValidating(false);
+        return;
+      }
 
-      attemptMobileAppOpen(
-        '/groups/join',
-        params,
-        mobileDetection,
-        {
-          fallbackDelay: 2500,
-          onAttempt: (customUrl) => {
-            console.log(`📱 Attempting to open mobile app for group invitation: ${customUrl}`);
-            setMobileState(prev => ({ ...prev, hasAttemptedRedirect: true }));
-          },
-          onFallback: () => {
-            console.log('📱 Mobile app not detected, continuing on web');
-            setMobileState(prev => ({
-              ...prev,
-              showMobileFallback: true
-            }));
+      // If on desktop, validate immediately
+      if (!mobileDetection.isMobile) {
+        validateInvitation();
+        return;
+      }
+
+      // If on mobile and redirect hasn't been attempted yet
+      if (!mobileState.hasAttemptedRedirect) {
+        const params = parseSearchParams(searchParams);
+
+        attemptMobileAppOpen(
+          '/groups/join',
+          params,
+          mobileDetection,
+          {
+            fallbackDelay: 2500,
+            preferUniversalLinks: true,
+            onAttempt: (customUrl, method) => {
+              console.log(`📱 Attempting to open mobile app for group invitation: ${customUrl} using ${method}`);
+              setMobileState(prev => ({ ...prev, hasAttemptedRedirect: true }));
+            },
+            onFallback: (reason) => {
+              console.log('📱 Mobile app not detected, continuing on web. Reason:', reason);
+              setMobileState(prev => ({
+                ...prev,
+                showMobileFallback: true
+              }));
+              // Only validate invitation when mobile app is not detected
+              validateInvitation();
+            }
           }
-        }
-      );
-    }
-    if (inviteCode) {
-      validateInvitation();
-    }
-  }, [inviteCode]); // eslint-disable-line react-hooks/exhaustive-deps
+        );
+      }
+      // If mobile redirect already attempted, don't do anything (fallback already called validateInvitation)
+    };
+
+    handleInvitationFlow();
+  }, [inviteCode, mobileDetection, mobileState.hasAttemptedRedirect]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateInvitation = async () => {
     if (!inviteCode) return;
-    
+
     setIsValidating(true);
     setError(null);
-    
+
     try {
       const result = await unifiedInvitationService.validateGroupInvitation(inviteCode);
       setInvitation(result);
@@ -136,7 +152,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
         userAgent: navigator.userAgent,
         timestamp: new Date().toISOString()
       });
-      
+
       // Redirect to standard magic link sent page with invitation context
       const returnUrl = encodeURIComponent(`/groups/join?code=${inviteCode}`);
       navigate(`/login?email=${encodeURIComponent(invitation.email)}&returnTo=${returnUrl}&success=true`);
@@ -156,7 +172,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
         userAgent: navigator.userAgent,
         timestamp: new Date().toISOString()
       });
-      
+
       // Redirect to standard magic link sent page with invitation context
       const returnUrl = encodeURIComponent(`/groups/join?code=${inviteCode}`);
       navigate(`/login?email=${encodeURIComponent(signupData.email)}&returnTo=${returnUrl}&success=true`);
@@ -175,7 +191,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
     try {
       const result = await unifiedInvitationService.acceptGroupInvitation(inviteCode);
       setAcceptResult(result);
-      
+
       if (result.success && result.familyJoined) {
         navigate('/dashboard');
       }
@@ -248,7 +264,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription data-testid={
                 (invitation?.errorCode === 'EMAIL_MISMATCH') ? "UnifiedGroupInvitationPage-Alert-emailMismatch" :
-                "UnifiedGroupInvitationPage-Alert-error"
+                  "UnifiedGroupInvitationPage-Alert-error"
               }>
                 {error || invitation?.error || 'Invalid invitation code'}
               </AlertDescription>
@@ -382,7 +398,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription data-testid={
                 (invitation?.errorCode === 'EMAIL_MISMATCH') ? "GroupInvitationPage-Alert-emailMismatch" :
-                "GroupInvitationPage-Alert-error"
+                  "GroupInvitationPage-Alert-error"
               }>
                 {error}
               </AlertDescription>
@@ -396,9 +412,9 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                 {networkError}
               </AlertDescription>
               <div className="mt-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleRetry}
                   data-testid="GroupInvitationPage-Button-retry"
                 >
@@ -416,7 +432,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   Sign in required to join this group. Groups are joined by families, not individual users.
                 </AlertDescription>
               </Alert>
-              
+
               {/* Show different UI based on whether user exists */}
               {invitation.email && invitation.existingUser ? (
                 // Existing user with known email - send magic link directly
@@ -427,7 +443,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                       This invitation is for <strong>{invitation.email}</strong>. After signing in, check if you can accept this invitation for your family.
                     </AlertDescription>
                   </Alert>
-                  <Button 
+                  <Button
                     onClick={handleSignInExistingUser}
                     className="w-full"
                     data-testid="GroupInvitationPage-Button-sendMagicLink"
@@ -446,10 +462,10 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                           This invitation is for <strong>{invitation.email}</strong>. You'll need to create an account and set up a family first.
                         </AlertDescription>
                       </Alert>
-                      <Button 
+                      <Button
                         onClick={() => {
                           setShowSignupForm(true);
-                          setSignupData({...signupData, email: invitation.email || ''});
+                          setSignupData({ ...signupData, email: invitation.email || '' });
                         }}
                         className="w-full"
                         data-testid="GroupInvitationPage-Button-signInToJoin"
@@ -472,10 +488,10 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                           type="text"
                           placeholder="Your name"
                           value={signupData.name}
-                          onChange={(e) => setSignupData({...signupData, name: e.target.value})}
+                          onChange={(e) => setSignupData({ ...signupData, name: e.target.value })}
                         />
                       </div>
-                      <Button 
+                      <Button
                         onClick={handleSignupSubmit}
                         disabled={!signupData.name}
                         className="w-full"
@@ -495,7 +511,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                       You need to sign in to join this group with your family.
                     </AlertDescription>
                   </Alert>
-                  <Button 
+                  <Button
                     onClick={() => {
                       const returnUrl = encodeURIComponent(`/groups/join?code=${inviteCode}`);
                       navigate(`/login?returnTo=${returnUrl}`);
@@ -522,7 +538,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                 <p className="text-sm text-blue-800 font-medium">Next Steps:</p>
                 <p className="text-sm text-blue-700 mt-1">Create a family and you'll automatically become the admin, allowing you to accept this group invitation.</p>
               </div>
-              <Button 
+              <Button
                 onClick={handleCreateFamily}
                 className="w-full"
                 data-testid="GroupInvitationPage-Button-createFamily"
@@ -540,14 +556,14 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   As a family admin, you can accept this invitation for your entire family.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-600 mb-2">Family: <strong>{currentFamily.name}</strong></p>
                 <p className="text-sm text-gray-600 mb-2">All family members will join the group:</p>
                 {currentFamily.members && (
                   <div className="space-y-1" data-testid="GroupInvitationPage-List-familyMembers">
                     {currentFamily.members.map((member: FamilyMember, index: number) => (
-                      <div 
+                      <div
                         key={member.id || index}
                         className="text-sm text-gray-700"
                         data-testid={`GroupInvitationPage-ListItem-${member.id || `member-${index}`}`}
@@ -558,8 +574,8 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              
-              <Button 
+
+              <Button
                 onClick={handleAcceptForFamily}
                 disabled={isAccepting}
                 className="w-full"
@@ -585,7 +601,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   Only your family admin can accept group invitations. You are a member of <strong>{currentFamily.name}</strong>.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="bg-gray-50 p-3 rounded-lg">
                 <p className="text-sm text-gray-600 mb-2">Your family administrators:</p>
                 {currentFamily.members && (
@@ -601,9 +617,9 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="space-y-2">
-                <Button 
+                <Button
                   onClick={handleShareWithAdmin}
                   variant="outline"
                   className="w-full"
@@ -611,8 +627,8 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                 >
                   Share Invitation with Admin
                 </Button>
-                
-                <Button 
+
+                <Button
                   variant="outline"
                   className="w-full"
                   data-testid="GroupInvitationPage-Button-requestAdminRole"
@@ -631,7 +647,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   Your family is already a member of this group
                 </AlertDescription>
               </Alert>
-              <Button 
+              <Button
                 onClick={handleGoToGroup}
                 className="w-full"
                 data-testid="GroupInvitationPage-Button-goToGroup"
@@ -649,7 +665,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                   {acceptResult.acceptedBy} already accepted this invitation for your family
                 </AlertDescription>
               </Alert>
-              <Button 
+              <Button
                 onClick={handleGoToGroup}
                 className="w-full"
                 data-testid="GroupInvitationPage-Button-goToGroup"
@@ -694,14 +710,14 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Button 
+                    <Button
                       onClick={handleSendMessage}
                       className="w-full"
                       data-testid="ShareDialog-Button-send"
                     >
                       Send
                     </Button>
-                    <Button 
+                    <Button
                       onClick={() => setShowShareDialog(false)}
                       variant="outline"
                       className="w-full"

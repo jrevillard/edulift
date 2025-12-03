@@ -1,4 +1,5 @@
 import type { MobileDetectionResult } from '../hooks/useMobileDetection';
+import { config } from '../config/runtime';
 
 /**
  * Configuration des custom schemes pour EduLift
@@ -74,8 +75,8 @@ const buildUniversalLinkUrl = (
 ): string => {
   // Validate parameters
   const sanitizedParams = validateParams(params);
-  const baseURL = import.meta.env.VITE_APP_UNIVERSAL_LINKS_BASE_URL ||
-                   window.location.origin;
+  const baseURL = config.VITE_APP_UNIVERSAL_LINKS_BASE_URL ||
+    window.location.origin;
 
   // Secure URL construction for Universal Links
   const queryString = Object.entries(sanitizedParams)
@@ -94,8 +95,8 @@ const buildAppLinkUrl = (
 ): string => {
   // Validate parameters
   const sanitizedParams = validateParams(params);
-  const baseURL = import.meta.env.VITE_ANDROID_APP_LINKS_BASE_URL ||
-                   window.location.origin;
+  const baseURL = config.VITE_MOBILE_APP_LINKS_BASE_URL ||
+    window.location.origin;
 
   // Secure URL construction for App Links
   const queryString = Object.entries(sanitizedParams)

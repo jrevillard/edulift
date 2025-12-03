@@ -63,110 +63,119 @@ const VerifyMagicLinkPage: React.FC = () => {
   const token = searchParams.get('token');
   const inviteCode = searchParams.get('inviteCode');
 
-  useEffect(() => {
-    const handleVerification = async () => {
-      if (!token) {
-        setVerificationState({
-          isVerifying: false,
-          error: 'No verification token provided',
-          hasAttempted: true,
-        });
-        return;
-      }
+  // Wrap verification logic in useCallback to prevent stale closures
+  const runVerification = React.useCallback(async () => {
+    if (!token) {
+      setVerificationState({
+        isVerifying: false,
+        error: 'No verification token provided',
+        hasAttempted: true,
+      });
+      return;
+    }
 
-      // Attempt mobile redirect if on mobile device and not yet attempted
-      if (mobileDetection.isMobile && !mobileState.hasAttemptedRedirect) {
-        setMobileState(prev => ({ ...prev, isRedirecting: true }));
-        const params = parseSearchParams(searchParams);
+    // If user is already authenticated, don't verify again
+    if (isAuthenticated) {
+      return;
+    }
 
-        attemptMobileAppOpen(
-          '/auth/verify',
-          params,
-          mobileDetection,
-          {
-            fallbackDelay: 2500,
-            onAttempt: (customUrl) => {
-              console.log(`📱 Attempting to open mobile app: ${customUrl}`);
-              setMobileState(prev => ({
-                ...prev,
-                hasAttemptedRedirect: true,
-                isRedirecting: false
-              }));
-            },
-            onFallback: () => {
-              console.log('📱 Mobile app not detected, continuing on web');
-              setMobileState(prev => ({
-                ...prev,
-                mobileAppDetected: false,
-                showMobileFallback: true,
-                isRedirecting: false
-              }));
-            }
-          }
-        );
-      }
+    // Prevent re-attempting verification after an error
+    if (verificationState.hasAttempted) {
+      return;
+    }
 
-      // If user is already authenticated, don't verify again
-      if (isAuthenticated) {
-        return;
-      }
+    try {
+      setVerificationState({ isVerifying: true, error: null, hasAttempted: true });
+      const result = await verifyMagicLink(token, inviteCode || undefined);
 
-      // Prevent re-attempting verification after an error
-      if (verificationState.hasAttempted) {
-        return;
-      }
+      // Check if invitation was processed automatically by backend
+      if (result?.invitationResult) {
+        const { invitationResult } = result;
+        console.log('🔍 DEBUG: Frontend received invitationResult:', JSON.stringify(invitationResult, null, 2));
 
-      try {
-        setVerificationState({ isVerifying: true, error: null, hasAttempted: true });
-        const result = await verifyMagicLink(token, inviteCode || undefined);
-        
-        // Check if invitation was processed automatically by backend
-        if (result?.invitationResult) {
-          const { invitationResult } = result;
-          console.log('🔍 DEBUG: Frontend received invitationResult:', JSON.stringify(invitationResult, null, 2));
-          
-          if (invitationResult.processed) {
-            // Invitation was successfully processed, redirect accordingly
-            if (invitationResult.redirectUrl) {
-              console.log('🔍 DEBUG: Redirecting to:', invitationResult.redirectUrl);
-              navigate(invitationResult.redirectUrl, { replace: true });
-              return;
-            } else {
-              // Default redirect for processed invitations
-              console.log('🔍 DEBUG: Redirecting to dashboard (default)');
-              navigate('/dashboard', { replace: true });
-              return;
-            }
+        if (invitationResult.processed) {
+          // Invitation was successfully processed, redirect accordingly
+          if (invitationResult.redirectUrl) {
+            console.log('🔍 DEBUG: Redirecting to:', invitationResult.redirectUrl);
+            navigate(invitationResult.redirectUrl, { replace: true });
+            return;
           } else {
-            // Invitation processing failed
-            console.log('🔍 DEBUG: Invitation processing failed:', invitationResult.reason);
-            setVerificationState({
-              isVerifying: false,
-              error: invitationResult.reason || 'Failed to process invitation',
-              hasAttempted: true,
-            });
+            // Default redirect for processed invitations
+            console.log('🔍 DEBUG: Redirecting to dashboard (default)');
+            navigate('/dashboard', { replace: true });
             return;
           }
+        } else {
+          // Invitation processing failed
+          console.log('🔍 DEBUG: Invitation processing failed:', invitationResult.reason);
+          setVerificationState({
+            isVerifying: false,
+            error: invitationResult.reason || 'Failed to process invitation',
+            hasAttempted: true,
+          });
+          return;
         }
-
-        // No invitation processing needed, auth successful
-        setVerificationState({ isVerifying: false, error: null, hasAttempted: true });
-        // User will be redirected by the Navigate component below
-      } catch (error) {
-        console.error('Magic link verification failed:', error);
-        setVerificationState({
-          isVerifying: false,
-          error: error instanceof Error ? error.message : 'Verification failed',
-          hasAttempted: true,
-        });
       }
-    };
 
-    // Only proceed if auth context is not loading
-    if (!authLoading) {
-      handleVerification();
+      // No invitation processing needed, auth successful
+      setVerificationState({ isVerifying: false, error: null, hasAttempted: true });
+      // User will be redirected by the Navigate component below
+    } catch (error) {
+      console.error('Magic link verification failed:', error);
+      setVerificationState({
+        isVerifying: false,
+        error: error instanceof Error ? error.message : 'Verification failed',
+        hasAttempted: true,
+      });
     }
-  }, [token, inviteCode, navigate, verifyMagicLink, isAuthenticated, authLoading, verificationState.hasAttempted]);
+  }, [token, inviteCode, verifyMagicLink, isAuthenticated, verificationState.hasAttempted, navigate]);
+
+  useEffect(() => {
+    // Only proceed if auth context is not loading
+    if (authLoading) {
+      return;
+    }
+
+    // Desktop flow: validate immediately
+    if (!mobileDetection.isMobile) {
+      runVerification();
+      return;
+    }
+
+    // Mobile flow: attempt app open, then verify on fallback
+    if (!mobileState.hasAttemptedRedirect) {
+      setMobileState(prev => ({ ...prev, isRedirecting: true }));
+      const params = parseSearchParams(searchParams);
+
+      attemptMobileAppOpen(
+        '/auth/verify',
+        params,
+        mobileDetection,
+        {
+          fallbackDelay: 2500,
+          onAttempt: (customUrl, method) => {
+            console.log(`📱 Attempting to open mobile app: ${customUrl} using ${method}`);
+            setMobileState(prev => ({
+              ...prev,
+              hasAttemptedRedirect: true,
+              isRedirecting: false
+            }));
+          },
+          onFallback: (reason) => {
+            console.log('📱 Mobile app not detected, continuing on web. Reason:', reason);
+            setMobileState(prev => ({
+              ...prev,
+              mobileAppDetected: false,
+              showMobileFallback: true,
+              isRedirecting: false
+            }));
+            // IMPORTANT: Only run verification on fallback
+            runVerification();
+          }
+        }
+      );
+    }
+  }, [authLoading, mobileDetection, mobileState.hasAttemptedRedirect, runVerification, searchParams]);
 
   // Handle accepting the family invitation
   const handleAcceptInvitation = async () => {

@@ -65,38 +65,50 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
   const inviteCode = searchParams.get('code');
 
   useEffect(() => {
-    // Attempt mobile redirect if on mobile device and not yet attempted
-    if (mobileDetection.isMobile && inviteCode && !mobileState.hasAttemptedRedirect) {
-      const params = parseSearchParams(searchParams);
+    const handleInvitationFlow = () => {
+      if (!inviteCode) {
+        setIsValidating(false);
+        return;
+      }
 
-      attemptMobileAppOpen(
-        '/families/join',
-        params,
-        mobileDetection,
-        {
-          fallbackDelay: 2500,
-          onAttempt: (customUrl) => {
-            console.log(`📱 Attempting to open mobile app for family invitation: ${customUrl}`);
-            setMobileState(prev => ({ ...prev, hasAttemptedRedirect: true }));
-          },
-          onFallback: () => {
-            console.log('📱 Mobile app not detected, continuing on web');
-            setMobileState(prev => ({
-              ...prev,
-              showMobileFallback: true
-            }));
-          }
-        }
-      );
-    }
+      // If on desktop, validate immediately
+      if (!mobileDetection.isMobile) {
+        validateInvitation();
+        return;
+      }
 
-    if (inviteCode) {
-      validateInvitation();
-    } else {
-      // No invite code provided, stop validation and allow manual input
-      setIsValidating(false);
-    }
-  }, [inviteCode]); // eslint-disable-line react-hooks/exhaustive-deps
+      // If on mobile and redirect hasn't been attempted yet
+      if (!mobileState.hasAttemptedRedirect) {
+        const params = parseSearchParams(searchParams);
+
+        attemptMobileAppOpen(
+            '/families/join',
+            params,
+            mobileDetection,
+            {
+              fallbackDelay: 2500,
+              preferUniversalLinks: true,
+              onAttempt: (customUrl, method) => {
+                console.log(`📱 Attempting to open mobile app for family invitation: ${customUrl} using ${method}`);
+                setMobileState(prev => ({ ...prev, hasAttemptedRedirect: true }));
+              },
+              onFallback: (reason) => {
+                console.log('📱 Mobile app not detected, continuing on web. Reason:', reason);
+                setMobileState(prev => ({
+                  ...prev,
+                  showMobileFallback: true
+                }));
+                // Only validate invitation when mobile app is not detected
+                validateInvitation();
+              }
+            }
+          );
+      }
+      // If mobile redirect already attempted, don't do anything (fallback already called validateInvitation)
+    };
+
+    handleInvitationFlow();
+  }, [inviteCode, mobileDetection, mobileState.hasAttemptedRedirect]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const validateInvitation = async () => {
     if (!inviteCode) {

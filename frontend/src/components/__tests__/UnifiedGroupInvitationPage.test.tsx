@@ -6,6 +6,8 @@ import { unifiedInvitationService } from '../../services/unifiedInvitationServic
 import { authService } from '../../services/authService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useFamily } from '../../contexts/FamilyContext';
+import { useMobileDetection } from '../../hooks/useMobileDetection';
+import { parseSearchParams, attemptMobileAppOpen } from '../../utils/mobileRedirection';
 import { BrowserRouter } from 'react-router-dom';
 
 // Import testing library matchers for proper TypeScript support
@@ -53,6 +55,16 @@ vi.mock('../../contexts/FamilyContext', () => ({
   })),
 }));
 
+// Mock mobile detection and redirection
+vi.mock('../../hooks/useMobileDetection', () => ({
+  useMobileDetection: vi.fn(),
+}));
+
+vi.mock('../../utils/mobileRedirection', () => ({
+  parseSearchParams: vi.fn(),
+  attemptMobileAppOpen: vi.fn(),
+}));
+
 // Mock router hooks
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -70,6 +82,9 @@ const mockAcceptGroupInvitation = vi.mocked(unifiedInvitationService.acceptGroup
 const mockRequestMagicLink = vi.mocked(authService.requestMagicLink);
 const mockUseAuth = vi.mocked(useAuth);
 const mockUseFamily = vi.mocked(useFamily);
+const mockUseMobileDetection = vi.mocked(useMobileDetection);
+const mockParseSearchParams = vi.mocked(parseSearchParams);
+const mockAttemptMobileAppOpen = vi.mocked(attemptMobileAppOpen);
 
 // Test wrapper component
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -101,6 +116,19 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       refreshToken: vi.fn(),
       updateUser: vi.fn(),
     });
+
+    // Configure mobile detection mock (desktop by default)
+    mockUseMobileDetection.mockReturnValue({
+      isMobile: false,
+      isIOS: false,
+      isAndroid: false,
+      deviceType: 'desktop',
+      deviceInfo: { osVersion: undefined, model: undefined }
+    });
+
+    // Configure mobile redirection mocks
+    mockParseSearchParams.mockReturnValue({ code: 'GRP123' });
+    mockAttemptMobileAppOpen.mockReturnValue(true);
   });
 
   describe('Unauthenticated User Flow', () => {
@@ -488,6 +516,79 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       await waitFor(() => {
         expect(screen.getByTestId('ShareDialog-Modal-container')).toBeInTheDocument();
       });
+    });
+  });
+
+  describe('Mobile Redirection Behavior', () => {
+    it('should NOT attempt mobile redirection on desktop', async () => {
+      // Mobile detection returns desktop
+      mockUseMobileDetection.mockReturnValue({
+        isMobile: false,
+        isIOS: false,
+        isAndroid: false,
+        deviceType: 'desktop',
+        deviceInfo: { osVersion: undefined, model: undefined }
+      });
+
+      render(
+        <TestWrapper>
+          <UnifiedGroupInvitationPage />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByTestId('UnifiedGroupInvitationPage-Text-groupName')).toBeInTheDocument();
+      });
+
+      // Should NOT attempt mobile redirection on desktop
+      expect(mockAttemptMobileAppOpen).not.toHaveBeenCalled();
+      expect(mockParseSearchParams).not.toHaveBeenCalled();
+    });
+
+    it('should attempt mobile redirection on mobile device with correct contract', async () => {
+      // Mobile detection returns mobile
+      mockUseMobileDetection.mockReturnValue({
+        isMobile: true,
+        isIOS: true,
+        isAndroid: false,
+        deviceType: 'ios',
+        deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+      });
+
+      // Mock parseSearchParams to return expected parameters
+      mockParseSearchParams.mockReturnValue({ code: 'GRP123' });
+
+      render(
+        <TestWrapper>
+          <UnifiedGroupInvitationPage />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        // Verify that the component attempts mobile redirection
+        expect(mockParseSearchParams).toHaveBeenCalledWith(
+          expect.any(URLSearchParams)
+        );
+      });
+
+      // Verify the contract: attemptMobileAppOpen is called with correct parameters
+      expect(mockAttemptMobileAppOpen).toHaveBeenCalledWith(
+        '/groups/join',                    // correct path
+        { code: 'GRP123' },               // correct parsed parameters
+        expect.objectContaining({          // mobile detection info
+          isMobile: true,
+          isIOS: true,
+          isAndroid: false,
+          deviceType: 'ios',
+          deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+        }),
+        expect.objectContaining({          // options object with required properties
+          fallbackDelay: 2500,
+          preferUniversalLinks: true,
+          onAttempt: expect.any(Function),   // callback functions exist
+          onFallback: expect.any(Function)   // callback functions exist
+        })
+      );
     });
   });
 

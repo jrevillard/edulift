@@ -14,6 +14,8 @@ interface RuntimeConfig {
   VITE_SOCKET_FORCE_POLLING: string;
   VITE_APP_STORE_URL: string;
   VITE_PLAY_STORE_URL: string;
+  VITE_APP_UNIVERSAL_LINKS_BASE_URL?: string;
+  VITE_MOBILE_APP_LINKS_BASE_URL?: string;
 }
 
 // Extend Window interface to include our runtime config
@@ -42,6 +44,8 @@ function getRuntimeConfig(): RuntimeConfig {
     VITE_SOCKET_FORCE_POLLING: import.meta.env.VITE_SOCKET_FORCE_POLLING || 'false',
     VITE_APP_STORE_URL: import.meta.env.VITE_APP_STORE_URL || 'https://apps.apple.com/app/edulift',
     VITE_PLAY_STORE_URL: import.meta.env.VITE_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.edulift',
+    VITE_APP_UNIVERSAL_LINKS_BASE_URL: import.meta.env.VITE_APP_UNIVERSAL_LINKS_BASE_URL,
+    VITE_MOBILE_APP_LINKS_BASE_URL: import.meta.env.VITE_MOBILE_APP_LINKS_BASE_URL,
   };
 }
 

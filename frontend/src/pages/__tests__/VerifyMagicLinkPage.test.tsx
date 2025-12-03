@@ -9,6 +9,8 @@ import VerifyMagicLinkPage from '../VerifyMagicLinkPage'
 import { AuthProvider } from '../../contexts/AuthContext'
 import { SocketProvider } from '../../contexts/SocketContext'
 import { FamilyProvider } from '../../contexts/FamilyContext'
+import { useMobileDetection } from '../../hooks/useMobileDetection'
+import { parseSearchParams, attemptMobileAppOpen } from '../../utils/mobileRedirection'
 import * as authService from '../../services/authService'
 import type { AuthService } from '../../services/authService'
 
@@ -29,6 +31,9 @@ vi.mock('../../services/authService', () => ({
 }))
 
 const mockAuthService = authService.authService as Partial<AuthService>;
+const mockUseMobileDetection = vi.mocked(useMobileDetection);
+const mockParseSearchParams = vi.mocked(parseSearchParams);
+const mockAttemptMobileAppOpen = vi.mocked(attemptMobileAppOpen);
 
 // Mock family API service
 vi.mock('../../services/familyApiService', () => ({
@@ -48,6 +53,16 @@ vi.mock('../../services/familyApiService', () => ({
       canCreateGroups: true,
     }),
   },
+}));
+
+// Mock mobile detection and redirection
+vi.mock('../../hooks/useMobileDetection', () => ({
+  useMobileDetection: vi.fn(),
+}));
+
+vi.mock('../../utils/mobileRedirection', () => ({
+  parseSearchParams: vi.fn(),
+  attemptMobileAppOpen: vi.fn(),
 }));
 
 // Mock connection store
@@ -107,6 +122,19 @@ describe('VerifyMagicLinkPage', () => {
     mockAuthService.isAuthenticated.mockReturnValue(false)
     mockAuthService.getUser.mockReturnValue(null)
     mockAuthService.getToken.mockReturnValue(null)
+
+    // Configure mobile detection mock (desktop by default)
+    mockUseMobileDetection.mockReturnValue({
+      isMobile: false,
+      isIOS: false,
+      isAndroid: false,
+      deviceType: 'desktop',
+      deviceInfo: { osVersion: undefined, model: undefined }
+    });
+
+    // Configure mobile redirection mocks
+    mockParseSearchParams.mockReturnValue({ token: 'test-token' });
+    mockAttemptMobileAppOpen.mockReturnValue(true);
   })
 
   it('shows loading state while verifying token', () => {
@@ -336,6 +364,65 @@ describe('VerifyMagicLinkPage - Mobile-Friendly Behavior', () => {
       expect(screen.queryByTestId('verifying-message')).not.toBeInTheDocument()
       expect(screen.queryByTestId('verification-failed-title')).not.toBeInTheDocument()
     })
+  })
+
+  describe('Mobile Redirection Behavior', () => {
+    it('should NOT attempt mobile redirection on desktop', async () => {
+      // Mobile detection returns desktop
+      mockUseMobileDetection.mockReturnValue({
+        isMobile: false,
+        isIOS: false,
+        isAndroid: false,
+        deviceType: 'desktop',
+        deviceInfo: { osVersion: undefined, model: undefined }
+      })
+
+      renderWithRouter(['/auth/verify?token=test-token'])
+
+      // Desktop should NOT attempt mobile redirection
+      expect(mockAttemptMobileAppOpen).not.toHaveBeenCalled();
+      expect(mockParseSearchParams).not.toHaveBeenCalled();
+    });
+
+    it('should attempt mobile redirection on mobile device with correct contract', async () => {
+      // Mobile detection returns mobile
+      mockUseMobileDetection.mockReturnValue({
+        isMobile: true,
+        isIOS: true,
+        isAndroid: false,
+        deviceType: 'ios',
+        deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+      });
+
+      // Mock parseSearchParams to return expected parameters
+      mockParseSearchParams.mockReturnValue({ token: 'test-token' });
+
+      renderWithRouter(['/auth/verify?token=test-token'])
+
+      await waitFor(() => {
+        expect(mockParseSearchParams).toHaveBeenCalledWith(
+          expect.any(URLSearchParams)
+        );
+      });
+
+      // Verify the contract: attemptMobileAppOpen is called with correct parameters
+      expect(mockAttemptMobileAppOpen).toHaveBeenCalledWith(
+        '/auth/verify',                    // correct path
+        { token: 'test-token' },            // correct parsed parameters
+        expect.objectContaining({           // mobile detection info
+          isMobile: true,
+          isIOS: true,
+          isAndroid: false,
+          deviceType: 'ios',
+          deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+        }),
+        expect.objectContaining({           // options object with required properties
+          fallbackDelay: 2500,
+          onAttempt: expect.any(Function),    // callback functions exist
+          onFallback: expect.any(Function)    // callback functions exist
+        })
+      );
+    });
   })
 })
 
