@@ -4,13 +4,10 @@ on:
   # Deploy on push to main after CI succeeds
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
     paths-ignore:
       - '.github/workflows/**'
       - 'docs/**'
-
-  # For releases (tags) - these should still trigger deployment directly
-  push:
-    tags: [ 'v*' ]
 
   # For pull requests (testing only)
   pull_request:
