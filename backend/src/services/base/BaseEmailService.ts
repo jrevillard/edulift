@@ -241,7 +241,7 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     const inviteUrl = await this.generateUrl('groups/join', params);
     const subject = `EduLift - Invitation to group ${data.groupName}`;
     const html = await this.generateGroupInvitationEmail(data.groupName, inviteUrl);
-    const logoAttachment = this.getLogoAttachment();
+    const logoAttachment = await this.getLogoAttachment();
     await this._send(data.to, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
 
