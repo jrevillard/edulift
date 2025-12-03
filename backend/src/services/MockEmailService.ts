@@ -15,14 +15,14 @@ export class MockEmailService extends BaseEmailService {
       logger.info(`📎 Email includes ${attachments.length} attachment(s)`);
     }
     // Extract key information for better console logging
-    if (subject.includes('Secure Login')) {
-      // Magic Link Email - Extract URL from HTML
+    if (subject.includes('Secure Login') || subject.includes('Connexion sécurisée')) {
+      // Magic Link Email - Extract URL from HTML (handle both English and French)
       const urlRegex = /<a href="([^"]+)"/;
       const match = html.match(urlRegex);
       if (match) {
         const magicLinkUrl = match[1];
         const url = new URL(magicLinkUrl);
-        
+
         const emailLogData: any = {
           type: 'Magic Link Email',
           to,
@@ -57,17 +57,22 @@ export class MockEmailService extends BaseEmailService {
 
         logger.info(logMessage);
       }
-    } else if (subject.includes('Invitation')) {
-      // Invitation Email - Extract invitation URL
+    } else if (subject.includes('Invitation') || subject.includes('rejoindre')) {
+      // Invitation Email - Extract invitation URL (handle both English and French)
       const urlRegex = /<a href="([^"]+)"/;
       const match = html.match(urlRegex);
       if (match) {
         const inviteUrl = match[1];
         const url = new URL(inviteUrl);
-        const isGroupInvitation = subject.includes('group');
-        
+        const isGroupInvitation = subject.includes('group') || subject.includes('groupe');
+
+        // Determine invitation type and language
+        const isFrenchSubject = subject.includes('rejoindre') || subject.includes('famille');
+
         const invitationLogData: any = {
-          type: `${isGroupInvitation ? 'Group' : 'Family'} Invitation`,
+          type: isGroupInvitation
+            ? (isFrenchSubject ? 'Invitation de groupe' : 'Group Invitation')
+            : (isFrenchSubject ? 'Invitation familiale' : 'Family Invitation'),
           to,
           inviteUrl,
         };
@@ -77,12 +82,25 @@ export class MockEmailService extends BaseEmailService {
         }
 
         const invitationLogMessage = [
-          `${isGroupInvitation ? '👥' : '👨‍👩‍👧‍👦'} DEVELOPMENT MODE - ${isGroupInvitation ? 'Group' : 'Family'} Invitation`,
+          `${isGroupInvitation ? '👥' : '👨‍👩‍👧‍👦'} DEVELOPMENT MODE - ${invitationLogData.type}`,
           '=====================================',
           `📧 Type: ${invitationLogData.type}`,
           `📧 To: ${invitationLogData.to}`,
           ...(invitationLogData.inviteCode ? [`🔗 Invite Code: ${invitationLogData.inviteCode}`] : []),
           `🌐 Invite URL: ${invitationLogData.inviteUrl}`,
+          ...(isFrenchSubject ? [
+            '',
+            '🇫🇷 Pour ouvrir dans l\'application :',
+            `   edulift "${invitationLogData.inviteUrl}"`,
+            '   OU',
+            `   xdg-open "${invitationLogData.inviteUrl}"`,
+          ] : [
+            '',
+            '💡 To open in app:',
+            `   edulift "${invitationLogData.inviteUrl}"`,
+            '   OR',
+            `   xdg-open "${invitationLogData.inviteUrl}"`,
+          ]),
           '=====================================',
         ].join('\n');
 
@@ -100,7 +118,7 @@ export class MockEmailService extends BaseEmailService {
 
       logger.info(genericLogMessage);
     }
-    
+
     // In development, we simulate successful email sending
     // Users can copy the magic link from console to test authentication
   }
