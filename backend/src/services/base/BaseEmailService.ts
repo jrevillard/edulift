@@ -1,8 +1,24 @@
 
 import { EmailServiceInterface, ScheduleSlotNotificationData, GroupInvitationData, FamilyInvitationData, DailyReminderSlot } from '../../types/EmailServiceInterface';
+import { LanguageDetector, DetectionContext, SupportedLanguage } from '../../utils/LanguageDetector';
+import { EmailTemplates } from '../../utils/EmailTemplates';
 
 export abstract class BaseEmailService implements EmailServiceInterface {
   protected abstract _send(to: string, subject: string, html: string, attachments?: any[], from?: string): Promise<void>;
+
+  /**
+   * Detect language for email recipient
+   */
+  protected detectLanguage(email: string, context?: DetectionContext): SupportedLanguage {
+    return LanguageDetector.detectLanguage(email, context);
+  }
+
+  /**
+   * Get localized subject line
+   */
+  protected getLocalizedSubject(type: string, language: SupportedLanguage, params?: Record<string, string>): string {
+    return LanguageDetector.getLocalizedSubject(type, language, params);
+  }
 
   /**
    * Validates a base URL to ensure it's safe for use in email links
@@ -223,8 +239,10 @@ export abstract class BaseEmailService implements EmailServiceInterface {
       }
     }
 
-    const subject = 'EduLift - Secure Login';
-    const html = await this.generateMagicLinkEmail(finalMagicLinkUrl);
+    // Detect language and use localized template
+    const language = this.detectLanguage(email);
+    const subject = this.getLocalizedSubject('magic_link', language);
+    const html = EmailTemplates.generateMagicLinkEmail(finalMagicLinkUrl, language);
     const logoAttachment = await this.getLogoAttachment();
     await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
@@ -239,8 +257,19 @@ export abstract class BaseEmailService implements EmailServiceInterface {
   async sendGroupInvitation(data: GroupInvitationData): Promise<void> {
     const params = new URLSearchParams({ code: data.inviteCode });
     const inviteUrl = await this.generateUrl('groups/join', params);
-    const subject = `EduLift - Invitation to group ${data.groupName}`;
-    const html = await this.generateGroupInvitationEmail(data.groupName, inviteUrl);
+
+    // Detect language with context from inviter if available
+    const context: DetectionContext = {};
+    if (data.inviterLanguage) {
+      context.inviterLanguage = data.inviterLanguage;
+    }
+    if (data.groupName) {
+      context.groupContext = data.groupName;
+    }
+    const language = this.detectLanguage(data.to, context);
+
+    const subject = this.getLocalizedSubject('group_invitation', language, { groupName: data.groupName });
+    const html = EmailTemplates.generateGroupInvitationEmail(data.groupName, inviteUrl, language);
     const logoAttachment = await this.getLogoAttachment();
     await this._send(data.to, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
@@ -248,8 +277,16 @@ export abstract class BaseEmailService implements EmailServiceInterface {
   async sendFamilyInvitation(email: string, invitationData: FamilyInvitationData): Promise<void> {
     const params = new URLSearchParams({ code: invitationData.inviteCode });
     const inviteUrl = await this.generateUrl('families/join', params);
-    const subject = `EduLift - Invitation to family ${invitationData.familyName}`;
-    const html = await this.generateFamilyInvitationEmail(invitationData.familyName, inviteUrl, invitationData.personalMessage);
+
+    // Detect language with context from inviter if available
+    const context: DetectionContext = {};
+    if (invitationData.inviterLanguage) {
+      context.inviterLanguage = invitationData.inviterLanguage;
+    }
+    const language = this.detectLanguage(email, context);
+
+    const subject = this.getLocalizedSubject('family_invitation', language, { familyName: invitationData.familyName });
+    const html = EmailTemplates.generateFamilyInvitationEmail(invitationData.familyName, inviteUrl, invitationData.personalMessage, language);
     const logoAttachment = await this.getLogoAttachment();
     await this._send(email, subject, html, logoAttachment ? [logoAttachment] : undefined);
   }
@@ -337,64 +374,7 @@ export abstract class BaseEmailService implements EmailServiceInterface {
     `;
   }
 
-  private async generateMagicLinkEmail(magicLinkUrl: string): Promise<string> {
-    return `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduLift - Secure Login</title>
-</head>
-<body style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-${await this.generateEmailHeader()}
-<div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-<p style="font-size: 16px; line-height: 1.5;">Hello,</p>
-<p style="font-size: 16px; line-height: 1.5;">Click the link below to sign in to your EduLift account:</p>
-
-<!-- Mobile-friendly button with fallback -->
-<div style="text-align: center; margin: 30px 0;">
-  <!--[if mso]>
-    <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
-                 href="${magicLinkUrl}" style="height:50px;v-text-anchor:middle; width:200px;"
-                 arcsize="10%" stroke="f" fillcolor="#2563eb">
-      <w:anchorlock/>
-      <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px; font-weight:bold;">
-        Sign in to EduLift
-      </center>
-    </v:roundrect>
-  <![endif]-->
-  <a href="${magicLinkUrl}"
-     style="background: #2563eb; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px;
-            display: inline-block; font-weight: bold; font-size: 16px; -webkit-text-size-adjust: none;">
-    Sign in to EduLift
-  </a>
-</div>
-
-<!-- Copyable link fallback for mobile/Outlook -->
-<div style="background: #f1f5f9; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2563eb;">
-  <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: bold;">
-    📱 If the button doesn't work on mobile:
-  </p>
-  <p style="margin: 0; font-size: 12px; color: #475569; word-break: break-all;">
-    <strong>Copy and paste this link in your browser:</strong><br>
-    <span style="background: white; padding: 8px; border-radius: 4px; display: inline-block; font-family: monospace;">
-      ${magicLinkUrl}
-    </span>
-  </p>
-</div>
-
-<p style="font-size: 13px; color: #64748b; margin: 20px 0 10px 0;">
-  ⏰ This link expires in 15 minutes and can only be used once.
-</p>
-<p style="font-size: 13px; color: #64748b; margin: 10px 0;">
-  🔒 If you did not request this login, you can safely ignore this email.
-</p>
-</div>
-${await this.generateEmailFooter()}
-</body>
-</html>`;
-  }
-
+  
   private async generateScheduleNotificationEmail(groupName: string, weekInfo: string): Promise<string> {
     return `
       <!DOCTYPE html>
@@ -421,123 +401,8 @@ ${await this.generateEmailFooter()}
     `;
   }
 
-  private async generateGroupInvitationEmail(groupName: string, inviteUrl: string): Promise<string> {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EduLift - Group Invitation</title>
-      </head>
-      <body style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-        ${await this.generateEmailHeader()}
-        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <p style="font-size: 16px; line-height: 1.5;">Hello,</p>
-          <p style="font-size: 16px; line-height: 1.5;">You have been invited to join the group <strong>${groupName}</strong> on EduLift.</p>
-          <p style="font-size: 16px; line-height: 1.5;">EduLift helps you organize home-to-school trips collaboratively with other parents.</p>
-
-          <!-- Mobile-friendly button with fallback -->
-          <div style="text-align: center; margin: 30px 0;">
-            <!--[if mso]>
-              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
-                           href="${inviteUrl}" style="height:50px;v-text-anchor:middle; width:200px;"
-                           arcsize="10%" stroke="f" fillcolor="#10b981">
-                <w:anchorlock/>
-                <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px; font-weight:bold;">
-                  Join Group
-                </center>
-              </v:roundrect>
-            <![endif]-->
-            <a href="${inviteUrl}"
-               style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px;
-                      display: inline-block; font-weight: bold; font-size: 16px; -webkit-text-size-adjust: none;">
-              Join Group
-            </a>
-          </div>
-
-          <!-- Copyable link fallback for mobile/Outlook -->
-          <div style="background: #f1f5f9; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10b981;">
-            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: bold;">
-              📱 If the button doesn't work on mobile:
-            </p>
-            <p style="margin: 0; font-size: 12px; color: #475569; word-break: break-all;">
-              <strong>Copy and paste this link in your browser:</strong><br>
-              <span style="background: white; padding: 8px; border-radius: 4px; display: inline-block; font-family: monospace;">
-                ${inviteUrl}
-              </span>
-            </p>
-          </div>
-
-          <p style="font-size: 13px; color: #64748b;">
-            If you do not wish to join this group, you can ignore this email.
-          </p>
-        </div>
-        ${await this.generateEmailFooter()}
-      </body>
-      </html>
-    `;
-  }
-
-  private async generateFamilyInvitationEmail(familyName: string, inviteUrl: string, personalMessage?: string): Promise<string> {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>EduLift - Family Invitation</title>
-      </head>
-      <body style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
-        ${await this.generateEmailHeader()}
-        <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-          <p style="font-size: 16px; line-height: 1.5;">Hello,</p>
-          <p style="font-size: 16px; line-height: 1.5;">You have been invited to join the family <strong>${familyName}</strong> on EduLift.</p>
-          ${personalMessage ? `<div style="background: #f0f9ff; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #2563eb;"><p style="margin: 0; font-style: italic; color: #1e40af;">💬 "${personalMessage}"</p></div>` : ''}
-          <p style="font-size: 16px; line-height: 1.5;">EduLift helps you organize home-to-school trips collaboratively with your family and other parents.</p>
-
-          <!-- Mobile-friendly button with fallback -->
-          <div style="text-align: center; margin: 30px 0;">
-            <!--[if mso]>
-              <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
-                           href="${inviteUrl}" style="height:50px;v-text-anchor:middle; width:200px;"
-                           arcsize="10%" stroke="f" fillcolor="#10b981">
-                <w:anchorlock/>
-                <center style="color:#ffffff; font-family:Arial, sans-serif; font-size:16px; font-weight:bold;">
-                  Join Family
-                </center>
-              </v:roundrect>
-            <![endif]-->
-            <a href="${inviteUrl}"
-               style="background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 6px;
-                      display: inline-block; font-weight: bold; font-size: 16px; -webkit-text-size-adjust: none;">
-              Join Family
-            </a>
-          </div>
-
-          <!-- Copyable link fallback for mobile/Outlook -->
-          <div style="background: #f1f5f9; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #10b981;">
-            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b; font-weight: bold;">
-              📱 If the button doesn't work on mobile:
-            </p>
-            <p style="margin: 0; font-size: 12px; color: #475569; word-break: break-all;">
-              <strong>Copy and paste this link in your browser:</strong><br>
-              <span style="background: white; padding: 8px; border-radius: 4px; display: inline-block; font-family: monospace;">
-                ${inviteUrl}
-              </span>
-            </p>
-          </div>
-
-          <p style="font-size: 13px; color: #64748b;">
-            If you do not wish to join this family, you can ignore this email.
-          </p>
-        </div>
-        ${await this.generateEmailFooter()}
-      </body>
-      </html>
-    `;
-  }
-
+  
+  
   private getScheduleSlotNotificationSubject(data: ScheduleSlotNotificationData): string {
     const datetime = new Date(data.datetime);
     const timeString = datetime.toISOString().slice(0, 16).replace('T', ' '); // YYYY-MM-DD HH:MM

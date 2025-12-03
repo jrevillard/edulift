@@ -28,6 +28,7 @@ export interface GroupInvitationData {
   inviteCode: string;
   role: string;
   personalMessage?: string;
+  inviterLanguage?: string; // Optional language preference from the inviter
 }
 
 export interface FamilyInvitationData {
@@ -36,6 +37,7 @@ export interface FamilyInvitationData {
   inviteCode: string;
   personalMessage?: string;
   role: string;
+  inviterLanguage?: string; // Optional language preference from the inviter
 }
 
 export interface EmailServiceInterface {
