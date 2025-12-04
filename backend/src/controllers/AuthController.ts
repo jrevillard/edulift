@@ -74,6 +74,11 @@ export class AuthController {
         const response: ApiResponse = {
           success: false,
           error: error.message,
+          validationErrors: [{
+            field: 'name',
+            message: error.message,
+            code: 'too_small',
+          }],
         };
         res.status(422).json(response);
         return;
