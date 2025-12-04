@@ -748,6 +748,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/groups/{groupId}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get group schedule
+         * @description Retrieve schedule for a group with optional date range filtering. Requires group membership.
+         */
+        get: operations["getgroupsByGroupIdSchedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/groups/{groupId}/schedule-slots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create schedule slot for group
+         * @description Create a new schedule slot with vehicle for a group. Requires group membership.
+         */
+        post: operations["postgroupsByGroupIdScheduleSlots"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/families/validate-invite": {
         parameters: {
             query?: never;
@@ -1283,46 +1323,6 @@ export interface paths {
          * @description Cancel a pending group invitation. Requires group admin permissions.
          */
         delete: operations["deleteinvitationsGroupByInvitationId"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/schedule-slots/groups/{groupId}/schedule-slots": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create schedule slot with vehicle
-         * @description Create a new schedule slot with vehicle assignment for a group
-         */
-        post: operations["postScheduleSlotsGroupsByGroupIdScheduleSlots"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/schedule-slots/groups/{groupId}/schedule": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get group schedule
-         * @description Retrieve schedule for a group with optional date range filtering
-         */
-        get: operations["getScheduleSlotsGroupsByGroupIdSchedule"];
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -6461,6 +6461,147 @@ export interface operations {
             };
         };
     };
+    getgroupsByGroupIdSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique group identifier (CUID format) */
+                groupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Group schedule retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: {
+                            scheduleSlots: {
+                                id: string;
+                                datetime: string;
+                                vehicle?: {
+                                    id: string;
+                                    name: string;
+                                    capacity: number;
+                                };
+                                driver?: {
+                                    id: string;
+                                    name: string;
+                                };
+                            }[];
+                        };
+                    };
+                };
+            };
+            /** @description Bad request - Invalid parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden - Insufficient permissions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found - Group does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    postgroupsByGroupIdScheduleSlots: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Unique group identifier (CUID format) */
+                groupId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /** Format: date-time */
+                    datetime: string;
+                    /** Format: cuid */
+                    vehicleId: string;
+                    /** Format: cuid */
+                    driverId?: string;
+                    seatOverride?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Schedule slot created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: true;
+                        data: {
+                            id: string;
+                            datetime: string;
+                            groupId: string;
+                            vehicleId: string;
+                        };
+                    };
+                };
+            };
+            /** @description Bad request - Invalid parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized - Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden - Insufficient permissions */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not found - Group does not exist */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     postfamiliesValidateInvite: {
         parameters: {
             query?: never;
@@ -9616,578 +9757,6 @@ export interface operations {
             };
             /** @description Internal server error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    postScheduleSlotsGroupsByGroupIdScheduleSlots: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                /** @description Unique group identifier (CUID format) */
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["CreateScheduleSlotWithVehicleRequest"];
-            };
-        };
-        responses: {
-            /** @description Schedule slot created successfully */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /**
-                         * Schedule Slot
-                         * @description Schedule slot information
-                         */
-                        data: {
-                            /**
-                             * Format: cuid
-                             * @description Schedule slot identifier
-                             * @example cl123456789012345678901234
-                             */
-                            id: string;
-                            /**
-                             * Format: date-time
-                             * @description Schedule slot datetime
-                             * @example 2023-12-15T08:00:00.000Z
-                             */
-                            datetime: string;
-                            /**
-                             * Format: cuid
-                             * @description Group identifier
-                             * @example cl123456789012345678901235
-                             */
-                            groupId: string;
-                            /**
-                             * Format: date-time
-                             * @description Schedule slot creation timestamp
-                             * @example 2023-12-01T08:00:00.000Z
-                             */
-                            createdAt: string;
-                            /**
-                             * Format: date-time
-                             * @description Schedule slot update timestamp
-                             * @example 2023-12-01T08:00:00.000Z
-                             */
-                            updatedAt: string;
-                            /** @description Vehicle assignments (included when requested) */
-                            vehicleAssignments?: {
-                                /**
-                                 * Format: cuid
-                                 * @description Vehicle assignment identifier
-                                 * @example cl123456789012345678901236
-                                 */
-                                id: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Schedule slot identifier
-                                 * @example cl123456789012345678901234
-                                 */
-                                scheduleSlotId: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Vehicle identifier
-                                 * @example cl123456789012345678901237
-                                 */
-                                vehicleId: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Driver identifier (null if not assigned)
-                                 * @example cl123456789012345678901239
-                                 */
-                                driverId: string | null;
-                                /**
-                                 * @description Seat capacity override (null if using default)
-                                 * @example 6
-                                 */
-                                seatOverride: number | null;
-                                /** @description Vehicle information (included when requested) */
-                                vehicle?: {
-                                    /** Format: cuid */
-                                    id: string;
-                                    make: string;
-                                    model: string;
-                                    licensePlate: string;
-                                    capacity: number;
-                                    /** Format: cuid */
-                                    familyId: string;
-                                };
-                                /** @description Driver information (included when requested) */
-                                driver?: {
-                                    /** Format: cuid */
-                                    id: string;
-                                    firstName: string;
-                                    lastName: string;
-                                    /** Format: email */
-                                    email: string;
-                                } | null;
-                                /** @description Count information (included when requested) */
-                                _count?: {
-                                    /**
-                                     * @description Number of children assigned to this vehicle
-                                     * @example 3
-                                     */
-                                    childAssignments: number;
-                                };
-                            }[];
-                            /** @description Child assignments (included when requested) */
-                            childAssignments?: {
-                                /**
-                                 * Format: cuid
-                                 * @description Child assignment identifier
-                                 * @example cl123456789012345678901240
-                                 */
-                                id: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Schedule slot identifier
-                                 * @example cl123456789012345678901234
-                                 */
-                                scheduleSlotId: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Child identifier
-                                 * @example cl123456789012345678901238
-                                 */
-                                childId: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Vehicle assignment identifier
-                                 * @example cl123456789012345678901236
-                                 */
-                                vehicleAssignmentId: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Assignment timestamp
-                                 * @example 2023-12-01T08:00:00.000Z
-                                 */
-                                assignedAt: string;
-                                /** @description Child information (included when requested) */
-                                child?: {
-                                    /** Format: cuid */
-                                    id: string;
-                                    firstName: string;
-                                    lastName: string;
-                                    /** Format: date-time */
-                                    dateOfBirth: string;
-                                    /** Format: cuid */
-                                    familyId: string;
-                                };
-                                /**
-                                 * Vehicle Assignment
-                                 * @description Vehicle assignment information (included when requested)
-                                 */
-                                vehicleAssignment?: {
-                                    /**
-                                     * Format: cuid
-                                     * @description Vehicle assignment identifier
-                                     * @example cl123456789012345678901236
-                                     */
-                                    id: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Schedule slot identifier
-                                     * @example cl123456789012345678901234
-                                     */
-                                    scheduleSlotId: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Vehicle identifier
-                                     * @example cl123456789012345678901237
-                                     */
-                                    vehicleId: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Driver identifier (null if not assigned)
-                                     * @example cl123456789012345678901239
-                                     */
-                                    driverId: string | null;
-                                    /**
-                                     * @description Seat capacity override (null if using default)
-                                     * @example 6
-                                     */
-                                    seatOverride: number | null;
-                                    /** @description Vehicle information (included when requested) */
-                                    vehicle?: {
-                                        /** Format: cuid */
-                                        id: string;
-                                        make: string;
-                                        model: string;
-                                        licensePlate: string;
-                                        capacity: number;
-                                        /** Format: cuid */
-                                        familyId: string;
-                                    };
-                                    /** @description Driver information (included when requested) */
-                                    driver?: {
-                                        /** Format: cuid */
-                                        id: string;
-                                        firstName: string;
-                                        lastName: string;
-                                        /** Format: email */
-                                        email: string;
-                                    } | null;
-                                    /** @description Count information (included when requested) */
-                                    _count?: {
-                                        /**
-                                         * @description Number of children assigned to this vehicle
-                                         * @example 3
-                                         */
-                                        childAssignments: number;
-                                    };
-                                };
-                            }[];
-                            /** @description Count information (included when requested) */
-                            _count?: {
-                                /**
-                                 * @description Number of vehicle assignments
-                                 * @example 2
-                                 */
-                                vehicleAssignments: number;
-                                /**
-                                 * @description Number of child assignments
-                                 * @example 8
-                                 */
-                                childAssignments: number;
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description Bad request - Invalid input data */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized - Authentication required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Insufficient permissions */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found - Group or vehicle does not exist */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    getScheduleSlotsGroupsByGroupIdSchedule: {
-        parameters: {
-            query?: {
-                /** @description Start date for schedule filtering (ISO 8601 format) */
-                startDate?: string;
-                /** @description End date for schedule filtering (ISO 8601 format) */
-                endDate?: string;
-            };
-            header?: never;
-            path: {
-                /** @description Unique group identifier (CUID format) */
-                groupId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Group schedule retrieved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        /** @enum {boolean} */
-                        success: true;
-                        /**
-                         * Schedule Response
-                         * @description Group schedule information
-                         */
-                        data: {
-                            /** @description Schedule slots within the date range */
-                            scheduleSlots: {
-                                /**
-                                 * Format: cuid
-                                 * @description Schedule slot identifier
-                                 * @example cl123456789012345678901234
-                                 */
-                                id: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Schedule slot datetime
-                                 * @example 2023-12-15T08:00:00.000Z
-                                 */
-                                datetime: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Group identifier
-                                 * @example cl123456789012345678901235
-                                 */
-                                groupId: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Schedule slot creation timestamp
-                                 * @example 2023-12-01T08:00:00.000Z
-                                 */
-                                createdAt: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Schedule slot update timestamp
-                                 * @example 2023-12-01T08:00:00.000Z
-                                 */
-                                updatedAt: string;
-                                /** @description Vehicle assignments (included when requested) */
-                                vehicleAssignments?: {
-                                    /**
-                                     * Format: cuid
-                                     * @description Vehicle assignment identifier
-                                     * @example cl123456789012345678901236
-                                     */
-                                    id: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Schedule slot identifier
-                                     * @example cl123456789012345678901234
-                                     */
-                                    scheduleSlotId: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Vehicle identifier
-                                     * @example cl123456789012345678901237
-                                     */
-                                    vehicleId: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Driver identifier (null if not assigned)
-                                     * @example cl123456789012345678901239
-                                     */
-                                    driverId: string | null;
-                                    /**
-                                     * @description Seat capacity override (null if using default)
-                                     * @example 6
-                                     */
-                                    seatOverride: number | null;
-                                    /** @description Vehicle information (included when requested) */
-                                    vehicle?: {
-                                        /** Format: cuid */
-                                        id: string;
-                                        make: string;
-                                        model: string;
-                                        licensePlate: string;
-                                        capacity: number;
-                                        /** Format: cuid */
-                                        familyId: string;
-                                    };
-                                    /** @description Driver information (included when requested) */
-                                    driver?: {
-                                        /** Format: cuid */
-                                        id: string;
-                                        firstName: string;
-                                        lastName: string;
-                                        /** Format: email */
-                                        email: string;
-                                    } | null;
-                                    /** @description Count information (included when requested) */
-                                    _count?: {
-                                        /**
-                                         * @description Number of children assigned to this vehicle
-                                         * @example 3
-                                         */
-                                        childAssignments: number;
-                                    };
-                                }[];
-                                /** @description Child assignments (included when requested) */
-                                childAssignments?: {
-                                    /**
-                                     * Format: cuid
-                                     * @description Child assignment identifier
-                                     * @example cl123456789012345678901240
-                                     */
-                                    id: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Schedule slot identifier
-                                     * @example cl123456789012345678901234
-                                     */
-                                    scheduleSlotId: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Child identifier
-                                     * @example cl123456789012345678901238
-                                     */
-                                    childId: string;
-                                    /**
-                                     * Format: cuid
-                                     * @description Vehicle assignment identifier
-                                     * @example cl123456789012345678901236
-                                     */
-                                    vehicleAssignmentId: string;
-                                    /**
-                                     * Format: date-time
-                                     * @description Assignment timestamp
-                                     * @example 2023-12-01T08:00:00.000Z
-                                     */
-                                    assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
-                                        /** Format: cuid */
-                                        id: string;
-                                        firstName: string;
-                                        lastName: string;
-                                        /** Format: date-time */
-                                        dateOfBirth: string;
-                                        /** Format: cuid */
-                                        familyId: string;
-                                    };
-                                    /**
-                                     * Vehicle Assignment
-                                     * @description Vehicle assignment information (included when requested)
-                                     */
-                                    vehicleAssignment?: {
-                                        /**
-                                         * Format: cuid
-                                         * @description Vehicle assignment identifier
-                                         * @example cl123456789012345678901236
-                                         */
-                                        id: string;
-                                        /**
-                                         * Format: cuid
-                                         * @description Schedule slot identifier
-                                         * @example cl123456789012345678901234
-                                         */
-                                        scheduleSlotId: string;
-                                        /**
-                                         * Format: cuid
-                                         * @description Vehicle identifier
-                                         * @example cl123456789012345678901237
-                                         */
-                                        vehicleId: string;
-                                        /**
-                                         * Format: cuid
-                                         * @description Driver identifier (null if not assigned)
-                                         * @example cl123456789012345678901239
-                                         */
-                                        driverId: string | null;
-                                        /**
-                                         * @description Seat capacity override (null if using default)
-                                         * @example 6
-                                         */
-                                        seatOverride: number | null;
-                                        /** @description Vehicle information (included when requested) */
-                                        vehicle?: {
-                                            /** Format: cuid */
-                                            id: string;
-                                            make: string;
-                                            model: string;
-                                            licensePlate: string;
-                                            capacity: number;
-                                            /** Format: cuid */
-                                            familyId: string;
-                                        };
-                                        /** @description Driver information (included when requested) */
-                                        driver?: {
-                                            /** Format: cuid */
-                                            id: string;
-                                            firstName: string;
-                                            lastName: string;
-                                            /** Format: email */
-                                            email: string;
-                                        } | null;
-                                        /** @description Count information (included when requested) */
-                                        _count?: {
-                                            /**
-                                             * @description Number of children assigned to this vehicle
-                                             * @example 3
-                                             */
-                                            childAssignments: number;
-                                        };
-                                    };
-                                }[];
-                                /** @description Count information (included when requested) */
-                                _count?: {
-                                    /**
-                                     * @description Number of vehicle assignments
-                                     * @example 2
-                                     */
-                                    vehicleAssignments: number;
-                                    /**
-                                     * @description Number of child assignments
-                                     * @example 8
-                                     */
-                                    childAssignments: number;
-                                };
-                            }[];
-                            /**
-                             * @description Total number of schedule slots
-                             * @example 15
-                             */
-                            totalCount: number;
-                            /** @description Date range applied to the schedule (if specified) */
-                            dateRange?: {
-                                /**
-                                 * Format: date-time
-                                 * @description Start date of the schedule range
-                                 * @example 2023-12-01T00:00:00.000Z
-                                 */
-                                startDate: string;
-                                /**
-                                 * Format: date-time
-                                 * @description End date of the schedule range
-                                 * @example 2023-12-31T23:59:59.999Z
-                                 */
-                                endDate: string;
-                            };
-                        };
-                    };
-                };
-            };
-            /** @description Bad request - Invalid group ID or date range */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Unauthorized - Authentication required */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Forbidden - Not a group member */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not found - Group does not exist */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };

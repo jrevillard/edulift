@@ -102,7 +102,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   // Create schedule slot with vehicle mutation
   const createScheduleSlotWithVehicleMutation = useMutation({
     mutationFn: ({ vehicleId, seatOverride }: { vehicleId: string; seatOverride?: number }) =>
-      api.POST('/schedule-slots/groups/{groupId}/schedule-slots', {
+      api.POST('/groups/{groupId}/schedule-slots', {
         params: { path: { groupId } },
         body: {
           datetime: `${week}T${time}:00`,

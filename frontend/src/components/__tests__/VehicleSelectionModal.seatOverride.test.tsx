@@ -177,7 +177,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
   it('should pass seat override when creating new schedule slot with vehicle', async () => {
     const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
     vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
-      if (path.includes('/schedule-slots/groups/') && path.includes('/schedule-slots')) {
+      if (path.includes('/groups/') && path.includes('/schedule-slots')) {
         createSpy(path, options);
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
       }
@@ -222,7 +222,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
-        '/schedule-slots/groups/{groupId}/schedule-slots',
+        '/groups/{groupId}/schedule-slots',
         expect.objectContaining({
           params: { path: { groupId: 'group-1' } },
           body: {
@@ -323,7 +323,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
   it('should not pass seat override when field is empty', async () => {
     const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
     vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
-      if (path.includes('/schedule-slots/groups/') && path.includes('/schedule-slots')) {
+      if (path.includes('/groups/') && path.includes('/schedule-slots')) {
         createSpy(path, options);
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
       }
@@ -368,7 +368,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
-        '/schedule-slots/groups/{groupId}/schedule-slots',
+        '/groups/{groupId}/schedule-slots',
         expect.objectContaining({
           params: { path: { groupId: 'group-1' } },
           body: {
