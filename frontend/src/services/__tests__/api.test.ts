@@ -72,7 +72,7 @@ vi.mock('../generated/api/types', () => ({
 }));
 
 // Import the API client
-import { api, paths } from '../api';
+import { api } from '../api';
 import createClient from 'openapi-fetch';
 import { secureStorage } from '../../utils/secureStorage';
 

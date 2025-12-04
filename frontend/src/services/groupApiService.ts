@@ -114,12 +114,12 @@ export class GroupApiService {
 
   // Pending invitations - Note: These endpoints don't exist in OpenAPI schema
   // These methods are deprecated and should be removed or replaced
-  async storePendingGroupInvitation(_email: string, _inviteCode: string) {
+  async storePendingGroupInvitation() {
     console.warn('storePendingGroupInvitation: This method is deprecated - no corresponding OpenAPI endpoint found');
     throw new Error('Method not supported - no corresponding OpenAPI endpoint');
   }
 
-  async getPendingGroupInvitationByEmail(_email: string) {
+  async getPendingGroupInvitationByEmail() {
     console.warn('getPendingGroupInvitationByEmail: This method is deprecated - no corresponding OpenAPI endpoint found');
     throw new Error('Method not supported - no corresponding OpenAPI endpoint');
   }
