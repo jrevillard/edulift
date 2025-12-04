@@ -81,6 +81,21 @@ export interface ScheduleSlot {
   updatedAt: string;
 }
 
+export interface MinimalScheduleSlot {
+  id: string;
+  datetime: string;
+  groupId: string;
+  createdAt: string;
+  updatedAt: string;
+  vehicleAssignments?: ScheduleSlotVehicle[];
+  childAssignments?: ChildAssignment[];
+  totalCapacity?: number;
+  availableSeats?: number;
+}
+
+// Union type for different ScheduleSlot API response formats
+export type ScheduleSlotUnion = ScheduleSlot | MinimalScheduleSlot;
+
 export interface ScheduleSlotVehicle {
   id: string;
   scheduleSlotId: string;

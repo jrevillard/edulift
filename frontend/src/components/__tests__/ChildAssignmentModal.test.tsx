@@ -63,8 +63,15 @@ describe('ChildAssignmentModal', () => {
     Object.assign(mockApi, comprehensiveMocks);
   });
 
+  // Type for mock overrides
+  type MockOverrides = {
+    children?: unknown[];
+    scheduleSlot?: unknown;
+    [key: string]: unknown;
+  };
+
   // Helper function to setup OpenAPI mocks for different scenarios
-  const setupOpenAPIMocks = (overrides: any = {}) => {
+  const setupOpenAPIMocks = (overrides: MockOverrides = {}) => {
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/children') {
         return Promise.resolve({

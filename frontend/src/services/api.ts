@@ -14,6 +14,11 @@ import type { paths } from '../generated/api/types';
 import { API_BASE_URL } from '../config/runtime';
 import { secureStorage } from '../utils/secureStorage';
 
+// Interface for test environment window extension
+interface TestWindow extends Window {
+  __TEST_ENVIRONMENT__?: boolean;
+}
+
 // Create the typed API client with authentication middleware
 const client = createClient<paths>({
   baseUrl: API_BASE_URL,
@@ -46,7 +51,8 @@ client.use({
       await secureStorage.removeItem('refreshToken');
 
       // Skip navigation in test environment to prevent JSDOM errors
-      const isTestEnvironment = typeof window !== 'undefined' && (window as any).__TEST_ENVIRONMENT__;
+      const testWindow = window as TestWindow;
+      const isTestEnvironment = typeof window !== 'undefined' && testWindow.__TEST_ENVIRONMENT__;
 
       if (typeof window !== 'undefined' && !isTestEnvironment) {
         const currentPath = window.location.pathname + window.location.search;

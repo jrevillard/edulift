@@ -7,6 +7,23 @@
 
 import './setup'; // Import mock setup
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import createClient, { type Client, type MiddlewareOnRequest, type MiddlewareOnResponse } from 'openapi-fetch';
+import type { paths } from '../../generated/api/types';
+
+// Mock types for testing
+interface MockClient extends Client<paths> {
+  use: ReturnType<typeof vi.fn>;
+  GET: ReturnType<typeof vi.fn>;
+  POST: ReturnType<typeof vi.fn>;
+  PUT: ReturnType<typeof vi.fn>;
+  DELETE: ReturnType<typeof vi.fn>;
+  PATCH: ReturnType<typeof vi.fn>;
+}
+
+interface MockRequest {
+  headers: Headers;
+}
+
 
 // Mock browser APIs
 const mockLocalStorage = {
@@ -73,7 +90,6 @@ vi.mock('../generated/api/types', () => ({
 
 // Import the API client
 import { api } from '../api';
-import createClient from 'openapi-fetch';
 import { secureStorage } from '../../utils/secureStorage';
 
 describe('API Client Tests', () => {
@@ -206,9 +222,9 @@ describe('API Client Tests', () => {
   });
 
   describe('Authentication Middleware Functionality', () => {
-    let mockClient: any;
-    let onRequestHandler: any;
-    let onResponseHandler: any;
+    let mockClient: MockClient;
+    let onRequestHandler: MiddlewareOnRequest;
+    let onResponseHandler: MiddlewareOnResponse;
 
     beforeEach(() => {
       // Get the mock client instance and middleware handlers
@@ -314,8 +330,8 @@ describe('API Client Tests', () => {
   });
 
   describe('Error Handling and Edge Cases', () => {
-    let mockClient: any;
-    let onResponseHandler: any;
+    let mockClient: MockClient;
+    let onResponseHandler: MiddlewareOnResponse;
 
     beforeEach(() => {
       // Get the mock client instance and middleware handlers
@@ -350,8 +366,8 @@ describe('API Client Tests', () => {
   });
 
   describe('Concurrent Request Handling', () => {
-    let mockClient: any;
-    let onRequestHandler: any;
+    let mockClient: MockClient;
+    let onRequestHandler: MiddlewareOnRequest;
 
     beforeEach(() => {
       // Get the mock client instance and middleware handlers
@@ -378,7 +394,7 @@ describe('API Client Tests', () => {
 
         // All requests should have the token
         expect(results.every(result => {
-          const request = result as any;
+          const request = result as MockRequest;
           return request.headers.get('Authorization') === `Bearer ${mockToken}`;
         })).toBe(true);
       }
@@ -386,8 +402,8 @@ describe('API Client Tests', () => {
   });
 
   describe('Performance Testing', () => {
-    let mockClient: any;
-    let onRequestHandler: any;
+    let mockClient: MockClient;
+    let onRequestHandler: MiddlewareOnRequest;
 
     beforeEach(() => {
       // Get the mock client instance and middleware handlers
@@ -424,9 +440,9 @@ describe('API Client Tests', () => {
   });
 
   describe('Integration with Existing Auth Flow', () => {
-    let mockClient: any;
-    let onRequestHandler: any;
-    let onResponseHandler: any;
+    let mockClient: MockClient;
+    let onRequestHandler: MiddlewareOnRequest;
+    let onResponseHandler: MiddlewareOnResponse;
 
     beforeEach(() => {
       // Get the mock client instance and middleware handlers

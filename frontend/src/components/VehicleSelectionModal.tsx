@@ -1,15 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
-import type { Vehicle, ScheduleSlot } from '@/types/api';
+import type { Vehicle, ScheduleSlotUnion, ChildAssignment } from '@/types/api';
+
+// Local vehicle type to handle different API response formats
+type VehicleWithOptionalFields = {
+  id: string;
+  name?: string;
+  make?: string;
+  model?: string;
+  licensePlate?: string;
+  capacity: number;
+  familyId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  age?: number | null | undefined;
+} | Vehicle;
+
+// Types for vehicle assignments
+type VehicleAssignment = {
+  id: string;
+  scheduleSlotId: string;
+  vehicleId: string;
+  driverId?: string | null;
+  seatOverride?: number | null;
+  vehicle?: {
+    id: string;
+    name?: string;
+    make?: string;
+    model?: string;
+    capacity: number;
+    familyId?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    age?: number | null | undefined;
+  } | Vehicle;
+  driver?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
+};
+
+// Helper function to get child name from different API response formats
+const getChildName = (child: unknown): string => {
+  if (!child || typeof child !== 'object') return 'Unknown Child';
+  const childObj = child as Record<string, unknown>;
+
+  if ('name' in childObj && typeof childObj.name === 'string') {
+    return childObj.name;
+  }
+
+  if ('firstName' in childObj && 'lastName' in childObj &&
+      typeof childObj.firstName === 'string' && typeof childObj.lastName === 'string') {
+    return `${childObj.firstName} ${childObj.lastName}`;
+  }
+
+  return 'Unknown Child';
+};
+
+// Helper function to get vehicle name from different API response formats
+const getVehicleName = (vehicle: VehicleWithOptionalFields): string => {
+  if ('name' in vehicle && vehicle.name) {
+    return vehicle.name; // Both Vehicle and OpenAPI responses have name
+  }
+  if ('make' in vehicle && 'model' in vehicle && vehicle.make && vehicle.model) {
+    return `${vehicle.make} ${vehicle.model}`; // Some OpenAPI responses have make/model
+  }
+  if ('make' in vehicle && vehicle.make) {
+    return vehicle.make;
+  }
+  return 'Unknown Vehicle';
+};
 
 // Local utility functions to work with our migrated types
-const getEffectiveCapacity = (vehicleAssignment: any): number => {
+const getEffectiveCapacity = (vehicleAssignment: VehicleAssignment): number => {
   if (!vehicleAssignment.vehicle) return 0;
   return vehicleAssignment.seatOverride ?? vehicleAssignment.vehicle.capacity;
 };
 
-const hasSeatOverride = (vehicleAssignment: any): boolean => {
+const hasSeatOverride = (vehicleAssignment: VehicleAssignment): boolean => {
   return vehicleAssignment.seatOverride !== undefined && vehicleAssignment.seatOverride !== null;
 };
 import { useAuth } from '../contexts/AuthContext';
@@ -21,7 +92,7 @@ interface VehicleSelectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   scheduleSlotId: string;
-  existingScheduleSlot?: ScheduleSlot;
+  existingScheduleSlot?: ScheduleSlotUnion;
   groupId: string;
   day: string;
   time: string;
@@ -278,7 +349,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                         <span className="text-green-600">🚗</span>
                         <div>
                           <div className="font-medium text-green-800">
-                            {(vehicleAssignment.vehicle as any)?.name || `${(vehicleAssignment.vehicle as any)?.make || ''} ${(vehicleAssignment.vehicle as any)?.model || ''}`.trim() || 'Unknown Vehicle'}
+                            {vehicleAssignment.vehicle ? getVehicleName(vehicleAssignment.vehicle) : 'Unknown Vehicle'}
                             {hasSeatOverride(vehicleAssignment) && (
                               <span className="ml-2 text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
                                 Override: {vehicleAssignment.seatOverride} seats
@@ -288,14 +359,14 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                           <div className="text-xs text-green-600">
                             Capacity: {getEffectiveCapacity(vehicleAssignment)} seats
                             {hasSeatOverride(vehicleAssignment) && vehicleAssignment.vehicle && (
-                              <span className="text-gray-500"> (original: {(vehicleAssignment.vehicle as any).capacity})</span>
+                              <span className="text-gray-500"> (original: {vehicleAssignment.vehicle?.capacity})</span>
                             )}
-                            {vehicleAssignment.driver && ` • Driver: ${(vehicleAssignment.driver as any).firstName} ${(vehicleAssignment.driver as any).lastName}`.trim()}
+                            {vehicleAssignment.driver && ` • Driver: ${vehicleAssignment.driver.firstName} ${vehicleAssignment.driver.lastName}`.trim()}
                           </div>
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveVehicle((vehicleAssignment.vehicle as any).id)}
+                        onClick={() => handleRemoveVehicle(vehicleAssignment.vehicle?.id || '')}
                         disabled={removeVehicleMutation.isPending || !vehicleAssignment.vehicle}
                         className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-50"
                         type="button"
@@ -314,16 +385,30 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Assigned Children</h4>
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded">
                   <div className="text-sm text-blue-800">
-                    👥 {currentSlot.childAssignments.length} children assigned
-                    {(currentSlot as any).totalCapacity > 0 && (
-                      <span className="ml-2">
-                        ({(currentSlot as any).availableSeats} seats remaining)
-                      </span>
-                    )}
+                    👥 {currentSlot.childAssignments?.length || 0} children assigned
+                    {(() => {
+                      // Compute total capacity from vehicle assignments
+                      const totalCapacity = currentSlot.vehicleAssignments?.reduce((sum, va) => {
+                        const capacity = va.seatOverride || va.vehicle?.capacity || 0;
+                        return sum + capacity;
+                      }, 0) || 0;
+
+                      if (totalCapacity > 0) {
+                        const availableSeats = totalCapacity - (currentSlot.childAssignments?.length || 0);
+                        return (
+                          <span className="ml-2">
+                            ({availableSeats} seats remaining)
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
-                    {currentSlot.childAssignments.slice(0, 3).map(assignment => (assignment.child as any)?.name || `${(assignment.child as any)?.firstName || ''} ${(assignment.child as any)?.lastName || ''}`.trim() || 'Unknown Child').join(', ')}
-                    {currentSlot.childAssignments.length > 3 && ` +${currentSlot.childAssignments.length - 3} more`}
+                    {currentSlot.childAssignments?.slice(0, 3).map((assignment: ChildAssignment) =>
+                      getChildName(assignment.child)
+                    ).join(', ')}
+                    {(currentSlot.childAssignments?.length || 0) > 3 && ` +${(currentSlot.childAssignments?.length || 0) - 3} more`}
                   </div>
                 </div>
               </div>

@@ -94,7 +94,34 @@ vi.mock('../../contexts/SocketContext', () => ({
   SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const mockApiService = api.api as any;
+// Create a mock object for legacy apiService methods used in tests
+type MockApiService = {
+  getUserGroups: ReturnType<typeof vi.fn>;
+  updateFamilyRole: ReturnType<typeof vi.fn>;
+  deleteGroup: ReturnType<typeof vi.fn>;
+  leaveGroup: ReturnType<typeof vi.fn>;
+  getGroupFamilies: ReturnType<typeof vi.fn>;
+  cancelGroupInvitation: ReturnType<typeof vi.fn>;
+  getGroupInvitations: ReturnType<typeof vi.fn>;
+  deleteGroupInvitation: ReturnType<typeof vi.fn>;
+  inviteFamilyToGroup: ReturnType<typeof vi.fn>;
+  removeFamilyFromGroup: ReturnType<typeof vi.fn>;
+  updateGroup: ReturnType<typeof vi.fn>;
+};
+
+const mockApiService: MockApiService = {
+  getUserGroups: vi.fn(),
+  updateFamilyRole: vi.fn(),
+  deleteGroup: vi.fn(),
+  leaveGroup: vi.fn(),
+  getGroupFamilies: vi.fn(),
+  cancelGroupInvitation: vi.fn(),
+  getGroupInvitations: vi.fn(),
+  deleteGroupInvitation: vi.fn(),
+  inviteFamilyToGroup: vi.fn(),
+  removeFamilyFromGroup: vi.fn(),
+  updateGroup: vi.fn(),
+};
 
 const mockUserGroups = [
   {

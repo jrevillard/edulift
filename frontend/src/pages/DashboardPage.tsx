@@ -14,6 +14,14 @@ import { GroupMembershipWarning } from '../components/GroupMembershipWarning';
 import { PageLayout, LoadingState } from '@/components/ui/page-layout';
 import { formatDatetimeInTimezone } from '../utils/timezoneUtils';
 import type { WeeklyDashboardResponse } from '@/types/api';
+
+// Interface for recent activity items
+interface ActivityItem {
+  id: string;
+  type: 'group' | 'vehicle' | 'schedule' | 'child';
+  action: string;
+  time: string;
+}
 import {
   Users,
   Car,
@@ -342,7 +350,7 @@ const DashboardPage: React.FC = () => {
               <CardContent>
                 {recentActivity?.length ? (
                   <div className="space-y-4">
-                    {recentActivity.map((activity: any, index: number) => (
+                    {recentActivity.map((activity: ActivityItem, index: number) => (
                       <div key={activity.id} className="group">
                         <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200">
                           <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">

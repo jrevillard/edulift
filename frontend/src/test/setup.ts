@@ -2,9 +2,14 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
+// Interface for test environment window extension
+interface TestWindow extends Window {
+  __TEST_ENVIRONMENT__?: boolean;
+}
+
 // Set global test environment flag to prevent navigation redirects in API client
 if (typeof window !== 'undefined') {
-  (window as any).__TEST_ENVIRONMENT__ = true
+  (window as TestWindow).__TEST_ENVIRONMENT__ = true
 }
 
 // Automatic cleanup after each test

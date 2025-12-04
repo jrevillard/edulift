@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
-import type { Child, UserGroup } from '@/types/api';
+import type { Child, UserGroup, GroupChildMembership } from '@/types/api';
 
 /*
   MIGRATION STATUS: ✅ FULLY MIGRATED TO OPENAPI GENERATED TYPES
@@ -58,7 +58,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
 
   // Filter out groups child is already a member of
   const availableGroups = userGroups.filter(
-    (userGroup: UserGroup) => !childGroups.some((childGroup: any) => childGroup.groupId === userGroup.id)
+    (userGroup: UserGroup) => !childGroups.some((childGroup: GroupChildMembership) => childGroup.groupId === userGroup.id)
   );
 
   // Mutations
