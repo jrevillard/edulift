@@ -1,5 +1,5 @@
 import { getEffectiveCapacity, hasSeatOverride, calculateTotalCapacity } from '../capacity';
-import type { ScheduleSlotVehicle } from '../../services/apiService';
+import type { ScheduleSlotVehicle } from '../../types/api';
 
 // Helper function to create mock vehicle assignments
 const createMockVehicleAssignment = (overrides: Partial<ScheduleSlotVehicle> = {}): ScheduleSlotVehicle => ({

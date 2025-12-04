@@ -5,19 +5,19 @@ import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import VehiclesPage from '../VehiclesPage';
 import { useFamily } from '../../contexts/FamilyContext';
-import { apiService } from '../../services/apiService';
-import type { Vehicle } from '../../services/apiService';
+import { api } from '../../services/api';
+import type { Vehicle } from '@/types/api';
 
 // Mock dependencies
 vi.mock('../../contexts/FamilyContext');
-vi.mock('../../services/apiService');
+vi.mock('../../services/api');
 
 const mockUseFamily = useFamily as ReturnType<typeof vi.fn>;
-const mockApiService = apiService as typeof apiService & {
-  getVehicles: ReturnType<typeof vi.fn>;
-  createVehicle: ReturnType<typeof vi.fn>;
-  updateVehicle: ReturnType<typeof vi.fn>;
-  deleteVehicle: ReturnType<typeof vi.fn>;
+const mockApi = api as typeof api & {
+  GET: ReturnType<typeof vi.fn>;
+  POST: ReturnType<typeof vi.fn>;
+  PATCH: ReturnType<typeof vi.fn>;
+  DELETE: ReturnType<typeof vi.fn>;
 };
 
 const mockVehicles: Vehicle[] = [
@@ -75,17 +75,21 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
       }
     });
 
-    mockApiService.getVehicles.mockResolvedValue(mockVehicles);
-    mockApiService.createVehicle.mockResolvedValue({
-      id: 'vehicle-3',
-      name: 'New Vehicle',
-      capacity: 6,
-      familyId: 'family-1',
-      createdAt: new Date(),
-      updatedAt: new Date()
+    mockApi.GET.mockResolvedValue({
+      data: { data: mockVehicles }
     });
-    mockApiService.updateVehicle.mockResolvedValue(mockVehicles[0]);
-    mockApiService.deleteVehicle.mockResolvedValue(mockVehicles[0]);
+    mockApi.POST.mockResolvedValue({
+      data: {
+        id: 'vehicle-3',
+        name: 'New Vehicle',
+        capacity: 6,
+        familyId: 'family-1'
+      }
+    });
+    mockApi.PATCH.mockResolvedValue({
+      data: mockVehicles[0]
+    });
+    mockApi.DELETE.mockResolvedValue({});
   });
 
   it('should call refreshFamily after creating a vehicle', async () => {
@@ -125,7 +129,9 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API was called
-    expect(mockApiService.createVehicle).toHaveBeenCalledWith('New Vehicle', 6);
+    expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', {
+      body: { name: 'New Vehicle', capacity: 6 }
+    });
   });
 
   it('should call refreshFamily after updating a vehicle', async () => {
@@ -161,9 +167,12 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API was called
-    expect(mockApiService.updateVehicle).toHaveBeenCalledWith('vehicle-1', {
-      name: 'Honda CR-V Updated',
-      capacity: 5
+    expect(mockApi.PATCH).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+      params: { path: { vehicleId: 'vehicle-1' } },
+      body: {
+        name: 'Honda CR-V Updated',
+        capacity: 5
+      }
     });
   });
 
@@ -196,19 +205,21 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API was called
-    expect(mockApiService.deleteVehicle).toHaveBeenCalledWith('vehicle-1');
+    expect(mockApi.DELETE).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+      params: { path: { vehicleId: 'vehicle-1' } }
+    });
   });
 
   it('should prevent duplicate submissions during vehicle creation', async () => {
     // Mock a slow API response
-    mockApiService.createVehicle.mockImplementation(() => 
+    mockApi.POST.mockImplementation(() =>
       new Promise(resolve => setTimeout(() => resolve({
-        id: 'vehicle-3',
-        name: 'New Vehicle',
-        capacity: 6,
-        familyId: 'family-1',
-        createdAt: new Date(),
-        updatedAt: new Date()
+        data: {
+          id: 'vehicle-3',
+          name: 'New Vehicle',
+          capacity: 6,
+          familyId: 'family-1'
+        }
       }), 1000))
     );
 
@@ -251,7 +262,7 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     }, { timeout: 2000 });
 
     // Verify API was called only once
-    expect(mockApiService.createVehicle).toHaveBeenCalledTimes(1);
+    expect(mockApi.POST).toHaveBeenCalledTimes(1);
   });
 
   it('should disable automatic retries to prevent duplicates', () => {
@@ -263,7 +274,7 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
 
     // This test verifies that the mutations are configured with retry: false
     // The actual retry configuration is checked during render
-    expect(mockApiService.getVehicles).toHaveBeenCalled();
+    expect(mockApi.GET).toHaveBeenCalled();
   });
 
   it('should demonstrate complete vehicle-family integration workflow', async () => {
@@ -312,7 +323,9 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API called with correct data
-    expect(mockApiService.createVehicle).toHaveBeenCalledWith('Test Vehicle', 7);
+    expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', {
+      body: { name: 'Test Vehicle', capacity: 7 }
+    });
   });
 
   it('should close dialog after successful vehicle creation', async () => {

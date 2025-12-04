@@ -2,13 +2,9 @@ import { render, screen, waitFor } from '../../test/test-utils';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import ManageGroupPage from '../ManageGroupPage';
-import * as apiService from '../../services/apiService';
-import type { GroupFamily } from '../../services/apiService';
-
-// Mock type definitions
-type MockedApiService = {
-  [K in keyof typeof apiService.apiService]: ReturnType<typeof vi.fn>;
-};
+import { api } from '../../services/api';
+import { createMockOpenAPIClient } from '../../test/test-utils';
+import type { GroupFamily } from '../../types/api';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -21,20 +17,14 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock apiService
-vi.mock('../../services/apiService', () => ({
-  apiService: {
-    getUserGroups: vi.fn(),
-    getGroupFamilies: vi.fn(),
-    updateFamilyRole: vi.fn(),
-    removeFamilyFromGroup: vi.fn(),
-    deleteGroup: vi.fn(),
-    leaveGroup: vi.fn(),
-    inviteGroupMember: vi.fn(),
-    cancelGroupInvitation: vi.fn(),
-    getGroupInvitations: vi.fn().mockResolvedValue([]),
-    getGroup: vi.fn(),
-    updateGroup: vi.fn(),
+// Mock OpenAPI client
+vi.mock('../../services/api', () => ({
+  api: {
+    GET: vi.fn(),
+    POST: vi.fn(),
+    PATCH: vi.fn(),
+    DELETE: vi.fn(),
+    use: vi.fn(),
   },
 }));
 
@@ -104,7 +94,7 @@ vi.mock('../../contexts/SocketContext', () => ({
   SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-const mockApiService = apiService.apiService as MockedApiService;
+const mockApiService = api.api as any;
 
 const mockUserGroups = [
   {
@@ -153,18 +143,63 @@ const mockOtherFamily: GroupFamily = {
   admins: [{ name: 'Other Admin', email: 'other@example.com' }],
 };
 
+// Get reference to the mocked API
+const mockApi = api as unknown;
+
 describe('ManageGroupPage', () => {
   const user = userEvent.setup();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockApiService.getUserGroups.mockResolvedValue(mockUserGroups);
-    mockApiService.getGroupFamilies.mockResolvedValue(mockFamilies);
+
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
+
+    // Override specific mocks for this test
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/groups') {
+        return Promise.resolve({
+          data: { data: mockUserGroups, success: true },
+          error: undefined
+        });
+      }
+      if (path === '/groups/{groupId}/families') {
+        return Promise.resolve({
+          data: { data: mockFamilies, success: true },
+          error: undefined
+        });
+      }
+      if (path === '/groups/{groupId}') {
+        return Promise.resolve({
+          data: { data: mockUserGroups[0], success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
   });
 
   describe('Basic Rendering', () => {
     it('renders loading state initially', async () => {
-      mockApiService.getGroupFamilies.mockImplementation(() => new Promise(() => { }));
+      vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+        if (path === '/groups/{groupId}/families') {
+          return new Promise(() => {});
+        }
+        if (path === '/groups/{groupId}') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 

@@ -17,7 +17,10 @@
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:debug": "playwright test --debug",
-    "e2e:report": "playwright show-report"
+    "e2e:report": "playwright show-report",
+    "generate-api": "openapi-typescript ../backend/docs/openapi/swagger.json -o src/generated/api/types.ts",
+    "generate-api:watch": "openapi-typescript ../backend/docs/openapi/swagger.json -o src/generated/api/types.ts --watch",
+    "validate-api": "openapi-typescript ../backend/docs/openapi/swagger.json --dry-run"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -42,6 +45,8 @@
     "dayjs": "^1.11.18",
     "lucide-react": "^0.513.0",
     "next-themes": "^0.4.6",
+    "openapi-fetch": "^0.15.0",
+    "openapi-typescript": "^7.10.1",
     "pkce-challenge": "^5.0.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -62,7 +67,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^24.0.0",
+    "@types/node": "^24.10.1",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.4.1",

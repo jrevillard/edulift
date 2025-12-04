@@ -1,8 +1,8 @@
 import { render, screen, waitFor } from '../../test/test-utils';
 import { vi } from 'vitest';
 import ManageGroupPage from '../ManageGroupPage';
-import * as apiService from '../../services/apiService';
-import type { GroupFamily, ApiService } from '../../services/apiService';
+import * as api from '../../services/api';
+import type { GroupFamily } from '../../services/api';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -15,9 +15,9 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock apiService
-vi.mock('../../services/apiService', () => ({
-  apiService: {
+// Mock api
+vi.mock('../../services/api', () => ({
+  api: {
     getUserGroups: vi.fn(),
     getGroupFamilies: vi.fn(),
     updateFamilyRole: vi.fn(),
@@ -25,7 +25,7 @@ vi.mock('../../services/apiService', () => ({
     regenerateInviteCode: vi.fn(),
     deleteGroup: vi.fn(),
     leaveGroup: vi.fn(),
-    getGroupInvitations: vi.fn().mockResolvedValue([]),
+    getGroupInvitations: vi.fn().mockResolvedValue({ data: { data: [] } }),
   },
 }));
 
@@ -40,7 +40,7 @@ vi.mock('@/stores/connectionStore', () => ({
   })),
 }));
 
-const mockApiService = apiService.apiService as Partial<ApiService>;
+const mockApi = api.api as typeof api.api;
 
 const mockUserGroups = [
   {
@@ -86,8 +86,8 @@ describe('ManageGroupPage - Family Link', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockApiService.getUserGroups.mockResolvedValue(mockUserGroups);
-    mockApiService.getGroupFamilies.mockResolvedValue(mockFamilies);
+    mockApi.getUserGroups.mockResolvedValue({ data: { data: mockUserGroups } });
+    mockApi.getGroupFamilies.mockResolvedValue({ data: { data: mockFamilies } });
   });
 
   it('should render "View my family" link for user\'s own family', async () => {

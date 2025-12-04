@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { render, mockVehicle, createMockApiService, createMockFamilyContext } from '../../test/test-utils'
+import { render, mockVehicle, createMockOpenAPIClient, createMockFamilyContext } from '../../test/test-utils'
 import VehiclesPage from '../VehiclesPage'
-import * as apiService from '../../services/apiService'
+import { api } from '../../services/api'
 import * as usePageStateModule from '../../hooks/usePageState'
 import { useFamily } from '../../contexts/FamilyContext'
 import '@testing-library/jest-dom'
 
 // Mock the API service
-vi.mock('../../services/apiService')
-const mockApiService = apiService.apiService as unknown;
+vi.mock('../../services/api')
+const mockApi = api as unknown;
 
 // Mock the connection store
 vi.mock('../../stores/connectionStore', () => {
@@ -52,9 +52,9 @@ describe('VehiclesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     
-    // Apply comprehensive API service mocks
-    const comprehensiveMocks = createMockApiService();
-    Object.assign(mockApiService, comprehensiveMocks);
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
     
     // Setup FamilyContext mock
     mockUseFamily.mockReturnValue(createMockFamilyContext());
@@ -150,7 +150,7 @@ describe('VehiclesPage', () => {
 
   it('creates a new vehicle successfully', async () => {
     const user = userEvent.setup()
-    mockApiService.createVehicle.mockResolvedValueOnce(mockVehicle)
+    mockApi.POST.mockResolvedValueOnce({ data: mockVehicle })
     
     render(<VehiclesPage />)
     
@@ -167,7 +167,7 @@ describe('VehiclesPage', () => {
     await user.click(submitButton)
     
     await waitFor(() => {
-      expect(mockApiService.createVehicle).toHaveBeenCalledWith('Test Vehicle', 5)
+      expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', { body: { name: 'Test Vehicle', capacity: 5 } })
     })
   })
 
@@ -232,7 +232,7 @@ describe('VehiclesPage', () => {
       shouldShowEmpty: false,
     })
     
-    mockApiService.updateVehicle.mockResolvedValueOnce({ ...mockVehicle, name: 'Updated Vehicle' })
+    mockApi.PATCH.mockResolvedValueOnce({ data: { ...mockVehicle, name: 'Updated Vehicle' } })
     
     render(<VehiclesPage />)
     
@@ -251,9 +251,12 @@ describe('VehiclesPage', () => {
     await user.click(updateButton)
     
     await waitFor(() => {
-      expect(mockApiService.updateVehicle).toHaveBeenCalledWith(
-        mockVehicle.id,
-        { name: 'Updated Vehicle', capacity: mockVehicle.capacity }
+      expect(mockApi.PATCH).toHaveBeenCalledWith(
+        '/vehicles/{vehicleId}',
+        {
+          params: { path: { vehicleId: mockVehicle.id } },
+          body: { name: 'Updated Vehicle', capacity: mockVehicle.capacity }
+        }
       )
     })
   })
@@ -272,7 +275,7 @@ describe('VehiclesPage', () => {
       shouldShowEmpty: false,
     })
     
-    mockApiService.deleteVehicle.mockResolvedValueOnce(undefined)
+    mockApi.DELETE.mockResolvedValueOnce({})
     
     render(<VehiclesPage />)
     
@@ -294,7 +297,9 @@ describe('VehiclesPage', () => {
     await user.click(confirmButton)
     
     await waitFor(() => {
-      expect(mockApiService.deleteVehicle).toHaveBeenCalledWith(mockVehicle.id)
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+      params: { path: { vehicleId: mockVehicle.id } }
+    })
     })
   })
 
@@ -334,7 +339,7 @@ describe('VehiclesPage', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('ConfirmationDialog-Title-dialog')).not.toBeInTheDocument()
     })
-    expect(mockApiService.deleteVehicle).not.toHaveBeenCalled()
+    expect(mockApi.DELETE).not.toHaveBeenCalled()
   })
 
   it('closes modal when cancel button is clicked', async () => {

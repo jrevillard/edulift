@@ -24,7 +24,7 @@ import {
   Check
 } from 'lucide-react';
 import { groupApiService } from '../services/groupApiService';
-import type { FamilySearchResult } from '../services/apiService';
+import type { FamilySearchResult } from '@/types/api';
 
 interface FamilySearchInvitationProps {
   groupId: string;

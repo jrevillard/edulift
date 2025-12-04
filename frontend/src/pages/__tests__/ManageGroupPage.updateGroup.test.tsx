@@ -12,13 +12,12 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '../../test/test-utils';
 import { beforeEach, describe, it, expect, vi } from 'vitest';
 import ManageGroupPage from '../ManageGroupPage';
-import * as apiService from '../../services/apiService';
+import * as api from '../../services/api';
 import { Group, GroupMember } from '../../types/api';
-import type { ApiService } from '../../services/apiService';
 
 // Mock API service with Vitest
-vi.mock('../../services/apiService', () => ({
-  apiService: {
+vi.mock('../../services/api', () => ({
+  api: {
     getGroup: vi.fn(),
     getGroupFamilies: vi.fn(),
     getGroupPendingInvitations: vi.fn(),
@@ -104,16 +103,13 @@ vi.mock('@/stores/connectionStore', () => ({
 
 // TestWrapper is now handled by test-utils.tsx
 
-// Import the mocked apiService
-import { apiService } from '../../services/apiService';
-
 // Get the mocked functions
-const mockApiService = apiService as Partial<ApiService>;
-const mockGetGroup = vi.mocked(mockApiService.getGroup!);
-const mockGetGroupFamilies = vi.mocked(mockApiService.getGroupFamilies!);
-const mockGetGroupPendingInvitations = vi.mocked(mockApiService.getGroupPendingInvitations!);
-const mockGetGroupInvitations = vi.mocked(mockApiService.getGroupInvitations!);
-const mockUpdateGroup = vi.mocked(mockApiService.updateGroup!);
+const mockApi = api.api as typeof api.api;
+const mockGetGroup = vi.mocked(mockApi.getGroup);
+const mockGetGroupFamilies = vi.mocked(mockApi.getGroupFamilies);
+const mockGetGroupPendingInvitations = vi.mocked(mockApi.getGroupPendingInvitations);
+const mockGetGroupInvitations = vi.mocked(mockApi.getGroupInvitations);
+const mockUpdateGroup = vi.mocked(mockApi.updateGroup);
 
 describe('ManageGroupPage - Group Update Functionality', () => {
   const mockGroup: Group = {
@@ -155,7 +151,7 @@ describe('ManageGroupPage - Group Update Functionality', () => {
     vi.clearAllMocks();
 
     // Mock successful API calls
-    mockApiService.getUserGroups.mockResolvedValue([{
+    mockApi.getUserGroups.mockResolvedValue({ data: { data: [{
       id: 'group123',
       name: 'Test Group',
       description: 'Test description',
@@ -171,12 +167,12 @@ describe('ManageGroupPage - Group Update Functionality', () => {
       },
       familyCount: 1,
       scheduleCount: 0,
-    }]);
-    mockGetGroup.mockResolvedValue(mockGroup);
-    mockGetGroupFamilies.mockResolvedValue(mockMembers);
-    mockGetGroupPendingInvitations.mockResolvedValue([]);
-    mockGetGroupInvitations.mockResolvedValue([]);
-    mockUpdateGroup.mockResolvedValue({ ...mockGroup, name: 'Updated Group' });
+    }] } } });
+    mockGetGroup.mockResolvedValue({ data: { data: mockGroup } });
+    mockGetGroupFamilies.mockResolvedValue({ data: { data: mockMembers } });
+    mockGetGroupPendingInvitations.mockResolvedValue({ data: { data: [] } });
+    mockGetGroupInvitations.mockResolvedValue({ data: { data: [] } });
+    mockUpdateGroup.mockResolvedValue({ data: { data: { ...mockGroup, name: 'Updated Group' } } });
   });
 
   describe('Group Edit Dialog', () => {

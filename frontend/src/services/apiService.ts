@@ -152,17 +152,30 @@ export interface ScheduleSlotVehicle {
   id: string;
   scheduleSlotId: string;
   vehicleId: string;
-  driverId?: string;
-  seatOverride?: number;
-  vehicle: {
+  driverId?: string | null;
+  seatOverride?: number | null;
+  // FIXME: Legacy compatibility - supports both OpenAPI and old apiService vehicle formats
+  vehicle?: {
+    id: string;
+    make?: string;
+    model?: string;
+    licensePlate?: string;
+    capacity: number;
+    familyId: string;
+    name?: string;
+  } | {
+    // Legacy format from apiService - minimal properties
     id: string;
     name: string;
     capacity: number;
   };
+  // TODO: Legacy driver format compatibility
   driver?: {
     id: string;
-    name: string;
-  };
+    firstName: string;
+    lastName: string;
+    email: string;
+  } | null;
 }
 
 // Dashboard Types

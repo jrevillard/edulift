@@ -2,6 +2,11 @@ import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
 import { afterEach } from 'vitest'
 
+// Set global test environment flag to prevent navigation redirects in API client
+if (typeof window !== 'undefined') {
+  (window as any).__TEST_ENVIRONMENT__ = true
+}
+
 // Automatic cleanup after each test
 afterEach(() => {
   cleanup()

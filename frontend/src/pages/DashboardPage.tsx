@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useQuery } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { EmptyState } from '@/components/ui/empty-states';
 import { GroupMembershipWarning } from '../components/GroupMembershipWarning';
 import { PageLayout, LoadingState } from '@/components/ui/page-layout';
 import { formatDatetimeInTimezone } from '../utils/timezoneUtils';
-import type { WeeklyDashboardResponse } from '../types/dashboard';
+import type { WeeklyDashboardResponse } from '@/types/api';
 import {
   Users,
   Car,
@@ -64,41 +64,42 @@ interface TransformedTrip {
 }
 
 // Helper function to transform new WeeklyDashboardResponse format to legacy TodayTrip format
-const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardResponse | undefined) => {
+const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardResponse | undefined, currentFamilyId?: string) => {
   if (!weeklyDashboard?.data?.days) return [];
 
   const trips: TransformedTrip[] = [];
 
   weeklyDashboard.data.days.forEach(day => {
-    day.transports.forEach(transport => {
-      transport.vehicleAssignmentSummaries.forEach(vehicle => {
-        // Create a trip object compatible with existing component
-        // Using the REAL API structure from backend (children at vehicle level per VehicleAssignmentSummary)
-        trips.push({
-          id: `${day.date}-${transport.time}-${vehicle.vehicleId}`,
-          time: transport.time,
-          datetime: `${day.date}T${transport.time}:00Z`,
-          groupId: transport.groupId,
-          groupName: transport.groupName,
-          scheduleSlotId: transport.scheduleSlotId,
-          date: day.date,
-          vehicle: {
-            id: vehicle.vehicleId,
-            name: vehicle.vehicleName,
-            capacity: vehicle.vehicleCapacity
-          },
-          driver: vehicle.driver, // Present according to API spec (optional)
-          children: vehicle.children?.map(child => ({
-            id: child.childId,
-            name: child.childName,
-            familyId: child.childFamilyId,
-            isFamilyChild: child.isFamilyChild
-          })) || [], // Children ARE at vehicle level in the API!
-          group: {
-            id: transport.groupId || 'unknown-group',
-            name: transport.groupName || 'Unknown Group'
-          }
-        });
+    day.transportSlots.forEach(transportSlot => {
+      // Create a trip object compatible with existing component
+      // Using the new OpenAPI structure where children are at transport slot level
+      trips.push({
+        id: `${day.date}-${transportSlot.time}-${transportSlot.id}`,
+        time: transportSlot.time,
+        datetime: `${day.date}T${transportSlot.time}:00Z`,
+        groupId: transportSlot.groupId || 'unknown-group',
+        groupName: transportSlot.groupName || 'Unknown Group',
+        scheduleSlotId: transportSlot.id,
+        date: day.date,
+        vehicle: {
+          id: transportSlot.vehicleId || 'unknown-vehicle',
+          name: transportSlot.vehicleName || 'Unknown Vehicle',
+          capacity: 0 // Capacity not available in new structure, using default
+        },
+        driver: transportSlot.driverName ? {
+          id: transportSlot.driverId || 'unknown-driver',
+          name: transportSlot.driverName
+        } : undefined,
+        children: transportSlot.children?.map(child => ({
+          id: child.id,
+          name: child.name,
+          familyId: child.familyId,
+          isFamilyChild: child.familyId === currentFamilyId
+        })) || [],
+        group: {
+          id: transportSlot.groupId || 'unknown-group',
+          name: transportSlot.groupName || 'Unknown Group'
+        }
       });
     });
   });
@@ -113,9 +114,12 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Fetch real children data
-  const { data: children = [] } = useQuery({
+  const { data: children = [] } = useQuery<any[]>({
     queryKey: ['children'],
-    queryFn: () => apiService.getChildren(),
+    queryFn: async () => {
+      const result = await api.GET('/children');
+      return result.data?.data || [];
+    },
     enabled: !!user
   });
 
@@ -123,7 +127,10 @@ const DashboardPage: React.FC = () => {
   // Fetch this week's trips with shorter cache for real-time updates
   const { data: weeklyDashboard, isLoading: scheduleLoading, error: scheduleError } = useQuery({
     queryKey: ['weekly-dashboard', user?.id],
-    queryFn: () => apiService.getDashboardWeeklySchedule(),
+    queryFn: async () => {
+      const result = await api.GET('/dashboard/weekly');
+      return result.data;
+    },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes for weekly data
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -133,7 +140,10 @@ const DashboardPage: React.FC = () => {
   // Fetch recent activity with medium cache duration (family-based)
   const { data: recentActivity, isLoading: activityLoading } = useQuery({
     queryKey: ['recent-activity', currentFamily?.id],
-    queryFn: () => apiService.getRecentActivity(),
+    queryFn: async () => {
+      const result = await api.GET('/dashboard/recent-activity');
+      return result.data?.data;
+    },
     enabled: !!user && !!currentFamily,
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter for more frequent updates)
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -143,7 +153,7 @@ const DashboardPage: React.FC = () => {
   const isDataLoading = scheduleLoading || activityLoading;
 
   // Transform weekly dashboard data to legacy format for compatibility
-  const upcomingTrips = transformWeeklyDashboardToTrips(weeklyDashboard);
+  const upcomingTrips = transformWeeklyDashboardToTrips(weeklyDashboard, currentFamily?.id);
 
 
   const quickActions = [

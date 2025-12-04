@@ -62,11 +62,11 @@ vi.mock('../../contexts/FamilyContext', () => ({
   FamilyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Mock apiService
-vi.mock('../../services/apiService', () => ({
-  apiService: {
-    getChildren: vi.fn().mockResolvedValue([]),
-    getDashboardStats: vi.fn().mockResolvedValue({
+// Mock api
+vi.mock('../../services/api', () => ({
+  api: {
+    getChildren: vi.fn().mockResolvedValue({ data: { data: [] } }),
+    getDashboardStats: vi.fn().mockResolvedValue({ data: { data: {
       groups: 2,
       children: 3,
       vehicles: 1,
@@ -77,9 +77,9 @@ vi.mock('../../services/apiService', () => ({
         vehicles: { value: '+1', direction: 'up' },
         trips: { value: '+25%', direction: 'up' },
       },
-    }),
-    getTodaySchedule: vi.fn().mockResolvedValue({ upcomingTrips: [] }),
-    getRecentActivity: vi.fn().mockResolvedValue({ activities: [] }),
+    } } }),
+    getTodaySchedule: vi.fn().mockResolvedValue({ data: { data: { upcomingTrips: [] } } }),
+    getRecentActivity: vi.fn().mockResolvedValue({ data: { data: { activities: [] } } }),
   },
 }));
 

@@ -5,12 +5,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import VehicleSelectionModal from '../VehicleSelectionModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
-import { apiService } from '../../services/apiService';
+import { api } from '../../services/api';
 
 // Mock dependencies
 vi.mock('../../contexts/AuthContext');
 vi.mock('../../contexts/SocketContext');
-vi.mock('../../services/apiService');
+vi.mock('../../services/api');
 
 // Test data
 const mockUser = {
@@ -71,7 +71,7 @@ const createWrapper = () => {
 describe('VehicleSelectionModal - Seat Override', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser,
       login: vi.fn(),
@@ -86,8 +86,23 @@ describe('VehicleSelectionModal - Seat Override', () => {
       isConnected: false
     });
 
-    vi.spyOn(apiService, 'getVehicles').mockResolvedValue(mockVehicles);
-    vi.spyOn(apiService, 'getScheduleSlotDetails').mockResolvedValue(mockScheduleSlot);
+    // Mock the new OpenAPI API calls
+    vi.mocked(api.GET).mockImplementation((path: string) => {
+      if (path === '/vehicles') {
+        return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
+      }
+      if (path.startsWith('/schedule-slots/')) {
+        return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
+      }
+      return Promise.resolve({ data: undefined, error: undefined });
+    });
+
+    vi.mocked(api.POST).mockImplementation((path: string) => {
+      if (path.includes('/schedule-slots/')) {
+        return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
+      }
+      return Promise.resolve({ data: undefined, error: undefined });
+    });
   });
 
   it('should render seat override input field', async () => {
@@ -160,7 +175,14 @@ describe('VehicleSelectionModal - Seat Override', () => {
   });
 
   it('should pass seat override when creating new schedule slot with vehicle', async () => {
-    const createSpy = vi.spyOn(apiService, 'createScheduleSlotWithVehicle').mockResolvedValue(mockScheduleSlot);
+    const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
+    vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
+      if (path.includes('/schedule-slots/groups/') && path.includes('/schedule-slots')) {
+        createSpy(path, options);
+        return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
+      }
+      return Promise.resolve({ data: undefined, error: undefined });
+    });
 
     const Wrapper = createWrapper();
     render(
@@ -200,13 +222,16 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
-        'group-1',
-        'MONDAY',
-        '08:00',
-        '2024-01',
-        'vehicle-1',
-        'user-1',
-        15
+        '/schedule-slots/groups/{groupId}/schedule-slots',
+        expect.objectContaining({
+          params: { path: { groupId: 'group-1' } },
+          body: {
+            datetime: '2024-01T08:00:00',
+            vehicleId: 'vehicle-1',
+            driverId: 'user-1',
+            seatOverride: 15
+          }
+        })
       );
     });
   });
@@ -217,7 +242,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
       id: 'existing-slot-1'
     };
 
-    const assignSpy = vi.spyOn(apiService, 'assignVehicleToScheduleSlot').mockResolvedValue({
+    const assignSpy = vi.fn().mockResolvedValue({ data: { data: {
       id: 'assignment-1',
       scheduleSlotId: 'existing-slot-1',
       vehicleId: 'vehicle-1',
@@ -225,6 +250,22 @@ describe('VehicleSelectionModal - Seat Override', () => {
       seatOverride: 15,
       vehicle: mockVehicles[0],
       driver: { id: 'user-1', name: 'Test User' }
+    } }, error: undefined });
+
+    vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
+      if (path.includes('/schedule-slots/') && path.includes('/vehicles')) {
+        assignSpy(path, options);
+        return Promise.resolve({ data: { data: {
+          id: 'assignment-1',
+          scheduleSlotId: 'existing-slot-1',
+          vehicleId: 'vehicle-1',
+          driverId: 'user-1',
+          seatOverride: 15,
+          vehicle: mockVehicles[0],
+          driver: { id: 'user-1', name: 'Test User' }
+        } }, error: undefined });
+      }
+      return Promise.resolve({ data: undefined, error: undefined });
     });
 
     const Wrapper = createWrapper();
@@ -266,16 +307,28 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(assignSpy).toHaveBeenCalledWith(
-        'existing-slot-1',
-        'vehicle-1',
-        'user-1',
-        12
+        '/schedule-slots/{scheduleSlotId}/vehicles',
+        expect.objectContaining({
+          params: { path: { scheduleSlotId: 'existing-slot-1' } },
+          body: {
+            vehicleId: 'vehicle-1',
+            driverId: 'user-1',
+            seatOverride: 12
+          }
+        })
       );
     });
   });
 
   it('should not pass seat override when field is empty', async () => {
-    const createSpy = vi.spyOn(apiService, 'createScheduleSlotWithVehicle').mockResolvedValue(mockScheduleSlot);
+    const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
+    vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
+      if (path.includes('/schedule-slots/groups/') && path.includes('/schedule-slots')) {
+        createSpy(path, options);
+        return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
+      }
+      return Promise.resolve({ data: undefined, error: undefined });
+    });
 
     const Wrapper = createWrapper();
     render(
@@ -315,13 +368,16 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
-        'group-1',
-        'MONDAY',
-        '08:00',
-        '2024-01',
-        'vehicle-1',
-        'user-1',
-        undefined
+        '/schedule-slots/groups/{groupId}/schedule-slots',
+        expect.objectContaining({
+          params: { path: { groupId: 'group-1' } },
+          body: {
+            datetime: '2024-01T08:00:00',
+            vehicleId: 'vehicle-1',
+            driverId: 'user-1',
+            seatOverride: undefined
+          }
+        })
       );
     });
   });
@@ -351,7 +407,15 @@ describe('VehicleSelectionModal - Seat Override', () => {
       ]
     };
 
-    vi.spyOn(apiService, 'getScheduleSlotDetails').mockResolvedValue(slotWithVehicles);
+    vi.mocked(api.GET).mockImplementation((path: string, options?: any) => {
+      if (path === '/vehicles') {
+        return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
+      }
+      if (path.includes('/schedule-slots/') && options?.params?.path?.scheduleSlotId === 'slot-1') {
+        return Promise.resolve({ data: { data: slotWithVehicles }, error: undefined });
+      }
+      return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
+    });
 
     render(
       <VehicleSelectionModal

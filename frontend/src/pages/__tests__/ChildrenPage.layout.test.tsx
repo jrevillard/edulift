@@ -6,16 +6,16 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import ChildrenPage from '../ChildrenPage';
 import { useFamily } from '../../contexts/FamilyContext';
-import { apiService } from '../../services/apiService';
-import { createMockApiService } from '../../test/test-utils';
-import type { Child } from '../../services/apiService';
+import { api } from '../../services/api';
+import { createMockOpenAPIClient } from '../../test/test-utils';
+import type { Child } from '../../types/api';
 
 // Mock dependencies
 vi.mock('../../contexts/FamilyContext');
-vi.mock('../../services/apiService');
+vi.mock('../../services/api');
 
 const mockUseFamily = useFamily as ReturnType<typeof vi.fn>;
-const mockApiService = apiService as unknown;
+const mockApi = api as unknown;
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = new QueryClient({
@@ -37,11 +37,11 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 describe('ChildrenPage - Layout and Spacing', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Apply comprehensive API service mocks
-    const comprehensiveMocks = createMockApiService();
-    Object.assign(mockApiService, comprehensiveMocks);
-    
+
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
+
     mockUseFamily.mockReturnValue({
       refreshFamily: vi.fn().mockResolvedValue(undefined),
       currentFamily: {
@@ -53,7 +53,18 @@ describe('ChildrenPage - Layout and Spacing', () => {
       }
     });
 
-    mockApiService.getUserGroups.mockResolvedValue([]);
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
   });
 
   it('should have proper spacing between GroupMembershipWarning and children cards', async () => {
@@ -72,7 +83,19 @@ describe('ChildrenPage - Layout and Spacing', () => {
       }
     ];
 
-    mockApiService.getChildren.mockResolvedValue(childrenWithoutGroups);
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: childrenWithoutGroups, success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
+
     mockUseFamily.mockReturnValue({
       refreshFamily: vi.fn().mockResolvedValue(undefined),
       currentFamily: {
@@ -125,7 +148,18 @@ describe('ChildrenPage - Layout and Spacing', () => {
       }
     ];
 
-    mockApiService.getChildren.mockResolvedValue(childrenWithGroups);
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: childrenWithGroups, success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
     mockUseFamily.mockReturnValue({
       refreshFamily: vi.fn().mockResolvedValue(undefined),
       currentFamily: {
@@ -185,7 +219,18 @@ describe('ChildrenPage - Layout and Spacing', () => {
       }
     ];
 
-    mockApiService.getChildren.mockResolvedValue(mockChildren);
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: mockChildren, success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
     mockUseFamily.mockReturnValue({
       refreshFamily: vi.fn().mockResolvedValue(undefined),
       currentFamily: {
@@ -215,7 +260,10 @@ describe('ChildrenPage - Layout and Spacing', () => {
   });
 
   it('should show empty state when no children exist', async () => {
-    mockApiService.getChildren.mockResolvedValue([]);
+    vi.mocked(mockApi.GET).mockResolvedValue({
+      data: { data: [], success: true },
+      error: undefined
+    });
 
     render(
       <TestWrapper>

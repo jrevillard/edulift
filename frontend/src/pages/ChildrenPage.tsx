@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
 import { usePageState } from '../hooks/usePageState';
 import { useFamily } from '../contexts/FamilyContext';
-import type { Child } from '../services/apiService';
 import { ChildGroupManagement } from '../components/ChildGroupManagement';
+import type { Child, UserGroup } from '@/types/api';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,6 @@ import { LoadingState, ErrorState, EmptyChildren } from '@/components/ui/empty-s
 import { PageLayout, PageHeader, ModernButton, ModernCard } from '@/components/ui/page-layout';
 import { Plus, Edit2, Trash2, Users, Baby, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { isApiError } from '../types/errors';
 
 const ChildrenPage: React.FC = () => {
   const navigate = useNavigate();
@@ -34,31 +33,63 @@ const ChildrenPage: React.FC = () => {
 
   const childrenQuery = useQuery({
     queryKey: ['children'],
-    queryFn: () => apiService.getChildren(),
+    queryFn: async () => {
+      const result = await api.GET('/children');
+      const apiChildren = result.data?.data || [];
+
+      // Convert API response format to match expected types
+      return apiChildren.map(child => ({
+        id: child.id,
+        name: child.name,
+        age: child.age === null ? undefined : child.age,
+        familyId: child.familyId,
+        createdAt: child.createdAt,
+        updatedAt: child.updatedAt,
+        groupMemberships: child.groupMemberships?.map(membership => ({
+          childId: membership.childId,
+          groupId: membership.groupId,
+          addedBy: '', // This field is not available in the API response
+          addedAt: membership.joinedAt, // Map joinedAt to addedAt
+          group: membership.group
+        }))
+      }));
+    },
   });
   
   const { data: children, shouldShowLoading, shouldShowError, shouldShowEmpty } = usePageState(childrenQuery);
 
   // Fetch user's groups for group assignment during child creation
-  const { data: groups = [] } = useQuery({
+  const { data: groups = [] } = useQuery<UserGroup[]>({
     queryKey: ['user-groups'],
-    queryFn: () => apiService.getUserGroups(),
+    queryFn: async () => {
+      const result = await api.GET('/groups/my-groups');
+      return result.data?.data || [];
+    },
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; age?: number; groupIds: string[] }) => {
       // First create the child
-      const child = await apiService.createChild(data.name, data.age);
-      
+      const createResult = await api.POST('/children', {
+        body: { name: data.name, age: data.age }
+      });
+      const child = createResult.data?.data;
+
+      if (!child) {
+        throw new Error('Failed to create child');
+      }
+
       // Then assign to all selected groups
       if (data.groupIds.length > 0) {
         await Promise.all(
-          data.groupIds.map(groupId => 
-            apiService.addChildToGroup(child.id, groupId)
+          data.groupIds.map(groupId =>
+            api.POST('/children/{childId}/groups/{groupId}', {
+              params: { path: { childId: child.id, groupId } }
+            })
           )
         );
       }
-      
+
       return child;
     },
     retry: false, // Disable automatic retries to prevent duplicates
@@ -76,21 +107,37 @@ const ChildrenPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       console.error('Error creating child:', error);
-      
-      // Handle specific permission errors
-      if (isApiError(error) && error.response?.status === 403) {
-        setFormError('You do not have permission to add children. Only family admins can add children.');
-      } else if (isApiError(error) && error.response?.status === 401) {
-        setFormError('You must be logged in to add children.');
+
+      // Handle specific permission errors for OpenAPI client
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status: number; message?: string };
+        if (apiError.status === 403) {
+          setFormError('You do not have permission to add children. Only family admins can add children.');
+        } else if (apiError.status === 401) {
+          setFormError('You must be logged in to add children.');
+        } else {
+          setFormError(apiError.message || 'Failed to add child. Please try again.');
+        }
       } else {
-        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to add child. Please try again.' : 'Failed to add child. Please try again.');
+        setFormError('Failed to add child. Please try again.');
       }
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name?: string; age?: number } }) => 
-      apiService.updateChild(id, data),
+    mutationFn: async ({ id, data }: { id: string; data: { name?: string; age?: number } }) => {
+      const result = await api.PATCH('/children/{childId}', {
+        params: { path: { childId: id } },
+        body: data
+      });
+      const child = result.data?.data;
+
+      if (!child) {
+        throw new Error('Failed to update child');
+      }
+
+      return child;
+    },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
@@ -104,20 +151,29 @@ const ChildrenPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       console.error('Error updating child:', error);
-      
-      // Handle specific permission errors
-      if (isApiError(error) && error.response?.status === 403) {
-        setFormError('You do not have permission to edit children. Only family admins can edit children.');
-      } else if (isApiError(error) && error.response?.status === 401) {
-        setFormError('You must be logged in to edit children.');
+
+      // Handle specific permission errors for OpenAPI client
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status: number; message?: string };
+        if (apiError.status === 403) {
+          setFormError('You do not have permission to edit children. Only family admins can edit children.');
+        } else if (apiError.status === 401) {
+          setFormError('You must be logged in to edit children.');
+        } else {
+          setFormError(apiError.message || 'Failed to update child. Please try again.');
+        }
       } else {
-        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to update child. Please try again.' : 'Failed to update child. Please try again.');
+        setFormError('Failed to update child. Please try again.');
       }
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiService.deleteChild(id),
+    mutationFn: async (id: string) => {
+      await api.DELETE('/children/{childId}', {
+        params: { path: { childId: id } }
+      });
+    },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
@@ -337,7 +393,7 @@ const ChildrenPage: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                   <span className="text-green-600">👥</span>
                                   <span className="font-medium text-green-800">{group.name}</span>
-                                  <span className="text-xs text-green-600">({group.familyCount} families)</span>
+                                  <span className="text-xs text-green-600">({group._count?.familyMembers || 0} families)</span>
                                 </div>
                                 <button
                                   type="button"
@@ -370,7 +426,7 @@ const ChildrenPage: React.FC = () => {
                               <SelectContent>
                                 {availableGroups.map((group) => (
                                   <SelectItem key={group.id} value={group.id}>
-                                    👥 {group.name} ({group.familyCount} families)
+                                    👥 {group.name} ({group._count?.familyMembers || 0} families)
                                   </SelectItem>
                                 ))}
                               </SelectContent>

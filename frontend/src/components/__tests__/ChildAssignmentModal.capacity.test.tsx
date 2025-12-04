@@ -3,8 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import ChildAssignmentModal from '../ChildAssignmentModal';
-import { apiService } from '../../services/apiService';
-import { createMockApiService } from '../../test/test-utils';
+import { createMockOpenAPIClient } from '../../test/test-utils';
 
 // Mock the contexts
 vi.mock('../../contexts/AuthContext', () => ({
@@ -20,8 +19,10 @@ vi.mock('../../contexts/SocketContext', () => ({
 }));
 
 // Mock the API service
-vi.mock('../../services/apiService');
-const mockApiService = apiService as unknown;
+vi.mock('../../services/api', () => ({
+  api: createMockOpenAPIClient(),
+}));
+import { api } from '../../services/api';
 
 describe('ChildAssignmentModal Capacity Tests', () => {
   let queryClient: QueryClient;
@@ -35,10 +36,6 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     });
     vi.clearAllMocks();
-    
-    // Apply comprehensive API service mocks
-    const comprehensiveMocks = createMockApiService();
-    Object.assign(mockApiService, comprehensiveMocks);
   });
 
   const renderModal = (props = {}) => {
@@ -142,8 +139,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     ];
 
-    vi.mocked(apiService.getChildren).mockResolvedValue(allChildren);
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(fullCapacitySlot);
+    vi.mocked(api.getChildren).mockResolvedValue({ data: { data: allChildren } });
+    vi.mocked(api.getScheduleSlotDetails).mockResolvedValue({ data: { data: fullCapacitySlot } });
 
     renderModal({ 
       scheduleSlot: fullCapacitySlot,
@@ -245,8 +242,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     ];
 
-    vi.mocked(apiService.getChildren).mockResolvedValue(allChildren);
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(partialCapacitySlot);
+    vi.mocked(api.getChildren).mockResolvedValue({ data: { data: allChildren } });
+    vi.mocked(api.getScheduleSlotDetails).mockResolvedValue({ data: { data: partialCapacitySlot } });
 
     renderModal({ 
       scheduleSlot: partialCapacitySlot,
@@ -269,8 +266,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
   });
 
   it('preserves vehicle selection after adding child in vehicle-specific mode', async () => {
-    const mockAssignChild = vi.fn().mockResolvedValue({});
-    vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
+    const mockAssignChild = vi.fn().mockResolvedValue({ data: { success: true } });
+    vi.mocked(api.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
 
     const vehicleSlot = {
       id: 'slot-1',
@@ -325,8 +322,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     ];
 
-    vi.mocked(apiService.getChildren).mockResolvedValue(allChildren);
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(vehicleSlot);
+    vi.mocked(api.getChildren).mockResolvedValue({ data: { data: allChildren } });
+    vi.mocked(api.getScheduleSlotDetails).mockResolvedValue({ data: { data: vehicleSlot } });
 
     renderModal({ 
       scheduleSlot: vehicleSlot,

@@ -1,11 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiService, type ScheduleSlot, type Child, type GroupChildMembership, type ScheduleSlotVehicle } from '../services/apiService';
+import { api } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { SOCKET_EVENTS } from '../shared/events';
 import { toast } from 'sonner';
 import { getWeekdayInTimezone, getTimeInTimezone } from '../utils/timezoneUtils';
+import type { Child, ScheduleSlot, ScheduleSlotVehicle, GroupChildMembership, ChildAssignment } from '../types/api';
+
+// Helper function to handle child name compatibility between API responses
+const getChildName = (child: any): string => {
+  if (child.name) {
+    return child.name; // OpenAPI children list has name
+  }
+  if (child.firstName && child.lastName) {
+    return `${child.firstName} ${child.lastName}`; // OpenAPI child assignments have firstName/lastName
+  }
+  return 'Unknown Child';
+};
+
+// Helper function to handle vehicle name compatibility
+const getVehicleName = (vehicle: any): string => {
+  if (vehicle.name) {
+    return vehicle.name; // Original API has name
+  }
+  if (vehicle.make && vehicle.model) {
+    return `${vehicle.make} ${vehicle.model}`; // OpenAPI has make/model
+  }
+  if (vehicle.make) {
+    return vehicle.make;
+  }
+  return 'Unknown Vehicle';
+};
+
+// Helper function to handle driver name compatibility
+const getDriverName = (driver: any): string => {
+  if (!driver) return 'No driver assigned';
+  if (driver.name) {
+    return driver.name; // Original API has name
+  }
+  if (driver.firstName && driver.lastName) {
+    return `${driver.firstName} ${driver.lastName}`; // OpenAPI has firstName/lastName
+  }
+  return 'Unknown Driver';
+};
 
 interface ChildAssignmentModalProps {
   isOpen: boolean;
@@ -32,22 +70,45 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   // Fetch all user's children (will be filtered for group membership)
   const { data: children = [], isLoading: loadingChildren, error: childrenError } = useQuery({
     queryKey: ['children'],
-    queryFn: () => apiService.getChildren(),
+    queryFn: async () => {
+      try {
+        const result = await api.GET('/children');
+        return result.data?.data || [];
+      } catch (error) {
+        console.error('Failed to fetch children:', error);
+        // Return empty array on error to prevent undefined data
+        return [];
+      }
+    },
     enabled: isOpen,
   });
 
   // Fetch fresh schedule slot details if we have a slot ID
   const { data: freshSlotData, isLoading: isFreshSlotLoading, error: freshSlotError, refetch: refetchSlotData } = useQuery({
     queryKey: ['schedule-slot', currentScheduleSlotId],
-    queryFn: () => apiService.getScheduleSlotDetails(currentScheduleSlotId!),
-    enabled: !!currentScheduleSlotId && 
-             currentScheduleSlotId !== '' && 
+    queryFn: async () => {
+      try {
+        const result = await api.GET('/schedule-slots/{scheduleSlotId}', {
+          params: { path: { scheduleSlotId: currentScheduleSlotId! } }
+        });
+        return result.data?.data;
+      } catch (error: any) {
+        console.error('Failed to fetch schedule slot details:', error);
+        // Don't retry if slot was deleted (404)
+        if (error?.status === 404) {
+          setSlotWasDeleted(true);
+        }
+        // Return null on error to prevent undefined data
+        return null;
+      }
+    },
+    enabled: !!currentScheduleSlotId &&
+             currentScheduleSlotId !== '' &&
              currentScheduleSlotId !== null &&
              !slotWasDeleted,
-    retry: (failureCount, error) => {
+    retry: (failureCount, error: any) => {
       // Don't retry if slot was deleted (404)
-      const axiosError = error as { response?: { status: number } };
-      if (axiosError?.response?.status === 404) {
+      if (error?.status === 404) {
         setSlotWasDeleted(true);
         return false;
       }
@@ -76,8 +137,13 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
 
   // Assign child mutation
   const assignChildMutation = useMutation({
-    mutationFn: ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) =>
-      apiService.assignChildToScheduleSlot(scheduleSlotId, childId, vehicleAssignmentId),
+    mutationFn: async ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) => {
+      const result = await api.POST('/schedule-slots/{scheduleSlotId}/children', {
+        params: { path: { scheduleSlotId } },
+        body: { childId, vehicleAssignmentId }
+      });
+      return result.data?.data;
+    },
     onSuccess: async () => {
       // Invalidate ALL weekly schedule queries for this group (all weeks)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', scheduleSlot.groupId] });
@@ -98,10 +164,10 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
         setSelectedVehicleAssignment('');
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       // Specific handling for 409 Conflict
-      if (error.name === 'ConflictError') {
-        toast.error(error.message, {
+      if (error.status === 409) {
+        toast.error(error.message || 'Capacity conflict occurred. The slot may have been updated.', {
           duration: 6000,
           action: {
             label: 'Refresh',
@@ -114,15 +180,19 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
           },
         });
       } else {
-        toast.error('Failed to assign children. Please try again.');
+        toast.error(error.message || 'Failed to assign children. Please try again.');
       }
     },
   });
 
   // Remove child mutation
   const removeChildMutation = useMutation({
-    mutationFn: ({ scheduleSlotId, childId }: { scheduleSlotId: string; childId: string }) => 
-      apiService.removeChildFromScheduleSlot(scheduleSlotId, childId),
+    mutationFn: async ({ scheduleSlotId, childId }: { scheduleSlotId: string; childId: string }) => {
+      const result = await api.DELETE('/schedule-slots/{scheduleSlotId}/children/{childId}', {
+        params: { path: { scheduleSlotId, childId } }
+      });
+      return result.data?.data;
+    },
     onSuccess: async (_, { scheduleSlotId }) => {
       // Invalidate ALL weekly schedule queries for this group (all weeks)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', scheduleSlot.groupId] });
@@ -171,8 +241,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   };
 
   // Handle schedule slot deletion (404 error) - use our state variable
-  const axiosError = freshSlotError as { response?: { status: number } } | null;
-  const isSlotDeleted = slotWasDeleted || axiosError?.response?.status === 404;
+  const isSlotDeleted = slotWasDeleted || freshSlotError?.status === 404;
   
   // Get the current schedule slot data (fresh data takes precedence over scheduleSlot prop)
   const shouldWaitForFreshData = currentScheduleSlotId && !freshSlotData && isFreshSlotLoading && !isSlotDeleted;
@@ -196,7 +265,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     );
     
     // Filter out children already assigned to this schedule slot
-    const assignedChildIds = currentSlot.childAssignments?.map((ca) => ca.child.id) || [];
+    const assignedChildIds = currentSlot.childAssignments?.map((ca: ChildAssignment) => ca.child?.id || ca.childId) || [];
     return groupChildren.filter((child: Child) => !assignedChildIds.includes(child.id));
   };
 
@@ -213,15 +282,17 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     );
     
     if (selectedVehicleAssignment) {
-      totalCapacity = selectedVehicleAssignment.vehicle.capacity;
+      totalCapacity = selectedVehicleAssignment.vehicle?.capacity || 0;
       // Count only children assigned to this specific vehicle
       currentOccupancy = currentSlot.childAssignments?.filter(
-        (ca) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId
+        (ca: ChildAssignment) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId
       ).length || 0;
     }
   } else {
     // General mode: show total capacity for all vehicles
-    totalCapacity = currentSlot?.totalCapacity || 0;
+    // Calculate total capacity from all vehicle assignments
+    totalCapacity = currentSlot?.vehicleAssignments?.reduce(
+      (sum: number, va: ScheduleSlotVehicle) => sum + (va.vehicle?.capacity || 0), 0) || 0;
     currentOccupancy = currentSlot?.childAssignments?.length || 0;
   }
   
@@ -240,12 +311,12 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                 <span className="text-blue-600">🚗</span>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span data-testid="ChildAssignmentModal-Text-singleVehicleName">{currentSlot.vehicleAssignments[0].vehicle.name}</span>
+                    <span data-testid="ChildAssignmentModal-Text-singleVehicleName">{getVehicleName(currentSlot.vehicleAssignments[0].vehicle)}</span>
                     <span className="text-sm text-gray-500">- {getWeekdayInTimezone(scheduleSlot.datetime, user?.timezone)} at {getTimeInTimezone(scheduleSlot.datetime, user?.timezone)}</span>
                   </div>
                   {currentSlot.vehicleAssignments[0].driver && (
                     <div className="text-sm font-normal text-gray-600" data-testid="ChildAssignmentModal-Text-singleVehicleDriver">
-                      Driver: {currentSlot.vehicleAssignments[0].driver.name}
+                      Driver: {getDriverName(currentSlot.vehicleAssignments[0].driver)}
                     </div>
                   )}
                 </div>
@@ -281,11 +352,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                   <div className="flex items-center justify-between text-base">
                     <div className="flex items-center space-x-2">
                       <span>🚗</span>
-                      <span className="font-medium" data-testid="ChildAssignmentModal-Text-selectedVehicleName">{selectedVehicle.vehicle.name}</span>
+                      <span className="font-medium" data-testid="ChildAssignmentModal-Text-selectedVehicleName">{getVehicleName(selectedVehicle.vehicle)}</span>
                     </div>
                     {selectedVehicle.driver && (
                       <div className="text-gray-600" data-testid="ChildAssignmentModal-Text-selectedVehicleDriver">
-                        Driver: {selectedVehicle.driver.name}
+                        Driver: {getDriverName(selectedVehicle.driver)}
                       </div>
                     )}
                   </div>
@@ -352,7 +423,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
               // Filter children based on whether we're in vehicle-specific mode
               const displayedChildAssignments = preSelectedVehicleAssignmentId && currentSlot
                 ? currentSlot.childAssignments?.filter(
-                    (ca) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId
+                    (ca: ChildAssignment) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId
                   ) || []
                 : currentSlot?.childAssignments || [];
               
@@ -360,24 +431,29 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                 <div data-testid="ChildAssignmentModal-List-assignedChildren">
                   <h4 className="text-sm font-medium text-gray-700 mb-3" data-testid="ChildAssignmentModal-Heading-assignedChildren">Currently Assigned Children</h4>
                   <div className="space-y-2">
-                    {displayedChildAssignments.map((childAssignment) => (
-                    <div key={childAssignment.child.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded" data-testid={`assigned-child-${childAssignment.child.id}`}>
+                    {displayedChildAssignments.map((childAssignment: ChildAssignment) => {
+                    const childId = childAssignment.child?.id || childAssignment.childId || '';
+                    return (
+                    <div key={childId} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded" data-testid={`assigned-child-${childId}`}>
                       <div className="flex items-center space-x-3">
                         <span className="text-blue-600">👥</span>
                         <div>
-                          <div className="font-medium text-sm" data-testid={`child-name-${childAssignment.child.id}`}>{childAssignment.child.name}</div>
+                          <div className="font-medium text-sm" data-testid={`child-name-${childId}`}>
+                            {childAssignment.child ? getChildName(childAssignment.child) : `Child ${childId}`}
+                          </div>
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveChild(childAssignment.child.id)}
+                        onClick={() => handleRemoveChild(childId)}
                         disabled={removeChildMutation.isPending}
                         className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-50"
-                        data-testid={`remove-child-button-${childAssignment.child.id}`}
+                        data-testid={`remove-child-button-${childId}`}
                       >
                         {removeChildMutation.isPending ? 'Removing...' : 'Remove'}
                       </button>
                     </div>
-                  ))}
+                  );
+                })}
                 </div>
               </div>
               );
@@ -420,10 +496,10 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                       >
                         <option value="">Choose a vehicle...</option>
                         {currentSlot.vehicleAssignments.map((vehicleAssignment: ScheduleSlotVehicle) => {
-                          const vehicleChildren = currentSlot.childAssignments.filter((ca) => 
+                          const vehicleChildren = currentSlot.childAssignments?.filter((ca: ChildAssignment) =>
                             ca.vehicleAssignmentId === vehicleAssignment.id
-                          );
-                          const availableSeats = vehicleAssignment.vehicle.capacity - vehicleChildren.length;
+                          ) || [];
+                          const availableSeats = (vehicleAssignment.vehicle?.capacity || 0) - vehicleChildren.length;
                           const isVehicleFull = availableSeats <= 0;
                           
                           return (
@@ -433,9 +509,9 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                               disabled={isVehicleFull}
                               data-testid={`vehicle-option-${vehicleAssignment.id}`}
                             >
-                              🚗 {vehicleAssignment.vehicle.name} 
+                              🚗 {getVehicleName(vehicleAssignment.vehicle)}
                               {isVehicleFull ? ' (Full)' : ` (${availableSeats} seats available)`}
-                              {vehicleAssignment.driver && ` - Driver: ${vehicleAssignment.driver.name}`}
+                              {vehicleAssignment.driver && ` - Driver: ${getDriverName(vehicleAssignment.driver)}`}
                             </option>
                           );
                         })}

@@ -1,10 +1,11 @@
-import type { ScheduleSlotVehicle } from '../services/apiService';
+import type { ScheduleSlotVehicle } from '../types/api';
 
 /**
  * Calculate the effective capacity for a vehicle assignment
  * Takes into account seat override if present, otherwise uses vehicle capacity
  */
 export function getEffectiveCapacity(vehicleAssignment: ScheduleSlotVehicle): number {
+  if (!vehicleAssignment.vehicle) return 0;
   return vehicleAssignment.seatOverride ?? vehicleAssignment.vehicle.capacity;
 }
 

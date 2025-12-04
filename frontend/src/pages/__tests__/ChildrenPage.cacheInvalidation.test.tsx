@@ -4,12 +4,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import ChildrenPage from '../ChildrenPage';
 import { useFamily } from '../../contexts/FamilyContext';
-import { apiService } from '../../services/apiService';
-import { createMockApiService } from '../../test/test-utils';
+import { api } from '../../services/api';
+import { createMockOpenAPIClient } from '../../test/test-utils';
 
 // Mock dependencies
 vi.mock('../../contexts/FamilyContext');
-vi.mock('../../services/apiService');
+vi.mock('../../services/api');
 
 // Mock connection store
 vi.mock('../../stores/connectionStore', () => {
@@ -20,17 +20,17 @@ vi.mock('../../stores/connectionStore', () => {
     setApiStatus: vi.fn(),
     setConnected: vi.fn()
   };
-  
+
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
-  
+
   return {
     useConnectionStore: mockUseConnectionStore
   };
 });
 
 const mockUseFamily = vi.mocked(useFamily);
-const mockApiService = vi.mocked(apiService);
+const mockApi = api as unknown;
 
 const testChild = {
   id: 'child-1',
@@ -86,16 +86,38 @@ describe('ChildrenPage - Cache Invalidation', () => {
     });
 
     mockUseFamily.mockReturnValue(mockFamilyContext);
-    
-    // Apply comprehensive API service mocks
-    const comprehensiveMocks = createMockApiService();
-    Object.assign(mockApiService, comprehensiveMocks);
-    
+
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
+
     // Override specific mocks for this test
-    mockApiService.getChildren.mockResolvedValue([testChild]);
-    mockApiService.updateChild.mockResolvedValue({
-      ...testChild,
-      name: 'Updated Name'
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: [testChild], success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
+
+    vi.mocked(mockApi.PATCH).mockResolvedValue({
+      data: { data: { ...testChild, name: 'Updated Name' }, success: true },
+      error: undefined
+    });
+
+    vi.mocked(mockApi.POST).mockResolvedValue({
+      data: { data: testChild, success: true },
+      error: undefined
+    });
+
+    vi.mocked(mockApi.DELETE).mockResolvedValue({
+      data: { data: null, success: true },
+      error: undefined
     });
   });
 
@@ -133,9 +155,12 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApiService.updateChild).toHaveBeenCalledWith('child-1', { 
-        name: 'Updated Name',
-        age: 8 
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+        params: { path: { childId: 'child-1' } },
+        body: {
+          name: 'Updated Name',
+          age: 8
+        }
       });
     });
 
@@ -177,7 +202,9 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApiService.createChild).toHaveBeenCalledWith('New Child', 6);
+      expect(mockApi.POST).toHaveBeenCalledWith('/children', {
+        body: { name: 'New Child', age: 6 }
+      });
     });
 
     // Verify that all necessary queries were invalidated
@@ -206,7 +233,9 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApiService.deleteChild).toHaveBeenCalledWith('child-1');
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/children/{childId}', {
+        params: { path: { childId: 'child-1' } }
+      });
     });
 
     // Verify that all necessary queries were invalidated

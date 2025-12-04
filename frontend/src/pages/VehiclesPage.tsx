@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
 import { usePageState } from '../hooks/usePageState';
 import { useFamily } from '../contexts/FamilyContext';
-import type { Vehicle } from '../services/apiService';
+import type { Vehicle } from '@/types/api';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,6 @@ import { PageLayout, PageHeader, ModernButton, ModernCard } from '@/components/u
 import { Plus, Edit2, Trash2, Car, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
-import { isApiError } from '../types/errors';
 
 const VehiclesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,13 +30,16 @@ const VehiclesPage: React.FC = () => {
 
   const vehiclesQuery = useQuery({
     queryKey: ['vehicles'],
-    queryFn: () => apiService.getVehicles(),
+    queryFn: async () => {
+      const result = await api.GET('/vehicles');
+      return result.data?.data; // Type: Vehicle[]
+    },
   });
   
   const { data: vehicles, shouldShowLoading, shouldShowError, shouldShowEmpty } = usePageState(vehiclesQuery);
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; capacity: number }) => apiService.createVehicle(data.name, data.capacity),
+    mutationFn: (data: { name: string; capacity: number }) => api.POST('/vehicles', { body: data }),
     retry: false, // Disable automatic retries to prevent duplicates
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -51,21 +53,26 @@ const VehiclesPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       console.error('Error creating vehicle:', error);
-      
-      // Handle specific permission errors
-      if (isApiError(error) && error.response?.status === 403) {
-        setFormError('You do not have permission to add vehicles. Only family admins can add vehicles.');
-      } else if (isApiError(error) && error.response?.status === 401) {
-        setFormError('You must be logged in to add vehicles.');
+
+      // Handle specific permission errors for OpenAPI client
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status: number; message?: string };
+        if (apiError.status === 403) {
+          setFormError('You do not have permission to add vehicles. Only family admins can add vehicles.');
+        } else if (apiError.status === 401) {
+          setFormError('You must be logged in to add vehicles.');
+        } else {
+          setFormError(apiError.message || 'Failed to add vehicle. Please try again.');
+        }
       } else {
-        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to add vehicle. Please try again.' : 'Failed to add vehicle. Please try again.');
+        setFormError('Failed to add vehicle. Please try again.');
       }
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { name?: string; capacity?: number } }) => 
-      apiService.updateVehicle(id, data),
+    mutationFn: ({ id, data }: { id: string; data: { name?: string; capacity?: number } }) =>
+      api.PATCH('/vehicles/{vehicleId}', { params: { path: { vehicleId: id } }, body: data }),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
@@ -78,20 +85,25 @@ const VehiclesPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       console.error('Error updating vehicle:', error);
-      
-      // Handle specific permission errors
-      if (isApiError(error) && error.response?.status === 403) {
-        setFormError('You do not have permission to edit vehicles. Only family admins can edit vehicles.');
-      } else if (isApiError(error) && error.response?.status === 401) {
-        setFormError('You must be logged in to edit vehicles.');
+
+      // Handle specific permission errors for OpenAPI client
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status: number; message?: string };
+        if (apiError.status === 403) {
+          setFormError('You do not have permission to edit vehicles. Only family admins can edit vehicles.');
+        } else if (apiError.status === 401) {
+          setFormError('You must be logged in to edit vehicles.');
+        } else {
+          setFormError(apiError.message || 'Failed to update vehicle. Please try again.');
+        }
       } else {
-        setFormError(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to update vehicle. Please try again.' : 'Failed to update vehicle. Please try again.');
+        setFormError('Failed to update vehicle. Please try again.');
       }
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => apiService.deleteVehicle(id),
+    mutationFn: (id: string) => api.DELETE('/vehicles/{vehicleId}', { params: { path: { vehicleId: id } } }),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
