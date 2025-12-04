@@ -130,32 +130,34 @@ const ManageGroupPage: React.FC = () => {
   // No need for duplicate event listeners here
 
   // Get group info from user groups query (already cached from GroupsPage)
-  const { data: userGroups = [] } = useQuery({
+  const { data: userGroupsData = { data: [] } } = useQuery({
     queryKey: ['user-groups'],
     // MIGRATED: Use OpenAPI client to get user groups
-    queryFn: () => api.GET('/groups/my-groups').then(result => result.data?.data || []),
+    queryFn: () => api.GET('/groups/my-groups', {}).then(result => result.data),
   });
+
+  const userGroups = userGroupsData?.data || [];
 
   const currentGroup = userGroups.find(group => group.id === groupId);
   const isAdmin = currentGroup?.userRole === 'ADMIN';
 
   // MIGRATED: Fetch group families with OpenAPI
-  const { data: families = [], isLoading: familiesLoading, error: familiesError } = useQuery({
+  const { data: familiesData, isLoading: familiesLoading, error: familiesError } = useQuery({
     queryKey: ['group-families', groupId || ''],
     queryFn: () => {
-      if (!groupId) return Promise.resolve([]);
+      if (!groupId) return Promise.resolve(undefined);
       return api.GET('/groups/{groupId}/families', {
         params: { path: { groupId } }
       }).then(result => {
-        const openApiFamilies = result.data?.data || [];
-        // Transform OpenAPI response to match expected GroupFamily interface
-        return openApiFamilies.map(family =>
-          transformGroupFamily(family, userFamily?.id, currentGroup)
-        );
+        return result.data;
       });
     },
     enabled: !!groupId,
   });
+
+  const families = familiesData?.data?.map((family: any) =>
+    transformGroupFamily(family, userFamily?.id, currentGroup)
+  ) || [];
 
   // Fetch schedule configuration
   const { data: scheduleConfig } = useQuery({

@@ -31,8 +31,8 @@ const VehiclesPage: React.FC = () => {
   const vehiclesQuery = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const result = await api.GET('/vehicles');
-      return result.data?.data; // Type: Vehicle[]
+      const result = await api.GET('/vehicles', {});
+      return result.data?.data || []; // Type: Vehicle[]
     },
   });
   

@@ -296,14 +296,16 @@ const SchedulePage: React.FC = () => {
     return grouped;
   }, [schedule]);
 
-  // TODO: Migrate to OpenAPI - vehicles endpoint ready
-  const { data: vehicles = [] } = useQuery({
+  // MIGRATED: Use OpenAPI client
+  const { data: vehiclesData = { data: [] } } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const result = await api.GET('/vehicles');
-      return result.data?.data || [];
+      const result = await api.GET('/vehicles', {});
+      return result.data;
     },
   });
+
+  const vehicles = vehiclesData?.data || [];
 
   // TODO: Replace with direct OpenAPI call - currently using apiService wrapper for complex date logic
   const createScheduleSlotWithVehicleMutation = useMutation({

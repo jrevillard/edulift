@@ -114,21 +114,23 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Fetch real children data
-  const { data: children = [] } = useQuery<any[]>({
+  const { data: childrenData = { data: [] } } = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
-      const result = await api.GET('/children');
-      return result.data?.data || [];
+      const result = await api.GET('/children', {});
+      return result.data;
     },
     enabled: !!user
   });
 
+  const children = childrenData?.data || [];
+
 
   // Fetch this week's trips with shorter cache for real-time updates
-  const { data: weeklyDashboard, isLoading: scheduleLoading, error: scheduleError } = useQuery({
+  const { data: weeklyDashboardData, isLoading: scheduleLoading, error: scheduleError } = useQuery({
     queryKey: ['weekly-dashboard', user?.id],
     queryFn: async () => {
-      const result = await api.GET('/dashboard/weekly');
+      const result = await api.GET('/dashboard/weekly', {});
       return result.data;
     },
     enabled: !!user,
@@ -138,11 +140,11 @@ const DashboardPage: React.FC = () => {
   });
 
   // Fetch recent activity with medium cache duration (family-based)
-  const { data: recentActivity, isLoading: activityLoading } = useQuery({
+  const { data: recentActivityData, isLoading: activityLoading } = useQuery({
     queryKey: ['recent-activity', currentFamily?.id],
     queryFn: async () => {
-      const result = await api.GET('/dashboard/recent-activity');
-      return result.data?.data;
+      const result = await api.GET('/dashboard/recent-activity', {});
+      return result.data;
     },
     enabled: !!user && !!currentFamily,
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter for more frequent updates)
@@ -151,6 +153,9 @@ const DashboardPage: React.FC = () => {
   });
 
   const isDataLoading = scheduleLoading || activityLoading;
+
+  const weeklyDashboard = weeklyDashboardData;
+  const recentActivity = recentActivityData?.data?.activities || [];
 
   // Transform weekly dashboard data to legacy format for compatibility
   const upcomingTrips = transformWeeklyDashboardToTrips(weeklyDashboard, currentFamily?.id);
@@ -335,9 +340,9 @@ const DashboardPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {recentActivity?.activities?.length ? (
+                {recentActivity?.length ? (
                   <div className="space-y-4">
-                    {recentActivity.activities.map((activity, index) => (
+                    {recentActivity.map((activity: any, index: number) => (
                       <div key={activity.id} className="group">
                         <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200">
                           <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
@@ -352,7 +357,7 @@ const DashboardPage: React.FC = () => {
                           </div>
                           <div className="h-2 w-2 rounded-full bg-primary/30 group-hover:bg-primary/50 transition-colors" />
                         </div>
-                        {index < recentActivity.activities.length - 1 && (
+                        {index < recentActivity.length - 1 && (
                           <Separator className="my-2 ml-16" />
                         )}
                       </div>

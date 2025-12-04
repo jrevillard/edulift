@@ -72,7 +72,7 @@ vi.mock('../generated/api/types', () => ({
 }));
 
 // Import the API client
-import { api, ApiPaths, ApiResponse } from '../api';
+import { api, paths } from '../api';
 import createClient from 'openapi-fetch';
 import { secureStorage } from '../../utils/secureStorage';
 
@@ -101,31 +101,29 @@ describe('API Client Tests', () => {
     });
 
     it('should export types for convenience', () => {
-      // Test ApiResponse type structure
-      const successResponse: ApiResponse<string> = { data: 'test' };
-      const errorResponse: ApiResponse<string> = { error: { status: 404, message: 'Not found' } };
-
-      expect(successResponse.data).toBe('test');
-      expect(errorResponse.error?.status).toBe(404);
+      // Test that generated types are available (paths is an interface, so it exists at type level)
+      expect(typeof api.GET).toBe('function');
+      expect(typeof api.POST).toBe('function');
     });
   });
 
   describe('Generated Types Integration', () => {
     it('should correctly import generated types', () => {
       // Test that we can access the generated types
-      // The ApiPaths type is used for type checking and should be available
-      // Note: Due to test mocking, we verify the types work through usage
-      expect(typeof ApiResponse).toBeDefined();
+      // The paths type is used for type checking and should be available (interface exists at type level)
+      expect(typeof api).toBe('object');
+      expect(typeof api.GET).toBe('function');
+      expect(typeof api.POST).toBe('function');
+      expect(typeof api.PUT).toBe('function');
+      expect(typeof api.DELETE).toBe('function');
     });
 
     it('should provide type-safe API responses', () => {
-      // Test ApiResponse type correctness
-      const success: ApiResponse<{ id: number }> = { data: { id: 1 } };
-      const error: ApiResponse<{ id: number }> = {
-        error: { status: 404, message: 'Not found' }
-      };
+      // Test native openapi-fetch response format
+      const success = { data: { id: 1 }, error: undefined };
+      const error = { data: undefined, error: { status: 404, message: 'Not found' } };
 
-      // TypeScript should enforce these types
+      // TypeScript should enforce these types through the API client
       expect(success.data?.id).toBe(1);
       expect(error.error?.status).toBe(404);
     });
@@ -135,47 +133,47 @@ describe('API Client Tests', () => {
       expect(api).toBeDefined();
 
       // Test that the client has the expected methods
-      expect(typeof api.get).toBe('function');
-      expect(typeof api.post).toBe('function');
-      expect(typeof api.patch).toBe('function');
-      expect(typeof api.delete).toBe('function');
-      expect(typeof api.put).toBe('function');
+      expect(typeof api.GET).toBe('function');
+      expect(typeof api.POST).toBe('function');
+      expect(typeof api.PATCH).toBe('function');
+      expect(typeof api.DELETE).toBe('function');
+      expect(typeof api.PUT).toBe('function');
     });
   });
 
   describe('API Methods Integration', () => {
     it('should provide access to all HTTP methods', () => {
-      expect(typeof api.get).toBe('function');
-      expect(typeof api.post).toBe('function');
-      expect(typeof api.patch).toBe('function');
-      expect(typeof api.delete).toBe('function');
-      expect(typeof api.put).toBe('function');
+      expect(typeof api.GET).toBe('function');
+      expect(typeof api.POST).toBe('function');
+      expect(typeof api.PATCH).toBe('function');
+      expect(typeof api.DELETE).toBe('function');
+      expect(typeof api.PUT).toBe('function');
     });
 
     it('should pass through API calls correctly', async () => {
       // Mock the API client method
       const mockResponse = { data: { id: 1, name: 'Test' } };
-      vi.mocked(api.get).mockResolvedValue(mockResponse);
+      vi.mocked(api.GET).mockResolvedValue(mockResponse);
 
-      const result = await api.get('/test');
+      const result = await api.GET('/test', {});
 
-      expect(api.get).toHaveBeenCalledWith('/test');
+      expect(api.GET).toHaveBeenCalledWith('/test', {});
       expect(result).toEqual(mockResponse);
     });
 
     it('should handle API errors correctly', async () => {
       // Mock the API client method to throw an error
       const mockError = { error: { status: 500, message: 'Server Error' } };
-      vi.mocked(api.post).mockRejectedValue(mockError);
+      vi.mocked(api.POST).mockRejectedValue(mockError);
 
       try {
-        await api.post('/test', { body: {} });
+        await api.POST('/test', { body: {} });
         expect.fail('Should have thrown an error');
       } catch (error) {
         expect(error).toEqual(mockError);
       }
 
-      expect(api.post).toHaveBeenCalledWith('/test', { body: {} });
+      expect(api.POST).toHaveBeenCalledWith('/test', { body: {} });
     });
   });
 
@@ -185,8 +183,8 @@ describe('API Client Tests', () => {
       // Note: Due to mock setup timing, we verify the client exists and is functional
       expect(api).toBeDefined();
       expect(typeof api).toBe('object');
-      expect(typeof api.get).toBe('function');
-      expect(typeof api.post).toBe('function');
+      expect(typeof api.GET).toBe('function');
+      expect(typeof api.POST).toBe('function');
     });
 
     it('should have configured authentication middleware', () => {

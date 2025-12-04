@@ -20,7 +20,7 @@ export async function getChildren() {
 
 // Example: Update user profile
 export async function updateProfile(profileData: { name?: string; timezone?: string }) {
-  const { data, error } = await api.PATCH('/auth/profile' as any, {
+  const { data, error } = await api.PUT('/auth/profile', {
     body: profileData
   });
 
@@ -47,7 +47,7 @@ export async function requestMagicLink(email: string, codeChallenge: string) {
 
 // Example: Delete user account request
 export async function deleteAccountRequest() {
-  const { data, error } = await api.POST('/auth/profile/delete-request');
+  const { data, error } = await api.POST('/auth/profile/delete-request', {});
 
   if (error) {
     throw new Error(`Failed to request account deletion: ${JSON.stringify(error)}`);

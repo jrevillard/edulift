@@ -24,18 +24,20 @@ const GroupsPage: React.FC = () => {
   // Real-time group updates are now handled centrally in SocketContext
   // No need for duplicate event listeners here
 
-  const { data: groups = [], isLoading, error } = useQuery({
+  const { data: groupsData = { data: [] }, isLoading, error } = useQuery({
     queryKey: ['user-groups'],
     queryFn: async () => {
-      const result = await api.GET('/groups/my-groups');
-      return result.data?.data || [];
+      const result = await api.GET('/groups/my-groups', {});
+      return result.data;
     },
   });
+
+  const groups = groupsData?.data || [];
 
   const createGroupMutation = useMutation({
     mutationFn: async (name: string) => {
       const result = await api.POST('/groups', { body: { name } });
-      return result.data?.data;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
@@ -65,7 +67,7 @@ const GroupsPage: React.FC = () => {
   const joinGroupMutation = useMutation({
     mutationFn: async (inviteCode: string) => {
       const result = await api.POST('/groups/join', { body: { inviteCode } });
-      return result.data?.data;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
