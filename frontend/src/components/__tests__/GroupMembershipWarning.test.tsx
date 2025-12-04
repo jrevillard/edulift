@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { GroupMembershipWarning } from '../GroupMembershipWarning';
-import type { Child } from '../../services/apiService';
+import type { Child } from '../../services/api';
 
 // Mock useNavigate
 const mockNavigate = vi.fn();

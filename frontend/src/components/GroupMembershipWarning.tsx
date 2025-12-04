@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingBanner } from './ui/onboarding-banner';
 import { Users } from 'lucide-react';
-import type { Child } from '../services/apiService';
+import type { Child } from '@/types/api';
 
 interface GroupMembershipWarningProps {
   children: Child[];

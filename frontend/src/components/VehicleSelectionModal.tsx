@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
-import type { ScheduleSlot, Vehicle } from '../services/apiService';
-import { getEffectiveCapacity, hasSeatOverride } from '../utils/capacity';
+import { api } from '../services/api';
+import type { Vehicle, ScheduleSlot } from '@/types/api';
+
+// Local utility functions to work with our migrated types
+const getEffectiveCapacity = (vehicleAssignment: any): number => {
+  if (!vehicleAssignment.vehicle) return 0;
+  return vehicleAssignment.seatOverride ?? vehicleAssignment.vehicle.capacity;
+};
+
+const hasSeatOverride = (vehicleAssignment: any): boolean => {
+  return vehicleAssignment.seatOverride !== undefined && vehicleAssignment.seatOverride !== null;
+};
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
@@ -39,24 +48,33 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   const [slotWasDeleted, setSlotWasDeleted] = useState<boolean>(false);
 
   // Fetch user's vehicles
-  const { data: vehicles = [] } = useQuery({
+  const { data: vehiclesResponse = [] } = useQuery({
     queryKey: ['vehicles'],
-    queryFn: () => apiService.getVehicles(),
+    queryFn: async () => {
+      const result = await api.GET('/vehicles');
+      return result.data?.data || [];
+    },
   });
+  const vehicles = vehiclesResponse;
 
   // Fetch fresh schedule slot details if we have a slot ID
   const { data: freshSlotData, isLoading: isFreshSlotLoading, error: freshSlotError } = useQuery({
     queryKey: ['schedule-slot', currentScheduleSlotId],
-    queryFn: () => apiService.getScheduleSlotDetails(currentScheduleSlotId!),
-    enabled: !!currentScheduleSlotId && 
-             currentScheduleSlotId !== '' && 
+    queryFn: async () => {
+      const result = await api.GET('/schedule-slots/{scheduleSlotId}', {
+        params: { path: { scheduleSlotId: currentScheduleSlotId! } }
+      });
+      return result.data?.data;
+    },
+    enabled: !!currentScheduleSlotId &&
+             currentScheduleSlotId !== '' &&
              currentScheduleSlotId !== null &&
              !slotWasDeleted,
     retry: (failureCount, error: unknown) => {
       // Don't retry if slot was deleted (404)
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { status?: number } };
-        if (axiosError.response?.status === 404) {
+      if (error && typeof error === 'object' && 'status' in error) {
+        const openapiError = error as { status?: number };
+        if (openapiError.status === 404) {
           setSlotWasDeleted(true);
           return false;
         }
@@ -83,8 +101,16 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
 
   // Create schedule slot with vehicle mutation
   const createScheduleSlotWithVehicleMutation = useMutation({
-    mutationFn: ({ vehicleId, seatOverride }: { vehicleId: string; seatOverride?: number }) => 
-      apiService.createScheduleSlotWithVehicle(groupId, day, time, week, vehicleId, user!.id, seatOverride),
+    mutationFn: ({ vehicleId, seatOverride }: { vehicleId: string; seatOverride?: number }) =>
+      api.POST('/schedule-slots/groups/{groupId}/schedule-slots', {
+        params: { path: { groupId } },
+        body: {
+          datetime: `${week}T${time}:00`,
+          vehicleId,
+          driverId: user!.id,
+          seatOverride
+        }
+      }),
     onSuccess: async () => {
       // Invalidate and refetch ALL weekly schedule queries for this group
       await queryClient.invalidateQueries({ queryKey: ['weekly-schedule', groupId] });
@@ -92,7 +118,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
       await queryClient.invalidateQueries({ queryKey: ['weekly-schedule', groupId, week] });
       // Force refetch to ensure data is updated
       await queryClient.refetchQueries({ queryKey: ['weekly-schedule', groupId, week] });
-      
+
       if (socket) {
         socket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, { groupId });
       }
@@ -102,8 +128,15 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
 
   // Assign vehicle mutation
   const assignVehicleMutation = useMutation({
-    mutationFn: ({ scheduleSlotId, vehicleId, seatOverride }: { scheduleSlotId: string; vehicleId: string; seatOverride?: number }) => 
-      apiService.assignVehicleToScheduleSlot(scheduleSlotId, vehicleId, user!.id, seatOverride),
+    mutationFn: ({ scheduleSlotId, vehicleId, seatOverride }: { scheduleSlotId: string; vehicleId: string; seatOverride?: number }) =>
+      api.POST('/schedule-slots/{scheduleSlotId}/vehicles', {
+        params: { path: { scheduleSlotId } },
+        body: {
+          vehicleId,
+          driverId: user!.id,
+          seatOverride
+        }
+      }),
     onSuccess: () => {
       // Invalidate ALL weekly schedule queries for this group
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', groupId] });
@@ -119,26 +152,29 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
 
   // Remove vehicle mutation
   const removeVehicleMutation = useMutation({
-    mutationFn: ({ scheduleSlotId, vehicleId }: { scheduleSlotId: string; vehicleId: string }) => 
-      apiService.removeVehicleFromScheduleSlot(scheduleSlotId, vehicleId),
-    onSuccess: (result, { scheduleSlotId }) => {
+    mutationFn: ({ scheduleSlotId, vehicleId }: { scheduleSlotId: string; vehicleId: string }) =>
+      api.DELETE('/schedule-slots/{scheduleSlotId}/vehicles', {
+        params: { path: { scheduleSlotId } },
+        body: { vehicleId }
+      }),
+    onSuccess: (_, { scheduleSlotId }) => {
       // Invalidate ALL weekly schedule queries for this group
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', groupId] });
       // Also invalidate specific week queries
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', groupId, week] });
-      
-      // If slot was deleted, mark it as deleted and close modal
-      if (result.slotDeleted) {
+      // Refresh the specific schedule slot data
+      queryClient.invalidateQueries({ queryKey: ['schedule-slot', currentScheduleSlotId] });
+
+      if (socket) {
+        socket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, { groupId, scheduleSlotId });
+      }
+    },
+    onError: (error) => {
+      // If we get a 404, the schedule slot was deleted
+      if ((error as { status?: number })?.status === 404) {
         setSlotWasDeleted(true);
         queryClient.removeQueries({ queryKey: ['schedule-slot', currentScheduleSlotId] });
         onClose();
-      } else {
-        // Schedule slot still exists, just refresh its data
-        queryClient.invalidateQueries({ queryKey: ['schedule-slot', currentScheduleSlotId] });
-      }
-      
-      if (socket) {
-        socket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, { groupId, scheduleSlotId });
       }
     },
   });
@@ -179,7 +215,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   };
 
   // Handle schedule slot deletion (404 error) - use our state variable
-  const isSlotDeleted = slotWasDeleted || (freshSlotError as { response?: { status?: number } })?.response?.status === 404;
+  const isSlotDeleted = slotWasDeleted || (freshSlotError as { status?: number })?.status === 404;
   
   // Get the current schedule slot data (fresh data takes precedence over existingScheduleSlot prop)
   const shouldWaitForFreshData = currentScheduleSlotId && !freshSlotData && isFreshSlotLoading && !isSlotDeleted;
@@ -195,8 +231,8 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   // Get available vehicles (not already assigned to this schedule slot)
   const getAvailableVehicles = (): Vehicle[] => {
     if (!currentSlot) return vehicles;
-    
-    const assignedVehicleIds = currentSlot.vehicleAssignments?.map(va => va.vehicle.id) || [];
+
+    const assignedVehicleIds = currentSlot.vehicleAssignments?.map(va => va.vehicle?.id).filter(Boolean) || [];
     return vehicles.filter(vehicle => !assignedVehicleIds.includes(vehicle.id));
   };
 
@@ -241,7 +277,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                         <span className="text-green-600">🚗</span>
                         <div>
                           <div className="font-medium text-green-800">
-                            {vehicleAssignment.vehicle.name}
+                            {(vehicleAssignment.vehicle as any)?.name || `${(vehicleAssignment.vehicle as any)?.make || ''} ${(vehicleAssignment.vehicle as any)?.model || ''}`.trim() || 'Unknown Vehicle'}
                             {hasSeatOverride(vehicleAssignment) && (
                               <span className="ml-2 text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
                                 Override: {vehicleAssignment.seatOverride} seats
@@ -250,16 +286,16 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                           </div>
                           <div className="text-xs text-green-600">
                             Capacity: {getEffectiveCapacity(vehicleAssignment)} seats
-                            {hasSeatOverride(vehicleAssignment) && (
-                              <span className="text-gray-500"> (original: {vehicleAssignment.vehicle.capacity})</span>
+                            {hasSeatOverride(vehicleAssignment) && vehicleAssignment.vehicle && (
+                              <span className="text-gray-500"> (original: {(vehicleAssignment.vehicle as any).capacity})</span>
                             )}
-                            {vehicleAssignment.driver && ` • Driver: ${vehicleAssignment.driver.name}`}
+                            {vehicleAssignment.driver && ` • Driver: ${(vehicleAssignment.driver as any).firstName} ${(vehicleAssignment.driver as any).lastName}`.trim()}
                           </div>
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveVehicle(vehicleAssignment.vehicle.id)}
-                        disabled={removeVehicleMutation.isPending}
+                        onClick={() => handleRemoveVehicle((vehicleAssignment.vehicle as any).id)}
+                        disabled={removeVehicleMutation.isPending || !vehicleAssignment.vehicle}
                         className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-50"
                         type="button"
                       >
@@ -278,14 +314,14 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                 <div className="p-3 bg-blue-50 border border-blue-200 rounded">
                   <div className="text-sm text-blue-800">
                     👥 {currentSlot.childAssignments.length} children assigned
-                    {currentSlot.totalCapacity > 0 && (
+                    {(currentSlot as any).totalCapacity > 0 && (
                       <span className="ml-2">
-                        ({currentSlot.availableSeats} seats remaining)
+                        ({(currentSlot as any).availableSeats} seats remaining)
                       </span>
                     )}
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
-                    {currentSlot.childAssignments.slice(0, 3).map(assignment => assignment.child.name).join(', ')}
+                    {currentSlot.childAssignments.slice(0, 3).map(assignment => (assignment.child as any)?.name || `${(assignment.child as any)?.firstName || ''} ${(assignment.child as any)?.lastName || ''}`.trim() || 'Unknown Child').join(', ')}
                     {currentSlot.childAssignments.length > 3 && ` +${currentSlot.childAssignments.length - 3} more`}
                   </div>
                 </div>

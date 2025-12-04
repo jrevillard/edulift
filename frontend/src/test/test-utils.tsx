@@ -122,7 +122,75 @@ export const mockFamily = {
   vehicles: []
 }
 
-// Comprehensive API service mock factory
+// Comprehensive OpenAPI client mock factory
+export const createMockOpenAPIClient = () => {
+  const mockClient = {
+    GET: vi.fn(),
+    POST: vi.fn(),
+    PUT: vi.fn(),
+    PATCH: vi.fn(),
+    DELETE: vi.fn(),
+    use: vi.fn(),
+  };
+
+  // Setup default mock implementations
+  mockClient.GET.mockImplementation((path: string) => {
+    switch (path) {
+      case '/children':
+        return Promise.resolve({
+          data: { data: [mockChild], success: true },
+          error: undefined
+        });
+      case '/vehicles':
+        return Promise.resolve({
+          data: { data: [mockVehicle], success: true },
+          error: undefined
+        });
+      case '/schedule-slots/{scheduleSlotId}':
+        return Promise.resolve({
+          data: {
+            data: {
+              id: 'slot-1',
+              groupId: 'group-1',
+              day: 'MONDAY',
+              time: '08:00',
+              week: '2024-01',
+              childAssignments: [],
+              vehicleAssignments: [],
+              totalCapacity: 0,
+              availableSeats: 0
+            },
+            success: true
+          },
+          error: undefined
+        });
+      default:
+        return Promise.resolve({
+          data: { data: null, success: false },
+          error: { message: 'Not implemented in test mock' }
+        });
+    }
+  });
+
+  mockClient.POST.mockResolvedValue({
+    data: { data: null, success: true },
+    error: undefined
+  });
+
+  mockClient.PUT.mockResolvedValue({
+    data: { data: null, success: true },
+    error: undefined
+  });
+
+  mockClient.DELETE.mockResolvedValue({
+    data: { data: null, success: true },
+    error: undefined
+  });
+
+  return mockClient;
+};
+
+// Comprehensive API service mock factory (legacy for backward compatibility)
 export const createMockApiService = () => ({
   // Children API
   getChildren: vi.fn().mockResolvedValue([mockChild]),

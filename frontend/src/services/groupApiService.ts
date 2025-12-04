@@ -1,30 +1,28 @@
-import { apiService } from './apiService';
-import type { ApiResponse } from '@/types';
-import type {
-  UserGroup,
-  GroupFamily,
-  GroupInvitation,
-  FamilySearchResult,
-  GroupInvitationEligibility
-} from './apiService';
+import { api } from './api';
+import type { UserGroup, GroupInvitation, FamilySearchResult, GroupFamily } from '@/types/api';
 
 interface GroupValidationResponse {
   valid: boolean;
-  group?: UserGroup;
-  invitation?: GroupInvitation;
+  group?: { id: string; name: string };
+  invitation?: {
+    id: string;
+    expiresAt: string;
+    role: 'MEMBER' | 'ADMIN';
+  };
   error?: string;
 }
 
 interface GroupValidationAuthResponse extends GroupValidationResponse {
-  userStatus?: string;
+  userStatus?: "NO_FAMILY" | "FAMILY_MEMBER" | "FAMILY_ADMIN" | "ALREADY_MEMBER";
   familyInfo?: {
     id: string;
     name: string;
-    role: 'OWNER' | 'ADMIN' | 'MEMBER';
+    role: string;
+    adminName?: string;
   };
   canAccept?: boolean;
   message?: string;
-  actionRequired?: string;
+  actionRequired?: "CREATE_FAMILY" | "CONTACT_ADMIN" | "ALREADY_ACCEPTED" | "READY_TO_JOIN";
 }
 
 /**
@@ -35,27 +33,27 @@ export class GroupApiService {
   // Group validation using public endpoint
   async validateGroupInviteCode(inviteCode: string): Promise<GroupValidationResponse> {
     try {
-      const response = await apiService.post('/groups/validate-invite', { inviteCode });
+      const response = await api.POST('/groups/validate-invite', {
+        body: { inviteCode }
+      });
 
-      // Backend returns { success: true, data: { valid, group, invitation } }
-      const apiResponse = response.data as ApiResponse<GroupValidationResponse>;
-      if (apiResponse.success && apiResponse.data) {
-        return apiResponse.data;
+      if (response.data?.data) {
+        return response.data.data;
       } else {
         return {
           valid: false,
-          error: apiResponse.error || 'Invalid invitation code'
+          error: 'Invalid invitation code'
         };
       }
     } catch (error: unknown) {
       console.error('Error validating group invite code:', error);
 
-      // Handle specific error responses
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { error?: string } } };
+      // Handle OpenAPI client error format
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status?: number; message?: string };
         return {
           valid: false,
-          error: axiosError.response?.data?.error || 'Failed to validate invitation code'
+          error: apiError.message || 'Failed to validate invitation code'
         };
       }
 
@@ -69,25 +67,27 @@ export class GroupApiService {
   // Group validation with authenticated user context
   async validateGroupInviteCodeWithAuth(inviteCode: string): Promise<GroupValidationAuthResponse> {
     try {
-      const response = await apiService.post('/groups/validate-invite-auth', { inviteCode });
-      const apiResponse = response.data as ApiResponse<GroupValidationAuthResponse>;
-      if (apiResponse.success && apiResponse.data) {
-        return apiResponse.data;
+      const response = await api.POST('/groups/validate-invite-auth', {
+        body: { inviteCode }
+      });
+
+      if (response.data?.data) {
+        return response.data.data;
       } else {
         return {
           valid: false,
-          error: apiResponse.error || 'Failed to validate invitation code'
+          error: 'Failed to validate invitation code'
         };
       }
     } catch (error: unknown) {
       console.error('Error validating group invite code with auth:', error);
 
-      // Handle specific error responses
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { error?: string } } };
+      // Handle OpenAPI client error format
+      if (error && typeof error === 'object' && 'status' in error) {
+        const apiError = error as { status?: number; message?: string };
         return {
           valid: false,
-          error: axiosError.response?.data?.error || 'Failed to validate invitation code'
+          error: apiError.message || 'Failed to validate invitation code'
         };
       }
 
@@ -100,69 +100,157 @@ export class GroupApiService {
 
   // Join group by invite code
   async joinGroupByInviteCode(inviteCode: string) {
-    return apiService.joinGroup(inviteCode);
+    try {
+      const response = await api.POST('/groups/join', {
+        body: { inviteCode }
+      });
+
+      return response.data?.data;
+    } catch (error: unknown) {
+      console.error('Error joining group by invite code:', error);
+      throw error;
+    }
   }
 
-  // Pending invitations
-  async storePendingGroupInvitation(email: string, inviteCode: string) {
-    // Extract group ID from invite code or use API to resolve it
-    const groupId = 'mock-group'; // This should be resolved from the invite code
-    return apiService.storePendingGroupInvitation(email, groupId, inviteCode);
+  // Pending invitations - Note: These endpoints don't exist in OpenAPI schema
+  // These methods are deprecated and should be removed or replaced
+  async storePendingGroupInvitation(_email: string, _inviteCode: string) {
+    console.warn('storePendingGroupInvitation: This method is deprecated - no corresponding OpenAPI endpoint found');
+    throw new Error('Method not supported - no corresponding OpenAPI endpoint');
   }
 
-  async getPendingGroupInvitationByEmail(email: string) {
-    return apiService.getPendingGroupInvitationByEmail(email);
+  async getPendingGroupInvitationByEmail(_email: string) {
+    console.warn('getPendingGroupInvitationByEmail: This method is deprecated - no corresponding OpenAPI endpoint found');
+    throw new Error('Method not supported - no corresponding OpenAPI endpoint');
   }
 
   // Family search and invitation
   async searchFamiliesForInvitation(groupId: string, searchTerm: string): Promise<FamilySearchResult[]> {
-    return apiService.searchFamiliesForInvitation(groupId, searchTerm);
+    try {
+      const response = await api.POST('/groups/{groupId}/search-families', {
+        params: { path: { groupId } },
+        body: { searchTerm }
+      });
+
+      return response.data?.data || [];
+    } catch (error: unknown) {
+      console.error('Error searching families for invitation:', error);
+      throw error;
+    }
   }
 
   async inviteFamilyToGroup(groupId: string, familyId: string, role: 'MEMBER' | 'ADMIN', personalMessage?: string) {
-    return apiService.inviteFamilyToGroup(groupId, familyId, role, personalMessage);
+    try {
+      const response = await api.POST('/groups/{groupId}/invite', {
+        params: { path: { groupId } },
+        body: { familyId, role, personalMessage }
+      });
+
+      return response.data?.data;
+    } catch (error: unknown) {
+      console.error('Error inviting family to group:', error);
+      throw error;
+    }
   }
 
-  // Group invitation eligibility
-  async validateGroupInvitationEligibility(groupId: string, inviteCode: string): Promise<GroupInvitationEligibility> {
-    return apiService.validateGroupInvitationEligibility(groupId, inviteCode);
+  // Group invitation eligibility - Note: No specific endpoint found, using validation endpoint
+  async validateGroupInvitationEligibility(_groupId: string, inviteCode: string): Promise<any> {
+    console.warn('validateGroupInvitationEligibility: Using validation endpoint as no specific eligibility endpoint found');
+    return this.validateGroupInviteCodeWithAuth(inviteCode);
   }
 
-  async joinGroupWithFamily(groupId: string, inviteCode: string) {
-    return apiService.joinGroupWithFamily(groupId, inviteCode);
+  async joinGroupWithFamily(_groupId: string, inviteCode: string) {
+    console.warn('joinGroupWithFamily: Using join group endpoint as no family-specific join endpoint found');
+    return this.joinGroupByInviteCode(inviteCode);
   }
 
   // Group management
   async getUserGroups(): Promise<UserGroup[]> {
-    return apiService.getUserGroups();
+    try {
+      const response = await api.GET('/groups/my-groups');
+      return response.data?.data || [];
+    } catch (error: unknown) {
+      console.error('Error getting user groups:', error);
+      throw error;
+    }
   }
 
   // Note: getGroupDetails doesn't exist, we can get details from getUserGroups
   async getGroupDetails(groupId: string) {
-    const groups = await apiService.getUserGroups();
-    return groups.find(g => g.id === groupId);
+    try {
+      const groups = await this.getUserGroups();
+      return groups.find(g => g.id === groupId);
+    } catch (error: unknown) {
+      console.error('Error getting group details:', error);
+      throw error;
+    }
   }
 
   async createGroup(name: string) {
-    return apiService.createGroup(name);
+    try {
+      const response = await api.POST('/groups', {
+        body: { name }
+      });
+
+      return response.data?.data;
+    } catch (error: unknown) {
+      console.error('Error creating group:', error);
+      throw error;
+    }
   }
 
   async deleteGroup(groupId: string) {
-    return apiService.deleteGroup(groupId);
+    try {
+      await api.DELETE('/groups/{groupId}', {
+        params: { path: { groupId } }
+      });
+
+      return { success: true };
+    } catch (error: unknown) {
+      console.error('Error deleting group:', error);
+      throw error;
+    }
   }
 
   // Group families (family-based group management)
   async getGroupFamilies(groupId: string): Promise<GroupFamily[]> {
-    return apiService.getGroupFamilies(groupId);
+    try {
+      const response = await api.GET('/groups/{groupId}/families', {
+        params: { path: { groupId } }
+      });
+
+      return response.data?.data || [];
+    } catch (error: unknown) {
+      console.error('Error getting group families:', error);
+      throw error;
+    }
   }
 
   // Group invitations
   async getGroupInvitations(groupId: string): Promise<GroupInvitation[]> {
-    return apiService.getGroupInvitations(groupId);
+    try {
+      const response = await api.GET('/groups/{groupId}/invitations', {
+        params: { path: { groupId } }
+      });
+
+      return response.data?.data || [];
+    } catch (error: unknown) {
+      console.error('Error getting group invitations:', error);
+      throw error;
+    }
   }
 
   async deleteGroupInvitation(groupId: string, invitationId: string) {
-    return apiService.cancelGroupInvitation(groupId, invitationId);
+    try {
+      await api.DELETE('/groups/{groupId}/invitations/{invitationId}', {
+        params: { path: { groupId, invitationId } }
+      });
+
+      return { success: true };
+    } catch (error: unknown) {
+      console.error('Error deleting group invitation:', error);
+      throw error;
+    }
   }
 }
 

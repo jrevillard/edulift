@@ -1,16 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { render, mockChild, createMockApiService, createMockFamilyContext } from '../../test/test-utils'
+import { render, mockChild, createMockOpenAPIClient, createMockFamilyContext } from '../../test/test-utils'
 import ChildrenPage from '../ChildrenPage'
-import * as apiService from '../../services/apiService'
+import { api } from '../../services/api'
 import * as usePageStateModule from '../../hooks/usePageState'
 import { useFamily } from '../../contexts/FamilyContext'
 import '@testing-library/jest-dom'
 
-// Mock the API service
-vi.mock('../../services/apiService')
-const mockApiService = apiService.apiService as unknown;
+// Mock the OpenAPI client
+vi.mock('../../services/api')
+const mockApi = api as unknown;
 
 // Mock the connection store
 vi.mock('../../stores/connectionStore', () => {
@@ -50,14 +50,14 @@ const mockUseFamily = vi.mocked(useFamily)
 describe('ChildrenPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
-    // Apply comprehensive API service mocks
-    const comprehensiveMocks = createMockApiService();
-    Object.assign(mockApiService, comprehensiveMocks);
-    
+
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
+
     // Setup FamilyContext mock
     mockUseFamily.mockReturnValue(createMockFamilyContext());
-    
+
     // Default mock for usePageState
     mockUsePageState.mockReturnValue({
       data: [],
@@ -71,15 +71,18 @@ describe('ChildrenPage', () => {
   })
 
   it('renders children page correctly', async () => {
-    mockApiService.getChildren.mockResolvedValueOnce([])
-    
+    vi.mocked(mockApi.GET).mockResolvedValueOnce({
+      data: { data: [], success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     // Wait for loading to complete
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Title-pageTitle')).toBeInTheDocument()
     })
-    
+
     expect(screen.getByTestId('ChildrenPage-Title-pageTitle')).toBeInTheDocument()
     const addButton = screen.getByTestId('ChildrenPage-Button-addChild')
     expect(addButton).toBeInTheDocument()
@@ -102,10 +105,13 @@ describe('ChildrenPage', () => {
   })
 
   it('displays empty state when no children', async () => {
-    mockApiService.getChildren.mockResolvedValueOnce([])
-    
+    vi.mocked(mockApi.GET).mockResolvedValueOnce({
+      data: { data: [], success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Container-emptyState')).toBeInTheDocument()
     })
@@ -161,19 +167,22 @@ describe('ChildrenPage', () => {
 
   it('opens add child modal when add button is clicked', async () => {
     const user = userEvent.setup()
-    mockApiService.getChildren.mockResolvedValueOnce([])
-    
+    vi.mocked(mockApi.GET).mockResolvedValueOnce({
+      data: { data: [], success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     // Wait for loading to complete and find the button
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Button-addChild')).toBeInTheDocument()
     })
-    
+
     // Get the Add Child button
     const addButton = screen.getByTestId('ChildrenPage-Button-addChild')
     await user.click(addButton)
-    
+
     expect(screen.getByTestId('ChildrenPage-Title-childModalTitle')).toBeInTheDocument()
     expect(screen.getByTestId('ChildrenPage-Input-childName')).toBeInTheDocument()
     expect(screen.getByTestId('ChildrenPage-Input-childAge')).toBeInTheDocument()
@@ -181,78 +190,97 @@ describe('ChildrenPage', () => {
 
   it('creates a new child successfully', async () => {
     const user = userEvent.setup()
-    mockApiService.getChildren.mockResolvedValue([])
-    mockApiService.createChild.mockResolvedValueOnce(mockChild)
-    
+    vi.mocked(mockApi.GET).mockResolvedValue({
+      data: { data: [], success: true },
+      error: undefined
+    })
+    vi.mocked(mockApi.POST).mockResolvedValueOnce({
+      data: { data: mockChild, success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     // Wait for loading to complete and find the button
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Button-addChild')).toBeInTheDocument()
     })
-    
+
     // Get the Add Child button
     const addButton = screen.getByTestId('ChildrenPage-Button-addChild')
     await user.click(addButton)
-    
+
     const nameInput = screen.getByTestId('ChildrenPage-Input-childName')
     const ageInput = screen.getByTestId('ChildrenPage-Input-childAge')
     const submitButton = screen.getByTestId('ChildrenPage-Button-submitChild')
-    
+
     await user.type(nameInput, 'Test Child')
     await user.type(ageInput, '10')
     await user.click(submitButton)
-    
+
     await waitFor(() => {
-      expect(mockApiService.createChild).toHaveBeenCalledWith('Test Child', 10)
+      expect(mockApi.POST).toHaveBeenCalledWith('/children', {
+        body: { name: 'Test Child', age: 10 }
+      })
     })
   })
 
   it('creates a child without age', async () => {
     const user = userEvent.setup()
-    mockApiService.getChildren.mockResolvedValue([])
-    mockApiService.createChild.mockResolvedValueOnce({ ...mockChild, age: undefined })
-    
+    vi.mocked(mockApi.GET).mockResolvedValue({
+      data: { data: [], success: true },
+      error: undefined
+    })
+    vi.mocked(mockApi.POST).mockResolvedValueOnce({
+      data: { data: { ...mockChild, age: undefined }, success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     // Wait for loading to complete and find the button
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Button-addChild')).toBeInTheDocument()
     })
-    
+
     // Get the Add Child button
     const addButton = screen.getByTestId('ChildrenPage-Button-addChild')
     await user.click(addButton)
-    
+
     const nameInput = screen.getByTestId('ChildrenPage-Input-childName')
     const submitButton = screen.getByTestId('ChildrenPage-Button-submitChild')
-    
+
     await user.type(nameInput, 'Test Child')
     await user.click(submitButton)
-    
+
     await waitFor(() => {
-      expect(mockApiService.createChild).toHaveBeenCalledWith('Test Child', undefined)
+      expect(mockApi.POST).toHaveBeenCalledWith('/children', {
+        body: { name: 'Test Child', age: undefined }
+      })
     })
   })
 
   it('validates child form inputs', async () => {
     const user = userEvent.setup()
-    mockApiService.getChildren.mockResolvedValueOnce([])
-    
+    vi.mocked(mockApi.GET).mockResolvedValueOnce({
+      data: { data: [], success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     // Wait for loading to complete and find the button
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Button-addChild')).toBeInTheDocument()
     })
-    
+
     // Get the Add Child button
     const addButton = screen.getByTestId('ChildrenPage-Button-addChild')
     await user.click(addButton)
-    
+
     const submitButton = screen.getByTestId('ChildrenPage-Button-submitChild')
     await user.click(submitButton)
-    
+
     // Form should require name
     const nameInput = screen.getByTestId('ChildrenPage-Input-childName')
     expect(nameInput).toBeRequired()
@@ -299,29 +327,32 @@ describe('ChildrenPage', () => {
       shouldShowError: false,
       shouldShowEmpty: false,
     })
-    mockApiService.updateChild.mockResolvedValueOnce({ ...mockChild, name: 'Updated Child' })
-    
+    vi.mocked(mockApi.PATCH).mockResolvedValueOnce({
+      data: { data: { ...mockChild, name: 'Updated Child' }, success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByTestId(`ChildrenPage-Text-childName-${mockChild.id}`)).toHaveTextContent(mockChild.name)
     })
-    
+
     const editButton = screen.getByTestId(`ChildrenPage-Button-editChild-${mockChild.id}`)
     await user.click(editButton)
-    
+
     const nameInput = screen.getByDisplayValue(mockChild.name)
     const updateButton = screen.getByTestId('ChildrenPage-Button-submitChild')
-    
+
     await user.clear(nameInput)
     await user.type(nameInput, 'Updated Child')
     await user.click(updateButton)
-    
+
     await waitFor(() => {
-      expect(mockApiService.updateChild).toHaveBeenCalledWith(
-        mockChild.id,
-        { name: 'Updated Child', age: mockChild.age }
-      )
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+        params: { path: { childId: mockChild.id } },
+        body: { name: 'Updated Child', age: mockChild.age }
+      })
     })
   })
 
@@ -337,49 +368,57 @@ describe('ChildrenPage', () => {
       shouldShowError: false,
       shouldShowEmpty: false,
     })
-    mockApiService.deleteChild.mockResolvedValueOnce(undefined)
-    
+    vi.mocked(mockApi.DELETE).mockResolvedValueOnce({
+      data: { data: null, success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     await waitFor(() => {
       expect(screen.getByTestId(`ChildrenPage-Text-childName-${mockChild.id}`)).toHaveTextContent(mockChild.name)
     })
-    
+
     const deleteButton = screen.getByTestId(`ChildrenPage-Button-deleteChild-${mockChild.id}`)
     await user.click(deleteButton)
-    
+
     // Confirm dialog should appear
     await waitFor(() => {
       expect(screen.getByTestId('ConfirmationDialog-Title-dialog')).toHaveTextContent('Delete Child')
       expect(screen.getByTestId('ConfirmationDialog-Description-dialog')).toHaveTextContent(`Are you sure you want to delete ${mockChild.name}? This action cannot be undone.`)
     })
-    
+
     // Click confirm button
     const confirmButton = screen.getByTestId('ConfirmationDialog-Button-confirm')
     await user.click(confirmButton)
-    
+
     await waitFor(() => {
-      expect(mockApiService.deleteChild).toHaveBeenCalledWith(mockChild.id)
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/children/{childId}', {
+        params: { path: { childId: mockChild.id } }
+      })
     })
   })
 
   it('handles age input validation', async () => {
     const user = userEvent.setup()
-    mockApiService.getChildren.mockResolvedValueOnce([])
-    
+    vi.mocked(mockApi.GET).mockResolvedValueOnce({
+      data: { data: [], success: true },
+      error: undefined
+    })
+
     render(<ChildrenPage />)
-    
+
     // Wait for loading to complete and find the button
     await waitFor(() => {
       expect(screen.getByTestId('ChildrenPage-Button-addChild')).toBeInTheDocument()
     })
-    
+
     // Get the Add Child button
     const addButton = screen.getByTestId('ChildrenPage-Button-addChild')
     await user.click(addButton)
-    
+
     const ageInput = screen.getByTestId('ChildrenPage-Input-childAge')
-    
+
     expect(ageInput).toHaveAttribute('min', '0')
     expect(ageInput).toHaveAttribute('max', '18')
   })

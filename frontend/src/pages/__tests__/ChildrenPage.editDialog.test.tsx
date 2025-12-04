@@ -5,22 +5,16 @@ import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import ChildrenPage from '../ChildrenPage';
 import { useFamily } from '../../contexts/FamilyContext';
-import { apiService } from '../../services/apiService';
-import type { Child } from '../../services/apiService';
+import { api } from '../../services/api';
+import { createMockOpenAPIClient } from '../../test/test-utils';
+import type { Child } from '../../types/api';
 
 // Mock dependencies
 vi.mock('../../contexts/FamilyContext');
-vi.mock('../../services/apiService');
+vi.mock('../../services/api');
 
 const mockUseFamily = useFamily as ReturnType<typeof vi.fn>;
-const mockApiService = apiService as typeof apiService & {
-  getChildren: ReturnType<typeof vi.fn>;
-  getUserGroups: ReturnType<typeof vi.fn>;
-  updateChild: ReturnType<typeof vi.fn>;
-  createChild: ReturnType<typeof vi.fn>;
-  deleteChild: ReturnType<typeof vi.fn>;
-  addChildToGroup: ReturnType<typeof vi.fn>;
-};
+const mockApi = api as unknown;
 
 const mockChildren: Child[] = [
   {
@@ -71,7 +65,11 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 describe('ChildrenPage - Edit Dialog Functionality', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
+
     mockUseFamily.mockReturnValue({
       refreshFamily: vi.fn().mockResolvedValue(undefined),
       currentFamily: {
@@ -83,9 +81,23 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
       }
     });
 
-    mockApiService.getChildren.mockResolvedValue(mockChildren);
-    mockApiService.getUserGroups.mockResolvedValue([]);
-    mockApiService.updateChild.mockResolvedValue(mockChildren[0]);
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: mockChildren, success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: [], success: true },
+        error: undefined
+      });
+    });
+
+    vi.mocked(mockApi.PATCH).mockResolvedValue({
+      data: { data: mockChildren[0], success: true },
+      error: undefined
+    });
   });
 
   it('should open edit dialog with pre-filled data when clicking edit button', async () => {
@@ -156,9 +168,12 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
 
     // Verify API call
     await waitFor(() => {
-      expect(mockApiService.updateChild).toHaveBeenCalledWith('child-1', {
-        name: 'Alice Updated',
-        age: 9
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+        params: { path: { childId: 'child-1' } },
+        body: {
+          name: 'Alice Updated',
+          age: 9
+        }
       });
     });
   });
@@ -266,8 +281,8 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
 
   it('should prevent duplicate submissions during update', async () => {
     // Mock a slow API response
-    mockApiService.updateChild.mockImplementation(() => 
-      new Promise(resolve => setTimeout(() => resolve(mockChildren[0]), 1000))
+    vi.mocked(mockApi.PATCH).mockImplementation(() =>
+      new Promise(resolve => setTimeout(() => resolve({ data: { data: mockChildren[0], success: true }, error: undefined }), 1000))
     );
 
     render(
@@ -308,7 +323,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     // Note: Currently the component allows multiple rapid clicks
     // This could be improved with duplicate submission prevention
     await waitFor(() => {
-      expect(mockApiService.updateChild).toHaveBeenCalledTimes(3);
+      expect(mockApi.PATCH).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -372,9 +387,12 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     expect(mockRefreshFamily).toHaveBeenCalled();
 
     // Step 6: Verify API was called with correct data
-    expect(mockApiService.updateChild).toHaveBeenCalledWith('child-1', {
-      name: 'Alice Updated',
-      age: 8
+    expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+      params: { path: { childId: 'child-1' } },
+      body: {
+        name: 'Alice Updated',
+        age: 8
+      }
     });
   });
 });

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
+// import { apiService } from '../services/apiService'; // REMOVED: Migration to OpenAPI complete
 import { scheduleConfigService } from '../services/scheduleConfigService';
 import { GroupScheduleConfigModal } from '../components/GroupScheduleConfigModal';
 // import { useSocket } from '../contexts/SocketContext';
@@ -51,7 +52,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { FamilySearchInvitation } from '@/components/FamilySearchInvitation';
 // import { InvitationManagement } from '@/components/InvitationManagement';
-import type { GroupFamily } from '../services/apiService';
+import type { GroupFamily } from '../types/api';
+import { transformGroupFamily } from './OpenAPIFamilyTransform';
+import { useFamily } from '../contexts/FamilyContext';
 
 // Helper function to format admin display text
 const formatAdminDisplay = (admins: GroupFamily['admins']) => {
@@ -94,6 +97,7 @@ const ManageGroupPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { currentFamily: userFamily } = useFamily(); // Get user's family information
   // const { isConnected } = useSocket();
 
   // State for modals and editing
@@ -125,21 +129,33 @@ const ManageGroupPage: React.FC = () => {
   // Real-time updates are now handled centrally in SocketContext
   // No need for duplicate event listeners here
 
-  // Fetch group families
-  const { data: families = [], isLoading: familiesLoading, error: familiesError } = useQuery({
-    queryKey: ['group-families', groupId || ''],
-    queryFn: () => groupId ? apiService.getGroupFamilies(groupId) : Promise.resolve([]),
-    enabled: !!groupId,
-  });
-
   // Get group info from user groups query (already cached from GroupsPage)
   const { data: userGroups = [] } = useQuery({
     queryKey: ['user-groups'],
-    queryFn: () => apiService.getUserGroups(),
+    // MIGRATED: Use OpenAPI client to get user groups
+    queryFn: () => api.GET('/groups/my-groups').then(result => result.data?.data || []),
   });
 
   const currentGroup = userGroups.find(group => group.id === groupId);
   const isAdmin = currentGroup?.userRole === 'ADMIN';
+
+  // MIGRATED: Fetch group families with OpenAPI
+  const { data: families = [], isLoading: familiesLoading, error: familiesError } = useQuery({
+    queryKey: ['group-families', groupId || ''],
+    queryFn: () => {
+      if (!groupId) return Promise.resolve([]);
+      return api.GET('/groups/{groupId}/families', {
+        params: { path: { groupId } }
+      }).then(result => {
+        const openApiFamilies = result.data?.data || [];
+        // Transform OpenAPI response to match expected GroupFamily interface
+        return openApiFamilies.map(family =>
+          transformGroupFamily(family, userFamily?.id, currentGroup)
+        );
+      });
+    },
+    enabled: !!groupId,
+  });
 
   // Fetch schedule configuration
   const { data: scheduleConfig } = useQuery({
@@ -206,13 +222,24 @@ const ManageGroupPage: React.FC = () => {
 
   const handleCancelInvitation = async (invitationId: string) => {
     if (!groupId) return;
-    
+
     try {
-      await apiService.cancelGroupInvitation(groupId, invitationId);
-      setSuccessMessage('Invitation canceled successfully');
-      setErrorMessage('');
-      // await refreshPendingInvitations(); // Refresh invitations list
-      queryClient.invalidateQueries({ queryKey: ['group-families', groupId] }); // Refresh families list to remove PENDING family
+      // MIGRATED: Use OpenAPI client to cancel group invitation
+      const result = await api.DELETE('/groups/{groupId}/invitations/{invitationId}', {
+        params: {
+          path: { groupId, invitationId }
+        }
+      });
+
+      // Check if the operation was successful
+      if (result.data?.success) {
+        setSuccessMessage('Invitation canceled successfully');
+        setErrorMessage('');
+        // await refreshPendingInvitations(); // Refresh invitations list
+        queryClient.invalidateQueries({ queryKey: ['group-families', groupId] }); // Refresh families list to remove PENDING family
+      } else {
+        setErrorMessage('Failed to cancel invitation');
+      }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to cancel invitation');
     }
@@ -221,63 +248,113 @@ const ManageGroupPage: React.FC = () => {
   // Mutations
 
   const updateFamilyRoleMutation = useMutation({
-    mutationFn: ({ familyId, role }: { familyId: string; role: 'ADMIN' | 'MEMBER' }) =>
-      groupId ? apiService.updateFamilyRole(groupId, familyId, role) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to update family role
+    mutationFn: ({ familyId, role }: { familyId: string; role: 'ADMIN' | 'MEMBER' }) => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      return api.PATCH('/groups/{groupId}/families/{familyId}/role', {
+        params: {
+          path: { groupId, familyId }
+        },
+        body: { role }
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-families', groupId] });
       setSuccessMessage('Family role updated successfully');
       setErrorMessage('');
     },
-    onError: () => {
-      setErrorMessage('Failed to update family role');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to update family role');
       setSuccessMessage('');
     },
   });
 
   const removeFamilyMutation = useMutation({
-    mutationFn: (familyId: string) => groupId ? apiService.removeFamilyFromGroup(groupId, familyId) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to remove family from group
+    mutationFn: (familyId: string) => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      return api.DELETE('/groups/{groupId}/families/{familyId}', {
+        params: {
+          path: { groupId, familyId }
+        }
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-families', groupId] });
       setSuccessMessage('Family removed successfully');
       setErrorMessage('');
     },
-    onError: () => {
-      setErrorMessage('Failed to remove family');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to remove family');
       setSuccessMessage('');
     },
   });
 
   const deleteGroupMutation = useMutation({
-    mutationFn: () => groupId ? apiService.deleteGroup(groupId) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to delete group
+    mutationFn: () => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      return api.DELETE('/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        }
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group deleted successfully');
       setErrorMessage('');
       navigate('/groups');
     },
-    onError: () => {
-      setErrorMessage('Failed to delete group');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to delete group');
       setSuccessMessage('');
     },
   });
 
   const leaveGroupMutation = useMutation({
-    mutationFn: () => groupId ? apiService.leaveGroup(groupId) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to leave group
+    mutationFn: () => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      return api.POST('/groups/{groupId}/leave', {
+        params: {
+          path: { groupId }
+        }
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Left group successfully');
       setErrorMessage('');
       navigate('/groups');
     },
-    onError: () => {
-      setErrorMessage('Failed to leave group');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to leave group');
       setSuccessMessage('');
     },
   });
 
   const updateGroupMutation = useMutation({
-    mutationFn: (updateData: { name?: string; description?: string }) =>
-      groupId ? apiService.updateGroup(groupId, updateData) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to update group
+    mutationFn: (updateData: { name?: string; description?: string }) => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      // Only include fields that are being updated
+      const body: any = {};
+      if (updateData.name !== undefined) body.name = updateData.name;
+      if (updateData.description !== undefined) body.description = updateData.description;
+
+      return api.PATCH('/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        },
+        body
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group updated successfully');

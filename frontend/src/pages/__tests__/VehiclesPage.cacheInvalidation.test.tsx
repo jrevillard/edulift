@@ -4,16 +4,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import VehiclesPage from '../VehiclesPage';
 import { useFamily } from '../../contexts/FamilyContext';
-import { apiService } from '../../services/apiService';
+import { api } from '../../services/api';
 import { usePageState } from '../../hooks/usePageState';
 
 // Mock dependencies
 vi.mock('../../contexts/FamilyContext');
-vi.mock('../../services/apiService');
+vi.mock('../../services/api');
 vi.mock('../../hooks/usePageState');
 
 const mockUseFamily = vi.mocked(useFamily);
-const mockApiService = vi.mocked(apiService);
+const mockApi = vi.mocked(api);
 const mockUsePageState = vi.mocked(usePageState);
 
 const mockVehicle = {
@@ -79,11 +79,17 @@ describe('VehiclesPage - Cache Invalidation', () => {
       shouldShowEmpty: false
     });
     
-    // Mock API responses
-    mockApiService.getVehicles.mockResolvedValue([mockVehicle]);
-    mockApiService.updateVehicle.mockResolvedValue({
-      ...mockVehicle,
-      name: 'Updated Bus'
+    // Mock API responses for OpenAPI client
+    mockApi.GET.mockResolvedValue({
+      data: {
+        data: [mockVehicle]
+      }
+    });
+    mockApi.PATCH.mockResolvedValue({
+      data: {
+        ...mockVehicle,
+        name: 'Updated Bus'
+      }
     });
   });
 
@@ -121,7 +127,10 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApiService.updateVehicle).toHaveBeenCalledWith('vehicle-1', { name: 'Updated Bus', capacity: 8 });
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+        params: { path: { vehicleId: 'vehicle-1' } },
+        body: { name: 'Updated Bus', capacity: 8 }
+      });
     });
 
     // Verify that all necessary queries were invalidated
@@ -135,13 +144,15 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
   it('should invalidate schedule-related queries when vehicle is created', async () => {
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
-    
-    mockApiService.createVehicle.mockResolvedValue({
-      id: 'vehicle-2',
-      name: 'New Van',
-      capacity: 6,
-      driverName: 'Jane Driver',
-      familyId: 'family-1'
+
+    mockApi.POST.mockResolvedValue({
+      data: {
+        id: 'vehicle-2',
+        name: 'New Van',
+        capacity: 6,
+        driverName: 'Jane Driver',
+        familyId: 'family-1'
+      }
     });
 
     renderComponent();
@@ -162,7 +173,9 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApiService.createVehicle).toHaveBeenCalledWith('New Van', 6);
+      expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', {
+        body: { name: 'New Van', capacity: 6 }
+      });
     });
 
     // Verify that all necessary queries were invalidated
@@ -173,8 +186,8 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
   it('should invalidate schedule-related queries when vehicle is deleted', async () => {
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
-    
-    mockApiService.deleteVehicle.mockResolvedValue(undefined);
+
+    mockApi.DELETE.mockResolvedValue({});
 
     renderComponent();
 
@@ -193,7 +206,9 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApiService.deleteVehicle).toHaveBeenCalledWith('vehicle-1');
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+        params: { path: { vehicleId: 'vehicle-1' } }
+      });
     });
 
     // Verify that all necessary queries were invalidated
