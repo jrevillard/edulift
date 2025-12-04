@@ -154,7 +154,7 @@ export class GroupApiService {
   }
 
   // Group invitation eligibility - Note: No specific endpoint found, using validation endpoint
-  async validateGroupInvitationEligibility(_groupId: string, inviteCode: string): Promise<any> {
+  async validateGroupInvitationEligibility(_groupId: string, inviteCode: string): Promise<GroupValidationAuthResponse> {
     console.warn('validateGroupInvitationEligibility: Using validation endpoint as no specific eligibility endpoint found');
     return this.validateGroupInviteCodeWithAuth(inviteCode);
   }

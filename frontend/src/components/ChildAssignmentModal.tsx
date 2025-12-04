@@ -6,40 +6,81 @@ import { useSocket } from '../contexts/SocketContext';
 import { SOCKET_EVENTS } from '../shared/events';
 import { toast } from 'sonner';
 import { getWeekdayInTimezone, getTimeInTimezone } from '../utils/timezoneUtils';
-import type { Child, ScheduleSlot, ScheduleSlotVehicle, GroupChildMembership, ChildAssignment } from '../types/api';
+import type { Child, ScheduleSlot, ScheduleSlotVehicle, GroupChildMembership, ChildAssignment, Vehicle } from '../types/api';
+
+// Union types for different API response formats
+type ChildWithOptionalFields = Child | {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  familyId: string;
+} | {
+  id: string;
+  name: string;
+};
+
+type VehicleWithOptionalFields = {
+  id: string;
+  name?: string;
+  make?: string;
+  model?: string;
+  licensePlate?: string;
+  capacity: number;
+  familyId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  age?: number | null | undefined;
+} | Vehicle;
+
+type DriverWithOptionalFields = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+} | {
+  id: string;
+  name: string;
+};
+
+type ApiError = {
+  status?: number;
+  message?: string;
+  data?: unknown;
+};
 
 // Helper function to handle child name compatibility between API responses
-const getChildName = (child: any): string => {
-  if (child.name) {
+const getChildName = (child: ChildWithOptionalFields): string => {
+  if ('name' in child && child.name) {
     return child.name; // OpenAPI children list has name
   }
-  if (child.firstName && child.lastName) {
+  if ('firstName' in child && 'lastName' in child && child.firstName && child.lastName) {
     return `${child.firstName} ${child.lastName}`; // OpenAPI child assignments have firstName/lastName
   }
   return 'Unknown Child';
 };
 
 // Helper function to handle vehicle name compatibility
-const getVehicleName = (vehicle: any): string => {
-  if (vehicle.name) {
-    return vehicle.name; // Original API has name
+const getVehicleName = (vehicle: VehicleWithOptionalFields): string => {
+  if ('name' in vehicle && vehicle.name) {
+    return vehicle.name; // Both Vehicle and OpenAPI responses have name
   }
-  if (vehicle.make && vehicle.model) {
-    return `${vehicle.make} ${vehicle.model}`; // OpenAPI has make/model
+  if ('make' in vehicle && 'model' in vehicle && vehicle.make && vehicle.model) {
+    return `${vehicle.make} ${vehicle.model}`; // Some OpenAPI responses have make/model
   }
-  if (vehicle.make) {
+  if ('make' in vehicle && vehicle.make) {
     return vehicle.make;
   }
   return 'Unknown Vehicle';
 };
 
 // Helper function to handle driver name compatibility
-const getDriverName = (driver: any): string => {
+const getDriverName = (driver: DriverWithOptionalFields | null | undefined): string => {
   if (!driver) return 'No driver assigned';
-  if (driver.name) {
+  if ('name' in driver && driver.name) {
     return driver.name; // Original API has name
   }
-  if (driver.firstName && driver.lastName) {
+  if ('firstName' in driver && 'lastName' in driver && driver.firstName && driver.lastName) {
     return `${driver.firstName} ${driver.lastName}`; // OpenAPI has firstName/lastName
   }
   return 'Unknown Driver';
@@ -94,10 +135,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
         });
         // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
         return data?.data;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to fetch schedule slot details:', error);
         // Don't retry if slot was deleted (404)
-        if (error?.status === 404) {
+        const apiError = error as ApiError;
+        if (apiError?.status === 404) {
           setSlotWasDeleted(true);
         }
         // Return null on error to prevent undefined data
@@ -108,9 +150,10 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
              currentScheduleSlotId !== '' &&
              currentScheduleSlotId !== null &&
              !slotWasDeleted,
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
       // Don't retry if slot was deleted (404)
-      if (error?.status === 404) {
+      const apiError = error as ApiError;
+      if (apiError?.status === 404) {
         setSlotWasDeleted(true);
         return false;
       }
@@ -167,10 +210,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
         setSelectedVehicleAssignment('');
       }
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       // Specific handling for 409 Conflict
-      if (error.status === 409) {
-        toast.error(error.message || 'Capacity conflict occurred. The slot may have been updated.', {
+      const apiError = error as ApiError;
+      if (apiError.status === 409) {
+        toast.error(apiError.message || 'Capacity conflict occurred. The slot may have been updated.', {
           duration: 6000,
           action: {
             label: 'Refresh',
@@ -183,7 +227,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
           },
         });
       } else {
-        toast.error(error.message || 'Failed to assign children. Please try again.');
+        toast.error(apiError.message || 'Failed to assign children. Please try again.');
       }
     },
   });
@@ -245,7 +289,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   };
 
   // Handle schedule slot deletion (404 error) - use our state variable
-  const isSlotDeleted = slotWasDeleted || freshSlotError?.status === 404;
+  const isSlotDeleted = slotWasDeleted || (freshSlotError as ApiError)?.status === 404;
   
   // Get the current schedule slot data (fresh data takes precedence over scheduleSlot prop)
   const shouldWaitForFreshData = currentScheduleSlotId && !freshSlotData && isFreshSlotLoading && !isSlotDeleted;
@@ -315,7 +359,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                 <span className="text-blue-600">🚗</span>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span data-testid="ChildAssignmentModal-Text-singleVehicleName">{getVehicleName(currentSlot.vehicleAssignments[0].vehicle)}</span>
+                    <span data-testid="ChildAssignmentModal-Text-singleVehicleName">{currentSlot.vehicleAssignments[0].vehicle ? getVehicleName(currentSlot.vehicleAssignments[0].vehicle) : 'Unknown Vehicle'}</span>
                     <span className="text-sm text-gray-500">- {getWeekdayInTimezone(scheduleSlot.datetime, user?.timezone)} at {getTimeInTimezone(scheduleSlot.datetime, user?.timezone)}</span>
                   </div>
                   {currentSlot.vehicleAssignments[0].driver && (
@@ -356,7 +400,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                   <div className="flex items-center justify-between text-base">
                     <div className="flex items-center space-x-2">
                       <span>🚗</span>
-                      <span className="font-medium" data-testid="ChildAssignmentModal-Text-selectedVehicleName">{getVehicleName(selectedVehicle.vehicle)}</span>
+                      <span className="font-medium" data-testid="ChildAssignmentModal-Text-selectedVehicleName">{selectedVehicle.vehicle ? getVehicleName(selectedVehicle.vehicle) : 'Unknown Vehicle'}</span>
                     </div>
                     {selectedVehicle.driver && (
                       <div className="text-gray-600" data-testid="ChildAssignmentModal-Text-selectedVehicleDriver">
@@ -513,7 +557,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                               disabled={isVehicleFull}
                               data-testid={`vehicle-option-${vehicleAssignment.id}`}
                             >
-                              🚗 {getVehicleName(vehicleAssignment.vehicle)}
+                              🚗 {vehicleAssignment.vehicle ? getVehicleName(vehicleAssignment.vehicle) : 'Unknown Vehicle'}
                               {isVehicleFull ? ' (Full)' : ` (${availableSeats} seats available)`}
                               {vehicleAssignment.driver && ` - Driver: ${getDriverName(vehicleAssignment.driver)}`}
                             </option>

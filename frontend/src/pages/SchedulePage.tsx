@@ -45,15 +45,27 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Users, Calendar, ChevronLeft, ChevronRight, Car, EyeOff, Eye, Settings2 } from 'lucide-react';
-import type { UserGroup, ScheduleSlot, ScheduleSlotVehicle } from '../types/api';
+import type { UserGroup, ScheduleSlot, ScheduleSlotVehicle, Child } from '../types/api';
 import { getEffectiveCapacity, hasSeatOverride } from '../utils/capacity';
 
-// TODO: Helper function to handle child name compatibility between legacy and OpenAPI formats
-const getChildName = (child: any): string => {
-  if (child.name) {
+// Union type for different child API response formats
+type ChildWithOptionalFields = Child | {
+  id: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  familyId: string;
+} | {
+  id: string;
+  name: string;
+};
+
+// Helper function to handle child name compatibility between legacy and OpenAPI formats
+const getChildName = (child: ChildWithOptionalFields): string => {
+  if ('name' in child && child.name) {
     return child.name; // Legacy format: simple name property
   }
-  if (child.firstName && child.lastName) {
+  if ('firstName' in child && 'lastName' in child && child.firstName && child.lastName) {
     return `${child.firstName} ${child.lastName}`; // OpenAPI format: separate first/last names
   }
   return 'Unknown Child';

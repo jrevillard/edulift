@@ -53,7 +53,7 @@ import { AlertCircle } from 'lucide-react';
 import { FamilySearchInvitation } from '@/components/FamilySearchInvitation';
 // import { InvitationManagement } from '@/components/InvitationManagement';
 import type { GroupFamily } from '../types/api';
-import { transformGroupFamily } from './OpenAPIFamilyTransform';
+import { transformGroupFamily, type GetGroupFamiliesResponse } from './OpenAPIFamilyTransform';
 import { useFamily } from '../contexts/FamilyContext';
 
 // Helper function to format admin display text
@@ -155,9 +155,9 @@ const ManageGroupPage: React.FC = () => {
     enabled: !!groupId,
   });
 
-  const families = familiesData?.data?.map((family: any) =>
+  const families = familiesData?.data?.map((family: GetGroupFamiliesResponse) =>
     transformGroupFamily(family, userFamily?.id, currentGroup)
-  ) || [];
+  ).filter(Boolean) || [];
 
   // Fetch schedule configuration
   const { data: scheduleConfig } = useQuery({
@@ -346,7 +346,11 @@ const ManageGroupPage: React.FC = () => {
       if (!groupId) return Promise.reject('No group ID');
 
       // Only include fields that are being updated
-      const body: any = {};
+      type GroupUpdateBody = {
+        name?: string;
+        description?: string;
+      };
+      const body: GroupUpdateBody = {};
       if (updateData.name !== undefined) body.name = updateData.name;
       if (updateData.description !== undefined) body.description = updateData.description;
 

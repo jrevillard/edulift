@@ -6,6 +6,7 @@ import VehicleSelectionModal from '../VehicleSelectionModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
 import { api } from '../../services/api';
+import type { RequestOptions } from 'openapi-fetch';
 
 // Mock dependencies
 vi.mock('../../contexts/AuthContext');
@@ -176,7 +177,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
   it('should pass seat override when creating new schedule slot with vehicle', async () => {
     const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
-    vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
+    vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
       if (path.includes('/groups/') && path.includes('/schedule-slots')) {
         createSpy(path, options);
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
@@ -252,7 +253,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
       driver: { id: 'user-1', name: 'Test User' }
     } }, error: undefined });
 
-    vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
+    vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
       if (path.includes('/schedule-slots/') && path.includes('/vehicles')) {
         assignSpy(path, options);
         return Promise.resolve({ data: { data: {
@@ -322,7 +323,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
   it('should not pass seat override when field is empty', async () => {
     const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
-    vi.mocked(api.POST).mockImplementation((path: string, options?: any) => {
+    vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
       if (path.includes('/groups/') && path.includes('/schedule-slots')) {
         createSpy(path, options);
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
@@ -407,7 +408,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
       ]
     };
 
-    vi.mocked(api.GET).mockImplementation((path: string, options?: any) => {
+    vi.mocked(api.GET).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
       if (path === '/vehicles') {
         return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
       }
