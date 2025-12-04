@@ -48,14 +48,15 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   const [slotWasDeleted, setSlotWasDeleted] = useState<boolean>(false);
 
   // Fetch user's vehicles
-  const { data: vehiclesResponse = [] } = useQuery({
+  const { data: vehiclesData = { data: [] } } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const result = await api.GET('/vehicles');
-      return result.data?.data || [];
+      const result = await api.GET('/vehicles', {});
+      return result.data;
     },
   });
-  const vehicles = vehiclesResponse;
+
+  const vehicles = vehiclesData?.data || [];
 
   // Fetch fresh schedule slot details if we have a slot ID
   const { data: freshSlotData, isLoading: isFreshSlotLoading, error: freshSlotError } = useQuery({

@@ -4,11 +4,11 @@ import { vi } from 'vitest';
 // Mock openapi-fetch with a complete client implementation
 const mockClient = {
   use: vi.fn(),
-  get: vi.fn(),
-  post: vi.fn(),
-  patch: vi.fn(),
-  delete: vi.fn(),
-  put: vi.fn(),
+  GET: vi.fn(),
+  POST: vi.fn(),
+  PATCH: vi.fn(),
+  DELETE: vi.fn(),
+  PUT: vi.fn(),
 };
 
 vi.mock('openapi-fetch', () => ({

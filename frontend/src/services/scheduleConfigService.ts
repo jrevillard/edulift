@@ -30,12 +30,12 @@ class ScheduleConfigService {
    * Get schedule configuration for a group
    */
   async getGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
-    const response = await api.GET('/groups/{groupId}/schedule-config', {
+    const { data } = await api.GET('/groups/{groupId}/schedule-config', {
       params: { path: { groupId } }
     });
 
-    if (response.data?.data) {
-      return response.data.data;
+    if (data?.data) {
+      return data.data;
     }
     throw new Error('Failed to get group schedule config');
   }
@@ -44,18 +44,18 @@ class ScheduleConfigService {
    * Get time slots for a specific group and weekday
    */
   async getGroupTimeSlots(groupId: string, weekday: GroupTimeSlots['weekday']): Promise<GroupTimeSlots> {
-    const response = await api.GET('/groups/{groupId}/schedule-config/time-slots', {
+    const { data } = await api.GET('/groups/{groupId}/schedule-config/time-slots', {
       params: {
         path: { groupId },
         query: { weekday }
       }
     });
 
-    if (response.data?.data) {
+    if (data?.data) {
       return {
-        groupId: response.data.data.groupId,
-        weekday: response.data.data.weekday,
-        timeSlots: response.data.data.timeSlots
+        groupId: data.data.groupId,
+        weekday: data.data.weekday,
+        timeSlots: data.data.timeSlots
       };
     }
     throw new Error('Failed to get group time slots');
@@ -65,13 +65,13 @@ class ScheduleConfigService {
    * Update schedule configuration for a group
    */
   async updateGroupScheduleConfig(groupId: string, scheduleHours: ScheduleHours): Promise<GroupScheduleConfig> {
-    const response = await api.PUT('/groups/{groupId}/schedule-config', {
+    const { data } = await api.PUT('/groups/{groupId}/schedule-config', {
       params: { path: { groupId } },
       body: { scheduleHours }
     });
 
-    if (response.data?.data) {
-      return response.data.data;
+    if (data?.data) {
+      return data.data;
     }
     throw new Error('Failed to update group schedule config');
   }
@@ -80,12 +80,12 @@ class ScheduleConfigService {
    * Reset schedule configuration to default
    */
   async resetGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
-    const response = await api.POST('/groups/{groupId}/schedule-config/reset', {
+    const { data } = await api.POST('/groups/{groupId}/schedule-config/reset', {
       params: { path: { groupId } }
     });
 
-    if (response.data?.data) {
-      return response.data.data;
+    if (data?.data) {
+      return data.data;
     }
     throw new Error('Failed to reset group schedule config');
   }
@@ -94,10 +94,10 @@ class ScheduleConfigService {
    * Get default schedule hours
    */
   async getDefaultScheduleHours(): Promise<DefaultScheduleHours> {
-    const response = await api.GET('/groups/schedule-config/default');
+    const { data } = await api.GET('/groups/schedule-config/default');
 
-    if (response.data?.data) {
-      return response.data.data;
+    if (data?.data) {
+      return data.data;
     }
     throw new Error('Failed to get default schedule hours');
   }

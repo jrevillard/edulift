@@ -4,7 +4,7 @@ import { api } from '../services/api';
 import { usePageState } from '../hooks/usePageState';
 import { useFamily } from '../contexts/FamilyContext';
 import { ChildGroupManagement } from '../components/ChildGroupManagement';
-import type { Child, UserGroup } from '@/types/api';
+import type { Child } from '@/types/api';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,7 @@ const ChildrenPage: React.FC = () => {
   const childrenQuery = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
-      const result = await api.GET('/children');
+      const result = await api.GET('/children', {});
       const apiChildren = result.data?.data || [];
 
       // Convert API response format to match expected types
@@ -59,13 +59,15 @@ const ChildrenPage: React.FC = () => {
   const { data: children, shouldShowLoading, shouldShowError, shouldShowEmpty } = usePageState(childrenQuery);
 
   // Fetch user's groups for group assignment during child creation
-  const { data: groups = [] } = useQuery<UserGroup[]>({
+  const { data: groupsData = { data: [] } } = useQuery({
     queryKey: ['user-groups'],
     queryFn: async () => {
-      const result = await api.GET('/groups/my-groups');
-      return result.data?.data || [];
+      const result = await api.GET('/groups/my-groups', {});
+      return result.data;
     },
   });
+
+  const groups = groupsData?.data || [];
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; age?: number; groupIds: string[] }) => {

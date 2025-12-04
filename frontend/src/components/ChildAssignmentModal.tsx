@@ -72,8 +72,9 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     queryKey: ['children'],
     queryFn: async () => {
       try {
-        const result = await api.GET('/children');
-        return result.data?.data || [];
+        const { data } = await api.GET('/children');
+        // openapi-fetch response: { data: { success: true, data: Child[] } }
+        return data?.data || [];
       } catch (error) {
         console.error('Failed to fetch children:', error);
         // Return empty array on error to prevent undefined data
@@ -88,10 +89,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     queryKey: ['schedule-slot', currentScheduleSlotId],
     queryFn: async () => {
       try {
-        const result = await api.GET('/schedule-slots/{scheduleSlotId}', {
+        const { data } = await api.GET('/schedule-slots/{scheduleSlotId}', {
           params: { path: { scheduleSlotId: currentScheduleSlotId! } }
         });
-        return result.data?.data;
+        // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
+        return data?.data;
       } catch (error: any) {
         console.error('Failed to fetch schedule slot details:', error);
         // Don't retry if slot was deleted (404)
@@ -138,11 +140,12 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   // Assign child mutation
   const assignChildMutation = useMutation({
     mutationFn: async ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) => {
-      const result = await api.POST('/schedule-slots/{scheduleSlotId}/children', {
+      const { data } = await api.POST('/schedule-slots/{scheduleSlotId}/children', {
         params: { path: { scheduleSlotId } },
         body: { childId, vehicleAssignmentId }
       });
-      return result.data?.data;
+      // openapi-fetch response: { data: { success: true, data: ChildAssignment } }
+      return data?.data;
     },
     onSuccess: async () => {
       // Invalidate ALL weekly schedule queries for this group (all weeks)
@@ -188,10 +191,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   // Remove child mutation
   const removeChildMutation = useMutation({
     mutationFn: async ({ scheduleSlotId, childId }: { scheduleSlotId: string; childId: string }) => {
-      const result = await api.DELETE('/schedule-slots/{scheduleSlotId}/children/{childId}', {
+      const { data } = await api.DELETE('/schedule-slots/{scheduleSlotId}/children/{childId}', {
         params: { path: { scheduleSlotId, childId } }
       });
-      return result.data?.data;
+      // openapi-fetch response: { data: { success: true, data: { success: true, message: string } } }
+      return data?.data;
     },
     onSuccess: async (_, { scheduleSlotId }) => {
       // Invalidate ALL weekly schedule queries for this group (all weeks)

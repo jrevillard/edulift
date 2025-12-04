@@ -1,8 +1,12 @@
 /**
- * OpenAPI-based API Client
+ * Pure OpenAPI Client - Direct openapi-fetch with Generated Types
  *
- * Replaces the 990-line apiService.ts with ~20 lines using openapi-fetch
- * and generated types for maximum type safety and performance.
+ * This is the purest approach: no manual wrappers, no duplicate type definitions.
+ * Just the raw openapi-fetch client with full type safety from generated types.
+ *
+ * Usage:
+ *   import { api } from '@/services/api';
+ *   await api.GET('/children', {});  // Full type safety, auto-completion
  */
 
 import createClient from 'openapi-fetch';
@@ -10,7 +14,7 @@ import type { paths } from '../generated/api/types';
 import { API_BASE_URL } from '../config/runtime';
 import { secureStorage } from '../utils/secureStorage';
 
-// Create the typed API client
+// Create the typed API client with authentication middleware
 const client = createClient<paths>({
   baseUrl: API_BASE_URL,
   headers: {
@@ -42,7 +46,6 @@ client.use({
       await secureStorage.removeItem('refreshToken');
 
       // Skip navigation in test environment to prevent JSDOM errors
-      // Check for global test flag that should be set in test setup
       const isTestEnvironment = typeof window !== 'undefined' && (window as any).__TEST_ENVIRONMENT__;
 
       if (typeof window !== 'undefined' && !isTestEnvironment) {
@@ -57,9 +60,8 @@ client.use({
   },
 });
 
-// Export the configured API client
-export const api = client;
+// Export the pure client - no wrappers, no aliases, just pure openapi-fetch
+export { client as api };
 
-// Export types for convenience
-export type ApiPaths = paths;
-export type ApiResponse<T> = { data: T; error?: never } | { data?: never; error: { status: number; message: string } };
+// Export generated types for convenience
+export type { paths, components, operations } from '../generated/api/types';

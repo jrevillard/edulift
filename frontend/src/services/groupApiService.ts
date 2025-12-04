@@ -33,12 +33,12 @@ export class GroupApiService {
   // Group validation using public endpoint
   async validateGroupInviteCode(inviteCode: string): Promise<GroupValidationResponse> {
     try {
-      const response = await api.POST('/groups/validate-invite', {
+      const { data } = await api.POST('/groups/validate-invite', {
         body: { inviteCode }
       });
 
-      if (response.data?.data) {
-        return response.data.data;
+      if (data?.data) {
+        return data.data;
       } else {
         return {
           valid: false,
@@ -67,12 +67,12 @@ export class GroupApiService {
   // Group validation with authenticated user context
   async validateGroupInviteCodeWithAuth(inviteCode: string): Promise<GroupValidationAuthResponse> {
     try {
-      const response = await api.POST('/groups/validate-invite-auth', {
+      const { data } = await api.POST('/groups/validate-invite-auth', {
         body: { inviteCode }
       });
 
-      if (response.data?.data) {
-        return response.data.data;
+      if (data?.data) {
+        return data.data;
       } else {
         return {
           valid: false,
@@ -101,11 +101,11 @@ export class GroupApiService {
   // Join group by invite code
   async joinGroupByInviteCode(inviteCode: string) {
     try {
-      const response = await api.POST('/groups/join', {
+      const { data } = await api.POST('/groups/join', {
         body: { inviteCode }
       });
 
-      return response.data?.data;
+      return data?.data;
     } catch (error: unknown) {
       console.error('Error joining group by invite code:', error);
       throw error;
@@ -127,12 +127,12 @@ export class GroupApiService {
   // Family search and invitation
   async searchFamiliesForInvitation(groupId: string, searchTerm: string): Promise<FamilySearchResult[]> {
     try {
-      const response = await api.POST('/groups/{groupId}/search-families', {
+      const { data } = await api.POST('/groups/{groupId}/search-families', {
         params: { path: { groupId } },
         body: { searchTerm }
       });
 
-      return response.data?.data || [];
+      return data?.data || [];
     } catch (error: unknown) {
       console.error('Error searching families for invitation:', error);
       throw error;
@@ -141,12 +141,12 @@ export class GroupApiService {
 
   async inviteFamilyToGroup(groupId: string, familyId: string, role: 'MEMBER' | 'ADMIN', personalMessage?: string) {
     try {
-      const response = await api.POST('/groups/{groupId}/invite', {
+      const { data } = await api.POST('/groups/{groupId}/invite', {
         params: { path: { groupId } },
         body: { familyId, role, personalMessage }
       });
 
-      return response.data?.data;
+      return data?.data;
     } catch (error: unknown) {
       console.error('Error inviting family to group:', error);
       throw error;
@@ -167,8 +167,8 @@ export class GroupApiService {
   // Group management
   async getUserGroups(): Promise<UserGroup[]> {
     try {
-      const response = await api.GET('/groups/my-groups');
-      return response.data?.data || [];
+      const { data } = await api.GET('/groups/my-groups');
+      return data?.data || [];
     } catch (error: unknown) {
       console.error('Error getting user groups:', error);
       throw error;
@@ -188,11 +188,11 @@ export class GroupApiService {
 
   async createGroup(name: string) {
     try {
-      const response = await api.POST('/groups', {
+      const { data } = await api.POST('/groups', {
         body: { name }
       });
 
-      return response.data?.data;
+      return data?.data;
     } catch (error: unknown) {
       console.error('Error creating group:', error);
       throw error;
@@ -215,11 +215,11 @@ export class GroupApiService {
   // Group families (family-based group management)
   async getGroupFamilies(groupId: string): Promise<GroupFamily[]> {
     try {
-      const response = await api.GET('/groups/{groupId}/families', {
+      const { data } = await api.GET('/groups/{groupId}/families', {
         params: { path: { groupId } }
       });
 
-      return response.data?.data || [];
+      return data?.data || [];
     } catch (error: unknown) {
       console.error('Error getting group families:', error);
       throw error;
@@ -229,11 +229,11 @@ export class GroupApiService {
   // Group invitations
   async getGroupInvitations(groupId: string): Promise<GroupInvitation[]> {
     try {
-      const response = await api.GET('/groups/{groupId}/invitations', {
+      const { data } = await api.GET('/groups/{groupId}/invitations', {
         params: { path: { groupId } }
       });
 
-      return response.data?.data || [];
+      return data?.data || [];
     } catch (error: unknown) {
       console.error('Error getting group invitations:', error);
       throw error;
