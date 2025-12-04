@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { api } from '../api';
+import axios from 'axios';
 
 // Mock axios
 vi.mock('axios');

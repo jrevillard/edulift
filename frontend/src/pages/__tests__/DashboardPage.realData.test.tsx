@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../../contexts/AuthContext';
 import DashboardPage from '../DashboardPage';
-import { api } from '../../services/api';
-import { createMockOpenAPIClient } from '../../test/test-utils';
-import { vi, Mock } from 'vitest';
+import { apiService } from '../../services/apiService';
+import { createMockApiService } from '../../test/test-utils';
+import { vi } from 'vitest';
 
 // Mock FamilyContext
 vi.mock('../../contexts/FamilyContext', () => ({
@@ -39,7 +39,10 @@ vi.mock('../../contexts/SocketContext', () => ({
 
 // Mock OpenAPI client
 vi.mock('../../services/api');
-const mockApi = api as unknown;
+
+// Mock the apiService
+vi.mock('../../services/apiService');
+const mockApiService = vi.mocked(apiService);
 
 // Mock AuthContext
 const mockUser = {

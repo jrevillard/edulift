@@ -65,7 +65,7 @@ describe('ChildAssignmentModal', () => {
 
   // Helper function to setup OpenAPI mocks for different scenarios
   const setupOpenAPIMocks = (overrides: any = {}) => {
-    vi.mocked(mockApi.GET).mockImplementation((path: string, options?: any) => {
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/children') {
         return Promise.resolve({
           data: { data: overrides.children || [], success: true },

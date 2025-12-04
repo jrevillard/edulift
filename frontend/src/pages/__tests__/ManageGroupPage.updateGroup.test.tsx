@@ -167,7 +167,7 @@ describe('ManageGroupPage - Group Update Functionality', () => {
       },
       familyCount: 1,
       scheduleCount: 0,
-    }] } } });
+    }] } });
     mockGetGroup.mockResolvedValue({ data: { data: mockGroup } });
     mockGetGroupFamilies.mockResolvedValue({ data: { data: mockMembers } });
     mockGetGroupPendingInvitations.mockResolvedValue({ data: { data: [] } });
