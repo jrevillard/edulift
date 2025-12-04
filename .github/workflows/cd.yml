@@ -36,7 +36,7 @@ jobs:
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.sha }}
-          check-regexp: '^(Frontend CI Pipeline|Backend CI Pipeline|CI for Workflow Changes).*'
+          check-regexp: '^(Frontend Tests|Backend Tests|Frontend Build Validation|CI for Workflow Changes).*'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
           allowed-conclusions: success
