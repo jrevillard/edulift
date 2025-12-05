@@ -179,7 +179,7 @@ export class AuthService {
   }
 
   async verifyMagicLink(token: string, code_verifier?: string): Promise<any | null> {
-    const magicLink = await this.secureTokenRepository.findValidMagicLinkWithPKCE(token, code_verifier);
+    const magicLink = await this.secureTokenRepository.findValidMagicLinkWithPKCE(token);
 
     if (!magicLink) {
       return null;
@@ -240,7 +240,7 @@ export class AuthService {
    */
   async confirmAccountDeletion(token: string, code_verifier?: string): Promise<{ success: boolean; message: string; deletedAt: string }> {
     // Find valid token using existing repository method
-    const magicLink = await this.secureTokenRepository.findValidAccountDeletionTokenWithPKCE(token, code_verifier);
+    const magicLink = await this.secureTokenRepository.findValidAccountDeletionTokenWithPKCE(token);
 
     if (!magicLink) {
       throw new Error('Invalid or expired deletion token');
