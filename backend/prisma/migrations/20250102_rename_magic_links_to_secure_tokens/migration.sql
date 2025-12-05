@@ -14,6 +14,7 @@ CREATE TABLE "secure_tokens" (
     "used" BOOLEAN NOT NULL DEFAULT false,
     "codeChallenge" TEXT NOT NULL,
     "type" "TokenType" NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "secure_tokens_pkey" PRIMARY KEY ("id")
 );
@@ -37,8 +38,8 @@ CREATE INDEX "secure_tokens_type_userId_expiresAt_idx" ON "secure_tokens"("type"
 ALTER TABLE "secure_tokens" ADD CONSTRAINT "secure_tokens_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Data migration: migrate existing magic_links to secure_tokens
-INSERT INTO "secure_tokens" (id, token, userId, expiresAt, used, codeChallenge, type)
-SELECT id, token, userId, expiresAt, used, codeChallenge, 'MAGIC_LINK'::"TokenType"
+INSERT INTO "secure_tokens" ("id", "token", "userId", "expiresAt", "used", "codeChallenge", "type", "createdAt")
+SELECT "id", "token", "userId", "expiresAt", "used", "codeChallenge", 'MAGIC_LINK'::"TokenType", CURRENT_TIMESTAMP
 FROM "magic_links";
 
 -- Drop old table
