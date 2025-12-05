@@ -177,16 +177,19 @@ export class SecureTokenRepository {
   }
 
   
-  async findValidMagicLinkWithPKCE(token: string, codeChallenge?: string): Promise<SecureToken | null> {
-    return this.findValidTokenWithPKCE(token, codeChallenge, TokenType.MAGIC_LINK);
+  async findValidMagicLinkWithPKCE(token: string): Promise<SecureToken | null> {
+    // Find token without codeChallenge filter (PKCE validation happens in AuthService)
+    return this.findValidToken(token, TokenType.MAGIC_LINK);
   }
 
-  async findValidAccountDeletionTokenWithPKCE(token: string, codeChallenge?: string): Promise<SecureToken | null> {
-    return this.findValidTokenWithPKCE(token, codeChallenge, TokenType.ACCOUNT_DELETION);
+  async findValidAccountDeletionTokenWithPKCE(token: string): Promise<SecureToken | null> {
+    // Find token without codeChallenge filter (PKCE validation happens in AuthService)
+    return this.findValidToken(token, TokenType.ACCOUNT_DELETION);
   }
 
-  async findValidEmailModificationTokenWithPKCE(token: string, codeChallenge?: string): Promise<SecureToken | null> {
-    return this.findValidTokenWithPKCE(token, codeChallenge, TokenType.EMAIL_MODIFICATION);
+  async findValidEmailModificationTokenWithPKCE(token: string): Promise<SecureToken | null> {
+    // Find token without codeChallenge filter (PKCE validation happens in AuthService)
+    return this.findValidToken(token, TokenType.EMAIL_MODIFICATION);
   }
 
   
