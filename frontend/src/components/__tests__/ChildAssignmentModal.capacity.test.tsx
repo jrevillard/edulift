@@ -1,9 +1,10 @@
+import '../../services/__tests__/setup'; // Import setup to load mocks
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import ChildAssignmentModal from '../ChildAssignmentModal';
-import { createMockOpenAPIClient } from '../../test/test-utils';
+import { mockClient } from '../../services/__tests__/setup';
 
 // Mock the contexts
 vi.mock('../../contexts/AuthContext', () => ({
@@ -17,12 +18,6 @@ vi.mock('../../contexts/SocketContext', () => ({
     socket: { emit: vi.fn() }
   }))
 }));
-
-// Mock the API service
-vi.mock('../../services/api', () => ({
-  api: createMockOpenAPIClient(),
-}));
-import { api } from '../../services/api';
 
 describe('ChildAssignmentModal Capacity Tests', () => {
   let queryClient: QueryClient;
@@ -139,8 +134,24 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     ];
 
-    vi.mocked(api.getChildren).mockResolvedValue({ data: { data: allChildren } });
-    vi.mocked(api.getScheduleSlotDetails).mockResolvedValue({ data: { data: fullCapacitySlot } });
+    mockClient.GET.mockImplementation((path) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: allChildren },
+          error: undefined
+        });
+      }
+      if (path === '/schedule-slots/{scheduleSlotId}') {
+        return Promise.resolve({
+          data: { data: fullCapacitySlot },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: null },
+        error: { message: `Not implemented: ${path}` }
+      });
+    });
 
     renderModal({ 
       scheduleSlot: fullCapacitySlot,
@@ -242,8 +253,24 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     ];
 
-    vi.mocked(api.getChildren).mockResolvedValue({ data: { data: allChildren } });
-    vi.mocked(api.getScheduleSlotDetails).mockResolvedValue({ data: { data: partialCapacitySlot } });
+    mockClient.GET.mockImplementation((path) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: allChildren },
+          error: undefined
+        });
+      }
+      if (path === '/schedule-slots/{scheduleSlotId}') {
+        return Promise.resolve({
+          data: { data: partialCapacitySlot },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: null },
+        error: { message: `Not implemented: ${path}` }
+      });
+    });
 
     renderModal({ 
       scheduleSlot: partialCapacitySlot,
@@ -266,8 +293,19 @@ describe('ChildAssignmentModal Capacity Tests', () => {
   });
 
   it('preserves vehicle selection after adding child in vehicle-specific mode', async () => {
-    const mockAssignChild = vi.fn().mockResolvedValue({ data: { success: true } });
-    vi.mocked(api.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
+    const mockAssignChild = vi.fn().mockResolvedValue({
+      data: { success: true },
+      error: undefined
+    });
+    mockClient.POST.mockImplementation((path) => {
+      if (path === '/schedule-slots/{scheduleSlotId}/children') {
+        return mockAssignChild();
+      }
+      return Promise.resolve({
+        data: { data: null },
+        error: { message: `Not implemented: ${path}` }
+      });
+    });
 
     const vehicleSlot = {
       id: 'slot-1',
@@ -322,8 +360,24 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
     ];
 
-    vi.mocked(api.getChildren).mockResolvedValue({ data: { data: allChildren } });
-    vi.mocked(api.getScheduleSlotDetails).mockResolvedValue({ data: { data: vehicleSlot } });
+    mockClient.GET.mockImplementation((path) => {
+      if (path === '/children') {
+        return Promise.resolve({
+          data: { data: allChildren },
+          error: undefined
+        });
+      }
+      if (path === '/schedule-slots/{scheduleSlotId}') {
+        return Promise.resolve({
+          data: { data: vehicleSlot },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: null },
+        error: { message: `Not implemented: ${path}` }
+      });
+    });
 
     renderModal({ 
       scheduleSlot: vehicleSlot,
@@ -342,7 +396,10 @@ describe('ChildAssignmentModal Capacity Tests', () => {
     });
 
     await waitFor(() => {
-      expect(mockAssignChild).toHaveBeenCalledWith('slot-1', 'child-2', 'vehicle-assignment-1');
+      expect(mockClient.POST).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
+        params: { path: { scheduleSlotId: 'slot-1' } },
+        body: { childId: 'child-2', vehicleAssignmentId: 'vehicle-assignment-1' }
+      });
     });
 
     // Vehicle info should still be visible (vehicle selection preserved)

@@ -15,6 +15,21 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**'],
+    // Limit parallel threads to reduce memory usage during testing
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        maxThreads: 2, // Reduce from default (CPU cores) to 2 threads
+        minThreads: 1,
+      },
+    },
+    // Reduce memory usage with isolated workers
+    isolate: true,
+    // Limit test concurrency
+    maxConcurrency: 2,
+    // Add timeout to prevent hanging tests
+    testTimeout: 10000,
+    hookTimeout: 10000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

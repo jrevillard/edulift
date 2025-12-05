@@ -782,7 +782,8 @@
             "type": "string",
             "enum": [
               "MEMBER",
-              "ADMIN"
+              "ADMIN",
+              "OWNER"
             ],
             "description": "New role for the family in the group",
             "example": "ADMIN"
@@ -807,7 +808,8 @@
             "type": "string",
             "enum": [
               "MEMBER",
-              "ADMIN"
+              "ADMIN",
+              "OWNER"
             ],
             "default": "MEMBER",
             "description": "Role for the invited family (defaults to MEMBER)",
@@ -900,6 +902,98 @@
         ],
         "title": "Update Schedule Configuration",
         "description": "Update group schedule configuration"
+      },
+      "GroupFamiliesResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "cuid",
+                  "example": "cl123456789012345678901237",
+                  "description": "Family identifier"
+                },
+                "name": {
+                  "type": "string",
+                  "example": "Johnson Family",
+                  "description": "Family name"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "MEMBER",
+                    "ADMIN",
+                    "OWNER"
+                  ],
+                  "description": "Family role in the group",
+                  "example": "MEMBER"
+                },
+                "isMyFamily": {
+                  "type": "boolean",
+                  "example": false,
+                  "description": "Whether this is the requester's family"
+                },
+                "canManage": {
+                  "type": "boolean",
+                  "example": false,
+                  "description": "Whether the requester can manage this family"
+                },
+                "admins": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string",
+                        "format": "email"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "email"
+                    ]
+                  },
+                  "description": "Family admin contacts",
+                  "example": [
+                    {
+                      "name": "John Johnson",
+                      "email": "john@example.com"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "role",
+                "isMyFamily",
+                "canManage",
+                "admins"
+              ],
+              "title": "Group Family",
+              "description": "Family information for group families endpoint"
+            }
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "Group Families Response",
+        "description": "Response for get group families endpoint"
       },
       "CreateFamilyRequest": {
         "type": "object",
@@ -4387,9 +4481,10 @@
                               "type": "string",
                               "enum": [
                                 "MEMBER",
-                                "ADMIN"
+                                "ADMIN",
+                                "OWNER"
                               ],
-                              "description": "Role of a family within a group",
+                              "description": "Role of a family within a group (including special OWNER case)",
                               "example": "MEMBER"
                             }
                           },
@@ -4562,9 +4657,10 @@
                               "type": "string",
                               "enum": [
                                 "MEMBER",
-                                "ADMIN"
+                                "ADMIN",
+                                "OWNER"
                               ],
-                              "description": "Role of a family within a group",
+                              "description": "Role of a family within a group (including special OWNER case)",
                               "example": "MEMBER"
                             }
                           },
@@ -4741,7 +4837,6 @@
                         "userRole": {
                           "type": "string",
                           "enum": [
-                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
@@ -4810,7 +4905,8 @@
                                 "type": "string",
                                 "enum": [
                                   "MEMBER",
-                                  "ADMIN"
+                                  "ADMIN",
+                                  "OWNER"
                                 ],
                                 "description": "Family role in the group",
                                 "example": "MEMBER"
@@ -4948,7 +5044,8 @@
                           "type": "string",
                           "enum": [
                             "MEMBER",
-                            "ADMIN"
+                            "ADMIN",
+                            "OWNER"
                           ],
                           "description": "Family role in the group",
                           "example": "MEMBER"
@@ -5097,7 +5194,6 @@
                           "userRole": {
                             "type": "string",
                             "enum": [
-                              "OWNER",
                               "ADMIN",
                               "MEMBER"
                             ],
@@ -5166,7 +5262,8 @@
                                   "type": "string",
                                   "enum": [
                                     "MEMBER",
-                                    "ADMIN"
+                                    "ADMIN",
+                                    "OWNER"
                                   ],
                                   "description": "Family role in the group",
                                   "example": "MEMBER"
@@ -5288,62 +5385,79 @@
                             "type": "string",
                             "format": "cuid",
                             "example": "cl123456789012345678901237",
-                            "description": "Family member identifier"
-                          },
-                          "familyId": {
-                            "type": "string",
-                            "format": "cuid",
-                            "example": "cl123456789012345678901238",
                             "description": "Family identifier"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Johnson Family",
+                            "description": "Family name"
                           },
                           "role": {
                             "type": "string",
                             "enum": [
                               "MEMBER",
-                              "ADMIN"
+                              "ADMIN",
+                              "OWNER"
                             ],
                             "description": "Family role in the group",
                             "example": "MEMBER"
                           },
-                          "joinedAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-01T00:00:00.000Z",
-                            "description": "When the family joined the group"
+                          "isMyFamily": {
+                            "type": "boolean",
+                            "example": false,
+                            "description": "Whether this is the requester's family"
                           },
-                          "family": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "cuid"
+                          "canManage": {
+                            "type": "boolean",
+                            "example": false,
+                            "description": "Whether the requester can manage this family"
+                          },
+                          "admins": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "email": {
+                                  "type": "string",
+                                  "format": "email"
+                                }
                               },
-                              "name": {
-                                "type": "string"
-                              }
+                              "required": [
+                                "name",
+                                "email"
+                              ]
                             },
-                            "required": [
-                              "id",
-                              "name"
-                            ],
-                            "description": "Family information (included when fetching group families)"
+                            "description": "Family admin contacts",
+                            "example": [
+                              {
+                                "name": "John Johnson",
+                                "email": "john@example.com"
+                              }
+                            ]
                           }
                         },
                         "required": [
                           "id",
-                          "familyId",
+                          "name",
                           "role",
-                          "joinedAt"
+                          "isMyFamily",
+                          "canManage",
+                          "admins"
                         ],
-                        "title": "Family Group Member",
-                        "description": "Family membership in a group"
+                        "title": "Group Family",
+                        "description": "Family information for group families endpoint"
                       }
                     }
                   },
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "title": "Group Families Response",
+                  "description": "Response for get group families endpoint"
                 }
               }
             }
@@ -5459,7 +5573,6 @@
                         "userRole": {
                           "type": "string",
                           "enum": [
-                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
@@ -5528,7 +5641,8 @@
                                 "type": "string",
                                 "enum": [
                                   "MEMBER",
-                                  "ADMIN"
+                                  "ADMIN",
+                                  "OWNER"
                                 ],
                                 "description": "Family role in the group",
                                 "example": "MEMBER"
@@ -5853,7 +5967,8 @@
                           "type": "string",
                           "enum": [
                             "MEMBER",
-                            "ADMIN"
+                            "ADMIN",
+                            "OWNER"
                           ],
                           "description": "Family role in the group",
                           "example": "MEMBER"
@@ -6221,7 +6336,8 @@
                           "type": "string",
                           "enum": [
                             "MEMBER",
-                            "ADMIN"
+                            "ADMIN",
+                            "OWNER"
                           ],
                           "description": "Invited role in the group",
                           "example": "MEMBER"
@@ -6394,7 +6510,8 @@
                             "type": "string",
                             "enum": [
                               "MEMBER",
-                              "ADMIN"
+                              "ADMIN",
+                              "OWNER"
                             ],
                             "description": "Invited role in the group",
                             "example": "MEMBER"

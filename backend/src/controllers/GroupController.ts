@@ -16,6 +16,7 @@ import {
   PendingInvitationsSuccessResponseSchema,
   InviteCodeValidationSuccessResponseSchema,
 } from '../schemas/responses';
+import { GroupFamiliesResponseSchema } from '../schemas/groups';
 
 export class GroupController {
   constructor(
@@ -198,7 +199,7 @@ export class GroupController {
       success: true,
       familyCount: families.length,
     });
-    sendSuccessResponse(res, 200, GroupsSuccessResponseSchema, families);
+    sendSuccessResponse(res, 200, GroupFamiliesResponseSchema, families);
   };
 
   updateFamilyRole = async (req: Request, res: Response): Promise<void> => {

@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 import ManageGroupPage from '../ManageGroupPage';
 import { api } from '../../services/api';
-import { createMockOpenAPIClient } from '../../test/test-utils';
 import type { GroupFamily } from '../../types/api';
+import { mockClient } from '../../services/__tests__/setup';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -17,16 +17,7 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
-// Mock OpenAPI client
-vi.mock('../../services/api', () => ({
-  api: {
-    GET: vi.fn(),
-    POST: vi.fn(),
-    PATCH: vi.fn(),
-    DELETE: vi.fn(),
-    use: vi.fn(),
-  },
-}));
+// Note: API client is mocked globally in src/services/__tests__/setup.ts
 
 // Mock clipboard API
 Object.assign(navigator, {
@@ -45,7 +36,6 @@ vi.mock('@/stores/connectionStore', () => ({
     setWsStatus: vi.fn(),
   })),
 }));
-
 
 // Mock auth service to ensure user is authenticated
 vi.mock('../../services/authService', () => ({
@@ -94,39 +84,13 @@ vi.mock('../../contexts/SocketContext', () => ({
   SocketProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Create a mock object for legacy apiService methods used in tests
-type MockApiService = {
-  getUserGroups: ReturnType<typeof vi.fn>;
-  updateFamilyRole: ReturnType<typeof vi.fn>;
-  deleteGroup: ReturnType<typeof vi.fn>;
-  leaveGroup: ReturnType<typeof vi.fn>;
-  getGroupFamilies: ReturnType<typeof vi.fn>;
-  cancelGroupInvitation: ReturnType<typeof vi.fn>;
-  getGroupInvitations: ReturnType<typeof vi.fn>;
-  deleteGroupInvitation: ReturnType<typeof vi.fn>;
-  inviteFamilyToGroup: ReturnType<typeof vi.fn>;
-  removeFamilyFromGroup: ReturnType<typeof vi.fn>;
-  updateGroup: ReturnType<typeof vi.fn>;
-};
-
-const mockApiService: MockApiService = {
-  getUserGroups: vi.fn(),
-  updateFamilyRole: vi.fn(),
-  deleteGroup: vi.fn(),
-  leaveGroup: vi.fn(),
-  getGroupFamilies: vi.fn(),
-  cancelGroupInvitation: vi.fn(),
-  getGroupInvitations: vi.fn(),
-  deleteGroupInvitation: vi.fn(),
-  inviteFamilyToGroup: vi.fn(),
-  removeFamilyFromGroup: vi.fn(),
-  updateGroup: vi.fn(),
-};
+// Note: OpenAPI client is mocked globally in setup.ts
 
 const mockUserGroups = [
   {
     id: 'group-1',
     name: 'Test Group',
+    description: 'Test Description',
     inviteCode: 'invite123',
     familyId: 'family-1',
     createdAt: '2024-01-01T00:00:00Z',
@@ -139,6 +103,11 @@ const mockUserGroups = [
     },
     familyCount: 3,
     scheduleCount: 2,
+    _count: {
+      families: 3,
+      schedules: 2,
+      members: 1
+    }
   },
 ];
 
@@ -150,6 +119,14 @@ const mockFamilies: GroupFamily[] = [
     isMyFamily: true,
     canManage: false,
     admins: [{ name: 'Test Admin', email: 'admin@example.com' }],
+    joinedAt: '2024-01-01T00:00:00Z',
+    inviteCode: 'FAM123',
+    memberCount: 2,
+    _count: {
+      members: 1,
+      children: 1,
+      vehicles: 1
+    }
   },
   {
     id: 'family-2',
@@ -158,6 +135,14 @@ const mockFamilies: GroupFamily[] = [
     isMyFamily: false,
     canManage: true,
     admins: [{ name: 'Test Member', email: 'member@example.com' }],
+    joinedAt: '2024-01-02T00:00:00Z',
+    inviteCode: 'FAM456',
+    memberCount: 3,
+    _count: {
+      members: 1,
+      children: 2,
+      vehicles: 1
+    }
   },
 ];
 
@@ -168,10 +153,59 @@ const mockOtherFamily: GroupFamily = {
   isMyFamily: false,
   canManage: true,
   admins: [{ name: 'Other Admin', email: 'other@example.com' }],
+  joinedAt: '2024-01-03T00:00:00Z',
+  inviteCode: 'FAM789',
+  memberCount: 2,
+  _count: {
+    members: 1,
+    children: 1,
+    vehicles: 1
+  }
 };
 
-// Get reference to the mocked API
-const mockApi = api as unknown;
+// Helper function to create standard GET mocks
+const createStandardGetMocks = (userGroupsData = mockUserGroups, familiesData = mockFamilies) => {
+  return (path: string, options?: any) => {
+    const { params } = options || {};
+
+    switch (path) {
+      case '/groups/my-groups':
+        console.log('🐛 API CALL: /groups/my-groups returning:', userGroupsData);
+        return Promise.resolve({
+          data: { data: userGroupsData, success: true, pagination: { page: 1, limit: 10, total: userGroupsData.length, totalPages: 1 } },
+          error: undefined
+        });
+      case '/groups/{groupId}':
+        if (params?.groupId === 'group-1') {
+          console.log('🐛 API CALL: /groups/{groupId} returning:', userGroupsData[0]);
+          return Promise.resolve({
+            data: { data: userGroupsData[0], success: true },
+            error: undefined
+          });
+        }
+        break;
+      case '/groups/{groupId}/families':
+        if (params?.groupId === 'group-1') {
+          console.log('🐛 API CALL: /groups/{groupId}/families returning:', familiesData);
+          return Promise.resolve({
+            data: { data: familiesData, success: true },
+            error: undefined
+          });
+        }
+        break;
+      default:
+        console.log('🐛 API CALL: Unhandled path:', path);
+        // Let the global mock handle other cases
+        break;
+    }
+
+    // Fall back to default global mock behavior
+    return Promise.resolve({
+      data: { data: [], success: true },
+      error: undefined
+    });
+  };
+};
 
 describe('ManageGroupPage', () => {
   const user = userEvent.setup();
@@ -179,32 +213,70 @@ describe('ManageGroupPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Apply comprehensive OpenAPI client mocks
-    const comprehensiveMocks = createMockOpenAPIClient();
-    Object.assign(mockApi, comprehensiveMocks);
+    // Use global mocks from setup.ts and override specific endpoints
+    mockClient.GET.mockImplementation(createStandardGetMocks());
 
-    // Override specific mocks for this test
-    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/groups') {
-        return Promise.resolve({
-          data: { data: mockUserGroups, success: true },
-          error: undefined
-        });
+    // Setup POST mocks for group operations
+    mockClient.POST.mockImplementation((path: string) => {
+      switch (path) {
+        case '/groups/{groupId}/leave':
+          return Promise.resolve({
+            data: { data: { success: true }, success: true },
+            error: undefined
+          });
+        default:
+          return Promise.resolve({
+            data: { data: { success: true }, success: true },
+            error: undefined
+          });
       }
-      if (path === '/groups/{groupId}/families') {
-        return Promise.resolve({
-          data: { data: mockFamilies, success: true },
-          error: undefined
-        });
+    });
+
+    // Setup PATCH mocks for updating family roles
+    mockClient.PATCH.mockImplementation((path: string, options?: any) => {
+      const { params } = options || {};
+
+      switch (path) {
+        case '/groups/{groupId}/families/{familyId}/role':
+          return Promise.resolve({
+            data: { data: { success: true }, success: true },
+            error: undefined
+          });
+        default:
+          return Promise.resolve({
+            data: { data: { success: true }, success: true },
+            error: undefined
+          });
       }
-      if (path === '/groups/{groupId}') {
-        return Promise.resolve({
-          data: { data: mockUserGroups[0], success: true },
-          error: undefined
-        });
+    });
+
+    // Setup DELETE mocks for group operations
+    mockClient.DELETE.mockImplementation((path: string, options?: any) => {
+      const { params } = options || {};
+
+      switch (path) {
+        case '/groups/{groupId}':
+          if (params?.groupId === 'group-1') {
+            return Promise.resolve({
+              data: { data: { success: true }, success: true },
+              error: undefined
+            });
+          }
+          break;
+        case '/groups/{groupId}/invitations/{invitationId}':
+          return Promise.resolve({
+            data: { data: { success: true }, success: true },
+            error: undefined
+          });
+        default:
+          return Promise.resolve({
+            data: { data: { success: true }, success: true },
+            error: undefined
+          });
       }
+
       return Promise.resolve({
-        data: { data: [], success: true },
+        data: { data: { success: true }, success: true },
         error: undefined
       });
     });
@@ -212,11 +284,19 @@ describe('ManageGroupPage', () => {
 
   describe('Basic Rendering', () => {
     it('renders loading state initially', async () => {
-      vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-        if (path === '/groups/{groupId}/families') {
-          return new Promise(() => {});
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/my-groups') {
+          return Promise.resolve({
+            data: { data: mockUserGroups, success: true, pagination: { page: 1, limit: 10, total: mockUserGroups.length, totalPages: 1 } },
+            error: undefined
+          });
         }
-        if (path === '/groups/{groupId}') {
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return new Promise(() => {}); // Never resolves to keep loading state
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
           return Promise.resolve({
             data: { data: mockUserGroups[0], success: true },
             error: undefined
@@ -235,6 +315,14 @@ describe('ManageGroupPage', () => {
 
     it('renders group information correctly', async () => {
       render(<ManageGroupPage />);
+
+      // Debug: Let's see what's actually rendered
+      await waitFor(() => {
+        const errorElement = screen.queryByTestId('ErrorState-Container-error');
+        if (errorElement) {
+          console.log('🐛 Error state found, DOM:', errorElement.innerHTML);
+        }
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('ManageGroupPage-Heading-pageTitle')).toBeInTheDocument();
@@ -289,7 +377,9 @@ describe('ManageGroupPage', () => {
           userRole: 'MEMBER' as const,
         },
       ];
-      mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
+
+      // Override the mock to return non-admin user groups
+      mockClient.GET.mockImplementation(createStandardGetMocks(nonAdminUserGroups, mockFamilies));
 
       render(<ManageGroupPage />);
 
@@ -323,9 +413,24 @@ describe('ManageGroupPage', () => {
     });
 
     it('updates family role successfully', async () => {
-      mockApiService.updateFamilyRole.mockResolvedValue({
-        success: true,
-        data: { message: 'Family role updated successfully' }
+      // Override PATCH mock to return success message
+      mockClient.PATCH.mockImplementation((path: string, options?: any) => {
+        const { params, body } = options || {};
+
+        if (path === '/groups/{groupId}/families/{familyId}/role') {
+          return Promise.resolve({
+            data: {
+              data: { success: true, message: 'Family role updated successfully' },
+              success: true
+            },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: { success: true }, success: true },
+          error: undefined
+        });
       });
 
       render(<ManageGroupPage />);
@@ -355,7 +460,10 @@ describe('ManageGroupPage', () => {
       await user.click(confirmButton);
 
       await waitFor(() => {
-        expect(mockApiService.updateFamilyRole).toHaveBeenCalledWith('group-1', 'family-2', 'ADMIN');
+        expect(mockClient.PATCH).toHaveBeenCalledWith('/groups/{groupId}/families/{familyId}/role', {
+          params: { groupId: 'group-1', familyId: 'family-2' },
+          body: { role: 'ADMIN' }
+        });
       });
 
       expect(screen.getByTestId('ManageGroupPage-Alert-successMessage')).toHaveTextContent('Family role updated successfully');
@@ -364,8 +472,6 @@ describe('ManageGroupPage', () => {
 
   describe('Group Deletion', () => {
     it('deletes group when admin confirms deletion', async () => {
-      mockApiService.deleteGroup.mockResolvedValue(undefined);
-
       render(<ManageGroupPage />);
 
       await waitFor(() => {
@@ -390,7 +496,9 @@ describe('ManageGroupPage', () => {
       });
 
       await waitFor(() => {
-        expect(mockApiService.deleteGroup).toHaveBeenCalledWith('group-1');
+        expect(mockClient.DELETE).toHaveBeenCalledWith('/groups/{groupId}', {
+          params: { groupId: 'group-1' }
+        });
       });
 
       expect(mockNavigate).toHaveBeenCalledWith('/groups');
@@ -405,7 +513,37 @@ describe('ManageGroupPage', () => {
           userRole: 'MEMBER' as const,
         },
       ];
-      mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
+
+      // Override the mock to return non-admin user groups
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        switch (path) {
+          case '/groups/{groupId}':
+            if (params?.groupId === 'group-1') {
+              return Promise.resolve({
+                data: { data: nonAdminUserGroups[0], success: true },
+                error: undefined
+              });
+            }
+            break;
+          case '/groups/{groupId}/families':
+            if (params?.groupId === 'group-1') {
+              return Promise.resolve({
+                data: { data: mockFamilies, success: true },
+                error: undefined
+              });
+            }
+            break;
+          default:
+            break;
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -421,8 +559,37 @@ describe('ManageGroupPage', () => {
           userRole: 'MEMBER' as const,
         },
       ];
-      mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
-      mockApiService.leaveGroup.mockResolvedValue(undefined);
+
+      // Override mocks for non-admin scenario
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        switch (path) {
+          case '/groups/{groupId}':
+            if (params?.groupId === 'group-1') {
+              return Promise.resolve({
+                data: { data: nonAdminUserGroups[0], success: true },
+                error: undefined
+              });
+            }
+            break;
+          case '/groups/{groupId}/families':
+            if (params?.groupId === 'group-1') {
+              return Promise.resolve({
+                data: { data: mockFamilies, success: true },
+                error: undefined
+              });
+            }
+            break;
+          default:
+            break;
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -441,7 +608,9 @@ describe('ManageGroupPage', () => {
       await user.click(confirmLeaveButton);
 
       await waitFor(() => {
-        expect(mockApiService.leaveGroup).toHaveBeenCalledWith('group-1');
+        expect(mockClient.POST).toHaveBeenCalledWith('/groups/{groupId}/leave', {
+          params: { groupId: 'group-1' }
+        });
       });
 
       expect(mockNavigate).toHaveBeenCalledWith('/groups');
@@ -454,8 +623,48 @@ describe('ManageGroupPage', () => {
           userRole: 'MEMBER' as const,
         },
       ];
-      mockApiService.getUserGroups.mockResolvedValue(nonAdminUserGroups);
-      mockApiService.leaveGroup.mockRejectedValue(new Error('Failed to leave group'));
+
+      // Override mocks for non-admin scenario with error
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        switch (path) {
+          case '/groups/{groupId}':
+            if (params?.groupId === 'group-1') {
+              return Promise.resolve({
+                data: { data: nonAdminUserGroups[0], success: true },
+                error: undefined
+              });
+            }
+            break;
+          case '/groups/{groupId}/families':
+            if (params?.groupId === 'group-1') {
+              return Promise.resolve({
+                data: { data: mockFamilies, success: true },
+                error: undefined
+              });
+            }
+            break;
+          default:
+            break;
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
+
+      // Override POST mock to throw error
+      mockClient.POST.mockImplementation((path: string) => {
+        if (path === '/groups/{groupId}/leave') {
+          return Promise.reject(new Error('Failed to leave group'));
+        }
+        return Promise.resolve({
+          data: { data: { success: true }, success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -539,7 +748,25 @@ describe('ManageGroupPage', () => {
 
   describe('Error Handling', () => {
     it('shows error state when families loading fails', async () => {
-      mockApiService.getGroupFamilies.mockRejectedValue(new Error('Failed to fetch families'));
+      // Override GET mock to throw error for families endpoint
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.reject(new Error('Failed to fetch families'));
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -563,10 +790,38 @@ describe('ManageGroupPage', () => {
         invitationId: 'invitation-123',
         invitedAt: '2024-01-01T00:00:00Z',
         expiresAt: '2024-01-08T00:00:00Z',
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 1,
+        _count: {
+          members: 1,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([mockOtherFamily, mockFamilyWithInvitation]);
-      mockApiService.cancelGroupInvitation.mockResolvedValue(undefined);
+      // Override GET mock to return families with invitation
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [mockOtherFamily, mockFamilyWithInvitation], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -590,7 +845,9 @@ describe('ManageGroupPage', () => {
 
       // Verify API call was made
       await waitFor(() => {
-        expect(mockApiService.cancelGroupInvitation).toHaveBeenCalledWith('group-1', 'invitation-123');
+        expect(mockClient.DELETE).toHaveBeenCalledWith('/groups/{groupId}/invitations/{invitationId}', {
+          params: { groupId: 'group-1', invitationId: 'invitation-123' }
+        });
       });
     });
 
@@ -605,10 +862,38 @@ describe('ManageGroupPage', () => {
         invitationId: 'invitation-123',
         invitedAt: '2024-01-01T00:00:00Z',
         expiresAt: '2024-01-08T00:00:00Z',
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 1,
+        _count: {
+          members: 1,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([mockOtherFamily, mockFamilyWithInvitation]);
-      mockApiService.cancelGroupInvitation.mockResolvedValue(undefined);
+      // Override GET mock to return families with invitation
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [mockOtherFamily, mockFamilyWithInvitation], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -640,9 +925,38 @@ describe('ManageGroupPage', () => {
         isMyFamily: false,
         canManage: true,
         admins: [{ name: 'Single Admin', email: 'single@admin.com' }],
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 1,
+        _count: {
+          members: 1,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([familyWithSingleAdmin]);
+      // Override GET mock to return families with single admin
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [familyWithSingleAdmin], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -667,9 +981,38 @@ describe('ManageGroupPage', () => {
           { name: 'Second Admin', email: 'second@admin.com' },
           { name: 'Third Admin', email: 'third@admin.com' },
         ],
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 3,
+        _count: {
+          members: 3,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([familyWithMultipleAdmins]);
+      // Override GET mock to return families with multiple admins
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [familyWithMultipleAdmins], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -708,9 +1051,38 @@ describe('ManageGroupPage', () => {
         isMyFamily: false,
         canManage: true,
         admins: [], // Simulate missing admins with empty array
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 0,
+        _count: {
+          members: 0,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([familyWithMissingAdmins]);
+      // Override GET mock to return families with missing admins
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [familyWithMissingAdmins], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -734,9 +1106,38 @@ describe('ManageGroupPage', () => {
         invitationId: 'invitation-123',
         invitedAt: '2024-01-01T00:00:00Z',
         expiresAt: '2024-01-08T00:00:00Z',
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 1,
+        _count: {
+          members: 1,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([pendingFamily]);
+      // Override GET mock to return pending family
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [pendingFamily], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -770,9 +1171,38 @@ describe('ManageGroupPage', () => {
         invitationId: 'invitation-123',
         invitedAt: '2024-01-01T00:00:00Z',
         expiresAt: '2024-01-08T00:00:00Z',
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 1,
+        _count: {
+          members: 1,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([pendingFamily]);
+      // Override GET mock to return pending family
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [pendingFamily], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 
@@ -799,9 +1229,38 @@ describe('ManageGroupPage', () => {
         invitationId: 'invitation-456',
         invitedAt: '2024-01-01T00:00:00Z',
         expiresAt: '2024-01-08T00:00:00Z',
+        joinedAt: '2024-01-01T00:00:00Z',
+        inviteCode: 'FAM123',
+        memberCount: 1,
+        _count: {
+          members: 1,
+          children: 0,
+          vehicles: 0
+        }
       };
 
-      mockApiService.getGroupFamilies.mockResolvedValue([pendingAdminFamily]);
+      // Override GET mock to return pending admin family
+      mockClient.GET.mockImplementation((path: string, options?: any) => {
+        const { params } = options || {};
+
+        if (path === '/groups/{groupId}/families' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: [pendingAdminFamily], success: true },
+            error: undefined
+          });
+        }
+        if (path === '/groups/{groupId}' && params?.groupId === 'group-1') {
+          return Promise.resolve({
+            data: { data: mockUserGroups[0], success: true },
+            error: undefined
+          });
+        }
+
+        return Promise.resolve({
+          data: { data: [], success: true },
+          error: undefined
+        });
+      });
 
       render(<ManageGroupPage />);
 

@@ -1,133 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
+import { groupApiService } from '../groupApiService';
+import { api } from '../api';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = vi.mocked(axios);
+// Mock the OpenAPI client
+vi.mock('../api');
+const mockedApi = vi.mocked(api);
 
 describe('GroupApiService - Pending Invitations', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
-  describe('storePendingGroupInvitation', () => {
-    it('should store pending group invitation successfully', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      const groupId = 'group-123';
-      const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            id: 'pending-123',
-            email,
-            groupId,
-            groupName: 'Test Group',
-            inviteCode,
-            expiresAt: new Date().toISOString(),
-            createdAt: new Date().toISOString()
-          },
-          message: 'Pending group invitation stored successfully'
-        }
-      };
-
-      mockedAxios.post.mockResolvedValue(mockResponse);
-
-      // Act
-      await apiService.storePendingGroupInvitation(email, groupId, inviteCode);
-
-      // Assert
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        'http://localhost:3001/api/v1/groups/pending-invitation',
-        { email, groupId, inviteCode }
-      );
-    });
-
-    it('should throw error when API returns error', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      const groupId = 'group-123';
-      const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: false,
-          error: 'Invalid invite code'
-        }
-      };
-
-      mockedAxios.post.mockResolvedValue(mockResponse);
-
+  describe('storePendingGroupInvitation (deprecated)', () => {
+    it('should throw deprecation error when called', async () => {
       // Act & Assert
-      await expect(
-        apiService.storePendingGroupInvitation(email, groupId, inviteCode)
-      ).rejects.toThrow('Invalid invite code');
+      await expect(groupApiService.storePendingGroupInvitation())
+        .rejects.toThrow('Method not supported - no corresponding OpenAPI endpoint');
+
+      expect(console.warn).toHaveBeenCalledWith(
+        'storePendingGroupInvitation: This method is deprecated - no corresponding OpenAPI endpoint found'
+      );
     });
   });
 
-  describe('getPendingGroupInvitationByEmail', () => {
-    it('should return pending invitation when found', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      
-      const mockInvitation = {
-        id: 'pending-123',
-        email,
-        groupId: 'group-123',
-        groupName: 'Test Group',
-        inviteCode: 'INVITE123',
-        inviterName: 'John Doe',
-        expiresAt: new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        group: {
-          id: 'group-123',
-          name: 'Test Group',
-          inviteCode: 'INVITE123'
-        }
-      };
+  describe('getPendingGroupInvitationByEmail (deprecated)', () => {
+    it('should throw deprecation error when called', async () => {
+      // Act & Assert
+      await expect(groupApiService.getPendingGroupInvitationByEmail())
+        .rejects.toThrow('Method not supported - no corresponding OpenAPI endpoint');
 
-      const mockResponse = {
-        data: {
-          success: true,
-          data: mockInvitation
-        },
-        status: 200
-      };
-
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await apiService.getPendingGroupInvitationByEmail(email);
-
-      // Assert
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        `http://localhost:3001/api/v1/groups/pending-invitation/${encodeURIComponent(email)}`
+      expect(console.warn).toHaveBeenCalledWith(
+        'getPendingGroupInvitationByEmail: This method is deprecated - no corresponding OpenAPI endpoint found'
       );
-      expect(result).toEqual(mockInvitation);
-    });
-
-    it('should return null when invitation not found (404)', async () => {
-      // Arrange
-      const email = 'test@example.com';
-      
-      const mockResponse = {
-        data: {
-          success: false,
-          data: null,
-          message: 'No pending group invitation found for this email'
-        },
-        status: 404
-      };
-
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await apiService.getPendingGroupInvitationByEmail(email);
-
-      // Assert
-      expect(result).toBeNull();
     });
   });
 
@@ -136,7 +41,7 @@ describe('GroupApiService - Pending Invitations', () => {
       // Arrange
       const groupId = 'group-123';
       const searchTerm = 'Martin';
-      
+
       const mockFamilies = [
         {
           id: 'family-1',
@@ -158,44 +63,46 @@ describe('GroupApiService - Pending Invitations', () => {
         }
       ];
 
-      const mockResponse = {
-        data: {
-          success: true,
-          data: mockFamilies
-        }
-      };
-
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedApi.POST.mockResolvedValue({
+        data: { data: mockFamilies },
+        error: undefined,
+        response: new Response()
+      });
 
       // Act
-      const result = await apiService.searchFamiliesForInvitation(groupId, searchTerm);
+      const result = await groupApiService.searchFamiliesForInvitation(groupId, searchTerm);
 
       // Assert
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        `http://localhost:3001/api/v1/groups/${groupId}/search-families`,
-        { searchTerm }
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/{groupId}/search-families',
+        {
+          params: { path: { groupId } },
+          body: { searchTerm }
+        }
       );
       expect(result).toEqual(mockFamilies);
     });
 
-    it('should require authentication', async () => {
+    it('should handle API errors when searching families', async () => {
       // Arrange
       const groupId = 'group-123';
       const searchTerm = 'Martin';
-      
-      const mockResponse = {
-        data: {
-          success: false,
-          error: 'Authentication required'
-        }
-      };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      const error = new Error('Authentication required');
+      mockedApi.POST.mockRejectedValue(error);
 
       // Act & Assert
       await expect(
-        apiService.searchFamiliesForInvitation(groupId, searchTerm)
+        groupApiService.searchFamiliesForInvitation(groupId, searchTerm)
       ).rejects.toThrow('Authentication required');
+
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/{groupId}/search-families',
+        {
+          params: { path: { groupId } },
+          body: { searchTerm }
+        }
+      );
     });
   });
 
@@ -205,108 +112,116 @@ describe('GroupApiService - Pending Invitations', () => {
       const groupId = 'group-123';
       const familyId = 'family-456';
       const personalMessage = 'Welcome to our group!';
-      
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            invitationsSent: 2,
-            familyName: 'Target Family',
-            groupName: 'Test Group'
-          },
-          message: 'Family invitation sent successfully'
-        }
+
+      const mockResponseData = {
+        invitationsSent: 2,
+        familyName: 'Target Family',
+        groupName: 'Test Group'
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedApi.POST.mockResolvedValue({
+        data: { data: mockResponseData },
+        error: undefined,
+        response: new Response()
+      });
 
       // Act
-      const result = await apiService.inviteFamilyToGroup(groupId, familyId, 'MEMBER', personalMessage);
+      const result = await groupApiService.inviteFamilyToGroup(groupId, familyId, 'MEMBER', personalMessage);
 
       // Assert
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        `http://localhost:3001/api/v1/groups/${groupId}/invite`,
-        { familyId, role: 'MEMBER', personalMessage }
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/{groupId}/invite',
+        {
+          params: { path: { groupId } },
+          body: { familyId, role: 'MEMBER', personalMessage }
+        }
       );
-      expect(result).toEqual(mockResponse.data.data);
+      expect(result).toEqual(mockResponseData);
     });
 
     it('should handle family already invited error', async () => {
       // Arrange
       const groupId = 'group-123';
       const familyId = 'family-456';
-      
-      const mockResponse = {
-        data: {
-          success: false,
-          error: 'This family already has a pending invitation to this group'
-        }
-      };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      const error = new Error('This family already has a pending invitation to this group');
+      mockedApi.POST.mockRejectedValue(error);
 
       // Act & Assert
       await expect(
-        apiService.inviteFamilyToGroup(groupId, familyId)
+        groupApiService.inviteFamilyToGroup(groupId, familyId)
       ).rejects.toThrow('This family already has a pending invitation to this group');
+
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/{groupId}/invite',
+        {
+          params: { path: { groupId } },
+          body: { familyId, role: undefined, personalMessage: undefined }
+        }
+      );
     });
   });
 
   describe('validateGroupInvitationEligibility', () => {
-    it('should validate user eligibility for group invitation', async () => {
+    beforeEach(() => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    it('should validate user eligibility for group invitation using auth validation endpoint', async () => {
       // Arrange
       const groupId = 'group-123';
       const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            canJoin: true,
-            userFamily: {
-              id: 'family-123',
-              name: 'User Family'
-            },
-            groupInfo: {
-              id: 'group-123',
-              name: 'Test Group'
-            }
-          }
+
+      const mockResponseData = {
+        canJoin: true,
+        userFamily: {
+          id: 'family-123',
+          name: 'User Family'
+        },
+        groupInfo: {
+          id: 'group-123',
+          name: 'Test Group'
         }
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedApi.POST.mockResolvedValue({
+        data: { data: mockResponseData },
+        error: undefined,
+        response: new Response()
+      });
 
       // Act
-      const result = await apiService.validateGroupInvitationEligibility(groupId, inviteCode);
+      const result = await groupApiService.validateGroupInvitationEligibility(groupId, inviteCode);
 
       // Assert
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        `http://localhost:3001/api/v1/groups/${groupId}/validate-invitation`,
-        { inviteCode }
+      expect(console.warn).toHaveBeenCalledWith(
+        'validateGroupInvitationEligibility: Using validation endpoint as no specific eligibility endpoint found'
       );
-      expect(result).toEqual(mockResponse.data.data);
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/validate-invite-auth',
+        { body: { inviteCode } }
+      );
+      expect(result).toEqual(mockResponseData);
     });
 
     it('should handle requires family creation', async () => {
       // Arrange
       const groupId = 'group-123';
       const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            requiresFamilyCreation: true,
-            redirectTo: '/onboarding?returnTo=group-invitation&groupId=group-123'
-          }
-        }
+
+      const mockResponseData = {
+        requiresFamilyCreation: true,
+        redirectTo: '/onboarding?returnTo=group-invitation&groupId=group-123'
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedApi.POST.mockResolvedValue({
+        data: { data: mockResponseData },
+        error: undefined,
+        response: new Response()
+      });
 
       // Act
-      const result = await apiService.validateGroupInvitationEligibility(groupId, inviteCode);
+      const result = await groupApiService.validateGroupInvitationEligibility(groupId, inviteCode);
 
       // Assert
       expect(result.requiresFamilyCreation).toBe(true);
@@ -317,21 +232,20 @@ describe('GroupApiService - Pending Invitations', () => {
       // Arrange
       const groupId = 'group-123';
       const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            cannotJoin: true,
-            reason: 'Seuls les administrateurs de famille peuvent rejoindre des groupes'
-          }
-        }
+
+      const mockResponseData = {
+        cannotJoin: true,
+        reason: 'Seuls les administrateurs de famille peuvent rejoindre des groupes'
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedApi.POST.mockResolvedValue({
+        data: { data: mockResponseData },
+        error: undefined,
+        response: new Response()
+      });
 
       // Act
-      const result = await apiService.validateGroupInvitationEligibility(groupId, inviteCode);
+      const result = await groupApiService.validateGroupInvitationEligibility(groupId, inviteCode);
 
       // Assert
       expect(result.cannotJoin).toBe(true);
@@ -340,56 +254,61 @@ describe('GroupApiService - Pending Invitations', () => {
   });
 
   describe('joinGroupWithFamily', () => {
-    it('should join group with family successfully', async () => {
-      // Arrange
-      const groupId = 'group-123';
-      const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: true,
-          data: {
-            groupMembership: {
-              familyId: 'family-123',
-              groupId: 'group-123',
-              role: 'MEMBER'
-            },
-            message: 'Family successfully joined the group'
-          }
-        }
-      };
-
-      mockedAxios.post.mockResolvedValue(mockResponse);
-
-      // Act
-      const result = await apiService.joinGroupWithFamily(groupId, inviteCode);
-
-      // Assert
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        `http://localhost:3001/api/v1/groups/${groupId}/join-with-family`,
-        { inviteCode }
-      );
-      expect(result).toEqual(mockResponse.data.data);
+    beforeEach(() => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {});
     });
 
-    it('should require authentication', async () => {
+    it('should join group with family successfully using general join endpoint', async () => {
       // Arrange
       const groupId = 'group-123';
       const inviteCode = 'INVITE123';
-      
-      const mockResponse = {
-        data: {
-          success: false,
-          error: 'Authentication required'
-        }
+
+      const mockResponseData = {
+        groupMembership: {
+          familyId: 'family-123',
+          groupId: 'group-123',
+          role: 'MEMBER'
+        },
+        message: 'Family successfully joined the group'
       };
 
-      mockedAxios.post.mockResolvedValue(mockResponse);
+      mockedApi.POST.mockResolvedValue({
+        data: { data: mockResponseData },
+        error: undefined,
+        response: new Response()
+      });
+
+      // Act
+      const result = await groupApiService.joinGroupWithFamily(groupId, inviteCode);
+
+      // Assert
+      expect(console.warn).toHaveBeenCalledWith(
+        'joinGroupWithFamily: Using join group endpoint as no family-specific join endpoint found'
+      );
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/join',
+        { body: { inviteCode } }
+      );
+      expect(result).toEqual(mockResponseData);
+    });
+
+    it('should handle authentication errors', async () => {
+      // Arrange
+      const groupId = 'group-123';
+      const inviteCode = 'INVITE123';
+
+      const error = new Error('Authentication required');
+      mockedApi.POST.mockRejectedValue(error);
 
       // Act & Assert
       await expect(
-        apiService.joinGroupWithFamily(groupId, inviteCode)
+        groupApiService.joinGroupWithFamily(groupId, inviteCode)
       ).rejects.toThrow('Authentication required');
+
+      expect(mockedApi.POST).toHaveBeenCalledWith(
+        '/groups/join',
+        { body: { inviteCode } }
+      );
     });
   });
 });
