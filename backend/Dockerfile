@@ -22,6 +22,9 @@ COPY tsconfig.json ./
 # Copy assets (logo for emails)
 COPY assets/ ./assets/
 
+# Fix ownership for node user
+RUN chown -R node:node /app/src
+
 # Generate Prisma client
 RUN npx prisma generate
 
