@@ -1472,6 +1472,7 @@
         ],
         "summary": "Request magic link for authentication",
         "description": "Send a magic link to the user email for passwordless authentication",
+        "security": [],
         "operationId": "postauthMagicLink",
         "requestBody": {
           "content": {
@@ -1536,6 +1537,7 @@
         ],
         "summary": "Verify magic link and get JWT token",
         "description": "Verify the magic link token and code verifier to authenticate the user and receive JWT tokens",
+        "security": [],
         "operationId": "postauthVerify",
         "parameters": [
           {
@@ -1585,6 +1587,7 @@
         ],
         "summary": "Refresh JWT token",
         "description": "Refresh the JWT access token using a valid refresh token with token rotation",
+        "security": [],
         "operationId": "postauthRefresh",
         "requestBody": {
           "content": {
@@ -1957,6 +1960,7 @@
         ],
         "summary": "Confirm account deletion",
         "description": "Confirm account deletion using PKCE-protected token from email. This permanently deletes the user account and all associated data including family relationships, group memberships, and personal information. This action is irreversible.",
+        "security": [],
         "operationId": "postauthProfileDeleteConfirm",
         "requestBody": {
           "content": {

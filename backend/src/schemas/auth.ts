@@ -388,6 +388,7 @@ registerPath({
   tags: ['Authentication'],
   summary: 'Request magic link for authentication',
   description: 'Send a magic link to the user email for passwordless authentication',
+  security: [], // No authentication required for requesting magic link
   request: {
     body: {
       content: {
@@ -427,6 +428,7 @@ registerPath({
   tags: ['Authentication'],
   summary: 'Verify magic link and get JWT token',
   description: 'Verify the magic link token and code verifier to authenticate the user and receive JWT tokens',
+  security: [], // No authentication required for verifying magic link
   request: {
     body: {
       content: {
@@ -463,6 +465,7 @@ registerPath({
   tags: ['Authentication'],
   summary: 'Refresh JWT token',
   description: 'Refresh the JWT access token using a valid refresh token with token rotation',
+  security: [], // No authentication required for refresh token (it's self-contained)
   request: {
     body: {
       content: {
@@ -708,6 +711,7 @@ registerPath({
   tags: ['Authentication'],
   summary: 'Confirm account deletion',
   description: 'Confirm account deletion using PKCE-protected token from email. This permanently deletes the user account and all associated data including family relationships, group memberships, and personal information. This action is irreversible.',
+  security: [], // No authentication required for account deletion confirmation (uses email token)
   request: {
     body: {
       content: {
