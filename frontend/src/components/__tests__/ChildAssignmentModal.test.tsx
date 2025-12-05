@@ -404,15 +404,57 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('should show capacity warning when at full capacity', async () => {
+      // Create a slot where all vehicle capacity is used
       const fullCapacitySlot = {
         ...mockScheduleSlotWithVehicles,
-        totalCapacity: 3, // Same as number of assigned children
-        availableSeats: 0,
-        childAssignments: mockScheduleSlotWithVehicles.childAssignments
+        // Reduce vehicle capacities to match current assignments (3 children assigned)
+        vehicleAssignments: [
+          {
+            ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
+            vehicle: {
+              ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle,
+              capacity: 2 // Bus #1 with capacity 2
+            }
+          },
+          {
+            ...mockScheduleSlotWithVehicles.vehicleAssignments[1],
+            vehicle: {
+              ...mockScheduleSlotWithVehicles.vehicleAssignments[1].vehicle,
+              capacity: 1 // Van #1 with capacity 1
+            }
+          }
+        ],
+        // Assign 2 children to Bus #1 and 1 child to Van #1 (total capacity = 3)
+        childAssignments: [
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: {
+              id: 'child-1',
+              name: 'Alice',
+              parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' }
+            }
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: {
+              id: 'child-2',
+              name: 'Bob',
+              parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' }
+            }
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-2',
+            child: {
+              id: 'child-3',
+              name: 'Charlie',
+              parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' }
+            }
+          }
+        ]
       };
 
       setupOpenAPIMocks({
-        children: mockAvailableChildren,
+        children: mockAvailableChildren, // child-4 and child-5 are still available
         scheduleSlot: fullCapacitySlot
       });
 
@@ -1096,12 +1138,6 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('enables add button after successful child assignment when capacity remains', async () => {
-      const mockAssignChild = vi.fn().mockResolvedValue({
-        data: { data: null, success: true },
-        error: undefined
-      });
-      vi.mocked(mockApi.POST).mockImplementation(mockAssignChild);
-
       // Vehicle with capacity 3, one child already assigned
       const vehicleWithCapacity = {
         ...mockScheduleSlotWithVehicles,
@@ -1119,11 +1155,17 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-
       setupOpenAPIMocks({
         children: mockAvailableChildren,
         scheduleSlot: vehicleWithCapacity
       });
+
+      // Set up the specific POST mock for assignment after the general setup
+      const mockAssignChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      mockApi.POST.mockImplementation(mockAssignChild);
 
       renderModal({ 
         scheduleSlot: vehicleWithCapacity,
@@ -1147,7 +1189,13 @@ describe('ChildAssignmentModal', () => {
       fireEvent.click(addButton);
 
       await waitFor(() => {
-        expect(mockAssignChild).toHaveBeenCalledWith('slot-1', 'child-4', 'vehicle-assignment-1');
+        expect(mockAssignChild).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
+          params: { path: { scheduleSlotId: 'slot-1' } },
+          body: {
+            childId: 'child-4',
+            vehicleAssignmentId: 'vehicle-assignment-1'
+          }
+        });
       });
 
       // After successful assignment, button should still be usable if capacity allows

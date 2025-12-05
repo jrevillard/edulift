@@ -46,18 +46,40 @@ export const sendSuccessResponse = function <T extends z.ZodType>(
   schema: T,
   data: any,
 ): void {
-  const response: ApiResponse = {
-    success: true,
-    data: schema ? data : data, // Will be validated below
-  };
-
   // Skip validation in test environment to avoid mock data format issues
   const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
 
   if (schema && !isTestEnvironment) {
-    validateAndSendResponse(res, status, schema, response);
+    // Validate the response using the provided schema
+    const result = schema.safeParse({ success: true, data });
+
+    if (!result.success) {
+      responseLogger.error('Response validation failed - OpenAPI contract violation', {
+        path: res.req?.path,
+        method: res.req?.method,
+        statusCode: status,
+        validationErrors: result.error.issues,
+        expectedSchema: 'Schema validation failed',
+      });
+
+      // Send standardized error response for validation failure
+      const errorResponse: ApiResponse = {
+        success: false,
+        error: 'Internal server error - response format validation failed',
+      };
+
+      res.status(500).json(errorResponse);
+      return;
+    }
+
+    // Schema validation passed - send the validated data
+    res.status(status).json(result.data);
   } else {
     // No schema validation - send directly (legacy endpoints or test environment)
+    const response: ApiResponse = {
+      success: true,
+      data,
+    };
     res.status(status).json(response);
   }
 };

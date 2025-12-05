@@ -17,11 +17,16 @@ extendZodWithOpenApi(z);
 // ============================================================================
 
 export const GroupRoleEnum = z.enum(['MEMBER', 'ADMIN']).openapi({
-  description: 'Role of a family within a group',
+  description: 'Role of a family within a group (from database)',
   example: 'MEMBER',
 });
 
-export const UserRoleEnum = z.enum(['OWNER', 'ADMIN', 'MEMBER']).openapi({
+export const FamilyGroupRoleEnum = z.enum(['MEMBER', 'ADMIN', 'OWNER']).openapi({
+  description: 'Role of a family within a group (including special OWNER case)',
+  example: 'MEMBER',
+});
+
+export const UserRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
   description: 'User\'s role within a group context',
   example: 'MEMBER',
 });
@@ -110,7 +115,7 @@ export const UpdateGroupSchema = z.object({
 });
 
 export const UpdateFamilyRoleSchema = z.object({
-  role: GroupRoleEnum.openapi({
+  role: FamilyGroupRoleEnum.openapi({
     example: 'ADMIN',
     description: 'New role for the family in the group',
   }),
@@ -126,7 +131,7 @@ export const InviteFamilySchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Target family ID to invite',
     }),
-  role: GroupRoleEnum.default('MEMBER').openapi({
+  role: FamilyGroupRoleEnum.default('MEMBER').openapi({
     example: 'MEMBER',
     description: 'Role for the invited family (defaults to MEMBER)',
   }),
@@ -273,6 +278,47 @@ export const OwnerFamilySchema = z.object({
   description: 'Owner family information',
 });
 
+// Schema for group families endpoint response (public API)
+export const GroupFamilySchema = z.object({
+  id: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901237',
+      description: 'Family identifier',
+    }),
+  name: z.string()
+    .openapi({
+      example: 'Johnson Family',
+      description: 'Family name',
+    }),
+  role: FamilyGroupRoleEnum.openapi({
+    example: 'MEMBER',
+    description: 'Family role in the group',
+  }),
+  isMyFamily: z.boolean()
+    .openapi({
+      example: false,
+      description: 'Whether this is the requester\'s family',
+    }),
+  canManage: z.boolean()
+    .openapi({
+      example: false,
+      description: 'Whether the requester can manage this family',
+    }),
+  admins: z.array(z.object({
+    name: z.string(),
+    email: z.email(),
+  })).openapi({
+    description: 'Family admin contacts',
+    example: [{
+      name: 'John Johnson',
+      email: 'john@example.com',
+    }],
+  }),
+}).openapi({
+  title: 'Group Family',
+  description: 'Family information for group families endpoint',
+});
+
 export const FamilyGroupMemberSchema = z.object({
   id: z.cuid()
     .openapi({
@@ -284,7 +330,7 @@ export const FamilyGroupMemberSchema = z.object({
       example: 'cl123456789012345678901238',
       description: 'Family identifier',
     }),
-  role: GroupRoleEnum.openapi({
+  role: FamilyGroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Family role in the group',
   }),
@@ -429,7 +475,7 @@ export const GroupInvitationSchema = z.object({
       example: 'cl123456789012345678901238',
       description: 'Target family identifier',
     }),
-  role: GroupRoleEnum.openapi({
+  role: FamilyGroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Invited role in the group',
   }),
@@ -490,7 +536,7 @@ export const InvitationValidationSchema = z.object({
   invitation: z.object({
     id: z.cuid(),
     expiresAt: z.iso.datetime(),
-    role: GroupRoleEnum,
+    role: FamilyGroupRoleEnum,
   }).optional()
     .openapi({
       description: 'Invitation information (if valid)',
@@ -541,7 +587,7 @@ export const GroupMembershipSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
     }),
-  role: GroupRoleEnum.openapi({
+  role: FamilyGroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Family role in the group',
   }),
@@ -641,6 +687,17 @@ export const DefaultScheduleResponseSchema = z.object({
   description: 'Default schedule configuration',
 });
 
+// ============================================================================
+// GROUP FAMILIES RESPONSE SCHEMA
+// ============================================================================
+export const GroupFamiliesResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.array(GroupFamilySchema),
+}).openapi({
+  title: 'Group Families Response',
+  description: 'Response for get group families endpoint',
+});
+
 // Register schemas with OpenAPI registry
 registry.register('CreateGroupRequest', CreateGroupSchema);
 registry.register('JoinGroupRequest', JoinGroupSchema);
@@ -650,6 +707,7 @@ registry.register('InviteFamilyRequest', InviteFamilySchema);
 registry.register('SearchFamiliesRequest', SearchFamiliesSchema);
 registry.register('ValidateInviteRequest', ValidateInviteSchema);
 registry.register('UpdateScheduleConfigRequest', UpdateScheduleConfigSchema);
+registry.register('GroupFamiliesResponse', GroupFamiliesResponseSchema);
 
 
 
@@ -851,10 +909,7 @@ registerPath({
       description: 'Group families retrieved successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.array(FamilyGroupMemberSchema),
-          }),
+          schema: GroupFamiliesResponseSchema,
         },
       },
     },
