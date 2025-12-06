@@ -513,22 +513,22 @@ export const GroupInvitationSchema = z.object({
       example: 'ABC123XYZ',
       description: 'Invitation code',
     }),
-  expiresAt: z.iso.datetime().optional()
+  expiresAt: z.date().optional().transform(val => val?.toISOString())
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
       description: 'Invitation expiration timestamp',
     }),
-  acceptedAt: z.iso.datetime().nullable().optional()
+  acceptedAt: z.date().nullable().optional().transform(val => val?.toISOString())
     .openapi({
       example: '2023-01-05T00:00:00.000Z',
       description: 'Invitation acceptance timestamp',
     }),
-  createdAt: z.iso.datetime().optional()
+  createdAt: z.date().optional().transform(val => val?.toISOString())
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
     }),
-  updatedAt: z.iso.datetime().optional()
+  updatedAt: z.date().optional().transform(val => val?.toISOString())
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation update timestamp',

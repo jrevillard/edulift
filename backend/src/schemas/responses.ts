@@ -150,9 +150,42 @@ export const RecentActivitySuccessResponseSchema = createSuccessResponseSchema(R
 export const UserDashboardStatsSuccessResponseSchema = createSuccessResponseSchema(DashboardStatsSchema);
 
 /**
- * Weekly dashboard data schema (extracted from WeeklyDashboardResponseSchema)
+ * Weekly dashboard data schema (matches DashboardService.getWeeklyDashboard response)
  */
-export const WeeklyDashboardDataSchema = WeeklyDashboardResponseSchema.shape.data;
+export const WeeklyDashboardDataSchema = z.object({
+  days: z.array(z.object({
+    date: z.string(),
+    dayName: z.string(),
+    transportSlots: z.array(z.object({
+      id: z.cuid(),
+      datetime: z.string(),
+      time: z.string(),
+      vehicle: z.object({
+        id: z.cuid(),
+        name: z.string(),
+        capacity: z.number().int(),
+      }).optional(),
+      driver: z.object({
+        id: z.cuid(),
+        name: z.string(),
+      }).optional(),
+      children: z.array(z.object({
+        id: z.cuid(),
+        name: z.string(),
+      })),
+    })),
+    hasTransport: z.boolean(),
+  })).optional(),
+  startDate: z.string(),
+  endDate: z.string(),
+  generatedAt: z.string(),
+  metadata: z.object({
+    familyId: z.cuid(),
+    familyName: z.string(),
+    totalGroups: z.number().int(),
+    totalChildren: z.number().int(),
+  }).optional(),
+});
 
 export const FcmTokenSuccessResponseSchema = createSuccessResponseSchema(FcmTokenResponseSchema);
 
