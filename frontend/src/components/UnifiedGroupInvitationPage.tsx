@@ -6,7 +6,7 @@ import { useMobileDetection } from '../hooks/useMobileDetection';
 import { attemptMobileAppOpen, parseSearchParams } from '../utils/mobileRedirection';
 import { authService } from '../services/authService';
 import { unifiedInvitationService } from '../services/unifiedInvitationService';
-import type { FamilyMember } from '../types/family';
+import type { FamilyMember } from '../services/familyApiService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Alert, AlertDescription } from './ui/alert';
 import { Button } from './ui/button';

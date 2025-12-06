@@ -6460,6 +6460,7 @@
                             "EXPIRED",
                             "CANCELLED"
                           ],
+                          "default": "PENDING",
                           "example": "PENDING",
                           "description": "Invitation status"
                         },
@@ -6470,26 +6471,26 @@
                         },
                         "expiresAt": {
                           "type": "string",
-                          "format": "date-time",
+                          "format": "date",
                           "example": "2023-01-08T00:00:00.000Z",
                           "description": "Invitation expiration timestamp"
                         },
                         "acceptedAt": {
                           "type": "string",
                           "nullable": true,
-                          "format": "date-time",
+                          "format": "date",
                           "example": "2023-01-05T00:00:00.000Z",
                           "description": "Invitation acceptance timestamp"
                         },
                         "createdAt": {
                           "type": "string",
-                          "format": "date-time",
+                          "format": "date",
                           "example": "2023-01-01T00:00:00.000Z",
                           "description": "Invitation creation timestamp"
                         },
                         "updatedAt": {
                           "type": "string",
-                          "format": "date-time",
+                          "format": "date",
                           "example": "2023-01-01T00:00:00.000Z",
                           "description": "Invitation update timestamp"
                         },
@@ -6505,6 +6506,16 @@
                           "format": "cuid",
                           "example": "cl123456789012345678901237",
                           "description": "User who created the invitation"
+                        },
+                        "invitationId": {
+                          "type": "string",
+                          "example": "invitation-123",
+                          "description": "Legacy invitation identifier (for backward compatibility)"
+                        },
+                        "familyId": {
+                          "type": "string",
+                          "example": "family-1",
+                          "description": "Legacy family identifier (for backward compatibility)"
                         },
                         "invitedByUser": {
                           "type": "object",
@@ -6564,24 +6575,10 @@
                         }
                       },
                       "required": [
-                        "id",
-                        "groupId",
-                        "targetFamilyId",
-                        "email",
-                        "role",
-                        "personalMessage",
-                        "invitedBy",
-                        "status",
-                        "inviteCode",
-                        "expiresAt",
-                        "acceptedAt",
-                        "createdAt",
-                        "updatedAt",
-                        "acceptedBy",
-                        "createdBy"
+                        "role"
                       ],
                       "title": "Group Invitation",
-                      "description": "Complete group invitation information matching service response"
+                      "description": "Group invitation information with flexible schema for backward compatibility"
                     }
                   },
                   "required": [
@@ -6708,6 +6705,7 @@
                               "EXPIRED",
                               "CANCELLED"
                             ],
+                            "default": "PENDING",
                             "example": "PENDING",
                             "description": "Invitation status"
                           },
@@ -6718,26 +6716,26 @@
                           },
                           "expiresAt": {
                             "type": "string",
-                            "format": "date-time",
+                            "format": "date",
                             "example": "2023-01-08T00:00:00.000Z",
                             "description": "Invitation expiration timestamp"
                           },
                           "acceptedAt": {
                             "type": "string",
                             "nullable": true,
-                            "format": "date-time",
+                            "format": "date",
                             "example": "2023-01-05T00:00:00.000Z",
                             "description": "Invitation acceptance timestamp"
                           },
                           "createdAt": {
                             "type": "string",
-                            "format": "date-time",
+                            "format": "date",
                             "example": "2023-01-01T00:00:00.000Z",
                             "description": "Invitation creation timestamp"
                           },
                           "updatedAt": {
                             "type": "string",
-                            "format": "date-time",
+                            "format": "date",
                             "example": "2023-01-01T00:00:00.000Z",
                             "description": "Invitation update timestamp"
                           },
@@ -6753,6 +6751,16 @@
                             "format": "cuid",
                             "example": "cl123456789012345678901237",
                             "description": "User who created the invitation"
+                          },
+                          "invitationId": {
+                            "type": "string",
+                            "example": "invitation-123",
+                            "description": "Legacy invitation identifier (for backward compatibility)"
+                          },
+                          "familyId": {
+                            "type": "string",
+                            "example": "family-1",
+                            "description": "Legacy family identifier (for backward compatibility)"
                           },
                           "invitedByUser": {
                             "type": "object",
@@ -6812,24 +6820,10 @@
                           }
                         },
                         "required": [
-                          "id",
-                          "groupId",
-                          "targetFamilyId",
-                          "email",
-                          "role",
-                          "personalMessage",
-                          "invitedBy",
-                          "status",
-                          "inviteCode",
-                          "expiresAt",
-                          "acceptedAt",
-                          "createdAt",
-                          "updatedAt",
-                          "acceptedBy",
-                          "createdBy"
+                          "role"
                         ],
                         "title": "Group Invitation",
-                        "description": "Complete group invitation information matching service response"
+                        "description": "Group invitation information with flexible schema for backward compatibility"
                       }
                     }
                   },
