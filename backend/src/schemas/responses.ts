@@ -61,7 +61,7 @@ import { UserResponseSchema } from './auth';
 import { VehicleResponseSchema } from './vehicles';
 import { ChildResponseSchema } from './children';
 import { FamilyResponseSchema } from './families';
-import { GroupResponseSchema, ScheduleConfigSchema, FamilyGroupMemberSchema, FamilySearchResultSchema } from './groups';
+import { GroupResponseSchema, ScheduleConfigSchema, FamilyGroupMemberSchema, FamilySearchResultSchema, GroupInvitationSchema } from './groups';
 import { TodayScheduleResponseSchema, RecentActivityResponseSchema, DashboardStatsSchema, WeeklyDashboardResponseSchema } from './dashboard';
 import { FcmTokenResponseSchema } from './fcmTokens';
 import { ScheduleResponseSchema, ScheduleSlotSchema, ChildAssignmentSchema, AvailableChildSchema, ScheduleSlotConflictSchema } from './scheduleSlots';
@@ -282,6 +282,13 @@ export const FamilySearchSuccessResponseSchema = createSuccessResponseSchema(
   z.array(FamilySearchResultSchema),
 );
 
+/**
+ * Group invitation response schema
+ */
+export const GroupInvitationSuccessResponseSchema = createSuccessResponseSchema(
+  GroupInvitationSchema,
+);
+
 // Register all response schemas with OpenAPI registry
 registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('MagicLinkSuccessResponse', MagicLinkSuccessResponseSchema);
@@ -319,3 +326,4 @@ registry.register('PendingInvitationsSuccessResponse', PendingInvitationsSuccess
 registry.register('InviteCodeValidationSuccessResponse', InviteCodeValidationSuccessResponseSchema);
 registry.register('FamilyGroupMemberSuccessResponse', FamilyGroupMemberSuccessResponseSchema);
 registry.register('FamilySearchSuccessResponse', FamilySearchSuccessResponseSchema);
+registry.register('GroupInvitationSuccessResponse', GroupInvitationSuccessResponseSchema);

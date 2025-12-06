@@ -6419,19 +6419,38 @@
                         },
                         "targetFamilyId": {
                           "type": "string",
+                          "nullable": true,
                           "format": "cuid",
                           "example": "cl123456789012345678901238",
-                          "description": "Target family identifier"
+                          "description": "Target family identifier (null for email invitations)"
+                        },
+                        "email": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "email",
+                          "example": "john@example.com",
+                          "description": "Email for email invitations (null for family invitations)"
                         },
                         "role": {
                           "type": "string",
                           "enum": [
                             "MEMBER",
-                            "ADMIN",
-                            "OWNER"
+                            "ADMIN"
                           ],
                           "description": "Invited role in the group",
                           "example": "MEMBER"
+                        },
+                        "personalMessage": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Looking forward to carpooling with you!",
+                          "description": "Personal message from inviter"
+                        },
+                        "invitedBy": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901237",
+                          "description": "User who sent the invitation"
                         },
                         "status": {
                           "type": "string",
@@ -6444,11 +6463,10 @@
                           "example": "PENDING",
                           "description": "Invitation status"
                         },
-                        "personalMessage": {
+                        "inviteCode": {
                           "type": "string",
-                          "nullable": true,
-                          "example": "Looking forward to carpooling with you!",
-                          "description": "Personal message from inviter"
+                          "example": "ABC123XYZ",
+                          "description": "Invitation code"
                         },
                         "expiresAt": {
                           "type": "string",
@@ -6456,11 +6474,59 @@
                           "example": "2023-01-08T00:00:00.000Z",
                           "description": "Invitation expiration timestamp"
                         },
+                        "acceptedAt": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "date-time",
+                          "example": "2023-01-05T00:00:00.000Z",
+                          "description": "Invitation acceptance timestamp"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
                           "description": "Invitation creation timestamp"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "Invitation update timestamp"
+                        },
+                        "acceptedBy": {
+                          "type": "string",
+                          "nullable": true,
+                          "format": "cuid",
+                          "example": "cl123456789012345678901238",
+                          "description": "User who accepted the invitation"
+                        },
+                        "createdBy": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901237",
+                          "description": "User who created the invitation"
+                        },
+                        "invitedByUser": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "email"
+                          ],
+                          "description": "User who sent the invitation (included in some responses)"
                         },
                         "group": {
                           "type": "object",
@@ -6501,13 +6567,21 @@
                         "id",
                         "groupId",
                         "targetFamilyId",
+                        "email",
                         "role",
+                        "personalMessage",
+                        "invitedBy",
                         "status",
+                        "inviteCode",
                         "expiresAt",
-                        "createdAt"
+                        "acceptedAt",
+                        "createdAt",
+                        "updatedAt",
+                        "acceptedBy",
+                        "createdBy"
                       ],
                       "title": "Group Invitation",
-                      "description": "Group invitation information"
+                      "description": "Complete group invitation information matching service response"
                     }
                   },
                   "required": [
@@ -6593,19 +6667,38 @@
                           },
                           "targetFamilyId": {
                             "type": "string",
+                            "nullable": true,
                             "format": "cuid",
                             "example": "cl123456789012345678901238",
-                            "description": "Target family identifier"
+                            "description": "Target family identifier (null for email invitations)"
+                          },
+                          "email": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "email",
+                            "example": "john@example.com",
+                            "description": "Email for email invitations (null for family invitations)"
                           },
                           "role": {
                             "type": "string",
                             "enum": [
                               "MEMBER",
-                              "ADMIN",
-                              "OWNER"
+                              "ADMIN"
                             ],
                             "description": "Invited role in the group",
                             "example": "MEMBER"
+                          },
+                          "personalMessage": {
+                            "type": "string",
+                            "nullable": true,
+                            "example": "Looking forward to carpooling with you!",
+                            "description": "Personal message from inviter"
+                          },
+                          "invitedBy": {
+                            "type": "string",
+                            "format": "cuid",
+                            "example": "cl123456789012345678901237",
+                            "description": "User who sent the invitation"
                           },
                           "status": {
                             "type": "string",
@@ -6618,11 +6711,10 @@
                             "example": "PENDING",
                             "description": "Invitation status"
                           },
-                          "personalMessage": {
+                          "inviteCode": {
                             "type": "string",
-                            "nullable": true,
-                            "example": "Looking forward to carpooling with you!",
-                            "description": "Personal message from inviter"
+                            "example": "ABC123XYZ",
+                            "description": "Invitation code"
                           },
                           "expiresAt": {
                             "type": "string",
@@ -6630,11 +6722,59 @@
                             "example": "2023-01-08T00:00:00.000Z",
                             "description": "Invitation expiration timestamp"
                           },
+                          "acceptedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "date-time",
+                            "example": "2023-01-05T00:00:00.000Z",
+                            "description": "Invitation acceptance timestamp"
+                          },
                           "createdAt": {
                             "type": "string",
                             "format": "date-time",
                             "example": "2023-01-01T00:00:00.000Z",
                             "description": "Invitation creation timestamp"
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2023-01-01T00:00:00.000Z",
+                            "description": "Invitation update timestamp"
+                          },
+                          "acceptedBy": {
+                            "type": "string",
+                            "nullable": true,
+                            "format": "cuid",
+                            "example": "cl123456789012345678901238",
+                            "description": "User who accepted the invitation"
+                          },
+                          "createdBy": {
+                            "type": "string",
+                            "format": "cuid",
+                            "example": "cl123456789012345678901237",
+                            "description": "User who created the invitation"
+                          },
+                          "invitedByUser": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "email": {
+                                "type": "string",
+                                "format": "email"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "email"
+                            ],
+                            "description": "User who sent the invitation (included in some responses)"
                           },
                           "group": {
                             "type": "object",
@@ -6675,13 +6815,21 @@
                           "id",
                           "groupId",
                           "targetFamilyId",
+                          "email",
                           "role",
+                          "personalMessage",
+                          "invitedBy",
                           "status",
+                          "inviteCode",
                           "expiresAt",
-                          "createdAt"
+                          "acceptedAt",
+                          "createdAt",
+                          "updatedAt",
+                          "acceptedBy",
+                          "createdBy"
                         ],
                         "title": "Group Invitation",
-                        "description": "Group invitation information"
+                        "description": "Complete group invitation information matching service response"
                       }
                     }
                   },

@@ -32,6 +32,21 @@ export class FamilyController {
     private logger: Logger = familyLogger,
   ) {}
 
+  /**
+   * Transform family data to ISO strings for OpenAPI compliance
+   */
+  private transformFamilyForResponse(family: any): any {
+    return {
+      ...family,
+      createdAt: family.createdAt?.toISOString(),
+      updatedAt: family.updatedAt?.toISOString(),
+      members: family.members?.map((member: any) => ({
+        ...member,
+        joinedAt: member.joinedAt?.toISOString(),
+      })),
+    };
+  }
+
   createFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { name } = req.body;
@@ -54,7 +69,7 @@ export class FamilyController {
         familyName: family.name,
       });
 
-      sendSuccessResponse(res, 201, FamilySuccessResponseSchema, family);
+      sendSuccessResponse(res, 201, FamilySuccessResponseSchema, this.transformFamilyForResponse(family));
     } catch (error) {
       this.logger.error('createFamily: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -76,7 +91,7 @@ export class FamilyController {
 
       const family = await this.familyService.joinFamily(inviteCode, req.user.id);
 
-      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, family);
+      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, this.transformFamilyForResponse(family));
     } catch (error) {
       sendErrorResponse(res, 400, (error as Error).message);
     }
@@ -91,7 +106,7 @@ export class FamilyController {
         return;
       }
 
-      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, family);
+      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, this.transformFamilyForResponse(family));
     } catch (error) {
       sendErrorResponse(res, 500, (error as Error).message);
     }
@@ -269,7 +284,7 @@ export class FamilyController {
       const updatedFamily = await this.familyService.updateFamilyName(req.user.id, name.trim());
       this.logger.debug('Service call successful, sending response', { userId: req.user.id });
 
-      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, updatedFamily);
+      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, this.transformFamilyForResponse(updatedFamily));
     } catch (error) {
       this.logger.error('FamilyController.updateFamilyName error:', { error: error instanceof Error ? error.message : String(error) });
       const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;

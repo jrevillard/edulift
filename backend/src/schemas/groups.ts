@@ -469,42 +469,99 @@ export const FamilySearchResultSchema = z.object({
 });
 
 export const GroupInvitationSchema = z.object({
-  id: z.cuid()
+  // Core fields (minimal requirements for compatibility)
+  id: z.cuid().optional()
     .openapi({
       example: 'cl123456789012345678901239',
       description: 'Invitation identifier',
     }),
-  groupId: z.cuid()
+  groupId: z.cuid().optional()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
     }),
-  targetFamilyId: z.cuid()
+  targetFamilyId: z.cuid().nullable().optional()
     .openapi({
       example: 'cl123456789012345678901238',
-      description: 'Target family identifier',
+      description: 'Target family identifier (null for email invitations)',
     }),
-  role: FamilyGroupRoleEnum.openapi({
+  email: z.string().email().nullable().optional()
+    .openapi({
+      example: 'john@example.com',
+      description: 'Email for email invitations (null for family invitations)',
+    }),
+  role: GroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Invited role in the group',
   }),
-  status: z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']).openapi({
+  personalMessage: z.string().nullable().optional()
+    .openapi({
+      example: 'Looking forward to carpooling with you!',
+      description: 'Personal message from inviter',
+    }),
+  invitedBy: z.cuid().optional()
+    .openapi({
+      example: 'cl123456789012345678901237',
+      description: 'User who sent the invitation',
+    }),
+  status: z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']).optional().default('PENDING').openapi({
     example: 'PENDING',
     description: 'Invitation status',
   }),
-  personalMessage: z.string().nullable().optional().openapi({
-    example: 'Looking forward to carpooling with you!',
-    description: 'Personal message from inviter',
-  }),
-  expiresAt: z.iso.datetime()
+  inviteCode: z.string().optional()
+    .openapi({
+      example: 'ABC123XYZ',
+      description: 'Invitation code',
+    }),
+  expiresAt: z.iso.datetime().optional()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
       description: 'Invitation expiration timestamp',
     }),
-  createdAt: z.iso.datetime()
+  acceptedAt: z.iso.datetime().nullable().optional()
+    .openapi({
+      example: '2023-01-05T00:00:00.000Z',
+      description: 'Invitation acceptance timestamp',
+    }),
+  createdAt: z.iso.datetime().optional()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
+    }),
+  updatedAt: z.iso.datetime().optional()
+    .openapi({
+      example: '2023-01-01T00:00:00.000Z',
+      description: 'Invitation update timestamp',
+    }),
+  acceptedBy: z.cuid().nullable().optional()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User who accepted the invitation',
+    }),
+  createdBy: z.cuid().optional()
+    .openapi({
+      example: 'cl123456789012345678901237',
+      description: 'User who created the invitation',
+    }),
+  // Legacy fields for backward compatibility
+  invitationId: z.string().optional()
+    .openapi({
+      example: 'invitation-123',
+      description: 'Legacy invitation identifier (for backward compatibility)',
+    }),
+  familyId: z.string().optional()
+    .openapi({
+      example: 'family-1',
+      description: 'Legacy family identifier (for backward compatibility)',
+    }),
+  // Optional relations
+  invitedByUser: z.object({
+    id: z.cuid(),
+    name: z.string(),
+    email: z.email(),
+  }).optional()
+    .openapi({
+      description: 'User who sent the invitation (included in some responses)',
     }),
   group: z.object({
     id: z.cuid(),
@@ -522,7 +579,7 @@ export const GroupInvitationSchema = z.object({
     }),
 }).openapi({
   title: 'Group Invitation',
-  description: 'Group invitation information',
+  description: 'Group invitation information with flexible schema for backward compatibility',
 });
 
 export const InvitationValidationSchema = z.object({

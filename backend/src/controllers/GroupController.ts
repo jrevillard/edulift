@@ -16,6 +16,7 @@ import {
   InviteCodeValidationSuccessResponseSchema,
   FamilyGroupMemberSuccessResponseSchema,
   FamilySearchSuccessResponseSchema,
+  GroupInvitationSuccessResponseSchema,
 } from '../schemas/responses';
 import { GroupSuccessResponseSchema } from '../schemas/groups';
 import { GroupFamiliesResponseSchema } from '../schemas/groups';
@@ -493,7 +494,7 @@ export class GroupController {
       });
 
       // Send validated response ensuring OpenAPI compliance
-      sendSuccessResponse(res, 201, GroupSuccessResponseSchema, result);
+      sendSuccessResponse(res, 201, GroupInvitationSuccessResponseSchema, result);
 
       this.logger.debug('inviteFamilyToGroup: Sending response', {
         groupId,
