@@ -9,13 +9,15 @@ import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
 import { createLogger, Logger } from '../utils/logger';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
 import {
-  GroupSuccessResponseSchema,
   GroupsSuccessResponseSchema,
   SimpleSuccessResponseSchema,
   ScheduleSuccessResponseSchema,
   PendingInvitationsSuccessResponseSchema,
   InviteCodeValidationSuccessResponseSchema,
+  FamilyGroupMemberSuccessResponseSchema,
+  FamilySearchSuccessResponseSchema,
 } from '../schemas/responses';
+import { GroupSuccessResponseSchema } from '../schemas/groups';
 import { GroupFamiliesResponseSchema } from '../schemas/groups';
 
 export class GroupController {
@@ -227,7 +229,7 @@ export class GroupController {
       return;
     }
 
-    sendSuccessResponse(res, 200, GroupSuccessResponseSchema, updatedFamily);
+    sendSuccessResponse(res, 200, FamilyGroupMemberSuccessResponseSchema, updatedFamily);
   };
 
   removeFamilyFromGroup = async (req: Request, res: Response): Promise<void> => {
@@ -639,7 +641,7 @@ export class GroupController {
       );
 
       // Send validated response ensuring OpenAPI compliance
-      sendSuccessResponse(res, 200, GroupsSuccessResponseSchema, families);
+      sendSuccessResponse(res, 200, FamilySearchSuccessResponseSchema, families);
     } catch (error: any) {
       this.logger.error('Error searching families:', { error: error instanceof Error ? error.message : String(error) });
       const statusCode = (error as Error & { statusCode?: number })?.statusCode || 500;

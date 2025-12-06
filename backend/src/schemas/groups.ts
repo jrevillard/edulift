@@ -419,6 +419,15 @@ export const GroupResponseSchema = z.object({
   description: 'Complete group information with user context',
 });
 
+// Local success schema to avoid circular dependency
+export const GroupSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  data: GroupResponseSchema,
+}).openapi({
+  title: 'Group Success Response',
+  description: 'Successful group operation response',
+});
+
 export const FamilySearchResultSchema = z.object({
   id: z.cuid()
     .openapi({
@@ -853,10 +862,7 @@ registerPath({
       description: 'Group joined successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: GroupMembershipSchema,
-          }),
+          schema: GroupSuccessResponseSchema,
         },
       },
     },

@@ -61,10 +61,10 @@ import { UserResponseSchema } from './auth';
 import { VehicleResponseSchema } from './vehicles';
 import { ChildResponseSchema } from './children';
 import { FamilyResponseSchema } from './families';
-import { GroupResponseSchema, ScheduleConfigSchema } from './groups';
-import { TodayScheduleResponseSchema, RecentActivityResponseSchema } from './dashboard';
+import { GroupResponseSchema, ScheduleConfigSchema, FamilyGroupMemberSchema, FamilySearchResultSchema } from './groups';
+import { TodayScheduleResponseSchema, RecentActivityResponseSchema, DashboardStatsSchema, WeeklyDashboardResponseSchema } from './dashboard';
 import { FcmTokenResponseSchema } from './fcmTokens';
-import { ScheduleResponseSchema } from './scheduleSlots';
+import { ScheduleResponseSchema, ScheduleSlotSchema, ChildAssignmentSchema, AvailableChildSchema, ScheduleSlotConflictSchema } from './scheduleSlots';
 
 /**
  * Wrapped Response Schemas for Endpoints
@@ -144,6 +144,16 @@ export const TodayScheduleSuccessResponseSchema = createSuccessResponseSchema(To
 
 export const RecentActivitySuccessResponseSchema = createSuccessResponseSchema(RecentActivityResponseSchema);
 
+/**
+ * Dashboard stats response schema for user dashboard
+ */
+export const UserDashboardStatsSuccessResponseSchema = createSuccessResponseSchema(DashboardStatsSchema);
+
+/**
+ * Weekly dashboard data schema (extracted from WeeklyDashboardResponseSchema)
+ */
+export const WeeklyDashboardDataSchema = WeeklyDashboardResponseSchema.shape.data;
+
 export const FcmTokenSuccessResponseSchema = createSuccessResponseSchema(FcmTokenResponseSchema);
 
 export const FcmTokensSuccessResponseSchema = createSuccessResponseSchema(
@@ -151,6 +161,14 @@ export const FcmTokensSuccessResponseSchema = createSuccessResponseSchema(
 );
 
 export const ScheduleSuccessResponseSchema = createSuccessResponseSchema(ScheduleResponseSchema);
+
+export const ScheduleSlotSuccessResponseSchema = createSuccessResponseSchema(ScheduleSlotSchema);
+
+export const ChildAssignmentSuccessResponseSchema = createSuccessResponseSchema(ChildAssignmentSchema);
+
+export const AvailableChildrenSuccessResponseSchema = createSuccessResponseSchema(z.array(AvailableChildSchema));
+
+export const ScheduleSlotConflictsSuccessResponseSchema = createSuccessResponseSchema(z.array(ScheduleSlotConflictSchema));
 
 export const ScheduleVehicleSuccessResponseSchema = createSuccessResponseSchema(VehicleResponseSchema);
 
@@ -250,6 +268,20 @@ export const InviteCodeValidationSuccessResponseSchema = createSuccessResponseSc
   }),
 );
 
+/**
+ * Family group member response schema
+ */
+export const FamilyGroupMemberSuccessResponseSchema = createSuccessResponseSchema(
+  FamilyGroupMemberSchema,
+);
+
+/**
+ * Family search results response schema
+ */
+export const FamilySearchSuccessResponseSchema = createSuccessResponseSchema(
+  z.array(FamilySearchResultSchema),
+);
+
 // Register all response schemas with OpenAPI registry
 registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('MagicLinkSuccessResponse', MagicLinkSuccessResponseSchema);
@@ -267,9 +299,15 @@ registry.register('GroupsSuccessResponse', GroupsSuccessResponseSchema);
 registry.register('DashboardStatsSuccessResponse', DashboardStatsSuccessResponseSchema);
 registry.register('TodayScheduleSuccessResponse', TodayScheduleSuccessResponseSchema);
 registry.register('RecentActivitySuccessResponse', RecentActivitySuccessResponseSchema);
+registry.register('UserDashboardStatsSuccessResponse', UserDashboardStatsSuccessResponseSchema);
+registry.register('WeeklyDashboardData', WeeklyDashboardDataSchema);
 registry.register('FcmTokenSuccessResponse', FcmTokenSuccessResponseSchema);
 registry.register('FcmTokensSuccessResponse', FcmTokensSuccessResponseSchema);
 registry.register('ScheduleSuccessResponse', ScheduleSuccessResponseSchema);
+registry.register('ScheduleSlotSuccessResponse', ScheduleSlotSuccessResponseSchema);
+registry.register('ChildAssignmentSuccessResponse', ChildAssignmentSuccessResponseSchema);
+registry.register('AvailableChildrenSuccessResponse', AvailableChildrenSuccessResponseSchema);
+registry.register('ScheduleSlotConflictsSuccessResponse', ScheduleSlotConflictsSuccessResponseSchema);
 registry.register('ScheduleVehicleSuccessResponse', ScheduleVehicleSuccessResponseSchema);
 registry.register('GroupScheduleConfigSuccessResponse', GroupScheduleConfigSuccessResponseSchema);
 registry.register('SimpleSuccessResponse', SimpleSuccessResponseSchema);
@@ -279,3 +317,5 @@ registry.register('PermissionsSuccessResponse', PermissionsSuccessResponseSchema
 registry.register('FamilyInvitationSuccessResponse', FamilyInvitationSuccessResponseSchema);
 registry.register('PendingInvitationsSuccessResponse', PendingInvitationsSuccessResponseSchema);
 registry.register('InviteCodeValidationSuccessResponse', InviteCodeValidationSuccessResponseSchema);
+registry.register('FamilyGroupMemberSuccessResponse', FamilyGroupMemberSuccessResponseSchema);
+registry.register('FamilySearchSuccessResponse', FamilySearchSuccessResponseSchema);

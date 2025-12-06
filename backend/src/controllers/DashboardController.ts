@@ -7,18 +7,9 @@ import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidat
 import {
   TodayScheduleSuccessResponseSchema,
   RecentActivitySuccessResponseSchema,
+  UserDashboardStatsSuccessResponseSchema,
+  WeeklyDashboardDataSchema,
 } from '../schemas/responses';
-import { DashboardStatsSchema, WeeklyDashboardResponseSchema } from '../schemas/dashboard';
-import { z } from 'zod';
-
-// Extract the data part of WeeklyDashboardResponseSchema for use with sendSuccessResponse
-const WeeklyDashboardDataSchema = WeeklyDashboardResponseSchema.shape.data;
-
-// Create proper user dashboard stats response schema
-const UserDashboardStatsSuccessResponseSchema = z.object({
-  success: z.literal(true),
-  data: DashboardStatsSchema,
-});
 
 export class DashboardController {
   private dashboardService: DashboardService;

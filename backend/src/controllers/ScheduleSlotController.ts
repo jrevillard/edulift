@@ -9,6 +9,10 @@ import { createLogger, Logger } from '../utils/logger';
 import { sendSuccessResponse } from '../utils/responseValidation';
 import {
   ScheduleSuccessResponseSchema,
+  ScheduleSlotSuccessResponseSchema,
+  ChildAssignmentSuccessResponseSchema,
+  AvailableChildrenSuccessResponseSchema,
+  ScheduleSlotConflictsSuccessResponseSchema,
   ScheduleVehicleSuccessResponseSchema,
   SimpleSuccessResponseSchema,
 } from '../schemas/responses';
@@ -80,7 +84,7 @@ export class ScheduleSlotController {
         slotId: slot.id,
         success: true,
       });
-      sendSuccessResponse(res, 201, ScheduleSuccessResponseSchema, slot);
+      sendSuccessResponse(res, 201, ScheduleSlotSuccessResponseSchema, slot);
     } catch (error) {
       this.logger.error('createScheduleSlotWithVehicle: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -236,7 +240,7 @@ export class ScheduleSlotController {
         throw createError('Schedule slot not found', 404);
       }
 
-      sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, slot);
+      sendSuccessResponse(res, 200, ScheduleSlotSuccessResponseSchema, slot);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -269,7 +273,7 @@ export class ScheduleSlotController {
     try {
       const conflicts = await this.scheduleSlotService.validateSlotConflicts(scheduleSlotId);
 
-      sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, { conflicts });
+      sendSuccessResponse(res, 200, ScheduleSlotConflictsSuccessResponseSchema, conflicts);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -305,7 +309,7 @@ export class ScheduleSlotController {
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, assignment);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
-    sendSuccessResponse(res, 201, ScheduleSuccessResponseSchema, assignment);
+    sendSuccessResponse(res, 201, ChildAssignmentSuccessResponseSchema, assignment);
   };
 
   removeChildFromScheduleSlot = async (req: Request, res: Response): Promise<void> => {
@@ -322,7 +326,7 @@ export class ScheduleSlotController {
       authReq.userId,
     );
 
-    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, result);
+    sendSuccessResponse(res, 200, ChildAssignmentSuccessResponseSchema, result);
   };
 
   getAvailableChildrenForSlot = async (req: Request, res: Response): Promise<void> => {
@@ -338,7 +342,7 @@ export class ScheduleSlotController {
       authReq.userId,
     );
 
-    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, children);
+    sendSuccessResponse(res, 200, AvailableChildrenSuccessResponseSchema, children);
   };
 
   updateSeatOverride = async (req: Request, res: Response): Promise<void> => {
