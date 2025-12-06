@@ -153,8 +153,7 @@ app.use(express.urlencoded({ extended: true }));
 // Health check
 app.get('/health', (_, res) => {
   sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
+    message: 'Service is healthy',
   });
 });
 
@@ -164,9 +163,7 @@ app.get('/api/health/database', async (_, res) => {
     // Simple database query to verify connection
     await db.user.findFirst();
     sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
-      status: 'healthy',
-      database: 'connected',
-      timestamp: new Date().toISOString(),
+      message: 'Database connection is healthy',
     });
   } catch {
     sendErrorResponse(res, 500, 'Database connection failed');

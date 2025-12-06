@@ -5025,87 +5025,178 @@
                         "id": {
                           "type": "string",
                           "format": "cuid",
-                          "example": "cl123456789012345678901237",
-                          "description": "Membership identifier"
+                          "example": "cl123456789012345678901234",
+                          "description": "Unique group identifier (CUID format)"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Morning School Run",
+                          "description": "Group display name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Carpool group for morning school transportation",
+                          "description": "Group description (null if not set)"
                         },
                         "familyId": {
                           "type": "string",
                           "format": "cuid",
-                          "example": "cl123456789012345678901238",
-                          "description": "Family identifier"
+                          "example": "cl123456789012345678901236",
+                          "description": "Owner family identifier"
                         },
-                        "groupId": {
+                        "inviteCode": {
                           "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Group identifier"
+                          "example": "ABC123XYZ",
+                          "description": "Group invitation code"
                         },
-                        "role": {
-                          "type": "string",
-                          "enum": [
-                            "MEMBER",
-                            "ADMIN",
-                            "OWNER"
-                          ],
-                          "description": "Family role in the group",
-                          "example": "MEMBER"
-                        },
-                        "joinedAt": {
+                        "createdAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "When the family joined the group"
+                          "description": "Group creation timestamp"
                         },
-                        "family": {
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "Last update timestamp"
+                        },
+                        "userRole": {
+                          "type": "string",
+                          "enum": [
+                            "ADMIN",
+                            "MEMBER"
+                          ],
+                          "description": "Current user's role in this group",
+                          "example": "ADMIN"
+                        },
+                        "ownerFamily": {
                           "type": "object",
                           "properties": {
                             "id": {
                               "type": "string",
-                              "format": "cuid"
+                              "format": "cuid",
+                              "example": "cl123456789012345678901236",
+                              "description": "Owner family identifier"
                             },
                             "name": {
-                              "type": "string"
+                              "type": "string",
+                              "example": "Johnson Family",
+                              "description": "Owner family name"
                             }
                           },
                           "required": [
                             "id",
                             "name"
                           ],
-                          "description": "Family information"
+                          "title": "Owner Family",
+                          "description": "Owner family information"
                         },
-                        "group": {
+                        "_count": {
                           "type": "object",
                           "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid"
-                            },
-                            "name": {
-                              "type": "string"
+                            "familyMembers": {
+                              "type": "number",
+                              "example": 3,
+                              "description": "Number of families in the group"
                             }
                           },
                           "required": [
-                            "id",
-                            "name"
+                            "familyMembers"
                           ],
-                          "description": "Group information"
+                          "description": "Count information (included in some responses)"
+                        },
+                        "familyCount": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Total number of families in the group"
+                        },
+                        "familyMembers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901237",
+                                "description": "Family member identifier"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901238",
+                                "description": "Family identifier"
+                              },
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "MEMBER",
+                                  "ADMIN",
+                                  "OWNER"
+                                ],
+                                "description": "Family role in the group",
+                                "example": "MEMBER"
+                              },
+                              "joinedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2023-01-01T00:00:00.000Z",
+                                "description": "When the family joined the group"
+                              },
+                              "family": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ],
+                                "description": "Family information (included when fetching group families)"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "familyId",
+                              "role",
+                              "joinedAt"
+                            ],
+                            "title": "Family Group Member",
+                            "description": "Family membership in a group"
+                          },
+                          "description": "Family members (included when fetching group families)"
                         }
                       },
                       "required": [
                         "id",
+                        "name",
+                        "description",
                         "familyId",
-                        "groupId",
-                        "role",
-                        "joinedAt"
+                        "inviteCode",
+                        "createdAt",
+                        "updatedAt",
+                        "userRole",
+                        "ownerFamily",
+                        "familyCount"
                       ],
-                      "title": "Group Membership",
-                      "description": "Family membership in a group"
+                      "title": "Group Response",
+                      "description": "Complete group information with user context"
                     }
                   },
                   "required": [
                     "success",
                     "data"
-                  ]
+                  ],
+                  "title": "Group Success Response",
+                  "description": "Successful group operation response"
                 }
               }
             }

@@ -46,10 +46,15 @@ export const sendSuccessResponse = function <T extends z.ZodType>(
   schema: T,
   data: any,
 ): void {
-  // Skip validation in test environment to avoid mock data format issues
-  const isTestEnvironment = process.env.NODE_ENV === 'test' || process.env.JEST_WORKER_ID !== undefined;
+  // Validation is ALWAYS active - even in tests
+  if (schema) {
+    // Log schema being used for debugging
+    responseLogger.debug('Validating response with schema', {
+      path: res.req?.path,
+      method: res.req?.method,
+      schemaName: 'Schema validation',
+    });
 
-  if (schema && !isTestEnvironment) {
     // Validate the response using the provided schema
     const result = schema.safeParse({ success: true, data });
 
