@@ -17,9 +17,12 @@ import {
   FamilyGroupMemberSuccessResponseSchema,
   FamilySearchSuccessResponseSchema,
   GroupInvitationSuccessResponseSchema,
+  GroupInvitationValidationSuccessResponseSchema,
 } from '../schemas/responses';
-import { GroupSuccessResponseSchema } from '../schemas/groups';
-import { GroupFamiliesResponseSchema } from '../schemas/groups';
+import {
+  GroupSuccessResponseSchema,
+  GroupFamiliesResponseSchema,
+} from '../schemas/groups';
 
 export class GroupController {
   constructor(
@@ -579,7 +582,7 @@ export class GroupController {
       }
 
       // Send validated response ensuring OpenAPI compliance
-      sendSuccessResponse(res, 200, InviteCodeValidationSuccessResponseSchema, result);
+      sendSuccessResponse(res, 200, GroupInvitationValidationSuccessResponseSchema, result);
     } catch (error) {
       this.logger.error('Validate invitation code error:', { error: error instanceof Error ? error.message : String(error) });
       sendErrorResponse(res, 500, 'Failed to validate invitation code');

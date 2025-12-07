@@ -1126,18 +1126,6 @@
           "data": {
             "type": "object",
             "properties": {
-              "weekStart": {
-                "type": "string",
-                "format": "date-time",
-                "example": "2023-01-01T00:00:00.000Z",
-                "description": "Week start date in ISO 8601 format"
-              },
-              "weekEnd": {
-                "type": "string",
-                "format": "date-time",
-                "example": "2023-01-07T23:59:59.999Z",
-                "description": "Week end date in ISO 8601 format"
-              },
               "days": {
                 "type": "array",
                 "items": {
@@ -1148,171 +1136,241 @@
                       "example": "2023-01-01",
                       "description": "Date in YYYY-MM-DD format"
                     },
-                    "dayName": {
-                      "type": "string",
-                      "example": "Sunday",
-                      "description": "Day name"
-                    },
-                    "transportSlots": {
+                    "transports": {
                       "type": "array",
                       "items": {
                         "type": "object",
                         "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "cuid"
-                          },
                           "time": {
-                            "type": "string"
+                            "type": "string",
+                            "example": "08:30",
+                            "description": "Time in HH:mm format"
                           },
                           "groupId": {
                             "type": "string",
-                            "nullable": true,
-                            "format": "cuid"
+                            "description": "Group identifier"
                           },
                           "groupName": {
-                            "type": "string"
-                          },
-                          "vehicleId": {
                             "type": "string",
-                            "nullable": true,
-                            "format": "cuid"
+                            "example": "School Carpool Group A",
+                            "description": "Group name"
                           },
-                          "vehicleName": {
+                          "scheduleSlotId": {
                             "type": "string",
-                            "nullable": true
+                            "description": "Schedule slot identifier"
                           },
-                          "driverId": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "cuid"
-                          },
-                          "driverName": {
-                            "type": "string",
-                            "nullable": true
-                          },
-                          "children": {
+                          "vehicleAssignmentSummaries": {
                             "type": "array",
                             "items": {
                               "type": "object",
                               "properties": {
-                                "id": {
+                                "vehicleId": {
                                   "type": "string",
-                                  "format": "cuid"
+                                  "description": "Vehicle identifier"
                                 },
-                                "name": {
-                                  "type": "string"
-                                },
-                                "familyId": {
+                                "vehicleName": {
                                   "type": "string",
-                                  "format": "cuid"
+                                  "example": "Toyota Sienna",
+                                  "description": "Vehicle name"
                                 },
-                                "familyName": {
-                                  "type": "string"
+                                "vehicleCapacity": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "example": 7,
+                                  "description": "Vehicle seating capacity"
+                                },
+                                "assignedChildrenCount": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "example": 3,
+                                  "description": "Number of children assigned to this vehicle"
+                                },
+                                "availableSeats": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "example": 4,
+                                  "description": "Available seats remaining"
+                                },
+                                "capacityStatus": {
+                                  "type": "string",
+                                  "enum": [
+                                    "available",
+                                    "limited",
+                                    "full",
+                                    "overcapacity"
+                                  ],
+                                  "example": "available",
+                                  "description": "Current capacity status"
+                                },
+                                "vehicleFamilyId": {
+                                  "type": "string",
+                                  "description": "Family ID that owns this vehicle"
+                                },
+                                "isFamilyVehicle": {
+                                  "type": "boolean",
+                                  "example": true,
+                                  "description": "Whether this vehicle belongs to the user's family"
+                                },
+                                "driver": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "name": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "id",
+                                    "name"
+                                  ],
+                                  "description": "Driver information if assigned"
+                                },
+                                "children": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "childId": {
+                                        "type": "string"
+                                      },
+                                      "childName": {
+                                        "type": "string"
+                                      },
+                                      "childFamilyId": {
+                                        "type": "string"
+                                      },
+                                      "isFamilyChild": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "childId",
+                                      "childName",
+                                      "childFamilyId",
+                                      "isFamilyChild"
+                                    ]
+                                  },
+                                  "description": "Detailed children assignments for this vehicle"
                                 }
                               },
                               "required": [
-                                "id",
-                                "name",
-                                "familyId",
-                                "familyName"
+                                "vehicleId",
+                                "vehicleName",
+                                "vehicleCapacity",
+                                "assignedChildrenCount",
+                                "availableSeats",
+                                "capacityStatus",
+                                "vehicleFamilyId",
+                                "isFamilyVehicle"
                               ]
                             }
                           },
-                          "capacity": {
+                          "totalChildrenAssigned": {
                             "type": "integer",
-                            "minimum": 0
+                            "example": 5,
+                            "description": "Total children assigned across all vehicles"
                           },
-                          "capacityStatus": {
+                          "totalCapacity": {
+                            "type": "integer",
+                            "example": 8,
+                            "description": "Total capacity across all vehicles"
+                          },
+                          "overallCapacityStatus": {
                             "type": "string",
                             "enum": [
-                              "AVAILABLE",
-                              "FULL",
-                              "OVERFLOW"
-                            ]
-                          },
-                          "isMorning": {
-                            "type": "boolean"
+                              "available",
+                              "limited",
+                              "full",
+                              "overcapacity"
+                            ],
+                            "example": "available",
+                            "description": "Overall capacity status for this time slot"
                           }
                         },
                         "required": [
-                          "id",
                           "time",
                           "groupId",
                           "groupName",
-                          "vehicleId",
-                          "vehicleName",
-                          "driverId",
-                          "driverName",
-                          "children",
-                          "capacity",
-                          "capacityStatus",
-                          "isMorning"
+                          "scheduleSlotId",
+                          "vehicleAssignmentSummaries",
+                          "totalChildrenAssigned",
+                          "totalCapacity",
+                          "overallCapacityStatus"
                         ]
                       }
                     },
-                    "hasTransport": {
-                      "type": "boolean"
+                    "totalChildrenInVehicles": {
+                      "type": "integer",
+                      "example": 5,
+                      "description": "Total children in all vehicles for this day"
+                    },
+                    "totalVehiclesWithAssignments": {
+                      "type": "integer",
+                      "example": 2,
+                      "description": "Number of vehicles with assignments for this day"
+                    },
+                    "hasScheduledTransports": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether this day has scheduled transports"
                     }
                   },
                   "required": [
                     "date",
-                    "dayName",
-                    "transportSlots",
-                    "hasTransport"
+                    "transports",
+                    "totalChildrenInVehicles",
+                    "totalVehiclesWithAssignments",
+                    "hasScheduledTransports"
                   ]
-                },
-                "description": "Array of days in the week with their transport schedules"
+                }
               },
-              "summary": {
+              "startDate": {
+                "type": "string",
+                "example": "2023-01-01",
+                "description": "Start date of the week in YYYY-MM-DD format"
+              },
+              "endDate": {
+                "type": "string",
+                "example": "2023-01-07",
+                "description": "End date of the week in YYYY-MM-DD format"
+              },
+              "generatedAt": {
+                "type": "string",
+                "example": "2023-01-01T12:00:00.000Z",
+                "description": "Timestamp when the dashboard was generated"
+              },
+              "metadata": {
                 "type": "object",
                 "properties": {
-                  "totalDays": {
-                    "type": "integer",
-                    "minimum": 0
+                  "familyId": {
+                    "type": "string"
                   },
-                  "daysWithTransport": {
-                    "type": "integer",
-                    "minimum": 0
+                  "familyName": {
+                    "type": "string"
                   },
-                  "totalTransportSlots": {
-                    "type": "integer",
-                    "minimum": 0
+                  "totalGroups": {
+                    "type": "integer"
                   },
-                  "childrenWithTransport": {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  "uniqueVehicles": {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  "uniqueDrivers": {
-                    "type": "integer",
-                    "minimum": 0
-                  },
-                  "coveragePercentage": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 100
+                  "totalChildren": {
+                    "type": "integer"
                   }
                 },
                 "required": [
-                  "totalDays",
-                  "daysWithTransport",
-                  "totalTransportSlots",
-                  "childrenWithTransport",
-                  "uniqueVehicles",
-                  "uniqueDrivers",
-                  "coveragePercentage"
-                ]
+                  "familyId",
+                  "familyName",
+                  "totalGroups",
+                  "totalChildren"
+                ],
+                "description": "Optional metadata about the family and summary statistics"
               }
             },
             "required": [
-              "weekStart",
-              "weekEnd",
               "days",
-              "summary"
+              "startDate",
+              "endDate",
+              "generatedAt"
             ],
             "description": "Weekly dashboard data including schedules and summary"
           }
@@ -4444,56 +4502,46 @@
                           "example": true,
                           "description": "Whether the invitation code is valid"
                         },
+                        "groupId": {
+                          "type": "string",
+                          "example": "cmivlir1w004y13so4aplwzwx",
+                          "description": "Group ID (if valid)"
+                        },
+                        "groupName": {
+                          "type": "string",
+                          "example": "Group_1765104288010_ad46e7c2",
+                          "description": "Group name (if valid)"
+                        },
+                        "inviterName": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "John Doe",
+                          "description": "Name of the person who sent the invitation"
+                        },
+                        "requiresAuth": {
+                          "type": "boolean",
+                          "example": false,
+                          "description": "Whether authentication is required to accept"
+                        },
                         "error": {
                           "type": "string",
                           "example": "Invitation code is required",
                           "description": "Error message if invalid"
                         },
-                        "group": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid"
-                            },
-                            "name": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name"
-                          ],
-                          "description": "Group information (if valid)"
+                        "errorCode": {
+                          "type": "string",
+                          "example": "INVALID_CODE",
+                          "description": "Error code for programmatic handling"
                         },
-                        "invitation": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid"
-                            },
-                            "expiresAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            },
-                            "role": {
-                              "type": "string",
-                              "enum": [
-                                "MEMBER",
-                                "ADMIN",
-                                "OWNER"
-                              ],
-                              "description": "Role of a family within a group (including special OWNER case)",
-                              "example": "MEMBER"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "expiresAt",
-                            "role"
-                          ],
-                          "description": "Invitation information (if valid)"
+                        "email": {
+                          "type": "string",
+                          "example": "user@example.com",
+                          "description": "Email address (if applicable)"
+                        },
+                        "existingUser": {
+                          "type": "boolean",
+                          "example": true,
+                          "description": "Whether the user already exists in the system"
                         },
                         "userStatus": {
                           "type": "string",
@@ -4620,56 +4668,46 @@
                           "example": true,
                           "description": "Whether the invitation code is valid"
                         },
+                        "groupId": {
+                          "type": "string",
+                          "example": "cmivlir1w004y13so4aplwzwx",
+                          "description": "Group ID (if valid)"
+                        },
+                        "groupName": {
+                          "type": "string",
+                          "example": "Group_1765104288010_ad46e7c2",
+                          "description": "Group name (if valid)"
+                        },
+                        "inviterName": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "John Doe",
+                          "description": "Name of the person who sent the invitation"
+                        },
+                        "requiresAuth": {
+                          "type": "boolean",
+                          "example": false,
+                          "description": "Whether authentication is required to accept"
+                        },
                         "error": {
                           "type": "string",
                           "example": "Invitation code is required",
                           "description": "Error message if invalid"
                         },
-                        "group": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid"
-                            },
-                            "name": {
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name"
-                          ],
-                          "description": "Group information (if valid)"
+                        "errorCode": {
+                          "type": "string",
+                          "example": "INVALID_CODE",
+                          "description": "Error code for programmatic handling"
                         },
-                        "invitation": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid"
-                            },
-                            "expiresAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            },
-                            "role": {
-                              "type": "string",
-                              "enum": [
-                                "MEMBER",
-                                "ADMIN",
-                                "OWNER"
-                              ],
-                              "description": "Role of a family within a group (including special OWNER case)",
-                              "example": "MEMBER"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "expiresAt",
-                            "role"
-                          ],
-                          "description": "Invitation information (if valid)"
+                        "email": {
+                          "type": "string",
+                          "example": "user@example.com",
+                          "description": "Email address (if applicable)"
+                        },
+                        "existingUser": {
+                          "type": "boolean",
+                          "example": true,
+                          "description": "Whether the user already exists in the system"
                         },
                         "userStatus": {
                           "type": "string",

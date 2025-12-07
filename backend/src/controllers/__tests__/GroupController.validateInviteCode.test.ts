@@ -47,15 +47,10 @@ describe('GroupController - validateInviteCode', () => {
     it('should return valid response when invitation code is valid', async () => {
       const validationResult = {
         valid: true,
-        group: {
-          id: 'group-123',
-          name: 'Test Group',
-        },
-        invitation: {
-          id: 'invitation-123',
-          expiresAt: new Date('2025-12-31'),
-          role: 'MEMBER' as const,
-        },
+        groupId: 'cmivlir1w004y13so4aplwzwx',
+        groupName: 'Test Group',
+        inviterName: 'John Doe',
+        requiresAuth: false,
       };
 
       mockReq.body = { inviteCode: 'VALID123' };

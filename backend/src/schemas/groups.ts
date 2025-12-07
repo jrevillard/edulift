@@ -588,25 +588,46 @@ export const InvitationValidationSchema = z.object({
       example: true,
       description: 'Whether the invitation code is valid',
     }),
+  groupId: z.string().optional()
+    .openapi({
+      example: 'cmivlir1w004y13so4aplwzwx',
+      description: 'Group ID (if valid)',
+    }),
+  groupName: z.string().optional()
+    .openapi({
+      example: 'Group_1765104288010_ad46e7c2',
+      description: 'Group name (if valid)',
+    }),
+  inviterName: z.string().nullable().optional()
+    .openapi({
+      example: 'John Doe',
+      description: 'Name of the person who sent the invitation',
+    }),
+  requiresAuth: z.boolean().optional()
+    .openapi({
+      example: false,
+      description: 'Whether authentication is required to accept',
+    }),
   error: z.string().optional().openapi({
     example: 'Invitation code is required',
     description: 'Error message if invalid',
   }),
-  group: z.object({
-    id: z.cuid(),
-    name: z.string(),
-  }).optional()
+  errorCode: z.string().optional()
     .openapi({
-      description: 'Group information (if valid)',
+      example: 'INVALID_CODE',
+      description: 'Error code for programmatic handling',
     }),
-  invitation: z.object({
-    id: z.cuid(),
-    expiresAt: z.iso.datetime(),
-    role: FamilyGroupRoleEnum,
-  }).optional()
+  email: z.string().optional()
     .openapi({
-      description: 'Invitation information (if valid)',
+      example: 'user@example.com',
+      description: 'Email address (if applicable)',
     }),
+  existingUser: z.boolean().optional()
+    .openapi({
+      example: true,
+      description: 'Whether the user already exists in the system',
+    }),
+  // Legacy fields for backward compatibility with authenticated validation
   userStatus: UserStatusEnum.optional().openapi({
     example: 'FAMILY_MEMBER',
     description: 'User family status (authenticated validation only)',

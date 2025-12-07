@@ -2008,7 +2008,7 @@ export interface components {
              * @example ADMIN
              * @enum {string}
              */
-            role: "MEMBER" | "ADMIN";
+            role: "MEMBER" | "ADMIN" | "OWNER";
         };
         /**
          * Invite Family
@@ -2026,7 +2026,7 @@ export interface components {
              * @example MEMBER
              * @enum {string}
              */
-            role: "MEMBER" | "ADMIN";
+            role: "MEMBER" | "ADMIN" | "OWNER";
             /**
              * @description Optional personal message for the invitation
              * @example Looking forward to carpooling with you!
@@ -2089,6 +2089,57 @@ export interface components {
             scheduleHours: {
                 [key: string]: string[];
             };
+        };
+        /**
+         * Group Families Response
+         * @description Response for get group families endpoint
+         */
+        GroupFamiliesResponse: {
+            /** @enum {boolean} */
+            success: true;
+            data: {
+                /**
+                 * Format: cuid
+                 * @description Family identifier
+                 * @example cl123456789012345678901237
+                 */
+                id: string;
+                /**
+                 * @description Family name
+                 * @example Johnson Family
+                 */
+                name: string;
+                /**
+                 * @description Family role in the group
+                 * @example MEMBER
+                 * @enum {string}
+                 */
+                role: "MEMBER" | "ADMIN" | "OWNER";
+                /**
+                 * @description Whether this is the requester's family
+                 * @example false
+                 */
+                isMyFamily: boolean;
+                /**
+                 * @description Whether the requester can manage this family
+                 * @example false
+                 */
+                canManage: boolean;
+                /**
+                 * @description Family admin contacts
+                 * @example [
+                 *       {
+                 *         "name": "John Johnson",
+                 *         "email": "john@example.com"
+                 *       }
+                 *     ]
+                 */
+                admins: {
+                    name: string;
+                    /** Format: email */
+                    email: string;
+                }[];
+            }[];
         };
         /**
          * Create Family
@@ -2182,66 +2233,130 @@ export interface components {
             success: true;
             /** @description Weekly dashboard data including schedules and summary */
             data: {
-                /**
-                 * Format: date-time
-                 * @description Week start date in ISO 8601 format
-                 * @example 2023-01-01T00:00:00.000Z
-                 */
-                weekStart: string;
-                /**
-                 * Format: date-time
-                 * @description Week end date in ISO 8601 format
-                 * @example 2023-01-07T23:59:59.999Z
-                 */
-                weekEnd: string;
-                /** @description Array of days in the week with their transport schedules */
                 days: {
                     /**
                      * @description Date in YYYY-MM-DD format
                      * @example 2023-01-01
                      */
                     date: string;
-                    /**
-                     * @description Day name
-                     * @example Sunday
-                     */
-                    dayName: string;
-                    transportSlots: {
-                        /** Format: cuid */
-                        id: string;
+                    transports: {
+                        /**
+                         * @description Time in HH:mm format
+                         * @example 08:30
+                         */
                         time: string;
-                        /** Format: cuid */
-                        groupId: string | null;
+                        /** @description Group identifier */
+                        groupId: string;
+                        /**
+                         * @description Group name
+                         * @example School Carpool Group A
+                         */
                         groupName: string;
-                        /** Format: cuid */
-                        vehicleId: string | null;
-                        vehicleName: string | null;
-                        /** Format: cuid */
-                        driverId: string | null;
-                        driverName: string | null;
-                        children: {
-                            /** Format: cuid */
-                            id: string;
-                            name: string;
-                            /** Format: cuid */
-                            familyId: string;
-                            familyName: string;
+                        /** @description Schedule slot identifier */
+                        scheduleSlotId: string;
+                        vehicleAssignmentSummaries: {
+                            /** @description Vehicle identifier */
+                            vehicleId: string;
+                            /**
+                             * @description Vehicle name
+                             * @example Toyota Sienna
+                             */
+                            vehicleName: string;
+                            /**
+                             * @description Vehicle seating capacity
+                             * @example 7
+                             */
+                            vehicleCapacity: number;
+                            /**
+                             * @description Number of children assigned to this vehicle
+                             * @example 3
+                             */
+                            assignedChildrenCount: number;
+                            /**
+                             * @description Available seats remaining
+                             * @example 4
+                             */
+                            availableSeats: number;
+                            /**
+                             * @description Current capacity status
+                             * @example available
+                             * @enum {string}
+                             */
+                            capacityStatus: "available" | "limited" | "full" | "overcapacity";
+                            /** @description Family ID that owns this vehicle */
+                            vehicleFamilyId: string;
+                            /**
+                             * @description Whether this vehicle belongs to the user's family
+                             * @example true
+                             */
+                            isFamilyVehicle: boolean;
+                            /** @description Driver information if assigned */
+                            driver?: {
+                                id: string;
+                                name: string;
+                            };
+                            /** @description Detailed children assignments for this vehicle */
+                            children?: {
+                                childId: string;
+                                childName: string;
+                                childFamilyId: string;
+                                isFamilyChild: boolean;
+                            }[];
                         }[];
-                        capacity: number;
-                        /** @enum {string} */
-                        capacityStatus: "AVAILABLE" | "FULL" | "OVERFLOW";
-                        isMorning: boolean;
+                        /**
+                         * @description Total children assigned across all vehicles
+                         * @example 5
+                         */
+                        totalChildrenAssigned: number;
+                        /**
+                         * @description Total capacity across all vehicles
+                         * @example 8
+                         */
+                        totalCapacity: number;
+                        /**
+                         * @description Overall capacity status for this time slot
+                         * @example available
+                         * @enum {string}
+                         */
+                        overallCapacityStatus: "available" | "limited" | "full" | "overcapacity";
                     }[];
-                    hasTransport: boolean;
+                    /**
+                     * @description Total children in all vehicles for this day
+                     * @example 5
+                     */
+                    totalChildrenInVehicles: number;
+                    /**
+                     * @description Number of vehicles with assignments for this day
+                     * @example 2
+                     */
+                    totalVehiclesWithAssignments: number;
+                    /**
+                     * @description Whether this day has scheduled transports
+                     * @example true
+                     */
+                    hasScheduledTransports: boolean;
                 }[];
-                summary: {
-                    totalDays: number;
-                    daysWithTransport: number;
-                    totalTransportSlots: number;
-                    childrenWithTransport: number;
-                    uniqueVehicles: number;
-                    uniqueDrivers: number;
-                    coveragePercentage: number;
+                /**
+                 * @description Start date of the week in YYYY-MM-DD format
+                 * @example 2023-01-01
+                 */
+                startDate: string;
+                /**
+                 * @description End date of the week in YYYY-MM-DD format
+                 * @example 2023-01-07
+                 */
+                endDate: string;
+                /**
+                 * @description Timestamp when the dashboard was generated
+                 * @example 2023-01-01T12:00:00.000Z
+                 */
+                generatedAt: string;
+                /** @description Optional metadata about the family and summary statistics */
+                metadata?: {
+                    familyId: string;
+                    familyName: string;
+                    totalGroups: number;
+                    totalChildren: number;
                 };
             };
         };
@@ -4461,29 +4576,45 @@ export interface operations {
                              */
                             valid: boolean;
                             /**
+                             * @description Group ID (if valid)
+                             * @example cmivlir1w004y13so4aplwzwx
+                             */
+                            groupId?: string;
+                            /**
+                             * @description Group name (if valid)
+                             * @example Group_1765104288010_ad46e7c2
+                             */
+                            groupName?: string;
+                            /**
+                             * @description Name of the person who sent the invitation
+                             * @example John Doe
+                             */
+                            inviterName?: string | null;
+                            /**
+                             * @description Whether authentication is required to accept
+                             * @example false
+                             */
+                            requiresAuth?: boolean;
+                            /**
                              * @description Error message if invalid
                              * @example Invitation code is required
                              */
                             error?: string;
-                            /** @description Group information (if valid) */
-                            group?: {
-                                /** Format: cuid */
-                                id: string;
-                                name: string;
-                            };
-                            /** @description Invitation information (if valid) */
-                            invitation?: {
-                                /** Format: cuid */
-                                id: string;
-                                /** Format: date-time */
-                                expiresAt: string;
-                                /**
-                                 * @description Role of a family within a group
-                                 * @example MEMBER
-                                 * @enum {string}
-                                 */
-                                role: "MEMBER" | "ADMIN";
-                            };
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example INVALID_CODE
+                             */
+                            errorCode?: string;
+                            /**
+                             * @description Email address (if applicable)
+                             * @example user@example.com
+                             */
+                            email?: string;
+                            /**
+                             * @description Whether the user already exists in the system
+                             * @example true
+                             */
+                            existingUser?: boolean;
                             /**
                              * @description User family status (authenticated validation only)
                              * @example FAMILY_MEMBER
@@ -4567,29 +4698,45 @@ export interface operations {
                              */
                             valid: boolean;
                             /**
+                             * @description Group ID (if valid)
+                             * @example cmivlir1w004y13so4aplwzwx
+                             */
+                            groupId?: string;
+                            /**
+                             * @description Group name (if valid)
+                             * @example Group_1765104288010_ad46e7c2
+                             */
+                            groupName?: string;
+                            /**
+                             * @description Name of the person who sent the invitation
+                             * @example John Doe
+                             */
+                            inviterName?: string | null;
+                            /**
+                             * @description Whether authentication is required to accept
+                             * @example false
+                             */
+                            requiresAuth?: boolean;
+                            /**
                              * @description Error message if invalid
                              * @example Invitation code is required
                              */
                             error?: string;
-                            /** @description Group information (if valid) */
-                            group?: {
-                                /** Format: cuid */
-                                id: string;
-                                name: string;
-                            };
-                            /** @description Invitation information (if valid) */
-                            invitation?: {
-                                /** Format: cuid */
-                                id: string;
-                                /** Format: date-time */
-                                expiresAt: string;
-                                /**
-                                 * @description Role of a family within a group
-                                 * @example MEMBER
-                                 * @enum {string}
-                                 */
-                                role: "MEMBER" | "ADMIN";
-                            };
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example INVALID_CODE
+                             */
+                            errorCode?: string;
+                            /**
+                             * @description Email address (if applicable)
+                             * @example user@example.com
+                             */
+                            email?: string;
+                            /**
+                             * @description Whether the user already exists in the system
+                             * @example true
+                             */
+                            existingUser?: boolean;
                             /**
                              * @description User family status (authenticated validation only)
                              * @example FAMILY_MEMBER
@@ -4718,7 +4865,7 @@ export interface operations {
                              * @example ADMIN
                              * @enum {string}
                              */
-                            userRole: "OWNER" | "ADMIN" | "MEMBER";
+                            userRole: "ADMIN" | "MEMBER";
                             /**
                              * Owner Family
                              * @description Owner family information
@@ -4768,7 +4915,7 @@ export interface operations {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "MEMBER" | "ADMIN";
+                                role: "MEMBER" | "ADMIN" | "OWNER";
                                 /**
                                  * Format: date-time
                                  * @description When the family joined the group
@@ -4832,52 +4979,118 @@ export interface operations {
                         /** @enum {boolean} */
                         success: true;
                         /**
-                         * Group Membership
-                         * @description Family membership in a group
+                         * Group Response
+                         * @description Complete group information with user context
                          */
                         data: {
                             /**
                              * Format: cuid
-                             * @description Membership identifier
-                             * @example cl123456789012345678901237
+                             * @description Unique group identifier (CUID format)
+                             * @example cl123456789012345678901234
                              */
                             id: string;
                             /**
+                             * @description Group display name
+                             * @example Morning School Run
+                             */
+                            name: string;
+                            /**
+                             * @description Group description (null if not set)
+                             * @example Carpool group for morning school transportation
+                             */
+                            description: string | null;
+                            /**
                              * Format: cuid
-                             * @description Family identifier
-                             * @example cl123456789012345678901238
+                             * @description Owner family identifier
+                             * @example cl123456789012345678901236
                              */
                             familyId: string;
                             /**
-                             * Format: cuid
-                             * @description Group identifier
-                             * @example cl123456789012345678901234
+                             * @description Group invitation code
+                             * @example ABC123XYZ
                              */
-                            groupId: string;
-                            /**
-                             * @description Family role in the group
-                             * @example MEMBER
-                             * @enum {string}
-                             */
-                            role: "MEMBER" | "ADMIN";
+                            inviteCode: string;
                             /**
                              * Format: date-time
-                             * @description When the family joined the group
+                             * @description Group creation timestamp
                              * @example 2023-01-01T00:00:00.000Z
                              */
-                            joinedAt: string;
-                            /** @description Family information */
-                            family?: {
-                                /** Format: cuid */
+                            createdAt: string;
+                            /**
+                             * Format: date-time
+                             * @description Last update timestamp
+                             * @example 2023-01-01T00:00:00.000Z
+                             */
+                            updatedAt: string;
+                            /**
+                             * @description Current user's role in this group
+                             * @example ADMIN
+                             * @enum {string}
+                             */
+                            userRole: "ADMIN" | "MEMBER";
+                            /**
+                             * Owner Family
+                             * @description Owner family information
+                             */
+                            ownerFamily: {
+                                /**
+                                 * Format: cuid
+                                 * @description Owner family identifier
+                                 * @example cl123456789012345678901236
+                                 */
                                 id: string;
+                                /**
+                                 * @description Owner family name
+                                 * @example Johnson Family
+                                 */
                                 name: string;
                             };
-                            /** @description Group information */
-                            group?: {
-                                /** Format: cuid */
-                                id: string;
-                                name: string;
+                            /** @description Count information (included in some responses) */
+                            _count?: {
+                                /**
+                                 * @description Number of families in the group
+                                 * @example 3
+                                 */
+                                familyMembers: number;
                             };
+                            /**
+                             * @description Total number of families in the group
+                             * @example 3
+                             */
+                            familyCount: number;
+                            /** @description Family members (included when fetching group families) */
+                            familyMembers?: {
+                                /**
+                                 * Format: cuid
+                                 * @description Family member identifier
+                                 * @example cl123456789012345678901237
+                                 */
+                                id: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Family identifier
+                                 * @example cl123456789012345678901238
+                                 */
+                                familyId: string;
+                                /**
+                                 * @description Family role in the group
+                                 * @example MEMBER
+                                 * @enum {string}
+                                 */
+                                role: "MEMBER" | "ADMIN" | "OWNER";
+                                /**
+                                 * Format: date-time
+                                 * @description When the family joined the group
+                                 * @example 2023-01-01T00:00:00.000Z
+                                 */
+                                joinedAt: string;
+                                /** @description Family information (included when fetching group families) */
+                                family?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    name: string;
+                                };
+                            }[];
                         };
                     };
                 };
@@ -4961,7 +5174,7 @@ export interface operations {
                              * @example ADMIN
                              * @enum {string}
                              */
-                            userRole: "OWNER" | "ADMIN" | "MEMBER";
+                            userRole: "ADMIN" | "MEMBER";
                             /**
                              * Owner Family
                              * @description Owner family information
@@ -5011,7 +5224,7 @@ export interface operations {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "MEMBER" | "ADMIN";
+                                role: "MEMBER" | "ADMIN" | "OWNER";
                                 /**
                                  * Format: date-time
                                  * @description When the family joined the group
@@ -5062,34 +5275,45 @@ export interface operations {
                         data: {
                             /**
                              * Format: cuid
-                             * @description Family member identifier
+                             * @description Family identifier
                              * @example cl123456789012345678901237
                              */
                             id: string;
                             /**
-                             * Format: cuid
-                             * @description Family identifier
-                             * @example cl123456789012345678901238
+                             * @description Family name
+                             * @example Johnson Family
                              */
-                            familyId: string;
+                            name: string;
                             /**
                              * @description Family role in the group
                              * @example MEMBER
                              * @enum {string}
                              */
-                            role: "MEMBER" | "ADMIN";
+                            role: "MEMBER" | "ADMIN" | "OWNER";
                             /**
-                             * Format: date-time
-                             * @description When the family joined the group
-                             * @example 2023-01-01T00:00:00.000Z
+                             * @description Whether this is the requester's family
+                             * @example false
                              */
-                            joinedAt: string;
-                            /** @description Family information (included when fetching group families) */
-                            family?: {
-                                /** Format: cuid */
-                                id: string;
+                            isMyFamily: boolean;
+                            /**
+                             * @description Whether the requester can manage this family
+                             * @example false
+                             */
+                            canManage: boolean;
+                            /**
+                             * @description Family admin contacts
+                             * @example [
+                             *       {
+                             *         "name": "John Johnson",
+                             *         "email": "john@example.com"
+                             *       }
+                             *     ]
+                             */
+                            admins: {
                                 name: string;
-                            };
+                                /** Format: email */
+                                email: string;
+                            }[];
                         }[];
                     };
                 };
@@ -5257,7 +5481,7 @@ export interface operations {
                              * @example ADMIN
                              * @enum {string}
                              */
-                            userRole: "OWNER" | "ADMIN" | "MEMBER";
+                            userRole: "ADMIN" | "MEMBER";
                             /**
                              * Owner Family
                              * @description Owner family information
@@ -5307,7 +5531,7 @@ export interface operations {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "MEMBER" | "ADMIN";
+                                role: "MEMBER" | "ADMIN" | "OWNER";
                                 /**
                                  * Format: date-time
                                  * @description When the family joined the group
@@ -5463,7 +5687,7 @@ export interface operations {
                              * @example MEMBER
                              * @enum {string}
                              */
-                            role: "MEMBER" | "ADMIN";
+                            role: "MEMBER" | "ADMIN" | "OWNER";
                             /**
                              * Format: date-time
                              * @description When the family joined the group
@@ -5693,7 +5917,7 @@ export interface operations {
                         success: true;
                         /**
                          * Group Invitation
-                         * @description Group invitation information
+                         * @description Group invitation information with flexible schema for backward compatibility
                          */
                         data: {
                             /**
@@ -5701,19 +5925,25 @@ export interface operations {
                              * @description Invitation identifier
                              * @example cl123456789012345678901239
                              */
-                            id: string;
+                            id?: string;
                             /**
                              * Format: cuid
                              * @description Group identifier
                              * @example cl123456789012345678901234
                              */
-                            groupId: string;
+                            groupId?: string;
                             /**
                              * Format: cuid
-                             * @description Target family identifier
+                             * @description Target family identifier (null for email invitations)
                              * @example cl123456789012345678901238
                              */
-                            targetFamilyId: string;
+                            targetFamilyId?: string | null;
+                            /**
+                             * Format: email
+                             * @description Email for email invitations (null for family invitations)
+                             * @example john@example.com
+                             */
+                            email?: string | null;
                             /**
                              * @description Invited role in the group
                              * @example MEMBER
@@ -5721,28 +5951,82 @@ export interface operations {
                              */
                             role: "MEMBER" | "ADMIN";
                             /**
-                             * @description Invitation status
-                             * @example PENDING
-                             * @enum {string}
-                             */
-                            status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
-                            /**
                              * @description Personal message from inviter
                              * @example Looking forward to carpooling with you!
                              */
                             personalMessage?: string | null;
                             /**
-                             * Format: date-time
+                             * Format: cuid
+                             * @description User who sent the invitation
+                             * @example cl123456789012345678901237
+                             */
+                            invitedBy?: string;
+                            /**
+                             * @description Invitation status
+                             * @default PENDING
+                             * @example PENDING
+                             * @enum {string}
+                             */
+                            status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
+                            /**
+                             * @description Invitation code
+                             * @example ABC123XYZ
+                             */
+                            inviteCode?: string;
+                            /**
+                             * Format: date
                              * @description Invitation expiration timestamp
                              * @example 2023-01-08T00:00:00.000Z
                              */
-                            expiresAt: string;
+                            expiresAt?: string;
                             /**
-                             * Format: date-time
+                             * Format: date
+                             * @description Invitation acceptance timestamp
+                             * @example 2023-01-05T00:00:00.000Z
+                             */
+                            acceptedAt?: string | null;
+                            /**
+                             * Format: date
                              * @description Invitation creation timestamp
                              * @example 2023-01-01T00:00:00.000Z
                              */
-                            createdAt: string;
+                            createdAt?: string;
+                            /**
+                             * Format: date
+                             * @description Invitation update timestamp
+                             * @example 2023-01-01T00:00:00.000Z
+                             */
+                            updatedAt?: string;
+                            /**
+                             * Format: cuid
+                             * @description User who accepted the invitation
+                             * @example cl123456789012345678901238
+                             */
+                            acceptedBy?: string | null;
+                            /**
+                             * Format: cuid
+                             * @description User who created the invitation
+                             * @example cl123456789012345678901237
+                             */
+                            createdBy?: string;
+                            /**
+                             * @description Legacy invitation identifier (for backward compatibility)
+                             * @example invitation-123
+                             */
+                            invitationId?: string;
+                            /**
+                             * @description Legacy family identifier (for backward compatibility)
+                             * @example family-1
+                             */
+                            familyId?: string;
+                            /** @description User who sent the invitation (included in some responses) */
+                            invitedByUser?: {
+                                /** Format: cuid */
+                                id: string;
+                                name: string;
+                                /** Format: email */
+                                email: string;
+                            };
                             /** @description Group information (included in some responses) */
                             group?: {
                                 /** Format: cuid */
@@ -5816,19 +6100,25 @@ export interface operations {
                              * @description Invitation identifier
                              * @example cl123456789012345678901239
                              */
-                            id: string;
+                            id?: string;
                             /**
                              * Format: cuid
                              * @description Group identifier
                              * @example cl123456789012345678901234
                              */
-                            groupId: string;
+                            groupId?: string;
                             /**
                              * Format: cuid
-                             * @description Target family identifier
+                             * @description Target family identifier (null for email invitations)
                              * @example cl123456789012345678901238
                              */
-                            targetFamilyId: string;
+                            targetFamilyId?: string | null;
+                            /**
+                             * Format: email
+                             * @description Email for email invitations (null for family invitations)
+                             * @example john@example.com
+                             */
+                            email?: string | null;
                             /**
                              * @description Invited role in the group
                              * @example MEMBER
@@ -5836,28 +6126,82 @@ export interface operations {
                              */
                             role: "MEMBER" | "ADMIN";
                             /**
-                             * @description Invitation status
-                             * @example PENDING
-                             * @enum {string}
-                             */
-                            status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
-                            /**
                              * @description Personal message from inviter
                              * @example Looking forward to carpooling with you!
                              */
                             personalMessage?: string | null;
                             /**
-                             * Format: date-time
+                             * Format: cuid
+                             * @description User who sent the invitation
+                             * @example cl123456789012345678901237
+                             */
+                            invitedBy?: string;
+                            /**
+                             * @description Invitation status
+                             * @default PENDING
+                             * @example PENDING
+                             * @enum {string}
+                             */
+                            status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
+                            /**
+                             * @description Invitation code
+                             * @example ABC123XYZ
+                             */
+                            inviteCode?: string;
+                            /**
+                             * Format: date
                              * @description Invitation expiration timestamp
                              * @example 2023-01-08T00:00:00.000Z
                              */
-                            expiresAt: string;
+                            expiresAt?: string;
                             /**
-                             * Format: date-time
+                             * Format: date
+                             * @description Invitation acceptance timestamp
+                             * @example 2023-01-05T00:00:00.000Z
+                             */
+                            acceptedAt?: string | null;
+                            /**
+                             * Format: date
                              * @description Invitation creation timestamp
                              * @example 2023-01-01T00:00:00.000Z
                              */
-                            createdAt: string;
+                            createdAt?: string;
+                            /**
+                             * Format: date
+                             * @description Invitation update timestamp
+                             * @example 2023-01-01T00:00:00.000Z
+                             */
+                            updatedAt?: string;
+                            /**
+                             * Format: cuid
+                             * @description User who accepted the invitation
+                             * @example cl123456789012345678901238
+                             */
+                            acceptedBy?: string | null;
+                            /**
+                             * Format: cuid
+                             * @description User who created the invitation
+                             * @example cl123456789012345678901237
+                             */
+                            createdBy?: string;
+                            /**
+                             * @description Legacy invitation identifier (for backward compatibility)
+                             * @example invitation-123
+                             */
+                            invitationId?: string;
+                            /**
+                             * @description Legacy family identifier (for backward compatibility)
+                             * @example family-1
+                             */
+                            familyId?: string;
+                            /** @description User who sent the invitation (included in some responses) */
+                            invitedByUser?: {
+                                /** Format: cuid */
+                                id: string;
+                                name: string;
+                                /** Format: email */
+                                email: string;
+                            };
                             /** @description Group information (included in some responses) */
                             group?: {
                                 /** Format: cuid */

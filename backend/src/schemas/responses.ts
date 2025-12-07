@@ -62,7 +62,7 @@ import { VehicleResponseSchema } from './vehicles';
 import { ChildResponseSchema } from './children';
 import { FamilyResponseSchema } from './families';
 import { GroupResponseSchema, ScheduleConfigSchema, FamilyGroupMemberSchema, FamilySearchResultSchema, GroupInvitationSchema } from './groups';
-import { TodayScheduleResponseSchema, RecentActivityResponseSchema, DashboardStatsSchema, WeeklyDashboardResponseSchema } from './dashboard';
+import { TodayScheduleResponseSchema, RecentActivityResponseSchema, DashboardStatsSchema } from './dashboard';
 import { FcmTokenResponseSchema } from './fcmTokens';
 import { ScheduleResponseSchema, ScheduleSlotSchema, ChildAssignmentSchema, AvailableChildSchema, ScheduleSlotConflictSchema } from './scheduleSlots';
 
@@ -150,42 +150,188 @@ export const RecentActivitySuccessResponseSchema = createSuccessResponseSchema(R
 export const UserDashboardStatsSuccessResponseSchema = createSuccessResponseSchema(DashboardStatsSchema);
 
 /**
- * Weekly dashboard data schema (matches DashboardService.getWeeklyDashboard response)
+ * Weekly dashboard data schema (matches DashboardService.getWeeklyDashboard response data)
+ * CORRECTED: Now matches the original DayTransportSummary structure from backend/src/types/DashboardTypes.ts
  */
 export const WeeklyDashboardDataSchema = z.object({
   days: z.array(z.object({
-    date: z.string(),
-    dayName: z.string(),
-    transportSlots: z.array(z.object({
-      id: z.cuid(),
-      datetime: z.string(),
-      time: z.string(),
-      vehicle: z.object({
-        id: z.cuid(),
-        name: z.string(),
-        capacity: z.number().int(),
-      }).optional(),
-      driver: z.object({
-        id: z.cuid(),
-        name: z.string(),
-      }).optional(),
-      children: z.array(z.object({
-        id: z.cuid(),
-        name: z.string(),
-      })),
-    })),
-    hasTransport: z.boolean(),
-  })).optional(),
-  startDate: z.string(),
-  endDate: z.string(),
-  generatedAt: z.string(),
+    date: z.string()
+      .openapi({
+        example: '2023-01-01',
+        description: 'Date in YYYY-MM-DD format',
+      }),
+    transports: z.array(z.object({
+      time: z.string()
+        .openapi({
+          example: '08:30',
+          description: 'Time in HH:mm format',
+        }),
+      groupId: z.cuid()
+        .openapi({
+          description: 'Group identifier',
+        }),
+      groupName: z.string()
+        .openapi({
+          example: 'School Carpool Group A',
+          description: 'Group name',
+        }),
+      scheduleSlotId: z.cuid()
+        .openapi({
+          description: 'Schedule slot identifier',
+        }),
+      vehicleAssignmentSummaries: z.array(z.object({
+        vehicleId: z.cuid()
+          .openapi({
+            description: 'Vehicle identifier',
+          }),
+        vehicleName: z.string()
+          .openapi({
+            example: 'Toyota Sienna',
+            description: 'Vehicle name',
+          }),
+        vehicleCapacity: z.number().int().min(0)
+          .openapi({
+            example: 7,
+            description: 'Vehicle seating capacity',
+          }),
+        assignedChildrenCount: z.number().int().min(0)
+          .openapi({
+            example: 3,
+            description: 'Number of children assigned to this vehicle',
+          }),
+        availableSeats: z.number().int()
+          .openapi({
+            example: 4,
+            description: 'Number of available seats remaining',
+          }),
+        capacityStatus: z.enum(['available', 'limited', 'full', 'overcapacity'])
+          .openapi({
+            example: 'available',
+            description: 'Capacity status based on seat availability',
+          }),
+        vehicleFamilyId: z.cuid()
+          .openapi({
+            description: 'Family ID that owns the vehicle',
+          }),
+        isFamilyVehicle: z.boolean()
+          .openapi({
+            example: true,
+            description: 'Whether this vehicle belongs to the user\'s family',
+          }),
+        driver: z.object({
+          id: z.cuid(),
+          name: z.string(),
+        }).optional()
+          .openapi({
+            description: 'Driver information if assigned',
+          }),
+        children: z.array(z.object({
+          childId: z.cuid()
+            .openapi({
+              description: 'Child identifier',
+            }),
+          childName: z.string()
+            .openapi({
+              example: 'Emma Johnson',
+              description: 'Child name',
+            }),
+          childFamilyId: z.cuid()
+            .openapi({
+              description: 'Family ID that owns the child',
+            }),
+          isFamilyChild: z.boolean()
+            .openapi({
+              example: true,
+              description: 'Whether this child belongs to the user\'s family',
+            }),
+        })).optional()
+          .openapi({
+            description: 'Children assigned to this vehicle',
+          }),
+      }))
+        .openapi({
+          description: 'Vehicle assignment summaries for this transport slot',
+        }),
+      totalChildrenAssigned: z.number().int().min(0)
+        .openapi({
+          example: 5,
+          description: 'Total number of children assigned across all vehicles',
+        }),
+      totalCapacity: z.number().int().min(0)
+        .openapi({
+          example: 14,
+          description: 'Total seating capacity across all vehicles',
+        }),
+      overallCapacityStatus: z.enum(['available', 'limited', 'full', 'overcapacity'])
+        .openapi({
+          example: 'available',
+          description: 'Overall capacity status across all vehicles',
+        }),
+    }))
+      .openapi({
+        description: 'Transport slots for this day',
+      }),
+    totalChildrenInVehicles: z.number().int().min(0)
+      .openapi({
+        example: 8,
+        description: 'Total number of children in vehicles across all transport slots',
+      }),
+    totalVehiclesWithAssignments: z.number().int().min(0)
+      .openapi({
+        example: 2,
+        description: 'Total number of vehicles with assignments across all transport slots',
+      }),
+    hasScheduledTransports: z.boolean()
+      .openapi({
+        example: true,
+        description: 'Whether this day has any scheduled transport slots',
+      }),
+  }))
+    .openapi({
+      description: 'Array of days in the week with their transport summaries',
+    }),
+  startDate: z.string()
+    .openapi({
+      example: '2023-01-01',
+      description: 'Week start date in YYYY-MM-DD format',
+    }),
+  endDate: z.string()
+    .openapi({
+      example: '2023-01-07',
+      description: 'Week end date in YYYY-MM-DD format',
+    }),
+  generatedAt: z.string()
+    .openapi({
+      example: '2023-01-01T12:00:00.000Z',
+      description: 'Timestamp when the dashboard was generated (ISO 8601 format)',
+    }),
   metadata: z.object({
-    familyId: z.cuid(),
-    familyName: z.string(),
-    totalGroups: z.number().int(),
-    totalChildren: z.number().int(),
-  }).optional(),
+    familyId: z.cuid()
+      .openapi({
+        description: 'Family identifier',
+      }),
+    familyName: z.string()
+      .openapi({
+        example: 'Johnson Family',
+        description: 'Family name',
+      }),
+    totalGroups: z.number().int().min(0)
+      .openapi({
+        example: 3,
+        description: 'Total number of groups the family belongs to',
+      }),
+    totalChildren: z.number().int().min(0)
+      .openapi({
+        example: 2,
+        description: 'Total number of children in the family',
+      }),
+  }).optional()
+    .openapi({
+      description: 'Optional metadata about the family and dashboard',
+    }),
 });
+
+export const WeeklyDashboardSuccessResponseSchema = createSuccessResponseSchema(WeeklyDashboardDataSchema);
 
 export const FcmTokenSuccessResponseSchema = createSuccessResponseSchema(FcmTokenResponseSchema);
 
@@ -302,6 +448,59 @@ export const InviteCodeValidationSuccessResponseSchema = createSuccessResponseSc
 );
 
 /**
+ * Family invitation validation response schema
+ * Based on FamilyInvitationValidation interface from UnifiedInvitationService
+ */
+export const FamilyInvitationValidationResponseSchema = z.object({
+  valid: z.boolean(),
+  familyId: z.string().optional(),
+  familyName: z.string().optional(),
+  inviterName: z.string().nullable().optional(),
+  role: z.enum(['ADMIN', 'MEMBER']).optional(),
+  personalMessage: z.string().optional(),
+  error: z.string().optional(),
+  errorCode: z.string().optional(),
+  email: z.string().optional(),
+  existingUser: z.boolean().optional(),
+  userCurrentFamily: z.object({
+    id: z.string(),
+    name: z.string(),
+  }).optional(),
+  canLeaveCurrentFamily: z.boolean().optional(),
+  cannotLeaveReason: z.string().optional(),
+});
+
+/**
+ * Group invitation validation response schema
+ * Based on GroupInvitationValidation interface from UnifiedInvitationService
+ */
+export const GroupInvitationValidationResponseSchema = z.object({
+  valid: z.boolean(),
+  groupId: z.string().optional(),
+  groupName: z.string().optional(),
+  inviterName: z.string().nullable().optional(),
+  requiresAuth: z.boolean().optional(),
+  error: z.string().optional(),
+  errorCode: z.string().optional(),
+  email: z.string().optional(),
+  existingUser: z.boolean().optional(),
+});
+
+/**
+ * Wrapped family invitation validation response
+ */
+export const FamilyInvitationValidationSuccessResponseSchema = createSuccessResponseSchema(
+  FamilyInvitationValidationResponseSchema,
+);
+
+/**
+ * Wrapped group invitation validation response
+ */
+export const GroupInvitationValidationSuccessResponseSchema = createSuccessResponseSchema(
+  GroupInvitationValidationResponseSchema,
+);
+
+/**
  * Family group member response schema
  */
 export const FamilyGroupMemberSuccessResponseSchema = createSuccessResponseSchema(
@@ -340,6 +539,7 @@ registry.register('DashboardStatsSuccessResponse', DashboardStatsSuccessResponse
 registry.register('TodayScheduleSuccessResponse', TodayScheduleSuccessResponseSchema);
 registry.register('RecentActivitySuccessResponse', RecentActivitySuccessResponseSchema);
 registry.register('UserDashboardStatsSuccessResponse', UserDashboardStatsSuccessResponseSchema);
+registry.register('WeeklyDashboardSuccessResponse', WeeklyDashboardSuccessResponseSchema);
 registry.register('WeeklyDashboardData', WeeklyDashboardDataSchema);
 registry.register('FcmTokenSuccessResponse', FcmTokenSuccessResponseSchema);
 registry.register('FcmTokensSuccessResponse', FcmTokensSuccessResponseSchema);
@@ -360,3 +560,7 @@ registry.register('InviteCodeValidationSuccessResponse', InviteCodeValidationSuc
 registry.register('FamilyGroupMemberSuccessResponse', FamilyGroupMemberSuccessResponseSchema);
 registry.register('FamilySearchSuccessResponse', FamilySearchSuccessResponseSchema);
 registry.register('GroupInvitationSuccessResponse', GroupInvitationSuccessResponseSchema);
+registry.register('FamilyInvitationValidationResponse', FamilyInvitationValidationResponseSchema);
+registry.register('GroupInvitationValidationResponse', GroupInvitationValidationResponseSchema);
+registry.register('FamilyInvitationValidationSuccessResponse', FamilyInvitationValidationSuccessResponseSchema);
+registry.register('GroupInvitationValidationSuccessResponse', GroupInvitationValidationSuccessResponseSchema);

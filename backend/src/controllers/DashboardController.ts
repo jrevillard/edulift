@@ -8,7 +8,7 @@ import {
   TodayScheduleSuccessResponseSchema,
   RecentActivitySuccessResponseSchema,
   UserDashboardStatsSuccessResponseSchema,
-  WeeklyDashboardDataSchema,
+  WeeklyDashboardSuccessResponseSchema,
 } from '../schemas/responses';
 
 export class DashboardController {
@@ -198,11 +198,9 @@ export class DashboardController {
         hasData: !!dashboardResponse.data,
       });
 
-      // Return the response using standardized response utility
+      // Send validated response ensuring OpenAPI compliance with proper schema validation
       if (dashboardResponse.success) {
-        // Send validated response using standardized response utility
-        // Use WeeklyDashboardDataSchema to validate just the data part
-        sendSuccessResponse(res, 200, WeeklyDashboardDataSchema, dashboardResponse.data);
+        sendSuccessResponse(res, 200, WeeklyDashboardSuccessResponseSchema, dashboardResponse.data);
       } else {
         // Handle error responses from service
         const statusCode = dashboardResponse.statusCode || 500;

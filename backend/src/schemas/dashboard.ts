@@ -288,65 +288,151 @@ export const RecentActivityResponseSchema = z.object({
   description: 'Recent activity log for dashboard',
 });
 
+// Weekly Dashboard Response Schema - Matches the ACTUAL backend structure
+// This schema aligns with what DashboardService.getWeeklyDashboard() returns
 export const WeeklyDashboardResponseSchema = z.object({
   success: z.literal(true)
     .openapi({
       description: 'Operation success indicator',
     }),
   data: z.object({
-    weekStart: z.iso.datetime()
-      .openapi({
-        example: '2023-01-01T00:00:00.000Z',
-        description: 'Week start date in ISO 8601 format',
-      }),
-    weekEnd: z.iso.datetime()
-      .openapi({
-        example: '2023-01-07T23:59:59.999Z',
-        description: 'Week end date in ISO 8601 format',
-      }),
     days: z.array(z.object({
       date: z.string()
         .openapi({
           example: '2023-01-01',
           description: 'Date in YYYY-MM-DD format',
         }),
-      dayName: z.string()
-        .openapi({
-          example: 'Sunday',
-          description: 'Day name',
-        }),
-      transportSlots: z.array(z.object({
-        id: z.cuid(),
-        time: z.string(),
-        groupId: z.cuid().nullable(),
-        groupName: z.string(),
-        vehicleId: z.cuid().nullable(),
-        vehicleName: z.string().nullable(),
-        driverId: z.cuid().nullable(),
-        driverName: z.string().nullable(),
-        children: z.array(z.object({
-          id: z.cuid(),
-          name: z.string(),
-          familyId: z.cuid(),
-          familyName: z.string(),
+      transports: z.array(z.object({
+        time: z.string()
+          .openapi({
+            example: '08:30',
+            description: 'Time in HH:mm format',
+          }),
+        groupId: z.string()
+          .openapi({
+            description: 'Group identifier',
+          }),
+        groupName: z.string()
+          .openapi({
+            example: 'School Carpool Group A',
+            description: 'Group name',
+          }),
+        scheduleSlotId: z.string()
+          .openapi({
+            description: 'Schedule slot identifier',
+          }),
+        vehicleAssignmentSummaries: z.array(z.object({
+          vehicleId: z.string()
+            .openapi({
+              description: 'Vehicle identifier',
+            }),
+          vehicleName: z.string()
+            .openapi({
+              example: 'Toyota Sienna',
+              description: 'Vehicle name',
+            }),
+          vehicleCapacity: z.number().int().min(0)
+            .openapi({
+              example: 7,
+              description: 'Vehicle seating capacity',
+            }),
+          assignedChildrenCount: z.number().int().min(0)
+            .openapi({
+              example: 3,
+              description: 'Number of children assigned to this vehicle',
+            }),
+          availableSeats: z.number().int().min(0)
+            .openapi({
+              example: 4,
+              description: 'Available seats remaining',
+            }),
+          capacityStatus: z.enum(['available', 'limited', 'full', 'overcapacity'])
+            .openapi({
+              example: 'available',
+              description: 'Current capacity status',
+            }),
+          vehicleFamilyId: z.string()
+            .openapi({
+              description: 'Family ID that owns this vehicle',
+            }),
+          isFamilyVehicle: z.boolean()
+            .openapi({
+              example: true,
+              description: 'Whether this vehicle belongs to the user\'s family',
+            }),
+          driver: z.object({
+            id: z.string(),
+            name: z.string(),
+          }).optional()
+            .openapi({
+              description: 'Driver information if assigned',
+            }),
+          children: z.array(z.object({
+            childId: z.string(),
+            childName: z.string(),
+            childFamilyId: z.string(),
+            isFamilyChild: z.boolean(),
+          })).optional()
+            .openapi({
+              description: 'Detailed children assignments for this vehicle',
+            }),
         })),
-        capacity: z.number().int().min(0),
-        capacityStatus: z.enum(['AVAILABLE', 'FULL', 'OVERFLOW']),
-        isMorning: z.boolean(),
+        totalChildrenAssigned: z.number().int()
+          .openapi({
+            example: 5,
+            description: 'Total children assigned across all vehicles',
+          }),
+        totalCapacity: z.number().int()
+          .openapi({
+            example: 8,
+            description: 'Total capacity across all vehicles',
+          }),
+        overallCapacityStatus: z.enum(['available', 'limited', 'full', 'overcapacity'])
+          .openapi({
+            example: 'available',
+            description: 'Overall capacity status for this time slot',
+          }),
       })),
-      hasTransport: z.boolean(),
-    })).openapi({
-      description: 'Array of days in the week with their transport schedules',
-    }),
-    summary: z.object({
-      totalDays: z.number().int().min(0),
-      daysWithTransport: z.number().int().min(0),
-      totalTransportSlots: z.number().int().min(0),
-      childrenWithTransport: z.number().int().min(0),
-      uniqueVehicles: z.number().int().min(0),
-      uniqueDrivers: z.number().int().min(0),
-      coveragePercentage: z.number().min(0).max(100),
-    }),
+      totalChildrenInVehicles: z.number().int()
+        .openapi({
+          example: 5,
+          description: 'Total children in all vehicles for this day',
+        }),
+      totalVehiclesWithAssignments: z.number().int()
+        .openapi({
+          example: 2,
+          description: 'Number of vehicles with assignments for this day',
+        }),
+      hasScheduledTransports: z.boolean()
+        .openapi({
+          example: true,
+          description: 'Whether this day has scheduled transports',
+        }),
+    })),
+    startDate: z.string()
+      .openapi({
+        example: '2023-01-01',
+        description: 'Start date of the week in YYYY-MM-DD format',
+      }),
+    endDate: z.string()
+      .openapi({
+        example: '2023-01-07',
+        description: 'End date of the week in YYYY-MM-DD format',
+      }),
+    generatedAt: z.string()
+      .openapi({
+        example: '2023-01-01T12:00:00.000Z',
+        description: 'Timestamp when the dashboard was generated',
+      }),
+    metadata: z.object({
+      familyId: z.string(),
+      familyName: z.string(),
+      totalGroups: z.number().int(),
+      totalChildren: z.number().int(),
+    }).optional()
+      .openapi({
+        description: 'Optional metadata about the family and summary statistics',
+      }),
   }).openapi({
     description: 'Weekly dashboard data including schedules and summary',
   }),

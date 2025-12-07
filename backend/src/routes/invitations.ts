@@ -7,7 +7,12 @@ import { UnifiedInvitationService } from '../services/UnifiedInvitationService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { createLogger } from '../utils/logger';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
-import { SimpleSuccessResponseSchema, InvitationCreationResponseSchema } from '../schemas/responses';
+import {
+  SimpleSuccessResponseSchema,
+  InvitationCreationResponseSchema,
+  FamilyInvitationValidationSuccessResponseSchema,
+  GroupInvitationValidationSuccessResponseSchema,
+} from '../schemas/responses';
 import {
   // Request schemas
   CreateFamilyInvitationSchema,
@@ -46,9 +51,9 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
     logger.debug('Family validation result:', { code, valid: familyValidation.valid, error: familyValidation.error });
 
     if (familyValidation.valid) {
-      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
-        type: 'FAMILY',
+      sendSuccessResponse(res, 200, FamilyInvitationValidationSuccessResponseSchema, {
         ...familyValidation,
+        type: 'FAMILY',
       });
       return;
     }
@@ -58,9 +63,9 @@ router.get('/validate/:code', asyncHandler(async (req: Request, res: Response, n
     logger.debug('Group validation result:', { code, valid: groupValidation.valid, error: groupValidation.error });
 
     if (groupValidation.valid) {
-      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
-        type: 'GROUP',
+      sendSuccessResponse(res, 200, GroupInvitationValidationSuccessResponseSchema, {
         ...groupValidation,
+        type: 'GROUP',
       });
       return;
     }
@@ -138,7 +143,7 @@ router.get('/family/:code/validate', asyncHandler(async (req: Request, res: Resp
 
     const validation = await invitationService.validateFamilyInvitation(code, currentUserId);
 
-    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, validation);
+    sendSuccessResponse(res, 200, FamilyInvitationValidationSuccessResponseSchema, validation);
     return;
   } catch (error: any) {
     next(error);
@@ -271,7 +276,7 @@ router.get('/group/:code/validate', asyncHandler(async (req: Request, res: Respo
 
     const validation = await invitationService.validateGroupInvitation(code, currentUserId);
 
-    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, validation);
+    sendSuccessResponse(res, 200, GroupInvitationValidationSuccessResponseSchema, validation);
     return;
   } catch (error: any) {
     next(error);
