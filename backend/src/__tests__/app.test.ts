@@ -109,7 +109,7 @@ describe('Rate Limiting Middleware', () => {
       await request(app).get('/test').expect(429);
 
       // Wait for window to reset (add extra margin for timing issues)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 800));
 
       // Should work again after reset
       const response = await request(app).get('/test');
@@ -117,15 +117,15 @@ describe('Rate Limiting Middleware', () => {
     });
 
     it('should use environment variable configuration', async () => {
-      const app = createTestApp({ 
+      const app = createTestApp({
         enabled: 'true',
         maxRequests: '1', // Only allow 1 request
-        windowMs: '1000', 
+        windowMs: '1000',
       });
 
       // First request succeeds
       await request(app).get('/test').expect(200);
-      
+
       // Second request should be blocked
       await request(app).get('/test').expect(429);
     });
@@ -157,9 +157,9 @@ describe('Rate Limiting Middleware', () => {
     });
 
     it('should handle invalid environment variable values gracefully', async () => {
-      const app = createTestApp({ 
-        maxRequests: 'invalid', 
-        windowMs: 'invalid', 
+      const app = createTestApp({
+        maxRequests: 'invalid',
+        windowMs: 'invalid',
       });
 
       // Should not crash and should work (falling back to defaults via parseInt)

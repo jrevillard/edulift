@@ -56,7 +56,33 @@ describe('DashboardService', () => {
     mockScheduleSlotService.mockImplementation(() => mockScheduleSlotServiceInstance);
     mockActivityLogRepository.mockImplementation(() => mockActivityLogRepositoryInstance);
 
-    dashboardService = new DashboardService();
+    // Mock all Prisma methods used by DashboardService
+    const mockPrisma = {
+      familyMember: {
+        findFirst: jest.fn(),
+      },
+      group: {
+        findMany: jest.fn(),
+      },
+      child: {
+        findMany: jest.fn(),
+      },
+      vehicle: {
+        findMany: jest.fn(),
+      },
+      scheduleSlot: {
+        findMany: jest.fn(),
+        count: jest.fn(),
+      },
+      scheduleSlotVehicle: {
+        findMany: jest.fn(),
+      },
+      vehicleAssignment: {
+        findMany: jest.fn(),
+      },
+    } as any;
+
+    dashboardService = new DashboardService(mockPrisma);
   });
 
   afterEach(() => {
@@ -581,7 +607,9 @@ describe('DashboardService', () => {
         },
       ];
 
+      // Mock all private methods that use Prisma
       jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
       jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
 
       // Act
@@ -638,7 +666,9 @@ describe('DashboardService', () => {
         },
       ];
 
+      // Mock all private methods that use Prisma
       jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
       jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
 
       // Act
@@ -659,7 +689,9 @@ describe('DashboardService', () => {
       // Arrange
       const userId = 'user-123';
 
+      // Mock all private methods that use Prisma for null family case
       jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue(null);
+      jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
 
       // Act
       const result = await dashboardService.getWeeklyDashboard(userId);
