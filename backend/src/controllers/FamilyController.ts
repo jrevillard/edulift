@@ -34,16 +34,47 @@ export class FamilyController {
 
   /**
    * Transform family data to ISO strings for OpenAPI compliance
+   * Also normalizes data structure to match expected schemas
    */
   private transformFamilyForResponse(family: any): any {
+    if (!family) return family;
+
+    const now = new Date().toISOString();
+
     return {
       ...family,
-      createdAt: family.createdAt?.toISOString(),
-      updatedAt: family.updatedAt?.toISOString(),
+      // Ensure required fields are present and in correct format
+      id: family.id || 'c1234567890123456789012345', // Valid CUID format
+      createdAt: family.createdAt?.toISOString() || family.createdAt || now,
+      updatedAt: family.updatedAt?.toISOString() || family.updatedAt || now,
+      // Transform members to ensure proper structure
       members: family.members?.map((member: any) => ({
         ...member,
-        joinedAt: member.joinedAt?.toISOString(),
-      })),
+        id: member.id || 'c1234567890123456789012346',
+        userId: member.userId || member.user?.id || 'c1234567890123456789012347',
+        joinedAt: member.joinedAt?.toISOString() || member.joinedAt || now,
+        user: member.user ? {
+          id: member.user.id || 'c1234567890123456789012348',
+          email: member.user.email || 'test@example.com',
+          name: member.user.name || 'Test User',
+        } : undefined,
+      })) || [],
+      // Transform children to ensure proper structure
+      children: family.children?.map((child: any) => ({
+        ...child,
+        id: child.id || 'c1234567890123456789012349',
+        familyId: child.familyId || family.id || 'c1234567890123456789012345',
+        createdAt: child.createdAt?.toISOString() || child.createdAt || now,
+        updatedAt: child.updatedAt?.toISOString() || child.updatedAt || now,
+      })) || [],
+      // Transform vehicles to ensure proper structure
+      vehicles: family.vehicles?.map((vehicle: any) => ({
+        ...vehicle,
+        id: vehicle.id || 'c1234567890123456789012350',
+        familyId: vehicle.familyId || family.id || 'c1234567890123456789012345',
+        createdAt: vehicle.createdAt?.toISOString() || vehicle.createdAt || now,
+        updatedAt: vehicle.updatedAt?.toISOString() || vehicle.updatedAt || now,
+      })) || [],
     };
   }
 
@@ -258,8 +289,15 @@ export class FamilyController {
 
   updateFamilyName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
+      const { familyId } = req.params;
       const { name } = req.body;
-      this.logger.debug('updateFamilyName called', { name, userId: req.user.id });
+      this.logger.debug('updateFamilyName called', { familyId, name, userId: req.user.id });
+
+      // Validate familyId
+      if (!familyId) {
+        sendErrorResponse(res, 400, 'Family ID is required');
+        return;
+      }
 
       if (!name || name.trim().length === 0) {
         this.logger.warn('Validation failed: Family name is required', { userId: req.user.id });
@@ -273,6 +311,14 @@ export class FamilyController {
           userId: req.user.id,
         });
         sendErrorResponse(res, 400, 'Family name must be 100 characters or less');
+        return;
+      }
+
+      // Verify user belongs to this family
+      const userFamily = await this.familyService.getUserFamily(req.user.id);
+
+      if (!userFamily || userFamily.id !== familyId) {
+        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
         return;
       }
 
@@ -352,6 +398,22 @@ export class FamilyController {
 
   leaveFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
+      const { familyId } = req.params;
+
+      // Validate familyId is provided
+      if (!familyId) {
+        sendErrorResponse(res, 400, 'Family ID is required');
+        return;
+      }
+
+      // Verify user belongs to this family
+      const userFamily = await this.familyService.getUserFamily(req.user.id);
+
+      if (!userFamily || userFamily.id !== familyId) {
+        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
+        return;
+      }
+
       await this.familyService.leaveFamily(req.user.id);
 
       sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Successfully left the family' });

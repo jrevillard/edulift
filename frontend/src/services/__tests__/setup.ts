@@ -11,6 +11,26 @@ const mockUser = {
   updatedAt: '2024-01-01T00:00:00Z',
 };
 
+const mockChild = {
+  id: 'child-1',
+  name: 'Test Child',
+  age: 10,
+  familyId: 'family-1',
+  userId: 'user-1',
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+};
+
+const mockVehicle = {
+  id: 'vehicle-1',
+  name: 'Test Vehicle',
+  capacity: 5,
+  familyId: 'family-1',
+  userId: 'user-1',
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+};
+
 const mockFamily = {
   id: 'family-1',
   name: 'Test Family',
@@ -25,8 +45,8 @@ const mockFamily = {
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
   }],
-  children: [],
-  vehicles: []
+  children: [mockChild],
+  vehicles: [mockVehicle]
 };
 
 const mockGroup = {
@@ -50,26 +70,6 @@ const mockGroup = {
     families: 3,
     schedules: 2
   }
-};
-
-const mockChild = {
-  id: 'child-1',
-  name: 'Test Child',
-  age: 10,
-  familyId: 'family-1',
-  userId: 'user-1',
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
-};
-
-const mockVehicle = {
-  id: 'vehicle-1',
-  name: 'Test Vehicle',
-  capacity: 5,
-  familyId: 'family-1',
-  userId: 'user-1',
-  createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const mockGroupFamilies = [
@@ -113,8 +113,7 @@ const createMockClient = () => {
   };
 
   // Setup comprehensive mock implementations based on API paths
-  mockClient.GET.mockImplementation((path: string, options?: any) => {
-    const { params } = options || {};
+  mockClient.GET.mockImplementation((path: string, options?: { params?: Record<string, unknown> }) => {
 
     switch (path) {
       // Groups endpoints
@@ -229,7 +228,7 @@ const createMockClient = () => {
         return Promise.resolve({
           data: {
             data: {
-              id: params?.scheduleSlotId || 'slot-1',
+              id: options?.params?.scheduleSlotId || 'slot-1',
               groupId: 'group-1',
               day: 'MONDAY',
               time: '08:00',
@@ -428,8 +427,7 @@ const createMockClient = () => {
     }
   });
 
-  mockClient.DELETE.mockImplementation((path: string, options?: any) => {
-    const { params } = options || {};
+  mockClient.DELETE.mockImplementation((path: string) => {
 
     switch (path) {
       case '/groups/{groupId}':

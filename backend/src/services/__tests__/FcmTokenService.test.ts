@@ -25,7 +25,7 @@ describe('FcmTokenService', () => {
 
   describe('saveToken', () => {
     const mockTokenData: FcmTokenData = {
-      userId: 'user-1',
+      userId: TEST_IDS.USER,
       token: 'fcm-token-123',
       deviceId: 'device-1',
       fcmPlatform: 'android',
@@ -35,7 +35,7 @@ describe('FcmTokenService', () => {
       mockPrismaClient.fcmToken.findUnique.mockResolvedValueOnce(null);
       mockPrismaClient.fcmToken.create.mockResolvedValueOnce({
         id: 'token-id-1',
-        userId: 'user-1',
+        userId: TEST_IDS.USER,
         token: 'fcm-token-123',
         deviceId: 'device-1',
         platform: 'android',
@@ -47,11 +47,11 @@ describe('FcmTokenService', () => {
 
       const result = await fcmTokenService.saveToken(mockTokenData);
 
-      expect(result.userId).toBe('user-1');
+      expect(result.userId).toBe(TEST_IDS.USER);
       expect(result.token).toBe('fcm-token-123');
       expect(mockPrismaClient.fcmToken.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
-          userId: 'user-1',
+          userId: TEST_IDS.USER,
           token: 'fcm-token-123',
           deviceId: 'device-1',
           platform: 'android',
@@ -67,7 +67,7 @@ describe('FcmTokenService', () => {
       });
       mockPrismaClient.fcmToken.update.mockResolvedValueOnce({
         id: 'existing-token-id',
-        userId: 'user-1',
+        userId: TEST_IDS.USER,
         token: 'fcm-token-123',
         deviceId: 'device-1',
         platform: 'android',
@@ -83,7 +83,7 @@ describe('FcmTokenService', () => {
       expect(mockPrismaClient.fcmToken.update).toHaveBeenCalledWith({
         where: { token: 'fcm-token-123' },
         data: expect.objectContaining({
-          userId: 'user-1',
+          userId: TEST_IDS.USER,
           deviceId: 'device-1',
           platform: 'android',
           isActive: true,
@@ -103,7 +103,7 @@ describe('FcmTokenService', () => {
       const mockTokens = [
         {
           id: 'token-1',
-          userId: 'user-1',
+          userId: TEST_IDS.USER,
           token: 'fcm-token-1',
           platform: 'android',
           isActive: true,
@@ -111,7 +111,7 @@ describe('FcmTokenService', () => {
         },
         {
           id: 'token-2',
-          userId: 'user-1',
+          userId: TEST_IDS.USER,
           token: 'fcm-token-2',
           platform: 'ios',
           isActive: true,
@@ -121,13 +121,13 @@ describe('FcmTokenService', () => {
 
       mockPrismaClient.fcmToken.findMany.mockResolvedValueOnce(mockTokens);
 
-      const result = await fcmTokenService.getUserTokens('user-1');
+      const result = await fcmTokenService.getUserTokens(TEST_IDS.USER);
 
       expect(result).toHaveLength(2);
       expect(result[0].fcmPlatform).toBe('android');
       expect(result[1].fcmPlatform).toBe('ios');
       expect(mockPrismaClient.fcmToken.findMany).toHaveBeenCalledWith({
-        where: { userId: 'user-1', isActive: true },
+        where: { userId: TEST_IDS.USER, isActive: true },
         orderBy: { lastUsed: 'desc' },
       });
     });
@@ -135,7 +135,7 @@ describe('FcmTokenService', () => {
     it('should return empty array when user has no tokens', async () => {
       mockPrismaClient.fcmToken.findMany.mockResolvedValueOnce([]);
 
-      const result = await fcmTokenService.getUserTokens('user-1');
+      const result = await fcmTokenService.getUserTokens(TEST_IDS.USER);
 
       expect(result).toEqual([]);
     });
@@ -143,24 +143,24 @@ describe('FcmTokenService', () => {
     it('should handle database errors', async () => {
       mockPrismaClient.fcmToken.findMany.mockRejectedValueOnce(new Error('Database error'));
 
-      await expect(fcmTokenService.getUserTokens('user-1')).rejects.toThrow('Failed to retrieve user tokens');
+      await expect(fcmTokenService.getUserTokens(TEST_IDS.USER)).rejects.toThrow('Failed to retrieve user tokens');
     });
   });
 
   describe('getUsersTokens', () => {
     it('should return tokens for multiple users', async () => {
       const mockTokens = [
-        { id: 'token-1', userId: 'user-1', token: 'fcm-token-1', platform: 'android' },
+        { id: 'token-1', userId: TEST_IDS.USER, token: 'fcm-token-1', platform: 'android' },
         { id: 'token-2', userId: 'user-2', token: 'fcm-token-2', platform: 'ios' },
       ];
 
       mockPrismaClient.fcmToken.findMany.mockResolvedValueOnce(mockTokens);
 
-      const result = await fcmTokenService.getUsersTokens(['user-1', 'user-2']);
+      const result = await fcmTokenService.getUsersTokens([TEST_IDS.USER, 'user-2']);
 
       expect(result).toHaveLength(2);
       expect(mockPrismaClient.fcmToken.findMany).toHaveBeenCalledWith({
-        where: { userId: { in: ['user-1', 'user-2'] }, isActive: true },
+        where: { userId: { in: [TEST_IDS.USER, 'user-2'] }, isActive: true },
         orderBy: { lastUsed: 'desc' },
       });
     });

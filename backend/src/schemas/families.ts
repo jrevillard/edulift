@@ -7,7 +7,13 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import {
+  BaseChildSchema,
+  BaseVehicleSchema,
+  FamilyRoleEnum as CommonFamilyRoleEnum,
+  InvitationStatusEnum as CommonInvitationStatusEnum,
+} from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -16,15 +22,9 @@ extendZodWithOpenApi(z);
 // ENUMS
 // ============================================================================
 
-export const FamilyRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  description: 'Role of a user within a family',
-  example: 'MEMBER',
-});
-
-export const InvitationStatusEnum = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']).openapi({
-  description: 'Status of a family invitation',
-  example: 'PENDING',
-});
+// Re-export enums from common for consistency
+export const FamilyRoleEnum = CommonFamilyRoleEnum;
+export const InvitationStatusEnum = CommonInvitationStatusEnum;
 
 // ============================================================================
 // REQUEST SCHEMAS
@@ -229,110 +229,15 @@ export const FamilyMemberSchema = z.object({
   description: 'Family member information with user details',
 });
 
-export const ChildSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901239',
-      description: 'Child identifier',
-    }),
-  familyId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Family identifier',
-    }),
-  firstName: z.string()
-    .openapi({
-      example: 'Emma',
-      description: 'Child first name',
-    }),
-  lastName: z.string()
-    .openapi({
-      example: 'Johnson',
-      description: 'Child last name',
-    }),
-  dateOfBirth: z.iso.datetime()
-    .nullable()
-    .openapi({
-      example: '2015-05-15T00:00:00.000Z',
-      description: 'Child date of birth',
-    }),
-  createdAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Child creation timestamp',
-    }),
-  updatedAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Child update timestamp',
-    }),
-}).openapi({
-  title: 'Child',
-  description: 'Child information',
+// Re-export base schemas for family context
+export const ChildSchema = BaseChildSchema.openapi({
+  title: 'Family Child',
+  description: 'Child information in family context',
 });
 
-export const VehicleSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901240',
-      description: 'Vehicle identifier',
-    }),
-  familyId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Family identifier',
-    }),
-  make: z.string()
-    .openapi({
-      example: 'Toyota',
-      description: 'Vehicle make',
-    }),
-  model: z.string()
-    .openapi({
-      example: 'Sienna',
-      description: 'Vehicle model',
-    }),
-  year: z.number()
-    .int()
-    .min(1900)
-    .max(2100)
-    .openapi({
-      example: 2020,
-      description: 'Vehicle year',
-    }),
-  color: z.string()
-    .optional()
-    .openapi({
-      example: 'Blue',
-      description: 'Vehicle color',
-    }),
-  licensePlate: z.string()
-    .optional()
-    .openapi({
-      example: 'ABC-123',
-      description: 'Vehicle license plate',
-    }),
-  capacity: z.number()
-    .int()
-    .min(1)
-    .max(20)
-    .openapi({
-      example: 7,
-      description: 'Vehicle seating capacity',
-    }),
-  createdAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Vehicle creation timestamp',
-    }),
-  updatedAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Vehicle update timestamp',
-    }),
-}).openapi({
-  title: 'Vehicle',
-  description: 'Vehicle information',
+export const VehicleSchema = BaseVehicleSchema.openapi({
+  title: 'Family Vehicle',
+  description: 'Vehicle information in family context',
 });
 
 export const FamilyResponseSchema = z.object({
@@ -523,8 +428,21 @@ registry.register('InviteMemberRequest', InviteMemberSchema);
 registry.register('ValidateInviteCodeRequest', ValidateInviteCodeSchema);
 
 // Register parameter schemas
+registry.register('FamilyIdParams', FamilyIdParamsSchema);
+registry.register('MemberIdParams', MemberIdParamsSchema);
+registry.register('FamilyMemberParams', FamilyMemberParamsSchema);
+registry.register('FamilyInvitationParams', FamilyInvitationParamsSchema);
 
 // Register response schemas
+registry.register('User', UserSchema);
+registry.register('FamilyMember', FamilyMemberSchema);
+registry.register('Child', ChildSchema);
+registry.register('Vehicle', VehicleSchema);
+registry.register('FamilyResponse', FamilyResponseSchema);
+registry.register('FamilyPermissions', FamilyPermissionsSchema);
+registry.register('FamilyInvitation', FamilyInvitationSchema);
+registry.register('InviteCodeValidation', InviteCodeValidationSchema);
+registry.register('LeaveFamilyResponse', LeaveFamilyResponseSchema);
 
 // ============================================================================
 // API PATHS REGISTRATION

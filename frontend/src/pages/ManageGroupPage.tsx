@@ -52,9 +52,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { FamilySearchInvitation } from '@/components/FamilySearchInvitation';
 // import { InvitationManagement } from '@/components/InvitationManagement';
-import type { GroupFamily } from '../types/api';
-import { transformGroupFamily, type GetGroupFamiliesResponse } from './OpenAPIFamilyTransform';
-import { useFamily } from '../contexts/FamilyContext';
+import { transformGroupFamily, type GetGroupFamiliesResponse, type GroupFamily } from './OpenAPIFamilyTransform';
+// import { useFamily } from '../contexts/FamilyContext'; // Temporarily commented - not currently used
 
 // Helper function to format admin display text
 const formatAdminDisplay = (admins: GroupFamily['admins']) => {
@@ -97,7 +96,7 @@ const ManageGroupPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { currentFamily: userFamily } = useFamily(); // Get user's family information
+  // const { currentFamily: userFamily } = useFamily(); // Get user's family information
   // const { isConnected } = useSocket();
 
   // State for modals and editing
@@ -156,7 +155,7 @@ const ManageGroupPage: React.FC = () => {
   });
 
   const families = familiesData?.data?.map((family: GetGroupFamiliesResponse) =>
-    transformGroupFamily(family, userFamily?.id, currentGroup)
+    transformGroupFamily(family)
   ).filter(Boolean) || [];
 
   // Fetch schedule configuration
@@ -222,30 +221,7 @@ const ManageGroupPage: React.FC = () => {
   //   }
   // };
 
-  const handleCancelInvitation = async (invitationId: string) => {
-    if (!groupId) return;
-
-    try {
-      // MIGRATED: Use OpenAPI client to cancel group invitation
-      const result = await api.DELETE('/groups/{groupId}/invitations/{invitationId}', {
-        params: {
-          path: { groupId, invitationId }
-        }
-      });
-
-      // Check if the operation was successful
-      if (result.data?.success) {
-        setSuccessMessage('Invitation canceled successfully');
-        setErrorMessage('');
-        // await refreshPendingInvitations(); // Refresh invitations list
-        queryClient.invalidateQueries({ queryKey: ['group-families', groupId] }); // Refresh families list to remove PENDING family
-      } else {
-        setErrorMessage('Failed to cancel invitation');
-      }
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to cancel invitation');
-    }
-  };
+  // handleCancelInvitation removed - this endpoint doesn't return pending invitations
 
   // Mutations
 
@@ -649,8 +625,8 @@ const ManageGroupPage: React.FC = () => {
               ) : (
                 <div className="space-y-3">
                   {families.map(family => {
-                    // Use status field for pending check, with fallback for backward compatibility
-                    const isPending = family.status === 'PENDING' || family.role === 'PENDING';
+                    // This endpoint only returns active families, not pending invitations
+                    const isPending = false; // No pending families in this response
 
                     return (
                     <div
@@ -724,11 +700,7 @@ const ManageGroupPage: React.FC = () => {
                           {family.isMyFamily && (
                             <p className="text-xs text-blue-600 font-medium">Your family</p>
                           )}
-                          {isPending && family.expiresAt && (
-                            <p className="text-xs text-orange-600" data-testid={`GroupFamily-Text-expires-${family.id}`}>
-                              Expires: {new Date(family.expiresAt).toLocaleString()}
-                            </p>
-                          )}
+                          {/* Pending invitation logic removed - this endpoint only returns active families */}
                         </div>
                       </div>
                       
@@ -755,16 +727,7 @@ const ManageGroupPage: React.FC = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {isPending && family.invitationId && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleCancelInvitation(family.invitationId!)}
-                                    className="text-red-600 focus:text-red-600"
-                                    data-testid={`GroupFamily-Button-cancelInvitation-${family.id}`}
-                                  >
-                                    <UserMinus className="h-4 w-4 mr-2" />
-                                    Cancel Invitation
-                                  </DropdownMenuItem>
-                                )}
+                                {/* Pending invitation logic removed - this endpoint only returns active families */}
                                 {!isPending && family.role === 'MEMBER' && (
                                   <DropdownMenuItem
                                     onClick={() =>

@@ -267,11 +267,11 @@ describe('ScheduleSlotController', () => {
   describe('removeVehicleFromSlot', () => {
     it('should remove vehicle from slot successfully', async () => {
       mockRequest.params = { scheduleSlotId: 'slot-1' };
-      mockRequest.body = { vehicleId: 'vehicle-1' };
+      mockRequest.body = { vehicleId: TEST_IDS.VEHICLE };
 
       const mockScheduleSlot = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-01T09:00:00.000Z'),
         vehicleAssignments: [],
         childAssignments: [],
@@ -284,7 +284,7 @@ describe('ScheduleSlotController', () => {
           id: 'assignment-1',
           createdAt: new Date('2024-01-01T00:00:00.000Z'),
           scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
+          vehicleId: TEST_IDS.VEHICLE,
           driverId: null,
           seatOverride: null,
         },
@@ -299,7 +299,7 @@ describe('ScheduleSlotController', () => {
         mockResponse as Response,
       );
 
-      expect(mockService.removeVehicleFromSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1');
+      expect(mockService.removeVehicleFromSlot).toHaveBeenCalledWith('slot-1', TEST_IDS.VEHICLE);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -311,21 +311,21 @@ describe('ScheduleSlotController', () => {
 
       // Verify WebSocket emissions (slot not deleted)
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).toHaveBeenCalledWith(
-        'group-1',
+        TEST_IDS.GROUP,
         'slot-1',
         mockResult,
       );
       expect(mockSocketEmitter.broadcastScheduleSlotDeleted).not.toHaveBeenCalled();
-      expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith('group-1');
+      expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith(TEST_IDS.GROUP);
     });
 
     it('should handle slot deletion when removing last vehicle', async () => {
       mockRequest.params = { scheduleSlotId: 'slot-1' };
-      mockRequest.body = { vehicleId: 'vehicle-1' };
+      mockRequest.body = { vehicleId: TEST_IDS.VEHICLE };
 
       const mockScheduleSlot = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-01T09:00:00.000Z'),
         vehicleAssignments: [],
         childAssignments: [],
@@ -338,7 +338,7 @@ describe('ScheduleSlotController', () => {
           id: 'assignment-1',
           createdAt: new Date('2024-01-01T00:00:00.000Z'),
           scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
+          vehicleId: TEST_IDS.VEHICLE,
           driverId: null,
           seatOverride: null,
         },
@@ -363,11 +363,11 @@ describe('ScheduleSlotController', () => {
 
       // Verify WebSocket emissions (slot deleted)
       expect(mockSocketEmitter.broadcastScheduleSlotDeleted).toHaveBeenCalledWith(
-        'group-1',
+        TEST_IDS.GROUP,
         'slot-1',
       );
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).not.toHaveBeenCalled();
-      expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith('group-1');
+      expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith(TEST_IDS.GROUP);
     });
   });
 
@@ -377,12 +377,12 @@ describe('ScheduleSlotController', () => {
 
       const mockSlotWithDetails: ScheduleSlotWithDetails = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
         vehicleAssignments: [{
           id: 'assignment-1',
           vehicle: {
-            id: 'vehicle-1',
+            id: TEST_IDS.VEHICLE,
             name: 'Bus 1',
             capacity: 30,
           },
@@ -431,7 +431,7 @@ describe('ScheduleSlotController', () => {
 
   describe('getSchedule', () => {
     it('should return schedule with date range', async () => {
-      mockRequest.params = { groupId: 'group-1' };
+      mockRequest.params = { groupId: TEST_IDS.GROUP };
       mockRequest.query = { 
         startDate: '2024-01-01T00:00:00.000Z', 
         endDate: '2024-01-07T23:59:59.999Z', 
@@ -439,12 +439,12 @@ describe('ScheduleSlotController', () => {
 
       const mockSlotWithDetails: ScheduleSlotWithDetails = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
         vehicleAssignments: [{
           id: 'assignment-1',
           vehicle: {
-            id: 'vehicle-1',
+            id: TEST_IDS.VEHICLE,
             name: 'Bus 1',
             capacity: 30,
           },
@@ -461,7 +461,7 @@ describe('ScheduleSlotController', () => {
       };
 
       const mockSchedule = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         startDate: '2024-01-01T00:00:00.000Z',
         endDate: '2024-01-07T23:59:59.999Z',
         scheduleSlots: [mockSlotWithDetails],
@@ -474,7 +474,7 @@ describe('ScheduleSlotController', () => {
         mockResponse as Response,
       );
 
-      expect(mockService.getSchedule).toHaveBeenCalledWith('group-1', '2024-01-01T00:00:00.000Z', '2024-01-07T23:59:59.999Z');
+      expect(mockService.getSchedule).toHaveBeenCalledWith(TEST_IDS.GROUP, '2024-01-01T00:00:00.000Z', '2024-01-07T23:59:59.999Z');
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -483,11 +483,11 @@ describe('ScheduleSlotController', () => {
     });
 
     it('should handle missing date parameters by using defaults', async () => {
-      mockRequest.params = { groupId: 'group-1' };
+      mockRequest.params = { groupId: TEST_IDS.GROUP };
       mockRequest.query = {}; // no date parameters
 
       const mockSchedule = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         startDate: '2024-06-24T00:00:00.000Z',
         endDate: '2024-06-30T23:59:59.999Z',
         scheduleSlots: [],
@@ -500,7 +500,7 @@ describe('ScheduleSlotController', () => {
         mockResponse as Response,
       );
 
-      expect(mockService.getSchedule).toHaveBeenCalledWith('group-1', undefined, undefined);
+      expect(mockService.getSchedule).toHaveBeenCalledWith(TEST_IDS.GROUP, undefined, undefined);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -513,11 +513,11 @@ describe('ScheduleSlotController', () => {
   // describe('assignChildToSlot', () => {
   //   it('should assign child to slot successfully', async () => {
   //     mockRequest.params = { scheduleSlotId: 'slot-1' };
-  //     mockRequest.body = { childId: 'child-1' };
+  //     mockRequest.body = { childId: TEST_IDS.CHILD };
 
   //     const mockAssignment = { 
   //       scheduleSlotId: 'slot-1',
-  //       childId: 'child-1',
+  //       childId: TEST_IDS.CHILD,
   //       assignedAt: new Date('2024-01-01T00:00:00.000Z')
   //     };
 
@@ -530,7 +530,7 @@ describe('ScheduleSlotController', () => {
 
   //     expect(mockService.assignChildToSlot).toHaveBeenCalledWith({
   //       scheduleSlotId: 'slot-1',
-  //       childId: 'child-1'
+  //       childId: TEST_IDS.CHILD
   //     });
   //     expect(mockResponse.status).toHaveBeenCalledWith(201);
   //     expect(mockResponse.json).toHaveBeenCalledWith({
@@ -603,11 +603,11 @@ describe('ScheduleSlotController', () => {
         id: 'assignment-1',
         createdAt: new Date(),
         scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: 'driver-1',
         seatOverride: 25,
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
@@ -657,7 +657,7 @@ describe('ScheduleSlotController', () => {
 
       const mockScheduleSlot = {
         id: 'clr1234567890abcdef1234',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-01T09:00:00.000Z'),
         vehicleAssignments: [],
         childAssignments: [],
@@ -706,7 +706,7 @@ describe('ScheduleSlotController', () => {
 
       const mockScheduleSlot = {
         id: 'clr1234567890abcdef1234',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-01T09:00:00.000Z'),
         vehicleAssignments: [],
         childAssignments: [],

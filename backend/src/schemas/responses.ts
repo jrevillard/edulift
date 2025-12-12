@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry } from '../config/openapi';
+import { registry } from '../config/registry';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -362,6 +362,13 @@ export const SimpleSuccessResponseSchema = createSuccessResponseSchema(
   }),
 );
 
+export const VehicleRemovedSuccessResponseSchema = createSuccessResponseSchema(
+  z.object({
+    message: z.string(),
+    slotDeleted: z.boolean(),
+  }),
+);
+
 export const CreationSuccessResponseSchema = createSuccessResponseSchema(
   z.object({
     message: z.string(),
@@ -406,6 +413,11 @@ export const FamilyInvitationSuccessResponseSchema = createSuccessResponseSchema
     acceptedAt: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
+    invitedByUser: z.object({
+      id: z.string(),
+      name: z.string(),
+      email: z.string(),
+    }).optional(),
     message: z.string(),
   }),
 );
@@ -551,6 +563,7 @@ registry.register('ScheduleSlotConflictsSuccessResponse', ScheduleSlotConflictsS
 registry.register('ScheduleVehicleSuccessResponse', ScheduleVehicleSuccessResponseSchema);
 registry.register('GroupScheduleConfigSuccessResponse', GroupScheduleConfigSuccessResponseSchema);
 registry.register('SimpleSuccessResponse', SimpleSuccessResponseSchema);
+registry.register('VehicleRemovedSuccessResponse', VehicleRemovedSuccessResponseSchema);
 registry.register('CreationSuccessResponse', CreationSuccessResponseSchema);
 registry.register('InvitationCreationResponse', InvitationCreationResponseSchema);
 registry.register('PermissionsSuccessResponse', PermissionsSuccessResponseSchema);

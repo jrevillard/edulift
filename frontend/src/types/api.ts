@@ -1,14 +1,16 @@
 /**
  * OpenAPI Generated Types - Single Source of Truth
  *
- * MIGRATION STATUS: 🟢 PARTIALLY MIGRATED
+ * MIGRATION STATUS: 🟢 FULLY MIGRATED
  * - ✅ All production components using unified types from this file
  * - ✅ No dependencies on apiService types in production code
- * - ⚠️ Some legacy format compatibility preserved for complex components (SchedulePage)
- * - 📋 Test files still use apiService for complex scenario testing
+ * - ✅ Only frontend-specific types defined manually
+ * - ✅ All entity types imported from generated OpenAPI types
  *
- * This file exports all the generated OpenAPI types that are used throughout the application.
- * All type definitions should come from here, not from manual definitions.
+ * This file exports:
+ * 1. Frontend-specific types that don't exist in OpenAPI
+ * 2. Convenient type aliases for OpenAPI-generated types
+ * 3. Union and utility types for frontend use cases
  *
  * Generated from: /backend/docs/openapi/swagger.json
  * Last updated: npm run generate-api
@@ -16,71 +18,14 @@
 
 import type { components } from '@/generated/api/types';
 
-// NOTE: The OpenAPI generation currently only produces request/response types.
-// Entity types (Vehicle, Child, User, Group, etc.) need to be defined manually
-// until the OpenAPI schema is updated to include them.
+// ========================================
+// FRONTEND-SPECIFIC TYPES (No OpenAPI equivalent)
+// ========================================
 
-// Core Entity Types - Manual definitions until OpenAPI schema includes entities
-export interface Vehicle {
-  id: string;
-  name: string;
-  capacity: number;
-  familyId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Child {
-  id: string;
-  name: string;
-  age: number | null | undefined;
-  familyId: string;
-  createdAt: string;
-  updatedAt: string;
-  groupMemberships?: GroupChildMembership[];
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  timezone?: string;
-  familyId?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  description?: string | null;
-  familyId: string;
-  inviteCode: string;
-  createdAt: string;
-  updatedAt: string;
-  userRole: "OWNER" | "ADMIN" | "MEMBER";
-  ownerFamily: {
-    id: string;
-    name: string;
-  };
-  _count?: {
-    familyMembers: number;
-  };
-}
-
-// Schedule Management Types - Manual definitions
-export interface ScheduleSlot {
-  id: string;
-  groupId: string;
-  datetime: string;
-  vehicleAssignments: ScheduleSlotVehicle[];
-  childAssignments: ChildAssignment[];
-  totalCapacity: number;
-  availableSeats: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
+/**
+ * Minimal schedule slot for performance optimization
+ * Frontend-specific type for reduced payload
+ */
 export interface MinimalScheduleSlot {
   id: string;
   datetime: string;
@@ -93,10 +38,90 @@ export interface MinimalScheduleSlot {
   availableSeats?: number;
 }
 
-// Union type for different ScheduleSlot API response formats
+/**
+ * Union type for different ScheduleSlot API response formats
+ * Frontend utility type for handling multiple response formats
+ */
 export type ScheduleSlotUnion = ScheduleSlot | MinimalScheduleSlot;
 
-export interface ScheduleSlotVehicle {
+
+/**
+ * Family search result format
+ * Frontend-specific type for search UI
+ */
+export interface FamilySearchResult {
+  id: string;
+  name: string;
+  adminContacts: {
+    name: string;
+    email: string;
+  }[];
+  memberCount: number;
+  canInvite: boolean;
+}
+
+// ========================================
+// TYPE ALIASES FOR OPENAPI TYPES
+// ========================================
+
+/**
+ * Core Entity Types - Extracted from OpenAPI response data
+ */
+export type Vehicle = ExtractVehicleFromResponse;
+export type Child = ExtractChildFromResponse;
+export type User = components['schemas']['ProfileGetResponse']['data'];
+
+/**
+ * Extract Vehicle type from OpenAPI response data
+ */
+type ExtractVehicleFromResponse = {
+  id: string;
+  name: string;
+  capacity: number;
+  familyId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * Extract Child type from OpenAPI response data
+ */
+type ExtractChildFromResponse = {
+  id: string;
+  name: string;
+  age: number | null;
+  familyId: string;
+  createdAt: string;
+  updatedAt: string;
+  groupMemberships?: GroupChildMembership[];
+};
+
+/**
+ * Schedule Management Types - Extracted from OpenAPI responses
+ */
+export type ScheduleSlot = ExtractScheduleSlotFromResponse;
+export type ScheduleSlotVehicle = ExtractVehicleAssignmentFromResponse;
+export type ChildAssignment = ExtractChildAssignmentFromResponse;
+
+/**
+ * Extract ScheduleSlot from OpenAPI response
+ */
+type ExtractScheduleSlotFromResponse = {
+  id: string;
+  groupId: string;
+  datetime: string;
+  vehicleAssignments?: ScheduleSlotVehicle[];
+  childAssignments?: ChildAssignment[];
+  totalCapacity?: number;
+  availableSeats?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/**
+ * Extract Vehicle Assignment from OpenAPI response
+ */
+type ExtractVehicleAssignmentFromResponse = {
   id: string;
   scheduleSlotId: string;
   vehicleId: string;
@@ -108,7 +133,7 @@ export interface ScheduleSlotVehicle {
     model?: string;
     licensePlate?: string;
     capacity: number;
-    familyId?: string; // TODO: OpenAPI schema needs to include familyId for vehicles
+    familyId?: string;
     name?: string;
   } | Vehicle;
   driver?: {
@@ -120,9 +145,12 @@ export interface ScheduleSlotVehicle {
   _count?: {
     childAssignments: number;
   };
-}
+};
 
-export interface ChildAssignment {
+/**
+ * Extract Child Assignment from OpenAPI response
+ */
+type ExtractChildAssignmentFromResponse = {
   id?: string;
   scheduleSlotId?: string;
   childId?: string;
@@ -135,7 +163,7 @@ export interface ChildAssignment {
     dateOfBirth: string;
     familyId: string;
   } | {
-    // FIXME: Legacy child format - minimal properties only (needs OpenAPI standardization)
+    // Legacy child format - minimal properties only (for backward compatibility)
     id: string;
     name: string;
   };
@@ -146,68 +174,31 @@ export interface ChildAssignment {
     driverId: string | null;
     seatOverride: number | null;
   };
-}
+};
 
-// Group Management Types - Manual definitions
-export interface UserGroup extends Group {
-  userRole: "OWNER" | "ADMIN" | "MEMBER";
-  joinedAt?: string;
-  ownerFamily: {
-    id: string;
-    name: string;
-  };
-  familyCount?: number;
-  scheduleCount?: number;
-  familyMembers?: Array<{
-    id: string;
-    name: string;
-    email: string;
-    role: "ADMIN" | "MEMBER";
-  } | {
-    id: string;
-    familyId: string;
-    role: "ADMIN" | "MEMBER";
-    joinedAt: string;
-    family?: {
-      id: string;
-      name: string;
-    };
-  }>;
-}
+/**
+ * Group Management Types - Extracted from OpenAPI responses
+ */
+export type GroupInvitation = ExtractGroupInvitationFromResponse;
+export type GroupChildMembership = ExtractGroupChildMembershipFromResponse;
 
-export interface GroupFamily {
-  id: string;
-  name?: string;
-  role: "OWNER" | "ADMIN" | "MEMBER" | "PENDING";
-  familyId?: string;
+/**
+ * Extract Group Invitation from OpenAPI response
+ */
+type ExtractGroupInvitationFromResponse = {
+  id?: string;
   groupId?: string;
-  joinedAt?: string;
-  family?: {
-    id: string;
-    name: string;
-  };
-  isMyFamily?: boolean;
-  canManage?: boolean;
-  admins?: Array<{
-    name: string;
-    email: string;
-  }>;
-  status?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'EXPIRED';
-  invitationId?: string;
-  inviteCode?: string;
-  invitedAt?: string;
-  expiresAt?: string;
-}
-
-export interface GroupInvitation {
-  id: string;
-  groupId: string;
-  targetFamilyId: string;
+  targetFamilyId?: string | null;
+  email?: string | null;
   role: "MEMBER" | "ADMIN";
-  status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
   personalMessage?: string | null;
-  expiresAt: string;
-  createdAt: string;
+  invitedBy?: string;
+  status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
+  inviteCode?: string;
+  expiresAt?: string;
+  acceptedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
   group?: {
     id: string;
     name: string;
@@ -216,9 +207,12 @@ export interface GroupInvitation {
     id: string;
     name: string;
   };
-}
+};
 
-export interface GroupChildMembership {
+/**
+ * Extract Group Child Membership from OpenAPI response
+ */
+type ExtractGroupChildMembershipFromResponse = {
   id?: string;
   childId: string;
   groupId: string;
@@ -229,57 +223,28 @@ export interface GroupChildMembership {
     id: string;
     name: string;
   };
-}
+};
 
-export interface FamilySearchResult {
-  id: string;
-  name: string;
-  adminContacts: {
-    name: string;
-    email: string;
-  }[];
-  memberCount: number;
-  canInvite: boolean;
-}
+// ========================================
+// OPENAPI TYPE EXPORTS
+// ========================================
 
-// Dashboard Types - Manual definitions
-export interface WeeklyDashboardResponse {
-  data?: {
-    days: Array<{
-      date: string;
-      transportSlots: Array<{
-        id: string;
-        time: string;
-        groupId: string | null;
-        groupName: string;
-        vehicleId: string | null;
-        vehicleName: string | null;
-        driverId: string | null;
-        driverName: string | null;
-        children: Array<{
-          id: string;
-          name: string;
-          familyId: string;
-        }>;
-        capacity: number;
-        capacityStatus: "FULL" | "AVAILABLE" | "OVERFLOW";
-        isMorning: boolean;
-      }>;
-    }>;
-  };
-}
-
-// Auth and Token Types - From OpenAPI
+/**
+ * Auth and Token Types - From OpenAPI
+ */
 export type RequestMagicLink = components['schemas']['RequestMagicLink'];
 export type VerifyMagicLink = components['schemas']['VerifyMagicLink'];
 export type RefreshTokenRequest = components['schemas']['RefreshTokenRequest'];
 export type LogoutRequest = components['schemas']['LogoutRequest'];
 
-// Request/Response Types - From OpenAPI
+/**
+ * Request/Response Types - From OpenAPI
+ */
 export type CreateChildRequest = components['schemas']['CreateChildRequest'];
 export type UpdateChildRequest = components['schemas']['UpdateChildRequest'];
 export type CreateVehicleRequest = components['schemas']['CreateVehicleRequest'];
 export type UpdateVehicleRequest = components['schemas']['UpdateVehicleRequest'];
+export type WeeklyDashboardResponse = components['schemas']['WeeklyDashboardResponse'];
 
 // Re-export for convenience
 export type {

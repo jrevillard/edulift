@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
-import type { Child, UserGroup, GroupChildMembership } from '@/types/api';
+import type { paths } from '@/generated/api/types';
+import type { Child, GroupChildMembership } from '@/types/api';
+
+// OpenAPI generated types
+export type UserGroup = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
 
 /*
   MIGRATION STATUS: ✅ FULLY MIGRATED TO OPENAPI GENERATED TYPES

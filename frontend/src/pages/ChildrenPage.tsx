@@ -41,7 +41,7 @@ const ChildrenPage: React.FC = () => {
       return apiChildren.map(child => ({
         id: child.id,
         name: child.name,
-        age: child.age === null ? undefined : child.age,
+        age: child.age, // Keep null as null to match ExtractChildFromResponse type
         familyId: child.familyId,
         createdAt: child.createdAt,
         updatedAt: child.updatedAt,
@@ -213,7 +213,7 @@ const ChildrenPage: React.FC = () => {
     setEditingChild(child);
     setFormData({ 
       name: child.name, 
-      age: child.age?.toString() || ''
+      age: (child.age ?? '').toString()
     });
     setIsFormOpen(true);
   };
@@ -489,7 +489,7 @@ const ChildrenPage: React.FC = () => {
                     </div>
                     <div>
                       <CardTitle className="text-lg text-slate-900 dark:text-slate-100" data-testid={`ChildrenPage-Text-childName-${child.id}`}>{child.name}</CardTitle>
-                      {child.age && (
+                      {child.age !== null && child.age !== undefined && (
                         <CardDescription className="font-medium" data-testid={`ChildrenPage-Text-childAge-${child.id}`}>Age: {child.age}</CardDescription>
                       )}
                     </div>

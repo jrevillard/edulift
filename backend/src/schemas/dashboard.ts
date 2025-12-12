@@ -8,7 +8,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -446,8 +446,21 @@ export const WeeklyDashboardResponseSchema = z.object({
 // ============================================================================
 
 // Register query parameter schemas
+registry.register('WeeklyDashboardQuery', WeeklyDashboardQuerySchema);
 
 // Register response schemas
+registry.register('TrendDirection', TrendDirectionEnum);
+registry.register('ActivityType', ActivityTypeEnum);
+registry.register('TrendData', TrendDataSchema);
+registry.register('DashboardStats', DashboardStatsSchema);
+registry.register('TripChild', TripChildSchema);
+registry.register('TripVehicle', TripVehicleSchema);
+registry.register('TripDriver', TripDriverSchema);
+registry.register('TripGroup', TripGroupSchema);
+registry.register('TodayTrip', TodayTripSchema);
+registry.register('TodayScheduleResponse', TodayScheduleResponseSchema);
+registry.register('ActivityItem', ActivityItemSchema);
+registry.register('RecentActivityResponse', RecentActivityResponseSchema);
 registry.register('WeeklyDashboardResponse', WeeklyDashboardResponseSchema);
 
 // ============================================================================

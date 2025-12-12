@@ -5,14 +5,12 @@
  * Phase 2.1: OpenAPI configuration with registry
  */
 
-import { OpenAPIRegistry, extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { registry } from './registry';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
-
-// Create registry instance for Zod schemas
-export const registry = new OpenAPIRegistry();
 
 // Register security schemes using native registerComponent
 export const BearerAuth = registry.registerComponent('securitySchemes', 'BearerAuth', {
@@ -143,41 +141,7 @@ export const config = {
   },
 };
 
-// Register common schemas that will be used across multiple domains
-// NOTE: These are currently not used with $ref in any endpoints, so they are commented out
-// to avoid "Component is never used" warnings. Uncomment when needed.
-export const registerCommonSchemas = () => {
-  // Common response schemas
-  // registry.register('SuccessResponse', z.object({
-  //   success: z.boolean().openapi({ example: true }),
-  //   message: z.string().optional().openapi({ description: 'Success message' }),
-  // }));
-
-  // registry.register('ErrorResponse', z.object({
-  //   success: z.boolean().openapi({ example: false }),
-  //   error: z.object({
-  //     code: z.string().optional().openapi({ description: 'Error code' }),
-  //     message: z.string().openapi({ description: 'Error message' }),
-  //     details: z.record(z.string(), z.unknown()).optional().openapi({ description: 'Additional error details' }),
-  //   }),
-  // }));
-
-  // Pagination schemas
-  // registry.register('PaginationParams', z.object({
-  //   page: z.number().int().min(1).default(1).openapi({ description: 'Page number for pagination' }),
-  //   limit: z.number().int().min(1).max(100).default(20).openapi({ description: 'Number of items per page' }),
-  // }));
-
-  // registry.register('PaginationResponse', z.object({
-  //   page: z.number().int().openapi({ description: 'Current page number' }),
-  //   limit: z.number().int().openapi({ description: 'Items per page' }),
-  //   total: z.number().int().openapi({ description: 'Total number of items' }),
-  //   totalPages: z.number().int().openapi({ description: 'Total number of pages' }),
-  // }));
-};
-
-// Initialize common schemas
-registerCommonSchemas();
+// Common schemas will be registered by the generation script to avoid circular dependencies
 
 // Import domain schemas to trigger their registration
 // These imports will be handled by the generation script to avoid circular dependencies
@@ -187,6 +151,7 @@ registerCommonSchemas();
 // import '../schemas/groups';
 // import '../schemas/families';
 // import '../schemas/dashboard';
+import '../schemas/responses';
 
 // Export registry for other modules to register their schemas
 export default registry;

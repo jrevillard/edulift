@@ -58,7 +58,7 @@ describe('AuthService', () => {
     (mockSecureTokenRepository.createAccountDeletionToken as jest.Mock).mockResolvedValue({
       id: 'token-1',
       token: 'deletion-token',
-      userId: 'user-1',
+      userId: TEST_IDS.USER,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       used: false,
       codeChallenge: 'default-challenge',
@@ -69,7 +69,7 @@ describe('AuthService', () => {
     (mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE as jest.Mock).mockResolvedValue({
       id: 'token-1',
       token: 'deletion-token',
-      userId: 'user-1',
+      userId: TEST_IDS.USER,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       used: false,
       codeChallenge: 'default-challenge',
@@ -104,7 +104,7 @@ describe('AuthService', () => {
     it('should create magic link for existing user', async () => {
       const email = 'test@example.com';
       const existingUser = {
-        id: 'user-1',
+        id: TEST_IDS.USER,
         email,
         name: 'Test User',
         timezone: 'UTC',
@@ -116,7 +116,7 @@ describe('AuthService', () => {
       (mockSecureTokenRepository.createMagicLink as jest.Mock).mockResolvedValue({
         id: 'link-1',
         token: 'magic-token',
-        userId: 'user-1',
+        userId: TEST_IDS.USER,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
         used: false,
         createdAt: new Date(),
@@ -129,7 +129,7 @@ describe('AuthService', () => {
 
       expect(mockUserRepository.findByEmail).toHaveBeenCalledWith(email);
       expect(mockSecureTokenRepository.createMagicLink).toHaveBeenCalledWith({
-        userId: 'user-1',
+        userId: TEST_IDS.USER,
         expiresAt: expect.any(Date),
         codeChallenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
       });
@@ -229,7 +229,7 @@ describe('AuthService', () => {
       const email = 'test@example.com';
       const inviteCode = 'ABC123XYZ';
       const existingUser = {
-        id: 'user-1',
+        id: TEST_IDS.USER,
         email,
         name: 'Test User',
         timezone: 'UTC',
@@ -295,7 +295,7 @@ describe('AuthService', () => {
     it('should verify valid magic link and return auth data', async () => {
       const token = 'valid-token';
       const user = {
-        id: 'user-1',
+        id: TEST_IDS.USER,
         email: 'test@example.com',
         name: 'Test User',
         timezone: 'UTC',
@@ -306,7 +306,7 @@ describe('AuthService', () => {
       (mockSecureTokenRepository.findValidMagicLinkWithPKCE as jest.Mock).mockResolvedValue({
         id: 'link-1',
         token,
-        userId: 'user-1',
+        userId: TEST_IDS.USER,
         expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
         used: false,
         createdAt: new Date(),
@@ -355,7 +355,7 @@ describe('AuthService', () => {
       (mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE as jest.Mock).mockResolvedValue({
         id: 'link-1',
         token,
-        userId: 'user-1',
+        userId: TEST_IDS.USER,
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
         used: false,
         createdAt: new Date(),

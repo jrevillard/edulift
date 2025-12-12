@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { isValidTimezone } from './timezoneUtils';
 
 export const CreateUserSchema = z.object({
   email: z.string().email('Invalid email format'),
@@ -88,56 +87,5 @@ export const GroupInviteSchema = z.object({
   inviteCode: z.string().cuid('Invalid invite code format'),
 });
 
-// Timezone validation schemas
-export const UpdateTimezoneSchema = z.object({
-  timezone: z.string()
-    .min(1, 'Timezone is required')
-    .refine(
-      (tz) => isValidTimezone(tz),
-      { message: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"' },
-    ),
-});
-
-export const UpdateProfileSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long').optional(),
-  email: z.string().email('Valid email required').optional(),
-  timezone: z.string()
-    .refine(
-      (tz) => isValidTimezone(tz),
-      { message: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"' },
-    )
-    .optional(),
-}).refine(
-  (data) => data.name || data.email || data.timezone,
-  { message: 'At least one field (name, email, or timezone) must be provided' },
-);
-
-export const RequestMagicLinkSchema = z.object({
-  email: z.string().email('Valid email required'),
-  name: z.string().min(1, 'Name is required').optional(),
-  timezone: z.string()
-    .refine(
-      (tz) => isValidTimezone(tz),
-      { message: 'Invalid IANA timezone format' },
-    )
-    .optional(),
-  inviteCode: z.string().optional(),
-  code_challenge: z.string().min(43).max(128), // PKCE
-});
-
-export const VerifyMagicLinkSchema = z.object({
-  token: z.string().min(1, 'Token is required'),
-  code_verifier: z.string().min(43).max(128), // PKCE: Original random string used to generate code_challenge - REQUIRED
-  // inviteCode is now extracted from query parameters, not request body
-});
-
-// Account deletion request validation
-export const RequestAccountDeletionSchema = z.object({
-  code_challenge: z.string().min(43, 'PKCE code_challenge must be at least 43 characters').max(128, 'PKCE code_challenge must be at most 128 characters'),
-});
-
-// Account deletion confirmation validation
-export const ConfirmAccountDeletionSchema = z.object({
-  token: z.string().min(1, 'Deletion token is required'),
-  code_verifier: z.string().min(43, 'PKCE code_verifier must be at least 43 characters').max(128, 'PKCE code_verifier must be at most 128 characters'),
-});
+// Note: Auth-related schemas have been moved to src/schemas/auth.ts
+// to consolidate schema definitions and improve maintainability

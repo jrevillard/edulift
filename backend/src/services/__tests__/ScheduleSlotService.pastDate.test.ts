@@ -39,7 +39,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
 
     // Add default mock for user lookup
     mockPrisma.user.findUnique.mockResolvedValue({
-      id: 'user-1',
+      id: TEST_IDS.USER,
       name: 'Test User',
       email: 'user@test.com',
       timezone: 'UTC',
@@ -47,7 +47,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
 
     // Add default mock for group lookup (used in validateSlotNotInPast fallback)
     mockPrisma.group.findUnique.mockResolvedValue({
-      id: 'group-1',
+      id: TEST_IDS.GROUP,
       name: 'Test Group',
       timezone: 'UTC',
     });
@@ -64,7 +64,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
     it('should prevent creating schedule slot for past day', async () => {
       // Setup: Try to create slot for yesterday using datetime format
       const slotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2025-10-18T09:00:00.000Z', // Yesterday (Oct 18, 2025 - real past date)
       };
 
@@ -72,8 +72,8 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
       await expect(
         scheduleSlotService.createScheduleSlotWithVehicle(
           slotData,
-          'vehicle-1',
-          'user-1',
+          TEST_IDS.VEHICLE,
+          TEST_IDS.USER,
           'driver-1',
         ),
       ).rejects.toThrow('Cannot create trips in the past');
@@ -82,13 +82,13 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
     it('should allow creating schedule slot for today', async () => {
       // Setup: Create slot for today
       const slotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2025-11-15T11:00:00.000Z', // Today (Jan 15, 2025) - 11 AM (after mocked current time 10 AM)
       };
 
       const mockCreatedSlot = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2025-11-15T11:00:00.000Z'),
         createdAt: new Date(),
       };
@@ -97,7 +97,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
         ...mockCreatedSlot,
         vehicleAssignments: [{
           id: 'assignment-1',
-          vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 8 },
+          vehicle: { id: TEST_IDS.VEHICLE, name: 'Test Vehicle', capacity: 8 },
           driver: { id: 'driver-1', name: 'Test Driver' },
           seatOverride: null,
         }],
@@ -111,26 +111,26 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
       // Act - should not throw
       const result = await scheduleSlotService.createScheduleSlotWithVehicle(
         slotData,
-        'vehicle-1',
-        'user-1',
+        TEST_IDS.VEHICLE,
+        TEST_IDS.USER,
         'driver-1',
       );
 
       expect(result).toBeDefined();
       expect(mockRepository.create).toHaveBeenCalledWith(slotData);
-      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1', 'driver-1', undefined);
+      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith('slot-1', TEST_IDS.VEHICLE, 'driver-1', undefined);
     });
 
     it('should allow creating schedule slot for future day', async () => {
       // Setup: Create slot for future day
       const slotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2025-11-19T09:00:00.000Z', // Future day (Jan 19, 2025)
       };
 
       const mockCreatedSlot = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2025-11-19T09:00:00.000Z'),
         createdAt: new Date(),
       };
@@ -148,8 +148,8 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
       // Act - should not throw
       const result = await scheduleSlotService.createScheduleSlotWithVehicle(
         slotData,
-        'vehicle-1',
-        'user-1',
+        TEST_IDS.VEHICLE,
+        TEST_IDS.USER,
       );
 
       expect(result).toBeDefined();
@@ -162,7 +162,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
       // Setup: Mock existing slot from yesterday
       const pastSlot = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2025-11-14T09:00:00.000Z'), // Yesterday (Jan 14, 2024)
       };
 
@@ -170,7 +170,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
 
       // Act & Assert
       await expect(
-        scheduleSlotService.removeVehicleFromSlot('slot-1', 'vehicle-1'),
+        scheduleSlotService.removeVehicleFromSlot('slot-1', TEST_IDS.VEHICLE),
       ).rejects.toThrow('Cannot modify trips in the past');
     });
 
@@ -178,7 +178,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
       // Setup: Mock existing slot for future day
       const futureSlot = {
         id: 'slot-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: new Date('2025-11-19T09:00:00.000Z'), // Future day (Jan 19, 2024)
       };
       
@@ -186,7 +186,7 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
         vehicleAssignment: {
           id: 'assignment-1',
           scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
+          vehicleId: TEST_IDS.VEHICLE,
           driverId: null,
           seatOverride: null,
           createdAt: new Date(),
@@ -198,10 +198,10 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
       mockRepository.removeVehicleFromSlot.mockResolvedValue(mockRemovalResult);
 
       // Act - should not throw
-      const result = await scheduleSlotService.removeVehicleFromSlot('slot-1', 'vehicle-1');
+      const result = await scheduleSlotService.removeVehicleFromSlot('slot-1', TEST_IDS.VEHICLE);
 
       expect(result).toBeDefined();
-      expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1');
+      expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith('slot-1', TEST_IDS.VEHICLE);
     });
   });
 

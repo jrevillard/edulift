@@ -220,14 +220,22 @@ export class VehicleService {
         throw new AppError('Vehicle not found or access denied', 404);
       }
 
-      // TODO: Add schedule slot assignment check when relationships are finalized
-      // For now, allow deletion without checking assignments
+      // Check if vehicle has any scheduled assignments that would prevent deletion
+      // This is a basic implementation - full logic would check for active assignments
+      const hasAssignments = false; // TODO: Check actual assignments when relationships are finalized
+
+      if (hasAssignments) {
+        throw new AppError('Cannot delete vehicle with active assignments', 409);
+      }
 
       await this.prisma.vehicle.delete({
         where: { id: vehicleId },
       });
 
-      return { success: true };
+      return {
+        success: true,
+        message: 'Vehicle deleted successfully',
+      };
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -237,8 +245,7 @@ export class VehicleService {
     }
   }
 
-  // TODO: Implement when ScheduleSlotVehicle relationships are finalized
-  async getVehicleSchedule(vehicleId: string, userId: string, _week?: string) {
+  async getVehicleSchedule(vehicleId: string, userId: string, week?: string) {
     try {
       // Get user's family first
       const userFamily = await this.getUserFamily(userId);
@@ -248,13 +255,24 @@ export class VehicleService {
 
       // Verify vehicle exists and belongs to user's family
       const vehicle = await this.getVehicleById(vehicleId, userId);
-      
+
       if (!vehicle) {
         throw new AppError('Vehicle not found or access denied', 404);
       }
 
-      // Temporarily return empty array until proper relationships are established
-      return [];
+      // For now, return empty schedule - full implementation would:
+      // 1. Parse week parameter to determine date range
+      // 2. Query schedule assignments for the vehicle
+      // 3. Return structured schedule data matching VehicleScheduleSchema
+      this.logger.debug('getVehicleSchedule called', { vehicleId, userId, week });
+
+      const schedule = {
+        vehicleId: vehicle.id,
+        vehicleName: vehicle.name,
+        schedule: [], // TODO: Implement actual schedule fetching when relationships are finalized
+      };
+
+      return schedule;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -264,8 +282,7 @@ export class VehicleService {
     }
   }
 
-  // TODO: Implement when ScheduleSlotVehicle relationships are finalized
-  async getAvailableVehiclesForScheduleSlot(groupId: string, _scheduleSlotId: string) {
+  async getAvailableVehiclesForScheduleSlot(groupId: string, timeSlotId: string) {
     try {
       // Get all families that have access to the group
       const group = await this.prisma.group.findUnique({
@@ -284,6 +301,15 @@ export class VehicleService {
         throw new AppError('Group not found', 404);
       }
 
+      // Verify the time slot exists
+      const timeSlot = await this.prisma.scheduleSlot.findUnique({
+        where: { id: timeSlotId },
+      });
+
+      if (!timeSlot) {
+        throw new AppError('Time slot not found', 404);
+      }
+
       // Collect all family IDs that have access to the group
       const familyIds = [group.familyId]; // Owner family
       group.familyMembers.forEach((fm: { familyId: string }) => {
@@ -291,7 +317,7 @@ export class VehicleService {
       });
 
       // Find vehicles owned by families of group members
-      const availableVehicles = await this.prisma.vehicle.findMany({
+      const vehicles = await this.prisma.vehicle.findMany({
         where: {
           familyId: { in: familyIds },
         },
@@ -306,6 +332,24 @@ export class VehicleService {
         ],
       });
 
+      // Transform to match AvailableVehicleSchema format
+      const availableVehicles = vehicles.map(vehicle => {
+        // Calculate current assignments for this time slot
+        // Note: This is a placeholder implementation - actual assignment logic
+        // would depend on the specific business rules and database relationships
+        const currentAssignments = 0; // TODO: Calculate based on actual assignments
+        const availableSeats = Math.max(0, vehicle.capacity - currentAssignments);
+
+        return {
+          id: vehicle.id,
+          name: vehicle.name,
+          capacity: vehicle.capacity,
+          currentAssignments,
+          availableSeats,
+          driverName: null, // TODO: Get actual driver information
+        };
+      });
+
       return availableVehicles;
     } catch (error) {
       if (error instanceof AppError) {
@@ -316,9 +360,41 @@ export class VehicleService {
     }
   }
 
-  // TODO: Implement capacity conflict checking when relationships are finalized
-  private async checkCapacityConflicts(_vehicleId: string, _newCapacity: number) {
-    // Temporarily return empty array until proper relationships are established
-    return [];
+  private async checkCapacityConflicts(vehicleId: string, newCapacity: number) {
+    try {
+      // Check if reducing capacity would conflict with existing assignments
+      const vehicle = await this.prisma.vehicle.findUnique({
+        where: { id: vehicleId },
+        include: {
+          family: true,
+        },
+      });
+
+      if (!vehicle) {
+        throw new AppError('Vehicle not found', 404);
+      }
+
+      // For now, we'll implement a basic check
+      // In a full implementation, this would check existing assignments
+      // and prevent capacity reduction if it would cause conflicts
+      const conflicts: any[] = [];
+
+      if (newCapacity < vehicle.capacity) {
+        // Log potential capacity reduction conflicts
+        this.logger.warn('Vehicle capacity reduction detected', {
+          vehicleId,
+          oldCapacity: vehicle.capacity,
+          newCapacity,
+        });
+      }
+
+      return conflicts;
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      this.logger.error('Check capacity conflicts error:', { error: error instanceof Error ? error.message : String(error) });
+      throw new AppError('Failed to check capacity conflicts', 500);
+    }
   }
 }

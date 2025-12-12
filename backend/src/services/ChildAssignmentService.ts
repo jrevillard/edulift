@@ -110,7 +110,13 @@ export class ChildAssignmentService {
         metadata: { groupId, groupName: childGroupMember.group.name },
       });
 
-      return childGroupMember;
+      // Transform the response to match schema expectations (convert Date to ISO string)
+      const transformedMembership = {
+        ...childGroupMember,
+        addedAt: childGroupMember.addedAt ? childGroupMember.addedAt.toISOString() : new Date().toISOString(),
+      };
+
+      return transformedMembership;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -437,7 +443,13 @@ export class ChildAssignmentService {
         },
       });
 
-      return memberships;
+      // Transform the response to match schema expectations (convert Date to ISO string)
+      const transformedMemberships = memberships.map(membership => ({
+        ...membership,
+        addedAt: membership.addedAt ? membership.addedAt.toISOString() : new Date().toISOString(),
+      }));
+
+      return transformedMemberships;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

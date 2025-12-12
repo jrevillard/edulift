@@ -2,37 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
-import { apiService } from '../services/apiService';
-/*
-  apiService DEPENDENCY ANALYSIS:
-  =================================
-  ACTIVE apiService USAGE:
-  ------------------------
-  1. getUserGroups() - Line 133
-     - Needed: User groups endpoint not yet available in OpenAPI
-     - Migration Path: Add /user/groups endpoint to OpenAPI spec
-
-  2. getWeeklySchedule() - Line 148
-     - Needed: Complex date/week logic not yet in OpenAPI
-     - Migration Path: Add /groups/{id}/schedule?week=YYYY-WW endpoint with timezone support
-
-  3. createScheduleSlotWithVehicle() - Line 281
-     - Needed: Complex schedule creation with timezone and date calculations
-     - Migration Path: Add comprehensive schedule slot creation endpoint
-
-  4. assignVehicleToScheduleSlot() - Line 446 (commented out)
-     - Needed: Vehicle assignment to existing schedule slots
-     - Migration Path: Add PUT /schedule-slots/{id}/vehicles endpoint
-
-  MIGRATION PLAN:
-  --------------
-  These methods require OpenAPI endpoint additions before migration.
-  The methods involve complex business logic, timezone handling, and
-  date calculations that need proper backend API support.
-
-  CLEANUP STATUS: ✅ SAFE TO KEEP - Required for functionality
-  NEXT STEP: Backend team to add missing OpenAPI endpoints
-*/
 import { scheduleConfigService } from '../services/scheduleConfigService';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Users, Calendar, ChevronLeft, ChevronRight, Car, EyeOff, Eye, Settings2 } from 'lucide-react';
-import type { UserGroup, ScheduleSlot, ScheduleSlotVehicle, Child } from '../types/api';
+import type { ScheduleSlot, ScheduleSlotVehicle, Child } from '../types/api';
 import { getEffectiveCapacity, hasSeatOverride } from '../utils/capacity';
 
 // Union type for different child API response formats
@@ -169,10 +138,16 @@ const SchedulePage: React.FC = () => {
     }
   }, [socket, selectedGroup, isConnected, currentWeek, queryClient]);
 
-  // TODO: Migrate to OpenAPI - need to find correct endpoint for user groups
+  // MIGRATED: Use OpenAPI client
   const groupsQuery = useQuery({
     queryKey: ['user-groups'],
-    queryFn: () => apiService.getUserGroups(),
+    queryFn: async () => {
+      const { data, error } = await api.GET('/groups/my-groups', {});
+      if (error) {
+        throw new Error('Failed to fetch groups');
+      }
+      return data?.data || [];
+    },
   });
 
   const {
@@ -187,9 +162,18 @@ const SchedulePage: React.FC = () => {
     queryKey: ['weekly-schedule', selectedGroup, currentWeek],
     queryFn: async () => {
       console.log(`🔍 DEBUG: Fetching schedule for group ${selectedGroup}, week ${currentWeek}`);
-      const result = await apiService.getWeeklySchedule(selectedGroup, currentWeek, user?.timezone);
-      console.log(`🔍 DEBUG: Schedule API response:`, result);
-      return result;
+      const { data, error } = await api.GET('/groups/{groupId}/schedule', {
+        params: {
+          path: {
+            groupId: selectedGroup
+          }
+        }
+      });
+      if (error) {
+        throw new Error('Failed to fetch schedule');
+      }
+      console.log(`🔍 DEBUG: Schedule API response:`, data);
+      return data?.data;
     },
     enabled: !!selectedGroup && !!currentWeek,
   });
@@ -286,9 +270,9 @@ const SchedulePage: React.FC = () => {
 
     console.log(`🔍 DEBUG: Found ${schedule.scheduleSlots.length} schedule slots`);
 
-    // Transform schedule data for display
+    // Transform schedule data for display - convert from OpenAPI format to ScheduleSlot format
     const grouped: { [day: string]: ScheduleSlot[] } = {};
-    schedule.scheduleSlots.forEach((slot: ScheduleSlot) => {
+    schedule.scheduleSlots.forEach((slot: { id: string; datetime: string; vehicle?: { id: string; name: string; capacity: number }; driver?: { id: string; name: string } }) => {
       // Extract day from datetime using UTC to match server timezone
       const slotDate = new Date(slot.datetime);
       const dayKey = slotDate.toLocaleDateString('en-US', {
@@ -298,15 +282,41 @@ const SchedulePage: React.FC = () => {
 
       console.log(`🔍 DEBUG: Slot datetime: ${slot.datetime}, parsed as: ${slotDate.toISOString()}, dayKey: ${dayKey} (UTC)`);
 
+      // Transform OpenAPI slot to ScheduleSlot format
+      const transformedSlot: ScheduleSlot = {
+        id: slot.id,
+        groupId: selectedGroup,
+        datetime: slot.datetime,
+        vehicleAssignments: slot.vehicle ? [{
+          id: `${slot.id}-vehicle`, // Generate assignment ID
+          scheduleSlotId: slot.id,
+          vehicleId: slot.vehicle.id,
+          driverId: slot.driver?.id || null,
+          vehicle: slot.vehicle,
+          driver: slot.driver ? {
+            id: slot.driver.id,
+            firstName: slot.driver.name,
+            lastName: '', // Not available in current structure
+            email: '', // Not available in current structure
+          } : null,
+          seatOverride: null
+        }] : [],
+        childAssignments: [], // OpenAPI response doesn't include children yet
+        totalCapacity: slot.vehicle?.capacity || 0,
+        availableSeats: slot.vehicle?.capacity || 0,
+        createdAt: '', // Not in OpenAPI response
+        updatedAt: ''  // Not in OpenAPI response
+      };
+
       if (!grouped[dayKey]) {
         grouped[dayKey] = [];
       }
-      grouped[dayKey].push(slot);
+      grouped[dayKey].push(transformedSlot);
     });
 
     console.log(`🔍 DEBUG: Grouped schedule by day:`, grouped);
     return grouped;
-  }, [schedule]);
+  }, [schedule, selectedGroup]);
 
   // MIGRATED: Use OpenAPI client
   const { data: vehiclesData = { data: [] } } = useQuery({
@@ -319,19 +329,83 @@ const SchedulePage: React.FC = () => {
 
   const vehicles = vehiclesData?.data || [];
 
-  // TODO: Replace with direct OpenAPI call - currently using apiService wrapper for complex date logic
+  // MIGRATED: Use OpenAPI client
   const createScheduleSlotWithVehicleMutation = useMutation({
-    mutationFn: (data: { day: string; time: string; vehicleId: string; driverId?: string }) =>
-      apiService.createScheduleSlotWithVehicle(
-        selectedGroup,
-        data.day,
-        data.time,
-        currentWeek,
-        data.vehicleId,
-        data.driverId,
-        undefined, // seatOverride
-        user?.timezone // Pass user timezone
-      ),
+    mutationFn: async (data: { day: string; time: string; vehicleId: string; driverId?: string }) => {
+      // Convert day/week/time to UTC datetime string using proper ISO week calculation
+      const [year, weekNum] = currentWeek.split('-').map(Number);
+      const userTimezone = user?.timezone || dayjs.tz.guess();
+
+      // Calculate the Monday of the specified ISO week (proper ISO calculation)
+      const jan4 = new Date(year, 0, 4);
+      const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Convert to Monday=0, Tuesday=1, etc.
+      const weekStart = new Date(jan4);
+      weekStart.setDate(jan4.getDate() - jan4DayOfWeek + (weekNum - 1) * 7);
+
+      // Map day names to offsets
+      const dayOffsets: Record<string, number> = {
+        'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
+        'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6
+      };
+
+      const dayOffset = dayOffsets[data.day.toUpperCase()];
+      if (dayOffset === undefined) {
+        throw new Error(`Invalid day name: ${data.day}`);
+      }
+
+      // Calculate target date
+      const targetDate = new Date(weekStart);
+      targetDate.setDate(weekStart.getDate() + dayOffset);
+
+      // Parse time - this is in the user's timezone
+      const [hours, minutes] = data.time.split(':').map(Number);
+
+      // Create datetime in user timezone, then convert to UTC
+      const localDateTime = dayjs(targetDate)
+        .tz(userTimezone)
+        .hour(hours)
+        .minute(minutes)
+        .second(0)
+        .millisecond(0);
+
+      const utcDateTime = localDateTime.utc().toISOString();
+
+      const { data: result, error } = await api.POST('/groups/{groupId}/schedule-slots', {
+        params: {
+          path: {
+            groupId: selectedGroup
+          }
+        },
+        body: {
+          datetime: utcDateTime,
+          vehicleId: data.vehicleId,
+          driverId: data.driverId
+        }
+      });
+
+      if (error) {
+        throw new Error('Failed to create schedule slot');
+      }
+
+      // Transform OpenAPI response to ScheduleSlot format
+      if (!result?.data) {
+        throw new Error('No data returned from schedule slot creation');
+      }
+
+      const createdSlot: ScheduleSlot = {
+        id: result.data.id,
+        groupId: selectedGroup,
+        datetime: result.data.datetime,
+        vehicleAssignments: [], // Will be populated separately
+        childAssignments: [],
+        totalCapacity: 0,
+        availableSeats: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      return createdSlot;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', selectedGroup, currentWeek] });
     },
@@ -487,8 +561,11 @@ const SchedulePage: React.FC = () => {
         }
 
         // TODO: Assign vehicle to existing schedule slot - need to find correct OpenAPI endpoint
-        // await apiService.assignVehicleToScheduleSlot(scheduleSlot.id, vehicleId, user!.id);
-        console.log('TODO: Need to migrate assignVehicleToScheduleSlot to OpenAPI');
+        // await api.POST('/schedule-slots/{id}/vehicles', {
+        //   params: { path: { id: scheduleSlot.id } },
+        //   body: { vehicleId, driverId: user!.id }
+        // });
+        console.log('TODO: Need OpenAPI endpoint for assigning vehicle to existing schedule slots');
       }
 
       // Refresh schedule - force refetch
@@ -632,7 +709,7 @@ const SchedulePage: React.FC = () => {
             {/* Modern vehicle cards */}
             {scheduleSlot.vehicleAssignments?.map((vehicleAssignment: ScheduleSlotVehicle) => {
               // Calculate children assigned to this specific vehicle
-              const vehicleChildren = scheduleSlot.childAssignments.filter((ca) =>
+              const vehicleChildren = (scheduleSlot.childAssignments || []).filter((ca) =>
                 ca.vehicleAssignmentId === vehicleAssignment.id
               );
 
@@ -662,7 +739,7 @@ const SchedulePage: React.FC = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <div className="w-2 h-2 rounded-full bg-current opacity-60"></div>
-                      {/* TODO: Legacy compatibility - vehicle can be undefined in old apiService format */}
+                      {/* TODO: Legacy compatibility - vehicle can be undefined in some response formats */}
                       {vehicleAssignment.vehicle && (
                         <>
                           <span className="font-medium text-sm" data-testid={`schedule-vehicle-name-${vehicleAssignment.vehicle.id}`}>{vehicleAssignment.vehicle.name}</span>
@@ -719,7 +796,7 @@ const SchedulePage: React.FC = () => {
                           <div className="text-xs opacity-60">Click to edit</div>
                         </div>
                         <div className="space-y-0.5">
-                          {/* TODO: Legacy compatibility - assignment.child can be undefined in old apiService format */}
+                          {/* TODO: Legacy compatibility - assignment.child can be undefined in some response formats */}
                           {vehicleChildren.map((assignment, index) => (
                             assignment.child && (
                               <div key={assignment.child.id} className="flex items-center justify-between bg-white/30 rounded px-2 py-1">
@@ -894,7 +971,7 @@ const SchedulePage: React.FC = () => {
         />
         <div className="text-center py-12">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl mx-auto">
-            {groups.map((group: UserGroup) => (
+            {groups.map((group) => (
               <ModernCard key={group.id} className="cursor-pointer transition-transform hover:scale-105" onClick={() => setSelectedGroup(group.id)}>
                 <div className="p-6 text-center">
                   <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-xl bg-primary/10">

@@ -37,13 +37,13 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Small Bus',
         capacity: 10,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
       };
-      const userId = 'user-1';
+      const userId = TEST_IDS.USER;
 
       const mockCreatedVehicle = { 
         ...vehicleData, 
-        id: 'vehicle-1',
+        id: TEST_IDS.VEHICLE,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -63,9 +63,9 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Too Big Bus',
         capacity: 11,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
       };
-      const userId = 'user-1';
+      const userId = TEST_IDS.USER;
 
       await expect(vehicleService.createVehicle(vehicleData, userId)).rejects.toThrow(
         `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
@@ -77,9 +77,9 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Old Big Bus',
         capacity: 50,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
       };
-      const userId = 'user-1';
+      const userId = TEST_IDS.USER;
 
       await expect(vehicleService.createVehicle(vehicleData, userId)).rejects.toThrow(
         `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
@@ -92,22 +92,22 @@ describe('VehicleService - Max Capacity Tests', () => {
     beforeEach(() => {
       // Mock getUserFamily to return a family
       mockPrisma.familyMember.findFirst.mockResolvedValue({
-        userId: 'user-1',
-        familyId: 'family-1',
+        userId: TEST_IDS.USER,
+        familyId: TEST_IDS.FAMILY,
         role: 'ADMIN',
-        family: { id: 'family-1', name: 'Test Family' },
+        family: { id: TEST_IDS.FAMILY, name: 'Test Family' },
       });
     });
 
     it('should allow updating vehicle to exactly 10 seats', async () => {
-      const vehicleId = 'vehicle-1';
-      const userId = 'user-1';
+      const vehicleId = TEST_IDS.VEHICLE;
+      const userId = TEST_IDS.USER;
       const updateData = { capacity: 10 };
       const existingVehicle = { 
         id: vehicleId, 
         name: 'Bus', 
         capacity: 8,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -130,14 +130,14 @@ describe('VehicleService - Max Capacity Tests', () => {
     });
 
     it('should reject updating vehicle to 11 seats', async () => {
-      const vehicleId = 'vehicle-1';
-      const userId = 'user-1';
+      const vehicleId = TEST_IDS.VEHICLE;
+      const userId = TEST_IDS.USER;
       const updateData = { capacity: 11 };
       const existingVehicle = { 
         id: vehicleId, 
         name: 'Bus', 
         capacity: 8,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

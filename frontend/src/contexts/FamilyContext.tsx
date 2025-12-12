@@ -15,6 +15,7 @@
  * - Coordinate with scheduling groups for resource sharing
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type {
@@ -424,7 +425,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      await familyApiService.updateMemberRole(state.currentFamily.id, memberId, { role: role as FamilyRole });
+      await familyApiService.updateMemberRole(memberId, { role: role as FamilyRole });
 
       // Refresh family to get updated member roles
       await refreshFamily();

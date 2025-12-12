@@ -5,12 +5,13 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 describe('Platform Parameter Fix Verification', () => {
   it('should extract platform parameter from request body', () => {
     // Mock request body with platform parameter
     const mockReqBody = {
-      familyId: 'test-family-id',
+      familyId: TEST_IDS.FAMILY,
       email: 'test@example.com',
       role: 'MEMBER',
       platform: 'native',
@@ -24,7 +25,7 @@ describe('Platform Parameter Fix Verification', () => {
 
   it('should default to web when platform is not specified', () => {
     const mockReqBody: any = {
-      familyId: 'test-family-id',
+      familyId: TEST_IDS.FAMILY,
       email: 'test@example.com', 
       role: 'MEMBER',
     };
@@ -36,7 +37,7 @@ describe('Platform Parameter Fix Verification', () => {
 
   it('should default to web when invalid platform is specified', () => {
     const mockReqBody: any = {
-      familyId: 'test-family-id',
+      familyId: TEST_IDS.FAMILY,
       email: 'test@example.com',
       role: 'MEMBER',
       platform: 'invalid-platform',

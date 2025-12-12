@@ -6,10 +6,10 @@ import { asyncHandler } from '../middleware/errorHandler';
 import {
   ChildParamsSchema,
   ChildGroupParamsSchema,
-  WeekQuerySchema,
   CreateChildSchema,
   UpdateChildSchema,
 } from '../schemas/children';
+import { WeekQuerySchema } from '../schemas/_common';
 
 const childController = createChildController();
 const router = Router();

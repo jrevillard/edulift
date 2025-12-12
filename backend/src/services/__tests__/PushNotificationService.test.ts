@@ -181,17 +181,17 @@ describe('PushNotificationService', () => {
         ],
       });
 
-      const result = await pushNotificationService.sendToUser('user-1', mockNotification);
+      const result = await pushNotificationService.sendToUser(TEST_IDS.USER, mockNotification);
 
       expect(result.successCount).toBe(2);
       expect(result.failureCount).toBe(0);
-      expect(mockFcmTokenService.getUserTokens).toHaveBeenCalledWith('user-1');
+      expect(mockFcmTokenService.getUserTokens).toHaveBeenCalledWith(TEST_IDS.USER);
     });
 
     it('should return empty result when user has no tokens', async () => {
       mockFcmTokenService.getUserTokens.mockResolvedValueOnce([]);
 
-      const result = await pushNotificationService.sendToUser('user-1', mockNotification);
+      const result = await pushNotificationService.sendToUser(TEST_IDS.USER, mockNotification);
 
       expect(result.successCount).toBe(0);
       expect(result.failureCount).toBe(0);
@@ -208,7 +208,7 @@ describe('PushNotificationService', () => {
     it('should send notifications to all users tokens', async () => {
       
       mockFcmTokenService.getUsersTokens.mockResolvedValueOnce([
-        { token: 'token1', userId: 'user-1' },
+        { token: 'token1', userId: TEST_IDS.USER },
         { token: 'token2', userId: 'user-2' },
       ] as any);
 
@@ -222,10 +222,10 @@ describe('PushNotificationService', () => {
         ],
       });
 
-      const result = await pushNotificationService.sendToUsers(['user-1', 'user-2'], mockNotification);
+      const result = await pushNotificationService.sendToUsers([TEST_IDS.USER, 'user-2'], mockNotification);
 
       expect(result.successCount).toBe(2);
-      expect(mockFcmTokenService.getUsersTokens).toHaveBeenCalledWith(['user-1', 'user-2']);
+      expect(mockFcmTokenService.getUsersTokens).toHaveBeenCalledWith([TEST_IDS.USER, 'user-2']);
     });
   });
 
@@ -299,7 +299,7 @@ describe('PushNotificationService', () => {
         });
 
         const result = await pushNotificationService.sendScheduleSlotNotification(
-          ['user-1'],
+          [TEST_IDS.USER],
           {
             groupName: 'Test Group',
             datetime: '2024-03-15T08:00:00Z',
@@ -311,7 +311,7 @@ describe('PushNotificationService', () => {
 
         expect(result.successCount).toBe(1);
         expect(sendToUsersSpy).toHaveBeenCalledWith(
-          ['user-1'],
+          [TEST_IDS.USER],
           expect.objectContaining({
             title: 'EduLift - Test Group',
             body: expect.stringContaining('New slot created'),
@@ -338,7 +338,7 @@ describe('PushNotificationService', () => {
         });
 
         const result = await pushNotificationService.sendFamilyInvitationNotification(
-          'user-1',
+          TEST_IDS.USER,
           {
             familyName: 'Test Family',
             inviterName: 'John Doe',
@@ -348,7 +348,7 @@ describe('PushNotificationService', () => {
 
         expect(result.successCount).toBe(1);
         expect(sendToUserSpy).toHaveBeenCalledWith(
-          'user-1',
+          TEST_IDS.USER,
           expect.objectContaining({
             title: 'EduLift - Family Invitation',
             body: 'John Doe invited you to join family "Test Family"',
@@ -375,7 +375,7 @@ describe('PushNotificationService', () => {
         });
 
         const result = await pushNotificationService.sendGroupInvitationNotification(
-          'user-1',
+          TEST_IDS.USER,
           {
             groupName: 'Test Group',
             inviterName: 'Jane Smith',
@@ -385,7 +385,7 @@ describe('PushNotificationService', () => {
 
         expect(result.successCount).toBe(1);
         expect(sendToUserSpy).toHaveBeenCalledWith(
-          'user-1',
+          TEST_IDS.USER,
           expect.objectContaining({
             title: 'EduLift - Group Invitation',
             body: 'Jane Smith invited you to join group "Test Group"',
@@ -404,7 +404,7 @@ describe('PushNotificationService', () => {
 
   describe('Token management delegation', () => {
     it('should delegate saveToken to FcmTokenService', async () => {
-      const tokenData = { userId: 'user-1', token: 'token-1', fcmPlatform: 'android' } as any;
+      const tokenData = { userId: TEST_IDS.USER, token: 'token-1', fcmPlatform: 'android' } as any;
       mockFcmTokenService.saveToken.mockResolvedValueOnce(tokenData);
 
       const result = await pushNotificationService.saveToken(tokenData);
@@ -417,10 +417,10 @@ describe('PushNotificationService', () => {
       const tokens = [{ token: 'token-1' }] as any;
       mockFcmTokenService.getUserTokens.mockResolvedValueOnce(tokens);
 
-      const result = await pushNotificationService.getUserTokens('user-1');
+      const result = await pushNotificationService.getUserTokens(TEST_IDS.USER);
 
       expect(result).toBe(tokens);
-      expect(mockFcmTokenService.getUserTokens).toHaveBeenCalledWith('user-1');
+      expect(mockFcmTokenService.getUserTokens).toHaveBeenCalledWith(TEST_IDS.USER);
     });
 
     it('should delegate deleteToken to FcmTokenService', async () => {

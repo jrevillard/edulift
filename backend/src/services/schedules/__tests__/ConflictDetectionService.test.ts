@@ -23,19 +23,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST (same time)
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -46,7 +46,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -64,19 +64,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T02:00:00.000Z'), // 11:00 JST
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST (different time)
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -87,7 +87,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -104,19 +104,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-03-30T01:30:00.000Z'), // 2:30 CET (before DST)
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-03-30T01:30:00.000Z'), // Same UTC time
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -127,7 +127,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Europe/Paris',
       );
@@ -144,19 +144,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T23:00:00.000Z'), // 2025-10-21 08:00 JST
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T23:00:00.000Z'), // 2025-10-21 08:00 JST
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -167,7 +167,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -186,13 +186,13 @@ describe('ConflictDetectionService', () => {
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1', // Different vehicle
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE, // Different vehicle
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -203,7 +203,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -223,13 +223,13 @@ describe('ConflictDetectionService', () => {
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driverId: 'driver-1', // Same driver
               driver: { id: 'driver-1', name: 'John Doe' },
             },
@@ -240,7 +240,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -255,14 +255,14 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'slot-to-update',
         datetime: new Date('2025-10-20T01:00:00.000Z'),
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       // findMany should be called with exclusion filter and return empty array
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
         'slot-to-update', // Exclude this slot
@@ -282,19 +282,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'), // 10:00 JST
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -305,7 +305,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -319,20 +319,20 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T01:00:00.000Z'),
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: 'driver-1',
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'),
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1', // Vehicle conflict
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE, // Vehicle conflict
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driverId: 'driver-1', // Driver conflict
               driver: { id: 'driver-1', name: 'John Doe' },
             },
@@ -343,7 +343,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -360,19 +360,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T01:00:00.000Z'),
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-20T01:00:00.000Z'),
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -383,7 +383,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       await expect(
-        conflictService.validateNoConflicts('group-1', newSlot, 'Asia/Tokyo'),
+        conflictService.validateNoConflicts(TEST_IDS.GROUP, newSlot, 'Asia/Tokyo'),
       ).rejects.toThrow(/Cannot assign to schedule slot due to conflicts/);
     });
 
@@ -391,13 +391,13 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T01:00:00.000Z'),
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        conflictService.validateNoConflicts('group-1', newSlot, 'Asia/Tokyo'),
+        conflictService.validateNoConflicts(TEST_IDS.GROUP, newSlot, 'Asia/Tokyo'),
       ).resolves.not.toThrow();
     });
   });
@@ -409,19 +409,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-26T01:00:00.000Z'), // First 2:00 AM (CEST, UTC+2)
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-26T01:00:00.000Z'), // Same UTC time
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -432,7 +432,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Europe/Paris',
       );
@@ -445,19 +445,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-03-30T01:00:00.000Z'), // 10:00 JST
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       const existingSlots = [
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-03-30T01:00:00.000Z'),
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -468,7 +468,7 @@ describe('ConflictDetectionService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(existingSlots);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );
@@ -483,19 +483,19 @@ describe('ConflictDetectionService', () => {
       const newSlot = {
         scheduleSlotId: 'new-slot-1',
         datetime: new Date('2025-10-20T23:30:00.000Z'), // 2025-10-21 08:30 JST
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([
         {
           id: 'existing-slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2025-10-21T00:30:00.000Z'), // 2025-10-21 09:30 JST (different hour)
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driver: null,
               driverId: null,
             },
@@ -504,7 +504,7 @@ describe('ConflictDetectionService', () => {
       ]);
 
       const result = await conflictService.detectConflicts(
-        'group-1',
+        TEST_IDS.GROUP,
         newSlot,
         'Asia/Tokyo',
       );

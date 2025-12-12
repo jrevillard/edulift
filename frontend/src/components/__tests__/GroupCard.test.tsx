@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, beforeEach, it, describe, expect } from 'vitest';
 import GroupCard from '../GroupCard';
-import type { UserGroup } from '../../services/api';
+import type { UserGroup } from '../GroupCard';
 
 const mockUserGroup: UserGroup = {
   id: '1',

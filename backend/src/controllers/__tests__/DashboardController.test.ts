@@ -118,20 +118,20 @@ describe('DashboardController', () => {
           time: '08:00',
           datetime: '2024-01-15T08:00:00.000Z',
           date: 'Today',
-          children: [{ id: 'child-1', name: 'Emma' }],
-          vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+          children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
+          vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
           driver: { id: 'user-123', name: 'John Doe' },
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
         {
           id: 'trip-2',
           time: '15:30',
           datetime: '2024-01-15T15:30:00.000Z',
           date: 'Today',
-          children: [{ id: 'child-1', name: 'Emma' }],
-          vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+          children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
+          vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
           driver: { id: 'user-456', name: 'Jane Smith' },
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
       ];
 
@@ -191,7 +191,7 @@ describe('DashboardController', () => {
           time: '2 hours ago',
           timestamp: new Date('2024-01-15T10:00:00Z'),
           type: 'group' as const,
-          entityId: 'group-1',
+          entityId: TEST_IDS.GROUP,
           entityName: 'Maple Street Families',
         },
         {
@@ -200,7 +200,7 @@ describe('DashboardController', () => {
           time: '1 day ago',
           timestamp: new Date('2024-01-14T09:00:00Z'),
           type: 'vehicle' as const,
-          entityId: 'vehicle-1',
+          entityId: TEST_IDS.VEHICLE,
           entityName: 'Honda Civic',
         },
       ];
@@ -278,7 +278,7 @@ describe('DashboardController', () => {
               transports: [
                 {
                   time: '08:00',
-                  groupId: 'group-1',
+                  groupId: TEST_IDS.GROUP,
                   groupName: 'Maple Street Families',
                   scheduleSlotId: 'slot-1',
                   totalChildrenAssigned: 3,
@@ -286,13 +286,13 @@ describe('DashboardController', () => {
                   overallCapacityStatus: 'available' as CapacityStatus,
                   vehicleAssignmentSummaries: [
                     {
-                      vehicleId: 'vehicle-1',
+                      vehicleId: TEST_IDS.VEHICLE,
                       vehicleName: 'Honda Civic',
                       vehicleCapacity: 4,
                       assignedChildrenCount: 2,
                       availableSeats: 2,
                       capacityStatus: 'available' as CapacityStatus,
-                      vehicleFamilyId: 'family-1',
+                      vehicleFamilyId: TEST_IDS.FAMILY,
                       isFamilyVehicle: true,
                       driver: {
                         id: 'user-123',
@@ -300,9 +300,9 @@ describe('DashboardController', () => {
                       },
                       children: [
                         {
-                          childId: 'child-1',
+                          childId: TEST_IDS.CHILD,
                           childName: 'Emma',
-                          childFamilyId: 'family-1',
+                          childFamilyId: TEST_IDS.FAMILY,
                           isFamilyChild: true,
                         },
                       ],
@@ -319,7 +319,7 @@ describe('DashboardController', () => {
           endDate: '2024-01-21',
           generatedAt: '2024-01-15T12:00:00.000Z',
           metadata: {
-            familyId: 'family-1',
+            familyId: TEST_IDS.FAMILY,
             familyName: 'Doe Family',
             totalGroups: 2,
             totalChildren: 3,
@@ -328,7 +328,7 @@ describe('DashboardController', () => {
       };
 
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue('family-1');
+      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
       mockDashboardServiceInstance.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
       // Act
@@ -360,7 +360,7 @@ describe('DashboardController', () => {
           endDate: '2024-01-21',
           generatedAt: '2024-01-15T12:00:00.000Z',
           metadata: {
-            familyId: 'family-1',
+            familyId: TEST_IDS.FAMILY,
             familyName: 'Doe Family',
             totalGroups: 1,
             totalChildren: 0,
@@ -369,7 +369,7 @@ describe('DashboardController', () => {
       };
 
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue('family-1');
+      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
       mockDashboardServiceInstance.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
       // Act
@@ -410,7 +410,7 @@ describe('DashboardController', () => {
           endDate: '2024-01-21',
           generatedAt: '2024-01-15T12:00:00.000Z',
           metadata: {
-            familyId: 'family-1',
+            familyId: TEST_IDS.FAMILY,
             familyName: 'Doe Family',
             totalGroups: 0,
             totalChildren: 0,
@@ -419,7 +419,7 @@ describe('DashboardController', () => {
       };
 
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue('family-1');
+      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
       mockDashboardServiceInstance.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
       // Act
@@ -452,7 +452,7 @@ describe('DashboardController', () => {
       // Arrange
       const errorMessage = 'Database connection failed';
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue('family-1');
+      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
       mockDashboardServiceInstance.getWeeklyDashboard.mockRejectedValue(new Error(errorMessage));
 
       // Act

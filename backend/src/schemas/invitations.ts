@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import { BaseFamilySchema, BaseGroupSchema, BaseUserSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -156,57 +157,31 @@ export const InvitationIdParamsSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-export const UserSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'User identifier',
-    }),
-  email: z.email()
-    .openapi({
-      example: 'john.smith@example.com',
-      description: 'User email address',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'John Smith',
-      description: 'User display name',
-    }),
+export const UserSchema = BaseUserSchema.extend({
+  name: z.string().openapi({
+    example: 'John Smith',
+    description: 'User display name',
+  }),
+}).omit({
+  firstName: true,
+  lastName: true,
+  phoneNumber: true,
+  createdAt: true,
+  updatedAt: true,
 }).openapi({
   title: 'User',
-  description: 'User information',
+  description: 'User information in invitation context',
 });
 
-export const FamilySchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Family identifier',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Johnson Family',
-      description: 'Family name',
-    }),
-}).openapi({
+// Re-export base schemas for invitation context
+export const FamilySchema = BaseFamilySchema.extend({}).openapi({
   title: 'Family',
-  description: 'Family information',
+  description: 'Family information in invitation context',
 });
 
-export const GroupSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901235',
-      description: 'Group identifier',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Carpool Group',
-      description: 'Group name',
-    }),
-}).openapi({
+export const GroupSchema = BaseGroupSchema.extend({}).openapi({
   title: 'Group',
-  description: 'Group information',
+  description: 'Group information in invitation context',
 });
 
 export const FamilyInvitationResponseSchema = z.object({

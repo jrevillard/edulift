@@ -156,13 +156,13 @@ describe('ScheduleSlotValidationService', () => {
 
   describe('validateVehicleAssignment', () => {
     it('should validate available vehicle', async () => {
-      const mockVehicle = { id: 'vehicle-1', name: 'Bus 1', capacity: 20 };
+      const mockVehicle = { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20 };
       const mockSlot = {
         id: 'slot-1',
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
       };
       
       mockPrisma.vehicle.findUnique.mockResolvedValue(mockVehicle);
@@ -170,7 +170,7 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateVehicleAssignment('vehicle-1', 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
       ).resolves.not.toThrow();
     });
 
@@ -180,33 +180,33 @@ describe('ScheduleSlotValidationService', () => {
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
       };
       
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateVehicleAssignment('vehicle-1', 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
       ).resolves.not.toThrow();
     });
 
     it('should throw error if vehicle already assigned to another slot at same time', async () => {
-      const mockVehicle = { id: 'vehicle-1', name: 'Bus 1', capacity: 20 };
+      const mockVehicle = { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20 };
       const mockSlot = {
         id: 'slot-1',
         datetime: new Date('2024-01-08T08:00:00.000Z'),
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
       };
       const conflictingSlots = [
         {
           id: 'slot-2',
           datetime: new Date('2024-01-08T08:00:00.000Z'),
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           vehicleAssignments: [{
             id: 'va-1',
-            vehicleId: 'vehicle-1',
-            vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+            vehicleId: TEST_IDS.VEHICLE,
+            vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
             driverId: null,
             driver: null,
           }],
@@ -218,11 +218,11 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(conflictingSlots);
 
       await expect(
-        validationService.validateVehicleAssignment('vehicle-1', 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
       ).rejects.toThrow(/Cannot assign to schedule slot due to conflicts/);
 
       await expect(
-        validationService.validateVehicleAssignment('vehicle-1', 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
       ).rejects.toThrow(/Vehicle is already assigned to another schedule slot/);
     });
   });
@@ -235,7 +235,7 @@ describe('ScheduleSlotValidationService', () => {
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
       };
 
       mockPrisma.user.findUnique.mockResolvedValue(mockDriver);
@@ -253,7 +253,7 @@ describe('ScheduleSlotValidationService', () => {
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
       };
 
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
@@ -269,18 +269,18 @@ describe('ScheduleSlotValidationService', () => {
       const mockSlot = {
         id: 'slot-1',
         datetime: new Date('2024-01-08T08:00:00.000Z'),
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
       };
       const conflictingSlots = [
         {
           id: 'slot-2',
           datetime: new Date('2024-01-08T08:00:00.000Z'),
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicleId: 'vehicle-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus 1' },
+              vehicleId: TEST_IDS.VEHICLE,
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
               driverId: 'driver-1',
               driver: { id: 'driver-1', name: 'John Doe' },
             },
@@ -304,13 +304,13 @@ describe('ScheduleSlotValidationService', () => {
 
   describe('validateChildAssignment', () => {
     it('should validate child assignment', async () => {
-      const mockChild = { id: 'child-1', name: 'Alice', userId: 'parent-1' };
+      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: 'parent-1' };
       const mockSlot = {
         id: 'slot-1',
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         vehicleAssignments: [
           { vehicle: { capacity: 20 } },
         ],
@@ -322,7 +322,7 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateChildAssignment('child-1', 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
       ).resolves.not.toThrow();
     });
 
@@ -336,12 +336,12 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment('child-1', 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
       ).resolves.not.toThrow();
     });
 
     it('should throw error if no vehicles assigned to slot', async () => {
-      const mockChild = { id: 'child-1', name: 'Alice', userId: 'parent-1' };
+      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: 'parent-1' };
       const mockSlot = {
         id: 'slot-1',
         vehicleAssignments: [],
@@ -352,12 +352,12 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment('child-1', 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
       ).rejects.toThrow('Cannot assign child to schedule slot without vehicles');
     });
 
     it('should throw error if slot is at capacity', async () => {
-      const mockChild = { id: 'child-1', name: 'Alice', userId: 'parent-1' };
+      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: 'parent-1' };
       const mockSlot = {
         id: 'slot-1',
         vehicleAssignments: [
@@ -372,7 +372,7 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment('child-1', 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
       ).rejects.toThrow('Schedule slot is at full capacity');
     });
 
@@ -382,7 +382,7 @@ describe('ScheduleSlotValidationService', () => {
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         vehicleAssignments: [
           { vehicle: { capacity: 20 } },
         ],
@@ -392,7 +392,7 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment('child-1', 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
       ).resolves.not.toThrow();
     });
   });
@@ -405,7 +405,7 @@ describe('ScheduleSlotValidationService', () => {
           { vehicle: { capacity: 20 } },
         ],
         childAssignments: [
-          { childId: 'child-1' },
+          { childId: TEST_IDS.CHILD },
         ],
       };
 
@@ -444,7 +444,7 @@ describe('ScheduleSlotValidationService', () => {
           { vehicle: { capacity: 1 } },
         ],
         childAssignments: [
-          { childId: 'child-1' },
+          { childId: TEST_IDS.CHILD },
           { childId: 'child-2' },
         ],
       };
@@ -535,7 +535,7 @@ describe('ScheduleSlotValidationService', () => {
     it('should accept slot creation with valid configured time for MONDAY', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:30', '08:00', '15:30'],
           TUESDAY: ['07:30', '08:00'],
@@ -548,14 +548,14 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-13T07:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).resolves.not.toThrow();
     });
 
     it('should accept slot creation with valid configured time for TUESDAY', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:30', '08:00'],
           TUESDAY: ['07:30', '08:00', '15:30'],
@@ -568,14 +568,14 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-14T15:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).resolves.not.toThrow();
     });
 
     it('should reject slot creation with invalid time not in config', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:30', '08:00'],
           TUESDAY: ['07:30', '08:00'],
@@ -588,14 +588,14 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-13T05:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).rejects.toThrow(/Time 05:30 is not configured for MONDAY/);
     });
 
     it('should reject slot creation with time configured for wrong weekday', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:30', '08:00'],
           TUESDAY: ['15:30', '16:00'],
@@ -608,7 +608,7 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-13T15:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).rejects.toThrow(/Time 15:30 is not configured for MONDAY/);
     });
 
@@ -618,14 +618,14 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-13T07:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).rejects.toThrow('Group has no schedule configuration');
     });
 
     it('should reject slot creation when weekday has no configured times', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:30', '08:00'],
           // TUESDAY not configured
@@ -638,14 +638,14 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-14T07:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).rejects.toThrow(/Time 07:30 is not configured for TUESDAY/);
     });
 
     it('should provide helpful error message with all available times', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:30', '08:00'],
           TUESDAY: ['15:30', '16:00'],
@@ -658,14 +658,14 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-13T05:30:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).rejects.toThrow(/Available times: 07:30, 08:00, 15:30, 16:00/);
     });
 
     it('should handle times with leading zeros correctly', async () => {
       const mockConfig = {
         id: 'config-1',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         scheduleHours: {
           MONDAY: ['07:00', '07:30', '08:00'],
         },
@@ -677,7 +677,7 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-13T07:00:00.000Z');
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'UTC'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'UTC'),
       ).resolves.not.toThrow();
     });
 
@@ -696,7 +696,7 @@ describe('ScheduleSlotValidationService', () => {
       const datetime = new Date('2025-10-12T16:00:00.000Z');  // Sunday UTC!
 
       await expect(
-        validationService.validateScheduleTime('group-1', datetime, 'Asia/Tokyo'),
+        validationService.validateScheduleTime(TEST_IDS.GROUP, datetime, 'Asia/Tokyo'),
       ).resolves.not.toThrow();  // Should match SUNDAY 16:00 in config
     });
   });
@@ -712,7 +712,7 @@ describe('ScheduleSlotValidationService', () => {
           },
         ],
         childAssignments: [
-          { childId: 'child-1' },
+          { childId: TEST_IDS.CHILD },
           { childId: 'child-2' },
         ],
       };
@@ -735,7 +735,7 @@ describe('ScheduleSlotValidationService', () => {
           },
         ],
         childAssignments: [
-          { childId: 'child-1' },
+          { childId: TEST_IDS.CHILD },
           { childId: 'child-2' },
         ],
       };
@@ -761,7 +761,7 @@ describe('ScheduleSlotValidationService', () => {
           },
         ],
         childAssignments: [
-          { childId: 'child-1' },
+          { childId: TEST_IDS.CHILD },
           { childId: 'child-2' },
           { childId: 'child-3' },
           { childId: 'child-4' },

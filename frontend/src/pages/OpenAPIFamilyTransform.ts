@@ -5,8 +5,10 @@
  * into the expected frontend GroupFamily interface format.
  */
 
-import type { operations } from '@/generated/api/types';
-import type { GroupFamily } from '../types/api';
+import type { operations, paths } from '@/generated/api/types';
+
+// OpenAPI generated types
+export type GroupFamily = paths['/groups/{groupId}/families']['get']['responses'][200]['content']['application/json']['data'][0];
 
 // Type for OpenAPI group families response
 export type GetGroupFamiliesResponse = operations['getgroupsByGroupIdFamilies']['responses']['200']['content']['application/json']['data'][0];
@@ -20,46 +22,17 @@ export type GetGroupFamiliesResponse = operations['getgroupsByGroupIdFamilies'][
  * @returns Transformed GroupFamily object compatible with the frontend interface
  */
 export const transformGroupFamily = (
-  openApiFamily: GetGroupFamiliesResponse,
-  userFamilyId?: string,
-  currentGroup?: { userRole: string; ownerFamily: { id: string } }
+  openApiFamily: GetGroupFamiliesResponse
 ): GroupFamily => {
-  // Check if this is the current user's family
-  const isMyFamily = userFamilyId ? openApiFamily.familyId === userFamilyId : false;
-
-  // Check if user can manage this family (admin or owner can manage others, but not themselves)
-  const canManage = currentGroup && userFamilyId
-    ? (currentGroup.userRole === 'ADMIN' || currentGroup.userRole === 'OWNER') && !isMyFamily
-    : false;
-
-  // Generate a name from family object if not directly available
-  const familyName = openApiFamily.family?.name || 'Unknown Family';
-
-  // Transform role: OpenAPI doesn't have OWNER or PENDING, so we need to handle these cases
-  // If this is the owner family, set role to OWNER, otherwise use the OpenAPI role
-  const isOwnerFamily = currentGroup && openApiFamily.familyId === currentGroup.ownerFamily.id;
-  const role = isOwnerFamily
-    ? 'OWNER' as const
-    : openApiFamily.role === 'ADMIN' || openApiFamily.role === 'MEMBER'
-      ? openApiFamily.role
-      : 'MEMBER' as const; // Default fallback
+  // The OpenAPI response already provides all the needed properties
+  // No transformation needed for this endpoint since it returns the exact structure we need
 
   return {
-    id: openApiFamily.familyId, // Use familyId as the primary ID for consistency
-    name: familyName,
-    role,
-    familyId: openApiFamily.familyId,
-    groupId: undefined, // Not available from OpenAPI
-    joinedAt: openApiFamily.joinedAt,
-    family: openApiFamily.family,
-    isMyFamily,
-    canManage,
-    admins: [], // TODO: This needs to be populated from a separate API call or endpoint
-    status: 'ACCEPTED' as const, // Active families are accepted
-    // These fields are only relevant for pending invitations - not available from this endpoint
-    invitationId: undefined,
-    inviteCode: undefined,
-    invitedAt: undefined,
-    expiresAt: undefined,
+    id: openApiFamily.id,
+    name: openApiFamily.name,
+    role: openApiFamily.role,
+    isMyFamily: openApiFamily.isMyFamily,
+    canManage: openApiFamily.canManage,
+    admins: openApiFamily.admins || [],
   };
 };

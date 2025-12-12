@@ -7,7 +7,14 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import {
+  GroupRoleEnum,
+  UserRoleEnum,
+  WeekdayEnum,
+  InvitationStatusEnum,
+  DateRangeQuerySchema,
+} from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -16,28 +23,8 @@ extendZodWithOpenApi(z);
 // ENUMS
 // ============================================================================
 
-export const GroupRoleEnum = z.enum(['MEMBER', 'ADMIN']).openapi({
-  description: 'Role of a family within a group (from database)',
-  example: 'MEMBER',
-});
-
-export const FamilyGroupRoleEnum = z.enum(['MEMBER', 'ADMIN', 'OWNER']).openapi({
-  description: 'Role of a family within a group (including special OWNER case)',
-  example: 'MEMBER',
-});
-
-export const UserRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  description: 'User\'s role within a group context',
-  example: 'MEMBER',
-});
-
-export const WeekdayEnum = z.enum([
-  'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY',
-  'FRIDAY', 'SATURDAY', 'SUNDAY',
-]).openapi({
-  description: 'Day of the week',
-  example: 'MONDAY',
-});
+// Re-export enums from _common for compatibility
+export { GroupRoleEnum, UserRoleEnum, WeekdayEnum, InvitationStatusEnum };
 
 const UserStatusEnum = z.enum([
   'NO_FAMILY', 'FAMILY_MEMBER', 'FAMILY_ADMIN', 'ALREADY_MEMBER',
@@ -115,7 +102,7 @@ export const UpdateGroupSchema = z.object({
 });
 
 export const UpdateFamilyRoleSchema = z.object({
-  role: FamilyGroupRoleEnum.openapi({
+  role: GroupRoleEnum.openapi({
     example: 'ADMIN',
     description: 'New role for the family in the group',
   }),
@@ -131,7 +118,7 @@ export const InviteFamilySchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Target family ID to invite',
     }),
-  role: FamilyGroupRoleEnum.default('MEMBER').openapi({
+  role: GroupRoleEnum.default('MEMBER').openapi({
     example: 'MEMBER',
     description: 'Role for the invited family (defaults to MEMBER)',
   }),
@@ -278,47 +265,6 @@ export const OwnerFamilySchema = z.object({
   description: 'Owner family information',
 });
 
-// Schema for group families endpoint response (public API)
-export const GroupFamilySchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'Family identifier',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Johnson Family',
-      description: 'Family name',
-    }),
-  role: FamilyGroupRoleEnum.openapi({
-    example: 'MEMBER',
-    description: 'Family role in the group',
-  }),
-  isMyFamily: z.boolean()
-    .openapi({
-      example: false,
-      description: 'Whether this is the requester\'s family',
-    }),
-  canManage: z.boolean()
-    .openapi({
-      example: false,
-      description: 'Whether the requester can manage this family',
-    }),
-  admins: z.array(z.object({
-    name: z.string(),
-    email: z.email(),
-  })).openapi({
-    description: 'Family admin contacts',
-    example: [{
-      name: 'John Johnson',
-      email: 'john@example.com',
-    }],
-  }),
-}).openapi({
-  title: 'Group Family',
-  description: 'Family information for group families endpoint',
-});
-
 export const FamilyGroupMemberSchema = z.object({
   id: z.cuid()
     .openapi({
@@ -330,7 +276,7 @@ export const FamilyGroupMemberSchema = z.object({
       example: 'cl123456789012345678901238',
       description: 'Family identifier',
     }),
-  role: FamilyGroupRoleEnum.openapi({
+  role: GroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Family role in the group',
   }),
@@ -419,15 +365,6 @@ export const GroupResponseSchema = z.object({
   description: 'Complete group information with user context',
 });
 
-// Local success schema to avoid circular dependency
-export const GroupSuccessResponseSchema = z.object({
-  success: z.literal(true),
-  data: GroupResponseSchema,
-}).openapi({
-  title: 'Group Success Response',
-  description: 'Successful group operation response',
-});
-
 export const FamilySearchResultSchema = z.object({
   id: z.cuid()
     .openapi({
@@ -469,99 +406,42 @@ export const FamilySearchResultSchema = z.object({
 });
 
 export const GroupInvitationSchema = z.object({
-  // Core fields (minimal requirements for compatibility)
-  id: z.cuid().optional()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901239',
       description: 'Invitation identifier',
     }),
-  groupId: z.cuid().optional()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
     }),
-  targetFamilyId: z.cuid().nullable().optional()
+  targetFamilyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
-      description: 'Target family identifier (null for email invitations)',
-    }),
-  email: z.string().email().nullable().optional()
-    .openapi({
-      example: 'john@example.com',
-      description: 'Email for email invitations (null for family invitations)',
+      description: 'Target family identifier',
     }),
   role: GroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Invited role in the group',
   }),
-  personalMessage: z.string().nullable().optional()
-    .openapi({
-      example: 'Looking forward to carpooling with you!',
-      description: 'Personal message from inviter',
-    }),
-  invitedBy: z.cuid().optional()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'User who sent the invitation',
-    }),
-  status: z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'CANCELLED']).optional().default('PENDING').openapi({
+  status: InvitationStatusEnum.openapi({
     example: 'PENDING',
     description: 'Invitation status',
   }),
-  inviteCode: z.string().optional()
-    .openapi({
-      example: 'ABC123XYZ',
-      description: 'Invitation code',
-    }),
-  expiresAt: z.date().optional().transform(val => val?.toISOString())
+  personalMessage: z.string().nullable().optional().openapi({
+    example: 'Looking forward to carpooling with you!',
+    description: 'Personal message from inviter',
+  }),
+  expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
       description: 'Invitation expiration timestamp',
     }),
-  acceptedAt: z.date().nullable().optional().transform(val => val?.toISOString())
-    .openapi({
-      example: '2023-01-05T00:00:00.000Z',
-      description: 'Invitation acceptance timestamp',
-    }),
-  createdAt: z.date().optional().transform(val => val?.toISOString())
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
-    }),
-  updatedAt: z.date().optional().transform(val => val?.toISOString())
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Invitation update timestamp',
-    }),
-  acceptedBy: z.cuid().nullable().optional()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'User who accepted the invitation',
-    }),
-  createdBy: z.cuid().optional()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'User who created the invitation',
-    }),
-  // Legacy fields for backward compatibility
-  invitationId: z.string().optional()
-    .openapi({
-      example: 'invitation-123',
-      description: 'Legacy invitation identifier (for backward compatibility)',
-    }),
-  familyId: z.string().optional()
-    .openapi({
-      example: 'family-1',
-      description: 'Legacy family identifier (for backward compatibility)',
-    }),
-  // Optional relations
-  invitedByUser: z.object({
-    id: z.cuid(),
-    name: z.string(),
-    email: z.email(),
-  }).optional()
-    .openapi({
-      description: 'User who sent the invitation (included in some responses)',
     }),
   group: z.object({
     id: z.cuid(),
@@ -579,7 +459,7 @@ export const GroupInvitationSchema = z.object({
     }),
 }).openapi({
   title: 'Group Invitation',
-  description: 'Group invitation information with flexible schema for backward compatibility',
+  description: 'Group invitation information',
 });
 
 export const InvitationValidationSchema = z.object({
@@ -588,46 +468,25 @@ export const InvitationValidationSchema = z.object({
       example: true,
       description: 'Whether the invitation code is valid',
     }),
-  groupId: z.string().optional()
-    .openapi({
-      example: 'cmivlir1w004y13so4aplwzwx',
-      description: 'Group ID (if valid)',
-    }),
-  groupName: z.string().optional()
-    .openapi({
-      example: 'Group_1765104288010_ad46e7c2',
-      description: 'Group name (if valid)',
-    }),
-  inviterName: z.string().nullable().optional()
-    .openapi({
-      example: 'John Doe',
-      description: 'Name of the person who sent the invitation',
-    }),
-  requiresAuth: z.boolean().optional()
-    .openapi({
-      example: false,
-      description: 'Whether authentication is required to accept',
-    }),
   error: z.string().optional().openapi({
     example: 'Invitation code is required',
     description: 'Error message if invalid',
   }),
-  errorCode: z.string().optional()
+  group: z.object({
+    id: z.cuid(),
+    name: z.string(),
+  }).optional()
     .openapi({
-      example: 'INVALID_CODE',
-      description: 'Error code for programmatic handling',
+      description: 'Group information (if valid)',
     }),
-  email: z.string().optional()
+  invitation: z.object({
+    id: z.cuid(),
+    expiresAt: z.iso.datetime(),
+    role: GroupRoleEnum,
+  }).optional()
     .openapi({
-      example: 'user@example.com',
-      description: 'Email address (if applicable)',
+      description: 'Invitation information (if valid)',
     }),
-  existingUser: z.boolean().optional()
-    .openapi({
-      example: true,
-      description: 'Whether the user already exists in the system',
-    }),
-  // Legacy fields for backward compatibility with authenticated validation
   userStatus: UserStatusEnum.optional().openapi({
     example: 'FAMILY_MEMBER',
     description: 'User family status (authenticated validation only)',
@@ -674,7 +533,7 @@ export const GroupMembershipSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
     }),
-  role: FamilyGroupRoleEnum.openapi({
+  role: GroupRoleEnum.openapi({
     example: 'MEMBER',
     description: 'Family role in the group',
   }),
@@ -774,17 +633,6 @@ export const DefaultScheduleResponseSchema = z.object({
   description: 'Default schedule configuration',
 });
 
-// ============================================================================
-// GROUP FAMILIES RESPONSE SCHEMA
-// ============================================================================
-export const GroupFamiliesResponseSchema = z.object({
-  success: z.literal(true),
-  data: z.array(GroupFamilySchema),
-}).openapi({
-  title: 'Group Families Response',
-  description: 'Response for get group families endpoint',
-});
-
 // Register schemas with OpenAPI registry
 registry.register('CreateGroupRequest', CreateGroupSchema);
 registry.register('JoinGroupRequest', JoinGroupSchema);
@@ -794,7 +642,24 @@ registry.register('InviteFamilyRequest', InviteFamilySchema);
 registry.register('SearchFamiliesRequest', SearchFamiliesSchema);
 registry.register('ValidateInviteRequest', ValidateInviteSchema);
 registry.register('UpdateScheduleConfigRequest', UpdateScheduleConfigSchema);
-registry.register('GroupFamiliesResponse', GroupFamiliesResponseSchema);
+
+// Register parameter schemas
+registry.register('GroupParams', GroupParamsSchema);
+registry.register('InvitationParams', InvitationParamsSchema);
+registry.register('FamilyRoleParams', FamilyRoleParamsSchema);
+registry.register('WeekdayQuery', WeekdayQuerySchema);
+
+// Register response schemas
+registry.register('OwnerFamily', OwnerFamilySchema);
+registry.register('FamilyGroupMember', FamilyGroupMemberSchema);
+registry.register('GroupResponse', GroupResponseSchema);
+registry.register('FamilySearchResult', FamilySearchResultSchema);
+registry.register('GroupInvitation', GroupInvitationSchema);
+registry.register('InvitationValidation', InvitationValidationSchema);
+registry.register('GroupMembership', GroupMembershipSchema);
+registry.register('ScheduleConfig', ScheduleConfigSchema);
+registry.register('TimeSlotsResponse', TimeSlotsResponseSchema);
+registry.register('DefaultScheduleResponse', DefaultScheduleResponseSchema);
 
 
 
@@ -940,7 +805,10 @@ registerPath({
       description: 'Group joined successfully',
       content: {
         'application/json': {
-          schema: GroupSuccessResponseSchema,
+          schema: z.object({
+            success: z.literal(true),
+            data: GroupMembershipSchema,
+          }),
         },
       },
     },
@@ -993,7 +861,10 @@ registerPath({
       description: 'Group families retrieved successfully',
       content: {
         'application/json': {
-          schema: GroupFamiliesResponseSchema,
+          schema: z.object({
+            success: z.literal(true),
+            data: z.array(FamilyGroupMemberSchema),
+          }),
         },
       },
     },
@@ -1583,6 +1454,7 @@ registerPath({
   security: [{ BearerAuth: [] }],
   request: {
     params: GroupParamsSchema,
+    query: DateRangeQuerySchema,
   },
   responses: {
     200: {

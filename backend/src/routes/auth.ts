@@ -2,17 +2,19 @@ import { Router, Request, Response } from 'express';
 import { createAuthController } from '../controllers/AuthController';
 import { asyncHandler } from '../middleware/errorHandler';
 import { authenticateToken, authenticateTokenForRevocation } from '../middleware/auth';
-import { validateBody } from '../middleware/validation';
+import { validateBody, validateRequest } from '../middleware/validation';
 import { sendSuccessResponse } from '../utils/responseValidation';
 import { SimpleSuccessResponseSchema } from '../schemas/responses';
 import {
   RequestMagicLinkSchema,
   VerifyMagicLinkSchema,
+  RefreshTokenSchema,
+  LogoutSchema,
   UpdateProfileSchema,
   UpdateTimezoneSchema,
   RequestAccountDeletionSchema,
   ConfirmAccountDeletionSchema,
-} from '../utils/validation';
+} from '../schemas/auth';
 
 const router = Router();
 
@@ -23,13 +25,19 @@ const authController = createAuthController();
 router.post('/magic-link', validateBody(RequestMagicLinkSchema, { operationName: 'requestMagicLink' }), asyncHandler(authController.requestMagicLink));
 
 // Verify magic link and get JWT token
-router.post('/verify', validateBody(VerifyMagicLinkSchema, { operationName: 'verifyMagicLink' }), asyncHandler(authController.verifyMagicLink));
+router.post('/verify',
+  validateRequest({
+    body: VerifyMagicLinkSchema,
+    query: VerifyMagicLinkSchema,
+  }, { operationName: 'verifyMagicLink' }),
+  asyncHandler(authController.verifyMagicLink),
+);
 
 // Refresh JWT token (using refresh token)
-router.post('/refresh', asyncHandler(authController.refreshToken));
+router.post('/refresh', validateBody(RefreshTokenSchema, { operationName: 'refreshToken' }), asyncHandler(authController.refreshToken));
 
 // Logout (revoke refresh tokens - RFC 7009 compliant: accepts expired tokens)
-router.post('/logout', authenticateTokenForRevocation, asyncHandler(authController.logout));
+router.post('/logout', authenticateTokenForRevocation, validateBody(LogoutSchema, { operationName: 'logout' }), asyncHandler(authController.logout));
 
 // Update user profile (protected route)
 router.put('/profile', authenticateToken, validateBody(UpdateProfileSchema, { operationName: 'updateProfile' }), asyncHandler(authController.updateProfile));

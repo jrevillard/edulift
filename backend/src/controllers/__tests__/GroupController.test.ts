@@ -23,7 +23,7 @@ describe('GroupController', () => {
     groupController = new GroupController(mockGroupService, mockSchedulingService);
 
     mockRequest = {
-      userId: 'user-1',
+      userId: TEST_IDS.USER,
       body: {},
       params: {},
       query: {},
@@ -41,9 +41,9 @@ describe('GroupController', () => {
     it('should create a new group successfully', async () => {
       const groupData = { name: 'Test Group' };
       const createdGroup = {
-        id: 'group-1',
+        id: TEST_IDS.GROUP,
         name: 'Test Group',
-        adminId: 'user-1',
+        adminId: TEST_IDS.USER,
         inviteCode: 'ABC123',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -53,8 +53,8 @@ describe('GroupController', () => {
       
       // Mock getUserFamily to return a family
       mockGroupService.getUserFamily = jest.fn().mockResolvedValue({
-        familyId: 'family-1',
-        family: { id: 'family-1', name: 'Test Family' },
+        familyId: TEST_IDS.FAMILY,
+        family: { id: TEST_IDS.FAMILY, name: 'Test Family' },
       });
       
       mockGroupService.createGroup = jest.fn().mockResolvedValue(createdGroup);
@@ -66,8 +66,8 @@ describe('GroupController', () => {
 
       expect(mockGroupService.createGroup).toHaveBeenCalledWith({
         name: groupData.name,
-        familyId: 'family-1',
-        createdBy: 'user-1',
+        familyId: TEST_IDS.FAMILY,
+        createdBy: TEST_IDS.USER,
       });
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -82,8 +82,8 @@ describe('GroupController', () => {
       
       // Mock getUserFamily to return a family
       mockGroupService.getUserFamily = jest.fn().mockResolvedValue({
-        familyId: 'family-1',
-        family: { id: 'family-1', name: 'Test Family' },
+        familyId: TEST_IDS.FAMILY,
+        family: { id: TEST_IDS.FAMILY, name: 'Test Family' },
       });
       
         mockGroupService.createGroup = jest.fn().mockRejectedValue(new AppError('Failed to create group', 500));
@@ -99,15 +99,15 @@ describe('GroupController', () => {
     it('should get user groups successfully', async () => {
       const userGroups = [
         {
-          userId: 'user-1',
-          groupId: 'group-1',
+          userId: TEST_IDS.USER,
+          groupId: TEST_IDS.GROUP,
           role: 'ADMIN' as const,
           joinedAt: new Date(),
           group: {
-            id: 'group-1',
+            id: TEST_IDS.GROUP,
             name: 'Test Group',
             admin: {
-              id: 'user-1',
+              id: TEST_IDS.USER,
               name: 'Test User',
               email: 'test@example.com',
             },
@@ -123,7 +123,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.getUserGroups).toHaveBeenCalledWith('user-1');
+      expect(mockGroupService.getUserGroups).toHaveBeenCalledWith(TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -136,12 +136,12 @@ describe('GroupController', () => {
     it('should join group successfully', async () => {
       const joinData = { inviteCode: 'ABC123' };
       const membership = {
-        userId: 'user-1',
-        groupId: 'group-1',
+        userId: TEST_IDS.USER,
+        groupId: TEST_IDS.GROUP,
         role: 'PARENT' as const,
         joinedAt: new Date(),
         group: {
-          id: 'group-1',
+          id: TEST_IDS.GROUP,
           name: 'Test Group',
           admin: {
             id: 'user-2',
@@ -160,7 +160,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.joinGroupByInviteCode).toHaveBeenCalledWith('ABC123', 'user-1');
+      expect(mockGroupService.joinGroupByInviteCode).toHaveBeenCalledWith('ABC123', TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -171,15 +171,15 @@ describe('GroupController', () => {
 
   describe('getGroupFamilies', () => {
     it('should get group families successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const groupMembers = [
         {
-          userId: 'user-1',
-          groupId: 'group-1',
+          userId: TEST_IDS.USER,
+          groupId: TEST_IDS.GROUP,
           role: 'ADMIN',
           joinedAt: new Date(),
           user: {
-            id: 'user-1',
+            id: TEST_IDS.USER,
             name: 'Admin User',
             email: 'admin@example.com',
             createdAt: new Date(),
@@ -195,7 +195,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.getGroupFamilies).toHaveBeenCalledWith(groupId, 'user-1');
+      expect(mockGroupService.getGroupFamilies).toHaveBeenCalledWith(groupId, TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -206,13 +206,13 @@ describe('GroupController', () => {
 
   describe('updateFamilyRole', () => {
     it('should update family role successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const familyId = 'family-2';
       const roleData = { role: 'ADMIN' };
 
       const updatedMembership = {
         familyId: 'family-2',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         role: 'ADMIN' as const,
         family: {
           id: 'family-2',
@@ -226,7 +226,7 @@ describe('GroupController', () => {
           name: 'Test Family',
           role: 'ADMIN',
           admins: [
-            { id: 'user-1', name: 'Admin User', email: 'admin@test.com' },
+            { id: TEST_IDS.USER, name: 'Admin User', email: 'admin@test.com' },
           ],
           memberCount: 5,
           isPending: false,
@@ -247,11 +247,11 @@ describe('GroupController', () => {
         groupId,
         familyId,
         'ADMIN',
-        'user-1',
+        TEST_IDS.USER,
       );
       expect(mockGroupService.getGroupFamilies).toHaveBeenCalledWith(
         groupId,
-        'user-1',
+        TEST_IDS.USER,
       );
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -263,7 +263,7 @@ describe('GroupController', () => {
 
   describe('removeFamilyFromGroup', () => {
     it('should remove family successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const familyId = 'family-2';
 
       mockRequest.params = { groupId, familyId };
@@ -274,7 +274,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.removeFamilyFromGroup).toHaveBeenCalledWith(groupId, familyId, 'user-1');
+      expect(mockGroupService.removeFamilyFromGroup).toHaveBeenCalledWith(groupId, familyId, TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -285,14 +285,14 @@ describe('GroupController', () => {
 
   describe('updateGroup', () => {
     it('should update group name successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const updateData = { name: 'Updated Group Name' };
       const updatedGroup = {
         id: groupId,
         name: 'Updated Group Name',
         description: null,
         inviteCode: 'ABC123',
-        ownerFamily: { id: 'family-1', name: 'Test Family' },
+        ownerFamily: { id: TEST_IDS.FAMILY, name: 'Test Family' },
         updatedAt: new Date(),
       };
 
@@ -305,7 +305,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, 'user-1', updateData);
+      expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, TEST_IDS.USER, updateData);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -314,14 +314,14 @@ describe('GroupController', () => {
     });
 
     it('should update group description successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const updateData = { description: 'Updated description' };
       const updatedGroup = {
         id: groupId,
         name: 'Test Group',
         description: 'Updated description',
         inviteCode: 'ABC123',
-        ownerFamily: { id: 'family-1', name: 'Test Family' },
+        ownerFamily: { id: TEST_IDS.FAMILY, name: 'Test Family' },
         updatedAt: new Date(),
       };
 
@@ -334,7 +334,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, 'user-1', updateData);
+      expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, TEST_IDS.USER, updateData);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -343,14 +343,14 @@ describe('GroupController', () => {
     });
 
     it('should update both name and description successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const updateData = { name: 'New Name', description: 'New description' };
       const updatedGroup = {
         id: groupId,
         name: 'New Name',
         description: 'New description',
         inviteCode: 'ABC123',
-        ownerFamily: { id: 'family-1', name: 'Test Family' },
+        ownerFamily: { id: TEST_IDS.FAMILY, name: 'Test Family' },
         updatedAt: new Date(),
       };
 
@@ -363,7 +363,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, 'user-1', updateData);
+      expect(mockGroupService.updateGroup).toHaveBeenCalledWith(groupId, TEST_IDS.USER, updateData);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -372,7 +372,7 @@ describe('GroupController', () => {
     });
 
     it('should return 400 when no update data provided', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
 
       mockRequest.params = { groupId };
       mockRequest.body = {};
@@ -393,7 +393,7 @@ describe('GroupController', () => {
     // Validation tests are moved to middleware validation tests.
     // Controller now assumes data is pre-validated by middleware.
     it('should handle empty update data', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
 
       mockRequest.params = { groupId };
       mockRequest.body = { name: '', description: null }; // will be filtered as empty
@@ -416,7 +416,7 @@ describe('GroupController', () => {
 
   describe('deleteGroup', () => {
     it('should delete group successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
 
       mockRequest.params = { groupId };
       mockGroupService.deleteGroup = jest.fn().mockResolvedValue({ success: true });
@@ -426,7 +426,7 @@ describe('GroupController', () => {
         mockResponse as Response,
       );
 
-      expect(mockGroupService.deleteGroup).toHaveBeenCalledWith(groupId, 'user-1');
+      expect(mockGroupService.deleteGroup).toHaveBeenCalledWith(groupId, TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -437,16 +437,16 @@ describe('GroupController', () => {
 
   describe('inviteFamilyToGroup', () => {
     it('should invite family to group successfully', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const inviteData = {
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
         role: 'MEMBER',
         personalMessage: 'Welcome to our group!',
       };
       const mockResult = {
         invitationId: 'invitation-123',
-        familyId: 'family-1',
-        groupId: 'group-1',
+        familyId: TEST_IDS.FAMILY,
+        groupId: TEST_IDS.GROUP,
         role: 'MEMBER',
         status: 'PENDING',
       };
@@ -463,11 +463,11 @@ describe('GroupController', () => {
       expect(mockGroupService.inviteFamilyById).toHaveBeenCalledWith(
         groupId,
         {
-          familyId: 'family-1',
+          familyId: TEST_IDS.FAMILY,
           role: 'MEMBER',
           personalMessage: 'Welcome to our group!',
         },
-        'user-1',
+        TEST_IDS.USER,
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
       expect(mockResponse.json).toHaveBeenCalledWith({
@@ -477,9 +477,9 @@ describe('GroupController', () => {
     });
 
     it('should invite family to group without platform parameter', async () => {
-      const groupId = 'group-1';
+      const groupId = TEST_IDS.GROUP;
       const inviteData = {
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
         role: 'ADMIN',
       };
       const mockResult = { invitationId: 'invitation-123' };
@@ -496,10 +496,10 @@ describe('GroupController', () => {
       expect(mockGroupService.inviteFamilyById).toHaveBeenCalledWith(
         groupId,
         {
-          familyId: 'family-1',
+          familyId: TEST_IDS.FAMILY,
           role: 'ADMIN',
         },
-        'user-1',
+        TEST_IDS.USER,
       );
       expect(mockResponse.status).toHaveBeenCalledWith(201);
     });

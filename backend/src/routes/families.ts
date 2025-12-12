@@ -73,7 +73,8 @@ router.delete('/:familyId/invitations/:invitationId',
   asyncHandler(familyController.cancelInvitation),
 );
 
-router.put('/name',
+router.put('/:familyId/name',
+  validateParams(FamilyIdParamsSchema),
   validateBody(UpdateFamilyNameSchema),
   asyncHandler(familyController.updateFamilyName),
 );

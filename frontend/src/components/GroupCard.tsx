@@ -3,38 +3,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Settings } from 'lucide-react';
+import type { paths } from '@/generated/api/types';
 
-// Define UserGroup interface based on OpenAPI schema
-export interface UserGroup {
-  id: string;
-  name: string;
-  description: string | null;
-  familyId: string;
-  inviteCode: string;
-  createdAt: string;
-  updatedAt: string;
-  userRole: "OWNER" | "ADMIN" | "MEMBER";
-  ownerFamily: {
-    id: string;
-    name: string;
-  };
-  _count?: {
-    families?: number;
-    children?: number;
-    familyMembers?: number;
-  } | null;
-  familyCount: number;
-  familyMembers?: Array<{
-    id: string;
-    familyId: string;
-    role: "ADMIN" | "MEMBER";
-    joinedAt: string;
-    family?: {
-      id: string;
-      name: string;
-    };
-  }> | null;
-}
+// Use generated type from OpenAPI (single item from the array)
+export type UserGroup = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
 
 interface GroupCardProps {
   group: UserGroup;

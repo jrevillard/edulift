@@ -393,7 +393,7 @@ describe('VehicleService', () => {
       expect(mockPrisma.vehicle.delete).toHaveBeenCalledWith({
         where: { id: vehicleId },
       });
-      expect(result).toEqual({ success: true });
+      expect(result).toEqual({ success: true, message: 'Vehicle deleted successfully' });
     });
 
     it('should throw error when deletion fails', async () => {

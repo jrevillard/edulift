@@ -15,6 +15,7 @@ import { PageLayout, LoadingState } from '@/components/ui/page-layout';
 import { formatDatetimeInTimezone } from '../utils/timezoneUtils';
 import type { WeeklyDashboardResponse } from '@/types/api';
 
+
 // Interface for recent activity items
 interface ActivityItem {
   id: string;
@@ -78,7 +79,7 @@ const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardRespons
   const trips: TransformedTrip[] = [];
 
   weeklyDashboard.data.days.forEach(day => {
-    day.transportSlots.forEach(transportSlot => {
+    day.transports.forEach((transportSlot: any) => {
       // Create a trip object compatible with existing component
       // Using the new OpenAPI structure where children are at transport slot level
       trips.push({
@@ -98,7 +99,7 @@ const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardRespons
           id: transportSlot.driverId || 'unknown-driver',
           name: transportSlot.driverName
         } : undefined,
-        children: transportSlot.children?.map(child => ({
+        children: transportSlot.children?.map((child: any) => ({
           id: child.id,
           name: child.name,
           familyId: child.familyId,

@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);

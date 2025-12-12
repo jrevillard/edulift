@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import { VehicleAssignmentSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -222,34 +223,8 @@ export const UpdateSeatOverrideSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-export const VehicleAssignmentSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901236',
-      description: 'Vehicle assignment identifier',
-    }),
-  scheduleSlotId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Schedule slot identifier',
-    }),
-  vehicleId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'Vehicle identifier',
-    }),
-  driverId: z.cuid()
-    .nullable()
-    .openapi({
-      example: 'cl123456789012345678901239',
-      description: 'Driver identifier (null if not assigned)',
-    }),
-  seatOverride: z.number()
-    .nullable()
-    .openapi({
-      example: 6,
-      description: 'Seat capacity override (null if using default)',
-    }),
+// Extended Vehicle Assignment Schema with additional fields for schedule context
+export const ScheduleVehicleAssignmentSchema = VehicleAssignmentSchema.extend({
   vehicle: z.object({
     id: z.cuid(),
     make: z.string(),
@@ -281,8 +256,8 @@ export const VehicleAssignmentSchema = z.object({
       description: 'Count information (included when requested)',
     }),
 }).openapi({
-  title: 'Vehicle Assignment',
-  description: 'Vehicle assignment information for a schedule slot',
+  title: 'Schedule Vehicle Assignment',
+  description: 'Vehicle assignment information for a schedule slot with extended data',
 });
 
 export const ChildAssignmentSchema = z.object({
@@ -321,7 +296,7 @@ export const ChildAssignmentSchema = z.object({
     .openapi({
       description: 'Child information (included when requested)',
     }),
-  vehicleAssignment: VehicleAssignmentSchema.optional()
+  vehicleAssignment: ScheduleVehicleAssignmentSchema.optional()
     .openapi({
       description: 'Vehicle assignment information (included when requested)',
     }),
@@ -356,7 +331,7 @@ export const ScheduleSlotSchema = z.object({
       example: '2023-12-01T08:00:00.000Z',
       description: 'Schedule slot update timestamp',
     }),
-  vehicleAssignments: z.array(VehicleAssignmentSchema).optional()
+  vehicleAssignments: z.array(ScheduleVehicleAssignmentSchema).optional()
     .openapi({
       description: 'Vehicle assignments (included when requested)',
     }),
@@ -514,10 +489,23 @@ registry.register('VehicleIdRequest', VehicleIdSchema);
 registry.register('UpdateSeatOverrideRequest', UpdateSeatOverrideSchema);
 
 // Parameter schemas
+registry.register('ScheduleSlotParams', ScheduleSlotParamsSchema);
+registry.register('ScheduleSlotChildParams', ScheduleSlotChildParamsSchema);
+// GroupParams is registered in groups.ts
+registry.register('VehicleAssignmentParams', VehicleAssignmentParamsSchema);
+registry.register('ScheduleSlotVehicleParams', ScheduleSlotVehicleParamsSchema);
 
 // Query schemas
+registry.register('DateRangeQuery', DateRangeQuerySchema);
 
 // Response schemas
+registry.register('ScheduleVehicleAssignment', ScheduleVehicleAssignmentSchema);
+registry.register('ChildAssignment', ChildAssignmentSchema);
+registry.register('ScheduleSlot', ScheduleSlotSchema);
+registry.register('AvailableChild', AvailableChildSchema);
+registry.register('ScheduleSlotConflict', ScheduleSlotConflictSchema);
+registry.register('ScheduleResponse', ScheduleResponseSchema);
+// VehicleAssignmentSchema is registered in _common.ts
 
 // ============================================================================
 // REGISTRY - API PATHS REGISTRATION
@@ -588,7 +576,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.literal(true),
-            data: VehicleAssignmentSchema,
+            data: ScheduleVehicleAssignmentSchema,
           }),
         },
       },
@@ -681,7 +669,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.literal(true),
-            data: VehicleAssignmentSchema,
+            data: ScheduleVehicleAssignmentSchema,
           }),
         },
       },
@@ -888,7 +876,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.literal(true),
-            data: VehicleAssignmentSchema,
+            data: ScheduleVehicleAssignmentSchema,
           }),
         },
       },

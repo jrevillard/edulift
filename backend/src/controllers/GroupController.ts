@@ -20,8 +20,7 @@ import {
   GroupInvitationValidationSuccessResponseSchema,
 } from '../schemas/responses';
 import {
-  GroupSuccessResponseSchema,
-  GroupFamiliesResponseSchema,
+  GroupResponseSchema,
 } from '../schemas/groups';
 
 export class GroupController {
@@ -83,7 +82,7 @@ export class GroupController {
         groupId: group.id,
         success: true,
       });
-      sendSuccessResponse(res, 201, GroupSuccessResponseSchema, group);
+      sendSuccessResponse(res, 201, GroupResponseSchema, group);
     } catch (error) {
       this.logger.error('createGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -135,7 +134,7 @@ export class GroupController {
         success: true,
       });
 
-      sendSuccessResponse(res, 200, GroupSuccessResponseSchema, membership);
+      sendSuccessResponse(res, 200, GroupResponseSchema, membership);
     } catch (error) {
       this.logger.error('joinGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -205,7 +204,7 @@ export class GroupController {
       success: true,
       familyCount: families.length,
     });
-    sendSuccessResponse(res, 200, GroupFamiliesResponseSchema, families);
+    sendSuccessResponse(res, 200, GroupsSuccessResponseSchema, families);
   };
 
   updateFamilyRole = async (req: Request, res: Response): Promise<void> => {
@@ -312,7 +311,7 @@ export class GroupController {
         success: true,
       });
 
-      sendSuccessResponse(res, 200, GroupSuccessResponseSchema, result);
+      sendSuccessResponse(res, 200, GroupResponseSchema, result);
     } catch (error) {
       this.logger.error('updateGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),

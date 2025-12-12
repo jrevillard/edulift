@@ -8,6 +8,7 @@ import { sendSuccessResponse } from '../utils/responseValidation';
 import {
   VehicleSuccessResponseSchema,
   VehiclesSuccessResponseSchema,
+  ScheduleSuccessResponseSchema,
   SimpleSuccessResponseSchema,
 } from '../schemas/responses';
 
@@ -240,9 +241,10 @@ export class VehicleController {
       vehicleId,
       success: true,
     });
+
+    // Extract the message from the service response for SimpleSuccessResponseSchema
     sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
-      success: true,
-      data: result,
+      message: result.message,
     });
   };
 
@@ -276,7 +278,7 @@ export class VehicleController {
       vehicleId,
       success: true,
     });
-    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, {
       success: true,
       data: schedule,
     });

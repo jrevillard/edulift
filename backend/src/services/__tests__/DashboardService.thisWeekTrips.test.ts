@@ -84,14 +84,14 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
     it('✅ GREEN: should count trips correctly via internal method', async () => {
       // Mock user with family
       mockPrisma.user.findFirst.mockResolvedValue({
-        familyMemberships: [{ familyId: 'family-1' }],
+        familyMemberships: [{ familyId: TEST_IDS.FAMILY }],
       });
 
       // Mock Prisma count to return some trips
       mockPrisma.scheduleSlot.count.mockResolvedValue(5);
 
       // Call the internal method directly
-      const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser('user-1');
+      const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser(TEST_IDS.USER);
 
       // ✅ GREEN: Should have the correct trip count (actual implementation value)
       expect(tripCount).toBe(0);
@@ -102,14 +102,14 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
     it('should return zero trips when no trips exist', async () => {
       // Mock user with family
       mockPrisma.user.findFirst.mockResolvedValue({
-        familyMemberships: [{ familyId: 'family-1' }],
+        familyMemberships: [{ familyId: TEST_IDS.FAMILY }],
       });
 
       // Mock Prisma count to return zero
       mockPrisma.scheduleSlot.count.mockResolvedValue(0);
 
       // Call the internal method directly
-      const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser('user-1');
+      const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser(TEST_IDS.USER);
 
       expect(tripCount).toBe(0);
     });
@@ -119,7 +119,7 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
       mockPrisma.user.findFirst.mockResolvedValue(null);
 
       // Call the internal method directly
-      const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser('user-1');
+      const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser(TEST_IDS.USER);
 
       expect(tripCount).toBe(0);
     });

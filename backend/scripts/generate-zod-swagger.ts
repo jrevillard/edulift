@@ -8,7 +8,8 @@
  */
 
 import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
-import { config, registry } from '../src/config/openapi.js';
+import { config } from '../src/config/openapi.js';
+import { registry } from '../src/config/registry.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -28,6 +29,15 @@ console.log('🚀 Generating Zod-centric OpenAPI specification...');
 try {
   // Import and register all domain schemas
   console.log('📦 Registering domain schemas...');
+
+  // Import _common schemas first to trigger registration
+  try {
+    await import('../src/schemas/_common.js');
+    console.log('✅ Common schemas imported');
+  } catch (error) {
+    console.log('⚠️  Common schemas not yet available, skipping...');
+    console.log('   Error:', error instanceof Error ? error.message : error);
+  }
 
   // Import Auth schemas and paths
   try {

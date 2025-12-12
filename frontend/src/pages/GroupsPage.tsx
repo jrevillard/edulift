@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import type { UserGroup } from '../components/GroupCard';
+import type { paths } from '../generated/api/types';
+
+// Type for the API response from /groups/my-groups
+type GroupsResponse = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'];
 // import { useSocket } from '../contexts/SocketContext';
 import GroupCard from '../components/GroupCard';
 import CreateGroupModal from '../components/CreateGroupModal';
@@ -32,7 +37,11 @@ const GroupsPage: React.FC = () => {
     },
   });
 
-  const groups = groupsData?.data || [];
+  const groups = (groupsData?.data || []).map((group: GroupsResponse[0]) => ({
+    ...group,
+    familyCount: group.familyCount || 0,
+    description: group.description || null,
+  })) as UserGroup[];
 
   const createGroupMutation = useMutation({
     mutationFn: async (name: string) => {

@@ -379,26 +379,26 @@ describe('ChildAssignmentService', () => {
 
         const mockSlot = {
           id: 'slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: futureDate,
-          group: { id: 'group-1', name: 'Test Group' },
+          group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         };
 
         const mockVehicle = {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'School Bus',
           capacity: 4,
-          familyId: 'family-1',
+          familyId: TEST_IDS.FAMILY,
         };
 
         const mockVehicleAssignmentWithThreeChildren = {
           id: 'vehicle-assignment-1',
           scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
+          vehicleId: TEST_IDS.VEHICLE,
           vehicle: mockVehicle,
           seatOverride: null,
           childAssignments: [
-            { id: 'assignment-1', childId: 'child-1' },
+            { id: 'assignment-1', childId: TEST_IDS.CHILD },
             { id: 'assignment-2', childId: 'child-2' },
             { id: 'assignment-3', childId: 'child-3' },
           ],
@@ -438,7 +438,7 @@ describe('ChildAssignmentService', () => {
                   // Return appropriate child based on the ID being queried
                   return {
                     id: where.id,
-                    family: { id: 'family-1', members: [{ userId: 'parent-a-user-id' }] },
+                    family: { id: TEST_IDS.FAMILY, members: [{ userId: 'parent-a-user-id' }] },
                   };
                 }),
               },
@@ -450,12 +450,12 @@ describe('ChildAssignmentService', () => {
               },
               familyMember: {
                 findFirst: jest.fn().mockResolvedValue({
-                  familyId: 'family-1',
+                  familyId: TEST_IDS.FAMILY,
                   userId: 'parent-a-user-id',
                 }),
               },
               group: {
-                findFirst: jest.fn().mockResolvedValue({ id: 'group-1', familyId: 'family-1' }),
+                findFirst: jest.fn().mockResolvedValue({ id: TEST_IDS.GROUP, familyId: TEST_IDS.FAMILY }),
               },
               scheduleSlotVehicle: {
                 findUnique: jest.fn().mockResolvedValue(vehicleAssignmentInTransaction),
@@ -496,15 +496,15 @@ describe('ChildAssignmentService', () => {
         // Mock authorization and child lookup - handle both children
         mockPrisma.child.findUnique.mockImplementation(async ({ where }: any) => ({
           id: where.id,
-          family: { id: 'family-1', members: [{ userId: 'parent-a-user-id' }] },
+          family: { id: TEST_IDS.FAMILY, members: [{ userId: 'parent-a-user-id' }] },
         }));
         mockPrisma.user.findUnique.mockResolvedValue({ id: 'parent-a-user-id', timezone: 'UTC' });
         mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
         mockPrisma.familyMember.findFirst.mockImplementation(async ({ where }: any) => ({
-          familyId: 'family-1',
+          familyId: TEST_IDS.FAMILY,
           userId: where.userId,
         }));
-        mockPrisma.group.findFirst.mockResolvedValue({ id: 'group-1', familyId: 'family-1' });
+        mockPrisma.group.findFirst.mockResolvedValue({ id: TEST_IDS.GROUP, familyId: TEST_IDS.FAMILY });
 
         // Act: Simulate 2 concurrent assignments (Parent A and Parent B)
         const assignmentPromises = [
@@ -535,8 +535,8 @@ describe('ChildAssignmentService', () => {
         const mockVehicleAssignmentWithOverride = {
           id: 'vehicle-assignment-1',
           scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
-          vehicle: { id: 'vehicle-1', name: 'Minivan', capacity: 4 },
+          vehicleId: TEST_IDS.VEHICLE,
+          vehicle: { id: TEST_IDS.VEHICLE, name: 'Minivan', capacity: 4 },
           seatOverride: 5, // Override: can fit 5 instead of 4
           childAssignments: [
             { id: 'assignment-1' },
@@ -576,7 +576,7 @@ describe('ChildAssignmentService', () => {
 
             const mockSlotForTest = {
               id: 'slot-1',
-              groupId: 'group-1',
+              groupId: TEST_IDS.GROUP,
               datetime: futureSlotDate,
             };
 
@@ -584,23 +584,23 @@ describe('ChildAssignmentService', () => {
               child: {
                 findUnique: jest.fn().mockImplementation(async ({ where }) => ({
                   id: where.id,
-                  family: { id: 'family-1', members: [{ userId: 'user-1' }] },
+                  family: { id: TEST_IDS.FAMILY, members: [{ userId: TEST_IDS.USER }] },
                 })),
               },
               user: {
-                findUnique: jest.fn().mockResolvedValue({ id: 'user-1', timezone: 'UTC' }),
+                findUnique: jest.fn().mockResolvedValue({ id: TEST_IDS.USER, timezone: 'UTC' }),
               },
               scheduleSlot: {
                 findUnique: jest.fn().mockResolvedValue(mockSlotForTest),
               },
               familyMember: {
                 findFirst: jest.fn().mockResolvedValue({
-                  familyId: 'family-1',
-                  userId: 'user-1',
+                  familyId: TEST_IDS.FAMILY,
+                  userId: TEST_IDS.USER,
                 }),
               },
               group: {
-                findFirst: jest.fn().mockResolvedValue({ id: 'group-1', familyId: 'family-1' }),
+                findFirst: jest.fn().mockResolvedValue({ id: TEST_IDS.GROUP, familyId: TEST_IDS.FAMILY }),
               },
               scheduleSlotVehicle: {
                 findUnique: jest.fn().mockResolvedValue(vehicleInTx),
@@ -632,26 +632,26 @@ describe('ChildAssignmentService', () => {
 
         mockPrisma.child.findUnique.mockImplementation(async ({ where }: any) => ({
           id: where.id,
-          family: { id: 'family-1', members: [{ userId: 'user-1' }] },
+          family: { id: TEST_IDS.FAMILY, members: [{ userId: TEST_IDS.USER }] },
         }));
-        mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-1', timezone: 'UTC' });
+        mockPrisma.user.findUnique.mockResolvedValue({ id: TEST_IDS.USER, timezone: 'UTC' });
         const futureTestDate = new Date();
         futureTestDate.setDate(futureTestDate.getDate() + 7);
 
         mockPrisma.scheduleSlot.findUnique.mockResolvedValue({
           id: 'slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: futureTestDate,
         });
         mockPrisma.familyMember.findFirst.mockImplementation(async ({ where }: any) => ({
-          familyId: 'family-1',
+          familyId: TEST_IDS.FAMILY,
           userId: where.userId,
         }));
-        mockPrisma.group.findFirst.mockResolvedValue({ id: 'group-1', familyId: 'family-1' });
+        mockPrisma.group.findFirst.mockResolvedValue({ id: TEST_IDS.GROUP, familyId: TEST_IDS.FAMILY });
 
         // Act: 2 concurrent assignments for the last (5th) seat
         const results = await Promise.allSettled([
-          service.assignChildToScheduleSlot('slot-1', 'child-5', 'vehicle-assignment-1', 'user-1'),
+          service.assignChildToScheduleSlot('slot-1', 'child-5', 'vehicle-assignment-1', TEST_IDS.USER),
           service.assignChildToScheduleSlot('slot-1', 'child-6', 'vehicle-assignment-1', 'user-2'),
         ]);
 

@@ -458,7 +458,7 @@ describe('SocketHandler Security', () => {
     it('should only provide user access to their authorized groups on connection', async () => {
       // Mock authorization service to return specific groups
       const mockAuthService = socketHandler['authorizationService'];
-      const authorizedGroups = ['group-1', 'group-2'];
+      const authorizedGroups = [TEST_IDS.GROUP, 'group-2'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue(authorizedGroups);
       
       const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);

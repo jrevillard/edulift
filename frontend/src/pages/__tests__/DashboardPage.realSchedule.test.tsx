@@ -101,7 +101,6 @@ describe('DashboardPage Real Schedule Integration', () => {
 
     await waitFor(() => {
       // Should show either schedule or error/loading state
-      const scheduleError = screen.queryByTestId('DashboardPage-Container-unableToLoadSchedule');
       const mainContainer = screen.getByTestId('DashboardPage-Container-main');
       expect(mainContainer).toBeInTheDocument();
       // Error state is optional depending on mock responses

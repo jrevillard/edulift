@@ -8,14 +8,17 @@ import { transformGroupFamily, type GetGroupFamiliesResponse } from '../OpenAPIF
 
 describe('OpenAPI Group Family Transformation', () => {
   const mockOpenApiFamily: GetGroupFamiliesResponse = {
-    id: 'member-123',
-    familyId: 'family-123',
+    id: 'family-123',
+    name: 'Test Family',
     role: 'ADMIN',
-    joinedAt: '2023-01-01T00:00:00.000Z',
-    family: {
-      id: 'family-123',
-      name: 'Test Family'
-    }
+    isMyFamily: false,
+    canManage: true,
+    admins: [
+      {
+        name: 'Test Admin',
+        email: 'admin@example.com'
+      }
+    ]
   };
 
   const mockCurrentGroup = {
@@ -29,47 +32,55 @@ describe('OpenAPI Group Family Transformation', () => {
     const result = transformGroupFamily(mockOpenApiFamily, 'family-789', mockCurrentGroup);
 
     expect(result).toMatchObject({
-      id: 'family-123', // Uses familyId as primary ID
+      id: 'family-123', // Uses family ID from API
       name: 'Test Family',
       role: 'ADMIN',
-      familyId: 'family-123',
-      joinedAt: '2023-01-01T00:00:00.000Z',
-      family: {
-        id: 'family-123',
-        name: 'Test Family'
-      },
-      isMyFamily: false, // family-123 !== family-789
-      canManage: true,   // Admin can manage non-own families
-      admins: [],        // Placeholder
-      status: 'ACCEPTED' // Active families are accepted
+      isMyFamily: false, // From API response
+      canManage: true,   // From API response
+      admins: [
+        {
+          name: 'Test Admin',
+          email: 'admin@example.com'
+        }
+      ]
+      // Note: familyId, family, and status are not included as they're not in the OpenAPI response
     });
   });
 
   it('should identify owner family correctly', () => {
-    const ownerGroup = {
-      userRole: 'OWNER',
-      ownerFamily: {
-        id: 'family-123' // Same as the mock family
-      }
+    const ownerFamily: GetGroupFamiliesResponse = {
+      ...mockOpenApiFamily,
+      role: 'OWNER',
+      isMyFamily: true,
+      canManage: false // Owners cannot manage their own family in the group context
     };
 
-    const result = transformGroupFamily(mockOpenApiFamily, 'family-789', ownerGroup);
+    const result = transformGroupFamily(ownerFamily, 'family-123', mockCurrentGroup);
 
     expect(result.role).toBe('OWNER');
-    expect(result.isMyFamily).toBe(false);
+    expect(result.isMyFamily).toBe(true);
+    expect(result.canManage).toBe(false);
   });
 
   it('should identify user\'s own family correctly', () => {
-    const result = transformGroupFamily(mockOpenApiFamily, 'family-123', mockCurrentGroup);
+    const myFamily: GetGroupFamiliesResponse = {
+      ...mockOpenApiFamily,
+      isMyFamily: true,
+      canManage: false // Cannot manage own family
+    };
+
+    const result = transformGroupFamily(myFamily, 'family-123', mockCurrentGroup);
 
     expect(result.isMyFamily).toBe(true);
-    expect(result.canManage).toBe(false); // Cannot manage own family
+    expect(result.canManage).toBe(false);
   });
 
   it('should handle member role correctly', () => {
     const memberFamily: GetGroupFamiliesResponse = {
       ...mockOpenApiFamily,
-      role: 'MEMBER'
+      role: 'MEMBER',
+      isMyFamily: false,
+      canManage: false
     };
 
     const result = transformGroupFamily(memberFamily, 'family-789', mockCurrentGroup);
@@ -77,15 +88,18 @@ describe('OpenAPI Group Family Transformation', () => {
     expect(result.role).toBe('MEMBER');
   });
 
-  it('should handle missing family object', () => {
+  it('should handle missing family name', () => {
     const familyWithoutName: GetGroupFamiliesResponse = {
-      ...mockOpenApiFamily,
-      family: undefined
+      id: 'family-no-name',
+      name: '', // OpenAPI returns empty string, no fallback provided
+      role: 'MEMBER',
+      isMyFamily: false,
+      canManage: false,
+      admins: []
     };
 
     const result = transformGroupFamily(familyWithoutName, 'family-789', mockCurrentGroup);
 
-    expect(result.name).toBe('Unknown Family');
-    expect(result.family).toBeUndefined();
+    expect(result.name).toBe(''); // OpenAPI response is passed through without transformation
   });
 });

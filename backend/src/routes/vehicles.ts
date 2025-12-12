@@ -6,10 +6,10 @@ import { asyncHandler } from '../middleware/errorHandler';
 import {
   VehicleParamsSchema,
   AvailableVehiclesParamsSchema,
-  WeekQuerySchema,
   CreateVehicleSchema,
   UpdateVehicleSchema,
 } from '../schemas/vehicles';
+import { WeekQuerySchema } from '../schemas/_common';
 
 const vehicleController = createVehicleController();
 const router = Router();

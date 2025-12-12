@@ -909,13 +909,13 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                   id: userFamilyId,
                   name: 'User Family',
                   members: [
-                    { userId: 'user-1', role: FamilyRole.ADMIN },
+                    { userId: TEST_IDS.USER, role: FamilyRole.ADMIN },
                     { userId: 'user-2', role: FamilyRole.MEMBER },
                   ],
                 },
               }),
               findMany: jest.fn().mockResolvedValue([
-                { userId: 'user-1', role: FamilyRole.ADMIN },
+                { userId: TEST_IDS.USER, role: FamilyRole.ADMIN },
                 { userId: 'user-2', role: FamilyRole.MEMBER },
               ]),
             },

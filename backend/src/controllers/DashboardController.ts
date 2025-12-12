@@ -175,7 +175,7 @@ export class DashboardController {
       if (req.query.startDate) {
         const parsed = new Date(req.query.startDate as string);
         if (isNaN(parsed.getTime())) {
-          sendErrorResponse(res, 400, 'Invalid date format. Use YYYY-MM-DD format.');
+          sendErrorResponse(res, 400, 'Invalid date format. Use ISO 8601 datetime format (e.g., 2023-01-01T00:00:00.000Z).');
           return;
         }
         startDate = parsed;

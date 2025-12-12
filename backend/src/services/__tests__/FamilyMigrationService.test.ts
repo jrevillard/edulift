@@ -41,14 +41,14 @@ describe('FamilyMigrationService', () => {
     it('should migrate all users to families with their children and vehicles', async () => {
       const mockUsers = [
         {
-          id: 'user-1',
+          id: TEST_IDS.USER,
           name: 'John Doe',
           children: [
-            { id: 'child-1', name: 'Alice' },
+            { id: TEST_IDS.CHILD, name: 'Alice' },
             { id: 'child-2', name: 'Bob' },
           ],
           vehicles: [
-            { id: 'vehicle-1', name: 'Car' },
+            { id: TEST_IDS.VEHICLE, name: 'Car' },
           ],
         },
         {
@@ -104,7 +104,7 @@ describe('FamilyMigrationService', () => {
     it('should skip users who already have family membership', async () => {
       const mockUsers = [
         {
-          id: 'user-1',
+          id: TEST_IDS.USER,
           name: 'John Doe',
           children: [],
           vehicles: [],
@@ -150,7 +150,7 @@ describe('FamilyMigrationService', () => {
     it('should handle migration errors gracefully', async () => {
       const mockUsers = [
         {
-          id: 'user-1',
+          id: TEST_IDS.USER,
           name: 'John Doe',
           children: [],
           vehicles: [],
@@ -167,7 +167,7 @@ describe('FamilyMigrationService', () => {
             create: jest.fn().mockRejectedValue(new Error('Database error')),
           },
           family: {
-            create: jest.fn().mockResolvedValue({ id: 'family-1' }),
+            create: jest.fn().mockResolvedValue({ id: TEST_IDS.FAMILY }),
           },
           child: {
             updateMany: jest.fn(),
@@ -192,18 +192,18 @@ describe('FamilyMigrationService', () => {
     it('should rollback family migration successfully', async () => {
       const mockFamilies = [
         {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           name: 'Family One',
           members: [
-            { userId: 'user-1', role: FamilyRole.ADMIN },
+            { userId: TEST_IDS.USER, role: FamilyRole.ADMIN },
             { userId: 'user-2', role: FamilyRole.MEMBER },
           ],
           children: [
-            { id: 'child-1' },
+            { id: TEST_IDS.CHILD },
             { id: 'child-2' },
           ],
           vehicles: [
-            { id: 'vehicle-1' },
+            { id: TEST_IDS.VEHICLE },
           ],
         },
       ];
@@ -244,10 +244,10 @@ describe('FamilyMigrationService', () => {
     it('should handle families without admin during rollback', async () => {
       const mockFamilies = [
         {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           name: 'Family One',
           members: [
-            { userId: 'user-1', role: FamilyRole.MEMBER },
+            { userId: TEST_IDS.USER, role: FamilyRole.MEMBER },
           ],
           children: [],
           vehicles: [],
@@ -293,7 +293,7 @@ describe('FamilyMigrationService', () => {
     });
 
     it('should return false when users without families exist', async () => {
-      mockPrisma.user.findMany.mockResolvedValue([{ id: 'user-1' }]);
+      mockPrisma.user.findMany.mockResolvedValue([{ id: TEST_IDS.USER }]);
       mockPrisma.child.findMany.mockResolvedValue([]);
       mockPrisma.vehicle.findMany.mockResolvedValue([]);
 
@@ -305,7 +305,7 @@ describe('FamilyMigrationService', () => {
 
     it('should return false when children without families exist', async () => {
       mockPrisma.user.findMany.mockResolvedValue([]);
-      mockPrisma.child.findMany.mockResolvedValue([{ id: 'child-1' }]);
+      mockPrisma.child.findMany.mockResolvedValue([{ id: TEST_IDS.CHILD }]);
       mockPrisma.vehicle.findMany.mockResolvedValue([]);
 
       const result = await migrationService.validateMigration();
@@ -317,7 +317,7 @@ describe('FamilyMigrationService', () => {
     it('should return false when vehicles without families exist', async () => {
       mockPrisma.user.findMany.mockResolvedValue([]);
       mockPrisma.child.findMany.mockResolvedValue([]);
-      mockPrisma.vehicle.findMany.mockResolvedValue([{ id: 'vehicle-1' }]);
+      mockPrisma.vehicle.findMany.mockResolvedValue([{ id: TEST_IDS.VEHICLE }]);
 
       const result = await migrationService.validateMigration();
 

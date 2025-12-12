@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import { WeekQuerySchema } from './_common';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 
 // Extend Zod with OpenAPI capabilities
@@ -88,17 +89,6 @@ export const AvailableVehiclesParamsSchema = z.object({
   description: 'URL parameters for finding available vehicles',
 });
 
-export const WeekQuerySchema = z.object({
-  week: z.string()
-    .optional()
-    .openapi({
-      example: '2023-W15',
-      description: 'Week in ISO format (YYYY-W##) for filtering vehicle schedule',
-    }),
-}).openapi({
-  title: 'Week Query Parameters',
-  description: 'Query parameters for week-based filtering',
-});
 
 // Response Schemas
 export const VehicleResponseSchema = z.object({
@@ -229,52 +219,18 @@ export const VehicleScheduleSchema = z.object({
   description: 'Vehicle schedule with trip assignments and driver information',
 });
 
-export const VehicleAssignmentSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Unique assignment identifier (CUID format)',
-    }),
-  vehicleId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Vehicle identifier',
-    }),
-  timeSlotId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901236',
-      description: 'Time slot identifier',
-    }),
-  date: z.iso.date()
-    .openapi({
-      example: '2023-04-15',
-      description: 'Date of the assignment',
-    }),
-  groupId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901235',
-      description: 'Group identifier',
-    }),
-  assignedSeats: z.number()
-    .int()
-    .openapi({
-      example: 3,
-      description: 'Number of seats assigned for this trip',
-    }),
-  driverId: z.cuid()
-    .nullable()
-    .openapi({
-      example: 'cl123456789012345678901239',
-      description: 'Driver user identifier (null if no driver assigned)',
-    }),
-}).openapi({
-  title: 'Vehicle Assignment',
-  description: 'Vehicle trip assignment information',
-});
+// VehicleAssignmentSchema is imported from _common.ts
 
 // Register schemas with OpenAPI registry
 registry.register('CreateVehicleRequest', CreateVehicleSchema);
 registry.register('UpdateVehicleRequest', UpdateVehicleSchema);
+registry.register('VehicleParams', VehicleParamsSchema);
+registry.register('AvailableVehiclesParams', AvailableVehiclesParamsSchema);
+// WeekQuery is now registered in _common.ts
+registry.register('VehicleResponse', VehicleResponseSchema);
+registry.register('AvailableVehicle', AvailableVehicleSchema);
+registry.register('VehicleSchedule', VehicleScheduleSchema);
+// VehicleAssignmentSchema is registered in _common.ts
 
 // Register API paths following Auth/Children pattern
 registerPath({

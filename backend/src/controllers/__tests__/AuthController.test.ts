@@ -192,7 +192,7 @@ describe('AuthController', () => {
       mockRequest.body = { token, code_verifier: codeVerifier };
 
       const mockResult = {
-        user: { id: 'user-1', email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
+        user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
         accessToken: 'jwt-access-token',
         refreshToken: 'jwt-refresh-token',
         expiresIn: 900,
@@ -250,7 +250,7 @@ describe('AuthController', () => {
       mockRequest.body = { token, code_verifier: codeVerifier };
 
       const mockResult = {
-        user: { id: 'user-1', email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
+        user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
         accessToken: 'jwt-access-token',
         refreshToken: 'jwt-refresh-token',
         expiresIn: 900,

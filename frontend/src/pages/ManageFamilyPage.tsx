@@ -35,7 +35,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { InvitationManagement } from '@/components/InvitationManagement';
-import type { FamilyMember, FamilyInvitation } from '../types/family';
+import type { FamilyMember, FamilyInvitation } from '../services/familyApiService';
 
 const ManageFamilyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -427,7 +427,15 @@ const ManageFamilyPage: React.FC = () => {
             <div data-testid="ManageFamilyPage-List-familyMembers">
               <InvitationManagement
                 members={currentFamily.members}
-                pendingInvitations={pendingInvitations}
+                pendingInvitations={pendingInvitations.map(invitation => ({
+                  id: invitation.id,
+                  email: invitation.email,
+                  role: invitation.role,
+                  personalMessage: invitation.personalMessage || undefined,
+                  status: invitation.status,
+                  expiresAt: invitation.expiresAt,
+                  createdAt: invitation.createdAt,
+                }))}
                 loadingInvitations={loadingInvitations}
                 isAdmin={isAdmin}
                 entityType="family"
@@ -539,8 +547,12 @@ const ManageFamilyPage: React.FC = () => {
               <div className="space-y-2">
                 {currentFamily.children.map((child) => (
                   <div key={child.id} className="flex items-center justify-between p-2 rounded border" data-testid={`ManageFamilyPage-Container-child-${child.id}`}>
-                    <span className="font-medium" data-testid={`ManageFamilyPage-Text-childName-${child.id}`}>{child.name}</span>
-                    <span className="text-sm text-muted-foreground" data-testid={`ManageFamilyPage-Text-childAge-${child.id}`}>Age {child.age}</span>
+                    <span className="font-medium" data-testid={`ManageFamilyPage-Text-childName-${child.id}`}>{child.firstName} {child.lastName}</span>
+                    {child.dateOfBirth && (
+                      <span className="text-sm text-muted-foreground" data-testid={`ManageFamilyPage-Text-childAge-${child.id}`}>
+                        {new Date().getFullYear() - new Date(child.dateOfBirth).getFullYear()} years old
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -575,7 +587,7 @@ const ManageFamilyPage: React.FC = () => {
               <div className="space-y-2">
                 {currentFamily.vehicles.map((vehicle) => (
                   <div key={vehicle.id} className="flex items-center justify-between p-2 rounded border" data-testid={`ManageFamilyPage-Container-vehicle-${vehicle.id}`}>
-                    <span className="font-medium" data-testid={`ManageFamilyPage-Text-vehicleName-${vehicle.id}`}>{vehicle.name}</span>
+                    <span className="font-medium" data-testid={`ManageFamilyPage-Text-vehicleName-${vehicle.id}`}>{vehicle.year} {vehicle.make} {vehicle.model}</span>
                     <span className="text-sm text-muted-foreground" data-testid={`ManageFamilyPage-Text-vehicleCapacity-${vehicle.id}`}>{vehicle.capacity} seats</span>
                   </div>
                 ))}

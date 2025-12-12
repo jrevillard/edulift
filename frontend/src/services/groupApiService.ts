@@ -1,5 +1,10 @@
 import { api } from './api';
-import type { UserGroup, GroupInvitation, FamilySearchResult, GroupFamily } from '@/types/api';
+import type { paths } from '@/generated/api/types';
+import type { GroupInvitation, FamilySearchResult } from '@/types/api';
+
+// OpenAPI generated types
+export type UserGroup = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
+export type GroupFamily = paths['/groups/{groupId}/families']['get']['responses'][200]['content']['application/json']['data'][0];
 
 interface GroupValidationResponse {
   valid: boolean;
@@ -7,7 +12,7 @@ interface GroupValidationResponse {
   invitation?: {
     id: string;
     expiresAt: string;
-    role: 'MEMBER' | 'ADMIN';
+    role: 'MEMBER' | 'ADMIN' | 'OWNER';
   };
   error?: string;
 }

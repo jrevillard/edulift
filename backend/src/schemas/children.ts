@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import { WeekQuerySchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -88,17 +89,6 @@ export const ChildGroupParamsSchema = z.object({
   description: 'URL parameters for child-group membership endpoints',
 });
 
-export const WeekQuerySchema = z.object({
-  week: z.string()
-    .optional()
-    .openapi({
-      example: '2023-W15',
-      description: 'Week in ISO format (YYYY-W##) for filtering assignments',
-    }),
-}).openapi({
-  title: 'Week Query Parameters',
-  description: 'Query parameters for week-based filtering',
-});
 
 // Response Schemas
 export const ChildResponseSchema = z.object({
@@ -233,6 +223,12 @@ export const ChildAssignmentSchema = z.object({
 // Register schemas with OpenAPI registry
 registry.register('CreateChildRequest', CreateChildSchema);
 registry.register('UpdateChildRequest', UpdateChildSchema);
+registry.register('ChildParams', ChildParamsSchema);
+registry.register('ChildGroupParams', ChildGroupParamsSchema);
+// WeekQuery is now registered in _common.ts
+registry.register('ChildResponse', ChildResponseSchema);
+registry.register('ChildGroupMembership', ChildGroupMembershipSchema);
+// ChildAssignment is registered in scheduleSlots.ts
 
 // Register API paths following Auth pattern
 registerPath({

@@ -185,13 +185,13 @@ describe('AuthorizationService', () => {
 
       // Mock groups accessible to the family
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
-        { id: 'group-1' },
+        { id: TEST_IDS.GROUP },
         { id: 'group-2' },
         { id: 'group-3' },
       ]);
 
       const groupIds = await authService.getUserAccessibleGroupIds(TEST_USER_ID);
-      expect(groupIds).toEqual(['group-1', 'group-2', 'group-3']);
+      expect(groupIds).toEqual([TEST_IDS.GROUP, 'group-2', 'group-3']);
     });
 
     it('should return empty array when user has no family', async () => {
@@ -214,7 +214,7 @@ describe('AuthorizationService', () => {
 
   describe('canUserAccessGroups (batch authorization)', () => {
     it('should return authorization status for multiple groups', async () => {
-      const groupIds = ['group-1', 'group-2', 'unauthorized-group'];
+      const groupIds = [TEST_IDS.GROUP, 'group-2', 'unauthorized-group'];
       
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
@@ -223,14 +223,14 @@ describe('AuthorizationService', () => {
 
       // Mock accessible groups (only first two)
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
-        { id: 'group-1' },
+        { id: TEST_IDS.GROUP },
         { id: 'group-2' },
       ]);
 
       const results = await authService.canUserAccessGroups(TEST_USER_ID, groupIds);
       
       expect(results).toEqual({
-        'group-1': true,
+        TEST_IDS.GROUP: true,
         'group-2': true,
         'unauthorized-group': false,
       });

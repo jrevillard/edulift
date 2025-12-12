@@ -94,16 +94,16 @@ describe('DashboardService', () => {
       // Arrange
       const userId = 'user-123';
       const mockGroups = [
-        { id: 'group-1', name: 'Group 1' },
+        { id: TEST_IDS.GROUP, name: 'Group 1' },
         { id: 'group-2', name: 'Group 2' },
       ];
       const mockChildren = [
-        { id: 'child-1', name: 'Emma', userId },
+        { id: TEST_IDS.CHILD, name: 'Emma', userId },
         { id: 'child-2', name: 'Lucas', userId },
         { id: 'child-3', name: 'Sophia', userId },
       ];
       const mockVehicles = [
-        { id: 'vehicle-1', name: 'Honda Civic', userId },
+        { id: TEST_IDS.VEHICLE, name: 'Honda Civic', userId },
       ];
 
       mockGroupServiceInstance.getUserGroups.mockResolvedValue(mockGroups as any);
@@ -180,7 +180,7 @@ describe('DashboardService', () => {
       const mockScheduleSlots = [
         {
           id: 'slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           day: 'MONDAY',
           time: '08:00',
           datetime: testDatetime,
@@ -188,11 +188,11 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
@@ -200,10 +200,10 @@ describe('DashboardService', () => {
           childAssignments: [
             {
               vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
       ];
 
@@ -219,10 +219,10 @@ describe('DashboardService', () => {
         time: '08:00',
         datetime: testDatetime.toISOString(),
         date: 'Today',
-        children: [{ id: 'child-1', name: 'Emma' }],
-        vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+        children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
+        vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
         driver: { id: 'user-123', name: 'John Doe' },
-        group: { id: 'group-1', name: 'Maple Street Families' },
+        group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
       });
     });
 
@@ -238,13 +238,13 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'assignment-2',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-456', name: 'Jane Smith' },
               childAssignments: [],
             },
           ],
           childAssignments: [],
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
       ];
 
@@ -287,11 +287,11 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
@@ -299,7 +299,7 @@ describe('DashboardService', () => {
           childAssignments: [
             {
               vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
           group: null,
@@ -326,7 +326,7 @@ describe('DashboardService', () => {
       const mockScheduleSlots = [
         {
           id: 'slot-1',
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           day: 'MONDAY',
           time: '08:00',
           datetime: testDatetime,
@@ -334,11 +334,11 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
@@ -346,10 +346,10 @@ describe('DashboardService', () => {
           childAssignments: [
             {
               vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
-          group: { id: 'group-1', name: '' },
+          group: { id: TEST_IDS.GROUP, name: '' },
         },
       ];
 
@@ -360,7 +360,7 @@ describe('DashboardService', () => {
 
       // Assert
       expect(result).toHaveLength(1);
-      expect(result[0].group).toEqual({ id: 'group-1', name: '' });
+      expect(result[0].group).toEqual({ id: TEST_IDS.GROUP, name: '' });
       expect(result[0].date).toBe('Today');
       expect(result[0].time).toBe('08:00');
       expect(result[0].datetime).toBe(testDatetime.toISOString());
@@ -381,11 +381,11 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
@@ -393,7 +393,7 @@ describe('DashboardService', () => {
           childAssignments: [
             {
               vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
           group: { id: null, name: 'School District' },
@@ -428,11 +428,11 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
@@ -440,7 +440,7 @@ describe('DashboardService', () => {
           childAssignments: [
             {
               vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
           group: { id: 'group-123', name: 'Oak Avenue Families' },
@@ -471,7 +471,7 @@ describe('DashboardService', () => {
           id: 'activity-1',
           actionDescription: 'Joined group "Maple Street Families"',
           entityType: 'group',
-          entityId: 'group-1',
+          entityId: TEST_IDS.GROUP,
           entityName: 'Maple Street Families',
           createdAt: new Date('2024-01-15T10:00:00Z'),
         },
@@ -479,7 +479,7 @@ describe('DashboardService', () => {
           id: 'activity-2',
           actionDescription: 'Added vehicle Honda Civic',
           entityType: 'vehicle',
-          entityId: 'vehicle-1',
+          entityId: TEST_IDS.VEHICLE,
           entityName: 'Honda Civic',
           createdAt: new Date('2024-01-14T09:00:00Z'),
         },
@@ -502,7 +502,7 @@ describe('DashboardService', () => {
         time: '2 hours ago',
         timestamp: new Date('2024-01-15T10:00:00Z'),
         type: 'group',
-        entityId: 'group-1',
+        entityId: TEST_IDS.GROUP,
         entityName: 'Maple Street Families',
       });
 
@@ -580,14 +580,14 @@ describe('DashboardService', () => {
         {
           id: 'slot-1',
           datetime: new Date('2024-01-15T08:00:00Z'),
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4, familyId: 'family-1' },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [
-                { child: { id: 'child-1', name: 'Emma', familyId: 'family-1' } },
+                { child: { id: TEST_IDS.CHILD, name: 'Emma', familyId: TEST_IDS.FAMILY } },
               ],
             },
           ],
@@ -608,7 +608,7 @@ describe('DashboardService', () => {
       ];
 
       // Mock all private methods that use Prisma
-      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: TEST_IDS.FAMILY, name: 'Doe Family' });
       jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
       jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
 
@@ -625,7 +625,7 @@ describe('DashboardService', () => {
       expect(mondayTransports).toHaveLength(1);
       expect(mondayTransports[0]).toMatchObject({
         time: '08:00',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         groupName: 'Maple Street Families',
         scheduleSlotId: 'slot-1',
         totalChildrenAssigned: 1,
@@ -658,7 +658,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4, familyId: 'family-1' },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: 'user-123', name: 'John Doe' },
               childAssignments: [],
             },
@@ -667,7 +667,7 @@ describe('DashboardService', () => {
       ];
 
       // Mock all private methods that use Prisma
-      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: TEST_IDS.FAMILY, name: 'Doe Family' });
       jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
       jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
 
