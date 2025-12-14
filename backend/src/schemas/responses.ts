@@ -64,7 +64,7 @@ import { FamilyResponseSchema } from './families';
 import { GroupResponseSchema, ScheduleConfigSchema, FamilyGroupMemberSchema, FamilySearchResultSchema, GroupInvitationSchema } from './groups';
 import { TodayScheduleResponseSchema, RecentActivityResponseSchema, DashboardStatsSchema } from './dashboard';
 import { FcmTokenResponseSchema } from './fcmTokens';
-import { ScheduleResponseSchema, ScheduleSlotSchema, ChildAssignmentSchema, AvailableChildSchema, ScheduleSlotConflictSchema } from './scheduleSlots';
+import { ScheduleResponseSchema, ScheduleSlotSchema, ChildAssignmentSchema, AvailableChildSchema, ScheduleVehicleAssignmentSchema } from './scheduleSlots';
 
 /**
  * Wrapped Response Schemas for Endpoints
@@ -347,9 +347,16 @@ export const ChildAssignmentSuccessResponseSchema = createSuccessResponseSchema(
 
 export const AvailableChildrenSuccessResponseSchema = createSuccessResponseSchema(z.array(AvailableChildSchema));
 
-export const ScheduleSlotConflictsSuccessResponseSchema = createSuccessResponseSchema(z.array(ScheduleSlotConflictSchema));
+export const ScheduleSlotConflictsSuccessResponseSchema = createSuccessResponseSchema(
+  z.object({
+    conflicts: z.array(z.string()).openapi({
+      description: 'Array of conflict identifiers',
+      example: ['CAPACITY_EXCEEDED', 'DRIVER_DOUBLE_BOOKING'],
+    }),
+  })
+);
 
-export const ScheduleVehicleSuccessResponseSchema = createSuccessResponseSchema(VehicleResponseSchema);
+export const ScheduleVehicleSuccessResponseSchema = createSuccessResponseSchema(ScheduleVehicleAssignmentSchema);
 
 export const GroupScheduleConfigSuccessResponseSchema = createSuccessResponseSchema(ScheduleConfigSchema);
 

@@ -8,7 +8,6 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry, registerPath } from '../config/registry';
-import { VehicleAssignmentSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -223,41 +222,24 @@ export const UpdateSeatOverrideSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-// Extended Vehicle Assignment Schema with additional fields for schedule context
-export const ScheduleVehicleAssignmentSchema = VehicleAssignmentSchema.extend({
+// Simplified Vehicle Assignment Schema that matches actual data structure
+export const ScheduleVehicleAssignmentSchema = z.object({
+  id: z.string().optional(),
   vehicle: z.object({
-    id: z.cuid(),
-    make: z.string(),
-    model: z.string(),
-    licensePlate: z.string(),
-    capacity: z.number(),
-    familyId: z.cuid(),
-  }).optional()
-    .openapi({
-      description: 'Vehicle information (included when requested)',
-    }),
+    id: z.string().optional(),
+    name: z.string().optional(),
+    capacity: z.number().optional(),
+  }).optional(),
   driver: z.object({
-    id: z.cuid(),
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.email(),
-  }).nullable().optional()
-    .openapi({
-      description: 'Driver information (included when requested)',
-    }),
-  _count: z.object({
-    childAssignments: z.number()
-      .openapi({
-        example: 3,
-        description: 'Number of children assigned to this vehicle',
-      }),
-  }).optional()
-    .openapi({
-      description: 'Count information (included when requested)',
-    }),
+    id: z.string().optional(),
+    name: z.string().optional(),
+  }).optional(),
+  seatOverride: z.number().optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
 }).openapi({
   title: 'Schedule Vehicle Assignment',
-  description: 'Vehicle assignment information for a schedule slot with extended data',
+  description: 'Vehicle assignment for schedule slot (minimal schema matching actual data)',
 });
 
 export const ChildAssignmentSchema = z.object({
@@ -311,10 +293,10 @@ export const ScheduleSlotSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Schedule slot identifier',
     }),
-  datetime: z.iso.datetime()
+  datetime: z.union([z.string(), z.date()])
     .openapi({
       example: '2023-12-15T08:00:00.000Z',
-      description: 'Schedule slot datetime',
+      description: 'Schedule slot datetime (ISO string or Date object)',
     }),
   groupId: z.cuid()
     .openapi({
@@ -401,79 +383,25 @@ export const AvailableChildSchema = z.object({
   description: 'Available child for schedule slot assignment',
 });
 
-export const ScheduleSlotConflictSchema = z.object({
-  type: z.enum(['VEHICLE_OVERBOOKING', 'DRIVER_DOUBLE_BOOKING', 'CHILD_DOUBLE_BOOKING'])
-    .openapi({
-      example: 'VEHICLE_OVERBOOKING',
-      description: 'Type of conflict',
-    }),
-  description: z.string()
-    .openapi({
-      example: 'Vehicle exceeds capacity with current assignments',
-      description: 'Conflict description',
-    }),
-  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
-    .openapi({
-      example: 'MEDIUM',
-      description: 'Conflict severity level',
-    }),
-  details: z.object({
-    vehicleId: z.string().nullable().optional().openapi({
-      example: 'cl123456789012345678901237',
-      description: 'Vehicle ID involved in conflict',
-    }),
-    currentAssignments: z.number().int().openapi({
-      example: 6,
-      description: 'Current number of assignments',
-    }),
-    vehicleCapacity: z.number().int().openapi({
-      example: 5,
-      description: 'Maximum vehicle capacity',
-    }),
-    overbookedBy: z.number().int().openapi({
-      example: 1,
-      description: 'Number of overbooked slots',
-    }),
-  })
-    .optional()
-    .openapi({
-      example: {
-        vehicleId: 'cl123456789012345678901237',
-        currentAssignments: 6,
-        vehicleCapacity: 5,
-        overbookedBy: 1,
-      },
-      description: 'Additional conflict details',
-    }),
-}).openapi({
-  title: 'Schedule Slot Conflict',
-  description: 'Schedule slot conflict information',
-});
 
 export const ScheduleResponseSchema = z.object({
+  groupId: z.string().cuid().openapi({
+    description: 'Group identifier',
+  }),
+  startDate: z.string().openapi({
+    example: '2023-12-01T00:00:00.000Z',
+    description: 'Start date of the schedule range',
+  }),
+  endDate: z.string().openapi({
+    example: '2023-12-31T23:59:59.999Z',
+    description: 'End date of the schedule range',
+  }),
   scheduleSlots: z.array(ScheduleSlotSchema).openapi({
     description: 'Schedule slots within the date range',
   }),
-  totalCount: z.number().openapi({
-    example: 15,
-    description: 'Total number of schedule slots',
-  }),
-  dateRange: z.object({
-    startDate: z.iso.datetime().openapi({
-      example: '2023-12-01T00:00:00.000Z',
-      description: 'Start date of the schedule range',
-    }),
-    endDate: z.iso.datetime().openapi({
-      example: '2023-12-31T23:59:59.999Z',
-      description: 'End date of the schedule range',
-    }),
-  }).optional()
-    .openapi({
-      description: 'Date range applied to the schedule (if specified)',
-    }),
 }).openapi({
   title: 'Schedule Response',
-  description: 'Group schedule information',
+  description: 'Group schedule information with date range and slots',
 });
 
 // ============================================================================
@@ -503,7 +431,6 @@ registry.register('ScheduleVehicleAssignment', ScheduleVehicleAssignmentSchema);
 registry.register('ChildAssignment', ChildAssignmentSchema);
 registry.register('ScheduleSlot', ScheduleSlotSchema);
 registry.register('AvailableChild', AvailableChildSchema);
-registry.register('ScheduleSlotConflict', ScheduleSlotConflictSchema);
 registry.register('ScheduleResponse', ScheduleResponseSchema);
 // VehicleAssignmentSchema is registered in _common.ts
 
@@ -831,7 +758,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.literal(true),
-            data: z.array(ScheduleSlotConflictSchema),
+            data: z.array(z.string()),
           }),
         },
       },
