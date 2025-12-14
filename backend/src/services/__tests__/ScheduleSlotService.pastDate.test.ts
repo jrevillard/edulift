@@ -1,6 +1,7 @@
 import { describe, beforeEach, it, expect, jest, beforeAll, afterAll } from '@jest/globals';
 import { ScheduleSlotService } from '../ScheduleSlotService';
 import { DateTime } from 'luxon';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock current date for consistent testing
 const mockToday = new Date('2025-11-15T10:00:00Z'); // Monday

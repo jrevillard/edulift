@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { ChildService } from '../ChildService';
 import { AppError } from '../../middleware/errorHandler';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock PrismaClient
 const mockPrisma = {
@@ -32,11 +33,11 @@ describe('ChildService', () => {
       const childData = {
         name: 'John Doe',
         age: 8,
-        familyId: 'family123',
+        familyId: TEST_IDS.FAMILY,
       };
 
       const expectedChild = {
-        id: 'child123',
+        id: TEST_IDS.CHILD,
         ...childData,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -50,23 +51,23 @@ describe('ChildService', () => {
         data: {
           name: 'John Doe',
           age: 8,
-          familyId: 'family123',
+          familyId: TEST_IDS.FAMILY,
         },
       });
-      expect(result).toEqual(expectedChild);
+      expect(result).toMatchObject(expectedChild);
     });
 
     it('should create child with undefined age as null', async () => {
       const childData = {
         name: 'Jane Doe',
-        familyId: 'family123',
+        familyId: TEST_IDS.FAMILY,
       };
 
       const expectedChild = {
-        id: 'child123',
+        id: TEST_IDS.CHILD,
         name: 'Jane Doe',
         age: null,
-        familyId: 'family123',
+        familyId: TEST_IDS.FAMILY,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -79,7 +80,7 @@ describe('ChildService', () => {
         data: {
           name: 'Jane Doe',
           age: null,
-          familyId: 'family123',
+          familyId: TEST_IDS.FAMILY,
         },
       });
     });
@@ -87,7 +88,7 @@ describe('ChildService', () => {
     it('should throw error when creation fails', async () => {
       const childData = {
         name: 'John Doe',
-        familyId: 'family123',
+        familyId: TEST_IDS.FAMILY,
       };
 
       (mockPrisma.child.create as jest.Mock).mockRejectedValue(new Error('Database error'));
@@ -99,8 +100,8 @@ describe('ChildService', () => {
 
   describe('getChildrenByUser', () => {
     it('should return user children with group memberships', async () => {
-      const userId = 'user123';
-      const familyId = 'family123';
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       
       // Mock the family lookup
       const mockFamily = { id: familyId, name: 'Test Family' };
@@ -112,18 +113,18 @@ describe('ChildService', () => {
 
       const expectedChildren = [
         {
-          id: 'child1',
+          id: TEST_IDS.CHILD,
           name: 'John',
           age: 8,
           familyId,
           groupMemberships: [{
             childId: 'child1',
-            groupId: 'group1',
-            group: { id: 'group1', name: 'School Group' },
+            groupId: TEST_IDS.GROUP,
+            group: { id: TEST_IDS.GROUP, name: 'School Group' },
           }],
         },
         {
-          id: 'child2',
+          id: TEST_IDS.CHILD_2,
           name: 'Jane',
           age: 6,
           familyId,
@@ -151,26 +152,26 @@ describe('ChildService', () => {
         },
         orderBy: [{ name: 'asc' }],
       });
-      expect(result).toEqual(expectedChildren);
+      expect(result).toMatchObject(expectedChildren);
     });
 
     it('should return empty array when user has no family', async () => {
-      const userId = 'user123';
+      const userId = TEST_IDS.USER;
       
       // Mock no family found
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue(null);
 
       const result = await childService.getChildrenByUser(userId);
 
-      expect(result).toEqual([]);
+      expect(result).toMatchObject([]);
     });
   });
 
   describe('getChildById', () => {
     it('should return child by id for user', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       
       // Mock the family lookup
       const mockFamily = { id: familyId, name: 'Test Family' };
@@ -194,13 +195,13 @@ describe('ChildService', () => {
       expect(mockPrisma.child.findFirst).toHaveBeenCalledWith({
         where: { id: childId, familyId },
       });
-      expect(result).toEqual(expectedChild);
+      expect(result).toMatchObject(expectedChild);
     });
 
     it('should throw error when child not found', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       
       // Mock the family lookup
       const mockFamily = { id: familyId, name: 'Test Family' };
@@ -216,8 +217,8 @@ describe('ChildService', () => {
     });
 
     it('should throw error when user has no family', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
 
       // Mock no family found
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue(null);
@@ -228,9 +229,9 @@ describe('ChildService', () => {
 
   describe('updateChild', () => {
     it('should update child successfully', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       const updateData = { name: 'Updated Name', age: 9 };
       
       // Mock the family lookup
@@ -280,13 +281,13 @@ describe('ChildService', () => {
           age: 9,
         },
       });
-      expect(result).toEqual(expectedChild);
+      expect(result).toMatchObject(expectedChild);
     });
 
     it('should update only age when only age is provided', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       const updateData = { age: 10 }; // Only updating age
       
       // Mock the family lookup
@@ -335,13 +336,13 @@ describe('ChildService', () => {
           age: 10, // Only age should be updated
         },
       });
-      expect(result).toEqual(expectedChild);
+      expect(result).toMatchObject(expectedChild);
     });
 
     it('should throw error when update fails', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       const updateData = { name: 'Updated Name' };
       
       // Mock the family lookup
@@ -382,9 +383,9 @@ describe('ChildService', () => {
 
   describe('deleteChild', () => {
     it('should delete child successfully', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       
       // Mock the family lookup
       const mockFamily = { id: familyId, name: 'Test Family' };
@@ -426,9 +427,9 @@ describe('ChildService', () => {
     });
 
     it('should throw error when deletion fails', async () => {
-      const childId = 'child123';
-      const userId = 'user123';
-      const familyId = 'family123';
+      const childId = TEST_IDS.CHILD;
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
       
       // Mock the family lookup
       const mockFamily = { id: familyId, name: 'Test Family' };

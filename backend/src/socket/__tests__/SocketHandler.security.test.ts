@@ -5,6 +5,7 @@ import { SOCKET_EVENTS } from '../../shared/events';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import Client from 'socket.io-client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock dependencies
 jest.mock('@prisma/client');

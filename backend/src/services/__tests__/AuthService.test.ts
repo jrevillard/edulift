@@ -4,6 +4,7 @@ import { SecureTokenRepository } from '../../repositories/SecureTokenRepository'
 import { EmailService } from '../EmailService';
 import { RefreshTokenService } from '../RefreshTokenService';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock RefreshTokenService
 jest.mock('../RefreshTokenService');
@@ -148,7 +149,7 @@ describe('AuthService', () => {
 
       (mockUserRepository.findByEmail as jest.Mock).mockResolvedValue(null);
       (mockUserRepository.create as jest.Mock).mockResolvedValue({
-        id: 'user-2',
+        id: TEST_IDS.USER_2,
         email,
         name,
         timezone: 'UTC',
@@ -158,7 +159,7 @@ describe('AuthService', () => {
       (mockSecureTokenRepository.createMagicLink as jest.Mock).mockResolvedValue({
         id: 'link-2',
         token: 'magic-token-2',
-        userId: 'user-2',
+        userId: TEST_IDS.USER_2,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
         used: false,
         createdAt: new Date(),
@@ -208,7 +209,7 @@ describe('AuthService', () => {
 
       (mockUserRepository.findByEmail as jest.Mock).mockResolvedValue(null);
       (mockUserRepository.create as jest.Mock).mockResolvedValue({
-        id: 'user-2',
+        id: TEST_IDS.USER_2,
         email,
         name,
         timezone: 'UTC',
@@ -263,7 +264,7 @@ describe('AuthService', () => {
 
       (mockUserRepository.findByEmail as jest.Mock).mockResolvedValue(null);
       (mockUserRepository.create as jest.Mock).mockResolvedValue({
-        id: 'user-2',
+        id: TEST_IDS.USER_2,
         email,
         name,
         timezone: 'UTC',
@@ -316,7 +317,7 @@ describe('AuthService', () => {
 
       const result = await authService.verifyMagicLink(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
 
-      expect(mockSecureTokenRepository.findValidMagicLinkWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidMagicLinkWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).toHaveBeenCalledWith(token);
       expect(result).toEqual({
         user: {
@@ -375,7 +376,7 @@ describe('AuthService', () => {
     });
 
     it('should update user profile successfully', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const profileData = { name: 'Updated Name', email: 'updated@example.com' };
       const mockUser = {
         id: userId,
@@ -414,7 +415,7 @@ describe('AuthService', () => {
     });
 
     it('should update only name when email is not provided', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const profileData = { name: 'Updated Name Only' };
       const mockUser = {
         id: userId,
@@ -452,7 +453,7 @@ describe('AuthService', () => {
     });
 
     it('should throw error when user is not found', async () => {
-      const userId = 'nonexistent-user';
+      const userId = 'cltestnonexistent123456789012';
       const profileData = { name: 'Test Name' };
 
       mockUserRepository.findById.mockResolvedValue(null);
@@ -465,7 +466,7 @@ describe('AuthService', () => {
     });
 
     it('should throw error when email is invalid', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const profileData = { email: 'invalid-email' };
 
       await expect(authService.updateProfile(userId, profileData))
@@ -476,7 +477,7 @@ describe('AuthService', () => {
     });
 
     it('should throw error when name is empty', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const profileData = { name: '   ' };
 
       await expect(authService.updateProfile(userId, profileData))
@@ -487,7 +488,7 @@ describe('AuthService', () => {
     });
 
     it('should throw error when email is already taken by another user', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const profileData = { email: 'taken@example.com' };
       const mockUser = {
         id: userId,
@@ -498,7 +499,7 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
       const mockExistingUser = {
-        id: 'other-user',
+        id: TEST_IDS.USER_3,
         email: 'taken@example.com',
         name: 'Other User',
         timezone: 'UTC',
@@ -518,7 +519,7 @@ describe('AuthService', () => {
     });
 
     it('should allow updating to same email address', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const profileData = { name: 'Updated Name', email: 'same@example.com' };
       const mockUser = {
         id: userId,
@@ -559,7 +560,7 @@ describe('AuthService', () => {
   });
 
   describe('requestAccountDeletion', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
     const mockUser = {
       id: userId,
@@ -751,7 +752,7 @@ describe('AuthService', () => {
   });
 
   describe('confirmAccountDeletion', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const token = 'deletion-token';
     const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
     const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
@@ -799,7 +800,7 @@ describe('AuthService', () => {
 
       const result = await authService.confirmAccountDeletion(token, codeVerifier);
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).toHaveBeenCalledWith(token);
       expect(performAccountDeletionSpy).toHaveBeenCalledWith(userId, mockUser);
       expect(result).toEqual({
@@ -815,7 +816,7 @@ describe('AuthService', () => {
       await expect(authService.confirmAccountDeletion(token, codeVerifier))
         .rejects.toThrow('Invalid or expired deletion token');
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).not.toHaveBeenCalled();
       expect(performAccountDeletionSpy).not.toHaveBeenCalled();
     });
@@ -839,8 +840,8 @@ describe('AuthService', () => {
       await expect(authService.confirmAccountDeletion(token, undefined as any))
         .rejects.toThrow('code_verifier required for PKCE validation');
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, '');
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, undefined);
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).not.toHaveBeenCalled();
       expect(performAccountDeletionSpy).not.toHaveBeenCalled();
     });
@@ -861,7 +862,7 @@ describe('AuthService', () => {
       await expect(authService.confirmAccountDeletion(token, codeVerifier))
         .rejects.toThrow('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).not.toHaveBeenCalled();
       expect(performAccountDeletionSpy).not.toHaveBeenCalled();
     });
@@ -883,7 +884,7 @@ describe('AuthService', () => {
       await expect(authService.confirmAccountDeletion(token, codeVerifier))
         .rejects.toThrow('User not found');
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockUserRepository.findById).toHaveBeenCalledWith(userId);
       expect(mockSecureTokenRepository.markAsUsed).not.toHaveBeenCalled();
       expect(performAccountDeletionSpy).not.toHaveBeenCalled();
@@ -910,7 +911,7 @@ describe('AuthService', () => {
       await expect(authService.confirmAccountDeletion(token, codeVerifier))
         .rejects.toThrow('Deletion failed');
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).toHaveBeenCalledWith(token);
       expect(performAccountDeletionSpy).toHaveBeenCalledWith(userId, mockUser);
     });
@@ -933,7 +934,7 @@ describe('AuthService', () => {
       await expect(authService.confirmAccountDeletion(token, codeVerifier))
         .rejects.toThrow('Mark as used failed');
 
-      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
+      expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).toHaveBeenCalledWith(token);
       expect(performAccountDeletionSpy).not.toHaveBeenCalled();
     });

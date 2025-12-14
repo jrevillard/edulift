@@ -2,6 +2,7 @@ import { NotificationService } from '../NotificationService';
 import { PrismaClient } from '@prisma/client';
 import { UserRepository } from '../../repositories/UserRepository';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock dependencies
 const mockEmailService = {

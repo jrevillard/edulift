@@ -2,6 +2,7 @@ import { PushNotificationService } from '../PushNotificationService';
 import { FirebaseService } from '../FirebaseService';
 import { FcmTokenService } from '../FcmTokenService';
 import { PushNotificationData } from '../../types/PushNotificationInterface';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock the dependencies
 jest.mock('../FirebaseService');

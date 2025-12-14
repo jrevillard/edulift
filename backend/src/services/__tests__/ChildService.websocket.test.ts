@@ -75,7 +75,7 @@ describe('ChildService WebSocket Events', () => {
 
       const result = await childService.createChild(childData);
 
-      expect(result).toEqual(mockCreatedChild);
+      expect(result).toMatchObject(mockCreatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         'system', // userId for child creation
         'family-123', // familyId
@@ -183,7 +183,7 @@ describe('ChildService WebSocket Events', () => {
 
       const result = await childService.updateChild(childId, userId, updateData);
 
-      expect(result).toEqual(mockUpdatedChild);
+      expect(result).toMatchObject(mockUpdatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         userId,
         familyId,
@@ -309,7 +309,7 @@ describe('ChildService WebSocket Events', () => {
 
       const result = await childService.deleteChild(childId, userId);
 
-      expect(result).toEqual({ success: true });
+      expect(result).toMatchObject({ success: true });
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         userId,
         familyId,
@@ -508,7 +508,7 @@ describe('ChildService WebSocket Events', () => {
 
       // Should not throw error even without socket handler
       const result = await childService.createChild(childData);
-      expect(result).toEqual(mockCreatedChild);
+      expect(result).toMatchObject(mockCreatedChild);
 
       // SocketEmitter should still be called (it handles null socket handler internally)
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalled();

@@ -1,6 +1,7 @@
 import { FamilyMigrationService } from '../FamilyMigrationService';
 import { FamilyRole } from '../../types/family';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma
 const mockPrisma = {
@@ -144,7 +145,7 @@ describe('FamilyMigrationService', () => {
         errors: [],
       });
 
-      expect(mockLogger.warn).toHaveBeenCalledWith('User user-1 already has family membership, skipping');
+      expect(mockLogger.warn).toHaveBeenCalledWith(`User ${TEST_IDS.USER} already has family membership, skipping`);
     });
 
     it('should handle migration errors gracefully', async () => {
@@ -183,7 +184,7 @@ describe('FamilyMigrationService', () => {
       const result = await migrationService.migrateExistingUsersToFamilies();
 
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0]).toContain('Failed to migrate user user-1');
+      expect(result.errors[0]).toContain(`Failed to migrate user ${TEST_IDS.USER}`);
       expect(mockLogger.error).toHaveBeenCalled();
     });
   });
@@ -276,7 +277,7 @@ describe('FamilyMigrationService', () => {
 
       const result = await migrationService.rollbackMigration();
 
-      expect(result.errors).toContain('No admin found for family family-1');
+      expect(result.errors).toContain(`No admin found for family ${TEST_IDS.FAMILY}`);
     });
   });
 

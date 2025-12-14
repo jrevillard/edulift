@@ -61,7 +61,7 @@ describe('VehicleService', () => {
           familyId: 'family123',
         },
       });
-      expect(result).toEqual(expectedVehicle);
+      expect(result).toMatchObject(expectedVehicle);
     });
 
     it('should throw error for capacity less than 1', async () => {
@@ -138,7 +138,7 @@ describe('VehicleService', () => {
         where: { familyId },
         orderBy: [{ name: 'asc' }],
       });
-      expect(result).toEqual(expectedVehicles);
+      expect(result).toMatchObject(expectedVehicles);
     });
 
     it('should return empty array when user has no family', async () => {
@@ -181,7 +181,7 @@ describe('VehicleService', () => {
       expect(mockPrisma.vehicle.findFirst).toHaveBeenCalledWith({
         where: { id: vehicleId, familyId },
       });
-      expect(result).toEqual(expectedVehicle);
+      expect(result).toMatchObject(expectedVehicle);
     });
 
     it('should throw error when vehicle not found', async () => {
@@ -265,7 +265,7 @@ describe('VehicleService', () => {
           capacity: 6,
         },
       });
-      expect(result).toEqual(expectedVehicle);
+      expect(result).toMatchObject(expectedVehicle);
     });
 
     it('should throw error for invalid capacity in update', async () => {

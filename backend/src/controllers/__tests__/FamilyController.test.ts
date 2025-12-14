@@ -5,6 +5,7 @@ import { FamilyRole } from '../../types/family';
 import { validateBody } from '../../middleware/validation';
 import { CreateFamilySchema } from '../../schemas/families';
 import { createLogger } from '../../utils/logger';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 const familyLogger = createLogger('FamilyController');
 
@@ -65,12 +66,14 @@ describe('FamilyController', () => {
       };
 
       const mockFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Test Family',
         inviteCode: 'INV123',
         members: [],
         children: [],
         vehicles: [],
+        createdAt: new Date('2025-12-13T00:00:00.000Z'),
+        updatedAt: new Date('2025-12-13T00:00:00.000Z'),
       };
 
       mockFamilyService.createFamily.mockResolvedValue(mockFamily);
@@ -82,7 +85,11 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        data: mockFamily,
+        data: {
+          ...mockFamily,
+          createdAt: mockFamily.createdAt.toISOString(),
+          updatedAt: mockFamily.updatedAt.toISOString(),
+        },
       });
 
       expect(mockFamilyService.createFamily).toHaveBeenCalledWith('user-123', 'Test Family');
@@ -132,12 +139,14 @@ describe('FamilyController', () => {
       };
 
       const mockFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Test Family',
         inviteCode: 'INV123',
         members: [],
         children: [],
         vehicles: [],
+        createdAt: new Date('2025-12-13T00:00:00.000Z'),
+        updatedAt: new Date('2025-12-13T00:00:00.000Z'),
       };
 
       mockFamilyService.joinFamily.mockResolvedValue(mockFamily);
@@ -149,7 +158,11 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        data: mockFamily,
+        data: {
+          ...mockFamily,
+          createdAt: mockFamily.createdAt.toISOString(),
+          updatedAt: mockFamily.updatedAt.toISOString(),
+        },
       });
 
       expect(mockFamilyService.joinFamily).toHaveBeenCalledWith('INV123', 'user-123');
@@ -187,12 +200,14 @@ describe('FamilyController', () => {
   describe('GET /families/current', () => {
     it('should return current family', async () => {
       const mockFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Test Family',
         inviteCode: 'INV123',
         members: [],
         children: [],
         vehicles: [],
+        createdAt: new Date('2025-12-13T00:00:00.000Z'),
+        updatedAt: new Date('2025-12-13T00:00:00.000Z'),
       };
 
       mockFamilyService.getUserFamily.mockResolvedValue(mockFamily);
@@ -203,7 +218,11 @@ describe('FamilyController', () => {
 
       expect(response.body).toEqual({
         success: true,
-        data: mockFamily,
+        data: {
+          ...mockFamily,
+          createdAt: mockFamily.createdAt.toISOString(),
+          updatedAt: mockFamily.updatedAt.toISOString(),
+        },
       });
 
       expect(mockFamilyService.getUserFamily).toHaveBeenCalledWith('user-123');
@@ -233,7 +252,7 @@ describe('FamilyController', () => {
       mockFamilyService.updateMemberRole.mockResolvedValue(undefined);
 
       const response = await request(app)
-        .put('/families/members/member-456/role')
+        .put('/families/members/' + TEST_IDS.USER_2 + '/role')
         .send(updateData)
         .expect(200);
 
@@ -245,12 +264,12 @@ describe('FamilyController', () => {
       });
 
       expect(mockFamilyAuthService.requireFamilyRole).toHaveBeenCalledWith('user-123', FamilyRole.ADMIN);
-      expect(mockFamilyService.updateMemberRole).toHaveBeenCalledWith('user-123', 'member-456', FamilyRole.MEMBER);
+      expect(mockFamilyService.updateMemberRole).toHaveBeenCalledWith('user-123', TEST_IDS.USER_2, FamilyRole.MEMBER);
     });
 
     it('should return 400 for invalid role', async () => {
       const response = await request(app)
-        .put('/families/members/member-456/role')
+        .put('/families/members/' + TEST_IDS.USER_2 + '/role')
         .send({ role: 'INVALID_ROLE' })
         .expect(400);
 
@@ -266,7 +285,7 @@ describe('FamilyController', () => {
       );
 
       const response = await request(app)
-        .put('/families/members/member-456/role')
+        .put('/families/members/' + TEST_IDS.USER_2 + '/role')
         .send({ role: FamilyRole.MEMBER })
         .expect(403);
 
@@ -281,7 +300,7 @@ describe('FamilyController', () => {
     beforeEach(() => {
       // Mock the getUserFamily call for family access verification
       mockFamilyService.getUserFamily.mockResolvedValue({
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Test Family',
       });
     });
@@ -291,7 +310,7 @@ describe('FamilyController', () => {
       mockFamilyService.removeMember.mockResolvedValue(undefined);
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(200);
 
       expect(response.body).toEqual({
@@ -303,17 +322,17 @@ describe('FamilyController', () => {
 
       expect(mockFamilyService.getUserFamily).toHaveBeenCalledWith('user-123');
       expect(mockFamilyAuthService.requireFamilyRole).toHaveBeenCalledWith('user-123', FamilyRole.ADMIN);
-      expect(mockFamilyService.removeMember).toHaveBeenCalledWith('user-123', 'member-456');
+      expect(mockFamilyService.removeMember).toHaveBeenCalledWith('user-123', TEST_IDS.USER_2);
     });
 
     it('should return 403 if user is not a member of the family', async () => {
       mockFamilyService.getUserFamily.mockResolvedValue({
-        id: 'different-family-123',
+        id: 'cldiff1234567890123456789',
         name: 'Different Family',
       });
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(403);
 
       expect(response.body).toEqual({
@@ -326,7 +345,7 @@ describe('FamilyController', () => {
       mockFamilyService.getUserFamily.mockResolvedValue(null);
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(403);
 
       expect(response.body).toEqual({
@@ -341,7 +360,7 @@ describe('FamilyController', () => {
       );
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(403);
 
       expect(response.body).toEqual({
@@ -357,7 +376,7 @@ describe('FamilyController', () => {
       );
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(400);
 
       expect(response.body).toEqual({
@@ -373,7 +392,7 @@ describe('FamilyController', () => {
       );
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(400);
 
       expect(response.body).toEqual({
@@ -389,7 +408,7 @@ describe('FamilyController', () => {
       );
 
       const response = await request(app)
-        .delete('/families/family-123/members/member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/' + TEST_IDS.USER_2)
         .expect(400);
 
       expect(response.body).toEqual({
@@ -403,7 +422,7 @@ describe('FamilyController', () => {
       mockFamilyService.removeMember.mockResolvedValue(undefined);
 
       const response = await request(app)
-        .delete('/families/family-123/members/admin-member-456')
+        .delete('/families/' + TEST_IDS.FAMILY + '/members/cladmin1234567890123456789')
         .expect(200);
 
       expect(response.body).toEqual({
@@ -413,7 +432,7 @@ describe('FamilyController', () => {
         },
       });
 
-      expect(mockFamilyService.removeMember).toHaveBeenCalledWith('user-123', 'admin-member-456');
+      expect(mockFamilyService.removeMember).toHaveBeenCalledWith('user-123', 'cladmin1234567890123456789');
     });
   });
 
@@ -450,9 +469,13 @@ describe('FamilyController', () => {
   });
 
   describe('POST /families/:familyId/leave', () => {
-    const familyId = 'family-123';
+    const familyId = TEST_IDS.FAMILY;
 
     it('should allow user to leave family successfully', async () => {
+      mockFamilyService.getUserFamily.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+      });
       mockFamilyService.leaveFamily.mockResolvedValue(undefined);
 
       const response = await request(app)
@@ -470,6 +493,10 @@ describe('FamilyController', () => {
     });
 
     it('should return 400 when user is the last admin', async () => {
+      mockFamilyService.getUserFamily.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+      });
       const lastAdminError = new Error('LAST_ADMIN: Cannot leave family as you are the last administrator');
       mockFamilyService.leaveFamily.mockRejectedValue(lastAdminError);
 
@@ -484,6 +511,10 @@ describe('FamilyController', () => {
     });
 
     it('should return 400 when user is not a family member', async () => {
+      mockFamilyService.getUserFamily.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+      });
       const notMemberError = new Error('NOT_FAMILY_MEMBER: User is not a member of any family');
       mockFamilyService.leaveFamily.mockRejectedValue(notMemberError);
 
@@ -498,6 +529,10 @@ describe('FamilyController', () => {
     });
 
     it('should return 500 for unexpected errors', async () => {
+      mockFamilyService.getUserFamily.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+      });
       const unexpectedError = new Error('Database connection failed');
       mockFamilyService.leaveFamily.mockRejectedValue(unexpectedError);
 

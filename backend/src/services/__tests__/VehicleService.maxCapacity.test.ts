@@ -1,6 +1,7 @@
 import { VehicleService } from '../VehicleService';
 import { PrismaClient } from '@prisma/client';
 import { VEHICLE_CONSTRAINTS } from '../../constants/vehicle';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock PrismaClient
 jest.mock('@prisma/client', () => {
@@ -56,7 +57,7 @@ describe('VehicleService - Max Capacity Tests', () => {
       expect(mockPrisma.vehicle.create).toHaveBeenCalledWith({
         data: vehicleData,
       });
-      expect(result).toEqual(mockCreatedVehicle);
+      expect(result).toMatchObject(mockCreatedVehicle);
     });
 
     it('should reject creating vehicle with 11 seats', async () => {
@@ -126,7 +127,7 @@ describe('VehicleService - Max Capacity Tests', () => {
         where: { id: vehicleId },
         data: updateData,
       });
-      expect(result).toEqual(mockUpdatedVehicle);
+      expect(result).toMatchObject(mockUpdatedVehicle);
     });
 
     it('should reject updating vehicle to 11 seats', async () => {

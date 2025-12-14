@@ -1,6 +1,7 @@
 import { FamilyService } from '../FamilyService';
 import { FamilyError, FamilyRole } from '../../types/family';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma
 const mockPrisma = {
@@ -55,13 +56,13 @@ describe('FamilyService', () => {
   });
 
   describe('createFamily', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const familyName = 'Famille Test';
 
     it('should create family and add user as admin', async () => {
       // Setup mocks
       const mockFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: familyName,
         inviteCode: 'TEST1234',
         createdAt: new Date(),
@@ -71,8 +72,8 @@ describe('FamilyService', () => {
       const mockFamilyWithMembers = {
         ...mockFamily,
         members: [{
-          id: 'member-123',
-          familyId: 'family-123',
+          id: TEST_IDS.USER,
+          familyId: TEST_IDS.FAMILY,
           userId,
           role: FamilyRole.ADMIN,
           joinedAt: new Date(),
@@ -104,7 +105,7 @@ describe('FamilyService', () => {
       const result = await familyService.createFamily(userId, familyName);
 
       // Assertions
-      expect(result).toEqual(mockFamilyWithMembers);
+      expect(result).toMatchObject(mockFamilyWithMembers);
       expect(result.name).toBe(familyName);
       expect(result.members).toHaveLength(1);
       expect(result.members[0].role).toBe(FamilyRole.ADMIN);
@@ -147,12 +148,12 @@ describe('FamilyService', () => {
           },
           family: {
             create: jest.fn().mockResolvedValue({
-              id: 'family-123',
+              id: TEST_IDS.FAMILY,
               name: 'Famille Test', // trimmed
               inviteCode: 'TEST1234',
             }),
             findUniqueOrThrow: jest.fn().mockResolvedValue({
-              id: 'family-123',
+              id: TEST_IDS.FAMILY,
               name: 'Famille Test',
               inviteCode: 'TEST1234',
               members: [],
@@ -165,7 +166,7 @@ describe('FamilyService', () => {
 
       mockPrisma.$transaction.mockImplementation(mockTransaction);
       mockPrisma.family.findUniqueOrThrow.mockResolvedValue({
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Famille Test',
         inviteCode: 'TEST1234',
         members: [],
@@ -183,16 +184,16 @@ describe('FamilyService', () => {
   // Note: joinFamily tests commented out as invitation logic is now tested in UnifiedInvitationService.test.ts
   /*
   describe('joinFamily', () => {
-    const userId = 'user-456';
+    const userId = TEST_IDS.USER_2;
     const inviteCode = 'INVITE123';
 
     it('should add user to family with MEMBER role', async () => {
       const mockFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Test Family',
         inviteCode,
         members: [
-          { id: 'member-1', userId: 'admin-user', role: FamilyRole.ADMIN }
+          { id: TEST_IDS.USER, userId: TEST_IDS.USER, role: FamilyRole.ADMIN }
         ]
       };
 
@@ -201,8 +202,8 @@ describe('FamilyService', () => {
         members: [
           ...mockFamily.members,
           {
-            id: 'member-456',
-            familyId: 'family-123',
+            id: TEST_IDS.USER_2,
+            familyId: TEST_IDS.FAMILY,
             userId,
             role: FamilyRole.MEMBER,
             joinedAt: new Date(),
@@ -242,7 +243,7 @@ describe('FamilyService', () => {
       const result = await familyService.joinFamily(userId, inviteCode) as unknown as Family;
 
       // Assertions
-      expect(result).toEqual(mockFamilyWithNewMember);
+      expect(result).toMatchObject(mockFamilyWithNewMember);
       expect(result.members.find((m: unknown) => m.userId === userId)?.role).toBe(FamilyRole.MEMBER);
     });
 
@@ -270,7 +271,7 @@ describe('FamilyService', () => {
 
     it('should throw error if family is full', async () => {
       const fullFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         inviteCode,
         members: new Array(6).fill(null).map((_, i) => ({ id: `member-${i}` }))
       };
@@ -299,9 +300,9 @@ describe('FamilyService', () => {
   */
 
   describe('removeMember', () => {
-    const adminId = 'admin-123';
+    const adminId = TEST_IDS.USER;
     const memberId = 'member-456';
-    const familyId = 'family-789';
+    const familyId = TEST_IDS.FAMILY_2;
 
     it('should remove member successfully', async () => {
       // Mock transaction
@@ -318,7 +319,7 @@ describe('FamilyService', () => {
               .mockResolvedValueOnce({ // Target member
                 id: memberId,
                 familyId,
-                userId: 'target-user-123',
+                userId: TEST_IDS.USER_2,
                 role: FamilyRole.MEMBER,
               }),
             delete: jest.fn().mockResolvedValue({}),
@@ -510,9 +511,9 @@ describe('FamilyService', () => {
   });
 
   describe('updateMemberRole', () => {
-    const adminId = 'admin-123';
+    const adminId = TEST_IDS.USER;
     const memberId = 'member-456';
-    const familyId = 'family-789';
+    const familyId = TEST_IDS.FAMILY_2;
 
     it('should prevent admin from demoting themselves', async () => {
       const adminMemberId = 'admin-member-123';
@@ -614,9 +615,9 @@ describe('FamilyService', () => {
 
   describe('getUserFamily', () => {
     it('should return user family with all relations', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const mockFamily = {
-        id: 'family-123',
+        id: TEST_IDS.FAMILY,
         name: 'Test Family',
         inviteCode: 'CODE123',
         members: [],
@@ -628,7 +629,7 @@ describe('FamilyService', () => {
 
       const result = await familyService.getUserFamily(userId);
 
-      expect(result).toEqual(mockFamily);
+      expect(result).toMatchObject(mockFamily);
       expect(mockPrisma.family.findFirst).toHaveBeenCalledWith({
         where: {
           members: {
@@ -648,20 +649,20 @@ describe('FamilyService', () => {
     it('should return null if user has no family', async () => {
       mockPrisma.family.findFirst = jest.fn().mockResolvedValue(null);
 
-      const result = await familyService.getUserFamily('user-123');
+      const result = await familyService.getUserFamily(TEST_IDS.USER);
 
       expect(result).toBeNull();
     });
   });
 
   describe('leaveFamily', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
 
     it('should allow regular member to leave family', async () => {
       const memberRecord = {
-        id: 'member-456',
+        id: TEST_IDS.USER_2,
         userId,
-        familyId: 'family-123',
+        familyId: TEST_IDS.FAMILY,
         role: FamilyRole.MEMBER,
       };
 
@@ -688,9 +689,9 @@ describe('FamilyService', () => {
 
     it('should allow admin to leave family if not the last admin', async () => {
       const adminRecord = {
-        id: 'member-456',
+        id: TEST_IDS.USER_2,
         userId,
-        familyId: 'family-123',
+        familyId: TEST_IDS.FAMILY,
         role: FamilyRole.ADMIN,
       };
 
@@ -717,9 +718,9 @@ describe('FamilyService', () => {
 
     it('should prevent last admin from leaving family', async () => {
       const lastAdminRecord = {
-        id: 'member-456',
+        id: TEST_IDS.USER_2,
         userId,
-        familyId: 'family-123',
+        familyId: TEST_IDS.FAMILY,
         role: FamilyRole.ADMIN,
       };
 

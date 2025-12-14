@@ -2,6 +2,7 @@
 import { UnifiedInvitationService } from '../UnifiedInvitationService';
 import { MockEmailService } from '../MockEmailService';
 import { FamilyRole, GroupRole, FamilyInvitationStatus as InvitationStatus } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 describe('UnifiedInvitationService - TDD Implementation', () => {
   let invitationService: UnifiedInvitationService;
@@ -319,7 +320,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
       it('should reject authenticated user with different email than invitation', async () => {
         // SECURITY: Prevent invitation hijacking
         const inviteCode = 'SECURE123';
-        const currentUserId = 'user-123';
+        const currentUserId = TEST_IDS.USER;
         const mockInvitation = {
           id: 'invite-123',
           familyId: 'family-123',
@@ -355,7 +356,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
       it('should allow authenticated user with matching email to validate invitation', async () => {
         // SECURITY: Allow correct user to validate invitation
         const inviteCode = 'SECURE123';
-        const currentUserId = 'user-123';
+        const currentUserId = TEST_IDS.USER;
         const mockInvitation = {
           id: 'invite-123',
           familyId: 'family-123',
@@ -392,7 +393,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
 
     describe('acceptFamilyInvitation', () => {
       const inviteCode = 'VALID123';
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
 
       it('should handle user without family joining', async () => {
         // RED: User without family accepts invitation
@@ -825,7 +826,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
 
     describe('acceptGroupInvitation', () => {
       const inviteCode = 'GRPVALID123';
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
 
       it('should handle unauthenticated user flow', async () => {
         // RED: Unauthenticated user validates invitation
@@ -1031,7 +1032,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
     describe('listInvitations', () => {
       it('should list all pending invitations for a user', async () => {
         // RED: Combined family and group invitations
-        const userId = 'user-123';
+        const userId = TEST_IDS.USER;
         
         mockPrisma.user.findUnique.mockResolvedValue({
           id: userId,

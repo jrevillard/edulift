@@ -80,35 +80,36 @@ const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardRespons
 
   weeklyDashboard.data.days.forEach(day => {
     day.transports.forEach((transportSlot: any) => {
-      // Create a trip object compatible with existing component
-      // Using the new OpenAPI structure where children are at transport slot level
-      trips.push({
-        id: `${day.date}-${transportSlot.time}-${transportSlot.id}`,
-        time: transportSlot.time,
-        datetime: `${day.date}T${transportSlot.time}:00Z`,
-        groupId: transportSlot.groupId || 'unknown-group',
-        groupName: transportSlot.groupName || 'Unknown Group',
-        scheduleSlotId: transportSlot.id,
-        date: day.date,
-        vehicle: {
-          id: transportSlot.vehicleId || 'unknown-vehicle',
-          name: transportSlot.vehicleName || 'Unknown Vehicle',
-          capacity: 0 // Capacity not available in new structure, using default
-        },
-        driver: transportSlot.driverName ? {
-          id: transportSlot.driverId || 'unknown-driver',
-          name: transportSlot.driverName
-        } : undefined,
-        children: transportSlot.children?.map((child: any) => ({
-          id: child.id,
-          name: child.name,
-          familyId: child.familyId,
-          isFamilyChild: child.familyId === currentFamilyId
-        })) || [],
-        group: {
-          id: transportSlot.groupId || 'unknown-group',
-          name: transportSlot.groupName || 'Unknown Group'
-        }
+      // Create trip objects for each vehicle assignment in the transport slot
+      transportSlot.vehicleAssignmentSummaries?.forEach((vehicleAssignment: any) => {
+        trips.push({
+          id: `${day.date}-${transportSlot.time}-${vehicleAssignment.vehicleId}`,
+          time: transportSlot.time,
+          datetime: `${day.date}T${transportSlot.time}:00Z`,
+          groupId: transportSlot.groupId || 'unknown-group',
+          groupName: transportSlot.groupName || 'Unknown Group',
+          scheduleSlotId: transportSlot.scheduleSlotId,
+          date: day.date,
+          vehicle: {
+            id: vehicleAssignment.vehicleId || 'unknown-vehicle',
+            name: vehicleAssignment.vehicleName || 'Unknown Vehicle',
+            capacity: vehicleAssignment.vehicleCapacity || 0
+          },
+          driver: vehicleAssignment.driver ? {
+            id: vehicleAssignment.driver.id || 'unknown-driver',
+            name: vehicleAssignment.driver.name
+          } : undefined,
+          children: vehicleAssignment.children?.map((child: any) => ({
+            id: child.childId,
+            name: child.childName,
+            familyId: child.childFamilyId,
+            isFamilyChild: child.childFamilyId === currentFamilyId
+          })) || [],
+          group: {
+            id: transportSlot.groupId || 'unknown-group',
+            name: transportSlot.groupName || 'Unknown Group'
+          }
+        });
       });
     });
   });

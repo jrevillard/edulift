@@ -1,6 +1,7 @@
 import { UnifiedInvitationService } from '../UnifiedInvitationService';
 import { MockEmailService } from '../MockEmailService';
 import { GroupInvitationStatus } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 describe('UnifiedInvitationService - Group Invitation Validation Security', () => {
   let invitationService: UnifiedInvitationService;
@@ -35,8 +36,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should validate a valid group invitation without authentication', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
@@ -49,7 +50,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
       mockPrisma.user.findUnique.mockResolvedValue({
-        id: 'user-123',
+        id: TEST_IDS.USER,
         email: 'user@example.com',
         name: 'Test User',
       });
@@ -82,8 +83,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should return error for expired invitation', async () => {
       // Arrange
       const expiredInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() - 24 * 60 * 60 * 1000), // Expired 24 hours ago
@@ -103,8 +104,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should handle invitation without email (public invitation)', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -130,14 +131,14 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
 
   describe('validateGroupInvitation - Email Security Validation', () => {
     const inviteCode = 'GRP123A';
-    const currentUserId = 'current-user-123';
+    const currentUserId = TEST_IDS.USER_2;
 
     it('should allow access when authenticated user email matches invitation email', async () => {
       // Arrange
       const invitationEmail = 'jerome.revillard@be-ys-software.com';
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -177,8 +178,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
       const wrongUserEmail = 'other.user@example.com';
       
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -211,8 +212,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should allow access for unauthenticated users (no currentUserId provided)', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -245,8 +246,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should allow access for invitations without email even when user is authenticated', async () => {
       // Arrange - Public invitation without specific email
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -274,8 +275,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should handle case when current user is not found in database', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -314,8 +315,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should correctly identify existing user', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -328,7 +329,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
 
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(mockInvitation);
       mockPrisma.user.findUnique.mockResolvedValue({
-        id: 'user-123',
+        id: TEST_IDS.USER,
         email: 'existing.user@example.com',
         name: 'Existing User',
       });
@@ -345,8 +346,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should correctly identify non-existing user', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -376,8 +377,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
     it('should call Prisma with correct parameters for finding invitation', async () => {
       // Arrange
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -406,8 +407,8 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
       // Arrange
       const invitationEmail = 'test@example.com';
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -429,11 +430,11 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
 
     it('should call Prisma to check current user when userId is provided', async () => {
       // Arrange
-      const currentUserId = 'user-123';
+      const currentUserId = TEST_IDS.USER;
       const invitationEmail = 'test@example.com';
       const mockInvitation = {
-        id: 'invite-123',
-        groupId: 'group-123',
+        id: TEST_IDS.INVITATION,
+        groupId: TEST_IDS.GROUP,
         inviteCode,
         status: GroupInvitationStatus.PENDING,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),

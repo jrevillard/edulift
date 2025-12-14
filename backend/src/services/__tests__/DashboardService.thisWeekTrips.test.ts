@@ -6,6 +6,7 @@
  */
 
 import { DashboardService } from '../DashboardService';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock the logger
 jest.mock('../../utils/logger', () => ({

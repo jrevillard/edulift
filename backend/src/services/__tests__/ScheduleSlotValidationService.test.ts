@@ -1,5 +1,6 @@
 import { ScheduleSlotValidationService } from '../ScheduleSlotValidationService';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma Client
 const mockPrisma = {
@@ -158,7 +159,7 @@ describe('ScheduleSlotValidationService', () => {
     it('should validate available vehicle', async () => {
       const mockVehicle = { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20 };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
@@ -170,13 +171,13 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should not throw if vehicle is not assigned to conflicting slots', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
@@ -187,24 +188,24 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should throw error if vehicle already assigned to another slot at same time', async () => {
       const mockVehicle = { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20 };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
         groupId: TEST_IDS.GROUP,
       };
       const conflictingSlots = [
         {
-          id: 'slot-2',
+          id: TEST_IDS.SLOT_2,
           datetime: new Date('2024-01-08T08:00:00.000Z'),
           groupId: TEST_IDS.GROUP,
           vehicleAssignments: [{
-            id: 'va-1',
+            id: 'cltestva1234567890123456',
             vehicleId: TEST_IDS.VEHICLE,
             vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
             driverId: null,
@@ -218,20 +219,20 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(conflictingSlots);
 
       await expect(
-        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, TEST_IDS.SLOT),
       ).rejects.toThrow(/Cannot assign to schedule slot due to conflicts/);
 
       await expect(
-        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, 'slot-1'),
+        validationService.validateVehicleAssignment(TEST_IDS.VEHICLE, TEST_IDS.SLOT),
       ).rejects.toThrow(/Vehicle is already assigned to another schedule slot/);
     });
   });
 
   describe('validateDriverAvailability', () => {
     it('should validate available driver', async () => {
-      const mockDriver = { id: 'driver-1', name: 'John Doe' };
+      const mockDriver = { id: TEST_IDS.DRIVER, name: 'John Doe' };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
@@ -243,13 +244,13 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateDriverAvailability('driver-1', 'slot-1'),
+        validationService.validateDriverAvailability(TEST_IDS.DRIVER, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should not throw if driver has no conflicting assignments', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
@@ -260,29 +261,29 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateDriverAvailability('driver-1', 'slot-1'),
+        validationService.validateDriverAvailability(TEST_IDS.DRIVER, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should throw error if driver already assigned to another slot at same time', async () => {
-      const mockDriver = { id: 'driver-1', name: 'John Doe' };
+      const mockDriver = { id: TEST_IDS.DRIVER, name: 'John Doe' };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
         groupId: TEST_IDS.GROUP,
       };
       const conflictingSlots = [
         {
-          id: 'slot-2',
+          id: TEST_IDS.SLOT_2,
           datetime: new Date('2024-01-08T08:00:00.000Z'),
           groupId: TEST_IDS.GROUP,
           vehicleAssignments: [
             {
-              id: 'va-1',
+              id: 'cltestva1234567890123456',
               vehicleId: TEST_IDS.VEHICLE,
               vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1' },
-              driverId: 'driver-1',
-              driver: { id: 'driver-1', name: 'John Doe' },
+              driverId: TEST_IDS.DRIVER,
+              driver: { id: TEST_IDS.DRIVER, name: 'John Doe' },
             },
           ],
         },
@@ -293,20 +294,20 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue(conflictingSlots);
 
       await expect(
-        validationService.validateDriverAvailability('driver-1', 'slot-1'),
+        validationService.validateDriverAvailability(TEST_IDS.DRIVER, TEST_IDS.SLOT),
       ).rejects.toThrow(/Cannot assign to schedule slot due to conflicts/);
 
       await expect(
-        validationService.validateDriverAvailability('driver-1', 'slot-1'),
+        validationService.validateDriverAvailability(TEST_IDS.DRIVER, TEST_IDS.SLOT),
       ).rejects.toThrow(/Driver is already assigned to another schedule slot/);
     });
   });
 
   describe('validateChildAssignment', () => {
     it('should validate child assignment', async () => {
-      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: 'parent-1' };
+      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: TEST_IDS.USER };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
@@ -322,13 +323,13 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
       await expect(
-        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should not throw if child assignment is valid', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [{ vehicle: { capacity: 20 } }],
         childAssignments: [],
       };
@@ -336,14 +337,14 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should throw error if no vehicles assigned to slot', async () => {
-      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: 'parent-1' };
+      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: TEST_IDS.USER };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [],
         childAssignments: [],
       };
@@ -352,14 +353,14 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, TEST_IDS.SLOT),
       ).rejects.toThrow('Cannot assign child to schedule slot without vehicles');
     });
 
     it('should throw error if slot is at capacity', async () => {
-      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: 'parent-1' };
+      const mockChild = { id: TEST_IDS.CHILD, name: 'Alice', userId: TEST_IDS.USER };
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [
           { vehicle: { capacity: 1 } },
         ],
@@ -372,13 +373,13 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, TEST_IDS.SLOT),
       ).rejects.toThrow('Schedule slot is at full capacity');
     });
 
     it('should not throw if child has no conflicting assignments', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         day: 'MONDAY',
         time: '08:00',
         week: '2024-01',
@@ -392,7 +393,7 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateChildAssignment(TEST_IDS.CHILD, 'slot-1'),
+        validationService.validateChildAssignment(TEST_IDS.CHILD, TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
   });
@@ -400,7 +401,7 @@ describe('ScheduleSlotValidationService', () => {
   describe('validateSlotIntegrity', () => {
     it('should validate slot with vehicles and children', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [
           { vehicle: { capacity: 20 } },
         ],
@@ -412,7 +413,7 @@ describe('ScheduleSlotValidationService', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateSlotIntegrity('slot-1'),
+        validationService.validateSlotIntegrity(TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
@@ -426,33 +427,33 @@ describe('ScheduleSlotValidationService', () => {
 
     it('should return true if slot has no vehicles and no children', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [],
         childAssignments: [],
       };
 
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
-      const result = await validationService.validateSlotIntegrity('slot-1');
+      const result = await validationService.validateSlotIntegrity(TEST_IDS.SLOT);
       expect(result).toBe(true);
     });
 
     it('should throw error if children exceed vehicle capacity', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [
           { vehicle: { capacity: 1 } },
         ],
         childAssignments: [
           { childId: TEST_IDS.CHILD },
-          { childId: 'child-2' },
+          { childId: TEST_IDS.CHILD_2 },
         ],
       };
 
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateSlotIntegrity('slot-1'),
+        validationService.validateSlotIntegrity(TEST_IDS.SLOT),
       ).rejects.toThrow('Schedule slot exceeds capacity: 2 children assigned to 1 seats');
     });
   });
@@ -704,7 +705,7 @@ describe('ScheduleSlotValidationService', () => {
   describe('validateSlotIntegrity with seat override', () => {
     it('should use effective capacity with seat override for validation', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [
           { 
             seatOverride: 3,
@@ -713,7 +714,7 @@ describe('ScheduleSlotValidationService', () => {
         ],
         childAssignments: [
           { childId: TEST_IDS.CHILD },
-          { childId: 'child-2' },
+          { childId: TEST_IDS.CHILD_2 },
         ],
       };
 
@@ -721,13 +722,13 @@ describe('ScheduleSlotValidationService', () => {
 
       // Should not throw because effective capacity (3) > children (2)
       await expect(
-        validationService.validateSlotIntegrity('slot-1'),
+        validationService.validateSlotIntegrity(TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
 
     it('should throw error when children exceed overridden capacity', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [
           { 
             seatOverride: 1,
@@ -736,20 +737,20 @@ describe('ScheduleSlotValidationService', () => {
         ],
         childAssignments: [
           { childId: TEST_IDS.CHILD },
-          { childId: 'child-2' },
+          { childId: TEST_IDS.CHILD_2 },
         ],
       };
 
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       await expect(
-        validationService.validateSlotIntegrity('slot-1'),
+        validationService.validateSlotIntegrity(TEST_IDS.SLOT),
       ).rejects.toThrow('Schedule slot exceeds capacity: 2 children assigned to 1 seats');
     });
 
     it('should handle mixed assignments with and without seat override', async () => {
       const mockSlot = {
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         vehicleAssignments: [
           { 
             seatOverride: 2,
@@ -762,11 +763,11 @@ describe('ScheduleSlotValidationService', () => {
         ],
         childAssignments: [
           { childId: TEST_IDS.CHILD },
-          { childId: 'child-2' },
-          { childId: 'child-3' },
-          { childId: 'child-4' },
-          { childId: 'child-5' },
-          { childId: 'child-6' },
+          { childId: TEST_IDS.CHILD_2 },
+          { childId: TEST_IDS.CHILD_3 },
+          { childId: 'cltestchild4123456789012345' },
+          { childId: 'cltestchild5123456789012345' },
+          { childId: 'cltestchild6123456789012345' },
         ],
       };
 
@@ -775,7 +776,7 @@ describe('ScheduleSlotValidationService', () => {
       // Total effective capacity: 2 (override) + 5 (default) = 7
       // Children: 6, so should not throw
       await expect(
-        validationService.validateSlotIntegrity('slot-1'),
+        validationService.validateSlotIntegrity(TEST_IDS.SLOT),
       ).resolves.not.toThrow();
     });
   });

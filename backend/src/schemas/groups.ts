@@ -334,31 +334,22 @@ export const GroupResponseSchema = z.object({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Last update timestamp',
     }),
-  userRole: UserRoleEnum.openapi({
+  userRole: z.enum(['ADMIN', 'MEMBER']).openapi({
     example: 'ADMIN',
-    description: 'Current user\'s role in this group',
+    description: 'Current user\'s role in this group (ADMIN or MEMBER only)',
   }),
   ownerFamily: OwnerFamilySchema.openapi({
     description: 'Owner family information',
   }),
-  _count: z.object({
-    familyMembers: z.number()
-      .openapi({
-        example: 3,
-        description: 'Number of families in the group',
-      }),
-  }).optional()
-    .openapi({
-      description: 'Count information (included in some responses)',
-    }),
   familyCount: z.number()
     .openapi({
       example: 3,
       description: 'Total number of families in the group',
     }),
-  familyMembers: z.array(FamilyGroupMemberSchema).optional()
+  scheduleCount: z.number().optional()
     .openapi({
-      description: 'Family members (included when fetching group families)',
+      example: 5,
+      description: 'Number of schedule slots in the group',
     }),
 }).openapi({
   title: 'Group Response',

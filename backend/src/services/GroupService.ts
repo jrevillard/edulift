@@ -175,12 +175,12 @@ export class GroupService {
    * Calculate user's role in a specific group
    * @param group - Group with ownerFamily and familyMembers
    * @param userId - User ID to check role for
-   * @returns User's role: 'OWNER', 'ADMIN', or 'MEMBER'
+   * @returns User's role: 'ADMIN' or 'MEMBER' (users can never be 'OWNER' in groups)
    */
   private async calculateUserRoleInGroup(
     group: any, // Prisma group with familyMembers included
     userId: string,
-  ): Promise<'OWNER' | 'ADMIN' | 'MEMBER'> {
+  ): Promise<'ADMIN' | 'MEMBER'> {
     // Get user's family to determine role
     const userFamily = await this.prisma.familyMember.findFirst({
       where: { userId },
@@ -192,10 +192,10 @@ export class GroupService {
     }
 
     // Calculate userRole using same logic as getUserGroups()
-    let userRole: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER';
+    let userRole: 'ADMIN' | 'MEMBER' = 'MEMBER';
 
     if (group.familyId === userFamily.familyId) {
-      // Owner family: family ADMIN → group ADMIN/OWNER
+      // Owner family: family ADMIN → group ADMIN
       userRole = userFamily.role === 'ADMIN' ? 'ADMIN' : 'MEMBER';
     } else {
       // Member family: use GroupRole from GroupFamilyMember
@@ -207,6 +207,7 @@ export class GroupService {
       }
     }
 
+    // Note: userRole never returns 'OWNER' - only ADMIN or MEMBER
     return userRole;
   }
 

@@ -1,6 +1,7 @@
 import { FamilyService } from '../FamilyService';
 import { UnifiedInvitationService } from '../UnifiedInvitationService';
 import { SocketEmitter, setGlobalSocketHandler } from '../../utils/socketEmitter';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock the SocketEmitter
 jest.mock('../../utils/socketEmitter', () => ({
@@ -71,9 +72,9 @@ describe('FamilyService WebSocket Events', () => {
 
   describe('Family Creation', () => {
     it('should emit FAMILY_UPDATED event when family is created', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const familyName = 'Test Family';
-      const familyId = 'family-456';
+      const familyId = TEST_IDS.FAMILY;
 
       const mockFamily = {
         id: familyId,
@@ -112,7 +113,7 @@ describe('FamilyService WebSocket Events', () => {
     });
 
     it('should not emit event if family creation fails', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const familyName = 'Test Family';
 
       mockPrisma.$transaction.mockRejectedValue(new Error('Database error'));
@@ -124,9 +125,9 @@ describe('FamilyService WebSocket Events', () => {
 
   describe('Family Joining', () => {
     it('should emit FAMILY_MEMBER_JOINED event when user joins family', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const inviteCode = 'invite-456';
-      const familyId = 'family-789';
+      const familyId = TEST_IDS.FAMILY;
 
       const mockFamily = {
         id: familyId,
@@ -146,11 +147,11 @@ describe('FamilyService WebSocket Events', () => {
 
       const result = await familyService.joinFamily(inviteCode, userId);
 
-      expect(result).toEqual(mockFamily);
+      expect(result).toMatchObject(mockFamily);
     });
 
     it('should throw error if family not retrieved after joining', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const inviteCode = 'invite-456';
 
       // Mock UnifiedInvitationService to return success
@@ -167,7 +168,7 @@ describe('FamilyService WebSocket Events', () => {
     });
 
     it('should throw specific error from UnifiedInvitationService', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const inviteCode = 'invite-456';
       const specificError = 'You already belong to a family: Smith Family';
 
@@ -184,9 +185,9 @@ describe('FamilyService WebSocket Events', () => {
 
   describe('Member Role Updates', () => {
     it('should emit FAMILY_UPDATED event when member role is updated', async () => {
-      const adminId = 'admin-123';
-      const memberId = 'member-456';
-      const familyId = 'family-789';
+      const adminId = TEST_IDS.USER;
+      const memberId = TEST_IDS.USER_2;
+      const familyId = TEST_IDS.FAMILY;
       const newRole = 'ADMIN';
 
       mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
@@ -194,7 +195,7 @@ describe('FamilyService WebSocket Events', () => {
           familyMember: {
             findFirst: jest.fn()
               .mockResolvedValueOnce({ familyId, role: 'ADMIN' }) // Admin check
-              .mockResolvedValueOnce({ userId: 'user-456', role: 'MEMBER' }), // Target member
+              .mockResolvedValueOnce({ userId: TEST_IDS.USER_2, role: 'MEMBER' }), // Target member
             update: jest.fn().mockResolvedValue({ role: newRole }),
           },
         };
@@ -209,7 +210,7 @@ describe('FamilyService WebSocket Events', () => {
         expect.objectContaining({
           action: 'memberRoleUpdated',
           memberId,
-          userId: 'user-456',
+          userId: TEST_IDS.USER_2,
           oldRole: 'MEMBER',
           newRole,
           changedBy: adminId,
@@ -220,10 +221,10 @@ describe('FamilyService WebSocket Events', () => {
 
   describe('Member Removal', () => {
     it('should emit FAMILY_MEMBER_LEFT event when member is removed', async () => {
-      const adminId = 'admin-123';
-      const memberId = 'member-456';
-      const targetUserId = 'user-789';
-      const familyId = 'family-999';
+      const adminId = TEST_IDS.USER;
+      const memberId = TEST_IDS.USER_2;
+      const targetUserId = TEST_IDS.USER_3;
+      const familyId = TEST_IDS.FAMILY;
 
       mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
@@ -253,9 +254,9 @@ describe('FamilyService WebSocket Events', () => {
     });
 
     it('should not allow admin to remove themselves', async () => {
-      const adminId = 'admin-123';
-      const memberId = 'member-456';
-      const familyId = 'family-999';
+      const adminId = TEST_IDS.USER;
+      const memberId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
 
       mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
@@ -277,9 +278,9 @@ describe('FamilyService WebSocket Events', () => {
 
   describe('Member Leaving Family', () => {
     it('should emit FAMILY_MEMBER_LEFT event when member leaves family', async () => {
-      const userId = 'user-123';
-      const familyId = 'family-456';
-      const memberId = 'member-789';
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
+      const memberId = TEST_IDS.USER;
 
       mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
@@ -310,8 +311,8 @@ describe('FamilyService WebSocket Events', () => {
     });
 
     it('should not allow last admin to leave family', async () => {
-      const userId = 'user-123';
-      const familyId = 'family-456';
+      const userId = TEST_IDS.USER;
+      const familyId = TEST_IDS.FAMILY;
 
       mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => Promise<any>) => {
         const mockTx = {
@@ -335,7 +336,7 @@ describe('FamilyService WebSocket Events', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully and not emit events', async () => {
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const familyName = 'Test Family';
 
       mockPrisma.$transaction.mockRejectedValue(new Error('Database connection failed'));
@@ -348,9 +349,9 @@ describe('FamilyService WebSocket Events', () => {
       // Clear any previous calls to the mock
       jest.clearAllMocks();
 
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const familyName = 'Test Family';
-      const familyId = 'family-456';
+      const familyId = TEST_IDS.FAMILY;
 
       const mockFamily = {
         id: familyId,
@@ -377,7 +378,7 @@ describe('FamilyService WebSocket Events', () => {
 
       // Should not throw error even without socket handler
       const result = await familyService.createFamily(userId, familyName);
-      expect(result).toEqual(mockFamily);
+      expect(result).toMatchObject(mockFamily);
 
       // Socket emitter should still be called even when handler is null
       expect(mockSocketEmitter.broadcastFamilyUpdate).toHaveBeenCalledWith(

@@ -1,5 +1,6 @@
 import { AuthorizationService } from '../AuthorizationService';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma client
 const mockPrisma = {
@@ -18,11 +19,11 @@ const mockPrisma = {
 describe('AuthorizationService', () => {
   let authService: AuthorizationService;
   
-  const TEST_USER_ID = 'test-user-123';
-  const TEST_FAMILY_ID = 'test-family-456';
-  const TEST_GROUP_ID = 'test-group-789';
-  const TEST_SCHEDULE_SLOT_ID = 'test-slot-101';
-  const UNAUTHORIZED_GROUP_ID = 'unauthorized-group-999';
+  const TEST_USER_ID = TEST_IDS.USER;
+  const TEST_FAMILY_ID = TEST_IDS.FAMILY;
+  const TEST_GROUP_ID = TEST_IDS.GROUP;
+  const TEST_SCHEDULE_SLOT_ID = TEST_IDS.SLOT;
+  const UNAUTHORIZED_GROUP_ID = 'cltestunauthorized1234567890';
 
   beforeEach(() => {
     authService = new AuthorizationService(mockPrisma);
@@ -186,12 +187,12 @@ describe('AuthorizationService', () => {
       // Mock groups accessible to the family
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
         { id: TEST_IDS.GROUP },
-        { id: 'group-2' },
-        { id: 'group-3' },
+        { id: TEST_IDS.GROUP_2 },
+        { id: 'cltestgroup312345678901234' },
       ]);
 
       const groupIds = await authService.getUserAccessibleGroupIds(TEST_USER_ID);
-      expect(groupIds).toEqual([TEST_IDS.GROUP, 'group-2', 'group-3']);
+      expect(groupIds).toEqual([TEST_IDS.GROUP, TEST_IDS.GROUP_2, 'cltestgroup312345678901234']);
     });
 
     it('should return empty array when user has no family', async () => {
@@ -214,7 +215,7 @@ describe('AuthorizationService', () => {
 
   describe('canUserAccessGroups (batch authorization)', () => {
     it('should return authorization status for multiple groups', async () => {
-      const groupIds = [TEST_IDS.GROUP, 'group-2', 'unauthorized-group'];
+      const groupIds = [TEST_IDS.GROUP, TEST_IDS.GROUP_2, 'cltestunauthorized1234567890'];
       
       // Mock user's family membership
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
@@ -224,15 +225,15 @@ describe('AuthorizationService', () => {
       // Mock accessible groups (only first two)
       (mockPrisma.group.findMany as jest.Mock).mockResolvedValue([
         { id: TEST_IDS.GROUP },
-        { id: 'group-2' },
+        { id: TEST_IDS.GROUP_2 },
       ]);
 
       const results = await authService.canUserAccessGroups(TEST_USER_ID, groupIds);
       
       expect(results).toEqual({
-        TEST_IDS.GROUP: true,
-        'group-2': true,
-        'unauthorized-group': false,
+        [TEST_IDS.GROUP]: true,
+        [TEST_IDS.GROUP_2]: true,
+        'cltestunauthorized1234567890': false,
       });
     });
   });

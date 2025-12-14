@@ -1,5 +1,6 @@
 import { ConflictDetectionService } from '../ConflictDetectionService';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../../utils/testHelpers';
 
 // Mock Prisma Client
 const mockPrisma = {

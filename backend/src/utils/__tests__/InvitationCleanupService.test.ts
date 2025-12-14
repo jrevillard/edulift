@@ -1,4 +1,5 @@
 import { InvitationCleanupService } from '../InvitationCleanupService';
+import { TEST_IDS } from '../testHelpers';
 
 describe('InvitationCleanupService', () => {
   let prisma: any;
@@ -43,7 +44,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 3, oldCancelled: 2 });
       expect(prisma.familyInvitation.deleteMany).toHaveBeenCalledTimes(2);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cleaned up 3 expired and 2 old cancelled family invitations for family family-1',
+        `Cleaned up 3 expired and 2 old cancelled family invitations for family ${TEST_IDS.FAMILY}`,
       );
     });
 
@@ -55,7 +56,7 @@ describe('InvitationCleanupService', () => {
 
       expect(result).toEqual({ expired: 0, oldCancelled: 0 });
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to cleanup family invitations for family family-1:',
+        `Failed to cleanup family invitations for family ${TEST_IDS.FAMILY}:`,
         error,
       );
     });
@@ -84,7 +85,7 @@ describe('InvitationCleanupService', () => {
       expect(result).toEqual({ expired: 1, oldCancelled: 4 });
       expect(prisma.groupInvitation.deleteMany).toHaveBeenCalledTimes(2);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cleaned up 1 expired and 4 old cancelled group invitations for group group-1',
+        `Cleaned up 1 expired and 4 old cancelled group invitations for group ${TEST_IDS.GROUP}`,
       );
     });
 
@@ -96,7 +97,7 @@ describe('InvitationCleanupService', () => {
 
       expect(result).toEqual({ expired: 0, oldCancelled: 0 });
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to cleanup group invitations for group group-1:',
+        `Failed to cleanup group invitations for group ${TEST_IDS.GROUP}:`,
         error,
       );
     });

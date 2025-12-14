@@ -3,7 +3,7 @@ import { GroupController } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
 import { SchedulingService } from '../../services/SchedulingService';
 import { AuthenticatedRequest } from '../../middleware/auth';
-// import { createError } from '../../utils/errorHandler';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 
 // Mock services
@@ -41,7 +41,23 @@ describe('GroupController.updateGroup', () => {
   describe('successful updates', () => {
     it('should update group name only', async () => {
       const updateData = { name: 'New Group Name' };
-      const updatedGroup = { id: 'group123', name: 'New Group Name', description: 'Old description' };
+      const updatedGroup = {
+        // GroupResponseSchema structure - ce que retourne enrichGroupWithUserContext
+        id: 'clgroup12345678901234567890',
+        name: 'New Group Name',
+        description: null, // string nullable
+        familyId: TEST_IDS.FAMILY,
+        inviteCode: 'ABC123',
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z',
+        userRole: 'ADMIN', // Le rôle de l'utilisateur dans le groupe
+        ownerFamily: {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+        },
+        familyCount: 1,
+        scheduleCount: 0,
+      };
 
       mockRequest.body = updateData;
       mockGroupService.updateGroup.mockResolvedValue(updatedGroup as any);
@@ -61,7 +77,23 @@ describe('GroupController.updateGroup', () => {
 
     it('should update group description only', async () => {
       const updateData = { description: 'New description' };
-      const updatedGroup = { id: 'group123', name: 'Old Name', description: 'New description' };
+      const updatedGroup = {
+        // GroupResponseSchema structure
+        id: 'clgroup12345678901234567901',
+        name: 'Old Name',
+        description: 'New description',
+        familyId: TEST_IDS.FAMILY,
+        inviteCode: 'ABC123',
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z',
+        userRole: 'ADMIN',
+        ownerFamily: {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+        },
+        familyCount: 1,
+        scheduleCount: 0,
+      };
 
       mockRequest.body = updateData;
       mockGroupService.updateGroup.mockResolvedValue(updatedGroup as any);
@@ -81,7 +113,23 @@ describe('GroupController.updateGroup', () => {
 
     it('should update both name and description', async () => {
       const updateData = { name: 'New Name', description: 'New description' };
-      const updatedGroup = { id: 'group123', name: 'New Name', description: 'New description' };
+      const updatedGroup = {
+        // GroupResponseSchema structure
+        id: 'clgroup12345678901234567901',
+        name: 'Old Name',
+        description: 'New description',
+        familyId: TEST_IDS.FAMILY,
+        inviteCode: 'ABC123',
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z',
+        userRole: 'ADMIN',
+        ownerFamily: {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+        },
+        familyCount: 1,
+        scheduleCount: 0,
+      };
 
       mockRequest.body = updateData;
       mockGroupService.updateGroup.mockResolvedValue(updatedGroup as any);
@@ -101,7 +149,22 @@ describe('GroupController.updateGroup', () => {
 
     it('should clear description with empty string', async () => {
       const updateData = { description: '' };
-      const updatedGroup = { id: 'group123', name: 'Old Name', description: '' };
+      const updatedGroup = {
+        id: 'clgroup12345678901234567890',
+        name: 'Old Name',
+        description: '',
+        familyId: TEST_IDS.FAMILY,
+        inviteCode: 'ABC123',
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z',
+        userRole: 'ADMIN',
+        ownerFamily: {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+        },
+        familyCount: 1,
+        scheduleCount: 0,
+      };
 
       mockRequest.body = updateData;
       mockGroupService.updateGroup.mockResolvedValue(updatedGroup as any);
@@ -121,7 +184,22 @@ describe('GroupController.updateGroup', () => {
 
     it('should trim whitespace from inputs', async () => {
       const updateData = { name: '  Trimmed Name  ', description: '  Trimmed description  ' };
-      const updatedGroup = { id: 'group123', name: 'Trimmed Name', description: 'Trimmed description' };
+      const updatedGroup = {
+        id: 'clgroup12345678901234567890',
+        name: 'Trimmed Name',
+        description: 'Trimmed description',
+        familyId: TEST_IDS.FAMILY,
+        inviteCode: 'ABC123',
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z',
+        userRole: 'ADMIN',
+        ownerFamily: {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+        },
+        familyCount: 1,
+        scheduleCount: 0,
+      };
 
       mockRequest.body = updateData;
       mockGroupService.updateGroup.mockResolvedValue(updatedGroup as any);
@@ -133,6 +211,10 @@ describe('GroupController.updateGroup', () => {
         'user123',
         { name: 'Trimmed Name', description: 'Trimmed description' },
       );
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: updatedGroup,
+      });
     });
   });
 
@@ -204,7 +286,22 @@ describe('GroupController.updateGroup', () => {
   describe('edge cases', () => {
     it('should handle undefined description correctly', async () => {
       const updateData = { name: 'New Name', description: undefined };
-      const updatedGroup = { id: 'group123', name: 'New Name', description: 'Old description' };
+      const updatedGroup = {
+        id: 'clgroup12345678901234567890',
+        name: 'New Name',
+        description: 'Old description',
+        familyId: TEST_IDS.FAMILY,
+        inviteCode: 'ABC123',
+        createdAt: '2023-01-01T00:00:00.000Z',
+        updatedAt: '2023-01-01T00:00:00.000Z',
+        userRole: 'ADMIN',
+        ownerFamily: {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+        },
+        familyCount: 1,
+        scheduleCount: 0,
+      };
 
       mockRequest.body = updateData;
       mockGroupService.updateGroup.mockResolvedValue(updatedGroup as any);
@@ -216,6 +313,10 @@ describe('GroupController.updateGroup', () => {
         'user123',
         { name: 'New Name' },
       );
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: true,
+        data: updatedGroup,
+      });
     });
 
     // Validation test moved to middleware validation tests.

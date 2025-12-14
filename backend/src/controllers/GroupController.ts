@@ -10,6 +10,7 @@ import { createLogger, Logger } from '../utils/logger';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
 import {
   GroupsSuccessResponseSchema,
+  GroupSuccessResponseSchema,
   SimpleSuccessResponseSchema,
   ScheduleSuccessResponseSchema,
   PendingInvitationsSuccessResponseSchema,
@@ -19,9 +20,6 @@ import {
   GroupInvitationSuccessResponseSchema,
   GroupInvitationValidationSuccessResponseSchema,
 } from '../schemas/responses';
-import {
-  GroupResponseSchema,
-} from '../schemas/groups';
 
 export class GroupController {
   constructor(
@@ -82,7 +80,7 @@ export class GroupController {
         groupId: group.id,
         success: true,
       });
-      sendSuccessResponse(res, 201, GroupResponseSchema, group);
+      sendSuccessResponse(res, 201, GroupSuccessResponseSchema, group);
     } catch (error) {
       this.logger.error('createGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -134,7 +132,7 @@ export class GroupController {
         success: true,
       });
 
-      sendSuccessResponse(res, 200, GroupResponseSchema, membership);
+      sendSuccessResponse(res, 200, GroupSuccessResponseSchema, membership);
     } catch (error) {
       this.logger.error('joinGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -311,7 +309,7 @@ export class GroupController {
         success: true,
       });
 
-      sendSuccessResponse(res, 200, GroupResponseSchema, result);
+      sendSuccessResponse(res, 200, GroupSuccessResponseSchema, result);
     } catch (error) {
       this.logger.error('updateGroup: Error occurred', {
         error: error instanceof Error ? error.message : String(error),

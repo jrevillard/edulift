@@ -3,6 +3,7 @@ import { ScheduleSlotRepository } from '../ScheduleSlotRepository';
 import { PrismaClient } from '@prisma/client';
 import { CreateScheduleSlotData } from '../../types';
 import * as isoWeekUtils from '../../utils/isoWeekUtils';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma Client
 const mockPrisma = {

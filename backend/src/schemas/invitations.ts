@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry, registerPath } from '../config/registry';
-import { BaseFamilySchema, BaseGroupSchema, BaseUserSchema } from './_common';
+import { BaseFamilySchema, BaseGroupSchema, BaseUserSchema, FamilyRoleEnum, GroupRoleEnum } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -27,15 +27,6 @@ export const InvitationStatusEnum = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'C
   example: 'PENDING',
 });
 
-export const FamilyRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  description: 'Role of a user within a family',
-  example: 'ADMIN',
-});
-
-export const GroupRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  description: 'Role of a user within a group',
-  example: 'ADMIN',
-});
 
 // ============================================================================
 // REQUEST SCHEMAS

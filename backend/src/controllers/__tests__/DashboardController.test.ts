@@ -1,38 +1,36 @@
 import { Request, Response } from 'express';
 import { DashboardController } from '../DashboardController';
-import { DashboardService } from '../../services/DashboardService';
 import { CapacityStatus } from '../../types/DashboardTypes';
+import { TEST_IDS } from '../../utils/testHelpers';
 
-// Mock the DashboardService
-jest.mock('../../services/DashboardService');
-const mockDashboardService = DashboardService as jest.MockedClass<typeof DashboardService>;
+// Mock the DashboardService module
+jest.mock('../../services/DashboardService', () => ({
+  DashboardService: jest.fn().mockImplementation(() => ({
+    calculateUserStats: jest.fn(),
+    getTodayTripsForUser: jest.fn(),
+    getRecentActivityForUser: jest.fn(),
+    getRecentActivityForFamily: jest.fn(),
+    getUserWithFamily: jest.fn(),
+    getWeeklyDashboard: jest.fn(),
+    getUserFamilyId: jest.fn(),
+  })),
+}));
 
 describe('DashboardController', () => {
   let dashboardController: DashboardController;
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let mockDashboardServiceInstance: jest.Mocked<DashboardService>;
+  let mockDashboardService: any;
 
   beforeEach(() => {
-    // Create mock service instance
-    mockDashboardServiceInstance = {
-      calculateUserStats: jest.fn(),
-      getTodayTripsForUser: jest.fn(),
-      getRecentActivityForUser: jest.fn(),
-      getRecentActivityForFamily: jest.fn(),
-      getUserWithFamily: jest.fn(),
-      getWeeklyDashboard: jest.fn(),
-      getUserFamilyId: jest.fn(),
-    } as any;
-
-    // Mock the constructor to return our mock instance
-    mockDashboardService.mockImplementation(() => mockDashboardServiceInstance);
+    jest.clearAllMocks();
 
     dashboardController = new DashboardController();
+    mockDashboardService = dashboardController['dashboardService'] as any;
 
     // Mock Express request/response
     mockRequest = {
-      user: { id: 'user-123', email: 'test@example.com', name: 'Test User' },
+      user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User' },
       params: {},
       query: {},
     };
@@ -63,13 +61,13 @@ describe('DashboardController', () => {
         },
       };
 
-      mockDashboardServiceInstance.calculateUserStats.mockResolvedValue(mockStats);
+      mockDashboardService.calculateUserStats.mockResolvedValue(mockStats);
 
       // Act
       await dashboardController.getStats(mockRequest as any, mockResponse as any);
 
       // Assert
-      expect(mockDashboardServiceInstance.calculateUserStats).toHaveBeenCalledWith('user-123');
+      expect(mockDashboardService.calculateUserStats).toHaveBeenCalledWith(TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -80,7 +78,7 @@ describe('DashboardController', () => {
     it('should handle errors when calculating stats fails', async () => {
       // Arrange
       const errorMessage = 'Database connection failed';
-      mockDashboardServiceInstance.calculateUserStats.mockRejectedValue(new Error(errorMessage));
+      mockDashboardService.calculateUserStats.mockRejectedValue(new Error(errorMessage));
 
       // Act
       await dashboardController.getStats(mockRequest as any, mockResponse as any);
@@ -114,34 +112,34 @@ describe('DashboardController', () => {
       // Arrange
       const mockTodayTrips = [
         {
-          id: 'trip-1',
+          id: TEST_IDS.TRIP,
           time: '08:00',
           datetime: '2024-01-15T08:00:00.000Z',
           date: 'Today',
           children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
           vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
-          driver: { id: 'user-123', name: 'John Doe' },
+          driver: { id: TEST_IDS.USER_2, name: 'John Doe' },
           group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
         {
-          id: 'trip-2',
+          id: TEST_IDS.TRIP_2,
           time: '15:30',
           datetime: '2024-01-15T15:30:00.000Z',
           date: 'Today',
           children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
           vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
-          driver: { id: 'user-456', name: 'Jane Smith' },
+          driver: { id: TEST_IDS.USER_3, name: 'Jane Smith' },
           group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
       ];
 
-      mockDashboardServiceInstance.getTodayTripsForUser.mockResolvedValue(mockTodayTrips);
+      mockDashboardService.getTodayTripsForUser.mockResolvedValue(mockTodayTrips);
 
       // Act
       await dashboardController.getTodaySchedule(mockRequest as any, mockResponse as any);
 
       // Assert
-      expect(mockDashboardServiceInstance.getTodayTripsForUser).toHaveBeenCalledWith('user-123');
+      expect(mockDashboardService.getTodayTripsForUser).toHaveBeenCalledWith(TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -151,7 +149,7 @@ describe('DashboardController', () => {
 
     it('should return empty array when no trips for today', async () => {
       // Arrange
-      mockDashboardServiceInstance.getTodayTripsForUser.mockResolvedValue([]);
+      mockDashboardService.getTodayTripsForUser.mockResolvedValue([]);
 
       // Act
       await dashboardController.getTodaySchedule(mockRequest as any, mockResponse as any);
@@ -167,7 +165,7 @@ describe('DashboardController', () => {
     it('should handle errors when fetching today\'s schedule fails', async () => {
       // Arrange
       const errorMessage = 'Schedule fetch failed';
-      mockDashboardServiceInstance.getTodayTripsForUser.mockRejectedValue(new Error(errorMessage));
+      mockDashboardService.getTodayTripsForUser.mockRejectedValue(new Error(errorMessage));
 
       // Act
       await dashboardController.getTodaySchedule(mockRequest as any, mockResponse as any);
@@ -186,19 +184,19 @@ describe('DashboardController', () => {
       // Arrange
       const mockActivities = [
         {
-          id: 'activity-1',
+          id: TEST_IDS.SLOT, // Using a valid CUID from TEST_IDS
           action: 'Joined group "Maple Street Families"',
           time: '2 hours ago',
-          timestamp: new Date('2024-01-15T10:00:00Z'),
+          timestamp: '2024-01-15T10:00:00.000Z', // ISO string for schema validation
           type: 'group' as const,
           entityId: TEST_IDS.GROUP,
           entityName: 'Maple Street Families',
         },
         {
-          id: 'activity-2',
+          id: TEST_IDS.SLOT_2, // Using a valid CUID from TEST_IDS
           action: 'Added vehicle Honda Civic',
           time: '1 day ago',
-          timestamp: new Date('2024-01-14T09:00:00Z'),
+          timestamp: '2024-01-14T09:00:00.000Z', // ISO string for schema validation
           type: 'vehicle' as const,
           entityId: TEST_IDS.VEHICLE,
           entityName: 'Honda Civic',
@@ -206,19 +204,24 @@ describe('DashboardController', () => {
       ];
 
       // Mock getUserWithFamily to return user with family
-      mockDashboardServiceInstance.getUserWithFamily.mockResolvedValue({
-        id: 'user-123',
-        familyMemberships: [{ familyId: 'family-123' }],
+      mockDashboardService.getUserWithFamily.mockResolvedValue({
+        id: TEST_IDS.USER,
+        familyMemberships: [{ familyId: TEST_IDS.FAMILY }],
       } as any);
-      
-      mockDashboardServiceInstance.getRecentActivityForFamily.mockResolvedValue(mockActivities);
+
+      mockDashboardService.getRecentActivityForFamily.mockResolvedValue(mockActivities);
 
       // Act
-      await dashboardController.getRecentActivity(mockRequest as any, mockResponse as any);
+      try {
+        await dashboardController.getRecentActivity(mockRequest as any, mockResponse as any);
+      } catch (error) {
+        console.log('ERROR in getRecentActivity:', (error as Error).message);
+        throw error;
+      }
 
       // Assert
-      expect(mockDashboardServiceInstance.getUserWithFamily).toHaveBeenCalledWith('user-123');
-      expect(mockDashboardServiceInstance.getRecentActivityForFamily).toHaveBeenCalledWith('family-123');
+      expect(mockDashboardService.getUserWithFamily).toHaveBeenCalledWith(TEST_IDS.USER);
+      expect(mockDashboardService.getRecentActivityForFamily).toHaveBeenCalledWith(TEST_IDS.FAMILY);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -229,19 +232,19 @@ describe('DashboardController', () => {
     it('should return empty array when no recent activity', async () => {
       // Arrange
       // Mock getUserWithFamily to return user without family
-      mockDashboardServiceInstance.getUserWithFamily.mockResolvedValue({
-        id: 'user-123',
+      mockDashboardService.getUserWithFamily.mockResolvedValue({
+        id: TEST_IDS.USER,
         familyMemberships: [],
       } as any);
       
-      mockDashboardServiceInstance.getRecentActivityForUser.mockResolvedValue([]);
+      mockDashboardService.getRecentActivityForUser.mockResolvedValue([]);
 
       // Act
       await dashboardController.getRecentActivity(mockRequest as any, mockResponse as any);
 
       // Assert
-      expect(mockDashboardServiceInstance.getUserWithFamily).toHaveBeenCalledWith('user-123');
-      expect(mockDashboardServiceInstance.getRecentActivityForUser).toHaveBeenCalledWith('user-123');
+      expect(mockDashboardService.getUserWithFamily).toHaveBeenCalledWith(TEST_IDS.USER);
+      expect(mockDashboardService.getRecentActivityForUser).toHaveBeenCalledWith(TEST_IDS.USER);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -252,7 +255,7 @@ describe('DashboardController', () => {
     it('should handle errors when fetching recent activity fails', async () => {
       // Arrange
       const errorMessage = 'Activity fetch failed';
-      mockDashboardServiceInstance.getUserWithFamily.mockRejectedValue(new Error(errorMessage));
+      mockDashboardService.getUserWithFamily.mockRejectedValue(new Error(errorMessage));
 
       // Act
       await dashboardController.getRecentActivity(mockRequest as any, mockResponse as any);
@@ -280,7 +283,7 @@ describe('DashboardController', () => {
                   time: '08:00',
                   groupId: TEST_IDS.GROUP,
                   groupName: 'Maple Street Families',
-                  scheduleSlotId: 'slot-1',
+                  scheduleSlotId: TEST_IDS.SLOT,
                   totalChildrenAssigned: 3,
                   totalCapacity: 8,
                   overallCapacityStatus: 'available' as CapacityStatus,
@@ -295,7 +298,7 @@ describe('DashboardController', () => {
                       vehicleFamilyId: TEST_IDS.FAMILY,
                       isFamilyVehicle: true,
                       driver: {
-                        id: 'user-123',
+                        id: TEST_IDS.USER,
                         name: 'John Doe',
                       },
                       children: [
@@ -328,15 +331,15 @@ describe('DashboardController', () => {
       };
 
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
-      mockDashboardServiceInstance.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
+      mockDashboardService.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
+      mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
       // Act
       await dashboardController.getWeeklyDashboard(mockRequest as any, mockResponse as any);
 
       // Assert
-      expect(mockDashboardServiceInstance.getUserFamilyId).toHaveBeenCalledWith('user-123');
-      expect(mockDashboardServiceInstance.getWeeklyDashboard).toHaveBeenCalledWith('user-123', undefined);
+      expect(mockDashboardService.getUserFamilyId).toHaveBeenCalledWith(TEST_IDS.USER);
+      expect(mockDashboardService.getWeeklyDashboard).toHaveBeenCalledWith(TEST_IDS.USER, undefined);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalledWith({
         success: true,
@@ -369,15 +372,15 @@ describe('DashboardController', () => {
       };
 
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
-      mockDashboardServiceInstance.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
+      mockDashboardService.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
+      mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
       // Act
       await dashboardController.getWeeklyDashboard(mockRequestWithDate as any, mockResponse as any);
 
       // Assert
-      expect(mockDashboardServiceInstance.getUserFamilyId).toHaveBeenCalledWith('user-123');
-      expect(mockDashboardServiceInstance.getWeeklyDashboard).toHaveBeenCalledWith('user-123', startDate);
+      expect(mockDashboardService.getUserFamilyId).toHaveBeenCalledWith(TEST_IDS.USER);
+      expect(mockDashboardService.getWeeklyDashboard).toHaveBeenCalledWith(TEST_IDS.USER, startDate);
       expect(mockResponse.status).toHaveBeenCalledWith(200);
     });
 
@@ -392,9 +395,9 @@ describe('DashboardController', () => {
               transports: [
                 {
                   time: '08:00',
-                  groupId: '',
+                  groupId: TEST_IDS.GROUP_2, // Valid CUID instead of empty string
                   groupName: 'Unknown Group',
-                  scheduleSlotId: 'slot-1',
+                  scheduleSlotId: TEST_IDS.SLOT,
                   totalChildrenAssigned: 0,
                   totalCapacity: 4,
                   overallCapacityStatus: 'available' as CapacityStatus,
@@ -419,8 +422,8 @@ describe('DashboardController', () => {
       };
 
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
-      mockDashboardServiceInstance.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
+      mockDashboardService.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
+      mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
       // Act
       await dashboardController.getWeeklyDashboard(mockRequest as any, mockResponse as any);
@@ -428,14 +431,14 @@ describe('DashboardController', () => {
       // Assert
       expect(mockResponse.status).toHaveBeenCalledWith(200);
       const responseData = (mockResponse.json as jest.Mock).mock.calls[0][0].data;
-      expect(responseData.days[0].transports[0].groupId).toBe('');
+      expect(responseData.days[0].transports[0].groupId).toBe(TEST_IDS.GROUP_2);
       expect(responseData.days[0].transports[0].groupName).toBe('Unknown Group');
     });
 
     it('should return error when weekly dashboard fails', async () => {
       // Arrange
       // Mock getUserFamilyId to return null (no family)
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(null);
+      mockDashboardService.getUserFamilyId.mockResolvedValue(null);
 
       // Act
       await dashboardController.getWeeklyDashboard(mockRequest as any, mockResponse as any);
@@ -452,8 +455,8 @@ describe('DashboardController', () => {
       // Arrange
       const errorMessage = 'Database connection failed';
       // Mock getUserFamilyId to return a valid family ID
-      mockDashboardServiceInstance.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
-      mockDashboardServiceInstance.getWeeklyDashboard.mockRejectedValue(new Error(errorMessage));
+      mockDashboardService.getUserFamilyId.mockResolvedValue(TEST_IDS.FAMILY);
+      mockDashboardService.getWeeklyDashboard.mockRejectedValue(new Error(errorMessage));
 
       // Act
       await dashboardController.getWeeklyDashboard(mockRequest as any, mockResponse as any);

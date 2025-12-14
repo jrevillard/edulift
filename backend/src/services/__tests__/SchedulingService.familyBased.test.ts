@@ -1,6 +1,7 @@
 import { SchedulingService } from '../SchedulingService';
 import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock dependencies
 const mockScheduleSlotRepository = {

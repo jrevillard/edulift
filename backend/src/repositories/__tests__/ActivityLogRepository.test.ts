@@ -1,4 +1,5 @@
 import { ActivityLogRepository } from '../ActivityLogRepository';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma with necessary models for ActivityLogRepository
 const mockPrisma = {

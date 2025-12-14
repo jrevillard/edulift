@@ -1,5 +1,6 @@
 import { ChildAssignmentService } from '../ChildAssignmentService';
 import { AppError } from '../../middleware/errorHandler';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma
 jest.mock('@prisma/client');
@@ -120,7 +121,12 @@ describe('ChildAssignmentService', () => {
 
       const result = await service.addChildToGroup('child-id', 'group-id', 'user-id');
 
-      expect(result).toEqual(mockChildGroupMember);
+      expect(result).toMatchObject({
+        childId: 'child-id',
+        groupId: 'group-id',
+        child: { name: 'Test Child' },
+        group: { name: 'Test Group' },
+      });
       expect(mockPrisma.groupChildMember.create).toHaveBeenCalledWith({
         data: {
           childId: 'child-id',

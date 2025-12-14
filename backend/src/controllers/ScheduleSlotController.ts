@@ -25,79 +25,7 @@ export class ScheduleSlotController {
     private logger: Logger = createLogger('ScheduleSlotController'),
   ) {}
 
-  /**
-   * Transform schedule slot data to ISO strings for OpenAPI compliance
-   * Also normalizes data structure to match expected schemas
-   */
-  private transformScheduleSlotForResponse(slot: any): any {
-    if (!slot) return slot;
-
-    const transformVehicleAssignment = (assignment: any) => {
-      if (!assignment) return assignment;
-
-      const transformed = {
-        ...assignment,
-        // Ensure required base fields are present
-        id: assignment.id || 'cl123456789012345678901236',
-        vehicleId: assignment.vehicleId || assignment.vehicle?.id || 'cl123456789012345678901237',
-        scheduleSlotId: assignment.scheduleSlotId || 'cl123456789012345678901234',
-        driverId: assignment.driverId || assignment.driver?.id || null,
-        groupId: assignment.groupId || 'cl123456789012345678901235',
-        date: assignment.date || (assignment.createdAt?.toISOString?.().split('T')[0]) || '2024-01-01',
-        assignedSeats: assignment.assignedSeats || assignment._count?.childAssignments || 0,
-        seatOverride: assignment.seatOverride || null,
-        // Transform dates to ISO strings
-        createdAt: assignment.createdAt?.toISOString?.() || assignment.createdAt || new Date().toISOString(),
-        updatedAt: assignment.updatedAt?.toISOString?.() || assignment.updatedAt || new Date().toISOString(),
-        assignedAt: assignment.assignedAt?.toISOString?.() || assignment.assignedAt,
-      };
-
-      // Transform driver object to match schema expectations
-      if (assignment.driver) {
-        transformed.driver = {
-          id: assignment.driver.id,
-          firstName: assignment.driver.firstName || assignment.driver.name?.split(' ')[0] || 'Unknown',
-          lastName: assignment.driver.lastName || assignment.driver.name?.split(' ')[1] || 'Driver',
-          email: assignment.driver.email || 'driver@example.com',
-        };
-      }
-
-      // Transform vehicle object to match schema expectations
-      if (assignment.vehicle) {
-        transformed.vehicle = {
-          id: assignment.vehicle.id,
-          make: assignment.vehicle.make || 'Unknown',
-          model: assignment.vehicle.model || 'Vehicle',
-          licensePlate: assignment.vehicle.licensePlate || assignment.vehicle.licensePlate || 'UNKNOWN',
-          capacity: assignment.vehicle.capacity || 1,
-          familyId: assignment.vehicle.familyId || assignment.familyId || 'cl123456789012345678901234',
-        };
-      }
-
-      return transformed;
-    };
-
-    const transformChildAssignment = (assignment: any) => {
-      if (!assignment) return assignment;
-
-      return {
-        ...assignment,
-        createdAt: assignment.createdAt?.toISOString?.() || assignment.createdAt,
-        updatedAt: assignment.updatedAt?.toISOString?.() || assignment.updatedAt,
-        assignedAt: assignment.assignedAt?.toISOString?.() || assignment.assignedAt,
-      };
-    };
-
-    return {
-      ...slot,
-      datetime: slot.datetime?.toISOString?.() || slot.datetime,
-      createdAt: slot.createdAt?.toISOString?.() || slot.createdAt,
-      updatedAt: slot.updatedAt?.toISOString?.() || slot.updatedAt,
-      vehicleAssignments: slot.vehicleAssignments?.map(transformVehicleAssignment),
-      childAssignments: slot.childAssignments?.map(transformChildAssignment),
-    };
-  }
-
+  
   createScheduleSlotWithVehicle = async (req: Request, res: Response): Promise<void> => {
     const authReq = req as AuthenticatedRequest;
     const { groupId } = req.params;
@@ -158,7 +86,7 @@ export class ScheduleSlotController {
         slotId: slot.id,
         success: true,
       });
-      sendSuccessResponse(res, 201, ScheduleSlotSuccessResponseSchema, this.transformScheduleSlotForResponse(slot));
+      sendSuccessResponse(res, 201, ScheduleSlotSuccessResponseSchema, slot);
     } catch (error) {
       this.logger.error('createScheduleSlotWithVehicle: Error occurred', {
         error: error instanceof Error ? error.message : String(error),
@@ -202,7 +130,7 @@ export class ScheduleSlotController {
       SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
-      sendSuccessResponse(res, 201, ScheduleVehicleSuccessResponseSchema, this.transformScheduleSlotForResponse(result));
+      sendSuccessResponse(res, 201, ScheduleVehicleSuccessResponseSchema, result);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -269,7 +197,7 @@ export class ScheduleSlotController {
       SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
-      sendSuccessResponse(res, 200, ScheduleVehicleSuccessResponseSchema, this.transformScheduleSlotForResponse(result));
+      sendSuccessResponse(res, 200, ScheduleVehicleSuccessResponseSchema, result);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -336,9 +264,15 @@ export class ScheduleSlotController {
       endDate as string | undefined,
     );
 
-    this.logger.debug('📤 Controller sending response:', { schedule });
+    // Transform schedule slots to ensure ISO date strings
+    const transformedSchedule = {
+      ...schedule,
+      scheduleSlots: schedule.scheduleSlots?.map((slot: any) => slot),
+    };
 
-    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, schedule);
+    this.logger.debug('📤 Controller sending response:', { transformedSchedule });
+
+    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, transformedSchedule);
   };
 
   getScheduleSlotConflicts = async (req: Request, res: Response): Promise<void> => {
@@ -347,7 +281,7 @@ export class ScheduleSlotController {
     try {
       const conflicts = await this.scheduleSlotService.validateSlotConflicts(scheduleSlotId);
 
-      sendSuccessResponse(res, 200, ScheduleSlotConflictsSuccessResponseSchema, conflicts);
+      sendSuccessResponse(res, 200, ScheduleSlotConflictsSuccessResponseSchema, { conflicts });
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
@@ -431,7 +365,7 @@ export class ScheduleSlotController {
 
       const result = await this.scheduleSlotService.updateSeatOverride(updateData);
 
-      sendSuccessResponse(res, 200, ScheduleVehicleSuccessResponseSchema, this.transformScheduleSlotForResponse(result));
+      sendSuccessResponse(res, 200, ScheduleVehicleSuccessResponseSchema, result);
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         throw createError(error.message, 404);
