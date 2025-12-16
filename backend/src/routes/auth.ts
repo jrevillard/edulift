@@ -8,6 +8,7 @@ import { SimpleSuccessResponseSchema } from '../schemas/responses';
 import {
   RequestMagicLinkSchema,
   VerifyMagicLinkSchema,
+  VerifyMagicLinkQuerySchema,
   RefreshTokenSchema,
   LogoutSchema,
   UpdateProfileSchema,
@@ -28,7 +29,7 @@ router.post('/magic-link', validateBody(RequestMagicLinkSchema, { operationName:
 router.post('/verify',
   validateRequest({
     body: VerifyMagicLinkSchema,
-    query: VerifyMagicLinkSchema,
+    query: VerifyMagicLinkQuerySchema,
   }, { operationName: 'verifyMagicLink' }),
   asyncHandler(authController.verifyMagicLink),
 );

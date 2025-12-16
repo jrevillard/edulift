@@ -70,6 +70,19 @@ export const VerifyMagicLinkSchema = z.object({
   description: 'Verify magic link token and get JWT tokens',
 });
 
+// Query parameters for verify magic link endpoint
+export const VerifyMagicLinkQuerySchema = z.object({
+  inviteCode: z.string()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Invitation code for joining family or group (optional)',
+    }),
+}).openapi({
+  title: 'Verify Magic Link Query Parameters',
+  description: 'Query parameters for magic link verification',
+});
+
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string()
     .min(1, 'Refresh token is required')
@@ -337,14 +350,6 @@ export const ProfileUpdateResponseSchema = z.object({
   description: 'Successful profile update response with user data',
 });
 
-export const ProfileGetResponseSchema = z.object({
-  success: z.literal(true),
-  data: UserResponseSchema,
-}).openapi({
-  title: 'Profile Get Response',
-  description: 'Successful profile retrieval response with user data',
-});
-
 export const DeleteAccountResponseSchema = z.object({
   success: z.literal(true),
   data: z.object({
@@ -368,6 +373,7 @@ export const DeleteAccountResponseSchema = z.object({
 // Register schemas with OpenAPI registry
 registry.register('RequestMagicLink', RequestMagicLinkSchema);
 registry.register('VerifyMagicLink', VerifyMagicLinkSchema);
+registry.register('VerifyMagicLinkQuery', VerifyMagicLinkQuerySchema);
 registry.register('RefreshTokenRequest', RefreshTokenSchema);
 registry.register('LogoutRequest', LogoutSchema);
 registry.register('UpdateProfileRequest', UpdateProfileSchema);
@@ -377,7 +383,6 @@ registry.register('ConfirmAccountDeletion', ConfirmAccountDeletionSchema);
 registry.register('AuthResponse', AuthResponseSchema);
 registry.register('RefreshTokenResponse', RefreshTokenResponseSchema);
 registry.register('ProfileUpdateResponse', ProfileUpdateResponseSchema);
-registry.register('ProfileGetResponse', ProfileGetResponseSchema);
 registry.register('DeleteAccountResponse', DeleteAccountResponseSchema);
 
 
@@ -599,7 +604,7 @@ registerPath({
       description: 'Profile retrieved successfully',
       content: {
         'application/json': {
-          schema: { $ref: '#/components/schemas/ProfileGetResponse' },
+          schema: ProfileUpdateResponseSchema, // Reuse same response structure
         },
       },
     },
