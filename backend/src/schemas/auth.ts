@@ -176,7 +176,7 @@ export const ConfirmAccountDeletionSchema = z.object({
 
 // Response Schemas
 export const UserResponseSchema = z.object({
-  id: z.string()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'User ID',

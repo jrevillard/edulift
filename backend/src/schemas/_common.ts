@@ -155,43 +155,23 @@ export const BaseChildSchema = z.object({
   description: 'Common child fields shared across schemas',
 });
 
-// Base vehicle schema with common fields
+// Base vehicle schema with common fields - MATCHES PRISMA DATABASE STRUCTURE
 export const BaseVehicleSchema = z.object({
   id: z.string().cuid().openapi({
     example: 'cl123456789012345678901240',
     description: 'Vehicle identifier (CUID format)',
   }),
-  familyId: z.string().cuid().openapi({
-    example: 'cl123456789012345678901234',
-    description: 'Family identifier',
-  }),
   name: z.string().openapi({
-    example: 'Honda Odyssey',
-    description: 'Vehicle name or model',
+    example: 'School Bus 1',
+    description: 'Vehicle name',
   }),
-  make: z.string().openapi({
-    example: 'Honda',
-    description: 'Vehicle make',
-  }),
-  model: z.string().openapi({
-    example: 'Odyssey',
-    description: 'Vehicle model',
-  }),
-  year: z.number().int().min(1900).max(2100).openapi({
-    example: 2020,
-    description: 'Vehicle year',
-  }),
-  color: z.string().optional().openapi({
-    example: 'Blue',
-    description: 'Vehicle color',
-  }),
-  licensePlate: z.string().optional().openapi({
-    example: 'ABC-123',
-    description: 'Vehicle license plate',
-  }),
-  capacity: z.number().int().min(1).max(20).openapi({
-    example: 7,
+  capacity: z.number().int().min(1).max(50).openapi({
+    example: 30,
     description: 'Vehicle seat capacity',
+  }),
+  familyId: z.string().cuid().optional().openapi({
+    example: 'cl123456789012345678901234',
+    description: 'Family identifier that owns the vehicle',
   }),
   createdAt: z.iso.datetime().openapi({
     example: '2023-01-01T00:00:00.000Z',
@@ -203,7 +183,7 @@ export const BaseVehicleSchema = z.object({
   }),
 }).openapi({
   title: 'Base Vehicle',
-  description: 'Common vehicle fields shared across schemas',
+  description: 'Common vehicle fields matching Prisma database structure',
 });
 
 // Base family schema with common fields

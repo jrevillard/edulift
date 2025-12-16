@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry, registerPath } from '../config/registry';
+import { BaseVehicleSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -234,12 +235,7 @@ export const ScheduleVehicleAssignmentSchema = z.object({
   seatOverride: z.number().optional(),
   createdAt: z.string().datetime().optional(),
   updatedAt: z.string().datetime().optional(),
-  vehicle: z.object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    capacity: z.number().optional(),
-    familyId: z.string().optional(),
-  }).optional(),
+  vehicle: BaseVehicleSchema.optional(),
   driver: z.object({
     id: z.string().optional(),
     firstName: z.string().optional(),

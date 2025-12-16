@@ -85,6 +85,9 @@ export interface ScheduleSlotWithDetails {
       id: string;
       name: string;
       capacity: number;
+      familyId?: string;
+      createdAt?: string;
+      updatedAt?: string;
     };
     driver?: {
       id: string;
