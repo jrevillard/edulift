@@ -300,6 +300,10 @@ export class ScheduleSlotController {
       throw createError('Authentication required', 401);
     }
 
+    if (!childId) {
+      throw createError('Child ID is required', 400);
+    }
+
     // Get the schedule slot first to obtain groupId for WebSocket emissions
     const scheduleSlot = await this.scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {

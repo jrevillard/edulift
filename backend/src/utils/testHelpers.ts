@@ -54,6 +54,9 @@ export const TEST_IDS = {
   TRIP: 'cltesttrip11234567890123456',
   TRIP_2: 'cltesttrip21234567890123456',
 
+  // Vehicle Assignment IDs
+  VEHICLE_ASSIGNMENT: 'cltestvlassignment1234567890',
+
   // Invitation IDs
   INVITATION: 'cltestinvit123456789012345',
 

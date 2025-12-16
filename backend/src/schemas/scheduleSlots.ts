@@ -222,24 +222,33 @@ export const UpdateSeatOverrideSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-// Simplified Vehicle Assignment Schema that matches actual data structure
+// Vehicle Assignment Schema that matches actual database structure
 export const ScheduleVehicleAssignmentSchema = z.object({
   id: z.string().optional(),
+  vehicleId: z.string().optional(),
+  scheduleSlotId: z.string().optional(),
+  driverId: z.string().optional(),
+  groupId: z.string().optional(),
+  date: z.string().optional(),
+  assignedSeats: z.number().optional(),
+  seatOverride: z.number().optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
   vehicle: z.object({
     id: z.string().optional(),
     name: z.string().optional(),
     capacity: z.number().optional(),
+    familyId: z.string().optional(),
   }).optional(),
   driver: z.object({
     id: z.string().optional(),
-    name: z.string().optional(),
+    firstName: z.string().optional(),
+    lastName: z.string().optional(),
+    email: z.string().email().optional(),
   }).optional(),
-  seatOverride: z.number().optional(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
 }).openapi({
   title: 'Schedule Vehicle Assignment',
-  description: 'Vehicle assignment for schedule slot (minimal schema matching actual data)',
+  description: 'Vehicle assignment for schedule slot (matches Prisma database schema)',
 });
 
 export const ChildAssignmentSchema = z.object({
@@ -296,7 +305,7 @@ export const ScheduleSlotSchema = z.object({
   datetime: z.union([z.string(), z.date()])
     .openapi({
       example: '2023-12-15T08:00:00.000Z',
-      description: 'Schedule slot datetime (ISO string or Date object)',
+      description: 'Schedule slot datetime (ISO string or Date object - services return Date objects)',
     }),
   groupId: z.cuid()
     .openapi({
