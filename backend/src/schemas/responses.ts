@@ -126,7 +126,7 @@ const AuthDataSchema = z.object({
   invitationResult: z.any().optional(),
 });
 
-export const AuthSuccessResponseSchema = createSuccessResponseSchema(AuthDataSchema);
+export const AuthSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const RefreshTokenSuccessResponseSchema = createSuccessResponseSchema(
   z.object({
@@ -137,7 +137,7 @@ export const RefreshTokenSuccessResponseSchema = createSuccessResponseSchema(
   }),
 );
 
-export const ProfileSuccessResponseSchema = createSuccessResponseSchema(UserResponseSchema);
+export const ProfileSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const DeleteAccountSuccessResponseSchema = createSuccessResponseSchema(
   z.object({
@@ -146,21 +146,21 @@ export const DeleteAccountSuccessResponseSchema = createSuccessResponseSchema(
   }),
 );
 
-export const VehicleSuccessResponseSchema = createSuccessResponseSchema(VehicleResponseSchema);
+export const VehicleSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const VehiclesSuccessResponseSchema = createSuccessResponseSchema(
   z.array(VehicleResponseSchema),
 );
 
-export const ChildSuccessResponseSchema = createSuccessResponseSchema(ChildResponseSchema);
+export const ChildSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const ChildrenSuccessResponseSchema = createSuccessResponseSchema(
   z.array(ChildResponseSchema),
 );
 
-export const FamilySuccessResponseSchema = createSuccessResponseSchema(FamilyResponseSchema);
+export const FamilySuccessResponseSchema = UniversalSuccessResponseSchema;;
 
-export const GroupSuccessResponseSchema = createSuccessResponseSchema(GroupResponseSchema);
+export const GroupSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const GroupsSuccessResponseSchema = createSuccessResponseSchema(
   z.array(GroupResponseSchema),
@@ -176,14 +176,14 @@ export const DashboardStatsSuccessResponseSchema = createSuccessResponseSchema(
   }),
 );
 
-export const TodayScheduleSuccessResponseSchema = createSuccessResponseSchema(TodayScheduleResponseSchema);
+export const TodayScheduleSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
-export const RecentActivitySuccessResponseSchema = createSuccessResponseSchema(RecentActivityResponseSchema);
+export const RecentActivitySuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 /**
  * Dashboard stats response schema for user dashboard
  */
-export const UserDashboardStatsSuccessResponseSchema = createSuccessResponseSchema(DashboardStatsSchema);
+export const UserDashboardStatsSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 /**
  * Weekly dashboard data schema (matches DashboardService.getWeeklyDashboard response data)
@@ -367,19 +367,19 @@ export const WeeklyDashboardDataSchema = z.object({
     }),
 });
 
-export const WeeklyDashboardSuccessResponseSchema = createSuccessResponseSchema(WeeklyDashboardDataSchema);
+export const WeeklyDashboardSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
-export const FcmTokenSuccessResponseSchema = createSuccessResponseSchema(FcmTokenResponseSchema);
+export const FcmTokenSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const FcmTokensSuccessResponseSchema = createSuccessResponseSchema(
   z.array(FcmTokenResponseSchema),
 );
 
-export const ScheduleSuccessResponseSchema = createSuccessResponseSchema(ScheduleResponseSchema);
+export const ScheduleSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
-export const ScheduleSlotSuccessResponseSchema = createSuccessResponseSchema(ScheduleSlotSchema);
+export const ScheduleSlotSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
-export const ChildAssignmentSuccessResponseSchema = createSuccessResponseSchema(ChildAssignmentSchema);
+export const ChildAssignmentSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 export const AvailableChildrenSuccessResponseSchema = createSuccessResponseSchema(z.array(AvailableChildSchema));
 
@@ -392,9 +392,9 @@ export const ScheduleSlotConflictsSuccessResponseSchema = createSuccessResponseS
   })
 );
 
-export const ScheduleVehicleSuccessResponseSchema = createSuccessResponseSchema(ScheduleVehicleAssignmentSchema);
+export const ScheduleVehicleSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
-export const GroupScheduleConfigSuccessResponseSchema = createSuccessResponseSchema(ScheduleConfigSchema);
+export const GroupScheduleConfigSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 /**
  * Generic responses for simple operations
@@ -430,7 +430,7 @@ export const InvitationCreationResponseSchema = createSuccessResponseSchema(
 /**
  * User profile response schema
  */
-export const UserProfileSuccessResponseSchema = createSuccessResponseSchema(UserResponseSchema);
+export const UserProfileSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 // Register the schema
 registry.register('UserProfileSuccessResponse', UserProfileSuccessResponseSchema);
@@ -552,23 +552,17 @@ export const GroupInvitationValidationResponseSchema = z.object({
 /**
  * Wrapped family invitation validation response
  */
-export const FamilyInvitationValidationSuccessResponseSchema = createSuccessResponseSchema(
-  FamilyInvitationValidationResponseSchema,
-);
+export const FamilyInvitationValidationSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 /**
  * Wrapped group invitation validation response
  */
-export const GroupInvitationValidationSuccessResponseSchema = createSuccessResponseSchema(
-  GroupInvitationValidationResponseSchema,
-);
+export const GroupInvitationValidationSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 /**
  * Family group member response schema
  */
-export const FamilyGroupMemberSuccessResponseSchema = createSuccessResponseSchema(
-  FamilyGroupMemberSchema,
-);
+export const FamilyGroupMemberSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 /**
  * Family search results response schema
@@ -580,9 +574,7 @@ export const FamilySearchSuccessResponseSchema = createSuccessResponseSchema(
 /**
  * Group invitation response schema
  */
-export const GroupInvitationSuccessResponseSchema = createSuccessResponseSchema(
-  GroupInvitationSchema,
-);
+export const GroupInvitationSuccessResponseSchema = UniversalSuccessResponseSchema;;
 
 // Register all response schemas with OpenAPI registry
 registry.register('ErrorResponse', ErrorResponseSchema);

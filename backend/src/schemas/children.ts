@@ -112,7 +112,7 @@ export const ChildResponseSchema = BaseChildSchema.extend({
       description: 'Group memberships (included when fetching all children)',
     }),
 }).openapi({
-  title: 'Child Response',
+  title: 'Child Response_5',
   description: 'Complete child information with optional group memberships',
 });
 
