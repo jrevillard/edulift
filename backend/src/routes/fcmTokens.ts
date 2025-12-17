@@ -8,7 +8,7 @@ import { AuthenticatedRequest, authenticateToken } from '../middleware/auth';
 import { asyncHandler } from '../middleware/errorHandler';
 import { validateBody, validateParams } from '../middleware/validation';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
-import { FlexibleSuccessResponseSchema } from '../schemas/responses';
+import { VehicleSuccessResponseSchema } from '../schemas/responses';
 
 // Import centralized schemas to trigger OpenAPI registration (Pattern 100%)
 // This ensures all FCM schemas are properly documented in the OpenAPI specification
@@ -85,7 +85,7 @@ router.post('/', validateBody(SaveTokenSchema), asyncHandler(async (req: Authent
 
     const savedToken = await pushService.saveToken(tokenData);
 
-    sendSuccessResponse(res, 201, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 201, VehicleSuccessResponseSchema, {
       id: savedToken.id,
       fcmPlatform: savedToken.fcmPlatform,
       isActive: savedToken.isActive,
@@ -146,7 +146,7 @@ router.get('/', asyncHandler(async (req: AuthenticatedRequest, res: Response) =>
 
     logger.info('Retrieved FCM tokens:', { userId, tokenCount: tokens.length });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, { tokens });
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, { tokens });
   } catch (error) {
     logger.error('Error retrieving FCM tokens:', { error: error instanceof Error ? error.message : String(error) });
     sendErrorResponse(res, 500, 'Failed to retrieve FCM tokens');
@@ -215,7 +215,7 @@ router.delete('/:tokenId', validateParams(FcmTokenParamsSchema), asyncHandler(as
 
     logger.info('FCM token deleted successfully:', { tokenId, userId, platform: token.platform });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       message: 'FCM token deleted successfully',
     });
   } catch (error) {
@@ -289,7 +289,7 @@ router.post('/validate', validateBody(ValidateTokenSchema), asyncHandler(async (
 
     logger.info('Token validation result:', { userId, fcmPlatform, isValid });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       isValid,
       lastChecked: new Date().toISOString(),
     });
@@ -384,7 +384,7 @@ router.post('/subscribe-topic', validateBody(SubscribeTopicSchema), asyncHandler
       successfulSubscriptions,
     });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       topic,
       subscribedTokens: successfulSubscriptions,
       totalTokens: tokens.length,
@@ -477,7 +477,7 @@ router.post('/unsubscribe-topic', validateBody(SubscribeTopicSchema), asyncHandl
       successfulUnsubscriptions,
     });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       topic,
       unsubscribedTokens: successfulUnsubscriptions,
       totalTokens: tokens.length,
@@ -577,7 +577,7 @@ router.post('/test-notification', validateBody(TestNotificationSchema), asyncHan
       successfulSends,
     });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       message: 'Test notification sent',
       totalTokens: tokens.length,
       successfulSends,
@@ -632,7 +632,7 @@ router.delete('/cleanup-inactive', asyncHandler(async (req: AuthenticatedRequest
     });
 
     if (inactiveTokens.length === 0) {
-      sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+      sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
         message: 'No inactive tokens found',
         cleanedUpTokens: 0,
       });
@@ -654,7 +654,7 @@ router.delete('/cleanup-inactive', asyncHandler(async (req: AuthenticatedRequest
       cleanedUpTokens: inactiveTokens.length,
     });
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       message: 'Inactive tokens cleaned up successfully',
       cleanedUpTokens: inactiveTokens.length,
     });

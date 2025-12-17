@@ -9,8 +9,6 @@ import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry, registerPath } from '../config/registry';
 import {
-  BaseChildSchema,
-  BaseVehicleSchema,
   FamilyRoleEnum as CommonFamilyRoleEnum,
   InvitationStatusEnum as CommonInvitationStatusEnum,
 } from './_common';

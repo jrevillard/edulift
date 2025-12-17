@@ -8,10 +8,9 @@ import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { createLogger } from '../utils/logger';
 import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
 import {
-  FlexibleSuccessResponseSchema,
-  InvitationCreationResponseSchema,
   FamilyInvitationValidationSuccessResponseSchema,
   GroupInvitationValidationSuccessResponseSchema,
+  UniversalSuccessResponseSchema,
 } from '../schemas/responses';
 import {
   // Request schemas
@@ -103,7 +102,7 @@ router.post('/family', authenticateToken, asyncHandler(async (req: Authenticated
       adminId,
     );
 
-    sendSuccessResponse(res, 201, InvitationCreationResponseSchema, invitation);
+    sendSuccessResponse(res, 201, UniversalSuccessResponseSchema, invitation);
   } catch (error: any) {
     // Handle permission errors specifically
     const err = error as Error;
@@ -176,7 +175,7 @@ router.post('/family/:code/accept', authenticateToken, asyncHandler(async (req: 
       { leaveCurrentFamily },
     );
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, UniversalSuccessResponseSchema, {
       success: result.success,
     });
     return;
@@ -221,7 +220,7 @@ router.post('/group', authenticateToken, asyncHandler(async (req: AuthenticatedR
       adminId,
     );
 
-    sendSuccessResponse(res, 201, InvitationCreationResponseSchema, invitation);
+    sendSuccessResponse(res, 201, UniversalSuccessResponseSchema, invitation);
     return;
   } catch (error: any) {
     // Handle permission errors specifically
@@ -297,7 +296,7 @@ router.post('/group/:code/accept', authenticateToken, asyncHandler(async (req: A
   try {
     const result = await invitationService.acceptGroupInvitation(code, userId);
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, result);
+    sendSuccessResponse(res, 200, UniversalSuccessResponseSchema, result);
     return;
   } catch (error: any) {
     next(error);
@@ -311,7 +310,7 @@ router.get('/user', authenticateToken, asyncHandler(async (req: AuthenticatedReq
   try {
     const invitations = await invitationService.listUserInvitations(userId);
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, invitations);
+    sendSuccessResponse(res, 200, UniversalSuccessResponseSchema, invitations);
     return;
   } catch (error: any) {
     next(error);
@@ -333,7 +332,7 @@ router.delete('/family/:invitationId', authenticateToken, asyncHandler(async (re
   try {
     await invitationService.cancelFamilyInvitation(invitationId, adminId);
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, UniversalSuccessResponseSchema, {
       message: 'Invitation cancelled successfully',
     });
     return;
@@ -357,7 +356,7 @@ router.delete('/group/:invitationId', authenticateToken, asyncHandler(async (req
   try {
     await invitationService.cancelGroupInvitation(invitationId, adminId);
 
-    sendSuccessResponse(res, 200, FlexibleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, UniversalSuccessResponseSchema, {
       message: 'Invitation cancelled successfully',
     });
     return;

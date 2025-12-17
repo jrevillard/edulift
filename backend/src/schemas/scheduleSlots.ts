@@ -233,14 +233,14 @@ export const ScheduleVehicleAssignmentSchema = z.object({
   date: z.string().optional(),
   assignedSeats: z.number().optional(),
   seatOverride: z.number().optional(),
-  createdAt: z.string().datetime().optional(),
-  updatedAt: z.string().datetime().optional(),
+  createdAt: z.iso.datetime().optional(),
+  updatedAt: z.iso.datetime().optional(),
   vehicle: BaseVehicleSchema.optional(),
   driver: z.object({
     id: z.string().optional(),
     firstName: z.string().optional(),
     lastName: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.string().email('Invalid email format').optional(),
   }).optional(),
 }).openapi({
   title: 'Schedule Vehicle Assignment',
@@ -390,7 +390,7 @@ export const AvailableChildSchema = z.object({
 
 
 export const ScheduleResponseSchema = z.object({
-  groupId: z.string().cuid().openapi({
+  groupId: z.cuid().openapi({
     description: 'Group identifier',
   }),
   startDate: z.string().openapi({
@@ -414,7 +414,7 @@ export const ScheduleResponseSchema = z.object({
 // ============================================================================
 
 // Request schemas
-registry.register('CreateScheduleSlotWithVehicleRequest', CreateScheduleSlotWithVehicleSchema);
+registry.register('CreateScheduleSlotWithVehicleSchema', CreateScheduleSlotWithVehicleSchema);
 registry.register('AssignVehicleRequest', AssignVehicleSchema);
 registry.register('AssignChildRequest', AssignChildSchema);
 registry.register('UpdateDriverRequest', UpdateDriverSchema);

@@ -390,8 +390,6 @@ export const ErrorResponseSchema = z.object({
   description: 'Standard error response format',
 });
 
-// Success response wrapper factory - imported from responses.ts to avoid duplication
-export { createSuccessResponseSchema } from './responses';
 
 /**
  * Common Field Definitions

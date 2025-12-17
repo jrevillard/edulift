@@ -7,9 +7,6 @@ import { PrismaClient } from '@prisma/client';
 import { sendSuccessResponse } from '../utils/responseValidation';
 import {
   VehicleSuccessResponseSchema,
-  VehiclesSuccessResponseSchema,
-  ScheduleSuccessResponseSchema,
-  SimpleSuccessResponseSchema,
 } from '../schemas/responses';
 
 export class VehicleController {
@@ -116,7 +113,7 @@ export class VehicleController {
       userId: authReq.userId,
       vehicleCount: vehicles.length,
     });
-    sendSuccessResponse(res, 200, VehiclesSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       success: true,
       data: vehicles,
     });
@@ -242,8 +239,7 @@ export class VehicleController {
       success: true,
     });
 
-    // Extract the message from the service response for SimpleSuccessResponseSchema
-    sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       message: result.message,
     });
   };
@@ -278,7 +274,7 @@ export class VehicleController {
       vehicleId,
       success: true,
     });
-    sendSuccessResponse(res, 200, ScheduleSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       success: true,
       data: schedule,
     });
@@ -315,7 +311,7 @@ export class VehicleController {
       success: true,
       vehicleCount: availableVehicles.length,
     });
-    sendSuccessResponse(res, 200, VehiclesSuccessResponseSchema, {
+    sendSuccessResponse(res, 200, VehicleSuccessResponseSchema, {
       success: true,
       data: availableVehicles,
     });

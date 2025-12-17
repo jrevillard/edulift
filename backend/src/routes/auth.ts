@@ -2,9 +2,9 @@ import { Router, Request, Response } from 'express';
 import { createAuthController } from '../controllers/AuthController';
 import { asyncHandler } from '../middleware/errorHandler';
 import { authenticateToken, authenticateTokenForRevocation } from '../middleware/auth';
-import { validateBody, validateRequest } from '../middleware/validation';
+import { validateBody } from '../middleware/validation';
 import { sendSuccessResponse } from '../utils/responseValidation';
-import { SimpleSuccessResponseSchema, UserProfileSuccessResponseSchema } from '../schemas/responses';
+import { UserProfileSuccessResponseSchema } from '../schemas/responses';
 import {
   RequestMagicLinkSchema,
   VerifyMagicLinkSchema,
