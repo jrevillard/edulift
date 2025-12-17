@@ -5897,6 +5897,92 @@
         "title": "Schedule Response",
         "description": "Group schedule information with date range and slots"
       },
+      "FlexibleSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "description": "Dynamic response data"
+          }
+        },
+        "required": [
+          "success"
+        ],
+        "title": "Flexible Success Response",
+        "description": "Standard success response format with dynamic data payload"
+      },
+      "UserProfileSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "cuid",
+                "example": "cl123456789012345678901234",
+                "description": "User ID"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "example": "user@example.com",
+                "description": "User email address"
+              },
+              "name": {
+                "type": "string",
+                "example": "John Doe",
+                "description": "User display name"
+              },
+              "timezone": {
+                "type": "string",
+                "nullable": true,
+                "example": "America/New_York",
+                "description": "User timezone (IANA format)"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2023-01-01T00:00:00.000Z",
+                "description": "User creation timestamp"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "example": "2023-01-01T00:00:00.000Z",
+                "description": "Last update timestamp"
+              }
+            },
+            "required": [
+              "id",
+              "email",
+              "name",
+              "timezone",
+              "createdAt",
+              "updatedAt"
+            ],
+            "title": "User Response",
+            "description": "User profile information"
+          }
+        },
+        "required": [
+          "success",
+          "data"
+        ],
+        "title": "Success Response",
+        "description": "Standard success response format with data payload"
+      },
       "MagicLinkSuccessResponse": {
         "type": "object",
         "properties": {

@@ -390,16 +390,8 @@ export const ErrorResponseSchema = z.object({
   description: 'Standard error response format',
 });
 
-// Success response wrapper factory
-export const createSuccessResponseSchema = <T extends z.ZodType>(dataSchema: T) => {
-  return z.object({
-    success: z.literal(true),
-    data: dataSchema,
-  }).openapi({
-    title: 'Success Response',
-    description: 'Standard success response format',
-  });
-};
+// Success response wrapper factory - imported from responses.ts to avoid duplication
+export { createSuccessResponseSchema } from './responses';
 
 /**
  * Common Field Definitions

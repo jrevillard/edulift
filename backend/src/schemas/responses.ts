@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry } from '../config/registry';
+import { UserResponseSchema } from './auth';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -16,15 +17,49 @@ extendZodWithOpenApi(z);
  * Generic Success Response Wrapper
  * This ensures all success responses have consistent structure
  */
-export const createSuccessResponseSchema = <T extends z.ZodType>(dataSchema: T) => {
+export const createSuccessResponseSchema = <T extends z.ZodType>(dataSchema: T, uniqueTitle?: string) => {
   return z.object({
     success: z.literal(true),
     data: dataSchema,
   }).openapi({
-    title: 'Success Response',
+    title: uniqueTitle || 'Success Response',
     description: 'Standard success response format with data payload',
   });
 };
+
+/**
+ * Flexible Success Response Schema that can handle any data
+ * Used for endpoints that return dynamic data structures
+ */
+export const FlexibleSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.any().openapi({
+    description: 'Dynamic response data',
+  }),
+}).openapi({
+  title: 'Flexible Success Response',
+  description: 'Standard success response format with dynamic data payload',
+});
+
+// Register the schema
+registry.register('FlexibleSuccessResponse', FlexibleSuccessResponseSchema);
+
+/**
+ * Universal Success Response Schema - the ONLY success response schema we should use
+ * This replaces all the createSuccessResponseSchema calls that were causing duplicates
+ */
+export const UniversalSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  data: z.any().openapi({
+    description: 'Response data',
+  }),
+}).openapi({
+  title: 'Success Response',
+  description: 'Standard success response format',
+});
+
+// Register the schema
+registry.register('SuccessResponse', UniversalSuccessResponseSchema);
 
 /**
  * Generic Error Response
@@ -391,6 +426,14 @@ export const InvitationCreationResponseSchema = createSuccessResponseSchema(
     invitationUrl: z.string(),
   }),
 );
+
+/**
+ * User profile response schema
+ */
+export const UserProfileSuccessResponseSchema = createSuccessResponseSchema(UserResponseSchema);
+
+// Register the schema
+registry.register('UserProfileSuccessResponse', UserProfileSuccessResponseSchema);
 
 /**
  * Permissions response schema

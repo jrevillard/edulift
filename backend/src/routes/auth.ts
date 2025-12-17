@@ -4,7 +4,7 @@ import { asyncHandler } from '../middleware/errorHandler';
 import { authenticateToken, authenticateTokenForRevocation } from '../middleware/auth';
 import { validateBody, validateRequest } from '../middleware/validation';
 import { sendSuccessResponse } from '../utils/responseValidation';
-import { SimpleSuccessResponseSchema } from '../schemas/responses';
+import { SimpleSuccessResponseSchema, UserProfileSuccessResponseSchema } from '../schemas/responses';
 import {
   RequestMagicLinkSchema,
   VerifyMagicLinkSchema,
@@ -42,7 +42,7 @@ router.patch('/timezone', authenticateToken, validateBody(UpdateTimezoneSchema, 
 // Get user profile (protected route - used for testing auth middleware)
 router.get('/profile', authenticateToken, asyncHandler(async (req: Request, res: Response) => {
   const user = (req as any).user;
-  sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, user);
+  sendSuccessResponse(res, 200, UserProfileSuccessResponseSchema, user);
 }));
 
 
