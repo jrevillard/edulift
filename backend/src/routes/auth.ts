@@ -8,7 +8,6 @@ import { SimpleSuccessResponseSchema } from '../schemas/responses';
 import {
   RequestMagicLinkSchema,
   VerifyMagicLinkSchema,
-  VerifyMagicLinkQuerySchema,
   RefreshTokenSchema,
   LogoutSchema,
   UpdateProfileSchema,
@@ -26,13 +25,7 @@ const authController = createAuthController();
 router.post('/magic-link', validateBody(RequestMagicLinkSchema, { operationName: 'requestMagicLink' }), asyncHandler(authController.requestMagicLink));
 
 // Verify magic link and get JWT token
-router.post('/verify',
-  validateRequest({
-    body: VerifyMagicLinkSchema,
-    query: VerifyMagicLinkQuerySchema,
-  }, { operationName: 'verifyMagicLink' }),
-  asyncHandler(authController.verifyMagicLink),
-);
+router.post('/verify', validateBody(VerifyMagicLinkSchema, { operationName: 'verifyMagicLink' }), asyncHandler(authController.verifyMagicLink));
 
 // Refresh JWT token (using refresh token)
 router.post('/refresh', validateBody(RefreshTokenSchema, { operationName: 'refreshToken' }), asyncHandler(authController.refreshToken));

@@ -136,6 +136,11 @@
             "maxLength": 128,
             "example": "aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG",
             "description": "PKCE code verifier for security (required)"
+          },
+          "inviteCode": {
+            "type": "string",
+            "example": "cl123456789012345678901234",
+            "description": "Invitation code for joining family or group (optional)"
           }
         },
         "required": [
@@ -144,18 +149,6 @@
         ],
         "title": "Verify Magic Link",
         "description": "Verify magic link token and get JWT tokens"
-      },
-      "VerifyMagicLinkQuery": {
-        "type": "object",
-        "properties": {
-          "inviteCode": {
-            "type": "string",
-            "example": "cl123456789012345678901234",
-            "description": "Invitation code for joining family or group (optional)"
-          }
-        },
-        "title": "Verify Magic Link Query Parameters",
-        "description": "Query parameters for magic link verification"
       },
       "RefreshTokenRequest": {
         "type": "object",
@@ -10665,18 +10658,6 @@
         "description": "Verify the magic link token and code verifier to authenticate the user and receive JWT tokens",
         "security": [],
         "operationId": "postauthVerify",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "description": "Invitation code for joining family or group"
-            },
-            "required": false,
-            "description": "Invitation code for joining family or group",
-            "name": "inviteCode",
-            "in": "query"
-          }
-        ],
         "requestBody": {
           "content": {
             "application/json": {

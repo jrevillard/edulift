@@ -215,7 +215,7 @@ describe('AuthService PKCE Integration', () => {
       expect(mockedPkceUtils.clearPKCEData).toHaveBeenCalled();
     });
 
-    it('should include invite code in URL when provided', async () => {
+    it('should include invite code in request body when provided', async () => {
       const inviteCode = 'invite-123';
       mockedAxios.post.mockResolvedValue({
         data: { success: true, data: mockAuthResponse }
@@ -224,10 +224,11 @@ describe('AuthService PKCE Integration', () => {
       await authService.verifyMagicLink(testToken, inviteCode);
 
       expect(mockedAxios.post).toHaveBeenCalledWith(
-        expect.stringContaining(`/auth/verify?inviteCode=${encodeURIComponent(inviteCode)}`),
+        expect.stringContaining('/auth/verify'),
         expect.objectContaining({
           token: testToken,
-          code_verifier: mockPkcePair.code_verifier
+          code_verifier: mockPkcePair.code_verifier,
+          inviteCode: inviteCode
         })
       );
     });

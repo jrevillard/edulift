@@ -65,13 +65,6 @@ export const VerifyMagicLinkSchema = z.object({
       example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
       description: 'PKCE code verifier for security (required)',
     }),
-}).openapi({
-  title: 'Verify Magic Link',
-  description: 'Verify magic link token and get JWT tokens',
-});
-
-// Query parameters for verify magic link endpoint
-export const VerifyMagicLinkQuerySchema = z.object({
   inviteCode: z.string()
     .optional()
     .openapi({
@@ -79,9 +72,10 @@ export const VerifyMagicLinkQuerySchema = z.object({
       description: 'Invitation code for joining family or group (optional)',
     }),
 }).openapi({
-  title: 'Verify Magic Link Query Parameters',
-  description: 'Query parameters for magic link verification',
+  title: 'Verify Magic Link',
+  description: 'Verify magic link token and get JWT tokens',
 });
+
 
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string()
@@ -373,7 +367,6 @@ export const DeleteAccountResponseSchema = z.object({
 // Register schemas with OpenAPI registry
 registry.register('RequestMagicLink', RequestMagicLinkSchema);
 registry.register('VerifyMagicLink', VerifyMagicLinkSchema);
-registry.register('VerifyMagicLinkQuery', VerifyMagicLinkQuerySchema);
 registry.register('RefreshTokenRequest', RefreshTokenSchema);
 registry.register('LogoutRequest', LogoutSchema);
 registry.register('UpdateProfileRequest', UpdateProfileSchema);
@@ -442,9 +435,6 @@ registerPath({
         },
       },
     },
-    query: z.object({
-      inviteCode: z.string().optional().describe('Invitation code for joining family or group'),
-    }),
   },
   responses: {
     200: {

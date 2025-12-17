@@ -261,7 +261,7 @@ class AuthService {
     try {
       // Import PKCE utilities
       const { getPKCEVerifier, clearPKCEData, hasPKCEData } = await import('../utils/pkceUtils');
-      
+
       // Check if we have PKCE data
       if (!(await hasPKCEData())) {
         throw new Error('This magic link must be opened in the same browser/app where it was requested. Please return to your original browser/app and click the link again, or request a new magic link.');
@@ -273,11 +273,17 @@ class AuthService {
         throw new Error('Authentication security data not found. Please open this link in the same browser/app where you requested it, or request a new magic link.');
       }
 
-      const url = `${API_BASE_URL}/auth/verify${inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : ''}`;
-      const response = await axios.post<ApiResponse<AuthResponse>>(url, {
+      // Send everything in the body (clean REST design)
+      const requestBody = {
         token,
-        code_verifier: codeVerifier // Add PKCE verifier
-      });
+        code_verifier: codeVerifier, // Add PKCE verifier
+        ...(inviteCode && { inviteCode }) // Add inviteCode to body only if provided
+      };
+
+      const response = await axios.post<ApiResponse<AuthResponse>>(
+        `${API_BASE_URL}/auth/verify`,
+        requestBody
+      );
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || 'Failed to verify magic link');

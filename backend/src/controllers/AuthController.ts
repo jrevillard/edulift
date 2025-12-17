@@ -88,9 +88,8 @@ export class AuthController {
 
   verifyMagicLink = async (req: Request, res: Response): Promise<void> => {
     try {
-      // SECURITY: PKCE - Get token, code_verifier from request body and inviteCode from query
-      const { token, code_verifier } = req.body;
-      const inviteCode = req.query.inviteCode as string | undefined;
+      // SECURITY: PKCE - Get token, code_verifier, and inviteCode from request body
+      const { token, code_verifier, inviteCode } = req.body;
 
       this.logger.debug('AuthController verifyMagicLink', {
         token: token ? `${token.substring(0, 10)}...` : undefined,
