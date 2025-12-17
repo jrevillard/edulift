@@ -5916,6 +5916,25 @@
         "title": "Flexible Success Response",
         "description": "Standard success response format with dynamic data payload"
       },
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {
+            "description": "Response data"
+          }
+        },
+        "required": [
+          "success"
+        ],
+        "title": "Success Response",
+        "description": "Standard success response format"
+      },
       "UserProfileSuccessResponse": {
         "type": "object",
         "properties": {
