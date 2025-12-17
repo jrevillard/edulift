@@ -3046,6 +3046,23 @@
           "valid"
         ]
       },
+      "GroupScheduleConfigSuccessResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "data": {}
+        },
+        "required": [
+          "success"
+        ],
+        "title": "Success Response",
+        "description": "Standard success response format with data payload"
+      },
       "CreateGroupRequest": {
         "type": "object",
         "properties": {

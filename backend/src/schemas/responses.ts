@@ -446,3 +446,4 @@ registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('WeeklyDashboardData', WeeklyDashboardDataSchema);
 registry.register('FamilyInvitationValidationResponse', FamilyInvitationValidationResponseSchema);
 registry.register('GroupInvitationValidationResponse', GroupInvitationValidationResponseSchema);
+registry.register('GroupScheduleConfigSuccessResponse', GroupScheduleConfigSuccessResponseSchema);
