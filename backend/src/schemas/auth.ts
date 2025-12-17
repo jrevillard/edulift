@@ -181,7 +181,7 @@ export const ConfirmAccountDeletionSchema = z.object({
   description: 'Confirm account deletion using PKCE-protected token from email',
 });
 
-// Response Schemas
+// Response Schemas - Simple User schema for API compatibility
 export const UserResponseSchema = z.object({
   id: z.cuid()
     .openapi({
@@ -373,6 +373,7 @@ registry.register('UpdateProfileRequest', UpdateProfileSchema);
 registry.register('UpdateTimezoneRequest', UpdateTimezoneSchema);
 registry.register('RequestAccountDeletion', RequestAccountDeletionSchema);
 registry.register('ConfirmAccountDeletion', ConfirmAccountDeletionSchema);
+registry.register('UserResponse', UserResponseSchema);
 registry.register('AuthResponse', AuthResponseSchema);
 registry.register('RefreshTokenResponse', RefreshTokenResponseSchema);
 registry.register('ProfileUpdateResponse', ProfileUpdateResponseSchema);

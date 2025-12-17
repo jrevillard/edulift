@@ -14,6 +14,10 @@ import {
   FamilyRoleEnum as CommonFamilyRoleEnum,
   InvitationStatusEnum as CommonInvitationStatusEnum,
 } from './_common';
+// Import existing schemas instead of duplicating them
+import { UserResponseSchema } from './auth';
+import { VehicleResponseSchema } from './vehicles';
+import { ChildResponseSchema } from './children';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -175,26 +179,6 @@ export const FamilyInvitationParamsSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-export const UserSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'User identifier',
-    }),
-  email: z.email()
-    .openapi({
-      example: 'john.smith@example.com',
-      description: 'User email address',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'John Smith',
-      description: 'User display name',
-    }),
-}).openapi({
-  title: 'User',
-  description: 'User information',
-});
 
 export const FamilyMemberSchema = z.object({
   id: z.cuid()
@@ -221,7 +205,7 @@ export const FamilyMemberSchema = z.object({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the member joined the family',
     }),
-  user: UserSchema.openapi({
+  user: UserResponseSchema.openapi({
     description: 'User information',
   }),
 }).openapi({
@@ -229,16 +213,6 @@ export const FamilyMemberSchema = z.object({
   description: 'Family member information with user details',
 });
 
-// Re-export base schemas for family context
-export const ChildSchema = BaseChildSchema.openapi({
-  title: 'Family Child',
-  description: 'Child information in family context',
-});
-
-export const VehicleSchema = BaseVehicleSchema.openapi({
-  title: 'Family Vehicle',
-  description: 'Vehicle information in family context',
-});
 
 export const FamilyResponseSchema = z.object({
   id: z.cuid()
@@ -271,10 +245,10 @@ export const FamilyResponseSchema = z.object({
   members: z.array(FamilyMemberSchema).openapi({
     description: 'Family members with user information',
   }),
-  children: z.array(ChildSchema).openapi({
+  children: z.array(ChildResponseSchema).openapi({
     description: 'Family children',
   }),
-  vehicles: z.array(VehicleSchema).openapi({
+  vehicles: z.array(VehicleResponseSchema).openapi({
     description: 'Family vehicles',
   }),
   _count: z.object({
@@ -434,12 +408,10 @@ registry.register('FamilyMemberParams', FamilyMemberParamsSchema);
 registry.register('FamilyInvitationParams', FamilyInvitationParamsSchema);
 
 // Register response schemas
-registry.register('User', UserSchema);
 registry.register('FamilyMember', FamilyMemberSchema);
-registry.register('Child', ChildSchema);
-registry.register('Vehicle', VehicleSchema);
 registry.register('FamilyResponse', FamilyResponseSchema);
 registry.register('FamilyPermissions', FamilyPermissionsSchema);
+// UserResponse, VehicleResponse, and ChildResponse are registered in their respective files
 registry.register('FamilyInvitation', FamilyInvitationSchema);
 registry.register('InviteCodeValidation', InviteCodeValidationSchema);
 registry.register('LeaveFamilyResponse', LeaveFamilyResponseSchema);

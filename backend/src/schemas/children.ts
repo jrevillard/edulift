@@ -8,7 +8,7 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry, registerPath } from '../config/registry';
-import { WeekQuerySchema } from './_common';
+import { WeekQuerySchema, BaseChildSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -90,38 +90,13 @@ export const ChildGroupParamsSchema = z.object({
 });
 
 
-// Response Schemas
-export const ChildResponseSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Unique child identifier (CUID format)',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Emma Johnson',
-      description: 'Child full name',
-    }),
+// Response Schemas - Using BaseChildSchema for consistency
+export const ChildResponseSchema = BaseChildSchema.extend({
   age: z.number()
     .nullable()
     .openapi({
       example: 8,
       description: 'Child age (null if not specified)',
-    }),
-  familyId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901236',
-      description: 'Family identifier the child belongs to',
-    }),
-  createdAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Child creation timestamp',
-    }),
-  updatedAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Last update timestamp',
     }),
   groupMemberships: z.array(z.object({
     id: z.cuid(),
