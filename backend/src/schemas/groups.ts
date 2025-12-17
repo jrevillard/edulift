@@ -1257,10 +1257,7 @@ registerPath({
       description: 'Group schedule configuration retrieved successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ScheduleConfigSchema,
-          }),
+          schema: { $ref: '#/components/schemas/GroupScheduleConfigSuccessResponse' },
         },
       },
     },
@@ -1339,10 +1336,7 @@ registerPath({
       description: 'Group schedule configuration updated successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ScheduleConfigSchema,
-          }),
+          schema: { $ref: '#/components/schemas/GroupScheduleConfigSuccessResponse' },
         },
       },
     },
@@ -1376,10 +1370,7 @@ registerPath({
       description: 'Group schedule configuration reset successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ScheduleConfigSchema,
-          }),
+          schema: { $ref: '#/components/schemas/GroupScheduleConfigSuccessResponse' },
         },
       },
     },

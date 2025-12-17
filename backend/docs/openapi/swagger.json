@@ -1314,18 +1314,20 @@
           "id": {
             "type": "string",
             "format": "cuid",
-            "example": "cl123456789012345678901234",
-            "description": "Unique vehicle identifier (CUID format)"
+            "example": "cl123456789012345678901240",
+            "description": "Vehicle identifier (CUID format)"
           },
           "name": {
             "type": "string",
-            "example": "Honda Odyssey",
-            "description": "Vehicle name or model"
+            "example": "School Bus 1",
+            "description": "Vehicle name"
           },
           "capacity": {
             "type": "integer",
-            "example": 7,
-            "description": "Vehicle seating capacity"
+            "minimum": 1,
+            "maximum": 50,
+            "example": 30,
+            "description": "Vehicle seat capacity"
           },
           "familyId": {
             "type": "string",
@@ -1343,7 +1345,7 @@
             "type": "string",
             "format": "date-time",
             "example": "2023-01-01T00:00:00.000Z",
-            "description": "Last update timestamp"
+            "description": "Vehicle update timestamp"
           }
         },
         "required": [
@@ -1363,18 +1365,20 @@
           "id": {
             "type": "string",
             "format": "cuid",
-            "example": "cl123456789012345678901234",
-            "description": "Unique vehicle identifier (CUID format)"
+            "example": "cl123456789012345678901240",
+            "description": "Vehicle identifier (CUID format)"
           },
           "name": {
             "type": "string",
-            "example": "Honda Odyssey",
-            "description": "Vehicle name or model"
+            "example": "School Bus 1",
+            "description": "Vehicle name"
           },
           "capacity": {
             "type": "integer",
-            "example": 7,
-            "description": "Vehicle seating capacity"
+            "minimum": 1,
+            "maximum": 50,
+            "example": 30,
+            "description": "Vehicle seat capacity"
           },
           "currentAssignments": {
             "type": "integer",
@@ -6153,18 +6157,20 @@
               "id": {
                 "type": "string",
                 "format": "cuid",
-                "example": "cl123456789012345678901234",
-                "description": "Unique vehicle identifier (CUID format)"
+                "example": "cl123456789012345678901240",
+                "description": "Vehicle identifier (CUID format)"
               },
               "name": {
                 "type": "string",
-                "example": "Honda Odyssey",
-                "description": "Vehicle name or model"
+                "example": "School Bus 1",
+                "description": "Vehicle name"
               },
               "capacity": {
                 "type": "integer",
-                "example": 7,
-                "description": "Vehicle seating capacity"
+                "minimum": 1,
+                "maximum": 50,
+                "example": 30,
+                "description": "Vehicle seat capacity"
               },
               "familyId": {
                 "type": "string",
@@ -6182,7 +6188,7 @@
                 "type": "string",
                 "format": "date-time",
                 "example": "2023-01-01T00:00:00.000Z",
-                "description": "Last update timestamp"
+                "description": "Vehicle update timestamp"
               }
             },
             "required": [
@@ -6221,18 +6227,20 @@
                 "id": {
                   "type": "string",
                   "format": "cuid",
-                  "example": "cl123456789012345678901234",
-                  "description": "Unique vehicle identifier (CUID format)"
+                  "example": "cl123456789012345678901240",
+                  "description": "Vehicle identifier (CUID format)"
                 },
                 "name": {
                   "type": "string",
-                  "example": "Honda Odyssey",
-                  "description": "Vehicle name or model"
+                  "example": "School Bus 1",
+                  "description": "Vehicle name"
                 },
                 "capacity": {
                   "type": "integer",
-                  "example": 7,
-                  "description": "Vehicle seating capacity"
+                  "minimum": 1,
+                  "maximum": 50,
+                  "example": 30,
+                  "description": "Vehicle seat capacity"
                 },
                 "familyId": {
                   "type": "string",
@@ -6250,7 +6258,7 @@
                   "type": "string",
                   "format": "date-time",
                   "example": "2023-01-01T00:00:00.000Z",
-                  "description": "Last update timestamp"
+                  "description": "Vehicle update timestamp"
                 }
               },
               "required": [
@@ -11324,18 +11332,20 @@
                         "id": {
                           "type": "string",
                           "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Unique vehicle identifier (CUID format)"
+                          "example": "cl123456789012345678901240",
+                          "description": "Vehicle identifier (CUID format)"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Honda Odyssey",
-                          "description": "Vehicle name or model"
+                          "example": "School Bus 1",
+                          "description": "Vehicle name"
                         },
                         "capacity": {
                           "type": "integer",
-                          "example": 7,
-                          "description": "Vehicle seating capacity"
+                          "minimum": 1,
+                          "maximum": 50,
+                          "example": 30,
+                          "description": "Vehicle seat capacity"
                         },
                         "familyId": {
                           "type": "string",
@@ -11353,7 +11363,7 @@
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Last update timestamp"
+                          "description": "Vehicle update timestamp"
                         }
                       },
                       "required": [
@@ -11421,18 +11431,20 @@
                           "id": {
                             "type": "string",
                             "format": "cuid",
-                            "example": "cl123456789012345678901234",
-                            "description": "Unique vehicle identifier (CUID format)"
+                            "example": "cl123456789012345678901240",
+                            "description": "Vehicle identifier (CUID format)"
                           },
                           "name": {
                             "type": "string",
-                            "example": "Honda Odyssey",
-                            "description": "Vehicle name or model"
+                            "example": "School Bus 1",
+                            "description": "Vehicle name"
                           },
                           "capacity": {
                             "type": "integer",
-                            "example": 7,
-                            "description": "Vehicle seating capacity"
+                            "minimum": 1,
+                            "maximum": 50,
+                            "example": 30,
+                            "description": "Vehicle seat capacity"
                           },
                           "familyId": {
                             "type": "string",
@@ -11450,7 +11462,7 @@
                             "type": "string",
                             "format": "date-time",
                             "example": "2023-01-01T00:00:00.000Z",
-                            "description": "Last update timestamp"
+                            "description": "Vehicle update timestamp"
                           }
                         },
                         "required": [
@@ -11544,18 +11556,20 @@
                           "id": {
                             "type": "string",
                             "format": "cuid",
-                            "example": "cl123456789012345678901234",
-                            "description": "Unique vehicle identifier (CUID format)"
+                            "example": "cl123456789012345678901240",
+                            "description": "Vehicle identifier (CUID format)"
                           },
                           "name": {
                             "type": "string",
-                            "example": "Honda Odyssey",
-                            "description": "Vehicle name or model"
+                            "example": "School Bus 1",
+                            "description": "Vehicle name"
                           },
                           "capacity": {
                             "type": "integer",
-                            "example": 7,
-                            "description": "Vehicle seating capacity"
+                            "minimum": 1,
+                            "maximum": 50,
+                            "example": 30,
+                            "description": "Vehicle seat capacity"
                           },
                           "currentAssignments": {
                             "type": "integer",
@@ -11656,18 +11670,20 @@
                         "id": {
                           "type": "string",
                           "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Unique vehicle identifier (CUID format)"
+                          "example": "cl123456789012345678901240",
+                          "description": "Vehicle identifier (CUID format)"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Honda Odyssey",
-                          "description": "Vehicle name or model"
+                          "example": "School Bus 1",
+                          "description": "Vehicle name"
                         },
                         "capacity": {
                           "type": "integer",
-                          "example": 7,
-                          "description": "Vehicle seating capacity"
+                          "minimum": 1,
+                          "maximum": 50,
+                          "example": 30,
+                          "description": "Vehicle seat capacity"
                         },
                         "familyId": {
                           "type": "string",
@@ -11685,7 +11701,7 @@
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Last update timestamp"
+                          "description": "Vehicle update timestamp"
                         }
                       },
                       "required": [
@@ -11777,18 +11793,20 @@
                         "id": {
                           "type": "string",
                           "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Unique vehicle identifier (CUID format)"
+                          "example": "cl123456789012345678901240",
+                          "description": "Vehicle identifier (CUID format)"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Honda Odyssey",
-                          "description": "Vehicle name or model"
+                          "example": "School Bus 1",
+                          "description": "Vehicle name"
                         },
                         "capacity": {
                           "type": "integer",
-                          "example": 7,
-                          "description": "Vehicle seating capacity"
+                          "minimum": 1,
+                          "maximum": 50,
+                          "example": 30,
+                          "description": "Vehicle seat capacity"
                         },
                         "familyId": {
                           "type": "string",
@@ -11806,7 +11824,7 @@
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Last update timestamp"
+                          "description": "Vehicle update timestamp"
                         }
                       },
                       "required": [
@@ -17876,89 +17894,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901240",
-                          "description": "Schedule configuration identifier"
-                        },
-                        "groupId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Group identifier"
-                        },
-                        "scheduleHours": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "example": {
-                            "MONDAY": [
-                              "07:00",
-                              "07:30",
-                              "08:00",
-                              "15:00",
-                              "15:30",
-                              "16:00"
-                            ],
-                            "FRIDAY": [
-                              "07:00",
-                              "07:30",
-                              "08:00",
-                              "15:00",
-                              "16:00"
-                            ]
-                          },
-                          "description": "Schedule hours by day of week (HH:MM format)"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Configuration creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Configuration update timestamp"
-                        },
-                        "isDefault": {
-                          "type": "boolean",
-                          "example": false,
-                          "description": "Whether this is default configuration"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "groupId",
-                        "scheduleHours",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "ScheduleConfig",
-                      "description": "Group schedule configuration with time slots"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
+                  "$ref": "#/components/schemas/GroupScheduleConfigSuccessResponse"
                 }
               }
             }
@@ -18018,89 +17954,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901240",
-                          "description": "Schedule configuration identifier"
-                        },
-                        "groupId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Group identifier"
-                        },
-                        "scheduleHours": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "example": {
-                            "MONDAY": [
-                              "07:00",
-                              "07:30",
-                              "08:00",
-                              "15:00",
-                              "15:30",
-                              "16:00"
-                            ],
-                            "FRIDAY": [
-                              "07:00",
-                              "07:30",
-                              "08:00",
-                              "15:00",
-                              "16:00"
-                            ]
-                          },
-                          "description": "Schedule hours by day of week (HH:MM format)"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Configuration creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Configuration update timestamp"
-                        },
-                        "isDefault": {
-                          "type": "boolean",
-                          "example": false,
-                          "description": "Whether this is default configuration"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "groupId",
-                        "scheduleHours",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "ScheduleConfig",
-                      "description": "Group schedule configuration with time slots"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
+                  "$ref": "#/components/schemas/GroupScheduleConfigSuccessResponse"
                 }
               }
             }
@@ -18281,89 +18135,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901240",
-                          "description": "Schedule configuration identifier"
-                        },
-                        "groupId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Group identifier"
-                        },
-                        "scheduleHours": {
-                          "type": "object",
-                          "additionalProperties": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
-                          },
-                          "example": {
-                            "MONDAY": [
-                              "07:00",
-                              "07:30",
-                              "08:00",
-                              "15:00",
-                              "15:30",
-                              "16:00"
-                            ],
-                            "FRIDAY": [
-                              "07:00",
-                              "07:30",
-                              "08:00",
-                              "15:00",
-                              "16:00"
-                            ]
-                          },
-                          "description": "Schedule hours by day of week (HH:MM format)"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Configuration creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Configuration update timestamp"
-                        },
-                        "isDefault": {
-                          "type": "boolean",
-                          "example": false,
-                          "description": "Whether this is default configuration"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "groupId",
-                        "scheduleHours",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "ScheduleConfig",
-                      "description": "Group schedule configuration with time slots"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
+                  "$ref": "#/components/schemas/GroupScheduleConfigSuccessResponse"
                 }
               }
             }

@@ -8,6 +8,9 @@
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry, registerPath } from '../config/registry';
+
+// Import BaseVehicleSchema from _common
+import { BaseVehicleSchema } from './_common';
 import { WeekQuerySchema } from './_common';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 
@@ -90,61 +93,23 @@ export const AvailableVehiclesParamsSchema = z.object({
 });
 
 
-// Response Schemas
-export const VehicleResponseSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Unique vehicle identifier (CUID format)',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Honda Odyssey',
-      description: 'Vehicle name or model',
-    }),
-  capacity: z.number()
-    .int()
-    .openapi({
-      example: 7,
-      description: 'Vehicle seating capacity',
-    }),
+// Response Schemas - Using BaseVehicleSchema for consistency
+export const VehicleResponseSchema = BaseVehicleSchema.extend({
   familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Family identifier that owns the vehicle',
-    }),
-  createdAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Vehicle creation timestamp',
-    }),
-  updatedAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Last update timestamp',
     }),
 }).openapi({
   title: 'Vehicle Response',
   description: 'Complete vehicle information',
 });
 
-export const AvailableVehicleSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Unique vehicle identifier (CUID format)',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Honda Odyssey',
-      description: 'Vehicle name or model',
-    }),
-  capacity: z.number()
-    .int()
-    .openapi({
-      example: 7,
-      description: 'Vehicle seating capacity',
-    }),
+export const AvailableVehicleSchema = BaseVehicleSchema.pick({
+  id: true,
+  name: true,
+  capacity: true,
+}).extend({
   currentAssignments: z.number()
     .int()
     .openapi({
