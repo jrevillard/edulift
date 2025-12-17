@@ -98,15 +98,19 @@ export const DashboardStatsSchema = z.object({
     }),
   trends: z.object({
     groups: TrendDataSchema.openapi({
+      title: 'Groups Trend Data',
       description: 'Groups trend information',
     }),
     children: TrendDataSchema.openapi({
+      title: 'Children Trend Data',
       description: 'Children trend information',
     }),
     vehicles: TrendDataSchema.openapi({
+      title: 'Vehicles Trend Data',
       description: 'Vehicles trend information',
     }),
     trips: TrendDataSchema.openapi({
+      title: 'Trips Trend Data',
       description: 'Trips trend information',
     }),
   }).openapi({
@@ -451,7 +455,6 @@ registry.register('WeeklyDashboardQuery', WeeklyDashboardQuerySchema);
 // Register response schemas
 registry.register('TrendDirection', TrendDirectionEnum);
 registry.register('ActivityType', ActivityTypeEnum);
-registry.register('TrendData', TrendDataSchema);
 registry.register('DashboardStats', DashboardStatsSchema);
 registry.register('TripChild', TripChildSchema);
 registry.register('TripVehicle', TripVehicleSchema);

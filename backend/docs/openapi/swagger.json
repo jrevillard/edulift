@@ -3990,38 +3990,6 @@
         "description": "Type of activity in the dashboard",
         "example": "group"
       },
-      "TrendData": {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string",
-            "example": "Active",
-            "description": "Trend value"
-          },
-          "direction": {
-            "type": "string",
-            "enum": [
-              "up",
-              "down",
-              "neutral"
-            ],
-            "description": "Trend direction",
-            "example": "neutral"
-          },
-          "period": {
-            "type": "string",
-            "example": "current",
-            "description": "Time period for the trend"
-          }
-        },
-        "required": [
-          "value",
-          "direction",
-          "period"
-        ],
-        "title": "Trend Data",
-        "description": "Trend information for dashboard statistics"
-      },
       "DashboardStats": {
         "type": "object",
         "properties": {
@@ -4081,7 +4049,7 @@
                   "direction",
                   "period"
                 ],
-                "title": "Trend Data",
+                "title": "Groups Trend Data",
                 "description": "Groups trend information"
               },
               "children": {
@@ -4113,7 +4081,7 @@
                   "direction",
                   "period"
                 ],
-                "title": "Trend Data",
+                "title": "Children Trend Data",
                 "description": "Children trend information"
               },
               "vehicles": {
@@ -4145,7 +4113,7 @@
                   "direction",
                   "period"
                 ],
-                "title": "Trend Data",
+                "title": "Vehicles Trend Data",
                 "description": "Vehicles trend information"
               },
               "trips": {
@@ -4177,7 +4145,7 @@
                   "direction",
                   "period"
                 ],
-                "title": "Trend Data",
+                "title": "Trips Trend Data",
                 "description": "Trips trend information"
               }
             },
@@ -14735,7 +14703,7 @@
                                 "direction",
                                 "period"
                               ],
-                              "title": "Trend Data",
+                              "title": "Groups Trend Data",
                               "description": "Groups trend information"
                             },
                             "children": {
@@ -14767,7 +14735,7 @@
                                 "direction",
                                 "period"
                               ],
-                              "title": "Trend Data",
+                              "title": "Children Trend Data",
                               "description": "Children trend information"
                             },
                             "vehicles": {
@@ -14799,7 +14767,7 @@
                                 "direction",
                                 "period"
                               ],
-                              "title": "Trend Data",
+                              "title": "Vehicles Trend Data",
                               "description": "Vehicles trend information"
                             },
                             "trips": {
@@ -14831,7 +14799,7 @@
                                 "direction",
                                 "period"
                               ],
-                              "title": "Trend Data",
+                              "title": "Trips Trend Data",
                               "description": "Trips trend information"
                             }
                           },
