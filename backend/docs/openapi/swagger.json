@@ -1153,6 +1153,76 @@
         "title": "Error Response",
         "description": "Standard error response format"
       },
+      "ScheduleConfig": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "cuid",
+            "example": "cl123456789012345678901240",
+            "description": "Schedule configuration identifier"
+          },
+          "groupId": {
+            "type": "string",
+            "format": "cuid",
+            "example": "cl123456789012345678901234",
+            "description": "Group identifier"
+          },
+          "scheduleHours": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "MONDAY": [
+                "07:00",
+                "07:30",
+                "08:00",
+                "15:00",
+                "15:30",
+                "16:00"
+              ],
+              "FRIDAY": [
+                "07:00",
+                "07:30",
+                "08:00",
+                "15:00",
+                "16:00"
+              ]
+            },
+            "description": "Schedule hours by day of week (HH:MM format)"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-01T00:00:00.000Z",
+            "description": "Configuration creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2023-01-01T00:00:00.000Z",
+            "description": "Configuration update timestamp"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": false,
+            "description": "Whether this is default configuration"
+          }
+        },
+        "required": [
+          "id",
+          "groupId",
+          "scheduleHours",
+          "createdAt",
+          "updatedAt"
+        ],
+        "title": "ScheduleConfig",
+        "description": "Group schedule configuration with time slots"
+      },
       "CreateVehicleRequest": {
         "type": "object",
         "properties": {
@@ -3347,76 +3417,6 @@
         ],
         "title": "Group Membership",
         "description": "Family membership in a group"
-      },
-      "ScheduleConfig": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "cuid",
-            "example": "cl123456789012345678901240",
-            "description": "Schedule configuration identifier"
-          },
-          "groupId": {
-            "type": "string",
-            "format": "cuid",
-            "example": "cl123456789012345678901234",
-            "description": "Group identifier"
-          },
-          "scheduleHours": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            "example": {
-              "MONDAY": [
-                "07:00",
-                "07:30",
-                "08:00",
-                "15:00",
-                "15:30",
-                "16:00"
-              ],
-              "FRIDAY": [
-                "07:00",
-                "07:30",
-                "08:00",
-                "15:00",
-                "16:00"
-              ]
-            },
-            "description": "Schedule hours by day of week (HH:MM format)"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2023-01-01T00:00:00.000Z",
-            "description": "Configuration creation timestamp"
-          },
-          "updatedAt": {
-            "type": "string",
-            "format": "date-time",
-            "example": "2023-01-01T00:00:00.000Z",
-            "description": "Configuration update timestamp"
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": false,
-            "description": "Whether this is default configuration"
-          }
-        },
-        "required": [
-          "id",
-          "groupId",
-          "scheduleHours",
-          "createdAt",
-          "updatedAt"
-        ],
-        "title": "Group Schedule Configuration",
-        "description": "Group schedule configuration"
       },
       "TimeSlotsResponse": {
         "type": "object",
@@ -9560,8 +9560,8 @@
               "createdAt",
               "updatedAt"
             ],
-            "title": "Group Schedule Configuration",
-            "description": "Group schedule configuration"
+            "title": "ScheduleConfig",
+            "description": "Group schedule configuration with time slots"
           }
         },
         "required": [
@@ -17951,8 +17951,8 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "title": "Group Schedule Configuration",
-                      "description": "Group schedule configuration"
+                      "title": "ScheduleConfig",
+                      "description": "Group schedule configuration with time slots"
                     }
                   },
                   "required": [
@@ -18093,8 +18093,8 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "title": "Group Schedule Configuration",
-                      "description": "Group schedule configuration"
+                      "title": "ScheduleConfig",
+                      "description": "Group schedule configuration with time slots"
                     }
                   },
                   "required": [
@@ -18356,8 +18356,8 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "title": "Group Schedule Configuration",
-                      "description": "Group schedule configuration"
+                      "title": "ScheduleConfig",
+                      "description": "Group schedule configuration with time slots"
                     }
                   },
                   "required": [

@@ -14,6 +14,7 @@ import {
   WeekdayEnum,
   InvitationStatusEnum,
   DateRangeQuerySchema,
+  ScheduleConfigSchema,
 } from './_common';
 
 // Extend Zod with OpenAPI capabilities
@@ -169,7 +170,7 @@ const isValidTimeFormat = (time: string): boolean => {
   return timeRegex.test(time);
 };
 
-export const UpdateScheduleConfigSchema = z.object({
+export const UpdateGroupScheduleConfigSchema = z.object({
   scheduleHours: z.record(z.string(), z.array(z.string()))
     .refine(
       (schedule) => Object.entries(schedule).every(([day, times]) =>
@@ -552,42 +553,8 @@ export const GroupMembershipSchema = z.object({
   description: 'Family membership in a group',
 });
 
-export const ScheduleConfigSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901240',
-      description: 'Schedule configuration identifier',
-    }),
-  groupId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Group identifier',
-    }),
-  scheduleHours: z.record(z.string(), z.array(z.string())).openapi({
-    example: {
-      MONDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
-      FRIDAY: ['07:00', '07:30', '08:00', '15:00', '16:00'],
-    },
-    description: 'Schedule hours by day of week (HH:MM format)',
-  }),
-  createdAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Configuration creation timestamp',
-    }),
-  updatedAt: z.iso.datetime()
-    .openapi({
-      example: '2023-01-01T00:00:00.000Z',
-      description: 'Configuration update timestamp',
-    }),
-  isDefault: z.boolean().optional().openapi({
-    example: false,
-    description: 'Whether this is default configuration',
-  }),
-}).openapi({
-  title: 'Group Schedule Configuration',
-  description: 'Group schedule configuration',
-});
+// Re-export ScheduleConfigSchema from _common for consistency
+export { ScheduleConfigSchema };
 
 export const TimeSlotsResponseSchema = z.object({
   groupId: z.cuid()
@@ -632,7 +599,7 @@ registry.register('UpdateFamilyRoleRequest', UpdateFamilyRoleSchema);
 registry.register('InviteFamilyRequest', InviteFamilySchema);
 registry.register('SearchFamiliesRequest', SearchFamiliesSchema);
 registry.register('ValidateInviteRequest', ValidateInviteSchema);
-registry.register('UpdateScheduleConfigRequest', UpdateScheduleConfigSchema);
+registry.register('UpdateScheduleConfigRequest', UpdateGroupScheduleConfigSchema);
 
 // Register parameter schemas
 registry.register('GroupParams', GroupParamsSchema);
@@ -648,7 +615,7 @@ registry.register('FamilySearchResult', FamilySearchResultSchema);
 registry.register('GroupInvitation', GroupInvitationSchema);
 registry.register('InvitationValidation', InvitationValidationSchema);
 registry.register('GroupMembership', GroupMembershipSchema);
-registry.register('ScheduleConfig', ScheduleConfigSchema);
+// ScheduleConfig is already registered in _common.ts
 registry.register('TimeSlotsResponse', TimeSlotsResponseSchema);
 registry.register('DefaultScheduleResponse', DefaultScheduleResponseSchema);
 

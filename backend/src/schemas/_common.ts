@@ -421,6 +421,43 @@ export const CommonFields = {
 };
 
 /**
+ * Schedule Configuration Schema
+ * Centralized schedule configuration type used across the system
+ */
+export const ScheduleConfigSchema = z.object({
+  id: z.cuid().openapi({
+    example: 'cl123456789012345678901240',
+    description: 'Schedule configuration identifier',
+  }),
+  groupId: z.cuid().openapi({
+    example: 'cl123456789012345678901234',
+    description: 'Group identifier',
+  }),
+  scheduleHours: z.record(z.string(), z.array(z.string())).openapi({
+    example: {
+      MONDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+      FRIDAY: ['07:00', '07:30', '08:00', '15:00', '16:00'],
+    },
+    description: 'Schedule hours by day of week (HH:MM format)',
+  }),
+  createdAt: z.iso.datetime().openapi({
+    example: '2023-01-01T00:00:00.000Z',
+    description: 'Configuration creation timestamp',
+  }),
+  updatedAt: z.iso.datetime().openapi({
+    example: '2023-01-01T00:00:00.000Z',
+    description: 'Configuration update timestamp',
+  }),
+  isDefault: z.boolean().optional().openapi({
+    example: false,
+    description: 'Whether this is default configuration',
+  }),
+}).openapi({
+  title: 'ScheduleConfig',
+  description: 'Group schedule configuration with time slots',
+});
+
+/**
  * Utility Functions
  */
 
@@ -458,6 +495,7 @@ registry.register('DateRangeQuery', DateRangeQuerySchema);
 
 // Register error and response schemas
 registry.register('ErrorResponse', ErrorResponseSchema);
+registry.register('ScheduleConfig', ScheduleConfigSchema);
 
 /**
  * Exports
