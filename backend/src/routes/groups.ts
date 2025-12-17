@@ -18,7 +18,7 @@ import {
   GroupParamsSchema,
   InvitationParamsSchema,
   FamilyRoleParamsSchema,
-  UpdateScheduleConfigSchema,
+  UpdateGroupScheduleConfigSchema,
 } from '../schemas/groups';
 import {
   CreateGroupSchema,
@@ -179,7 +179,7 @@ router.get('/:groupId/schedule-config/time-slots',
 // Update group schedule configuration (admin only)
 router.put('/:groupId/schedule-config',
   validateParams(GroupParamsSchema),
-  validateBody(UpdateScheduleConfigSchema, { operationName: 'updateGroupScheduleConfig' }),
+  validateBody(UpdateGroupScheduleConfigSchema, { operationName: 'updateGroupScheduleConfig' }),
   asyncHandler(requireGroupAdmin),
   asyncHandler(groupScheduleConfigController.updateGroupScheduleConfig),
 );
