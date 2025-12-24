@@ -234,3 +234,65 @@ export const setupMaliciousUrlTest = function setupMaliciousUrlTest(maliciousUrl
     DEEP_LINK_BASE_URL: maliciousUrl,
   });
 };
+
+/**
+ * Unwrap standardized API response for backward compatibility with tests
+ *
+ * Tests were written for the old response format (direct data objects),
+ * but controllers now return the new standardized format {success, data}.
+ *
+ * This helper unwraps the new format to return just the data portion,
+ * allowing existing tests to work with minimal changes.
+ *
+ * @param response - The response from the controller (either old or new format)
+ * @returns The data portion of the response, or the original response if not in new format
+ *
+ * @example
+ * // Old format (what tests expect):
+ * { id: 'cl...', name: 'Test Group' }
+ *
+ * // New format (what controllers now return):
+ * { success: true, data: { id: 'cl...', name: 'Test Group' } }
+ *
+ * // Usage in tests:
+ * const result = await responseJson(response);
+ * const data = unwrapResponse(result);
+ * expect(data).toEqual({ id: 'cl...', name: 'Test Group' });
+ */
+export const unwrapResponse = <T = any>(response: any): T => {
+  // Check if response is in new standardized format
+  if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+    return response.data as T;
+  }
+  // Return as-is for old format or error responses
+  return response as T;
+};
+
+/**
+ * Extract error message from standardized error response
+ *
+ * @param response - The error response from the controller
+ * @returns The error message string
+ *
+ * @example
+ * const result = await responseJson(response);
+ * const errorMessage = unwrapError(result);
+ * expect(errorMessage).toBe('Invalid invitation code');
+ */
+export const unwrapError = (response: any): string => {
+  if (response && typeof response === 'object') {
+    // New format: { success: false, error: 'message', code: 'ERROR_CODE' }
+    if ('success' in response && 'error' in response) {
+      return response.error as string;
+    }
+    // Old format: { error: 'message' }
+    if ('error' in response) {
+      return response.error as string;
+    }
+    // Direct error message string
+    if (typeof response === 'string') {
+      return response;
+    }
+  }
+  return String(response);
+};

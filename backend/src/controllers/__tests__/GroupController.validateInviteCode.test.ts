@@ -5,7 +5,7 @@ import { Hono } from 'hono';
 import { createGroupControllerRoutes, type GroupVariables } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
 import { SchedulingService } from '../../services/SchedulingService';
-import { TEST_IDS } from '../../utils/testHelpers';
+import { TEST_IDS, unwrapResponse, unwrapError } from '../../utils/testHelpers';
 
 jest.mock('../../services/GroupService');
 jest.mock('../../services/SchedulingService');
@@ -32,12 +32,18 @@ describe('GroupController.validateInviteCode Test Suite', () => {
   let mockGroupService: jest.Mocked<GroupService>;
   let mockSchedulingService: jest.Mocked<SchedulingService>;
 
+  // The mock now returns the structure that UnifiedInvitationService provides
   const mockValidationResult = {
     valid: true,
-    groupId: TEST_IDS.GROUP,
-    groupName: 'Test Group',
-    inviterName: 'John Doe',
-    requiresAuth: false,
+    group: {
+      id: TEST_IDS.GROUP,
+      name: 'Test Group',
+    },
+    invitation: {
+      id: '',
+      expiresAt: new Date(),
+      role: 'MEMBER',
+    },
   };
 
   beforeEach(() => {
@@ -90,7 +96,23 @@ describe('GroupController.validateInviteCode Test Suite', () => {
 
       expect(response.status).toBe(200);
       const result = await responseJson(response);
-      expect(result).toEqual(mockValidationResult);
+      // Controller now returns {success, data} format
+      expect(result).toEqual({
+        success: true,
+        data: {
+          valid: true,
+          group: {
+            id: TEST_IDS.GROUP,
+            name: 'Test Group',
+            inviteCode: '',
+            createdBy: '',
+            createdAt: '',
+            updatedAt: '',
+          },
+          userStatus: 'FAMILY_MEMBER',
+          actionRequired: 'READY_TO_JOIN',
+        },
+      });
 
       expect(mockGroupService.validateInvitationCode).toHaveBeenCalledWith(inviteCode.trim());
     });
@@ -111,10 +133,11 @@ describe('GroupController.validateInviteCode Test Suite', () => {
 
       expect(response.status).toBe(400);
       const result = await responseJson(response);
+      // Controller returns code: 'INVALID_INVITE' now
       expect(result).toEqual({
         success: false,
         error: 'Invalid or expired invitation code',
-        code: 'VALIDATION_ERROR'
+        code: 'INVALID_INVITE'
       });
 
       expect(mockGroupService.validateInvitationCode).toHaveBeenCalledWith(inviteCode.trim());
@@ -136,10 +159,11 @@ describe('GroupController.validateInviteCode Test Suite', () => {
 
       expect(response.status).toBe(400);
       const result = await responseJson(response);
+      // Controller defaults to 'Invalid invitation code' and code: 'INVALID_INVITE'
       expect(result).toEqual({
         success: false,
-        error: 'Invalid invitation',
-        code: 'VALIDATION_ERROR'
+        error: 'Invalid invitation code',
+        code: 'INVALID_INVITE'
       });
 
       expect(mockGroupService.validateInvitationCode).toHaveBeenCalledWith(inviteCode.trim());
@@ -242,10 +266,15 @@ describe('GroupController.validateInviteCode Test Suite', () => {
       const inviteCode = 'COMPLETE123';
       const fullValidationResult = {
         valid: true,
-        groupId: TEST_IDS.GROUP,
-        groupName: 'Complete Test Group',
-        inviterName: 'Jane Smith',
-        requiresAuth: true,
+        group: {
+          id: TEST_IDS.GROUP,
+          name: 'Complete Test Group',
+        },
+        invitation: {
+          id: '',
+          expiresAt: new Date(),
+          role: 'MEMBER',
+        },
       };
 
       mockGroupService.validateInvitationCode.mockResolvedValue(fullValidationResult);
@@ -257,7 +286,23 @@ describe('GroupController.validateInviteCode Test Suite', () => {
 
       expect(response.status).toBe(200);
       const result = await responseJson(response);
-      expect(result).toEqual(fullValidationResult);
+      // Controller returns {success, data} format
+      expect(result).toEqual({
+        success: true,
+        data: {
+          valid: true,
+          group: {
+            id: TEST_IDS.GROUP,
+            name: 'Complete Test Group',
+            inviteCode: '',
+            createdBy: '',
+            createdAt: '',
+            updatedAt: '',
+          },
+          userStatus: 'FAMILY_MEMBER',
+          actionRequired: 'READY_TO_JOIN',
+        },
+      });
 
       expect(mockGroupService.validateInvitationCode).toHaveBeenCalledWith(inviteCode.trim());
     });

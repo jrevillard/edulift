@@ -443,10 +443,16 @@ export const SimpleSuccessResponseSchema = z.object({
 });
 
 export const ErrorResponseSchema = z.object({
+  success: z.literal(false),
   error: z.string()
     .openapi({
       example: 'Bad request',
       description: 'Error message',
+    }),
+  code: z.string().optional()
+    .openapi({
+      example: 'ERROR_CODE',
+      description: 'Error code for programmatic handling',
     }),
 }).openapi({
   title: 'Error Response',

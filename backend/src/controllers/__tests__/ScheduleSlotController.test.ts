@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
-import { createScheduleSlotControllerWithDeps, type ScheduleSlotVariables } from '../ScheduleSlotController';
+import { createScheduleSlotControllerRoutes, type ScheduleSlotVariables } from '../ScheduleSlotController';
 import { ScheduleSlotService } from '../../services/ScheduleSlotService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { SocketEmitter } from '../../utils/socketEmitter';
@@ -132,7 +132,7 @@ describe('ScheduleSlotController Test Suite', () => {
       childAssignmentService: mockChildAssignmentService,
     };
 
-    app = createScheduleSlotControllerWithDeps(deps);
+    app = createScheduleSlotControllerRoutes(deps);
   });
 
   describe('POST /groups/:groupId/schedule-slots', () => {

@@ -5,7 +5,7 @@ import { Hono } from 'hono';
 import { createGroupControllerRoutes, type GroupVariables } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
 import { SchedulingService } from '../../services/SchedulingService';
-import { TEST_IDS } from '../../utils/testHelpers';
+import { TEST_IDS, unwrapResponse } from '../../utils/testHelpers';
 
 jest.mock('../../services/GroupService');
 jest.mock('../../services/SchedulingService');
@@ -124,7 +124,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       });
 
       expect(response.status).toBe(200);
-      const result = await responseJson(response);
+      const result = unwrapResponse(await responseJson(response));
       expect(result).toEqual(updatedGroup);
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
@@ -150,7 +150,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       });
 
       expect(response.status).toBe(200);
-      const result = await responseJson(response);
+      const result = unwrapResponse(await responseJson(response));
       expect(result).toEqual(updatedGroup);
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
@@ -177,7 +177,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       });
 
       expect(response.status).toBe(200);
-      const result = await responseJson(response);
+      const result = unwrapResponse(await responseJson(response));
       expect(result).toEqual(updatedGroup);
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
@@ -203,7 +203,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       });
 
       expect(response.status).toBe(200);
-      const result = await responseJson(response);
+      const result = unwrapResponse(await responseJson(response));
       expect(result).toEqual(updatedGroup);
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
@@ -230,7 +230,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       });
 
       expect(response.status).toBe(200);
-      const result = await responseJson(response);
+      const result = unwrapResponse(await responseJson(response));
       expect(result).toEqual(updatedGroup);
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(
@@ -349,7 +349,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       });
 
       expect(response.status).toBe(200);
-      const result = await responseJson(response);
+      const result = unwrapResponse(await responseJson(response));
       expect(result).toEqual(updatedGroup);
 
       expect(mockGroupService.updateGroup).toHaveBeenCalledWith(

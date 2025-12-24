@@ -6,7 +6,7 @@ import { createAuthControllerRoutes } from '../AuthController';
 import { AuthService } from '../../services/AuthService';
 import { UserRepository } from '../../repositories/UserRepository';
 import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
-import { TEST_IDS } from '../../utils/testHelpers';
+import { TEST_IDS, unwrapResponse } from '../../utils/testHelpers';
 import type { AuthVariables } from '../AuthController';
 
 jest.mock('../../services/AuthService');
@@ -115,7 +115,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         message: 'Magic link sent to your email',
         userExists: false,
       });
@@ -140,7 +142,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         message: 'Magic link sent to your email',
         userExists: false,
       });

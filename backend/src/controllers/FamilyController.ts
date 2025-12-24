@@ -167,7 +167,7 @@ const validateInviteCodeRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: InviteCodeValidationSchema,
+          schema: createSuccessSchema(InviteCodeValidationSchema),
         },
       },
       description: 'Invitation code validation result',
@@ -175,18 +175,18 @@ const validateInviteCodeRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: InviteCodeValidationSchema,
+          schema: ErrorResponseSchema,
         },
       },
-      description: 'Bad request - Invalid invite code (returns valid: false)',
+      description: 'Bad request - Invalid invite code',
     },
     500: {
       content: {
         'application/json': {
-          schema: InviteCodeValidationSchema,
+          schema: ErrorResponseSchema,
         },
       },
-      description: 'Internal server error (returns valid: false)',
+      description: 'Internal server error',
     },
   },
 });
@@ -929,33 +929,38 @@ app.openapi(validateInviteCodeRoute, async (c) => {
     if (!result) {
       loggerInstance.warn('validateInviteCode: invalid code', { inviteCode: `${inviteCode.substring(0, 8)}...` });
       return c.json({
-        valid: false,
-        family: null,
+        success: false,
+        error: 'Invalid or expired invite code',
+        code: 'INVALID_INVITE',
       }, 400);
     }
 
     loggerInstance.info('validateInviteCode: success', { inviteCode: `${inviteCode.substring(0, 8)}...` });
 
-    // Return basic family info from validateInviteCode
+    // Return standardized response format
     const now = new Date().toISOString();
     return c.json({
-      valid: true,
-      family: {
-        id: result.id,
-        name: result.name,
-        inviteCode: '',
-        createdAt: now,
-        updatedAt: now,
-        members: [],
-        vehicles: [],
-        children: [],
+      success: true,
+      data: {
+        valid: true,
+        family: {
+          id: result.id,
+          name: result.name,
+          inviteCode: '',
+          createdAt: now,
+          updatedAt: now,
+          members: [],
+          vehicles: [],
+          children: [],
+        },
       },
     }, 200);
   } catch (error) {
     loggerInstance.error('validateInviteCode: error', { error });
     return c.json({
-      valid: false,
-      family: null,
+      success: false,
+      error: 'Failed to validate invite code',
+      code: 'VALIDATION_FAILED',
     }, 500);
   }
 });

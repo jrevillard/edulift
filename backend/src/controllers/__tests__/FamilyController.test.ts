@@ -242,9 +242,7 @@ describe('FamilyController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: false,
         error: 'Invalid or expired invite code',
-        data: {
-          valid: false,
-        },
+        code: 'INVALID_INVITE',
       });
     });
 

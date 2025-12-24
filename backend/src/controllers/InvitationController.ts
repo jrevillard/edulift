@@ -617,7 +617,7 @@ app.openapi(validateInvitationRoute, async (c) => {
   } catch (error) {
     loggerInstance.error('validateInvitationCode: server error', { code, error });
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Validation failed. Please try again.',
       code: 'VALIDATION_FAILED',
     }, 500);
@@ -668,21 +668,21 @@ app.openapi(createFamilyInvitationRoute, async (c) => {
 
     if (errorMessage.includes('Only family administrators can send invitations')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'FORBIDDEN',
       }, 403);
     }
     if (errorMessage.includes('already a member') || errorMessage.includes('already exists') || errorMessage.includes('Family has reached maximum capacity')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'CONFLICT',
       }, 409);
     }
 
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to create family invitation',
       code: 'CREATE_FAILED',
     }, 500);
@@ -727,7 +727,7 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
   } catch (error) {
     loggerInstance.error('validateFamilyInvitation: error', { code, error });
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Validation failed',
       code: 'VALIDATION_FAILED',
     }, 500);
@@ -756,7 +756,7 @@ app.openapi(acceptFamilyInvitationRoute, async (c) => {
     } else {
       loggerInstance.warn('acceptFamilyInvitation: accept failed', { userId, code, error: result.error });
       return c.json({
-        success: false,
+        success: false as const,
         error: result.error || 'Failed to accept family invitation',
         code: 'ACCEPT_FAILED',
       }, 400);
@@ -764,7 +764,7 @@ app.openapi(acceptFamilyInvitationRoute, async (c) => {
   } catch (error) {
     loggerInstance.error('acceptFamilyInvitation: error', { userId, code, error });
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to accept family invitation',
       code: 'ACCEPT_FAILED',
     }, 500);
@@ -818,35 +818,35 @@ app.openapi(createGroupInvitationRoute, async (c) => {
 
     if (errorMessage.includes('Only') && errorMessage.includes('administrators can')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'FORBIDDEN',
       }, 403);
     }
     if (errorMessage.includes('not found')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'NOT_FOUND',
       }, 404);
     }
     if (errorMessage.includes('already') || errorMessage.includes('pending invitation')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'CONFLICT',
       }, 409);
     }
     if (errorMessage.includes('Either targetFamilyId or email must be provided')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'INVALID_INPUT',
       }, 400);
     }
 
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to create group invitation',
       code: 'CREATE_FAILED',
     }, 500);
@@ -889,7 +889,7 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
   } catch (error) {
     loggerInstance.error('validateGroupInvitation: error', { code, error });
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Validation failed',
       code: 'VALIDATION_FAILED',
     }, 500);
@@ -918,7 +918,7 @@ app.openapi(acceptGroupInvitationRoute, async (c) => {
       loggerInstance.warn('acceptGroupInvitation: accept failed', { userId, code, error: result.error });
 
       return c.json({
-        success: false,
+        success: false as const,
         error: result.error || 'Failed to accept group invitation',
         code: result.error?.includes('Family onboarding required') ? 'FAMILY_ONBOARDING_REQUIRED' : 'ACCEPT_FAILED',
         requiresFamilyOnboarding: result.error?.includes('Family onboarding required') ? true : undefined,
@@ -927,7 +927,7 @@ app.openapi(acceptGroupInvitationRoute, async (c) => {
   } catch (error) {
     loggerInstance.error('acceptGroupInvitation: error', { userId, code, error });
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to accept group invitation',
       code: 'ACCEPT_FAILED',
     }, 500);
@@ -1010,7 +1010,7 @@ app.openapi(getUserInvitationsRoute, async (c) => {
   } catch (error) {
     loggerInstance.error('listUserInvitations: error', { userId, error });
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to retrieve invitations',
       code: 'RETRIEVE_FAILED',
     }, 500);
@@ -1042,21 +1042,21 @@ app.openapi(cancelFamilyInvitationRoute, async (c) => {
 
     if (errorMessage.includes('Only family administrators can cancel invitations')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'FORBIDDEN',
       }, 403);
     }
     if (errorMessage.includes('not found')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'NOT_FOUND',
       }, 404);
     }
 
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to cancel family invitation',
       code: 'CANCEL_FAILED',
     }, 500);
@@ -1088,21 +1088,21 @@ app.openapi(cancelGroupInvitationRoute, async (c) => {
 
     if (errorMessage.includes('Only group administrators can cancel invitations')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'FORBIDDEN',
       }, 403);
     }
     if (errorMessage.includes('not found')) {
       return c.json({
-        success: false,
+        success: false as const,
         error: errorMessage,
         code: 'NOT_FOUND',
       }, 404);
     }
 
     return c.json({
-      success: false,
+      success: false as const,
       error: 'Failed to cancel group invitation',
       code: 'CANCEL_FAILED',
     }, 500);
