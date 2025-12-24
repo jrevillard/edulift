@@ -321,32 +321,6 @@ describe('FamilyController Invitation System Test Suite', () => {
     });
   });
 
-  describe('POST /invite-code', () => {
-    it.skip('should reject permanent invite code generation (deprecated functionality)', async () => {
-      // Endpoint no longer exists - route removed
-      mockFamilyAuthService.requireFamilyRole.mockResolvedValue(undefined);
-
-      const response = await makeAuthenticatedRequest(app, '/invite-code', {
-        method: 'POST',
-      });
-
-      expect(response.status).toBe(404);
-    });
-
-    it.skip('should return 403 for non-admin users', async () => {
-      // Endpoint no longer exists - route removed
-      mockFamilyAuthService.requireFamilyRole.mockRejectedValue(
-        new Error('INSUFFICIENT_PERMISSIONS'),
-      );
-
-      const response = await makeAuthenticatedRequest(app, '/invite-code', {
-        method: 'POST',
-      });
-
-      expect(response.status).toBe(404);
-    });
-  });
-
   describe('Invitation System Tests', () => {
     const familyId = TEST_IDS.FAMILY;
 
