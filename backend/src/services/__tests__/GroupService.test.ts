@@ -468,10 +468,18 @@ describe('GroupService - Family-Based Architecture', () => {
 
       // Mock successful update
       mockPrisma.groupFamilyMember.update.mockResolvedValue({
+        id: 'test-family-member-id',
         familyId: TEST_IDS.FAMILY_2,
         groupId: TEST_IDS.GROUP,
         role: 'ADMIN',
-        family: { id: TEST_IDS.FAMILY_2, name: 'Target Family' },
+        joinedAt: new Date('2024-01-01'),
+        addedBy: TEST_IDS.USER,
+        family: {
+          id: TEST_IDS.FAMILY_2,
+          name: 'Target Family',
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
+        },
       });
 
       const result = await groupService.updateFamilyRole(groupId, targetFamilyId, newRole as any, requesterId);
@@ -488,6 +496,10 @@ describe('GroupService - Family-Based Architecture', () => {
       });
 
       expect(result).toBeDefined();
+      expect(result.familyId).toBe(TEST_IDS.FAMILY_2);
+      expect(result.role).toBe('ADMIN');
+      expect(result.family.name).toBe('Target Family');
+      expect(result.joinedAt).toBe('2024-01-01T00:00:00.000Z');
     });
   });
 

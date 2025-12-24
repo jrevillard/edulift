@@ -86,7 +86,7 @@ describe('Invitations Router Migration Verification', () => {
     expect(controllerFile).not.toContain('sendSuccessResponse(');
     expect(controllerFile).not.toContain('sendErrorResponse(');
 
-    // Verify default export pattern
-    expect(controllerFile).toContain('export default app');
+    // Verify default export pattern (controller exports factory function result)
+    expect(controllerFile).toContain('export default createInvitationControllerRoutes()');
   });
 });

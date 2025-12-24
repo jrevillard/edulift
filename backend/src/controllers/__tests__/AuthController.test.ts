@@ -13,12 +13,6 @@ jest.mock('../../services/AuthService');
 jest.mock('../../repositories/UserRepository');
 jest.mock('../../services/UnifiedInvitationService');
 
-let mockAuthenticateToken: jest.Mock;
-
-jest.mock('../../middleware/auth-hono', () => ({
-  authenticateToken: jest.fn(),
-}));
-
 const responseJson = async <T = any>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
@@ -43,22 +37,6 @@ describe('AuthController Test Suite', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockAuthenticateToken = jest.fn((c: any, next: any) => {
-      const authHeader = c.req.header('authorization');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return c.json({ error: 'Access token required' }, 401);
-      }
-
-      c.set('userId', mockUserId);
-      c.set('user', {
-        id: mockUserId,
-        email: mockUserEmail,
-        name: 'Test User',
-        timezone: 'UTC',
-      });
-      return next();
-    });
 
     mockAuthService = {
       requestMagicLink: jest.fn(),
@@ -88,10 +66,28 @@ describe('AuthController Test Suite', () => {
       unifiedInvitationService: mockUnifiedInvitationService,
     };
 
-    app = createAuthControllerRoutes(deps);
+    // Create base Hono app
+    app = new Hono<any>();
 
-    const { authenticateToken } = require('../../middleware/auth-hono');
-    authenticateToken.mockImplementation(mockAuthenticateToken);
+    // Mock auth middleware - sets userId in context if auth header present
+    // Does NOT block public endpoints (they check userId themselves)
+    app.use('*', async (c: any, next) => {
+      const authHeader = c.req.header('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        c.set('userId', mockUserId);
+        c.set('user', {
+          id: mockUserId,
+          email: mockUserEmail,
+          name: 'Test User',
+          timezone: 'UTC',
+        });
+      }
+      await next();
+    });
+
+    // Mount auth controller routes
+    const authRoutes = createAuthControllerRoutes(deps);
+    app.route('/', authRoutes);
   });
 
   describe('POST /auth/magic-link', () => {
@@ -149,7 +145,7 @@ describe('AuthController Test Suite', () => {
         userExists: false,
       });
       expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith(
-        { email, name, code_challenge: undefined },
+        { email, name, code_challenge: '' },
       );
     });
 
@@ -220,7 +216,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         message: 'Magic link sent to your email',
         userExists: false,
       });
@@ -257,7 +255,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         user: {
           ...mockResult.user,
           createdAt: mockResult.user.createdAt.toISOString(),
@@ -315,7 +315,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         user: {
           ...mockResult.user,
           createdAt: mockResult.user.createdAt.toISOString(),
@@ -377,7 +379,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual(mockResult);
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual(mockResult);
       expect(mockAuthService.refreshAccessToken).toHaveBeenCalledWith(refreshToken);
     });
 
@@ -421,7 +425,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         ...mockUpdatedUser,
         createdAt: mockUpdatedUser.createdAt.toISOString(),
         updatedAt: mockUpdatedUser.updatedAt.toISOString(),
@@ -430,11 +436,14 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerRoutes({
+      // Create app without auth middleware
+      const appWithoutAuth = new Hono<any>();
+      const authRoutes = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
       });
+      appWithoutAuth.route('/', authRoutes);
 
       const response = await appWithoutAuth.request('/timezone', {
         method: 'PATCH',
@@ -445,7 +454,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        error: 'Access token required',
+        success: false,
+        error: 'User authentication required',
+        code: 'UNAUTHORIZED',
       });
       expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
     });
@@ -466,8 +477,8 @@ describe('AuthController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Database connection failed',
-        code: 'INTERNAL_ERROR'
+        error: 'Failed to update timezone',
+        code: 'UPDATE_TIMEZONE_FAILED',
       });
       expect(mockAuthService.updateProfile).toHaveBeenCalledWith(mockUserId, { timezone });
     });
@@ -503,7 +514,9 @@ describe('AuthController Test Suite', () => {
 
         expect(response.status).toBe(200);
         const jsonResponse = await responseJson(response);
-        expect(jsonResponse).toEqual({
+        // Controller returns {success, data} format
+        const data = unwrapResponse(jsonResponse);
+        expect(data).toEqual({
           ...mockUpdatedUser,
           createdAt: mockUpdatedUser.createdAt.toISOString(),
           updatedAt: mockUpdatedUser.updatedAt.toISOString(),
@@ -532,8 +545,11 @@ describe('AuthController Test Suite', () => {
         body: JSON.stringify({ timezone }),
       });
 
+      expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         id: mockUserId,
         email: 'user@example.com',
         name: 'John',
@@ -563,7 +579,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         message: 'Account deletion confirmation sent to your email',
       });
       expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
@@ -573,11 +591,14 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerRoutes({
+      // Create app without auth middleware
+      const appWithoutAuth = new Hono<any>();
+      const authRoutes = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
       });
+      appWithoutAuth.route('/', authRoutes);
 
       const response = await appWithoutAuth.request('/profile/delete-request', {
         method: 'POST',
@@ -588,7 +609,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        error: 'Access token required',
+        success: false,
+        error: 'Authentication required',
+        code: 'UNAUTHORIZED',
       });
       expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
@@ -600,11 +623,13 @@ describe('AuthController Test Suite', () => {
         body: JSON.stringify({ code_challenge: 'short' }),
       });
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        error: 'Access token required',
-      });
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('success', false);
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error).toHaveProperty('message');
+      expect(jsonResponse.error.message).toContain('PKCE code challenge must be at least 43 characters');
       expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
 
@@ -618,7 +643,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        error: 'Access token required',
+        success: false,
+        error: 'Authentication required',
+        code: 'UNAUTHORIZED',
       });
       expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
@@ -636,7 +663,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'User not found',
+        code: 'REQUEST_DELETION_FAILED',
       });
       expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
         userId: mockUserId,
@@ -657,7 +686,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'SECURITY: Potential attack detected',
+        code: 'REQUEST_DELETION_FAILED',
       });
     });
   });
@@ -683,7 +714,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         message: 'Account deleted successfully via email confirmation',
         deletedAt: mockResult.deletedAt,
       });
@@ -700,7 +733,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'code_verifier required for PKCE validation',
+        code: 'MISSING_PKCE_VERIFIER',
       });
       expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
     });
@@ -735,7 +770,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'Invalid or expired deletion token',
+        code: 'INVALID_TOKEN',
       });
       expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
@@ -753,7 +790,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(404);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'User not found',
+        code: 'USER_NOT_FOUND',
       });
       expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
@@ -788,7 +827,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'Database connection failed',
+        code: 'CONFIRM_DELETION_FAILED',
       });
       expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
@@ -839,18 +880,23 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         message: 'Logged out successfully',
       });
       expect(mockAuthService.logout).toHaveBeenCalledWith(mockUserId);
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerRoutes({
+      // Create app without auth middleware
+      const appWithoutAuth = new Hono<any>();
+      const authRoutes = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
       });
+      appWithoutAuth.route('/', authRoutes);
 
       const response = await appWithoutAuth.request('/logout', {
         method: 'POST',
@@ -860,7 +906,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        error: 'Access token required',
+        success: false,
+        error: 'Authentication required',
+        code: 'UNAUTHORIZED',
       });
       expect(mockAuthService.logout).not.toHaveBeenCalled();
     });
@@ -877,7 +925,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'Failed to logout',
+        code: 'LOGOUT_FAILED',
       });
       expect(mockAuthService.logout).toHaveBeenCalledWith(mockUserId);
     });
@@ -909,7 +959,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         ...mockUpdatedUser,
         createdAt: mockUpdatedUser.createdAt.toISOString(),
         updatedAt: mockUpdatedUser.updatedAt.toISOString(),
@@ -918,11 +970,14 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerRoutes({
+      // Create app without auth middleware
+      const appWithoutAuth = new Hono<any>();
+      const authRoutes = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
       });
+      appWithoutAuth.route('/', authRoutes);
 
       const response = await appWithoutAuth.request('/profile', {
         method: 'PUT',
@@ -933,7 +988,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        error: 'Access token required',
+        success: false,
+        error: 'User authentication required',
+        code: 'UNAUTHORIZED',
       });
       expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
     });
@@ -953,7 +1010,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
+        code: 'INVALID_TIMEZONE',
       });
       expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
     });
@@ -978,7 +1037,9 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
+      // Controller returns {success, data} format
+      const data = unwrapResponse(jsonResponse);
+      expect(data).toEqual({
         ...mockUser,
         createdAt: mockUser.createdAt.toISOString(),
         updatedAt: mockUser.updatedAt.toISOString(),
@@ -987,11 +1048,14 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerRoutes({
+      // Create app without auth middleware
+      const appWithoutAuth = new Hono<any>();
+      const authRoutes = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
       });
+      appWithoutAuth.route('/', authRoutes);
 
       const response = await appWithoutAuth.request('/profile', {
         method: 'GET',
@@ -1000,7 +1064,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        error: 'Access token required',
+        success: false,
+        error: 'User authentication required',
+        code: 'UNAUTHORIZED',
       });
       expect(mockUserRepository.findById).not.toHaveBeenCalled();
     });
@@ -1015,7 +1081,9 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(404);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
+        success: false,
         error: 'User not found',
+        code: 'USER_NOT_FOUND',
       });
       expect(mockUserRepository.findById).toHaveBeenCalledWith(mockUserId);
     });

@@ -8,7 +8,7 @@
 import { Hono } from 'hono'
 import { createPrismaMock } from '../mocks/prisma-mock'
 import { mockPushNotificationService } from '../mocks/push-notification-service-mock'
-import fcmTokenController from '../controllers/FcmTokenController'
+import { createFcmTokenControllerRoutes } from '../controllers/FcmTokenController'
 
 // Helper function for typing response.json()
 const responseJson = async <T = any>(response: Response): Promise<T> => {
@@ -70,8 +70,8 @@ describe('FcmTokenController Hono', () => {
       await next()
     })
 
-    // Mount the FcmTokenController routes
-    app.route('/', fcmTokenController)
+    // Mount the FcmTokenController routes with mocked dependencies
+    app.route('/', createFcmTokenControllerRoutes({ prisma: mockPrisma }))
   })
 
   describe('POST / - Save FCM Token', () => {

@@ -25,11 +25,13 @@ jest.mock('@prisma/client', () => ({
 const mockCreateFamilyInvitation = jest.fn();
 const mockCreateGroupInvitation = jest.fn();
 
+class MockUnifiedInvitationService {
+  createFamilyInvitation = mockCreateFamilyInvitation;
+  createGroupInvitation = mockCreateGroupInvitation;
+}
+
 jest.mock('../../services/UnifiedInvitationService', () => ({
-  UnifiedInvitationService: jest.fn().mockImplementation(() => ({
-    createFamilyInvitation: mockCreateFamilyInvitation,
-    createGroupInvitation: mockCreateGroupInvitation,
-  })),
+  UnifiedInvitationService: MockUnifiedInvitationService,
 }));
 
 // Mock EmailServiceFactory BEFORE importing InvitationController
@@ -49,13 +51,24 @@ jest.mock('../../services/EmailService', () => ({
   })),
 }));
 
-// Now import the router after all mocks are set up
-import { invitationsRouter } from '../invitations';
+// Mock logger
+jest.mock('../../utils/logger', () => ({
+  createLogger: jest.fn(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  })),
+}));
+
+// Now import the controller factory after all mocks are set up
+import { createInvitationControllerRoutes } from '../../controllers/InvitationController';
 
 describe('Platform Parameter Handling in Invitation Routes', () => {
   let app: Hono;
   let authToken: string;
   let mockUserFindUnique: jest.Mock;
+  let mockMiddleware: jest.Mock;
 
   const testUser = {
     id: 'test-user-id',
@@ -80,18 +93,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock the authentication middleware to simulate successful auth
-    mockAuthMiddleware.mockImplementation((c: any, next: any) => {
-      // Simulate authenticated request
-      c.set('userId', testUser.id);
-      c.set('user', {
-        id: testUser.id,
-        email: testUser.email,
-        name: 'Test User',
-      });
-      return next();
-    });
-
     // Mock Prisma user lookup for authentication
     mockUserFindUnique.mockResolvedValue({
       id: testUser.id,
@@ -99,9 +100,42 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       name: 'Test User',
     });
 
-    // Create fresh app instance for each test
+    // Create mock middleware that sets userId in context
+    mockMiddleware = jest.fn(async (c: any, next: any) => {
+      c.set('userId', testUser.id);
+      c.set('user', {
+        id: testUser.id,
+        email: testUser.email,
+        name: 'Test User',
+      });
+      await next();
+    });
+
+    // Create a custom Hono middleware wrapper
+    const authMiddleware = async (c: any, next: any) => {
+      c.set('userId', testUser.id);
+      c.set('user', {
+        id: testUser.id,
+        email: testUser.email,
+        name: 'Test User',
+      });
+      await next();
+    };
+
+    // Create fresh app instance with controller for each test
     app = new Hono();
-    app.route('/invitations', invitationsRouter);
+
+    // Apply the auth middleware to all routes
+    app.use('*', authMiddleware);
+
+    // Create controller with mocked services
+    const mockInvitationService = new MockUnifiedInvitationService();
+    const controller = createInvitationControllerRoutes({
+      invitationService: mockInvitationService,
+    });
+
+    // Mount controller
+    app.route('/invitations', controller);
   });
 
   describe('Family Invitation Platform Parameter', () => {

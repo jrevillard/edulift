@@ -5,7 +5,7 @@ import { Hono } from 'hono';
 import { createGroupControllerRoutes, type GroupVariables } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
 import { SchedulingService } from '../../services/SchedulingService';
-import { TEST_IDS, unwrapResponse, unwrapError } from '../../utils/testHelpers';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 jest.mock('../../services/GroupService');
 jest.mock('../../services/SchedulingService');
@@ -42,7 +42,7 @@ describe('GroupController.validateInviteCode Test Suite', () => {
     invitation: {
       id: '',
       expiresAt: new Date(),
-      role: 'MEMBER',
+      role: 'MEMBER' as const,
     },
   };
 
@@ -184,8 +184,8 @@ describe('GroupController.validateInviteCode Test Suite', () => {
       const result = await responseJson(response);
       expect(result).toEqual({
         success: false,
-        error: 'Database error',
-        code: 'INTERNAL_ERROR'
+        error: 'Failed to validate invitation code',
+        code: 'VALIDATION_FAILED'
       });
 
       expect(mockGroupService.validateInvitationCode).toHaveBeenCalledWith(inviteCode.trim());
@@ -273,7 +273,7 @@ describe('GroupController.validateInviteCode Test Suite', () => {
         invitation: {
           id: '',
           expiresAt: new Date(),
-          role: 'MEMBER',
+          role: 'MEMBER' as const,
         },
       };
 

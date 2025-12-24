@@ -706,5 +706,8 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
   return app;
 }
 
+// Export type for test usage
+export type { DashboardVariables };
+
 // Default export for backward compatibility (uses real services)
 export default createDashboardControllerRoutes();

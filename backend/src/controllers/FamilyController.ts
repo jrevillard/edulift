@@ -1296,7 +1296,19 @@ app.openapi(removeMemberRoute, async (c) => {
   loggerInstance.info('removeMember', { userId, familyId, memberId });
 
   try {
-    // Verify user belongs to this family and has admin permissions
+    // Verify user belongs to this family
+    const userFamily = await familyServiceInstance.getUserFamily(userId);
+
+    if (!userFamily || userFamily.id !== familyId) {
+      loggerInstance.warn('removeMember: access denied', { userId, familyId });
+      return c.json({
+        success: false,
+        error: 'Access denied: not a member of this family',
+        code: 'ACCESS_DENIED',
+      }, 403);
+    }
+
+    // Verify user has admin permissions
     await familyAuthServiceInstance.requireFamilyRole(userId, FamilyRole.ADMIN);
 
     await familyServiceInstance.removeMember(userId, memberId);

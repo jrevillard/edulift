@@ -159,6 +159,8 @@ export function createScheduleSlotControllerRoutes(dependencies: {
   scheduleSlotService?: ScheduleSlotService;
   childAssignmentService?: ChildAssignmentService;
   scheduleSlotRepository?: ScheduleSlotRepository;
+  skipAuthChecks?: boolean; // For testing: skip userId validation checks
+  testUserId?: string; // For testing: use specific userId
 } = {}): OpenAPIHono<{ Variables: ScheduleSlotVariables }> {
 
   // Create or use injected services
@@ -170,6 +172,26 @@ export function createScheduleSlotControllerRoutes(dependencies: {
 
   // Create app
   const app = new OpenAPIHono<{ Variables: ScheduleSlotVariables }>();
+
+  // For testing: add middleware that sets userId when Bearer token is present
+  if (dependencies.skipAuthChecks) {
+    const testUserId = dependencies.testUserId || 'cltestuser12345678901234567';
+    app.use('*', async (c: any, next: any) => {
+      const authHeader = c.req.header('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return c.json({ success: false, error: 'Authentication required' }, 401);
+      }
+      // Set test user context
+      c.set('userId', testUserId);
+      c.set('user', {
+        id: testUserId,
+        email: 'test@example.com',
+        name: 'Test User',
+        timezone: 'UTC',
+      });
+      await next();
+    });
+  }
 
 // Error response schema
 const ErrorResponseSchema = z.object({

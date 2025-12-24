@@ -3,32 +3,16 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
 import { TEST_IDS } from '../../utils/testHelpers';
+import { createDashboardControllerRoutes, type DashboardVariables } from '../DashboardController';
 
-// Mock DashboardService before importing the controller
-const mockDashboardService = {
-  calculateUserStats: jest.fn() as any,
-  getTodayTripsForUser: jest.fn() as any,
-  getRecentActivityForUser: jest.fn() as any,
-  getRecentActivityForFamily: jest.fn() as any,
-  getUserWithFamily: jest.fn() as any,
-  getWeeklyDashboard: jest.fn() as any,
-  getUserFamilyId: jest.fn() as any,
-};
-
-jest.mock('../../services/DashboardService', () => {
-  return {
-    DashboardService: jest.fn().mockImplementation(() => mockDashboardService),
-  };
-});
-
+// Mock all dependencies BEFORE importing DashboardController
+jest.mock('../../services/DashboardService');
 jest.mock('../../middleware/auth-hono', () => ({
   authenticateToken: jest.fn(),
 }));
 
-// Import after mocking
-import dashboardController from '../DashboardController';
-
-let mockAuthenticateToken: jest.Mock;
+// Import the mocked classes for typing
+import { DashboardService } from '../../services/DashboardService';
 
 const responseJson = async <T = any>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
@@ -45,33 +29,57 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
 };
 
 describe('DashboardController Test Suite', () => {
-  let app: Hono<any>;
+  let app: Hono<{ Variables: DashboardVariables }>;
+  let mockDashboardService: jest.Mocked<DashboardService>;
   const mockUserId = TEST_IDS.USER;
   const mockUserEmail = 'test@example.com';
+
+  // Mock authentication middleware
+  const mockAuthMiddleware = async (c: any, next: any) => {
+    const authHeader = c.req.header('authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return c.json({ success: false, error: 'Access token required' }, 401);
+    }
+
+    c.set('userId', mockUserId);
+    c.set('user', {
+      id: mockUserId,
+      email: mockUserEmail,
+      name: 'Test User',
+      timezone: 'UTC',
+    });
+    await next();
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockAuthenticateToken = jest.fn((c: any, next: any) => {
-      const authHeader = c.req.header('authorization');
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return c.json({ success: false, error: 'Access token required' }, 401);
-      }
+    // Initialize app
+    app = new Hono<{ Variables: DashboardVariables }>();
 
-      c.set('userId', mockUserId);
-      c.set('user', {
-        id: mockUserId,
-        email: mockUserEmail,
-        name: 'Test User',
-        timezone: 'UTC',
-      });
-      return next();
-    });
+    // Mock dashboard service methods
+    mockDashboardService = {
+      calculateUserStats: jest.fn(),
+      getTodayTripsForUser: jest.fn(),
+      getRecentActivityForUser: jest.fn(),
+      getRecentActivityForFamily: jest.fn(),
+      getUserWithFamily: jest.fn(),
+      getWeeklyDashboard: jest.fn(),
+      getUserFamilyId: jest.fn(),
+    } as any;
 
-    app = dashboardController;
+    // Apply mock authentication middleware to all routes
+    app.use('/*', mockAuthMiddleware);
 
-    const { authenticateToken } = require('../../middleware/auth-hono');
-    authenticateToken.mockImplementation(mockAuthenticateToken);
+    // Set up the controller with mocked dependencies using factory pattern
+    const deps = {
+      dashboardService: mockDashboardService,
+    };
+
+    const controllerRoutes = createDashboardControllerRoutes(deps);
+
+    // Mount controller routes to the app
+    app.route('/', controllerRoutes);
   });
 
   describe('GET /dashboard/stats', () => {
