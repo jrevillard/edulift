@@ -186,7 +186,7 @@ export const FamilyInvitationResponseSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Family identifier',
     }),
-  email: z.email()
+  email: z.string().email().nullable()
     .openapi({
       example: 'john.smith@example.com',
       description: 'Invited email address',
@@ -404,12 +404,7 @@ registerPath({
       description: 'Invitation validation result',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              ...InvitationValidationSchema.shape,
-            }),
-          }),
+          schema: InvitationValidationSchema,
         },
       },
     },
@@ -452,10 +447,7 @@ registerPath({
       description: 'Family invitation created successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: FamilyInvitationResponseSchema,
-          }),
+          schema: FamilyInvitationResponseSchema,
         },
       },
     },
@@ -488,10 +480,7 @@ registerPath({
       description: 'Family invitation validation result',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: InvitationValidationSchema,
-          }),
+          schema: InvitationValidationSchema,
         },
       },
     },
@@ -529,10 +518,7 @@ registerPath({
       description: 'Family invitation accepted successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: AcceptInvitationResponseSchema,
-          }),
+          schema: AcceptInvitationResponseSchema,
         },
       },
     },
@@ -570,10 +556,7 @@ registerPath({
       description: 'Group invitation created successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: GroupInvitationResponseSchema,
-          }),
+          schema: GroupInvitationResponseSchema,
         },
       },
     },
@@ -612,10 +595,7 @@ registerPath({
       description: 'Group invitation validation result',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: InvitationValidationSchema,
-          }),
+          schema: InvitationValidationSchema,
         },
       },
     },
@@ -646,10 +626,7 @@ registerPath({
       description: 'Group invitation accepted successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: AcceptInvitationResponseSchema,
-          }),
+          schema: AcceptInvitationResponseSchema,
         },
       },
     },
@@ -678,10 +655,7 @@ registerPath({
       description: 'User invitations retrieved successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: UserInvitationsSchema,
-          }),
+          schema: UserInvitationsSchema,
         },
       },
     },
@@ -710,10 +684,7 @@ registerPath({
       description: 'Family invitation cancelled successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            message: z.string(),
-          }),
+          schema: CancelInvitationResponseSchema,
         },
       },
     },
@@ -750,10 +721,7 @@ registerPath({
       description: 'Group invitation cancelled successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            message: z.string(),
-          }),
+          schema: CancelInvitationResponseSchema,
         },
       },
     },

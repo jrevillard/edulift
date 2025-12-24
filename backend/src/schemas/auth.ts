@@ -42,6 +42,7 @@ export const RequestMagicLinkSchema = z.object({
   code_challenge: z.string()
     .min(43, 'PKCE code challenge must be at least 43 characters')
     .max(128, 'PKCE code challenge must be at most 128 characters')
+    .optional()
     .openapi({
       example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
       description: 'PKCE code challenge for security (optional but recommended)',
@@ -80,6 +81,7 @@ export const VerifyMagicLinkSchema = z.object({
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string()
     .min(1, 'Refresh token is required')
+    .optional()
     .openapi({
       example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
       description: 'Valid refresh token for token rotation',
@@ -153,6 +155,7 @@ export const RequestAccountDeletionSchema = z.object({
   code_challenge: z.string()
     .min(43, 'PKCE code challenge must be at least 43 characters')
     .max(128, 'PKCE code challenge must be at most 128 characters')
+    .optional()
     .openapi({
       example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
       description: 'PKCE code challenge for secure account deletion confirmation email',
@@ -172,6 +175,7 @@ export const ConfirmAccountDeletionSchema = z.object({
   code_verifier: z.string()
     .min(43, 'PKCE code verifier must be at least 43 characters')
     .max(128, 'PKCE code verifier must be at most 128 characters')
+    .optional()
     .openapi({
       example: 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG',
       description: 'PKCE code verifier to validate the deletion token',

@@ -9,11 +9,15 @@ import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
 import { registry } from '../config/registry';
 
-// Import base schemas for typed responses
-import { UserResponseSchema } from './auth';
-import { VehicleResponseSchema } from './vehicles';
-import { ChildResponseSchema } from './children';
-import { FamilyResponseSchema } from './families';
+// Import base schemas for typed responses (commented for now - not currently used)
+// import { UserResponseSchema } from './auth';
+// import { VehicleResponseSchema } from './vehicles';
+// import { ChildResponseSchema } from './children';
+// import { FamilyResponseSchema } from './families';
+// import { GroupResponseSchema, GroupMembershipSchema, FamilySearchResultSchema } from './groups';
+// import { DashboardStatsSchema, TodayScheduleResponseSchema, RecentActivityResponseSchema, WeeklyDashboardResponseSchema } from './dashboard';
+// import { FcmTokenResponseSchema } from './fcmTokens';
+// import { ScheduleSlotSchema } from './scheduleSlots';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -70,71 +74,10 @@ description: 'Standard error response format with optional validation details',
 });
 
 
-/**
-* Wrapped Response Schemas for Endpoints
-*/
-export const MagicLinkSuccessResponseSchema = createSuccessResponseSchema(
-  z.object({
-    message: z.string(),
-    userExists: z.boolean(),
-  })
-);
-
-const AuthDataSchema = z.object({
-  user: UserResponseSchema,
-  accessToken: z.string(),
-  refreshToken: z.string(),
-  expiresIn: z.number(),
-  tokenType: z.string(),
-  token: z.string(),
-  expiresAt: z.string(),
-  invitationResult: z.unknown().optional(),
-});
-
-export const AuthSuccessResponseSchema = createSuccessResponseSchema(AuthDataSchema);
-
-export const RefreshTokenSuccessResponseSchema = createSuccessResponseSchema(
-  z.object({
-    accessToken: z.string(),
-    refreshToken: z.string(),
-    expiresIn: z.number(),
-    tokenType: z.string(),
-  })
-);
-
-export const ProfileSuccessResponseSchema = createSuccessResponseSchema(UserResponseSchema);
-
 // Schema for simple message responses
 export const MessageResponseSchema = z.object({
   message: z.string(),
 });
-
-export const DeleteAccountSuccessResponseSchema = createSuccessResponseSchema(MessageResponseSchema);
-
-export const VehicleSuccessResponseSchema = createSuccessResponseSchema(
-  z.array(VehicleResponseSchema)
-);
-export const ChildSuccessResponseSchema = createSuccessResponseSchema(ChildResponseSchema);
-export const ChildrenSuccessResponseSchema = createSuccessResponseSchema(
-  z.array(ChildResponseSchema)
-);
-
-export const FamilySuccessResponseSchema = createSuccessResponseSchema(FamilyResponseSchema);
-
-export const GroupSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const GroupsSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const DashboardStatsSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const TodayScheduleSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const RecentActivitySuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Dashboard stats response schema for user dashboard
-*/
-export const UserDashboardStatsSuccessResponseSchema = UniversalSuccessResponseSchema;
 
 /**
 * Weekly dashboard data schema (matches DashboardService.getWeeklyDashboard response data)
@@ -318,132 +261,7 @@ description: 'Optional metadata about the family and dashboard',
 }),
 });
 
-export const WeeklyDashboardSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const FcmTokenSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const FcmTokensSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const ScheduleSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const ScheduleSlotSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const ChildAssignmentSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const AvailableChildrenSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const ScheduleSlotConflictsSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const ScheduleVehicleSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const GroupScheduleConfigSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Generic responses for simple operations
-*/
-export const SimpleSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const VehicleRemovedSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const CreationSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-export const InvitationCreationResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* User profile response schema
-*/
-export const UserProfileSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-// Register the schema
-registry.register('UserProfileSuccessResponse', UserProfileSuccessResponseSchema);
-
-/**
-* Permissions response schema
-*/
-export const PermissionsSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Family invitation response schema
-*/
-export const FamilyInvitationSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Pending invitations response schema
-*/
-export const PendingInvitationsSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Invite code validation response schema
-*/
-export const InviteCodeValidationSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Family invitation validation response schema
-* Based on FamilyInvitationValidation interface from UnifiedInvitationService
-*/
-export const FamilyInvitationValidationResponseSchema = z.object({
-valid: z.boolean(),
-familyId: z.string().optional(),
-familyName: z.string().optional(),
-inviterName: z.string().nullable().optional(),
-role: z.enum(['ADMIN', 'MEMBER']).optional(),
-personalMessage: z.string().optional(),
-error: z.string().optional(),
-errorCode: z.string().optional(),
-email: z.string().optional(),
-existingUser: z.boolean().optional(),
-userCurrentFamily: z.object({
-id: z.string(),
-name: z.string(),
-}).optional(),
-canLeaveCurrentFamily: z.boolean().optional(),
-cannotLeaveReason: z.string().optional(),
-});
-
-/**
-* Group invitation validation response schema
-* Based on GroupInvitationValidation interface from UnifiedInvitationService
-*/
-export const GroupInvitationValidationResponseSchema = z.object({
-valid: z.boolean(),
-groupId: z.string().optional(),
-groupName: z.string().optional(),
-inviterName: z.string().nullable().optional(),
-requiresAuth: z.boolean().optional(),
-error: z.string().optional(),
-errorCode: z.string().optional(),
-email: z.string().optional(),
-existingUser: z.boolean().optional(),
-});
-
-/**
-* Wrapped family invitation validation response
-*/
-export const FamilyInvitationValidationSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Wrapped group invitation validation response
-*/
-export const GroupInvitationValidationSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Family group member response schema
-*/
-export const FamilyGroupMemberSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Family search results response schema
-*/
-export const FamilySearchSuccessResponseSchema = UniversalSuccessResponseSchema;
-
-/**
-* Group invitation response schema
-*/
-export const GroupInvitationSuccessResponseSchema = UniversalSuccessResponseSchema;
 
 // Register all response schemas with OpenAPI registry
 registry.register('ErrorResponse', ErrorResponseSchema);
 registry.register('WeeklyDashboardData', WeeklyDashboardDataSchema);
-registry.register('FamilyInvitationValidationResponse', FamilyInvitationValidationResponseSchema);
-registry.register('GroupInvitationValidationResponse', GroupInvitationValidationResponseSchema);
-registry.register('GroupScheduleConfigSuccessResponse', GroupScheduleConfigSuccessResponseSchema);

@@ -5,12 +5,12 @@
  * Centralizes all test CUIDs and test data generation
  */
 
-// Pas besoin de génération dynamique pour les tests - on utilise des IDs fixes
+// No need for dynamic generation for tests - we use fixed IDs
 
 /**
  * Generate a valid CUID for testing
  */
-export const createTestCuid = (): string => TEST_IDS.USER; // Retourne un CUID fixe valide
+export const createTestCuid = (): string => TEST_IDS.USER; // Returns a valid fixed CUID
 
 /**
  * Generate multiple valid CUIDs for testing

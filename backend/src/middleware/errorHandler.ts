@@ -1,70 +1,74 @@
-import { Request, Response, NextFunction } from 'express';
-import { ApiResponse } from '../types';
-import { logger } from '../utils/logger';
+/**
+ * Error Handling Utilities for Hono Integration
+ *
+ * Provides backward compatibility for existing error handling
+ * while integrating with Hono's error handling system.
+ */
 
+/**
+ * Custom error class for application-specific errors
+ * Maintains compatibility with existing code structure
+ */
 export class AppError extends Error {
   public statusCode: number;
   public isOperational: boolean;
 
-  constructor(message: string, statusCode: number) {
+  constructor(message: string, statusCode: number = 500) {
     super(message);
+
+    this.name = 'AppError';
     this.statusCode = statusCode;
     this.isOperational = true;
 
-    Error.captureStackTrace(this, this.constructor);
+    // Maintains proper stack trace for where our error was thrown
+    Error.captureStackTrace(this, AppError);
+  }
+
+  /**
+   * Convert AppError to Hono-compatible response format
+   */
+  toJSON() {
+    return {
+      success: false,
+      error: this.message,
+      statusCode: this.statusCode,
+      name: this.name,
+      ...(process.env.NODE_ENV === 'development' && { stack: this.stack })
+    };
   }
 }
 
-export const createError = (message: string, statusCode: number): AppError => {
-  return new AppError(message, statusCode);
-};
+/**
+ * Create a standard validation error
+ */
+export function createValidationError(message: string): AppError {
+  return new AppError(message, 400);
+}
 
-export const errorHandler = (
-  err: Error,
-  req: Request,
-  res: Response,
-  _: NextFunction,
-): void => {
-  let statusCode = 500;
-  let message = 'Internal server error';
+/**
+ * Create a standard not found error
+ */
+export function createNotFoundError(resource: string): AppError {
+  return new AppError(`${resource} not found`, 404);
+}
 
-  if (err instanceof AppError) {
-    statusCode = err.statusCode;
-    message = err.message;
-  }
+/**
+ * Create a standard unauthorized error
+ */
+export function createUnauthorizedError(message: string = 'Unauthorized'): AppError {
+  return new AppError(message, 401);
+}
 
-  // Log error for debugging
-  logger.error('Error:', {
-    message: err.message,
-    stack: err.stack,
-    url: req.url,
-    method: req.method,
-    statusCode,
-  });
+/**
+ * Create a standard forbidden error
+ */
+export function createForbiddenError(message: string = 'Forbidden'): AppError {
+  return new AppError(message, 403);
+}
 
-  const response: ApiResponse = {
-    success: false,
-    error: message,
-    statusCode,
-  };
-
-  res.status(statusCode).json(response);
-};
-
-export const notFoundHandler = (req: Request, res: Response): void => {
-  const response: ApiResponse = {
-    success: false,
-    error: `Route ${req.originalUrl} not found`,
-    statusCode: 404,
-  };
-
-  res.status(404).json(response);
-};
-
-export const asyncHandler = <T extends Request = Request>(
-  fn: (req: T, res: Response, next: NextFunction) => Promise<void>,
-): (req: Request, res: Response, next: NextFunction) => void => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req as T, res, next)).catch(next);
-  };
-};
+/**
+ * Create a standard server error
+ */
+export function createServerError(message: string = 'Internal server error'): AppError {
+  return new AppError(message, 500);
+}

@@ -1,17 +1,28 @@
 /**
- * Children Schemas with OpenAPI Extensions
+ * Children Hono Native Schemas - OpenAPI Phase 2
  *
- * Zod schemas for children management endpoints with OpenAPI documentation
- * Phase 3: Children domain migration following Auth template pattern
+ * Hono-native schemas for children management endpoints with OpenAPI documentation
+ * Converted from registry-based schemas to direct OpenAPI schemas
  */
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/registry';
-import { WeekQuerySchema, BaseChildSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
+
+// Import common schemas
+export const WeekQuerySchema = z.object({
+  week: z.string()
+    .optional()
+    .openapi({
+      example: '2023-W15',
+      description: 'Week number in YYYY-WWW format',
+    }),
+}).openapi({
+  title: 'Week Query',
+  description: 'Query parameter for week filtering',
+});
 
 // Request Schemas
 export const CreateChildSchema = z.object({
@@ -63,7 +74,8 @@ export const UpdateChildSchema = z.object({
 });
 
 export const ChildParamsSchema = z.object({
-  childId: z.cuid()
+  childId: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
@@ -74,12 +86,14 @@ export const ChildParamsSchema = z.object({
 });
 
 export const ChildGroupParamsSchema = z.object({
-  childId: z.cuid()
+  childId: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
     }),
-  groupId: z.cuid()
+  groupId: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique group identifier (CUID format)',
@@ -89,8 +103,39 @@ export const ChildGroupParamsSchema = z.object({
   description: 'URL parameters for child-group membership endpoints',
 });
 
+// Response Schemas
+export const BaseChildSchema = z.object({
+  id: z.string()
+    .cuid()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Unique child identifier (CUID format)',
+    }),
+  name: z.string()
+    .openapi({
+      example: 'Emma Johnson',
+      description: 'Child full name',
+    }),
+  familyId: z.string()
+    .cuid()
+    .openapi({
+      example: 'cl123456789012345678901233',
+      description: 'Family identifier the child belongs to',
+    }),
+  createdAt: z.string()
+    .datetime()
+    .openapi({
+      example: '2023-01-01T00:00:00.000Z',
+      description: 'When the child record was created',
+    }),
+  updatedAt: z.string()
+    .datetime()
+    .openapi({
+      example: '2023-01-15T10:30:00.000Z',
+      description: 'When the child record was last updated',
+    }),
+});
 
-// Response Schemas - Using BaseChildSchema for consistency
 export const ChildResponseSchema = BaseChildSchema.extend({
   age: z.number()
     .nullable()
@@ -99,12 +144,12 @@ export const ChildResponseSchema = BaseChildSchema.extend({
       description: 'Child age (null if not specified)',
     }),
   groupMemberships: z.array(z.object({
-    id: z.cuid(),
-    childId: z.cuid(),
-    groupId: z.cuid(),
-    joinedAt: z.iso.datetime(),
+    childId: z.string().cuid(),
+    groupId: z.string().cuid(),
+    addedBy: z.string().cuid(),
+    addedAt: z.string().datetime(),
     group: z.object({
-      id: z.cuid(),
+      id: z.string().cuid(),
       name: z.string(),
     }),
   })).optional()
@@ -112,33 +157,78 @@ export const ChildResponseSchema = BaseChildSchema.extend({
       description: 'Group memberships (included when fetching all children)',
     }),
 }).openapi({
-  title: 'Child Response_5',
+  title: 'Child Response',
   description: 'Complete child information with optional group memberships',
 });
 
 export const ChildGroupMembershipSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'Unique membership identifier (CUID format)',
-    }),
-  childId: z.cuid()
+  childId: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Child identifier',
     }),
-  groupId: z.cuid()
+  groupId: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
     }),
-  joinedAt: z.iso.datetime()
+  addedBy: z.string()
+    .cuid()
+    .openapi({
+      example: 'cl123456789012345678901236',
+      description: 'User ID who added the child to the group',
+    }),
+  addedAt: z.string()
+    .datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
-      description: 'When the child joined the group',
+      description: 'When the child was added to the group',
+    }),
+  child: z.object({
+    id: z.string()
+      .cuid()
+      .openapi({
+        example: 'cl123456789012345678901234',
+        description: 'Child identifier',
+      }),
+    name: z.string()
+      .openapi({
+        example: 'Emma Johnson',
+        description: 'Child name',
+      }),
+    familyId: z.string()
+      .cuid()
+      .openapi({
+        example: 'cl123456789012345678901233',
+        description: 'Family identifier',
+      }),
+    createdAt: z.string()
+      .datetime()
+      .openapi({
+        example: '2023-01-01T00:00:00.000Z',
+        description: 'When the child was created',
+      }),
+    updatedAt: z.string()
+      .datetime()
+      .openapi({
+        example: '2023-01-15T10:30:00.000Z',
+        description: 'When the child was last updated',
+      }),
+    age: z.number()
+      .nullable()
+      .openapi({
+        example: 8,
+        description: 'Child age (null if not specified)',
+      }),
+  }).optional()
+    .openapi({
+      description: 'Child information (included when adding child to group)',
     }),
   group: z.object({
-    id: z.cuid()
+    id: z.string()
+      .cuid()
       .openapi({
         example: 'cl123456789012345678901235',
         description: 'Group identifier',
@@ -158,17 +248,20 @@ export const ChildGroupMembershipSchema = z.object({
 });
 
 export const ChildAssignmentSchema = z.object({
-  id: z.cuid()
+  id: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Unique assignment identifier (CUID format)',
     }),
-  childId: z.cuid()
+  childId: z.string()
+    .cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Child identifier',
     }),
-  tripDate: z.iso.date()
+  tripDate: z.string()
+    .date()
     .openapi({
       example: '2023-04-15',
       description: 'Date of the assigned trip',
@@ -184,7 +277,7 @@ export const ChildAssignmentSchema = z.object({
       description: 'Assignment status',
     }),
   group: z.object({
-    id: z.cuid(),
+    id: z.string().cuid(),
     name: z.string(),
   }).optional()
     .openapi({
@@ -195,399 +288,26 @@ export const ChildAssignmentSchema = z.object({
   description: 'Child trip assignment information',
 });
 
-// Register schemas with OpenAPI registry
-registry.register('CreateChildRequest', CreateChildSchema);
-registry.register('UpdateChildRequest', UpdateChildSchema);
-registry.register('ChildParams', ChildParamsSchema);
-registry.register('ChildGroupParams', ChildGroupParamsSchema);
-// WeekQuery is now registered in _common.ts
-registry.register('ChildResponse', ChildResponseSchema);
-registry.register('ChildGroupMembership', ChildGroupMembershipSchema);
-// ChildAssignment is registered in scheduleSlots.ts
-
-// Register API paths following Auth pattern
-registerPath({
-  method: 'post',
-  path: '/children',
-  tags: ['Children'],
-  summary: 'Create a new child',
-  description: 'Add a new child to the authenticated user family. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/CreateChildRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      description: 'Child created successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ChildResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions or no family',
-    },
-  },
+// Success/Error Response Schemas
+export const SimpleSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  message: z.string()
+    .openapi({
+      example: 'Operation completed successfully',
+      description: 'Success message',
+    }),
+}).openapi({
+  title: 'Simple Success Response',
+  description: 'Standard success response with message',
 });
 
-registerPath({
-  method: 'get',
-  path: '/children',
-  tags: ['Children'],
-  summary: 'Get user children',
-  description: 'Retrieve all children belonging to the authenticated user family',
-  security: [{ BearerAuth: [] }],
-  responses: {
-    200: {
-      description: 'Children retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.array(ChildResponseSchema),
-          }),
-        },
-      },
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-  },
+export const ErrorResponseSchema = z.object({
+  error: z.string()
+    .openapi({
+      example: 'Bad request',
+      description: 'Error message',
+    }),
+}).openapi({
+  title: 'Error Response',
+  description: 'Standard error response',
 });
-
-registerPath({
-  method: 'get',
-  path: '/children/{childId}',
-  tags: ['Children'],
-  summary: 'Get specific child',
-  description: 'Retrieve detailed information about a specific child by ID',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Child retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ChildResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid child ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Child not accessible',
-    },
-    404: {
-      description: 'Not found - Child does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'put',
-  path: '/children/{childId}',
-  tags: ['Children'],
-  summary: 'Update child (PUT)',
-  description: 'Update child information completely. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/UpdateChildRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Child updated successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ChildResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data or no update data provided',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Child does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'patch',
-  path: '/children/{childId}',
-  tags: ['Children'],
-  summary: 'Update child (PATCH)',
-  description: 'Partially update child information. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/UpdateChildRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Child updated successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ChildResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data or no update data provided',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Child does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'delete',
-  path: '/children/{childId}',
-  tags: ['Children'],
-  summary: 'Delete child',
-  description: 'Remove a child from the family. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Child deleted successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              success: z.literal(true),
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid child ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Child does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'get',
-  path: '/children/{childId}/assignments',
-  tags: ['Children'],
-  summary: 'Get child trip assignments',
-  description: 'Retrieve all trip assignments for a specific child, optionally filtered by week',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildParamsSchema,
-    query: WeekQuerySchema,
-  },
-  responses: {
-    200: {
-      description: 'Assignments retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.array(ChildAssignmentSchema),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid child ID or week format',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Child not accessible',
-    },
-    404: {
-      description: 'Not found - Child does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'post',
-  path: '/children/{childId}/groups/{groupId}',
-  tags: ['Children'],
-  summary: 'Add child to group',
-  description: 'Add a child to a group. Requires appropriate permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildGroupParamsSchema,
-  },
-  responses: {
-    201: {
-      description: 'Child added to group successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ChildGroupMembershipSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid child or group ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Child or group does not exist',
-    },
-    409: {
-      description: 'Conflict - Child already belongs to group',
-    },
-  },
-});
-
-registerPath({
-  method: 'delete',
-  path: '/children/{childId}/groups/{groupId}',
-  tags: ['Children'],
-  summary: 'Remove child from group',
-  description: 'Remove a child from a group. Requires appropriate permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildGroupParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Child removed from group successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              success: z.literal(true),
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid child or group ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Child or group does not exist or membership does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'get',
-  path: '/children/{childId}/groups',
-  tags: ['Children'],
-  summary: 'Get child group memberships',
-  description: 'Retrieve all group memberships for a specific child',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ChildParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Group memberships retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.array(ChildGroupMembershipSchema),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid child ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Child not accessible',
-    },
-    404: {
-      description: 'Not found - Child does not exist',
-    },
-  },
-});
-

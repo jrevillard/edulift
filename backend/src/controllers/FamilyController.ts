@@ -1,456 +1,1435 @@
-import { Request, Response } from 'express';
+/**
+ * Family Controller - OpenAPI Hono Native
+ *
+ * OpenAPI native Hono controller for families endpoints
+ * Pattern: createRoute + app.openapi() + c.req.valid() automatic
+ * Workaround for Issue #723: Use c.json(data, status) explicitly
+ */
+
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
+import { PrismaClient } from '@prisma/client';
 import { FamilyService } from '../services/FamilyService';
 import { FamilyAuthService } from '../services/FamilyAuthService';
 import { FamilyRole } from '../types/family';
-import { createLogger, Logger } from '../utils/logger';
-import { PrismaClient } from '@prisma/client';
+import { createLogger } from '../utils/logger';
+import { normalizeError } from '../utils/errorHandler';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
-import { sendSuccessResponse, sendErrorResponse } from '../utils/responseValidation';
+
+// Import Hono-native schemas
 import {
-  FamilySuccessResponseSchema,
-  SimpleSuccessResponseSchema,
-  PermissionsSuccessResponseSchema,
-  FamilyInvitationSuccessResponseSchema,
-  PendingInvitationsSuccessResponseSchema,
-  InviteCodeValidationSuccessResponseSchema,
-} from '../schemas/responses';
-
-const familyLogger = createLogger('FamilyController');
-
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    name: string;
-  };
-}
-
-export class FamilyController {
-  constructor(
-    private familyService: FamilyService,
-    private familyAuthService: FamilyAuthService,
-    private logger: Logger = familyLogger,
-  ) {}
-
-  /**
-   * Transform family data to ISO strings for OpenAPI compliance
-   * Also normalizes data structure to match expected schemas
-   */
-  private transformFamilyForResponse(family: any): any {
-    if (!family) return family;
-
-    const now = new Date().toISOString();
-
-    return {
-      ...family,
-      // Ensure required fields are present and in correct format
-      id: family.id || 'c1234567890123456789012345', // Valid CUID format
-      createdAt: family.createdAt?.toISOString() || family.createdAt || now,
-      updatedAt: family.updatedAt?.toISOString() || family.updatedAt || now,
-      // Transform members to ensure proper structure
-      members: family.members?.map((member: any) => ({
-        ...member,
-        id: member.id || 'c1234567890123456789012346',
-        userId: member.userId || member.user?.id || 'c1234567890123456789012347',
-        joinedAt: member.joinedAt?.toISOString() || member.joinedAt || now,
-        user: member.user ? {
-          id: member.user.id || 'c1234567890123456789012348',
-          email: member.user.email || 'test@example.com',
-          name: member.user.name || 'Test User',
-        } : undefined,
-      })) || [],
-      // Transform children to ensure proper structure
-      children: family.children?.map((child: any) => ({
-        ...child,
-        id: child.id || 'c1234567890123456789012349',
-        familyId: child.familyId || family.id || 'c1234567890123456789012345',
-        createdAt: child.createdAt?.toISOString() || child.createdAt || now,
-        updatedAt: child.updatedAt?.toISOString() || child.updatedAt || now,
-      })) || [],
-      // Transform vehicles to ensure proper structure
-      vehicles: family.vehicles?.map((vehicle: any) => ({
-        ...vehicle,
-        id: vehicle.id || 'c1234567890123456789012350',
-        familyId: vehicle.familyId || family.id || 'c1234567890123456789012345',
-        createdAt: vehicle.createdAt?.toISOString() || vehicle.createdAt || now,
-        updatedAt: vehicle.updatedAt?.toISOString() || vehicle.updatedAt || now,
-      })) || [],
-    };
-  }
-
-  createFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { name } = req.body;
-
-      this.logger.debug('createFamily: Received request', {
-        userId: req.user?.id,
-        name,
-        userEmail: req.user?.email,
-      });
-
-      // Validation is handled by middleware (CreateFamilySchema)
-      // No need for manual validation - Zod ensures name is valid and non-empty
-
-      this.logger.debug('createFamily: Creating family', { userId: req.user.id, name: name.trim() });
-      const family = await this.familyService.createFamily(req.user.id, name);
-
-      this.logger.debug('createFamily: Family created successfully', {
-        userId: req.user.id,
-        familyId: family.id,
-        familyName: family.name,
-      });
-
-      sendSuccessResponse(res, 201, FamilySuccessResponseSchema, this.transformFamilyForResponse(family));
-    } catch (error) {
-      this.logger.error('createFamily: Error occurred', {
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        userId: req.user?.id,
-      });
-      sendErrorResponse(res, 400, (error as Error).message);
-    }
-  };
-
-  joinFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { inviteCode } = req.body;
-
-      if (!inviteCode) {
-        sendErrorResponse(res, 400, 'Invite code is required');
-        return;
-      }
-
-      const family = await this.familyService.joinFamily(inviteCode, req.user.id);
-
-      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, this.transformFamilyForResponse(family));
-    } catch (error) {
-      sendErrorResponse(res, 400, (error as Error).message);
-    }
-  };
-
-  getCurrentFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const family = await this.familyService.getUserFamily(req.user.id);
-
-      if (!family) {
-        sendErrorResponse(res, 404, 'User is not part of any family');
-        return;
-      }
-
-      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, this.transformFamilyForResponse(family));
-    } catch (error) {
-      sendErrorResponse(res, 500, (error as Error).message);
-    }
-  };
-
-  getUserPermissions = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId } = req.params;
-
-      // Verify user belongs to this family
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      const permissions = await this.familyAuthService.getUserPermissions(req.user.id);
-
-      sendSuccessResponse(res, 200, PermissionsSuccessResponseSchema, permissions);
-    } catch (error) {
-      sendErrorResponse(res, 500, (error as Error).message);
-    }
-  };
-
-  updateMemberRole = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { memberId } = req.params;
-      const { role } = req.body;
-
-      // Validate role
-      if (!Object.values(FamilyRole).includes(role)) {
-        sendErrorResponse(res, 400, 'Invalid role');
-        return;
-      }
-
-      // Check permissions (only admins can change roles)
-      await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-
-      await this.familyService.updateMemberRole(req.user.id, memberId, role);
-
-      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Member role updated successfully' });
-    } catch (error) {
-      const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
-      sendErrorResponse(res, statusCode, (error as Error).message);
-    }
-  };
-
-  generateInviteCode = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      // Check permissions (only admins can generate invite codes)
-      await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-
-      // NOTE: Permanent invite codes are deprecated as per unified invitation system
-      sendErrorResponse(res, 400, 'Permanent invite codes are no longer supported. Use invitation system instead.');
-    } catch (error) {
-      const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
-      sendErrorResponse(res, statusCode, (error as Error).message);
-    }
-  };
-
-  inviteMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId } = req.params;
-      const { email, role, personalMessage } = req.body;
-
-      // Validate input
-      if (!email) {
-        sendErrorResponse(res, 400, 'Email is required');
-        return;
-      }
-
-      // Validate role if provided
-      if (role && !Object.values(FamilyRole).includes(role)) {
-        sendErrorResponse(res, 400, 'Invalid role');
-        return;
-      }
-
-      // Verify user belongs to this family and has admin permissions
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      // Check permissions (only admins can invite members)
-      await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-
-      const invitation = await this.familyService.inviteMember(familyId, {
-        email,
-        role: role || FamilyRole.MEMBER,
-        personalMessage,
-      }, req.user.id);
-
-      sendSuccessResponse(res, 201, FamilyInvitationSuccessResponseSchema, { ...invitation, message: 'Invitation sent successfully' });
-    } catch (error) {
-      this.logger.error('Family invitation error:', { error: error instanceof Error ? error.message : String(error) });
-      const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
-      sendErrorResponse(res, statusCode, (error as Error).message);
-    }
-  };
-
-  getPendingInvitations = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId } = req.params;
-
-      // Verify user belongs to this family
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      const invitations = await this.familyService.getPendingInvitations(familyId);
-
-      sendSuccessResponse(res, 200, PendingInvitationsSuccessResponseSchema, invitations);
-    } catch (error) {
-      this.logger.error('Get pending invitations error:', { error: error instanceof Error ? error.message : String(error) });
-      sendErrorResponse(res, 500, (error as Error).message);
-    }
-  };
-
-  cancelInvitation = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId, invitationId } = req.params;
-
-      // Verify user belongs to this family
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      // Check permissions (only admins can cancel invitations)
-      await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-
-      await this.familyService.cancelInvitation(familyId, invitationId, req.user.id);
-
-      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Invitation cancelled successfully' });
-    } catch (error) {
-      this.logger.error('Cancel invitation error:', { error: error instanceof Error ? error.message : String(error) });
-      const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
-      sendErrorResponse(res, statusCode, (error as Error).message);
-    }
-  };
-
-  updateFamilyName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId } = req.params;
-      const { name } = req.body;
-      this.logger.debug('updateFamilyName called', { familyId, name, userId: req.user.id });
-
-      // Validate familyId
-      if (!familyId) {
-        sendErrorResponse(res, 400, 'Family ID is required');
-        return;
-      }
-
-      if (!name || name.trim().length === 0) {
-        this.logger.warn('Validation failed: Family name is required', { userId: req.user.id });
-        sendErrorResponse(res, 400, 'Family name is required');
-        return;
-      }
-
-      if (name.trim().length > 100) {
-        this.logger.warn('Validation failed: Family name too long', {
-          length: name.trim().length,
-          userId: req.user.id,
-        });
-        sendErrorResponse(res, 400, 'Family name must be 100 characters or less');
-        return;
-      }
-
-      // Verify user belongs to this family
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      this.logger.debug('Controller validation passed, checking permissions', { userId: req.user.id });
-      // Check permissions (only admins can update family name)
-      await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-      this.logger.debug('Permissions check passed, calling service', { userId: req.user.id });
-
-      const updatedFamily = await this.familyService.updateFamilyName(req.user.id, name.trim());
-      this.logger.debug('Service call successful, sending response', { userId: req.user.id });
-
-      sendSuccessResponse(res, 200, FamilySuccessResponseSchema, this.transformFamilyForResponse(updatedFamily));
-    } catch (error) {
-      this.logger.error('FamilyController.updateFamilyName error:', { error: error instanceof Error ? error.message : String(error) });
-      const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
-      sendErrorResponse(res, statusCode, (error as Error).message);
-    }
-  };
-
-  removeMember = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId, memberId } = req.params;
-
-      // Verify user belongs to this family
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      // Check permissions (only admins can remove members)
-      await this.familyAuthService.requireFamilyRole(req.user.id, FamilyRole.ADMIN);
-
-      await this.familyService.removeMember(req.user.id, memberId);
-
-      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Member removed successfully' });
-    } catch (error) {
-      this.logger.error('Remove member error:', { error: error instanceof Error ? error.message : String(error) });
-      const statusCode = (error as Error).message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 400;
-      sendErrorResponse(res, statusCode, (error as Error).message);
-    }
-  };
-
-  validateInviteCode = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { inviteCode } = req.body;
-
-      if (!inviteCode || typeof inviteCode !== 'string') {
-        sendErrorResponse(res, 400, 'Invite code is required');
-        return;
-      }
-
-      // Try to find the family with this invite code
-      const family = await this.familyService.validateInviteCode(inviteCode.trim().toUpperCase());
-
-      if (family) {
-        sendSuccessResponse(res, 200, InviteCodeValidationSuccessResponseSchema, {
-          valid: true,
-          family: {
-            id: family.id,
-            name: family.name,
-          },
-        });
-      } else {
-        sendErrorResponse(res, 400, 'Invalid or expired invite code', [{
-          field: 'inviteCode',
-          message: 'Invalid or expired invite code',
-          code: 'invalid_code',
-        }]);
-      }
-    } catch (error) {
-      this.logger.error('Validate invite code error:', { error: error instanceof Error ? error.message : String(error) });
-      sendErrorResponse(res, 400, (error as Error).message);
-    }
-  };
-
-  leaveFamily = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
-    try {
-      const { familyId } = req.params;
-
-      // Validate familyId is provided
-      if (!familyId) {
-        sendErrorResponse(res, 400, 'Family ID is required');
-        return;
-      }
-
-      // Verify user belongs to this family
-      const userFamily = await this.familyService.getUserFamily(req.user.id);
-
-      if (!userFamily || userFamily.id !== familyId) {
-        sendErrorResponse(res, 403, 'Access denied: not a member of this family');
-        return;
-      }
-
-      await this.familyService.leaveFamily(req.user.id);
-
-      sendSuccessResponse(res, 200, SimpleSuccessResponseSchema, { message: 'Successfully left the family' });
-    } catch (error) {
-      this.logger.error('Leave family error:', { error: error instanceof Error ? error.message : String(error) });
-
-      // Handle specific business rule errors
-      if (error instanceof Error && error.message.includes('LAST_ADMIN')) {
-        sendErrorResponse(res, 400, 'Cannot leave family as you are the last administrator. Please appoint another admin first.');
-        return;
-      }
-
-      if (error instanceof Error && error.message.includes('NOT_FAMILY_MEMBER')) {
-        sendErrorResponse(res, 400, 'You are not a member of any family');
-        return;
-      }
-
-      sendErrorResponse(res, 500, 'Failed to leave family');
-    }
-  };
-
-}
-
-// Factory function to create controller with dependencies
-export const createFamilyController = (): FamilyController => {
-  const prisma = new PrismaClient();
-  const logger = createLogger('FamilyController');
-  const emailService = EmailServiceFactory.getInstance();
-
-  // Mock cache service for now (should be replaced with real cache service)
-  const mockCacheService = {
-    async get(_key: string): Promise<null> { return null; },
-    async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
-  };
-
-  const familyService = new FamilyService(prisma, logger, undefined, emailService);
-  const familyAuthService = new FamilyAuthService(prisma, mockCacheService);
-
-  return new FamilyController(familyService, familyAuthService, familyLogger);
+  CreateFamilySchema,
+  JoinFamilySchema,
+  UpdateMemberRoleSchema,
+  UpdateFamilyNameSchema,
+  InviteMemberSchema,
+  ValidateInviteCodeSchema,
+  FamilyIdParamsSchema,
+  MemberIdParamsSchema,
+  FamilyMemberParamsSchema,
+  FamilyInvitationParamsSchema,
+  FamilyResponseSchema,
+  FamilyPermissionsSchema,
+  FamilyInvitationSchema,
+  InviteCodeValidationSchema,
+} from '../schemas/families';
+
+const logger = createLogger('FamilyController');
+
+// Hono type for context with userId
+export type FamilyVariables = {
+  userId: string;
+  user: { id: string; email: string; name: string; timezone: string };
 };
+
+// Initialize OpenAPIHono
+const app = new OpenAPIHono<{ Variables: FamilyVariables }>();
+
+// ============================================================================
+// MODULE SERVICES (replacable for testing)
+// ============================================================================
+
+// Mock cache service for now (should be replaced with real cache service)
+const createMockCacheService = () => ({
+  async get(_key: string): Promise<null> { return null; },
+  async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
+});
+
+const moduleServices = {
+  prisma: new PrismaClient(),
+  emailService: EmailServiceFactory.getInstance(),
+  logger: logger,
+  cacheService: createMockCacheService(),
+  familyService: null as any,
+  familyAuthService: null as any,
+};
+
+// Initialize services with dependencies
+moduleServices.familyService = new FamilyService(
+  moduleServices.prisma,
+  moduleServices.logger,
+  undefined,
+  moduleServices.emailService
+);
+moduleServices.familyAuthService = new FamilyAuthService(
+  moduleServices.prisma,
+  moduleServices.cacheService
+);
+
+// Export function to replace services for testing
+export function __replaceServices(newServices: Partial<typeof moduleServices>) {
+  if (newServices.prisma) {
+    moduleServices.prisma = newServices.prisma;
+  }
+  if (newServices.emailService) {
+    moduleServices.emailService = newServices.emailService;
+  }
+  if (newServices.logger) {
+    moduleServices.logger = newServices.logger;
+  }
+  if (newServices.cacheService) {
+    moduleServices.cacheService = newServices.cacheService;
+  }
+  if (newServices.familyService) {
+    moduleServices.familyService = newServices.familyService;
+  } else if (newServices.prisma || newServices.emailService || newServices.logger) {
+    moduleServices.familyService = new FamilyService(
+      moduleServices.prisma,
+      moduleServices.logger,
+      undefined,
+      moduleServices.emailService
+    );
+  }
+  if (newServices.familyAuthService) {
+    moduleServices.familyAuthService = newServices.familyAuthService;
+  } else if (newServices.prisma || newServices.cacheService) {
+    moduleServices.familyAuthService = new FamilyAuthService(
+      moduleServices.prisma,
+      moduleServices.cacheService
+    );
+  }
+}
+
+// Export function to reset services
+export function __resetServices() {
+  moduleServices.prisma = new PrismaClient();
+  moduleServices.emailService = EmailServiceFactory.getInstance();
+  moduleServices.logger = logger;
+  moduleServices.cacheService = createMockCacheService();
+  moduleServices.familyService = new FamilyService(
+    moduleServices.prisma,
+    moduleServices.logger,
+    undefined,
+    moduleServices.emailService
+  );
+  moduleServices.familyAuthService = new FamilyAuthService(
+    moduleServices.prisma,
+    moduleServices.cacheService
+  );
+}
+
+// Error response schema
+const ErrorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.string().openapi({
+    example: 'Error message',
+    description: 'Error message',
+  }),
+  code: z.string().optional().openapi({
+    example: 'ERROR_CODE',
+    description: 'Error code for programmatic handling',
+  }),
+});
+
+// Success response schema
+const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
+  return z.object({
+    success: z.literal(true),
+    data: schema,
+  });
+};
+
+// Simple success response schema
+const SimpleSuccessResponseSchema = z.object({
+  success: z.literal(true),
+  message: z.string()
+    .openapi({
+      example: 'Operation completed successfully',
+      description: 'Success message',
+    }),
+});
+
+// Family permissions success response schema (non-generic to avoid type inference issues)
+const FamilyPermissionsSuccessSchema = z.object({
+  success: z.literal(true),
+  data: FamilyPermissionsSchema,
+}).openapi({
+  title: 'Family Permissions Success',
+  description: 'Successful response with family permissions',
+});
+
+/**
+ * Transform family data to ISO strings for OpenAPI compliance
+ */
+const transformFamilyForResponse = (family: any): any => {
+  if (!family) return family;
+
+  const now = new Date().toISOString();
+
+  return {
+    ...family,
+    createdAt: family.createdAt ? new Date(family.createdAt).toISOString() : now,
+    updatedAt: family.updatedAt ? new Date(family.updatedAt).toISOString() : now,
+  };
+};
+
+// ============================================================================
+// OPENAPI ROUTES DEFINITIONS
+// ============================================================================
+
+/**
+ * POST /families/validate-invite - Validate invitation code (public)
+ */
+const validateInviteCodeRoute = createRoute({
+  method: 'post',
+  path: '/validate-invite',
+  tags: ['Families'],
+  summary: 'Validate family invitation code',
+  description: 'Validate a family invitation code without authentication',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: ValidateInviteCodeSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: InviteCodeValidationSchema,
+        },
+      },
+      description: 'Invitation code validation result',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: InviteCodeValidationSchema,
+        },
+      },
+      description: 'Bad request - Invalid invite code (returns valid: false)',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: InviteCodeValidationSchema,
+        },
+      },
+      description: 'Internal server error (returns valid: false)',
+    },
+  },
+});
+
+/**
+ * POST /families - Create family
+ */
+const createFamilyRoute = createRoute({
+  method: 'post',
+  path: '/',
+  tags: ['Families'],
+  summary: 'Create a new family',
+  description: 'Create a new family with the authenticated user as admin',
+  security: [{ Bearer: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: CreateFamilySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(FamilyResponseSchema),
+        },
+      },
+      description: 'Family created successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Conflict - Already belongs to a family',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * POST /families/join - Join family
+ */
+const joinFamilyRoute = createRoute({
+  method: 'post',
+  path: '/join',
+  tags: ['Families'],
+  summary: 'Join a family',
+  description: 'Join a family using invitation code',
+  security: [{ Bearer: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: JoinFamilySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(FamilyResponseSchema),
+        },
+      },
+      description: 'Joined family successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid invite code',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Invalid invite code',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Conflict - Already belongs to a family',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * GET /families/current - Get current family
+ */
+const getCurrentFamilyRoute = createRoute({
+  method: 'get',
+  path: '/current',
+  tags: ['Families'],
+  summary: 'Get current family',
+  description: 'Get the authenticated user current family',
+  security: [{ Bearer: [] }],
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(FamilyResponseSchema),
+        },
+      },
+      description: 'Current family retrieved successfully',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - No family found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * GET /families/{familyId}/permissions - Get family permissions
+ */
+const getFamilyPermissionsRoute = createRoute({
+  method: 'get',
+  path: '/{familyId}/permissions',
+  tags: ['Families'],
+  summary: 'Get family permissions',
+  description: 'Get authenticated user permissions within a family',
+  security: [{ Bearer: [] }],
+  request: {
+    params: FamilyIdParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: FamilyPermissionsSuccessSchema,
+        },
+      },
+      description: 'Family permissions retrieved successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid family ID',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Not a family member',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Family does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * PUT /families/members/{memberId}/role - Update member role
+ */
+const updateMemberRoleRoute = createRoute({
+  method: 'put',
+  path: '/members/{memberId}/role',
+  tags: ['Families'],
+  summary: 'Update member role',
+  description: 'Update a family member role',
+  security: [{ Bearer: [] }],
+  request: {
+    params: MemberIdParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateMemberRoleSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SimpleSuccessResponseSchema,
+        },
+      },
+      description: 'Member role updated successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Insufficient permissions',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Member does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * POST /families/{familyId}/invite - Invite member
+ */
+const inviteMemberRoute = createRoute({
+  method: 'post',
+  path: '/{familyId}/invite',
+  tags: ['Families'],
+  summary: 'Invite family member',
+  description: 'Send invitation to join family',
+  security: [{ Bearer: [] }],
+  request: {
+    params: FamilyIdParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: InviteMemberSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(FamilyInvitationSchema),
+        },
+      },
+      description: 'Invitation sent successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Insufficient permissions',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Family does not exist',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Conflict - User already invited or member',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * GET /families/{familyId}/invitations - Get family invitations
+ */
+const getFamilyInvitationsRoute = createRoute({
+  method: 'get',
+  path: '/{familyId}/invitations',
+  tags: ['Families'],
+  summary: 'Get family invitations',
+  description: 'Get all pending invitations for a family',
+  security: [{ Bearer: [] }],
+  request: {
+    params: FamilyIdParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(z.array(FamilyInvitationSchema)),
+        },
+      },
+      description: 'Family invitations retrieved successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid family ID',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Insufficient permissions',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Family does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * DELETE /families/{familyId}/invitations/{invitationId} - Delete invitation
+ */
+const deleteInvitationRoute = createRoute({
+  method: 'delete',
+  path: '/{familyId}/invitations/{invitationId}',
+  tags: ['Families'],
+  summary: 'Delete family invitation',
+  description: 'Delete a pending family invitation',
+  security: [{ Bearer: [] }],
+  request: {
+    params: FamilyInvitationParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SimpleSuccessResponseSchema,
+        },
+      },
+      description: 'Invitation deleted successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid IDs',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Insufficient permissions',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Invitation does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * PUT /families/name - Update family name
+ */
+const updateFamilyNameRoute = createRoute({
+  method: 'put',
+  path: '/name',
+  tags: ['Families'],
+  summary: 'Update family name',
+  description: 'Update the current family name',
+  security: [{ Bearer: [] }],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateFamilyNameSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(FamilyResponseSchema),
+        },
+      },
+      description: 'Family name updated successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - No family found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * DELETE /families/{familyId}/members/{memberId} - Remove member
+ */
+const removeMemberRoute = createRoute({
+  method: 'delete',
+  path: '/{familyId}/members/{memberId}',
+  tags: ['Families'],
+  summary: 'Remove family member',
+  description: 'Remove a member from the family',
+  security: [{ Bearer: [] }],
+  request: {
+    params: FamilyMemberParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SimpleSuccessResponseSchema,
+        },
+      },
+      description: 'Member removed successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid IDs',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Insufficient permissions or cannot remove last admin',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Member or family does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * POST /families/{familyId}/leave - Leave family
+ */
+const leaveFamilyRoute = createRoute({
+  method: 'post',
+  path: '/{familyId}/leave',
+  tags: ['Families'],
+  summary: 'Leave family',
+  description: 'Leave the current family',
+  security: [{ Bearer: [] }],
+  request: {
+    params: FamilyIdParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: SimpleSuccessResponseSchema,
+        },
+      },
+      description: 'Left family successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid family ID',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Forbidden - Cannot leave as last admin',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Not found - Family does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+// ============================================================================
+// HANDLERS
+// ============================================================================
+
+/**
+ * POST /families/validate-invite - Validate invitation code (public)
+ */
+app.openapi(validateInviteCodeRoute, async (c) => {
+  const { inviteCode } = c.req.valid('json');
+
+  logger.info('validateInviteCode', { inviteCode: `${inviteCode.substring(0, 8)}...` });
+
+  try {
+    const result = await moduleServices.familyService.validateInviteCode(inviteCode.trim());
+
+    if (!result) {
+      logger.warn('validateInviteCode: invalid code', { inviteCode: `${inviteCode.substring(0, 8)}...` });
+      return c.json({
+        valid: false,
+        family: null,
+      }, 400);
+    }
+
+    logger.info('validateInviteCode: success', { inviteCode: `${inviteCode.substring(0, 8)}...` });
+
+    // Return basic family info from validateInviteCode
+    const now = new Date().toISOString();
+    return c.json({
+      valid: true,
+      family: {
+        id: result.id,
+        name: result.name,
+        inviteCode: '',
+        createdAt: now,
+        updatedAt: now,
+        members: [],
+        vehicles: [],
+        children: [],
+      },
+    }, 200);
+  } catch (error) {
+    logger.error('validateInviteCode: error', { error });
+    return c.json({
+      valid: false,
+      family: null,
+    }, 500);
+  }
+});
+
+/**
+ * POST /families - Create family
+ */
+app.openapi(createFamilyRoute, async (c) => {
+  const userId = c.get('userId');
+  const { name } = c.req.valid('json');
+
+  logger.info('createFamily', { userId, name });
+
+  try {
+    // Check if user already belongs to a family
+    const existingFamily = await moduleServices.familyService.getUserFamily(userId);
+    if (existingFamily) {
+      logger.warn('createFamily: user already belongs to a family', { userId });
+      return c.json({
+        success: false,
+        error: 'User already belongs to a family',
+        code: 'ALREADY_IN_FAMILY',
+      }, 409);
+    }
+
+    const family = await moduleServices.familyService.createFamily(name, userId);
+
+    logger.info('createFamily: success', { userId, familyId: family.id });
+    return c.json({
+      success: true,
+      data: transformFamilyForResponse(family),
+    }, 201);
+  } catch (error) {
+    logger.error('createFamily: error', { userId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'CREATE_FAILED',
+    }, 500);
+  }
+});
+
+/**
+ * POST /families/join - Join family
+ */
+app.openapi(joinFamilyRoute, async (c) => {
+  const userId = c.get('userId');
+  const { inviteCode } = c.req.valid('json');
+
+  logger.info('joinFamily', { userId, inviteCode: `${inviteCode.substring(0, 8)}...` });
+
+  try {
+    const family = await moduleServices.familyService.joinFamily(inviteCode.trim(), userId);
+
+    logger.info('joinFamily: success', { userId, familyId: family.id });
+    return c.json({
+      success: true,
+      data: transformFamilyForResponse(family),
+    }, 200);
+  } catch (error) {
+    logger.error('joinFamily: error', { userId, error });
+    const normalizedError = normalizeError(error);
+    const statusCode = normalizedError.statusCode === 404 ? 404 : 400;
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'JOIN_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * GET /families/current - Get current family
+ */
+app.openapi(getCurrentFamilyRoute, async (c) => {
+  const userId = c.get('userId');
+
+  logger.info('getCurrentFamily', { userId });
+
+  try {
+    const family = await moduleServices.familyService.getUserFamily(userId);
+    if (!family) {
+      logger.warn('getCurrentFamily: no family found', { userId });
+      return c.json({
+        success: false,
+        error: 'No family found',
+        code: 'NO_FAMILY',
+      }, 404);
+    }
+
+    logger.info('getCurrentFamily: success', { userId, familyId: family.id });
+    return c.json({
+      success: true,
+      data: transformFamilyForResponse(family),
+    }, 200);
+  } catch (error) {
+    logger.error('getCurrentFamily: error', { userId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'RETRIEVE_FAILED',
+    }, 500);
+  }
+});
+
+/**
+ * GET /families/{familyId}/permissions - Get family permissions
+ */
+app.openapi(getFamilyPermissionsRoute, async (c) => {
+  const userId = c.get('userId');
+  const { familyId } = c.req.valid('param');
+
+  logger.info('getFamilyPermissions', { userId, familyId });
+
+  try {
+    // Verify user belongs to this family
+    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+
+    if (!userFamily || userFamily.id !== familyId) {
+      logger.warn('getFamilyPermissions: access denied', { userId, familyId });
+      return c.json({
+        success: false,
+        error: 'Access denied: not a member of this family',
+        code: 'ACCESS_DENIED',
+      }, 403);
+    }
+
+    const permissions = await moduleServices.familyAuthService.getUserPermissions(userId);
+
+    logger.info('getFamilyPermissions: success', { userId, familyId });
+    return c.json({
+      success: true,
+      data: permissions,
+    }, 200);
+  } catch (error) {
+    logger.error('getFamilyPermissions: error', { userId, familyId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'PERMISSION_CHECK_FAILED',
+    }, 500);
+  }
+});
+
+/**
+ * PUT /families/members/{memberId}/role - Update member role
+ */
+app.openapi(updateMemberRoleRoute, async (c) => {
+  const userId = c.get('userId');
+  const { memberId } = c.req.valid('param');
+  const { role } = c.req.valid('json');
+
+  logger.info('updateMemberRole', { userId, memberId, role });
+
+  try {
+    // Check permissions (only admins can change roles)
+    await moduleServices.familyAuthService.requireFamilyRole(userId, FamilyRole.ADMIN);
+
+    await moduleServices.familyService.updateMemberRole(userId, memberId, role as FamilyRole);
+
+    logger.info('updateMemberRole: success', { userId, memberId, role });
+    return c.json({
+      success: true,
+      message: 'Member role updated successfully',
+    }, 200);
+  } catch (error) {
+    logger.error('updateMemberRole: error', { userId, memberId, error });
+    const normalizedError = normalizeError(error);
+    const statusCode = normalizedError.message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 500;
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'UPDATE_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * POST /families/{familyId}/invite - Invite member
+ */
+app.openapi(inviteMemberRoute, async (c) => {
+  const userId = c.get('userId');
+  const { familyId } = c.req.valid('param');
+  const { email, role, personalMessage } = c.req.valid('json');
+
+  logger.info('inviteMember', { userId, familyId, email, role });
+
+  try {
+    const inviteData: { email: string; role: FamilyRole; personalMessage?: string } = {
+      email,
+      role: role as FamilyRole,
+    };
+    if (personalMessage) {
+      inviteData.personalMessage = personalMessage;
+    }
+
+    const invitation = await moduleServices.familyService.inviteMember(familyId, inviteData, userId);
+
+    logger.info('inviteMember: success', { userId, familyId, email, role });
+    return c.json({
+      success: true,
+      data: invitation,
+    }, 201);
+  } catch (error) {
+    logger.error('inviteMember: error', { userId, familyId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'INVITE_FAILED',
+    }, 400);
+  }
+});
+
+/**
+ * GET /families/{familyId}/invitations - Get family invitations
+ */
+app.openapi(getFamilyInvitationsRoute, async (c) => {
+  const userId = c.get('userId');
+  const { familyId } = c.req.valid('param');
+
+  logger.info('getFamilyInvitations', { userId, familyId });
+
+  try {
+    // Verify user belongs to this family
+    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+
+    if (!userFamily || userFamily.id !== familyId) {
+      logger.warn('getFamilyInvitations: access denied', { userId, familyId });
+      return c.json({
+        success: false,
+        error: 'Access denied: not a member of this family',
+        code: 'ACCESS_DENIED',
+      }, 403);
+    }
+
+    const invitations = await moduleServices.familyService.getPendingInvitations(familyId);
+
+    logger.info('getFamilyInvitations: success', { userId, familyId, count: invitations.length });
+    return c.json({
+      success: true,
+      data: invitations,
+    }, 200);
+  } catch (error) {
+    logger.error('getFamilyInvitations: error', { userId, familyId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'RETRIEVE_FAILED',
+    }, 500);
+  }
+});
+
+/**
+ * DELETE /families/{familyId}/invitations/{invitationId} - Delete invitation
+ */
+app.openapi(deleteInvitationRoute, async (c) => {
+  const userId = c.get('userId');
+  const { familyId, invitationId } = c.req.valid('param');
+
+  logger.info('deleteInvitation', { userId, familyId, invitationId });
+
+  try {
+    // Verify user belongs to this family
+    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+
+    if (!userFamily || userFamily.id !== familyId) {
+      logger.warn('deleteInvitation: access denied', { userId, familyId });
+      return c.json({
+        success: false,
+        error: 'Access denied: not a member of this family',
+        code: 'ACCESS_DENIED',
+      }, 403);
+    }
+
+    await moduleServices.familyService.cancelInvitation(familyId, invitationId, userId);
+
+    logger.info('deleteInvitation: success', { userId, familyId, invitationId });
+    return c.json({
+      success: true,
+      message: 'Invitation deleted successfully',
+    }, 200);
+  } catch (error) {
+    logger.error('deleteInvitation: error', { userId, familyId, invitationId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'DELETE_FAILED',
+    }, 400);
+  }
+});
+
+/**
+ * PUT /families/name - Update family name
+ */
+app.openapi(updateFamilyNameRoute, async (c) => {
+  const userId = c.get('userId');
+  const { name } = c.req.valid('json');
+
+  logger.info('updateFamilyName', { userId, name });
+
+  try {
+    const family = await moduleServices.familyService.updateFamilyName(userId, name);
+
+    logger.info('updateFamilyName: success', { userId, familyId: family.id, name });
+    return c.json({
+      success: true,
+      data: transformFamilyForResponse(family),
+    }, 200);
+  } catch (error) {
+    logger.error('updateFamilyName: error', { userId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'UPDATE_FAILED',
+    }, 400);
+  }
+});
+
+/**
+ * DELETE /families/{familyId}/members/{memberId} - Remove member
+ */
+app.openapi(removeMemberRoute, async (c) => {
+  const userId = c.get('userId');
+  const { familyId, memberId } = c.req.valid('param');
+
+  logger.info('removeMember', { userId, familyId, memberId });
+
+  try {
+    // Verify user belongs to this family and has admin permissions
+    await moduleServices.familyAuthService.requireFamilyRole(userId, FamilyRole.ADMIN);
+
+    await moduleServices.familyService.removeMember(userId, memberId);
+
+    logger.info('removeMember: success', { userId, familyId, memberId });
+    return c.json({
+      success: true,
+      message: 'Member removed successfully',
+    }, 200);
+  } catch (error) {
+    logger.error('removeMember: error', { userId, familyId, memberId, error });
+    const normalizedError = normalizeError(error);
+    const statusCode = normalizedError.message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 500;
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'REMOVE_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * POST /families/{familyId}/leave - Leave family
+ */
+app.openapi(leaveFamilyRoute, async (c) => {
+  const userId = c.get('userId');
+  const { familyId } = c.req.valid('param');
+
+  logger.info('leaveFamily', { userId, familyId });
+
+  try {
+    // Verify user belongs to this family
+    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+
+    if (!userFamily || userFamily.id !== familyId) {
+      logger.warn('leaveFamily: access denied', { userId, familyId });
+      return c.json({
+        success: false,
+        error: 'Access denied: not a member of this family',
+        code: 'ACCESS_DENIED',
+      }, 403);
+    }
+
+    await moduleServices.familyService.leaveFamily(userId);
+
+    logger.info('leaveFamily: success', { userId, familyId });
+    return c.json({
+      success: true,
+      message: 'Left family successfully',
+    }, 200);
+  } catch (error) {
+    logger.error('leaveFamily: error', { userId, familyId, error });
+    const normalizedError = normalizeError(error);
+    return c.json({
+      success: false,
+      error: normalizedError.message,
+      code: 'LEAVE_FAILED',
+    }, 400);
+  }
+});
+
+// ============================================================================
+// EXPORTS FOR TESTING
+// ============================================================================
+
+/**
+ * Create controller with dependencies for testing
+ * This allows tests to inject mocked services
+ */
+export function createFamilyControllerWithDeps(deps: {
+  prisma?: PrismaClient;
+  familyService?: FamilyService;
+  familyAuthService?: FamilyAuthService;
+  logger?: any;
+  emailService?: any;
+  cacheService?: any;
+}): OpenAPIHono<{ Variables: FamilyVariables }> {
+  // Build module services object with provided deps
+  const servicesToReplace: any = {};
+
+  if (deps.prisma) servicesToReplace.prisma = deps.prisma;
+  if (deps.emailService) servicesToReplace.emailService = deps.emailService;
+  if (deps.logger) servicesToReplace.logger = deps.logger;
+  if (deps.cacheService) servicesToReplace.cacheService = deps.cacheService;
+  if (deps.familyService) servicesToReplace.familyService = deps.familyService;
+  if (deps.familyAuthService) servicesToReplace.familyAuthService = deps.familyAuthService;
+
+  // Replace module services with provided mocks
+  __replaceServices(servicesToReplace);
+
+  const testApp = new OpenAPIHono<{ Variables: FamilyVariables }>();
+
+  // Copy all routes from app to testApp (now using replaced module services)
+  testApp.route('/', app);
+
+  return testApp;
+}
+
+// Note: FamilyVariables type is already exported above (line 39)
+export default app;

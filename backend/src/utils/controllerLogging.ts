@@ -1,8 +1,8 @@
-import { Request } from 'express';
+import { Context } from 'hono';
 import { createLogger } from '../utils/logger';
 
-// Type for authenticated requests
-interface AuthenticatedRequest extends Request {
+// Type for authenticated requests (Hono Context)
+interface AuthenticatedContext extends Context {
   userId?: string;
   user?: {
     id: string;
@@ -15,49 +15,49 @@ export const controllerLogger = createLogger('ControllerOperations');
 
 // Interface for request context
 export interface RequestContext {
-  /** ID de l'utilisateur authentifié */
+  /** Authenticated user ID */
   userId: string | undefined;
-  /** Email de l'utilisateur authentifié */
+  /** Authenticated user email */
   userEmail: string | undefined;
-  /** Nom de l'opération en cours */
+  /** Current operation name */
   operation: string;
-  /** Endpoint appelé */
+  /** Called endpoint */
   endpoint: string;
-  /** Méthode HTTP */
+  /** HTTP method */
   method: string;
-  /** Timestamp de la requête */
+  /** Request timestamp */
   timestamp: string;
-  /** Adresse IP du client */
+  /** Client IP address */
   clientIp: string | undefined;
-  /** User Agent du client */
+  /** Client User Agent */
   userAgent: string | undefined;
-  /** Contexte métier personnalisé */
+  /** Custom business context */
   businessContext: Record<string, unknown> | undefined;
 }
 
-// Extract context from Express request
+// Extract context from Hono context
 export const extractRequestContext = (
-  req: Request,
+  c: Context,
   operationName: string,
   businessContext?: Record<string, unknown>,
 ): RequestContext => {
   const timestamp = new Date().toISOString();
-  const endpoint = `${req.method} ${req.route?.path || req.path}`;
+  const path = new URL(c.req.url).pathname;
+  const endpoint = `${c.req.method} ${path}`;
 
-  // Extraire les informations d'authentification
-  const authReq = req as AuthenticatedRequest;
-  const userId = authReq.userId || authReq.user?.id;
-  const userEmail = authReq.user?.email;
+  // Extract authentication information from Hono context
+  const userId = c.get('userId') || c.get('user')?.id;
+  const userEmail = c.get('user')?.email;
 
   return {
     userId,
     userEmail,
     operation: operationName,
     endpoint,
-    method: req.method,
+    method: c.req.method,
     timestamp,
-    clientIp: req.ip || req.socket.remoteAddress || undefined,
-    userAgent: req.get('User-Agent'),
+    clientIp: c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || undefined,
+    userAgent: c.req.header('User-Agent'),
     businessContext,
   };
 };
@@ -65,10 +65,10 @@ export const extractRequestContext = (
 // Log operation start
 export const logOperationStart = (
   operationName: string,
-  req: Request,
+  c: Context,
   additionalData?: Record<string, unknown>,
 ): void => {
-  const context = extractRequestContext(req, operationName, additionalData);
+  const context = extractRequestContext(c, operationName, additionalData);
 
   controllerLogger.info(`${operationName}: Operation started`, {
     ...context,
@@ -79,10 +79,10 @@ export const logOperationStart = (
 // Log operation success
 export const logOperationSuccess = (
   operationName: string,
-  req: Request,
+  c: Context,
   resultData?: Record<string, unknown>,
 ): void => {
-  const context = extractRequestContext(req, operationName);
+  const context = extractRequestContext(c, operationName);
 
   controllerLogger.info(`${operationName}: Operation completed successfully`, {
     ...context,
@@ -93,11 +93,11 @@ export const logOperationSuccess = (
 // Log operation error
 export const logOperationError = (
   operationName: string,
-  req: Request,
+  c: Context,
   error: Error | string,
   additionalContext?: Record<string, unknown>,
 ): void => {
-  const context = extractRequestContext(req, operationName, additionalContext);
+  const context = extractRequestContext(c, operationName, additionalContext);
 
   const errorMessage = error instanceof Error ? error.message : error;
   const errorStack = error instanceof Error ? error.stack : undefined;
@@ -113,11 +113,11 @@ export const logOperationError = (
 // Log operation warning
 export const logOperationWarning = (
   operationName: string,
-  req: Request,
+  c: Context,
   message: string,
   additionalData?: Record<string, any>,
 ): void => {
-  const context = extractRequestContext(req, operationName, additionalData);
+  const context = extractRequestContext(c, operationName, additionalData);
 
   controllerLogger.warn(`${operationName}: ${message}`, {
     ...context,
@@ -128,11 +128,11 @@ export const logOperationWarning = (
 // Log debug information for an operation
 export const logOperationDebug = (
   operationName: string,
-  req: Request,
+  c: Context,
   message: string,
   additionalData?: Record<string, any>,
 ): void => {
-  const context = extractRequestContext(req, operationName, additionalData);
+  const context = extractRequestContext(c, operationName, additionalData);
 
   controllerLogger.debug(`${operationName}: ${message}`, {
     ...context,
@@ -140,20 +140,20 @@ export const logOperationDebug = (
   });
 };
 
-// Créer un logger spécialisé pour un contrôleur spécifique
+// Create a specialized logger for a specific controller
 export const createControllerLogger = (controllerName: string) => {
   const logger = createLogger(controllerName);
 
   return {
     // Wrapper for operation start logs
-    logStart: (operationName: string, req: Request, additionalData?: Record<string, any>) => {
-      const context = extractRequestContext(req, `${controllerName}.${operationName}`, additionalData);
+    logStart: (operationName: string, c: Context, additionalData?: Record<string, any>) => {
+      const context = extractRequestContext(c, `${controllerName}.${operationName}`, additionalData);
       logger.info(`${operationName}: Operation started`, context as unknown as Record<string, unknown>);
     },
 
     // Wrapper for success logs
-    logSuccess: (operationName: string, req: Request, resultData?: Record<string, any>) => {
-      const context = extractRequestContext(req, `${controllerName}.${operationName}`);
+    logSuccess: (operationName: string, c: Context, resultData?: Record<string, any>) => {
+      const context = extractRequestContext(c, `${controllerName}.${operationName}`);
       logger.info(`${operationName}: Operation completed successfully`, {
         ...context,
         resultData,
@@ -161,8 +161,8 @@ export const createControllerLogger = (controllerName: string) => {
     },
 
     // Wrapper for error logs
-    logError: (operationName: string, req: Request, error: Error | string, additionalContext?: Record<string, any>) => {
-      const context = extractRequestContext(req, `${controllerName}.${operationName}`, additionalContext);
+    logError: (operationName: string, c: Context, error: Error | string, additionalContext?: Record<string, any>) => {
+      const context = extractRequestContext(c, `${controllerName}.${operationName}`, additionalContext);
       const errorMessage = error instanceof Error ? error.message : error;
       const errorStack = error instanceof Error ? error.stack : undefined;
 
@@ -175,14 +175,14 @@ export const createControllerLogger = (controllerName: string) => {
     },
 
     // Wrapper for warning logs
-    logWarning: (operationName: string, req: Request, message: string, additionalData?: Record<string, any>) => {
-      const context = extractRequestContext(req, `${controllerName}.${operationName}`, additionalData);
+    logWarning: (operationName: string, c: Context, message: string, additionalData?: Record<string, any>) => {
+      const context = extractRequestContext(c, `${controllerName}.${operationName}`, additionalData);
       logger.warn(`${operationName}: ${message}`, context as unknown as Record<string, unknown>);
     },
 
     // Wrapper for debug logs
-    logDebug: (operationName: string, req: Request, message: string, additionalData?: Record<string, any>) => {
-      const context = extractRequestContext(req, `${controllerName}.${operationName}`, additionalData);
+    logDebug: (operationName: string, c: Context, message: string, additionalData?: Record<string, any>) => {
+      const context = extractRequestContext(c, `${controllerName}.${operationName}`, additionalData);
       logger.debug(`${operationName}: ${message}`, context as unknown as Record<string, unknown>);
     },
 
@@ -195,23 +195,23 @@ export const createControllerLogger = (controllerName: string) => {
 export class OperationTimer {
   private startTime: number;
   private operationName: string;
-  private req: Request;
+  private c: Context;
   private logger: any;
 
-  constructor(operationName: string, req: Request, logger?: any) {
+  constructor(operationName: string, c: Context, logger?: any) {
     this.operationName = operationName;
-    this.req = req;
+    this.c = c;
     this.startTime = Date.now();
     this.logger = logger || controllerLogger;
 
-    const context = extractRequestContext(req, operationName);
+    const context = extractRequestContext(c, operationName);
     this.logger.debug(`${operationName}: Timer started`, context);
   }
 
-  // Marquer une étape intermédiaire
+  // Mark an intermediate step
   mark(stepName: string, additionalData?: Record<string, any>): void {
     const elapsed = Date.now() - this.startTime;
-    const context = extractRequestContext(this.req, this.operationName, additionalData);
+    const context = extractRequestContext(this.c, this.operationName, additionalData);
 
     this.logger.debug(`${this.operationName}: Step "${stepName}" completed`, {
       ...context,
@@ -221,10 +221,10 @@ export class OperationTimer {
     });
   }
 
-  // Terminer le timer et logger le résultat
+  // End the timer and log the result
   end(resultData?: Record<string, any>): number {
     const elapsed = Date.now() - this.startTime;
-    const context = extractRequestContext(this.req, this.operationName);
+    const context = extractRequestContext(this.c, this.operationName);
 
     this.logger.info(`${this.operationName}: Operation completed`, {
       ...context,
@@ -237,6 +237,9 @@ export class OperationTimer {
 }
 
 // Utility to create a timer
-export const createTimer = (operationName: string, req: Request, logger?: any): OperationTimer => {
-  return new OperationTimer(operationName, req, logger);
+export const createTimer = (operationName: string, c: Context, logger?: any): OperationTimer => {
+  return new OperationTimer(operationName, c, logger);
 };
+
+// Backward compatibility exports
+export { AuthenticatedContext as AuthenticatedRequest };

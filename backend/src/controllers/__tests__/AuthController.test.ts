@@ -1,19 +1,64 @@
-import { Request, Response } from 'express';
-import { AuthController } from '../AuthController';
+/// <reference types="@types/jest" />
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+
+import { Hono } from 'hono';
+import { createAuthControllerWithDeps } from '../AuthController';
 import { AuthService } from '../../services/AuthService';
+import { UserRepository } from '../../repositories/UserRepository';
+import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
 import { TEST_IDS } from '../../utils/testHelpers';
+import type { AuthVariables } from '../AuthController';
 
-// Mock the AuthService
 jest.mock('../../services/AuthService');
+jest.mock('../../repositories/UserRepository');
+jest.mock('../../services/UnifiedInvitationService');
 
-describe('AuthController', () => {
-  let authController: AuthController;
+let mockAuthenticateToken: jest.Mock;
+
+jest.mock('../../middleware/auth-hono', () => ({
+  authenticateToken: jest.fn(),
+}));
+
+const responseJson = async <T = any>(response: Response): Promise<T> => {
+  return response.json() as Promise<T>;
+};
+
+const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}) => {
+  return app.request(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': 'Bearer valid-token',
+    },
+  });
+};
+
+describe('AuthController Test Suite', () => {
+  let app: Hono<{ Variables: AuthVariables }>;
   let mockAuthService: jest.Mocked<AuthService>;
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
+  let mockUserRepository: jest.Mocked<UserRepository>;
+  let mockUnifiedInvitationService: jest.Mocked<UnifiedInvitationService>;
+  const mockUserId = TEST_IDS.USER;
+  const mockUserEmail = 'test@example.com';
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    mockAuthenticateToken = jest.fn((c: any, next: any) => {
+      const authHeader = c.req.header('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return c.json({ error: 'Access token required' }, 401);
+      }
+
+      c.set('userId', mockUserId);
+      c.set('user', {
+        id: mockUserId,
+        email: mockUserEmail,
+        name: 'Test User',
+        timezone: 'UTC',
+      });
+      return next();
+    });
 
     mockAuthService = {
       requestMagicLink: jest.fn(),
@@ -23,44 +68,37 @@ describe('AuthController', () => {
       requestAccountDeletion: jest.fn(),
       confirmAccountDeletion: jest.fn(),
       getUserById: jest.fn(),
+      logout: jest.fn(),
     } as any;
 
-    const mockUnifiedInvitationService = {
+    mockUserRepository = {
+      findById: jest.fn(),
+    } as any;
+
+    mockUnifiedInvitationService = {
       validateFamilyInvitation: jest.fn(),
       validateGroupInvitation: jest.fn(),
       acceptFamilyInvitation: jest.fn(),
       acceptGroupInvitation: jest.fn(),
     } as any;
 
-    const mockLogger = {
-      info: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+    const deps = {
+      authService: mockAuthService,
+      userRepository: mockUserRepository,
+      unifiedInvitationService: mockUnifiedInvitationService,
     };
 
-    authController = new AuthController(mockAuthService, mockUnifiedInvitationService, mockLogger);
+    app = createAuthControllerWithDeps(deps);
 
-    mockRequest = {
-      body: {},
-      params: {},
-      query: {},
-      headers: {},
-      ip: '127.0.0.1',
-    };
-
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn().mockReturnThis(),
-    };
+    const { authenticateToken } = require('../../middleware/auth-hono');
+    authenticateToken.mockImplementation(mockAuthenticateToken);
   });
 
-  describe('requestMagicLink', () => {
+  describe('POST /auth/magic-link', () => {
     it('should request magic link successfully', async () => {
       const email = 'test@example.com';
       const name = 'Test User';
       const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
-      mockRequest.body = { email, name, code_challenge: codeChallenge };
 
       const mockResult = {
         success: true,
@@ -69,23 +107,24 @@ describe('AuthController', () => {
 
       mockAuthService.requestMagicLink.mockResolvedValue(mockResult);
 
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, code_challenge: codeChallenge });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          message: 'Magic link sent to your email',
-          userExists: false,
-        },
+      const response = await app.request('/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, code_challenge: codeChallenge }),
       });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        message: 'Magic link sent to your email',
+        userExists: false,
+      });
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, code_challenge: codeChallenge });
     });
 
-    // Validation tests are moved to middleware validation tests.
-    // Controller now assumes data is pre-validated by middleware.
     it('should handle magic link request with valid data', async () => {
-      mockRequest.body = { email: 'valid@email.com', name: 'Test User' };
+      const email = 'valid@email.com';
+      const name = 'Test User';
 
       mockAuthService.requestMagicLink.mockResolvedValue({
         success: true,
@@ -93,70 +132,74 @@ describe('AuthController', () => {
         userExists: false,
       } as any);
 
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith(
-        { email: 'valid@email.com', name: 'Test User', code_challenge: undefined },
-      );
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          message: 'Magic link sent to your email',
-          userExists: false,
-        },
+      const response = await app.request('/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
       });
-    });
 
-    // This test is moved to middleware validation tests.
-    // Missing email should be caught by validation middleware.
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        message: 'Magic link sent to your email',
+        userExists: false,
+      });
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith(
+        { email, name, code_challenge: undefined },
+      );
+    });
 
     it('should handle service errors', async () => {
       const email = 'test@example.com';
       const name = 'Test User';
       const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
-      mockRequest.body = { email, name, code_challenge: codeChallenge };
 
       const error = new Error('Service error');
       mockAuthService.requestMagicLink.mockRejectedValue(error);
 
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
+      const response = await app.request('/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, code_challenge: codeChallenge }),
+      });
 
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, code_challenge: codeChallenge });
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual(
         expect.objectContaining({
-          success: false,
           error: 'Service error',
         }),
       );
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, name, code_challenge: codeChallenge });
     });
 
     it('should handle name required for new users error with 422 status', async () => {
       const email = 'newuser@example.com';
       const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
-      mockRequest.body = { email, code_challenge: codeChallenge }; // No name provided
 
       const error = new Error('Name is required for new users');
       mockAuthService.requestMagicLink.mockRejectedValue(error);
 
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
+      const response = await app.request('/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code_challenge: codeChallenge }),
+      });
 
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, code_challenge: codeChallenge });
-      expect(mockResponse.status).toHaveBeenCalledWith(422);
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(response.status).toBe(422);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual(
         expect.objectContaining({
-          success: false,
           error: 'Name is required for new users',
         }),
       );
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ email, code_challenge: codeChallenge });
     });
-    // PKCE Security Tests - Code challenge validation
+
     it('should request magic link with valid PKCE code_challenge successfully', async () => {
       const email = 'test@example.com';
       const name = 'Test User';
       const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
-      mockRequest.body = { email, name, code_challenge: codeChallenge };
 
       const mockResult = {
         success: true,
@@ -165,32 +208,30 @@ describe('AuthController', () => {
 
       mockAuthService.requestMagicLink.mockResolvedValue(mockResult);
 
-      await authController.requestMagicLink(mockRequest as Request, mockResponse as Response);
+      const response = await app.request('/magic-link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, code_challenge: codeChallenge }),
+      });
 
-      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({ 
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        message: 'Magic link sent to your email',
+        userExists: false,
+      });
+      expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith({
         email,
         name,
         code_challenge: codeChallenge,
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          message: 'Magic link sent to your email',
-          userExists: false,
-        },
-      });
     });
-
-    // Validation test moved to middleware validation tests.
-    // PKCE validation should be handled by validation middleware.
   });
 
-  describe('verifyMagicLink', () => {
+  describe('POST /auth/verify', () => {
     it('should verify magic link successfully', async () => {
       const token = 'valid-token';
       const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
-      mockRequest.body = { token, code_verifier: codeVerifier };
 
       const mockResult = {
         user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
@@ -198,57 +239,57 @@ describe('AuthController', () => {
         refreshToken: 'jwt-refresh-token',
         expiresIn: 900,
         tokenType: 'Bearer',
-        token: 'jwt-access-token', // Legacy field
+        token: 'jwt-access-token',
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       };
 
       mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
 
-      await authController.verifyMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          user: {
-            ...mockResult.user,
-            createdAt: mockResult.user.createdAt.toISOString(),
-            updatedAt: mockResult.user.updatedAt.toISOString(),
-          },
-          accessToken: mockResult.accessToken,
-          refreshToken: mockResult.refreshToken,
-          expiresIn: mockResult.expiresIn,
-          tokenType: mockResult.tokenType,
-          token: mockResult.token,
-          expiresAt: mockResult.expiresAt.toISOString(),
-          invitationResult: null,
-        },
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
       });
-    });
 
-    // Validation test moved to middleware validation tests.
-    // Empty token validation should be handled by validation middleware.
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        user: {
+          ...mockResult.user,
+          createdAt: mockResult.user.createdAt.toISOString(),
+          updatedAt: mockResult.user.updatedAt.toISOString(),
+        },
+        accessToken: mockResult.accessToken,
+        refreshToken: mockResult.refreshToken,
+        expiresIn: mockResult.expiresIn,
+        tokenType: mockResult.tokenType,
+        token: mockResult.token,
+        expiresAt: mockResult.expiresAt.toISOString(),
+        invitationResult: null,
+      });
+      expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, codeVerifier);
+    });
 
     it('should handle verification failure', async () => {
       const token = 'invalid-token';
       const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
-      mockRequest.body = { token, code_verifier: codeVerifier };
 
       const error = new Error('Invalid or expired token');
       mockAuthService.verifyMagicLink.mockRejectedValue(error);
 
-      await authController.verifyMagicLink(mockRequest as Request, mockResponse as Response);
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
+      });
 
+      expect(response.status).toBe(500);
       expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
     });
 
-    // PKCE Security Tests - Cross-user attack prevention
     it('should verify magic link with PKCE code_verifier successfully', async () => {
       const token = 'valid-token';
       const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
-      mockRequest.body = { token, code_verifier: codeVerifier };
 
       const mockResult = {
         user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
@@ -256,63 +297,64 @@ describe('AuthController', () => {
         refreshToken: 'jwt-refresh-token',
         expiresIn: 900,
         tokenType: 'Bearer',
-        token: 'jwt-access-token', // Legacy field
+        token: 'jwt-access-token',
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       };
 
       mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
 
-      await authController.verifyMagicLink(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          user: {
-            ...mockResult.user,
-            createdAt: mockResult.user.createdAt.toISOString(),
-            updatedAt: mockResult.user.updatedAt.toISOString(),
-          },
-          accessToken: mockResult.accessToken,
-          refreshToken: mockResult.refreshToken,
-          expiresIn: mockResult.expiresIn,
-          tokenType: mockResult.tokenType,
-          token: mockResult.token,
-          expiresAt: mockResult.expiresAt.toISOString(),
-          invitationResult: null,
-        },
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
       });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        user: {
+          ...mockResult.user,
+          createdAt: mockResult.user.createdAt.toISOString(),
+          updatedAt: mockResult.user.updatedAt.toISOString(),
+        },
+        accessToken: mockResult.accessToken,
+        refreshToken: mockResult.refreshToken,
+        expiresIn: mockResult.expiresIn,
+        tokenType: mockResult.tokenType,
+        token: mockResult.token,
+        expiresAt: mockResult.expiresAt.toISOString(),
+        invitationResult: null,
+      });
+      expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, codeVerifier);
     });
 
     it('should reject magic link verification with invalid PKCE code_verifier', async () => {
       const token = 'valid-token';
-      const invalidCodeVerifier = 'wrongcode_verifier_that_is_long_enough_to_pass_validation_but_wont_match_stored_challenge_hash'; // 43+ chars but wrong value
-      mockRequest.body = { token, code_verifier: invalidCodeVerifier };
+      const invalidCodeVerifier = 'wrongcode_verifier_that_is_long_enough_to_pass_validation_but_wont_match_stored_challenge_hash';
 
-      const error = new Error('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
+      const error = new Error('SECURITY: Invalid PKCE validation for token - potential cross-user attack');
       mockAuthService.verifyMagicLink.mockRejectedValue(error);
 
-      await authController.verifyMagicLink(mockRequest as Request, mockResponse as Response);
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: invalidCodeVerifier }),
+      });
 
-      expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, invalidCodeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(401); // Security sanitization returns 401 for SECURITY errors
-      expect(mockResponse.json).toHaveBeenCalledWith(
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual(
         expect.objectContaining({
-          success: false,
           error: expect.stringContaining('SECURITY'),
         }),
       );
+      expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, invalidCodeVerifier);
     });
-
-    // Validation test moved to middleware validation tests.
-    // Missing code_verifier validation should be handled by validation middleware.
   });
 
-  describe('refreshToken', () => {
+  describe('POST /auth/refresh', () => {
     it('should refresh token successfully', async () => {
       const refreshToken = 'valid-refresh-token';
-      mockRequest.body = { refreshToken }; // ✅ NEW: Token in body, not header
 
       const mockResult = {
         accessToken: 'new-access-token',
@@ -323,40 +365,41 @@ describe('AuthController', () => {
 
       mockAuthService.refreshAccessToken.mockResolvedValue(mockResult);
 
-      await authController.refreshToken(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.refreshAccessToken).toHaveBeenCalledWith(refreshToken);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: mockResult,
+      const response = await app.request('/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
       });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual(mockResult);
+      expect(mockAuthService.refreshAccessToken).toHaveBeenCalledWith(refreshToken);
     });
 
     it('should handle invalid refresh token', async () => {
       const refreshToken = 'invalid-refresh-token';
-      mockRequest.body = { refreshToken }; // ✅ NEW: Token in body, not header
 
       const error = new Error('Invalid refresh token');
       mockAuthService.refreshAccessToken.mockRejectedValue(error);
 
-      await authController.refreshToken(mockRequest as Request, mockResponse as Response);
+      const response = await app.request('/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
 
+      expect(response.status).toBe(401);
       expect(mockAuthService.refreshAccessToken).toHaveBeenCalledWith(refreshToken);
-      expect(mockResponse.status).toHaveBeenCalledWith(401); // ✅ NEW: 401 for refresh failures
     });
   });
 
-  describe('updateTimezone', () => {
+  describe('PATCH /auth/timezone', () => {
     it('should update timezone successfully and return complete user profile', async () => {
-      const userId = 'user-123';
       const timezone = 'Europe/London';
 
-      mockRequest.body = { timezone };
-      (mockRequest as any).user = { id: userId };
-
       const mockUpdatedUser = {
-        id: userId,
+        id: mockUserId,
         email: 'test@example.com',
         name: 'Test',
         timezone,
@@ -366,60 +409,66 @@ describe('AuthController', () => {
 
       mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
 
-      await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.updateProfile).toHaveBeenCalledWith(userId, { timezone });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          ...mockUpdatedUser,
-          createdAt: mockUpdatedUser.createdAt.toISOString(),
-          updatedAt: mockUpdatedUser.updatedAt.toISOString(),
-        },
+      const response = await makeAuthenticatedRequest(app, '/timezone', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone }),
       });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        ...mockUpdatedUser,
+        createdAt: mockUpdatedUser.createdAt.toISOString(),
+        updatedAt: mockUpdatedUser.updatedAt.toISOString(),
+      });
+      expect(mockAuthService.updateProfile).toHaveBeenCalledWith(mockUserId, { timezone });
     });
 
     it('should handle authentication required error', async () => {
-      mockRequest.body = { timezone: 'America/New_York' };
-      (mockRequest as any).user = undefined;
-
-      await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'User authentication required',
+      const appWithoutAuth = createAuthControllerWithDeps({
+        authService: mockAuthService,
+        userRepository: mockUserRepository,
+        unifiedInvitationService: mockUnifiedInvitationService,
       });
+
+      const response = await appWithoutAuth.request('/timezone', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone: 'America/New_York' }),
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
     });
 
-    // Validation tests moved to middleware validation tests.
-    // Timezone validation is now handled by Zod middleware.
-    // Controller assumes pre-validated data.
-
     it('should handle service errors', async () => {
-      const userId = 'user-123';
       const timezone = 'Asia/Tokyo';
-
-      mockRequest.body = { timezone };
-      (mockRequest as any).user = { id: userId };
 
       const error = new Error('Database connection failed');
       mockAuthService.updateProfile.mockRejectedValue(error);
 
-      await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
+      const response = await makeAuthenticatedRequest(app, '/timezone', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone }),
+      });
 
-      expect(mockAuthService.updateProfile).toHaveBeenCalledWith(userId, { timezone });
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         success: false,
         error: 'Database connection failed',
+        code: 'INTERNAL_ERROR'
       });
+      expect(mockAuthService.updateProfile).toHaveBeenCalledWith(mockUserId, { timezone });
     });
 
     it('should validate various valid timezone formats', async () => {
-      const userId = 'user-123';
       const validTimezones = [
         'America/New_York',
         'Europe/Paris',
@@ -431,11 +480,8 @@ describe('AuthController', () => {
       for (const timezone of validTimezones) {
         jest.clearAllMocks();
 
-        mockRequest.body = { timezone };
-        (mockRequest as any).user = { id: userId };
-
         const mockUpdatedUser = {
-          id: userId,
+          id: mockUserId,
           email: 'test@example.com',
           name: 'Test',
           timezone,
@@ -445,30 +491,28 @@ describe('AuthController', () => {
 
         mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
 
-        await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
-
-        expect(mockAuthService.updateProfile).toHaveBeenCalledWith(userId, { timezone });
-        expect(mockResponse.status).toHaveBeenCalledWith(200);
-        expect(mockResponse.json).toHaveBeenCalledWith({
-          success: true,
-          data: {
-            ...mockUpdatedUser,
-            createdAt: mockUpdatedUser.createdAt.toISOString(),
-            updatedAt: mockUpdatedUser.updatedAt.toISOString(),
-          },
+        const response = await makeAuthenticatedRequest(app, '/timezone', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ timezone }),
         });
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+        expect(jsonResponse).toEqual({
+          ...mockUpdatedUser,
+          createdAt: mockUpdatedUser.createdAt.toISOString(),
+          updatedAt: mockUpdatedUser.updatedAt.toISOString(),
+        });
+        expect(mockAuthService.updateProfile).toHaveBeenCalledWith(mockUserId, { timezone });
       }
     });
 
     it('should return complete user profile structure matching updateProfile endpoint', async () => {
-      const userId = 'user-123';
       const timezone = 'Pacific/Auckland';
 
-      mockRequest.body = { timezone };
-      (mockRequest as any).user = { id: userId };
-
       const mockUpdatedUser = {
-        id: userId,
+        id: mockUserId,
         email: 'user@example.com',
         name: 'John',
         timezone,
@@ -478,31 +522,28 @@ describe('AuthController', () => {
 
       mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
 
-      await authController.updateTimezone(mockRequest as Request, mockResponse as Response);
+      const response = await makeAuthenticatedRequest(app, '/timezone', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timezone }),
+      });
 
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: expect.objectContaining({
-          id: userId,
-          email: 'user@example.com',
-          name: 'John',
-          timezone,
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-02T00:00:00.000Z',
-        }),
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        id: mockUserId,
+        email: 'user@example.com',
+        name: 'John',
+        timezone,
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-02T00:00:00.000Z',
       });
     });
   });
 
-  describe('requestAccountDeletion', () => {
-    const userId = 'user-123';
+  describe('POST /auth/profile/delete-request', () => {
     const codeChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
 
     it('should request account deletion successfully', async () => {
-      mockRequest.body = { code_challenge: codeChallenge };
-      (mockRequest as any).userId = userId; // Set userId directly as expected by controller
-      (mockRequest as any).user = { id: userId, email: 'test@example.com' };
-
       const mockResult = {
         success: true,
         message: 'Account deletion confirmation sent to your email',
@@ -510,108 +551,118 @@ describe('AuthController', () => {
 
       mockAuthService.requestAccountDeletion.mockResolvedValue(mockResult);
 
-      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
-        userId,
-        code_challenge: codeChallenge,
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_challenge: codeChallenge }),
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          message: 'Account deletion confirmation sent to your email',
-        },
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        message: 'Account deletion confirmation sent to your email',
+      });
+      expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
+        userId: mockUserId,
+        code_challenge: codeChallenge,
       });
     });
 
     it('should handle authentication required error', async () => {
-      mockRequest.body = { code_challenge: codeChallenge };
-      (mockRequest as any).userId = undefined; // No userId
-      (mockRequest as any).user = undefined;
-
-      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'Authentication required',
+      const appWithoutAuth = createAuthControllerWithDeps({
+        authService: mockAuthService,
+        userRepository: mockUserRepository,
+        unifiedInvitationService: mockUnifiedInvitationService,
       });
+
+      const response = await appWithoutAuth.request('/profile/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_challenge: codeChallenge }),
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle invalid PKCE code_challenge', async () => {
-      mockRequest.body = { code_challenge: 'short' };
-      (mockRequest as any).userId = userId;
-
-      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
+      const response = await app.request('/profile/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_challenge: 'short' }),
       });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle missing PKCE code_challenge', async () => {
-      mockRequest.body = {};
-      (mockRequest as any).userId = userId;
-
-      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
+      const response = await app.request('/profile/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
       });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle service errors', async () => {
-      mockRequest.body = { code_challenge: codeChallenge };
-      (mockRequest as any).userId = userId;
-
       const error = new Error('User not found');
       mockAuthService.requestAccountDeletion.mockRejectedValue(error);
 
-      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
-        userId,
-        code_challenge: codeChallenge,
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_challenge: codeChallenge }),
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
+
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         error: 'User not found',
+      });
+      expect(mockAuthService.requestAccountDeletion).toHaveBeenCalledWith({
+        userId: mockUserId,
+        code_challenge: codeChallenge,
       });
     });
 
     it('should handle security-related errors with sanitized messages', async () => {
-      mockRequest.body = { code_challenge: codeChallenge };
-      (mockRequest as any).userId = userId;
-
-      const securityError = new Error('🚨 SECURITY: Potential attack detected');
+      const securityError = new Error('SECURITY: Potential attack detected');
       mockAuthService.requestAccountDeletion.mockRejectedValue(securityError);
 
-      await authController.requestAccountDeletion(mockRequest as Request, mockResponse as Response);
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_challenge: codeChallenge }),
+      });
 
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: '🚨 SECURITY: Potential attack detected', // Actual message from controller
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'SECURITY: Potential attack detected',
       });
     });
   });
 
-  describe('confirmAccountDeletion', () => {
+  describe('POST /auth/profile/delete-confirm', () => {
     const token = 'deletion-token';
     const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
 
     it('should confirm account deletion successfully', async () => {
-      mockRequest.body = { token, code_verifier: codeVerifier };
-
       const mockResult = {
         success: true,
         message: 'Account deleted successfully via email confirmation',
@@ -620,134 +671,349 @@ describe('AuthController', () => {
 
       mockAuthService.confirmAccountDeletion.mockResolvedValue(mockResult);
 
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: true,
-        data: {
-          message: 'Account deleted successfully via email confirmation',
-          deletedAt: mockResult.deletedAt,
-        },
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
       });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        message: 'Account deleted successfully via email confirmation',
+        deletedAt: mockResult.deletedAt,
+      });
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
 
     it('should handle missing PKCE code_verifier', async () => {
-      mockRequest.body = { token };
+      const response = await app.request('/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
 
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         error: 'code_verifier required for PKCE validation',
       });
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle empty PKCE code_verifier', async () => {
-      mockRequest.body = { token, code_verifier: '' };
-
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: 'code_verifier required for PKCE validation',
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: '' }),
       });
+
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('success', false);
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error).toHaveProperty('message');
+      expect(jsonResponse.error.message).toContain('PKCE code verifier must be at least 43 characters');
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle invalid or expired token error', async () => {
-      mockRequest.body = { token, code_verifier: codeVerifier };
-
       const error = new Error('Invalid or expired deletion token');
       mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
 
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
+      });
 
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(401);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         error: 'Invalid or expired deletion token',
       });
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
 
     it('should handle user not found error', async () => {
-      mockRequest.body = { token, code_verifier: codeVerifier };
-
       const error = new Error('User not found');
       mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
 
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
+      });
 
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(404);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
+      expect(response.status).toBe(404);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         error: 'User not found',
       });
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
 
     it('should handle PKCE validation security errors', async () => {
-      mockRequest.body = { token, code_verifier: 'invalid-verifier' };
-
-      const error = new Error('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
-      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
-
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, 'invalid-verifier');
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
-        error: '🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack',
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: 'invalid-verifier' }),
       });
+
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('success', false);
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error).toHaveProperty('message');
+      expect(jsonResponse.error.message).toContain('PKCE code verifier must be at least 43 characters');
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle service errors gracefully', async () => {
-      mockRequest.body = { token, code_verifier: codeVerifier };
-
       const error = new Error('Database connection failed');
       mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
 
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier }),
+      });
 
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      expect(mockResponse.json).toHaveBeenCalledWith({
-        success: false,
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         error: 'Database connection failed',
       });
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
     });
 
     it('should handle missing token gracefully', async () => {
-      mockRequest.body = { code_verifier: codeVerifier };
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code_verifier: codeVerifier }),
+      });
 
-      // This should still call the service and let it handle the validation
-      mockAuthService.confirmAccountDeletion.mockRejectedValue(new Error('Token is required'));
-
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
-
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(undefined, codeVerifier);
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('success', false);
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error).toHaveProperty('message');
+      expect(jsonResponse.error.message).toContain('Invalid input: expected string, received undefined');
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should log security events for failed attempts', async () => {
-      mockRequest.body = { token: 'suspicious-token', code_verifier: 'suspicious-verifier' };
-      mockRequest.headers = { 'user-agent': 'test-agent' };
-      (mockRequest as any).ip = '127.0.0.1';
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'user-agent': 'test-agent' },
+        body: JSON.stringify({ token: 'suspicious-token', code_verifier: 'suspicious-verifier' }),
+      });
 
-      const error = new Error('Invalid token');
-      mockAuthService.confirmAccountDeletion.mockRejectedValue(error);
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('success', false);
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error).toHaveProperty('message');
+      expect(jsonResponse.error.message).toContain('PKCE code verifier must be at least 43 characters');
+      expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
+    });
+  });
 
-      await authController.confirmAccountDeletion(mockRequest as Request, mockResponse as Response);
+  describe('POST /auth/logout', () => {
+    it('should logout successfully', async () => {
+      mockAuthService.logout.mockResolvedValue(undefined);
 
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith('suspicious-token', 'suspicious-verifier');
-      expect(mockResponse.status).toHaveBeenCalledWith(500);
-      // Security event logging should be triggered
+      const response = await makeAuthenticatedRequest(app, '/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        message: 'Logged out successfully',
+      });
+      expect(mockAuthService.logout).toHaveBeenCalledWith(mockUserId);
+    });
+
+    it('should handle authentication required error', async () => {
+      const appWithoutAuth = createAuthControllerWithDeps({
+        authService: mockAuthService,
+        userRepository: mockUserRepository,
+        unifiedInvitationService: mockUnifiedInvitationService,
+      });
+
+      const response = await appWithoutAuth.request('/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockAuthService.logout).not.toHaveBeenCalled();
+    });
+
+    it('should handle service errors', async () => {
+      const error = new Error('Failed to logout');
+      mockAuthService.logout.mockRejectedValue(error);
+
+      const response = await makeAuthenticatedRequest(app, '/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Failed to logout',
+      });
+      expect(mockAuthService.logout).toHaveBeenCalledWith(mockUserId);
+    });
+  });
+
+  describe('PUT /auth/profile', () => {
+    it('should update profile successfully', async () => {
+      const profileData = {
+        name: 'Updated Name',
+        timezone: 'Europe/Paris',
+      };
+
+      const mockUpdatedUser = {
+        id: mockUserId,
+        email: mockUserEmail,
+        name: 'Updated Name',
+        timezone: 'Europe/Paris',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-02'),
+      };
+
+      mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
+
+      const response = await makeAuthenticatedRequest(app, '/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        ...mockUpdatedUser,
+        createdAt: mockUpdatedUser.createdAt.toISOString(),
+        updatedAt: mockUpdatedUser.updatedAt.toISOString(),
+      });
+      expect(mockAuthService.updateProfile).toHaveBeenCalledWith(mockUserId, profileData);
+    });
+
+    it('should handle authentication required error', async () => {
+      const appWithoutAuth = createAuthControllerWithDeps({
+        authService: mockAuthService,
+        userRepository: mockUserRepository,
+        unifiedInvitationService: mockUnifiedInvitationService,
+      });
+
+      const response = await appWithoutAuth.request('/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: 'Test' }),
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
+    });
+
+    it('should handle invalid timezone error', async () => {
+      const profileData = {
+        name: 'Test',
+        timezone: 'Invalid/Timezone',
+      };
+
+      const response = await makeAuthenticatedRequest(app, '/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
+      });
+      expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('GET /auth/profile', () => {
+    it('should get user profile successfully', async () => {
+      const mockUser = {
+        id: mockUserId,
+        email: mockUserEmail,
+        name: 'Test User',
+        timezone: 'UTC',
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-02'),
+      };
+
+      mockUserRepository.findById.mockResolvedValue(mockUser);
+
+      const response = await makeAuthenticatedRequest(app, '/profile', {
+        method: 'GET',
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        ...mockUser,
+        createdAt: mockUser.createdAt.toISOString(),
+        updatedAt: mockUser.updatedAt.toISOString(),
+      });
+      expect(mockUserRepository.findById).toHaveBeenCalledWith(mockUserId);
+    });
+
+    it('should handle authentication required error', async () => {
+      const appWithoutAuth = createAuthControllerWithDeps({
+        authService: mockAuthService,
+        userRepository: mockUserRepository,
+        unifiedInvitationService: mockUnifiedInvitationService,
+      });
+
+      const response = await appWithoutAuth.request('/profile', {
+        method: 'GET',
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
+      expect(mockUserRepository.findById).not.toHaveBeenCalled();
+    });
+
+    it('should handle user not found error', async () => {
+      mockUserRepository.findById.mockResolvedValue(null);
+
+      const response = await makeAuthenticatedRequest(app, '/profile', {
+        method: 'GET',
+      });
+
+      expect(response.status).toBe(404);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'User not found',
+      });
+      expect(mockUserRepository.findById).toHaveBeenCalledWith(mockUserId);
     });
   });
 });

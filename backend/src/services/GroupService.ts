@@ -610,34 +610,34 @@ export class GroupService {
       }
 
       const families = [];
-      
+
       // Add owner family
       const ownerFamilyAdmins = group.ownerFamily.members.map(member => ({
         name: member.user.name,
         email: member.user.email,
       }));
-      
+
       families.push({
         id: group.ownerFamily.id,
         name: group.ownerFamily.name,
-        role: 'OWNER',
+        role: 'OWNER' as const,
         isMyFamily: group.ownerFamily.id === userFamily.familyId,
         canManage: false, // Cannot manage owner family
         admins: ownerFamilyAdmins,
       });
 
-      // Add member families  
+      // Add member families
       for (const familyMember of group.familyMembers) {
         const familyAdmins = familyMember.family.members.map(member => ({
           name: member.user.name,
           email: member.user.email,
         }));
         const isMyFamily = familyMember.family.id === userFamily.familyId;
-        
+
         families.push({
           id: familyMember.family.id,
           name: familyMember.family.name,
-          role: familyMember.role,
+          role: familyMember.role as 'ADMIN' | 'MEMBER',
           isMyFamily,
           canManage: !isMyFamily && requesterIsAdmin, // Can manage other families only if requester is admin
           admins: familyAdmins,
@@ -652,11 +652,11 @@ export class GroupService {
             email: member.user.email,
           }));
           const isMyFamily = invitation.targetFamily.id === userFamily.familyId;
-          
+
           families.push({
             id: invitation.targetFamily.id,
             name: invitation.targetFamily.name,
-            role: invitation.role, // The invited role (MEMBER or ADMIN)
+            role: invitation.role as 'ADMIN' | 'MEMBER', // The invited role (MEMBER or ADMIN)
             status: invitation.status, // Invitation status (PENDING, ACCEPTED, etc.)
             isMyFamily,
             canManage: !isMyFamily && requesterIsAdmin, // Can manage invitations only if requester is admin
@@ -723,7 +723,22 @@ export class GroupService {
         entityId: groupId,
       });
 
-      return updatedMembership;
+      // Convert Date objects to ISO strings for JSON serialization
+      // Return in schema order: id, groupId, familyId, role, joinedAt, addedBy, family
+      return {
+        id: updatedMembership.id,
+        groupId: updatedMembership.groupId,
+        familyId: updatedMembership.familyId,
+        role: updatedMembership.role,
+        joinedAt: updatedMembership.joinedAt.toISOString(),
+        addedBy: updatedMembership.addedBy,
+        family: {
+          id: updatedMembership.family.id,
+          name: updatedMembership.family.name,
+          createdAt: updatedMembership.family.createdAt.toISOString(),
+          updatedAt: updatedMembership.family.updatedAt.toISOString(),
+        },
+      };
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -987,20 +1002,20 @@ export class GroupService {
 
   async searchFamiliesForInvitation(searchTerm: string, requesterId: string, groupId: string): Promise<FamilySearchResult[]> {
     try {
-      // Vérifier permissions admin groupe (refactorised)
+      // Check group admin permissions (refactorised)
       await this.validateGroupAdminPermissions(requesterId, groupId);
 
-      // Obtenir famille du demandeur
+      // Get requester's family
       const requesterFamily = await this.prisma.familyMember.findFirst({
         where: { userId: requesterId },
         select: { familyId: true },
       });
 
-      // Rechercher familles
+      // Search for families
       const whereClause: any = {
         name: { contains: searchTerm, mode: 'insensitive' },
         groupMembers: {
-          none: { groupId }, // Exclure familles déjà membres
+          none: { groupId }, // Exclude families already members
         },
       };
       

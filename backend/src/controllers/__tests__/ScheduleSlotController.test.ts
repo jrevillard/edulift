@@ -1,26 +1,41 @@
-import { Request, Response } from 'express';
-import { ScheduleSlotController } from '../ScheduleSlotController';
+/// <reference types="@types/jest" />
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+
+import { Hono } from 'hono';
+import { createScheduleSlotControllerWithDeps, type ScheduleSlotVariables } from '../ScheduleSlotController';
 import { ScheduleSlotService } from '../../services/ScheduleSlotService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
-import { createError } from '../../middleware/errorHandler';
-import { ScheduleSlotWithDetails } from '../../types';
 import { SocketEmitter } from '../../utils/socketEmitter';
 import { TEST_IDS } from '../../utils/testHelpers';
 
-// Mock dependencies
 jest.mock('../../services/ScheduleSlotService');
 jest.mock('../../services/ChildAssignmentService');
-jest.mock('../../middleware/errorHandler');
 jest.mock('../../utils/socketEmitter');
 
-describe('ScheduleSlotController', () => {
-  let controller: ScheduleSlotController;
-  let mockService: jest.Mocked<ScheduleSlotService>;
+jest.mock('../../middleware/auth-hono');
+
+const responseJson = async <T = any>(response: Response): Promise<T> => {
+  return response.json() as Promise<T>;
+};
+
+
+const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}) => {
+  return app.request(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      'Authorization': 'Bearer valid-token',
+    },
+  });
+};
+
+describe('ScheduleSlotController Test Suite', () => {
+  let app: Hono<{ Variables: ScheduleSlotVariables }>;
+  let mockScheduleSlotService: jest.Mocked<ScheduleSlotService>;
   let mockChildAssignmentService: jest.Mocked<ChildAssignmentService>;
-  let mockRequest: Partial<Request>;
-  let mockResponse: Partial<Response>;
   let mockSocketEmitter: jest.Mocked<typeof SocketEmitter>;
-  let capturedJsonData: any = null;
+  const mockUserId = TEST_IDS.USER;
+  const mockUserEmail = 'test@example.com';
 
   const mockScheduleSlot = {
     id: TEST_IDS.SLOT,
@@ -62,11 +77,22 @@ describe('ScheduleSlotController', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Mock createError to throw an error
-    (createError as jest.Mock).mockImplementation((message, code) => {
-      const error = new Error(message);
-      (error as any).statusCode = code;
-      throw error;
+    // Mock authentication middleware to set user context for protected routes
+    const { authenticateToken } = require('../../middleware/auth-hono');
+    authenticateToken.mockImplementation((c: any, next: any) => {
+      const authHeader = c.req.header('authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return c.json({ error: 'Access token required' }, 401);
+      }
+
+      c.set('userId', mockUserId);
+      c.set('user', {
+        id: mockUserId,
+        email: mockUserEmail,
+        name: 'Test User',
+        timezone: 'UTC',
+      });
+      return next();
     });
 
     // Mock SocketEmitter
@@ -76,7 +102,8 @@ describe('ScheduleSlotController', () => {
     mockSocketEmitter.broadcastScheduleSlotDeleted = jest.fn();
     mockSocketEmitter.broadcastScheduleUpdate = jest.fn();
 
-    mockService = {
+    // Mock schedule slot service methods
+    mockScheduleSlotService = {
       createScheduleSlotWithVehicle: jest.fn(),
       assignVehicleToSlot: jest.fn(),
       removeVehicleFromSlot: jest.fn(),
@@ -89,6 +116,7 @@ describe('ScheduleSlotController', () => {
       updateSeatOverride: jest.fn(),
     } as any;
 
+    // Mock child assignment service methods
     mockChildAssignmentService = {
       addChildToGroup: jest.fn(),
       removeChildFromGroup: jest.fn(),
@@ -98,70 +126,61 @@ describe('ScheduleSlotController', () => {
       getChildGroupMemberships: jest.fn(),
     } as any;
 
-    controller = new ScheduleSlotController(mockService, mockChildAssignmentService);
-
-    mockRequest = {
-      params: {},
-      body: {},
-      query: {},
-      userId: 'test-user-id',  // Add userId for authenticated requests
-    } as any;
-
-    mockResponse = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn((data) => {
-        capturedJsonData = data;
-        return data;
-      }),
+    // Set up the controller with mocked dependencies using factory pattern
+    const deps = {
+      scheduleSlotService: mockScheduleSlotService,
+      childAssignmentService: mockChildAssignmentService,
     };
+
+    app = createScheduleSlotControllerWithDeps(deps);
   });
 
-  describe('createScheduleSlotWithVehicle', () => {
+  describe('POST /groups/:groupId/schedule-slots', () => {
     it('should create schedule slot with vehicle using datetime payload', async () => {
-      mockRequest.params = { groupId: TEST_IDS.GROUP };
-      mockRequest.body = {
-        datetime: '2024-01-08T08:00:00.000Z', // Monday of week 2024-01 at 08:00
-        vehicleId: TEST_IDS.VEHICLE,
-        driverId: TEST_IDS.USER,
-      };
+      mockScheduleSlotService.createScheduleSlotWithVehicle.mockResolvedValue(mockScheduleSlot);
 
-      mockService.createScheduleSlotWithVehicle.mockResolvedValue(mockScheduleSlot);
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule-slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datetime: '2024-01-08T08:00:00.000Z', // Monday of week 2024-01 at 08:00
+          vehicleId: TEST_IDS.VEHICLE,
+          driverId: TEST_IDS.USER,
+        }),
+      });
 
-      await controller.createScheduleSlotWithVehicle(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
+      expect(response.status).toBe(201);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
+          vehicleAssignments: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'cltestvlassignment1234567890',
+              vehicle: expect.objectContaining({
+                id: TEST_IDS.VEHICLE,
+                capacity: 30,
+              }),
+              driver: expect.objectContaining({
+                id: TEST_IDS.USER,
+              }),
+            }),
+          ]),
+        }),
+      });
 
-      expect(mockService.createScheduleSlotWithVehicle).toHaveBeenCalledWith(
+      expect(mockScheduleSlotService.createScheduleSlotWithVehicle).toHaveBeenCalledWith(
         {
           groupId: TEST_IDS.GROUP,
           datetime: '2024-01-08T08:00:00.000Z',
         },
         TEST_IDS.VEHICLE,
-        'test-user-id',
+        mockUserId,
         TEST_IDS.USER,
         undefined,
       );
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(capturedJsonData).toEqual({
-        success: true,
-        data: expect.objectContaining({
-          id: TEST_IDS.SLOT,
-        groupId: TEST_IDS.GROUP,
-        vehicleAssignments: expect.arrayContaining([
-          expect.objectContaining({
-            id: 'cltestvlassignment1234567890',
-            vehicle: expect.objectContaining({
-              id: TEST_IDS.VEHICLE,
-              capacity: 30,
-            }),
-            driver: expect.objectContaining({
-              id: TEST_IDS.USER,
-            }),
-          }),
-        ]),
-        }),
-      });
 
       // Verify WebSocket emissions
       expect(mockSocketEmitter.broadcastScheduleSlotCreated).toHaveBeenCalledWith(
@@ -173,55 +192,87 @@ describe('ScheduleSlotController', () => {
     });
 
     it('should throw error if vehicleId is missing', async () => {
-      mockRequest.params = { groupId: TEST_IDS.GROUP };
-      mockRequest.body = {
-        datetime: '2024-01-08T08:00:00.000Z',
-        // vehicleId missing
-      };
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule-slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datetime: '2024-01-08T08:00:00.000Z',
+          // vehicleId missing
+        }),
+      });
 
-      await expect(
-        controller.createScheduleSlotWithVehicle(
-          mockRequest as Request,
-          mockResponse as Response,
-        ),
-      ).rejects.toThrow();
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Vehicle ID is required to create a schedule slot',
+      });
+    });
 
-      expect(createError).toHaveBeenCalledWith(
-        'Vehicle ID is required to create a schedule slot',
-        400,
-      );
+    it('should handle authentication required error', async () => {
+      const response = await app.request(`/groups/${TEST_IDS.GROUP}/schedule-slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datetime: '2024-01-08T08:00:00.000Z',
+          vehicleId: TEST_IDS.VEHICLE,
+        }),
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
+      });
     });
 
     it('should handle service errors', async () => {
-      mockRequest.params = { groupId: TEST_IDS.GROUP };
-      mockRequest.body = {
-        datetime: '2024-01-08T08:00:00.000Z',
-        vehicleId: TEST_IDS.VEHICLE,
-      };
+      const error = new Error('Service unavailable');
+      mockScheduleSlotService.createScheduleSlotWithVehicle.mockRejectedValue(error);
 
-      const error = new Error('Slot already exists');
-      mockService.createScheduleSlotWithVehicle.mockRejectedValue(error);
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule-slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datetime: '2024-01-08T08:00:00.000Z',
+          vehicleId: TEST_IDS.VEHICLE,
+        }),
+      });
 
-      await expect(
-        controller.createScheduleSlotWithVehicle(
-          mockRequest as Request,
-          mockResponse as Response,
-        ),
-      ).rejects.toThrow();
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Service unavailable',
+        code: 'INTERNAL_ERROR'
+      });
+    });
 
-      // The error message has been updated to match the new API error handling
-      expect(createError).toHaveBeenCalled();
+    it('should handle conflict errors for existing slots', async () => {
+      const error = new Error('Schedule slot already exists for this datetime');
+      mockScheduleSlotService.createScheduleSlotWithVehicle.mockRejectedValue(error);
+
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule-slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datetime: '2024-01-08T08:00:00.000Z',
+          vehicleId: TEST_IDS.VEHICLE,
+        }),
+      });
+
+      expect(response.status).toBe(409);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Schedule slot already exists for this datetime',
+        code: 'ALREADY_EXISTS'
+      });
     });
   });
 
-  describe('assignVehicleToSlot', () => {
+  describe('POST /schedule-slots/:scheduleSlotId/vehicles', () => {
     it('should assign vehicle to slot successfully', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-      mockRequest.body = {
-        vehicleId: TEST_IDS.VEHICLE,
-        driverId: TEST_IDS.USER,
-      };
-
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
@@ -261,22 +312,21 @@ describe('ScheduleSlotController', () => {
         },
       };
 
-      mockService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockService.assignVehicleToSlot.mockResolvedValue(mockAssignment);
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+      mockScheduleSlotService.assignVehicleToSlot.mockResolvedValue(mockAssignment);
 
-      await controller.assignVehicleToSlot(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
-
-      expect(mockService.assignVehicleToSlot).toHaveBeenCalledWith({
-        scheduleSlotId: TEST_IDS.SLOT,
-        vehicleId: TEST_IDS.VEHICLE,
-        driverId: TEST_IDS.USER,
-        seatOverride: undefined,
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleId: TEST_IDS.VEHICLE,
+          driverId: TEST_IDS.USER,
+        }),
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(capturedJsonData).toEqual({
+
+      expect(response.status).toBe(201);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         success: true,
         data: expect.objectContaining({
           id: 'cltestvlassignment1234567890',
@@ -290,6 +340,13 @@ describe('ScheduleSlotController', () => {
         }),
       });
 
+      expect(mockScheduleSlotService.assignVehicleToSlot).toHaveBeenCalledWith({
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.USER,
+        seatOverride: undefined,
+      });
+
       // Verify WebSocket emissions
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).toHaveBeenCalledWith(
         TEST_IDS.GROUP,
@@ -300,25 +357,43 @@ describe('ScheduleSlotController', () => {
     });
 
     it('should throw error if vehicleId is missing', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-      mockRequest.body = {}; // vehicleId missing
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}), // vehicleId missing
+      });
 
-      await expect(
-        controller.assignVehicleToSlot(
-          mockRequest as Request,
-          mockResponse as Response,
-        ),
-      ).rejects.toThrow();
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Vehicle ID is required',
+      });
+    });
 
-      expect(createError).toHaveBeenCalledWith('Vehicle ID is required', 400);
+    it('should handle schedule slot not found', async () => {
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(null);
+
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleId: TEST_IDS.VEHICLE,
+          driverId: TEST_IDS.USER,
+        }),
+      });
+
+      expect(response.status).toBe(404);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Schedule slot not found',
+      });
     });
   });
 
-  describe('removeVehicleFromSlot', () => {
+  describe('DELETE /schedule-slots/:scheduleSlotId/vehicles', () => {
     it('should remove vehicle from slot successfully', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-      mockRequest.body = { vehicleId: TEST_IDS.VEHICLE };
-
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
@@ -352,23 +427,26 @@ describe('ScheduleSlotController', () => {
         slotDeleted: false,
       };
 
-      mockService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockService.removeVehicleFromSlot.mockResolvedValue(mockResult);
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue(mockResult);
 
-      await controller.removeVehicleFromSlot(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleId: TEST_IDS.VEHICLE }),
+      });
 
-      expect(mockService.removeVehicleFromSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(capturedJsonData).toEqual({
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         success: true,
         data: {
           message: 'Vehicle removed successfully',
           slotDeleted: false,
         },
       });
+
+      expect(mockScheduleSlotService.removeVehicleFromSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
 
       // Verify WebSocket emissions (slot not deleted)
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).toHaveBeenCalledWith(
@@ -381,9 +459,6 @@ describe('ScheduleSlotController', () => {
     });
 
     it('should handle slot deletion when removing last vehicle', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-      mockRequest.body = { vehicleId: TEST_IDS.VEHICLE };
-
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
@@ -417,15 +492,18 @@ describe('ScheduleSlotController', () => {
         slotDeleted: true,
       };
 
-      mockService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockService.removeVehicleFromSlot.mockResolvedValue(mockResult);
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue(mockResult);
 
-      await controller.removeVehicleFromSlot(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleId: TEST_IDS.VEHICLE }),
+      });
 
-      expect(capturedJsonData).toEqual({
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         success: true,
         data: {
           message: 'Vehicle removed successfully',
@@ -441,13 +519,26 @@ describe('ScheduleSlotController', () => {
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).not.toHaveBeenCalled();
       expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith(TEST_IDS.GROUP);
     });
+
+    it('should throw error if vehicleId is missing', async () => {
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}), // vehicleId missing
+      });
+
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Vehicle ID is required',
+      });
+    });
   });
 
-  describe('getScheduleSlotDetails', () => {
+  describe('GET /schedule-slots/:scheduleSlotId', () => {
     it('should return schedule slot details', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-
-      const mockSlotWithDetails: ScheduleSlotWithDetails = {
+      const mockSlotWithDetails = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
@@ -473,49 +564,58 @@ describe('ScheduleSlotController', () => {
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      mockService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithDetails);
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithDetails);
 
-      await controller.getScheduleSlotDetails(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}`, {
+        method: 'GET',
+      });
 
-      expect(mockService.getScheduleSlotDetails).toHaveBeenCalledWith(TEST_IDS.SLOT);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(capturedJsonData.success).toBe(true);
-      expect(capturedJsonData.data.id).toBe(TEST_IDS.SLOT);
-      expect(capturedJsonData.data.groupId).toBe(TEST_IDS.GROUP);
-      expect(capturedJsonData.data.vehicleAssignments).toHaveLength(1);
-      expect(capturedJsonData.data.vehicleAssignments[0].id).toBe('cltestvlassignment1234567890');
-      expect(capturedJsonData.data.vehicleAssignments[0].vehicle.id).toBe(TEST_IDS.VEHICLE);
-      expect(capturedJsonData.data.vehicleAssignments[0].driver.id).toBe(TEST_IDS.USER);
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
+          vehicleAssignments: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'cltestvlassignment1234567890',
+              vehicle: expect.objectContaining({
+                id: TEST_IDS.VEHICLE,
+                name: 'Bus 1',
+                capacity: 30,
+              }),
+              driver: expect.objectContaining({
+                id: TEST_IDS.USER,
+                name: 'John Doe',
+              }),
+            }),
+          ]),
+        }),
+      });
+
+      expect(mockScheduleSlotService.getScheduleSlotDetails).toHaveBeenCalledWith(TEST_IDS.SLOT);
     });
 
     it('should throw error if slot not found', async () => {
-      mockRequest.params = { scheduleSlotId: 'non-existent' };
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(null);
 
-      mockService.getScheduleSlotDetails.mockResolvedValue(null);
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/non-existent`, {
+        method: 'GET',
+      });
 
-      await expect(
-        controller.getScheduleSlotDetails(
-          mockRequest as Request,
-          mockResponse as Response,
-        ),
-      ).rejects.toThrow();
-
-      expect(createError).toHaveBeenCalledWith('Schedule slot not found', 404);
+      expect(response.status).toBe(404);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Schedule slot not found',
+      });
     });
   });
 
-  describe('getSchedule', () => {
+  describe('GET /groups/:groupId/schedule', () => {
     it('should return schedule with date range', async () => {
-      mockRequest.params = { groupId: TEST_IDS.GROUP };
-      mockRequest.query = { 
-        startDate: '2024-01-01T00:00:00.000Z', 
-        endDate: '2024-01-07T23:59:59.999Z', 
-      };
-
-      const mockSlotWithDetails: ScheduleSlotWithDetails = {
+      const mockSlotWithDetails = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
@@ -546,29 +646,38 @@ describe('ScheduleSlotController', () => {
         startDate: '2024-01-01T00:00:00.000Z',
         endDate: '2024-01-07T23:59:59.999Z',
         scheduleSlots: [mockSlotWithDetails],
-      } as { groupId: string; startDate: string; endDate: string; scheduleSlots: ScheduleSlotWithDetails[] };
+      };
 
-      mockService.getSchedule.mockResolvedValue(mockSchedule as any);
+      mockScheduleSlotService.getSchedule.mockResolvedValue(mockSchedule);
 
-      await controller.getSchedule(
-        mockRequest as Request,
-        mockResponse as Response,
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule?startDate=2024-01-01T00:00:00.000Z&endDate=2024-01-07T23:59:59.999Z`, {
+        method: 'GET',
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          groupId: TEST_IDS.GROUP,
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2024-01-07T23:59:59.999Z',
+          scheduleSlots: expect.arrayContaining([
+            expect.objectContaining({
+              id: TEST_IDS.SLOT,
+            }),
+          ]),
+        }),
+      });
+
+      expect(mockScheduleSlotService.getSchedule).toHaveBeenCalledWith(
+        TEST_IDS.GROUP,
+        '2024-01-01T00:00:00.000Z',
+        '2024-01-07T23:59:59.999Z'
       );
-
-      expect(mockService.getSchedule).toHaveBeenCalledWith(TEST_IDS.GROUP, '2024-01-01T00:00:00.000Z', '2024-01-07T23:59:59.999Z');
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(capturedJsonData.success).toBe(true);
-      expect(capturedJsonData.data.groupId).toBe(mockSchedule.groupId);
-      expect(capturedJsonData.data.startDate).toBe(mockSchedule.startDate);
-      expect(capturedJsonData.data.endDate).toBe(mockSchedule.endDate);
-      expect(capturedJsonData.data.scheduleSlots).toHaveLength(1);
-      expect(capturedJsonData.data.scheduleSlots[0].id).toBe(TEST_IDS.SLOT);
     });
 
     it('should handle missing date parameters by using defaults', async () => {
-      mockRequest.params = { groupId: TEST_IDS.GROUP };
-      mockRequest.query = {}; // no date parameters
-
       const mockSchedule = {
         groupId: TEST_IDS.GROUP,
         startDate: '2024-06-24T00:00:00.000Z',
@@ -576,43 +685,40 @@ describe('ScheduleSlotController', () => {
         scheduleSlots: [],
       };
 
-      mockService.getSchedule.mockResolvedValue(mockSchedule);
+      mockScheduleSlotService.getSchedule.mockResolvedValue(mockSchedule);
 
-      await controller.getSchedule(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule`, {
+        method: 'GET',
+      });
 
-      expect(mockService.getSchedule).toHaveBeenCalledWith(TEST_IDS.GROUP, undefined, undefined);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(capturedJsonData).toEqual({
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
         success: true,
         data: mockSchedule,
       });
+
+      expect(mockScheduleSlotService.getSchedule).toHaveBeenCalledWith(TEST_IDS.GROUP, undefined, undefined);
     });
   });
 
-  describe('assignChildToSlot', () => {
+  describe('POST /schedule-slots/:scheduleSlotId/children', () => {
     it('should assign child to slot successfully', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-      mockRequest.body = { childId: TEST_IDS.CHILD, vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT };
-
       const mockAssignment = {
         id: 'cltestassignment123456789012345',
         scheduleSlotId: TEST_IDS.SLOT,
         childId: TEST_IDS.CHILD,
         vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
-        assignedAt: '2024-01-01T00:00:00.000Z',
+        assignedAt: new Date('2024-01-01T00:00:00.000Z'),
         createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: new Date('2024-01-01T00:00:00.000Z'),
         child: {
           id: TEST_IDS.CHILD,
-          firstName: 'Test',
-          lastName: 'Child',
-          dateOfBirth: '2016-01-01T00:00:00.000Z',
-          familyId: TEST_IDS.FAMILY,
+          name: 'Test Child',
+          age: 8,
           createdAt: new Date('2024-01-01T00:00:00.000Z'),
           updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+          familyId: TEST_IDS.FAMILY,
         },
         scheduleSlot: {
           id: TEST_IDS.SLOT,
@@ -626,20 +732,20 @@ describe('ScheduleSlotController', () => {
           vehicleId: TEST_IDS.VEHICLE,
           scheduleSlotId: TEST_IDS.SLOT,
           driverId: TEST_IDS.USER,
-          groupId: TEST_IDS.GROUP,
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          seatOverride: 0,
           vehicle: {
             id: TEST_IDS.VEHICLE,
             name: 'Test Vehicle',
             capacity: 30,
             familyId: TEST_IDS.FAMILY,
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
+            updatedAt: new Date('2024-01-01T00:00:00.000Z'),
           },
         },
       };
 
-      mockChildAssignmentService.assignChildToScheduleSlot.mockResolvedValue(mockAssignment as any);
-      mockService.getScheduleSlotDetails.mockResolvedValue({
+      const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
         datetime: new Date('2024-01-08T08:00:00.000Z'),
@@ -647,86 +753,107 @@ describe('ScheduleSlotController', () => {
         childAssignments: [],
         totalCapacity: 0,
         availableSeats: 0,
-      } as any);
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
 
-      await controller.assignChildToScheduleSlot(
-        mockRequest as Request,
-        mockResponse as Response
-      );
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+      mockChildAssignmentService.assignChildToScheduleSlot.mockResolvedValue(mockAssignment);
+
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/children`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          childId: TEST_IDS.CHILD,
+          vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
+        }),
+      });
+
+      expect(response.status).toBe(201);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          id: 'cltestassignment123456789012345',
+          childId: TEST_IDS.CHILD,
+          scheduleSlotId: TEST_IDS.SLOT,
+          vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
+          assignedAt: '2024-01-01T00:00:00.000Z',
+        }),
+      });
 
       expect(mockChildAssignmentService.assignChildToScheduleSlot).toHaveBeenCalledWith(
         TEST_IDS.SLOT,
         TEST_IDS.CHILD,
         TEST_IDS.VEHICLE_ASSIGNMENT,
-        'test-user-id'
+        mockUserId,
       );
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(capturedJsonData.success).toBe(true);
-      expect(capturedJsonData.data.id).toBe(mockAssignment.id);
-      expect(capturedJsonData.data.childId).toBe(mockAssignment.childId);
-      expect(capturedJsonData.data.child.firstName).toBe(mockAssignment.child.firstName);
+
+      // Verify WebSocket emissions
+      expect(mockSocketEmitter.broadcastScheduleSlotUpdate).toHaveBeenCalledWith(
+        TEST_IDS.GROUP,
+        TEST_IDS.SLOT,
+        mockAssignment,
+      );
+      expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith(TEST_IDS.GROUP);
     });
 
     it('should throw error if childId is missing', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
-      mockRequest.body = { vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT }; // childId missing
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/children`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT }), // childId missing
+      });
 
-      await expect(
-        controller.assignChildToScheduleSlot(
-          mockRequest as Request,
-          mockResponse as Response
-        )
-      ).rejects.toThrow();
-
-      expect(createError).toHaveBeenCalledWith('Child ID is required', 400);
+      expect(response.status).toBe(400);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Child ID is required',
+      });
     });
-  });
 
-  describe('getScheduleSlotConflicts', () => {
-    it('should return schedule slot conflicts', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT };
+    it('should handle authentication required error', async () => {
+      const response = await app.request(`/schedule-slots/${TEST_IDS.SLOT}/children`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          childId: TEST_IDS.CHILD,
+          vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
+        }),
+      });
 
-      const mockConflicts = ['CAPACITY_EXCEEDED', 'DRIVER_DOUBLE_BOOKING'];
-
-      mockService.validateSlotConflicts.mockResolvedValue(mockConflicts);
-
-      await controller.getScheduleSlotConflicts(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
-
-      expect(mockService.validateSlotConflicts).toHaveBeenCalledWith(TEST_IDS.SLOT);
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(capturedJsonData).toEqual({
-        success: true,
-        data: { conflicts: mockConflicts },
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
       });
     });
   });
 
-  // ❌ RED: TDD tests for past-time validation (should fail initially)
-  describe('updateSeatOverride - Past Time Validation', () => {
-    it('should reject seat override updates for past schedule slots', async () => {
-      mockRequest.params = { vehicleAssignmentId: 'cltestvlassignment1234567890' };
-      mockRequest.body = { seatOverride: 25 };
+  describe('GET /schedule-slots/:scheduleSlotId/conflicts', () => {
+    it('should return schedule slot conflicts', async () => {
+      const mockConflicts = ['CAPACITY_EXCEEDED', 'DRIVER_DOUBLE_BOOKING'];
 
-      // Mock service to return slot in the past
-      mockService.updateSeatOverride = jest.fn().mockRejectedValue(
-        new Error('Cannot modify schedule slots in the past'),
-      );
+      mockScheduleSlotService.validateSlotConflicts.mockResolvedValue(mockConflicts);
 
-      await expect(
-        controller.updateSeatOverride(
-          mockRequest as Request,
-          mockResponse as Response,
-        ),
-      ).rejects.toThrow('Cannot modify schedule slots in the past');
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/conflicts`, {
+        method: 'GET',
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: true,
+        data: { conflicts: mockConflicts },
+      });
+
+      expect(mockScheduleSlotService.validateSlotConflicts).toHaveBeenCalledWith(TEST_IDS.SLOT);
     });
+  });
 
-    it('should allow seat override updates for future schedule slots', async () => {
-      mockRequest.params = { vehicleAssignmentId: 'cltestvlassignment1234567890' };
-      mockRequest.body = { seatOverride: 25 };
-
+  describe('PATCH /vehicle-assignments/:vehicleAssignmentId/seat-override', () => {
+    it('should update seat override successfully', async () => {
       const mockResult = {
         id: 'cltestvlassignment1234567890',
         scheduleSlotId: TEST_IDS.SLOT,
@@ -748,140 +875,93 @@ describe('ScheduleSlotController', () => {
         },
       };
 
-      mockService.updateSeatOverride = jest.fn().mockResolvedValue(mockResult);
+      mockScheduleSlotService.updateSeatOverride.mockResolvedValue(mockResult);
 
-      await controller.updateSeatOverride(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
+      const response = await makeAuthenticatedRequest(app, `/vehicle-assignments/cltestvlassignment1234567890/seat-override`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seatOverride: 25 }),
+      });
 
-      expect(mockService.updateSeatOverride).toHaveBeenCalledWith({
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: true,
+        data: expect.objectContaining({
+          id: 'cltestvlassignment1234567890',
+          seatOverride: 25,
+          vehicle: expect.objectContaining({
+            id: TEST_IDS.VEHICLE,
+            name: 'Bus 1',
+            capacity: 30,
+          }),
+          driver: expect.objectContaining({
+            id: TEST_IDS.USER,
+            name: 'John Doe',
+          }),
+        }),
+      });
+
+      expect(mockScheduleSlotService.updateSeatOverride).toHaveBeenCalledWith({
         vehicleAssignmentId: 'cltestvlassignment1234567890',
         seatOverride: 25,
       });
-      expect(mockResponse.status).toHaveBeenCalledWith(200);
-      expect(capturedJsonData.success).toBe(true);
-      expect(capturedJsonData.data.id).toBe('cltestvlassignment1234567890');
-      expect(capturedJsonData.data.seatOverride).toBe(25);
-      expect(capturedJsonData.data.vehicle.id).toBe(TEST_IDS.VEHICLE);
-      expect(capturedJsonData.data.vehicle.name).toBe('Bus 1');
-      expect(capturedJsonData.data.driver.id).toBe(TEST_IDS.USER);
+    });
+
+    it('should handle service errors', async () => {
+      const error = new Error('Vehicle assignment not found');
+      mockScheduleSlotService.updateSeatOverride.mockRejectedValue(error);
+
+      const response = await makeAuthenticatedRequest(app, `/vehicle-assignments/cltestvlassignment1234567890/seat-override`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ seatOverride: 25 }),
+      });
+
+      expect(response.status).toBe(404);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        success: false,
+        error: 'Vehicle assignment not found',
+        code: 'NOT_FOUND'
+      });
     });
   });
 
-  describe('assignChildToScheduleSlot - Past Time Validation', () => {
-    beforeEach(() => {
-      // Mock authenticated request
-      mockRequest = {
-        params: {},
-        body: {},
-        query: {},
-        userId: 'test-user-id', // Add userId for AuthenticatedRequest
-        user: {
-          id: 'test-user-id',
-          email: 'test@example.com',
-          name: 'Test User',
-        },
-      } as any;
+  describe('Error Handling and Validation', () => {
+    it('should handle malformed JSON in request body', async () => {
+      const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule-slots`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: 'invalid json',
+      });
+
+      expect(response.status).toBe(500); // JSON parsing errors result in 500 status
     });
 
-    it('should reject child assignments to past schedule slots', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT }; // Valid CUID
-      mockRequest.body = {
-        childId: TEST_IDS.CHILD,
-        vehicleAssignmentId: TEST_IDS.VEHICLE_2,
-      };
-
-      const mockScheduleSlot = {
-        id: TEST_IDS.SLOT,
-        groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
-        vehicleAssignments: [],
-        childAssignments: [],
-        totalCapacity: 0,
-        availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
-      };
-
-      const mockChildAssignmentService = {
-        assignChildToScheduleSlot: jest.fn().mockRejectedValue(
-          new Error('Cannot assign children to schedule slots in the past'),
-        ),
-      } as any;
-
-      mockService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      controller = new ScheduleSlotController(mockService, mockChildAssignmentService);
-
-      await expect(
-        controller.assignChildToScheduleSlot(
-          mockRequest as Request,
-          mockResponse as Response,
-        ),
-      ).rejects.toThrow('Cannot assign children to schedule slots in the past');
-
-      expect(mockChildAssignmentService.assignChildToScheduleSlot).toHaveBeenCalledWith(
-        TEST_IDS.SLOT,
-        TEST_IDS.CHILD,
-        TEST_IDS.VEHICLE_2,
-        'test-user-id',
-      );
-    });
-
-    it('should allow child assignments to future schedule slots', async () => {
-      mockRequest.params = { scheduleSlotId: TEST_IDS.SLOT }; // Valid CUID
-      mockRequest.body = {
-        childId: TEST_IDS.CHILD,
-        vehicleAssignmentId: TEST_IDS.VEHICLE_2,
-      };
-
-      const mockAssignment = {
-        id: TEST_IDS.TRIP,
-        scheduleSlotId: TEST_IDS.SLOT,
-        childId: TEST_IDS.CHILD,
-        vehicleAssignmentId: TEST_IDS.VEHICLE_2,
-        assignedAt: new Date().toISOString(),
-      };
-
-      const mockScheduleSlot = {
-        id: TEST_IDS.SLOT,
-        groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
-        vehicleAssignments: [],
-        childAssignments: [],
-        totalCapacity: 0,
-        availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
-      };
-
-      mockService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-
-      // Use the existing mockChildAssignmentService from beforeEach
-      const mockChildAssignmentService = (controller as any).childAssignmentService;
-      mockChildAssignmentService.assignChildToScheduleSlot = jest.fn().mockResolvedValue(mockAssignment);
-
-      await controller.assignChildToScheduleSlot(
-        mockRequest as Request,
-        mockResponse as Response,
-      );
-
-      expect(mockChildAssignmentService.assignChildToScheduleSlot).toHaveBeenCalledWith(
-        TEST_IDS.SLOT,
-        TEST_IDS.CHILD,
-        TEST_IDS.VEHICLE_2,
-        'test-user-id',
-      );
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
-      expect(capturedJsonData).toEqual({
-        success: true,
-        data: expect.objectContaining({
-          id: TEST_IDS.TRIP,
-          childId: TEST_IDS.CHILD,
-          scheduleSlotId: TEST_IDS.SLOT,
-          vehicleAssignmentId: TEST_IDS.VEHICLE_2,
-          assignedAt: expect.any(String),
+    it('should handle missing required parameters', async () => {
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots//vehicles`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleId: TEST_IDS.VEHICLE,
+          driverId: TEST_IDS.USER,
         }),
+      });
+
+      expect(response.status).toBe(404);
+    });
+
+    it('should handle unauthorized access', async () => {
+      const response = await app.request(`/schedule-slots/${TEST_IDS.SLOT}`, {
+        method: 'GET',
+        headers: {}, // No Authorization header
+      });
+
+      expect(response.status).toBe(401);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse).toEqual({
+        error: 'Access token required',
       });
     });
   });

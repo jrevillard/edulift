@@ -14,7 +14,7 @@ describe('DashboardService Integration Tests', () => {
   });
 
   afterEach(async () => {
-    // Nettoyer les données créées
+    // Clean up created data
     const tables = [
       'scheduleSlotChild',
       'scheduleSlotVehicle',
@@ -31,7 +31,7 @@ describe('DashboardService Integration Tests', () => {
       try {
         await prisma[table].deleteMany({});
       } catch {
-        // Ignorer les erreurs de nettoyage
+        // Ignore cleanup errors
       }
     }
   });
@@ -46,7 +46,7 @@ describe('DashboardService Integration Tests', () => {
     });
 
     it('should correctly filter slots with DB-level queries', async () => {
-      // Créer des slots avec différents scénarios
+      // Create slots with different scenarios
       const family2 = await prisma.family.create({
         data: { name: 'Other Family' },
       });
@@ -59,7 +59,7 @@ describe('DashboardService Integration Tests', () => {
         data: { name: 'Other Vehicle', capacity: 6, familyId: family2.id },
       });
 
-      // Slot avec famille 123 - doit être inclus
+      // Slot with family 123 - should be included
       const slot1 = await prisma.scheduleSlot.create({
         data: {
           groupId: testData.group.id,
@@ -85,7 +85,7 @@ describe('DashboardService Integration Tests', () => {
         },
       });
 
-      // Slot avec autre famille - doit être filtré par DB-level filtering
+      // Slot with other family - should be filtered by DB-level filtering
       const slot2 = await prisma.scheduleSlot.create({
         data: {
           groupId: testData.group.id,

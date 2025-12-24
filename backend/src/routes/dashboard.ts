@@ -1,34 +1,32 @@
-import { prisma } from '../config/database';
-import { Router, Response } from 'express';
-import { DashboardController } from '../controllers/DashboardController';
-import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
-import { asyncHandler } from '../middleware/errorHandler';
+/**
+ * Dashboard Routes - OpenAPI Hono
+ *
+ * Dashboard routes with authentication middleware
+ * All routes are protected and require JWT authentication
+ */
 
-const router = Router();
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { authenticateToken } from '../middleware/auth-hono';
+import dashboardController from '../controllers/DashboardController';
 
-const dashboardController = new DashboardController(prisma);
+// Create OpenAPI Hono app
+const app = new OpenAPIHono();
 
-// All routes require authentication
-router.use(authenticateToken);
+// Apply authentication middleware to all routes
+app.use('*', authenticateToken);
 
-// Dashboard statistics
-router.get('/stats', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  await dashboardController.getStats(req, res);
-}));
+// Mount dashboard controller routes
+app.route('/', dashboardController);
 
-// Today's schedule
-router.get('/today-schedule', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  await dashboardController.getTodaySchedule(req, res);
-}));
+// Health check endpoint
+app.get('/health', (c) => {
+  return c.json({
+    status: 'ok',
+    service: 'dashboard',
+    timestamp: new Date().toISOString(),
+    endpoints: 4,
+    analytics: 'comprehensive',
+  });
+});
 
-// Weekly dashboard (main endpoint)
-router.get('/weekly', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  await dashboardController.getWeeklyDashboard(req, res);
-}));
-
-// Recent activity
-router.get('/recent-activity', asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-  await dashboardController.getRecentActivity(req, res);
-}));
-
-export default router;
+export default app;

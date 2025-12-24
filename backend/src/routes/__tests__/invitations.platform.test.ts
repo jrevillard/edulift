@@ -1,6 +1,5 @@
 // @ts-nocheck
-import request from 'supertest';
-import express from 'express';
+import { Hono } from 'hono';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
@@ -8,7 +7,7 @@ import { PrismaClient } from '@prisma/client';
 
 // Mock the auth middleware BEFORE importing anything else
 const mockAuthMiddleware = jest.fn();
-jest.mock('../../middleware/auth', () => ({
+jest.mock('../../middleware/auth-hono', () => ({
   authenticateToken: mockAuthMiddleware,
   AuthenticatedRequest: {} as any,
 }));
@@ -22,17 +21,7 @@ jest.mock('@prisma/client', () => ({
   })),
 }));
 
-// Mock EmailServiceFactory
-jest.mock('../../services/EmailServiceFactory', () => ({
-  EmailServiceFactory: {
-    getInstance: jest.fn().mockReturnValue({
-      sendFamilyInvitation: jest.fn(),
-      sendGroupInvitation: jest.fn(),
-    }),
-  },
-}));
-
-// Mock UnifiedInvitationService
+// Mock UnifiedInvitationService BEFORE importing InvitationController
 const mockCreateFamilyInvitation = jest.fn();
 const mockCreateGroupInvitation = jest.fn();
 
@@ -43,11 +32,28 @@ jest.mock('../../services/UnifiedInvitationService', () => ({
   })),
 }));
 
+// Mock EmailServiceFactory BEFORE importing InvitationController
+jest.mock('../../services/EmailServiceFactory', () => ({
+  EmailServiceFactory: {
+    getInstance: jest.fn().mockReturnValue({
+      sendFamilyInvitation: jest.fn(),
+      sendGroupInvitation: jest.fn(),
+    }),
+  },
+}));
+
+// Mock EmailService constructor BEFORE importing InvitationController
+jest.mock('../../services/EmailService', () => ({
+  EmailService: jest.fn().mockImplementation(() => ({
+    sendInvitationEmail: jest.fn(),
+  })),
+}));
+
 // Now import the router after all mocks are set up
-import invitationsRouter from '../invitations';
+import { invitationsRouter } from '../invitations';
 
 describe('Platform Parameter Handling in Invitation Routes', () => {
-  let app: express.Application;
+  let app: Hono;
   let authToken: string;
   let mockUserFindUnique: jest.Mock;
 
@@ -59,10 +65,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
   beforeAll(() => {
     // Set environment variable for JWT secret
     process.env.JWT_ACCESS_SECRET = 'test-secret';
-
-    app = express();
-    app.use(express.json());
-    app.use('/invitations', invitationsRouter);
 
     // Create a test JWT token
     authToken = jwt.sign(
@@ -77,25 +79,29 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock the authentication middleware to simulate successful auth
-    mockAuthMiddleware.mockImplementation((req: any, _res: any, next: unknown) => {
+    mockAuthMiddleware.mockImplementation((c: any, next: any) => {
       // Simulate authenticated request
-      req.userId = testUser.id;
-      req.user = {
+      c.set('userId', testUser.id);
+      c.set('user', {
         id: testUser.id,
         email: testUser.email,
         name: 'Test User',
-      };
-      next();
+      });
+      return next();
     });
-    
+
     // Mock Prisma user lookup for authentication
     mockUserFindUnique.mockResolvedValue({
       id: testUser.id,
       email: testUser.email,
       name: 'Test User',
     });
+
+    // Create fresh app instance for each test
+    app = new Hono();
+    app.route('/invitations', invitationsRouter);
   });
 
   describe('Family Invitation Platform Parameter', () => {
@@ -115,13 +121,19 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
       mockCreateFamilyInvitation.mockResolvedValueOnce(mockInvitation);
 
-      const response = await request(app)
-        .post('/invitations/family')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(familyInviteData);
+      const response = await app.request('/invitations/family', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(familyInviteData),
+      });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
+      const responseBody = await response.json();
+      expect(responseBody).toHaveProperty('id');
+      expect(responseBody).toHaveProperty('inviteCode');
 
       // Verify the service was called without platform parameter
       expect(mockCreateFamilyInvitation).toHaveBeenCalledWith(
@@ -144,13 +156,19 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
       mockCreateFamilyInvitation.mockResolvedValueOnce(mockInvitation);
 
-      const response = await request(app)
-        .post('/invitations/family')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(familyInviteData);
+      const response = await app.request('/invitations/family', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(familyInviteData),
+      });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
+      const responseBody = await response.json();
+      expect(responseBody).toHaveProperty('id');
+      expect(responseBody).toHaveProperty('inviteCode');
 
       // Verify the service was called without platform parameter
       expect(mockCreateFamilyInvitation).toHaveBeenCalledWith(
@@ -173,16 +191,22 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
       mockCreateFamilyInvitation.mockResolvedValueOnce(mockInvitation);
 
-      const response = await request(app)
-        .post('/invitations/family')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
+      const response = await app.request('/invitations/family', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           ...familyInviteData,
           platform: 'invalid-platform',
-        });
+        }),
+      });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
+      const responseBody = await response.json();
+      expect(responseBody).toHaveProperty('id');
+      expect(responseBody).toHaveProperty('inviteCode');
 
       // Verify the service was called without platform parameter
       expect(mockCreateFamilyInvitation).toHaveBeenCalledWith(
@@ -215,13 +239,19 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
       mockCreateGroupInvitation.mockResolvedValueOnce(mockInvitation);
 
-      const response = await request(app)
-        .post('/invitations/group')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(groupInviteData);
+      const response = await app.request('/invitations/group', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(groupInviteData),
+      });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
+      const responseBody = await response.json();
+      expect(responseBody).toHaveProperty('id');
+      expect(responseBody).toHaveProperty('inviteCode');
 
       // Verify the service was called without platform parameter
       expect(mockCreateGroupInvitation).toHaveBeenCalledWith(
@@ -245,13 +275,19 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
 
       mockCreateGroupInvitation.mockResolvedValueOnce(mockInvitation);
 
-      const response = await request(app)
-        .post('/invitations/group')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send(groupInviteData);
+      const response = await app.request('/invitations/group', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(groupInviteData),
+      });
 
       expect(response.status).toBe(201);
-      expect(response.body.success).toBe(true);
+      const responseBody = await response.json();
+      expect(responseBody).toHaveProperty('id');
+      expect(responseBody).toHaveProperty('inviteCode');
 
       // Verify the service was called without platform parameter
       expect(mockCreateGroupInvitation).toHaveBeenCalledWith(
@@ -271,30 +307,39 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
     it('should handle service errors gracefully', async () => {
       mockCreateFamilyInvitation.mockRejectedValueOnce(new Error('Service error'));
 
-      const response = await request(app)
-        .post('/invitations/family')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
+      const response = await app.request('/invitations/family', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           familyId: 'cl123456789012345678901234',
           email: 'test@example.com',
           role: 'MEMBER',
-        });
+        }),
+      });
 
       expect(response.status).toBe(500);
     });
 
     it('should validate required fields regardless of platform', async () => {
-      const response = await request(app)
-        .post('/invitations/family')
-        .set('Authorization', `Bearer ${authToken}`)
-        .send({
+      const response = await app.request('/invitations/family', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           email: 'test@example.com',
           // Missing familyId and role
-        });
+        }),
+      });
 
       expect(response.status).toBe(400);
-      expect(response.body.success).toBe(false);
-      expect(response.body.error).toBe('Invalid request data');
+      const responseBody = await response.json();
+      expect(responseBody.success).toBe(false);
+      expect(responseBody.error.name).toBe('ZodError');
     });
   });
 });

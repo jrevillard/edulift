@@ -1,30 +1,25 @@
 /**
- * Vehicles Schemas with OpenAPI Extensions
+ * Hono Native OpenAPI Schemas for Vehicles
  *
- * Zod schemas for vehicles management endpoints with OpenAPI documentation
- * Phase 4: Vehicles domain migration following Auth/Children template pattern
+ * Zod schemas with native Hono OpenAPI extensions
+ * Compatible with @hono/zod-openapi createRoute()
  */
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/registry';
-
-// Import BaseVehicleSchema from _common
-import { BaseVehicleSchema } from './_common';
-import { WeekQuerySchema } from './_common';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
 
-// Request Schemas
+// Request Schemas with Hono OpenAPI
 export const CreateVehicleSchema = z.object({
   name: z.string()
     .min(1, 'Vehicle name is required')
     .max(100, 'Vehicle name too long')
     .openapi({
-      example: 'Honda Odyssey',
-      description: 'Vehicle name or model',
+      example: 'Family Minivan',
+      description: 'Vehicle name',
     }),
   capacity: z.number()
     .int()
@@ -32,11 +27,10 @@ export const CreateVehicleSchema = z.object({
     .max(VEHICLE_CONSTRAINTS.MAX_CAPACITY, `Vehicle cannot have more than ${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats`)
     .openapi({
       example: 7,
-      description: `Vehicle seating capacity (${VEHICLE_CONSTRAINTS.MIN_CAPACITY}-${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats)`,
+      description: 'Vehicle seating capacity',
     }),
 }).openapi({
-  title: 'Create Vehicle',
-  description: 'Create a new vehicle record in the family',
+  description: 'Create vehicle request',
 });
 
 export const UpdateVehicleSchema = z.object({
@@ -45,8 +39,8 @@ export const UpdateVehicleSchema = z.object({
     .max(100, 'Vehicle name too long')
     .optional()
     .openapi({
-      example: 'Toyota Sienna',
-      description: 'Updated vehicle name or model',
+      example: 'Updated Family Minivan',
+      description: 'Updated vehicle name',
     }),
   capacity: z.number()
     .int()
@@ -55,410 +49,186 @@ export const UpdateVehicleSchema = z.object({
     .optional()
     .openapi({
       example: 8,
-      description: `Updated vehicle seating capacity (${VEHICLE_CONSTRAINTS.MIN_CAPACITY}-${VEHICLE_CONSTRAINTS.MAX_CAPACITY} seats)`,
+      description: 'Updated vehicle seating capacity',
     }),
 }).refine(
   (data) => data.name !== undefined || data.capacity !== undefined,
   { message: 'At least one field (name or capacity) must be provided' },
 ).openapi({
-  title: 'Update Vehicle',
-  description: 'Update vehicle information',
+  description: 'Update vehicle request',
 });
 
 export const VehicleParamsSchema = z.object({
-  vehicleId: z.cuid()
+  vehicleId: z.string().cuid()
     .openapi({
       example: 'cl123456789012345678901234',
-      description: 'Unique vehicle identifier (CUID format)',
+      description: 'Vehicle ID',
     }),
 }).openapi({
-  title: 'Vehicle Parameters',
-  description: 'URL parameters for vehicle-specific endpoints',
+  description: 'Vehicle path parameters',
 });
 
 export const AvailableVehiclesParamsSchema = z.object({
-  groupId: z.cuid()
+  groupId: z.string().cuid()
     .openapi({
-      example: 'cl123456789012345678901235',
-      description: 'Unique group identifier (CUID format)',
+      example: 'cl123456789012345678901234',
+      description: 'Group ID',
     }),
-  timeSlotId: z.cuid()
+  timeSlotId: z.string().cuid()
     .openapi({
-      example: 'cl123456789012345678901236',
-      description: 'Unique time slot identifier (CUID format)',
-    }),
-}).openapi({
-  title: 'Available Vehicles Parameters',
-  description: 'URL parameters for finding available vehicles',
-});
-
-
-// Response Schemas - Using BaseVehicleSchema for consistency
-export const VehicleResponseSchema = BaseVehicleSchema.extend({
-  familyId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901237',
-      description: 'Family identifier that owns the vehicle',
+      example: 'cl123456789012345678901234',
+      description: 'Time slot ID',
     }),
 }).openapi({
-  title: 'Vehicle Response',
-  description: 'Complete vehicle information',
+  description: 'Available vehicles path parameters',
 });
 
-export const AvailableVehicleSchema = BaseVehicleSchema.pick({
-  id: true,
-  name: true,
-  capacity: true,
-}).extend({
-  currentAssignments: z.number()
-    .int()
+// Response Schemas
+export const VehicleResponseSchema = z.object({
+  id: z.string().cuid()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Vehicle unique identifier',
+    }),
+  name: z.string()
+    .openapi({
+      example: 'Family Minivan',
+      description: 'Vehicle name',
+    }),
+  capacity: z.number().int()
+    .openapi({
+      example: 7,
+      description: 'Vehicle seating capacity',
+    }),
+  familyId: z.string().cuid()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Family ID that owns the vehicle',
+    }),
+  createdAt: z.string().datetime()
+    .openapi({
+      example: '2024-01-15T10:30:00Z',
+      description: 'Vehicle creation timestamp',
+    }),
+  updatedAt: z.string().datetime()
+    .openapi({
+      example: '2024-01-15T10:30:00Z',
+      description: 'Vehicle last update timestamp',
+    }),
+}).openapi({
+  description: 'Vehicle response data',
+});
+
+export const AvailableVehicleSchema = z.object({
+  id: z.string().cuid()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Vehicle unique identifier',
+    }),
+  name: z.string()
+    .openapi({
+      example: 'Family Minivan',
+      description: 'Vehicle name',
+    }),
+  capacity: z.number().int()
+    .openapi({
+      example: 7,
+      description: 'Vehicle seating capacity',
+    }),
+  currentAssignments: z.number().int()
     .openapi({
       example: 3,
-      description: 'Number of children currently assigned to this vehicle for the time slot',
+      description: 'Number of currently assigned children',
     }),
-  availableSeats: z.number()
-    .int()
+  availableSeats: z.number().int()
     .openapi({
       example: 4,
       description: 'Number of available seats remaining',
     }),
-  driverName: z.string()
-    .nullable()
-    .optional()
+  driverName: z.string().nullable().optional()
     .openapi({
       example: 'John Doe',
       description: 'Name of the assigned driver (if any)',
     }),
 }).openapi({
-  title: 'Available Vehicle',
-  description: 'Vehicle information for availability checking with current assignment status',
+  description: 'Available vehicle for schedule assignment',
 });
 
 export const VehicleScheduleSchema = z.object({
-  vehicleId: z.cuid()
+  vehicleId: z.string().cuid()
     .openapi({
       example: 'cl123456789012345678901234',
-      description: 'Vehicle identifier',
+      description: 'Vehicle unique identifier',
     }),
   vehicleName: z.string()
     .openapi({
-      example: 'Honda Odyssey',
+      example: 'Family Minivan',
       description: 'Vehicle name',
     }),
   schedule: z.array(z.object({
-    date: z.iso.date()
+    date: z.string().date()
       .openapi({
-        example: '2023-04-15',
-        description: 'Date of the scheduled assignment',
+        example: '2024-01-15',
+        description: 'Schedule date',
       }),
     timeSlot: z.object({
-      id: z.cuid(),
-      name: z.string(),
-      startTime: z.string(),
-      endTime: z.string(),
-    }).openapi({
-      description: 'Time slot information',
+      id: z.cuid()
+        .openapi({
+          example: 'cl123456789012345678901234',
+          description: 'Time slot ID',
+        }),
+      name: z.string()
+        .openapi({
+          example: 'Morning School Run',
+          description: 'Time slot name',
+        }),
+      startTime: z.string()
+        .openapi({
+          example: '08:00',
+          description: 'Time slot start time',
+        }),
+      endTime: z.string()
+        .openapi({
+          example: '08:30',
+          description: 'Time slot end time',
+        }),
     }),
     group: z.object({
-      id: z.cuid(),
-      name: z.string(),
-    }).openapi({
-      description: 'Group information',
+      id: z.cuid()
+        .openapi({
+          example: 'cl123456789012345678901234',
+          description: 'Group ID',
+        }),
+      name: z.string()
+        .openapi({
+          example: 'School District A',
+          description: 'Group name',
+        }),
     }),
-    assignedChildren: z.number()
-      .int()
+    assignedChildren: z.number().int()
       .openapi({
-        example: 3,
-        description: 'Number of children assigned to this vehicle for this slot',
+        example: 5,
+        description: 'Number of assigned children',
       }),
     isDriver: z.boolean()
       .openapi({
         example: true,
-        description: 'Whether the current user is driving for this assignment',
+        description: 'Whether this vehicle is driving for this slot',
       }),
-  })).openapi({
-    description: 'Vehicle schedule assignments',
-  }),
+  }))
+    .openapi({
+      description: 'Vehicle schedule entries',
+    }),
 }).openapi({
-  title: 'Vehicle Schedule',
-  description: 'Vehicle schedule with trip assignments and driver information',
+  description: 'Vehicle schedule information',
 });
 
-// VehicleAssignmentSchema is imported from _common.ts
-
-// Register schemas with OpenAPI registry
-registry.register('CreateVehicleRequest', CreateVehicleSchema);
-registry.register('UpdateVehicleRequest', UpdateVehicleSchema);
-registry.register('VehicleParams', VehicleParamsSchema);
-registry.register('AvailableVehiclesParams', AvailableVehiclesParamsSchema);
-// WeekQuery is now registered in _common.ts
-registry.register('VehicleResponse', VehicleResponseSchema);
-registry.register('AvailableVehicle', AvailableVehicleSchema);
-registry.register('VehicleSchedule', VehicleScheduleSchema);
-// VehicleAssignmentSchema is registered in _common.ts
-
-// Register API paths following Auth/Children pattern
-registerPath({
-  method: 'post',
-  path: '/vehicles',
-  tags: ['Vehicles'],
-  summary: 'Create a new vehicle',
-  description: 'Add a new vehicle to the authenticated user family. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/CreateVehicleRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      description: 'Vehicle created successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: VehicleResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data or capacity constraints',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions or no family',
-    },
-  },
+export const WeekQuerySchema = z.object({
+  week: z.string().optional()
+    .openapi({
+      example: '2024-W03',
+      description: 'Week number in ISO format (YYYY-Wnn)',
+    }),
+}).openapi({
+  description: 'Week query parameter for schedule filtering',
 });
-
-registerPath({
-  method: 'get',
-  path: '/vehicles',
-  tags: ['Vehicles'],
-  summary: 'Get user vehicles',
-  description: 'Retrieve all vehicles belonging to the authenticated user family',
-  security: [{ BearerAuth: [] }],
-  responses: {
-    200: {
-      description: 'Vehicles retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.array(VehicleResponseSchema),
-          }),
-        },
-      },
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - No family found',
-    },
-  },
-});
-
-registerPath({
-  method: 'get',
-  path: '/vehicles/available/{groupId}/{timeSlotId}',
-  tags: ['Vehicles'],
-  summary: 'Get available vehicles',
-  description: 'Retrieve available vehicles for a specific group and time slot combination',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: AvailableVehiclesParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Available vehicles retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.array(AvailableVehicleSchema),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid group or time slot ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions for group',
-    },
-    404: {
-      description: 'Not found - Group or time slot does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'get',
-  path: '/vehicles/{vehicleId}',
-  tags: ['Vehicles'],
-  summary: 'Get specific vehicle',
-  description: 'Retrieve detailed information about a specific vehicle by ID',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: VehicleParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Vehicle retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: VehicleResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid vehicle ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Vehicle not accessible',
-    },
-    404: {
-      description: 'Not found - Vehicle does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'patch',
-  path: '/vehicles/{vehicleId}',
-  tags: ['Vehicles'],
-  summary: 'Update vehicle',
-  description: 'Partially update vehicle information. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: VehicleParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/UpdateVehicleRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Vehicle updated successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: VehicleResponseSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data, capacity constraints, or capacity reduction conflicts',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Vehicle does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'delete',
-  path: '/vehicles/{vehicleId}',
-  tags: ['Vehicles'],
-  summary: 'Delete vehicle',
-  description: 'Remove a vehicle from the family. Requires family admin permissions.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: VehicleParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Vehicle deleted successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              success: z.literal(true),
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid vehicle ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Vehicle does not exist',
-    },
-  },
-});
-
-registerPath({
-  method: 'get',
-  path: '/vehicles/{vehicleId}/schedule',
-  tags: ['Vehicles'],
-  summary: 'Get vehicle schedule',
-  description: 'Retrieve schedule information for a specific vehicle, optionally filtered by week',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: VehicleParamsSchema,
-    query: WeekQuerySchema,
-  },
-  responses: {
-    200: {
-      description: 'Vehicle schedule retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: VehicleScheduleSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid vehicle ID or week format',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Vehicle not accessible',
-    },
-    404: {
-      description: 'Not found - Vehicle does not exist',
-    },
-  },
-});
-

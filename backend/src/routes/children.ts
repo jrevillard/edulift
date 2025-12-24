@@ -1,78 +1,27 @@
-import { Router } from 'express';
-import { createChildController } from '../controllers/ChildController';
-import { validateParams, validateQuery, validateBody } from '../middleware/validation';
-import { authenticateToken } from '../middleware/auth';
-import { asyncHandler } from '../middleware/errorHandler';
-import {
-  ChildParamsSchema,
-  ChildGroupParamsSchema,
-  CreateChildSchema,
-  UpdateChildSchema,
-} from '../schemas/children';
-import { WeekQuerySchema } from '../schemas/_common';
+/**
+ * Children Router - OpenAPI Hono Native
+ *
+ * OpenAPI native Hono router for children endpoints
+ * Pattern: Route mounting with authentication middleware
+ */
 
-const childController = createChildController();
-const router = Router();
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { authenticateToken } from '../middleware/auth-hono';
+import childController from '../controllers/ChildController';
 
-// All routes require authentication
-router.use(authenticateToken);
+// Type for context with userId
+type ChildVariables = {
+  userId: string;
+  user: { id: string; email: string; name: string; timezone: string };
+};
 
-// Create child
-router.post(
-  '/',
-  validateBody(CreateChildSchema),
-  asyncHandler(childController.createChild),
-);
+// Initialize OpenAPIHono
+const router = new OpenAPIHono<{ Variables: ChildVariables }>();
 
-// Get user's children
-router.get('/', asyncHandler(childController.getChildren));
+// Apply authentication to all routes
+router.use('*', authenticateToken);
 
-// Get specific child
-router.get('/:childId',
-  validateParams(ChildParamsSchema),
-  asyncHandler(childController.getChild),
-);
-
-// Update child - support both PUT and PATCH methods
-router.put('/:childId',
-  validateParams(ChildParamsSchema),
-  validateBody(UpdateChildSchema),
-  asyncHandler(childController.updateChild),
-);
-
-router.patch('/:childId',
-  validateParams(ChildParamsSchema),
-  validateBody(UpdateChildSchema),
-  asyncHandler(childController.updateChild),
-);
-
-// Delete child
-router.delete('/:childId',
-  validateParams(ChildParamsSchema),
-  asyncHandler(childController.deleteChild),
-);
-
-// Get child's trip assignments
-router.get('/:childId/assignments',
-  validateParams(ChildParamsSchema),
-  validateQuery(WeekQuerySchema),
-  asyncHandler(childController.getChildAssignments),
-);
-
-// Group membership routes
-router.post('/:childId/groups/:groupId',
-  validateParams(ChildGroupParamsSchema),
-  asyncHandler(childController.addChildToGroup),
-);
-
-router.delete('/:childId/groups/:groupId',
-  validateParams(ChildGroupParamsSchema),
-  asyncHandler(childController.removeChildFromGroup),
-);
-
-router.get('/:childId/groups',
-  validateParams(ChildParamsSchema),
-  asyncHandler(childController.getChildGroupMemberships),
-);
+// Mount controller
+router.route('/', childController);
 
 export default router;

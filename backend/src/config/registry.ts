@@ -1,53 +1,95 @@
 /**
- * OpenAPI Registry Module
+ * Schema Registry for Hono OpenAPI Integration
  *
- * Lazy initialization of the OpenAPI registry to avoid circular dependencies
+ * Provides a centralized registry for all Zod schemas that need
+ * to be registered for OpenAPI documentation generation.
  */
 
-import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
+import { z } from 'zod';
 
-let _registry: OpenAPIRegistry | null = null;
+interface OpenAPIPath {
+  method: string;
+  path: string;
+  tags?: string[];
+  summary?: string;
+  description?: string;
+  request?: any;
+  responses?: any;
+  security?: any;
+  middleware?: any[];
+}
 
-export const getRegistry = (): OpenAPIRegistry => {
-  if (!_registry) {
-    _registry = new OpenAPIRegistry();
+// Simple registry for schema registration
+// This is a lightweight implementation that works with Hono's OpenAPI generation
+class SchemaRegistry {
+  private schemas: Map<string, z.ZodSchema> = new Map();
+  private paths: OpenAPIPath[] = [];
+
+  /**
+   * Register a schema with a unique name
+   */
+  register(name: string, schema: z.ZodSchema): void {
+    this.schemas.set(name, schema);
   }
-  return _registry;
-};
 
-export const registry = getRegistry();
-
-/**
- * Wrapper around registry.registerPath that automatically generates operationId
- * Usage: registerPath({ method: 'get', path: '/api/v1/auth/profile', ... })
- */
-export const registerPath = (config: any) => {
-  // Auto-generate operationId if not provided
-  if (!config.operationId && config.method && config.path) {
-    const generateOperationId = (method: string, path: string): string => {
-      const pathParts = path
-        .split('/')
-        .filter(p => p) // Remove empty segments only
-        .map(p => {
-          // Handle path parameters like {childId} -> ByChildId
-          if (p.startsWith('{') && p.endsWith('}')) {
-            const param = p.slice(1, -1); // Remove { }
-            return `By${  param.charAt(0).toUpperCase()  }${param.slice(1)}`;
-          }
-          // Convert kebab-case to camelCase (e.g., 'magic-link' -> 'MagicLink')
-          if (p.includes('-')) {
-            return p.split('-')
-              .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-              .join('');
-          }
-          return p;
-        })
-        .map((p, i) => i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)); // CamelCase
-
-      return method + pathParts.join('');
-    };
-
-    config.operationId = generateOperationId(config.method, config.path);
+  /**
+   * Register an OpenAPI path (for compatibility with existing code)
+   */
+  registerPath(path: OpenAPIPath): void {
+    this.paths.push(path);
   }
-  return registry.registerPath(config);
-};
+
+  /**
+   * Get a registered schema by name
+   */
+  get(name: string): z.ZodSchema | undefined {
+    return this.schemas.get(name);
+  }
+
+  /**
+   * Get all registered schemas
+   */
+  getAll(): Map<string, z.ZodSchema> {
+    return new Map(this.schemas);
+  }
+
+  /**
+   * Get all registered paths
+   */
+  getAllPaths(): OpenAPIPath[] {
+    return [...this.paths];
+  }
+
+  /**
+   * Check if a schema is registered
+   */
+  has(name: string): boolean {
+    return this.schemas.has(name);
+  }
+
+  /**
+   * Get all registered schema names
+   */
+  getNames(): string[] {
+    return Array.from(this.schemas.keys());
+  }
+
+  /**
+   * Clear all registered schemas and paths
+   */
+  clear(): void {
+    this.schemas.clear();
+    this.paths = [];
+  }
+}
+
+// Create a singleton instance for use throughout the application
+export const registry = new SchemaRegistry();
+
+// Export the registerPath function for backward compatibility
+export function registerPath(path: OpenAPIPath): void {
+  registry.registerPath(path);
+}
+
+// Export the class for potential testing or alternative instances
+export { SchemaRegistry };

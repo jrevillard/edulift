@@ -1,92 +1,19 @@
-import { Router } from 'express';
-import { createFamilyController } from '../controllers/FamilyController';
-import { validateParams, validateBody } from '../middleware/validation';
-import { authenticateToken } from '../middleware/auth';
-import { asyncHandler } from '../middleware/errorHandler';
+/**
+ * OPENAPI NATIF Hono Families Router - Phase 2
+ *
+ * OpenAPI native Hono router for families endpoints with native Zod validation
+ * Authentication via Hono auth-hono middleware
+ * Direct response format: c.json(data, status) - NO wrapper
+ */
 
-// Import centralized Families schemas to trigger OpenAPI registration (Pattern 100%)
-// This ensures all Families schemas are properly documented in the OpenAPI specification
-import {
-  ValidateInviteCodeSchema,
-  CreateFamilySchema,
-  JoinFamilySchema,
-  FamilyIdParamsSchema,
-  MemberIdParamsSchema,
-  FamilyMemberParamsSchema,
-  FamilyInvitationParamsSchema,
-  UpdateMemberRoleSchema,
-  UpdateFamilyNameSchema,
-  InviteMemberSchema,
-} from '../schemas/families';
+import { OpenAPIHono } from '@hono/zod-openapi';
+import familyController from '../controllers/FamilyController';
 
-const familyController = createFamilyController();
-const router = Router();
+// Initialisation OpenAPIHono
+const router = new OpenAPIHono();
 
-// Public routes (no auth required)
-router.post('/validate-invite',
-  validateBody(ValidateInviteCodeSchema),
-  asyncHandler(familyController.validateInviteCode),
-);
-
-// Apply auth middleware to protected routes
-router.use(authenticateToken);
-
-// Family routes
-router.post('/',
-  validateBody(CreateFamilySchema),
-  asyncHandler(familyController.createFamily),
-);
-
-router.post('/join',
-  validateBody(JoinFamilySchema),
-  asyncHandler(familyController.joinFamily),
-);
-
-router.get('/current', asyncHandler(familyController.getCurrentFamily));
-
-router.get('/:familyId/permissions',
-  validateParams(FamilyIdParamsSchema),
-  asyncHandler(familyController.getUserPermissions),
-);
-
-router.put('/members/:memberId/role',
-  validateParams(MemberIdParamsSchema),
-  validateBody(UpdateMemberRoleSchema),
-  asyncHandler(familyController.updateMemberRole),
-);
-
-router.post('/invite-code', asyncHandler(familyController.generateInviteCode));
-
-router.post('/:familyId/invite',
-  validateParams(FamilyIdParamsSchema),
-  validateBody(InviteMemberSchema),
-  asyncHandler(familyController.inviteMember),
-);
-
-router.get('/:familyId/invitations',
-  validateParams(FamilyIdParamsSchema),
-  asyncHandler(familyController.getPendingInvitations),
-);
-
-router.delete('/:familyId/invitations/:invitationId',
-  validateParams(FamilyInvitationParamsSchema),
-  asyncHandler(familyController.cancelInvitation),
-);
-
-router.put('/:familyId/name',
-  validateParams(FamilyIdParamsSchema),
-  validateBody(UpdateFamilyNameSchema),
-  asyncHandler(familyController.updateFamilyName),
-);
-
-router.delete('/:familyId/members/:memberId',
-  validateParams(FamilyMemberParamsSchema),
-  asyncHandler(familyController.removeMember),
-);
-
-router.post('/:familyId/leave',
-  validateParams(FamilyIdParamsSchema),
-  asyncHandler(familyController.leaveFamily),
-);
+// OpenAPI Hono router - mount OpenAPI controller
+// Controller already handles authentication, validation, and OpenAPI routes
+router.route('/', familyController);
 
 export default router;

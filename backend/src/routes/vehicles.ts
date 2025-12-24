@@ -1,62 +1,19 @@
-import { Router } from 'express';
-import { createVehicleController } from '../controllers/VehicleController';
-import { validateParams, validateQuery, validateBody } from '../middleware/validation';
-import { authenticateToken } from '../middleware/auth';
-import { asyncHandler } from '../middleware/errorHandler';
-import {
-  VehicleParamsSchema,
-  AvailableVehiclesParamsSchema,
-  CreateVehicleSchema,
-  UpdateVehicleSchema,
-} from '../schemas/vehicles';
-import { WeekQuerySchema } from '../schemas/_common';
+/**
+ * OPENAPI NATIF Hono Vehicles Router - Phase 1
+ *
+ * OpenAPI native Hono router for vehicles endpoints with native Zod validation
+ * Authentication via Hono auth-hono middleware
+ * Direct response format: c.json(data, status) - NO wrapper
+ */
 
-const vehicleController = createVehicleController();
-const router = Router();
+import { OpenAPIHono } from '@hono/zod-openapi';
+import vehicleController from '../controllers/VehicleController';
 
-// All routes require authentication
-router.use(authenticateToken);
+// Initialisation OpenAPIHono
+const router = new OpenAPIHono();
 
-// Create vehicle
-router.post(
-  '/',
-  validateBody(CreateVehicleSchema),
-  asyncHandler(vehicleController.createVehicle),
-);
-
-// Get user's vehicles
-router.get('/', asyncHandler(vehicleController.getVehicles));
-
-// Get available vehicles for a specific time slot
-router.get('/available/:groupId/:timeSlotId',
-  validateParams(AvailableVehiclesParamsSchema),
-  asyncHandler(vehicleController.getAvailableVehicles),
-);
-
-// Get specific vehicle
-router.get('/:vehicleId',
-  validateParams(VehicleParamsSchema),
-  asyncHandler(vehicleController.getVehicle),
-);
-
-// Update vehicle
-router.patch('/:vehicleId',
-  validateParams(VehicleParamsSchema),
-  validateBody(UpdateVehicleSchema),
-  asyncHandler(vehicleController.updateVehicle),
-);
-
-// Delete vehicle
-router.delete('/:vehicleId',
-  validateParams(VehicleParamsSchema),
-  asyncHandler(vehicleController.deleteVehicle),
-);
-
-// Get vehicle's schedule
-router.get('/:vehicleId/schedule',
-  validateParams(VehicleParamsSchema),
-  validateQuery(WeekQuerySchema),
-  asyncHandler(vehicleController.getVehicleSchedule),
-);
+// OpenAPI Hono router - mount OpenAPI controller
+// Controller already handles authentication, validation, and OpenAPI routes
+router.route('/', vehicleController);
 
 export default router;
