@@ -24,24 +24,38 @@ import {
   WeekQuerySchema,
 } from '../schemas/children';
 
-const logger = createLogger('ChildController');
-
 // Type for Hono context with userId
 type ChildVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
 
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: ChildVariables }>();
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
 
-// Initialize services
-const prisma = new PrismaClient();
-const childService = new ChildService(prisma);
-const childAssignmentService = new ChildAssignmentService(prisma);
+export function createChildControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  childService?: ChildService;
+  childAssignmentService?: ChildAssignmentService;
+} = {}): OpenAPIHono<{ Variables: ChildVariables }> {
 
-// Error response schema
-const ErrorResponseSchema = z.object({
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('ChildController');
+  const childServiceInstance = dependencies.childService ?? new ChildService(prismaInstance);
+  const childAssignmentServiceInstance = dependencies.childAssignmentService ?? new ChildAssignmentService(prismaInstance);
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: ChildVariables }>();
+
+  // ============================================================================
+  // OPENAPI ROUTES DEFINITIONS
+  // ============================================================================
+
+  // Error response schema
+  const ErrorResponseSchema = z.object({
   success: z.literal(false),
   error: z.string().openapi({
     example: 'Child not found',
@@ -53,17 +67,17 @@ const ErrorResponseSchema = z.object({
   }),
 });
 
-// Success response schema helper
-const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
-  return z.object({
+  // Success response schema helper
+  const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
+    return z.object({
     success: z.literal(true),
     data: schema,
-  });
-};
+    });
+  };
 
-// ============================================================================
-// OPENAPI ROUTES DEFINITIONS
-// ============================================================================
+  // ============================================================================
+  // OPENAPI ROUTES DEFINITIONS
+  // ============================================================================
 
 /**
  * POST /children - Create a new child
@@ -77,45 +91,45 @@ const createChildRoute = createRoute({
   security: [{ Bearer: [] }],
   request: {
     body: {
-      content: {
-        'application/json': {
-          schema: CreateChildSchema,
-        },
-      },
+    content: {
+    'application/json': {
+    schema: CreateChildSchema,
+    },
+    },
     },
   },
   responses: {
     201: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ChildResponseSchema),
-        },
-      },
-      description: 'Child created successfully',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(ChildResponseSchema),
+    },
+    },
+    description: 'Child created successfully',
     },
     400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Bad request - Invalid input',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Bad request - Invalid input',
     },
     403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Forbidden - Insufficient permissions or no family',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Forbidden - Insufficient permissions or no family',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -132,20 +146,20 @@ const getChildrenRoute = createRoute({
   security: [{ Bearer: [] }],
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(z.array(ChildResponseSchema)),
-        },
-      },
-      description: 'List of children',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(z.array(ChildResponseSchema)),
+    },
+    },
+    description: 'List of children',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -165,28 +179,28 @@ const getChildRoute = createRoute({
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ChildResponseSchema),
-        },
-      },
-      description: 'Child details',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(ChildResponseSchema),
+    },
+    },
+    description: 'Child details',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -204,53 +218,53 @@ const updateChildRoute = createRoute({
   request: {
     params: ChildParamsSchema,
     body: {
-      content: {
-        'application/json': {
-          schema: UpdateChildSchema,
-        },
-      },
+    content: {
+    'application/json': {
+    schema: UpdateChildSchema,
+    },
+    },
     },
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ChildResponseSchema),
-        },
-      },
-      description: 'Child updated successfully',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(ChildResponseSchema),
+    },
+    },
+    description: 'Child updated successfully',
     },
     400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Bad request - Invalid input',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Bad request - Invalid input',
     },
     403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Forbidden - Insufficient permissions',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -268,53 +282,53 @@ const patchChildRoute = createRoute({
   request: {
     params: ChildParamsSchema,
     body: {
-      content: {
-        'application/json': {
-          schema: UpdateChildSchema,
-        },
-      },
+    content: {
+    'application/json': {
+    schema: UpdateChildSchema,
+    },
+    },
     },
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ChildResponseSchema),
-        },
-      },
-      description: 'Child updated successfully',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(ChildResponseSchema),
+    },
+    },
+    description: 'Child updated successfully',
     },
     400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Bad request - Invalid input',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Bad request - Invalid input',
     },
     403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Forbidden - Insufficient permissions',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -334,41 +348,41 @@ const deleteChildRoute = createRoute({
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-      description: 'Child deleted successfully',
+    content: {
+    'application/json': {
+    schema: z.object({
+    success: z.literal(true),
+    data: z.object({
+    message: z.string(),
+    }),
+    }),
+    },
+    },
+    description: 'Child deleted successfully',
     },
     403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Forbidden - Insufficient permissions',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -389,28 +403,28 @@ const getChildAssignmentsRoute = createRoute({
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(z.array(ChildAssignmentSchema)),
-        },
-      },
-      description: 'List of assignments',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(z.array(ChildAssignmentSchema)),
+    },
+    },
+    description: 'List of assignments',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -430,52 +444,52 @@ const addChildToGroupRoute = createRoute({
   },
   responses: {
     201: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ChildGroupMembershipSchema),
-        },
-      },
-      description: 'Child added to group successfully',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(ChildGroupMembershipSchema),
+    },
+    },
+    description: 'Child added to group successfully',
     },
     400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Bad request - Invalid input',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Bad request - Invalid input',
     },
     403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Forbidden - Insufficient permissions',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child or group not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child or group not found',
     },
     409: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Conflict - Child already belongs to group',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Conflict - Child already belongs to group',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -495,41 +509,41 @@ const removeChildFromGroupRoute = createRoute({
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-      description: 'Child removed from group successfully',
+    content: {
+    'application/json': {
+    schema: z.object({
+    success: z.literal(true),
+    data: z.object({
+    message: z.string(),
+    }),
+    }),
+    },
+    },
+    description: 'Child removed from group successfully',
     },
     403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Forbidden - Insufficient permissions',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child, group, or membership not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child, group, or membership not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
@@ -549,410 +563,414 @@ const getChildGroupsRoute = createRoute({
   },
   responses: {
     200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(z.array(ChildGroupMembershipSchema)),
-        },
-      },
-      description: 'List of group memberships',
+    content: {
+    'application/json': {
+    schema: createSuccessSchema(z.array(ChildGroupMembershipSchema)),
+    },
+    },
+    description: 'List of group memberships',
     },
     404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Child not found',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Child not found',
     },
     500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
+    content: {
+    'application/json': {
+    schema: ErrorResponseSchema,
+    },
+    },
+    description: 'Internal server error',
     },
   },
 });
 
-// ============================================================================
-// HANDLERS
-// ============================================================================
+  // ============================================================================
+  // HANDLERS
+  // ============================================================================
 
-/**
- * POST /children - Create a new child
- */
-app.openapi(createChildRoute, async (c) => {
-  const userId = c.get('userId');
-  const user = c.get('user');
-  const input = c.req.valid('json');
+  /**
+   * POST /children - Create a new child
+   */
+  app.openapi(createChildRoute, async (c) => {
+    const userId = c.get('userId');
+    const user = c.get('user');
+    const input = c.req.valid('json');
 
-  logger.info('createChild', { userId, name: input.name, age: input.age, userEmail: user?.email });
+    loggerInstance.info('createChild', { userId, name: input.name, age: input.age, userEmail: user?.email });
 
-  try {
-    // Verify user family
-    const userFamily = await childService.getUserFamily(userId);
+    try {
+      // Verify user family
+    const userFamily = await childServiceInstance.getUserFamily(userId);
     if (!userFamily) {
-      logger.warn('createChild: user without family', { userId });
-      return c.json({
-        success: false,
-        error: 'User must belong to a family to add children',
-        code: 'NO_FAMILY',
-      }, 403);
+    loggerInstance.warn('createChild: user without family', { userId });
+    return c.json({
+    success: false,
+    error: 'User must belong to a family to add children',
+    code: 'NO_FAMILY',
+    }, 403);
     }
 
-    // Verify family admin permissions
-    const canModifyChildren = await childService.canUserModifyFamilyChildren(userId, userFamily.id);
+      // Verify family admin permissions
+    const canModifyChildren = await childServiceInstance.canUserModifyFamilyChildren(userId, userFamily.id);
     if (!canModifyChildren) {
-      logger.warn('createChild: insufficient permissions', { userId, familyId: userFamily.id });
-      return c.json({
-        success: false,
-        error: 'Insufficient permissions to add children to family',
-        code: 'INSUFFICIENT_PERMISSIONS',
-      }, 403);
+    loggerInstance.warn('createChild: insufficient permissions', { userId, familyId: userFamily.id });
+    return c.json({
+    success: false,
+    error: 'Insufficient permissions to add children to family',
+    code: 'INSUFFICIENT_PERMISSIONS',
+    }, 403);
     }
 
-    // Create child
+      // Create child
     const childData: { name: string; familyId: string; age?: number } = {
-      name: input.name,
-      familyId: userFamily.id,
+    name: input.name,
+    familyId: userFamily.id,
     };
 
     if (input.age !== undefined) {
-      childData.age = input.age;
+    childData.age = input.age;
     }
 
-    const child = await childService.createChild(childData);
+    const child = await childServiceInstance.createChild(childData);
 
-    logger.info('createChild: child created', { userId, childId: child.id });
+    loggerInstance.info('createChild: child created', { userId, childId: child.id });
 
     return c.json({
-      success: true,
-      data: child,
+    success: true,
+    data: child,
     }, 201);
-  } catch (error) {
-    logger.error('createChild: error', { userId, error });
+    } catch (error) {
+    loggerInstance.error('createChild: error', { userId, error });
     return c.json({
-      success: false,
-      error: 'Failed to create child',
-      code: 'CREATE_FAILED',
+    success: false,
+    error: 'Failed to create child',
+    code: 'CREATE_FAILED',
     }, 500);
-  }
-});
+    }
+  });
 
-/**
- * GET /children - List all children
- */
-app.openapi(getChildrenRoute, async (c) => {
-  const userId = c.get('userId');
-
-  logger.info('getChildren', { userId });
-
-  try {
-    const children = await childService.getChildrenByUser(userId);
-
-    logger.info('getChildren: children retrieved', { userId, count: children.length });
-
+  /**
+   * GET /children - List all children
+   */
+  app.openapi(getChildrenRoute, async (c) => {
+    const userId = c.get('userId');
+    
+    loggerInstance.info('getChildren', { userId });
+    
+    try {
+    const children = await childServiceInstance.getChildrenByUser(userId);
+    
+    loggerInstance.info('getChildren: children retrieved', { userId, count: children.length });
+    
     return c.json({
-      success: true,
-      data: children,
+    success: true,
+    data: children,
     }, 200);
-  } catch (error) {
-    logger.error('getChildren: error', { userId, error });
+    } catch (error) {
+    loggerInstance.error('getChildren: error', { userId, error });
     return c.json({
-      success: false,
-      error: 'Failed to retrieve children',
-      code: 'RETRIEVE_FAILED',
+    success: false,
+    error: 'Failed to retrieve children',
+    code: 'RETRIEVE_FAILED',
     }, 500);
-  }
-});
-
-/**
- * GET /children/:childId - Get specific child
- */
-app.openapi(getChildRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId } = c.req.valid('param');
-
-  logger.info('getChild', { userId, childId });
-
-  try {
-    const child = await childService.getChildById(childId, userId);
-
-    logger.info('getChild: child found', { userId, childId, childName: child.name });
-
+    }
+    });
+    
+  /**
+     * GET /children/:childId - Get specific child
+     */
+  app.openapi(getChildRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId } = c.req.valid('param');
+    
+    loggerInstance.info('getChild', { userId, childId });
+    
+    try {
+    const child = await childServiceInstance.getChildById(childId, userId);
+    
+    loggerInstance.info('getChild: child found', { userId, childId, childName: child.name });
+    
     return c.json({
-      success: true,
-      data: child,
+    success: true,
+    data: child,
     }, 200);
-  } catch (error) {
-    logger.error('getChild: error', { userId, childId, error });
+    } catch (error) {
+    loggerInstance.error('getChild: error', { userId, childId, error });
     return c.json({
-      success: false,
-      error: 'Child not found',
-      code: 'CHILD_NOT_FOUND',
+    success: false,
+    error: 'Child not found',
+    code: 'CHILD_NOT_FOUND',
     }, 404);
-  }
-});
-
-/**
- * PUT /children/:childId - Update child (complete)
- */
-app.openapi(updateChildRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId } = c.req.valid('param');
-  const updateData = c.req.valid('json');
-
-  logger.info('updateChild (PUT)', { userId, childId, updateData });
-
-  try {
-    // Filter out undefined values
+    }
+    });
+    
+  /**
+   * PUT /children/:childId - Update child (complete)
+   */
+  app.openapi(updateChildRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId } = c.req.valid('param');
+    const updateData = c.req.valid('json');
+    
+    loggerInstance.info('updateChild (PUT)', { userId, childId, updateData });
+    
+    try {
+        // Filter out undefined values
     const updateDataFiltered: { name?: string; age?: number } = {};
     if (updateData.name !== undefined) {
-      updateDataFiltered.name = updateData.name;
+    updateDataFiltered.name = updateData.name;
     }
     if (updateData.age !== undefined) {
-      updateDataFiltered.age = updateData.age;
+    updateDataFiltered.age = updateData.age;
     }
-
+    
     if (Object.keys(updateDataFiltered).length === 0) {
-      logger.warn('updateChild: no update data provided', { userId, childId });
-      return c.json({
-        success: false,
-        error: 'No update data provided',
-        code: 'NO_DATA',
-      }, 400);
+    loggerInstance.warn('updateChild: no update data provided', { userId, childId });
+    return c.json({
+    success: false,
+    error: 'No update data provided',
+    code: 'NO_DATA',
+    }, 400);
     }
-
-    const updatedChild = await childService.updateChild(childId, userId, updateDataFiltered);
-
-    logger.info('updateChild: child updated', {
-      userId,
-      childId,
-      newName: updatedChild.name,
+    
+    const updatedChild = await childServiceInstance.updateChild(childId, userId, updateDataFiltered);
+    
+    loggerInstance.info('updateChild: child updated', {
+    userId,
+    childId,
+    newName: updatedChild.name,
     });
-
+    
     return c.json({
-      success: true,
-      data: updatedChild,
+    success: true,
+    data: updatedChild,
     }, 200);
-  } catch (error) {
-    logger.error('updateChild: error', { userId, childId, error });
+    } catch (error) {
+    loggerInstance.error('updateChild: error', { userId, childId, error });
     return c.json({
-      success: false,
-      error: 'Child not found or update failed',
-      code: 'UPDATE_FAILED',
+    success: false,
+    error: 'Child not found or update failed',
+    code: 'UPDATE_FAILED',
     }, 404);
-  }
-});
-
-/**
- * PATCH /children/:childId - Update child (partial)
- */
-app.openapi(patchChildRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId } = c.req.valid('param');
-  const updateData = c.req.valid('json');
-
-  logger.info('updateChild (PATCH)', { userId, childId, updateData });
-
-  try {
-    // Filter out undefined values
+    }
+  });
+  
+  /**
+   * PATCH /children/:childId - Update child (partial)
+     */
+  app.openapi(patchChildRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId } = c.req.valid('param');
+    const updateData = c.req.valid('json');
+    
+    loggerInstance.info('updateChild (PATCH)', { userId, childId, updateData });
+    
+    try {
+        // Filter out undefined values
     const updateDataFiltered: { name?: string; age?: number } = {};
     if (updateData.name !== undefined) {
-      updateDataFiltered.name = updateData.name;
+    updateDataFiltered.name = updateData.name;
     }
     if (updateData.age !== undefined) {
-      updateDataFiltered.age = updateData.age;
+    updateDataFiltered.age = updateData.age;
     }
-
+    
     if (Object.keys(updateDataFiltered).length === 0) {
-      logger.warn('updateChild: no update data provided', { userId, childId });
-      return c.json({
-        success: false,
-        error: 'No update data provided',
-        code: 'NO_DATA',
-      }, 400);
+    loggerInstance.warn('updateChild: no update data provided', { userId, childId });
+    return c.json({
+    success: false,
+    error: 'No update data provided',
+    code: 'NO_DATA',
+    }, 400);
     }
-
-    const updatedChild = await childService.updateChild(childId, userId, updateDataFiltered);
-
-    logger.info('updateChild: child updated', {
-      userId,
-      childId,
-      newName: updatedChild.name,
+    
+    const updatedChild = await childServiceInstance.updateChild(childId, userId, updateDataFiltered);
+    
+    loggerInstance.info('updateChild: child updated', {
+    userId,
+    childId,
+    newName: updatedChild.name,
     });
-
+    
     return c.json({
-      success: true,
-      data: updatedChild,
+    success: true,
+    data: updatedChild,
     }, 200);
-  } catch (error) {
-    logger.error('updateChild: error', { userId, childId, error });
+    } catch (error) {
+    loggerInstance.error('updateChild: error', { userId, childId, error });
     return c.json({
-      success: false,
-      error: 'Child not found or update failed',
-      code: 'UPDATE_FAILED',
+    success: false,
+    error: 'Child not found or update failed',
+    code: 'UPDATE_FAILED',
     }, 404);
-  }
-});
-
-/**
- * DELETE /children/:childId - Delete child
- */
-app.openapi(deleteChildRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId } = c.req.valid('param');
-
-  logger.info('deleteChild', { userId, childId });
-
-  try {
-    await childService.deleteChild(childId, userId);
-
-    logger.info('deleteChild: child deleted', { userId, childId });
-
-    return c.json({
-      success: true,
-      data: { message: 'Child deleted successfully' },
-    }, 200);
-  } catch (error) {
-    logger.error('deleteChild: error', { userId, childId, error });
-    return c.json({
-      success: false,
-      error: 'Child not found or delete failed',
-      code: 'DELETE_FAILED',
-    }, 404);
-  }
-});
-
-/**
- * GET /children/:childId/assignments - Get child assignments
- */
-app.openapi(getChildAssignmentsRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId } = c.req.valid('param');
-  const { week } = c.req.valid('query');
-
-  logger.info('getChildAssignments', { userId, childId, week });
-
-  try {
-    const assignments = await childService.getChildScheduleAssignments(childId, userId, week);
-
-    logger.info('getChildAssignments: assignments retrieved', {
-      userId,
-      childId,
-      count: assignments.length,
-      week,
+    }
     });
-
+    
+  /**
+     * DELETE /children/:childId - Delete child
+     */
+  app.openapi(deleteChildRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId } = c.req.valid('param');
+    
+    loggerInstance.info('deleteChild', { userId, childId });
+    
+    try {
+    await childServiceInstance.deleteChild(childId, userId);
+    
+    loggerInstance.info('deleteChild: child deleted', { userId, childId });
+    
     return c.json({
-      success: true,
-      data: assignments,
+    success: true,
+    data: { message: 'Child deleted successfully' },
     }, 200);
-  } catch (error) {
-    logger.error('getChildAssignments: error', { userId, childId, week, error });
+    } catch (error) {
+    loggerInstance.error('deleteChild: error', { userId, childId, error });
     return c.json({
-      success: false,
-      error: 'Child not found or assignments retrieval failed',
-      code: 'RETRIEVE_FAILED',
+    success: false,
+    error: 'Child not found or delete failed',
+    code: 'DELETE_FAILED',
     }, 404);
-  }
-});
-
-/**
- * POST /children/:childId/groups/:groupId - Add child to group
- */
-app.openapi(addChildToGroupRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId, groupId } = c.req.valid('param');
-
-  logger.info('addChildToGroup', { userId, childId, groupId });
-
-  try {
-    const membership = await childAssignmentService.addChildToGroup(childId, groupId, userId);
-
-    logger.info('addChildToGroup: child added to group', {
-      userId,
-      childId,
-      groupId,
+    }
     });
-
+    
+  /**
+     * GET /children/:childId/assignments - Get child assignments
+     */
+  app.openapi(getChildAssignmentsRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId } = c.req.valid('param');
+    const { week } = c.req.valid('query');
+    
+    loggerInstance.info('getChildAssignments', { userId, childId, week });
+    
+    try {
+    const assignments = await childServiceInstance.getChildScheduleAssignments(childId, userId, week);
+    
+    loggerInstance.info('getChildAssignments: assignments retrieved', {
+    userId,
+    childId,
+    count: assignments.length,
+    week,
+    });
+    
     return c.json({
-      success: true,
-      data: membership,
+    success: true,
+    data: assignments,
+    }, 200);
+    } catch (error) {
+    loggerInstance.error('getChildAssignments: error', { userId, childId, week, error });
+    return c.json({
+    success: false,
+    error: 'Child not found or assignments retrieval failed',
+    code: 'RETRIEVE_FAILED',
+    }, 404);
+    }
+  });
+  
+  /**
+     * POST /children/:childId/groups/:groupId - Add child to group
+     */
+  app.openapi(addChildToGroupRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId, groupId } = c.req.valid('param');
+    
+    loggerInstance.info('addChildToGroup', { userId, childId, groupId });
+    
+    try {
+    const membership = await childAssignmentServiceInstance.addChildToGroup(childId, groupId, userId);
+    
+    loggerInstance.info('addChildToGroup: child added to group', {
+    userId,
+    childId,
+    groupId,
+    });
+    
+    return c.json({
+    success: true,
+    data: membership,
     }, 201);
-  } catch (error) {
-    logger.error('addChildToGroup: error', { userId, childId, groupId, error });
+    } catch (error) {
+    loggerInstance.error('addChildToGroup: error', { userId, childId, groupId, error });
     return c.json({
-      success: false,
-      error: 'Failed to add child to group',
-      code: 'ADD_FAILED',
+    success: false,
+    error: 'Failed to add child to group',
+    code: 'ADD_FAILED',
     }, 500);
-  }
-});
-
-/**
- * DELETE /children/:childId/groups/:groupId - Remove child from group
- */
-app.openapi(removeChildFromGroupRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId, groupId } = c.req.valid('param');
-
-  logger.info('removeChildFromGroup', { userId, childId, groupId });
-
-  try {
-    await childAssignmentService.removeChildFromGroup(childId, groupId, userId);
-
-    logger.info('removeChildFromGroup: child removed from group', {
-      userId,
-      childId,
-      groupId,
+    }
+  });
+  
+  /**
+   * DELETE /children/:childId/groups/:groupId - Remove child from group
+     */
+  app.openapi(removeChildFromGroupRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId, groupId } = c.req.valid('param');
+    
+    loggerInstance.info('removeChildFromGroup', { userId, childId, groupId });
+    
+    try {
+    await childAssignmentServiceInstance.removeChildFromGroup(childId, groupId, userId);
+    
+    loggerInstance.info('removeChildFromGroup: child removed from group', {
+    userId,
+    childId,
+    groupId,
+    });
+    
+    return c.json({
+    success: true,
+    data: { message: 'Child removed from group successfully' },
+    }, 200);
+    } catch (error) {
+    loggerInstance.error('removeChildFromGroup: error', { userId, childId, groupId, error });
+    return c.json({
+    success: false,
+    error: 'Child, group, or membership not found',
+    code: 'REMOVE_FAILED',
+    }, 404);
+    }
+  });
+  
+  /**
+   * GET /children/:childId/groups - Get child group memberships
+     */
+  app.openapi(getChildGroupsRoute, async (c) => {
+    const userId = c.get('userId');
+    const { childId } = c.req.valid('param');
+    
+    loggerInstance.info('getChildGroups', { userId, childId });
+    
+    try {
+    const memberships = await childAssignmentServiceInstance.getChildGroupMemberships(childId, userId);
+    
+    loggerInstance.info('getChildGroups: memberships retrieved', {
+    userId,
+    childId,
+    count: memberships.length,
+    });
+    
+    return c.json({
+    success: true,
+    data: memberships,
+    }, 200);
+    } catch (error) {
+    loggerInstance.error('getChildGroups: error', { userId, childId, error });
+    return c.json({
+    success: false,
+    error: 'Child not found or memberships retrieval failed',
+    code: 'RETRIEVE_FAILED',
+    }, 404);
+    }
     });
 
-    return c.json({
-      success: true,
-      data: { message: 'Child removed from group successfully' },
-    }, 200);
-  } catch (error) {
-    logger.error('removeChildFromGroup: error', { userId, childId, groupId, error });
-    return c.json({
-      success: false,
-      error: 'Child, group, or membership not found',
-      code: 'REMOVE_FAILED',
-    }, 404);
-  }
-});
+  return app;
+}
 
-/**
- * GET /children/:childId/groups - Get child group memberships
- */
-app.openapi(getChildGroupsRoute, async (c) => {
-  const userId = c.get('userId');
-  const { childId } = c.req.valid('param');
-
-  logger.info('getChildGroups', { userId, childId });
-
-  try {
-    const memberships = await childAssignmentService.getChildGroupMemberships(childId, userId);
-
-    logger.info('getChildGroups: memberships retrieved', {
-      userId,
-      childId,
-      count: memberships.length,
-    });
-
-    return c.json({
-      success: true,
-      data: memberships,
-    }, 200);
-  } catch (error) {
-    logger.error('getChildGroups: error', { userId, childId, error });
-    return c.json({
-      success: false,
-      error: 'Child not found or memberships retrieval failed',
-      code: 'RETRIEVE_FAILED',
-    }, 404);
-  }
-});
-
-export default app;
+// Default export for backward compatibility (uses real services)
+export default createChildControllerRoutes();

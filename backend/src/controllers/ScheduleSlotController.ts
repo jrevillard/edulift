@@ -37,8 +37,6 @@ import {
   ScheduleResponseSchema,
 } from '../schemas/scheduleSlots';
 
-const logger = createLogger('ScheduleSlotController');
-
 // Type for Hono variables with userId
 type ScheduleSlotVariables = {
   userId: string;
@@ -146,14 +144,32 @@ function transformChildAssignment(assignment: any): any {
   };
 }
 
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: ScheduleSlotVariables }>();
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
 
-// Initialize services
-const prisma = new PrismaClient();
-const scheduleSlotRepository = new ScheduleSlotRepository(prisma);
-const scheduleSlotService = new ScheduleSlotService(scheduleSlotRepository);
-const childAssignmentService = new ChildAssignmentService(prisma);
+/**
+ * Create ScheduleSlotController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createScheduleSlotControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  scheduleSlotService?: ScheduleSlotService;
+  childAssignmentService?: ChildAssignmentService;
+  scheduleSlotRepository?: ScheduleSlotRepository;
+} = {}): OpenAPIHono<{ Variables: ScheduleSlotVariables }> {
+
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('ScheduleSlotController');
+  const scheduleSlotRepositoryInstance = dependencies.scheduleSlotRepository ?? new ScheduleSlotRepository(prismaInstance);
+  const scheduleSlotServiceInstance = dependencies.scheduleSlotService ?? new ScheduleSlotService(scheduleSlotRepositoryInstance);
+  const childAssignmentServiceInstance = dependencies.childAssignmentService ?? new ChildAssignmentService(prismaInstance);
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: ScheduleSlotVariables }>();
 
 // Error response schema
 const ErrorResponseSchema = z.object({
@@ -754,7 +770,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const input = c.req.valid('json');
 
-  logger.debug('createScheduleSlotWithVehicle: Received request', {
+  loggerInstance.debug('createScheduleSlotWithVehicle: Received request', {
     userId,
     groupId,
     datetime: input.datetime,
@@ -765,7 +781,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   });
 
   if (!input.vehicleId) {
-    logger.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId, groupId });
+    loggerInstance.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId, groupId });
     return c.json({
       success: false,
       error: 'Vehicle ID is required to create a schedule slot',
@@ -773,7 +789,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   }
 
   if (!userId) {
-    logger.error('createScheduleSlotWithVehicle: Authentication required', { userId });
+    loggerInstance.error('createScheduleSlotWithVehicle: Authentication required', { userId });
     return c.json({
       success: false,
       error: 'Authentication required',
@@ -786,14 +802,14 @@ app.openapi(createScheduleSlotRoute, async (c) => {
       datetime: input.datetime,
     };
 
-    logger.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
+    loggerInstance.debug('createScheduleSlotWithVehicle: Creating slot with vehicle', {
       groupId,
       userId,
       vehicleId: input.vehicleId,
       datetime: input.datetime,
     });
 
-    const slot = await scheduleSlotService.createScheduleSlotWithVehicle(
+    const slot = await scheduleSlotServiceInstance.createScheduleSlotWithVehicle(
       slotData,
       input.vehicleId,
       userId,
@@ -806,7 +822,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
 
     // Emit WebSocket event for real-time updates
     if (slot) {
-      logger.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
+      loggerInstance.debug('createScheduleSlotWithVehicle: Broadcasting WebSocket events', {
         groupId,
         slotId: slot.id,
       });
@@ -814,7 +830,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
       SocketEmitter.broadcastScheduleUpdate(groupId);
     }
 
-    logger.debug('createScheduleSlotWithVehicle: Slot created successfully', {
+    loggerInstance.debug('createScheduleSlotWithVehicle: Slot created successfully', {
       groupId,
       slotId: slot?.id,
       vehicleId: input.vehicleId,
@@ -827,7 +843,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   } catch (error) {
     const normalizedError = normalizeError(error);
 
-    logger.error('createScheduleSlotWithVehicle: Error occurred', {
+    loggerInstance.error('createScheduleSlotWithVehicle: Error occurred', {
       error: normalizedError.message,
       code: normalizedError.code,
       stack: normalizedError.stack,
@@ -860,7 +876,7 @@ app.openapi(assignVehicleRoute, async (c) => {
 
   try {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
-    const scheduleSlot = await scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
       return c.json({
         success: false,
@@ -879,7 +895,7 @@ app.openapi(assignVehicleRoute, async (c) => {
       assignmentData.seatOverride = input.seatOverride;
     }
 
-    const result = await scheduleSlotService.assignVehicleToSlot(assignmentData);
+    const result = await scheduleSlotServiceInstance.assignVehicleToSlot(assignmentData);
 
     // Transform result to OpenAPI format
     const transformedResult = transformVehicleAssignment(result);
@@ -917,7 +933,7 @@ app.openapi(removeVehicleRoute, async (c) => {
 
   try {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
-    const scheduleSlot = await scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
       return c.json({
         success: false,
@@ -925,7 +941,7 @@ app.openapi(removeVehicleRoute, async (c) => {
       }, 404);
     }
 
-    const result = await scheduleSlotService.removeVehicleFromSlot(scheduleSlotId, input.vehicleId) as RemoveVehicleResult;
+    const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId) as RemoveVehicleResult;
 
     // Emit WebSocket event for real-time updates
     if (result.slotDeleted) {
@@ -962,7 +978,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
 
   try {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
-    const scheduleSlot = await scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
       return c.json({
         success: false,
@@ -970,7 +986,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
       }, 404);
     }
 
-    const result = await scheduleSlotService.updateVehicleDriver(scheduleSlotId, vehicleId, input.driverId);
+    const result = await scheduleSlotServiceInstance.updateVehicleDriver(scheduleSlotId, vehicleId, input.driverId);
 
     // Transform result to OpenAPI format
     const transformedResult = transformVehicleAssignment(result);
@@ -1000,7 +1016,7 @@ app.openapi(removeChildRoute, async (c) => {
 
   try {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
-    const scheduleSlot = await scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
       return c.json({
         success: false,
@@ -1008,7 +1024,7 @@ app.openapi(removeChildRoute, async (c) => {
       }, 404);
     }
 
-    const result = await scheduleSlotService.removeChildFromSlot(scheduleSlotId, childId);
+    const result = await scheduleSlotServiceInstance.removeChildFromSlot(scheduleSlotId, childId);
 
     // Emit WebSocket event for real-time updates
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
@@ -1034,7 +1050,7 @@ app.openapi(getScheduleSlotRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
 
   try {
-    const slot = await scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+    const slot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
 
     if (!slot) {
       return c.json({
@@ -1066,10 +1082,10 @@ app.openapi(getScheduleRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const { startDate, endDate } = c.req.valid('query');
 
-  logger.debug(`getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
+  loggerInstance.debug(`getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
 
-  logger.debug('Calling scheduleSlotService.getSchedule...');
-  const schedule = await scheduleSlotService.getSchedule(
+  loggerInstance.debug('Calling scheduleSlotServiceInstance.getSchedule...');
+  const schedule = await scheduleSlotServiceInstance.getSchedule(
     groupId,
     startDate,
     endDate,
@@ -1081,7 +1097,7 @@ app.openapi(getScheduleRoute, async (c) => {
     scheduleSlots: schedule.scheduleSlots?.map((slot: ScheduleSlotWithDetails) => slot),
   };
 
-  logger.debug('Controller sending response:', { transformedSchedule });
+  loggerInstance.debug('Controller sending response:', { transformedSchedule });
 
   return c.json({
     success: true,
@@ -1096,7 +1112,7 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
 
   try {
-    const conflicts = await scheduleSlotService.validateSlotConflicts(scheduleSlotId);
+    const conflicts = await scheduleSlotServiceInstance.validateSlotConflicts(scheduleSlotId);
 
     return c.json({
       success: true,
@@ -1134,7 +1150,7 @@ app.openapi(assignChildRoute, async (c) => {
   }
 
   // Get the schedule slot first to obtain groupId for WebSocket emissions
-  const scheduleSlot = await scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
+  const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
   if (!scheduleSlot) {
     return c.json({
       success: false,
@@ -1142,7 +1158,7 @@ app.openapi(assignChildRoute, async (c) => {
     }, 404);
   }
 
-  const assignment = await childAssignmentService.assignChildToScheduleSlot(
+  const assignment = await childAssignmentServiceInstance.assignChildToScheduleSlot(
     scheduleSlotId,
     input.childId,
     input.vehicleAssignmentId,
@@ -1176,7 +1192,7 @@ app.openapi(removeChildFromScheduleSlotRoute, async (c) => {
     }, 401);
   }
 
-  const result = await childAssignmentService.removeChildFromScheduleSlot(
+  const result = await childAssignmentServiceInstance.removeChildFromScheduleSlot(
     scheduleSlotId,
     childId,
     userId,
@@ -1202,7 +1218,7 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
     }, 401);
   }
 
-  const children = await childAssignmentService.getAvailableChildrenForScheduleSlot(
+  const children = await childAssignmentServiceInstance.getAvailableChildrenForScheduleSlot(
     scheduleSlotId,
     userId,
   );
@@ -1231,7 +1247,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
       updateData.seatOverride = input.seatOverride;
     }
 
-    const result = await scheduleSlotService.updateSeatOverride(updateData);
+    const result = await scheduleSlotServiceInstance.updateSeatOverride(updateData);
 
     // Transform result to OpenAPI format
     const transformedResult = transformVehicleAssignment(result);
@@ -1249,21 +1265,12 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
   }
 });
 
-export default app;
+  return app;
+}
+
+// Default export for backward compatibility (uses real services)
+export default createScheduleSlotControllerRoutes();
 
 // Export types for testing
 export type { ScheduleSlotVariables };
 
-// Factory function for testing with dependency injection
-export function createScheduleSlotControllerWithDeps(
-  _deps: {
-    scheduleSlotService: ScheduleSlotService;
-    childAssignmentService: ChildAssignmentService;
-  },
-) {
-  const testApp = new OpenAPIHono<{ Variables: ScheduleSlotVariables }>();
-
-  // Re-declare all routes with injected services
-  // This is a simplified version for testing - in production, use the default export
-  return testApp;
-}

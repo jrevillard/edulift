@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
-import { createAuthControllerWithDeps } from '../AuthController';
+import { createAuthControllerRoutes } from '../AuthController';
 import { AuthService } from '../../services/AuthService';
 import { UserRepository } from '../../repositories/UserRepository';
 import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
@@ -88,7 +88,7 @@ describe('AuthController Test Suite', () => {
       unifiedInvitationService: mockUnifiedInvitationService,
     };
 
-    app = createAuthControllerWithDeps(deps);
+    app = createAuthControllerRoutes(deps);
 
     const { authenticateToken } = require('../../middleware/auth-hono');
     authenticateToken.mockImplementation(mockAuthenticateToken);
@@ -426,7 +426,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerWithDeps({
+      const appWithoutAuth = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
@@ -569,7 +569,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerWithDeps({
+      const appWithoutAuth = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
@@ -842,7 +842,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerWithDeps({
+      const appWithoutAuth = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
@@ -914,7 +914,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerWithDeps({
+      const appWithoutAuth = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,
@@ -983,7 +983,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      const appWithoutAuth = createAuthControllerWithDeps({
+      const appWithoutAuth = createAuthControllerRoutes({
         authService: mockAuthService,
         userRepository: mockUserRepository,
         unifiedInvitationService: mockUnifiedInvitationService,

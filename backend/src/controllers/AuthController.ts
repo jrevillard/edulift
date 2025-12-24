@@ -31,8 +31,6 @@ import {
   UserResponseSchema,
 } from '../schemas/auth';
 
-const logger = createLogger('AuthController');
-
 // Hono type for context with auth
 export type AuthVariables = {
   userId: string;
@@ -43,100 +41,6 @@ export type AuthVariables = {
     timezone: string | null;
   };
 };
-
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-// ============================================================================
-// MODULE SERVICES (replacable for testing)
-// ============================================================================
-
-const moduleServices = {
-  prisma: new PrismaClient(),
-  emailService: EmailServiceFactory.getInstance(),
-  userRepository: null as any,
-  secureTokenRepository: null as any,
-  authService: null as any,
-  unifiedInvitationLogger: createLogger('UnifiedInvitationService'),
-  unifiedInvitationService: null as any,
-};
-
-// Initialize services with dependencies
-moduleServices.userRepository = new UserRepository(moduleServices.prisma);
-moduleServices.secureTokenRepository = new SecureTokenRepository(moduleServices.prisma);
-moduleServices.authService = new AuthService(
-  moduleServices.userRepository,
-  moduleServices.secureTokenRepository,
-  moduleServices.emailService,
-  moduleServices.prisma
-);
-moduleServices.unifiedInvitationService = new UnifiedInvitationService(
-  moduleServices.prisma,
-  moduleServices.unifiedInvitationLogger,
-  moduleServices.emailService
-);
-
-// Export function to replace services for testing
-export function __replaceServices(newServices: Partial<typeof moduleServices>) {
-  if (newServices.prisma) {
-    moduleServices.prisma = newServices.prisma;
-  }
-  if (newServices.emailService) {
-    moduleServices.emailService = newServices.emailService;
-  }
-  if (newServices.userRepository) {
-    moduleServices.userRepository = newServices.userRepository;
-  } else if (newServices.prisma) {
-    moduleServices.userRepository = new UserRepository(moduleServices.prisma);
-  }
-  if (newServices.secureTokenRepository) {
-    moduleServices.secureTokenRepository = newServices.secureTokenRepository;
-  } else if (newServices.prisma) {
-    moduleServices.secureTokenRepository = new SecureTokenRepository(moduleServices.prisma);
-  }
-  if (newServices.authService) {
-    moduleServices.authService = newServices.authService;
-  } else if (newServices.userRepository || newServices.secureTokenRepository || newServices.emailService || newServices.prisma) {
-    moduleServices.authService = new AuthService(
-      moduleServices.userRepository,
-      moduleServices.secureTokenRepository,
-      moduleServices.emailService,
-      moduleServices.prisma
-    );
-  }
-  if (newServices.unifiedInvitationLogger) {
-    moduleServices.unifiedInvitationLogger = newServices.unifiedInvitationLogger;
-  }
-  if (newServices.unifiedInvitationService) {
-    moduleServices.unifiedInvitationService = newServices.unifiedInvitationService;
-  } else if (newServices.prisma || newServices.unifiedInvitationLogger || newServices.emailService) {
-    moduleServices.unifiedInvitationService = new UnifiedInvitationService(
-      moduleServices.prisma,
-      moduleServices.unifiedInvitationLogger,
-      moduleServices.emailService
-    );
-  }
-}
-
-// Export function to reset services
-export function __resetServices() {
-  moduleServices.prisma = new PrismaClient();
-  moduleServices.emailService = EmailServiceFactory.getInstance();
-  moduleServices.userRepository = new UserRepository(moduleServices.prisma);
-  moduleServices.secureTokenRepository = new SecureTokenRepository(moduleServices.prisma);
-  moduleServices.authService = new AuthService(
-    moduleServices.userRepository,
-    moduleServices.secureTokenRepository,
-    moduleServices.emailService,
-    moduleServices.prisma
-  );
-  moduleServices.unifiedInvitationLogger = createLogger('UnifiedInvitationService');
-  moduleServices.unifiedInvitationService = new UnifiedInvitationService(
-    moduleServices.prisma,
-    moduleServices.unifiedInvitationLogger,
-    moduleServices.emailService
-  );
-}
 
 // Error response schema
 const ErrorResponseSchema = z.object({
@@ -158,6 +62,47 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
     data: schema,
   });
 };
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+/**
+ * Create AuthController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createAuthControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  emailService?: any;
+  userRepository?: UserRepository;
+  secureTokenRepository?: SecureTokenRepository;
+  authService?: AuthService;
+  unifiedInvitationService?: UnifiedInvitationService;
+} = {}): OpenAPIHono<{ Variables: AuthVariables }> {
+
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('AuthController');
+  const emailServiceInstance = dependencies.emailService ?? EmailServiceFactory.getInstance();
+  const userRepositoryInstance = dependencies.userRepository ?? new UserRepository(prismaInstance);
+  const secureTokenRepositoryInstance = dependencies.secureTokenRepository ?? new SecureTokenRepository(prismaInstance);
+  const authServiceInstance = dependencies.authService ?? new AuthService(
+    userRepositoryInstance,
+    secureTokenRepositoryInstance,
+    emailServiceInstance,
+    prismaInstance
+  );
+  const unifiedInvitationLoggerInstance = createLogger('UnifiedInvitationService');
+  const unifiedInvitationServiceInstance = dependencies.unifiedInvitationService ?? new UnifiedInvitationService(
+    prismaInstance,
+    unifiedInvitationLoggerInstance,
+    emailServiceInstance
+  );
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: AuthVariables }>();
 
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
@@ -696,7 +641,7 @@ const confirmAccountDeletionRoute = createRoute({
 app.openapi(requestMagicLinkRoute, async (c) => {
   const input = c.req.valid('json');
 
-  logger.debug('AuthController received magic link request', {
+  loggerInstance.debug('AuthController received magic link request', {
     email: input.email,
     inviteCode: input.inviteCode,
     timezone: input.timezone,
@@ -721,11 +666,11 @@ app.openapi(requestMagicLinkRoute, async (c) => {
     if (input.timezone !== undefined) magicLinkInput.timezone = input.timezone;
     if (input.inviteCode !== undefined) magicLinkInput.inviteCode = input.inviteCode;
 
-    const result = await moduleServices.authService.requestMagicLink(magicLinkInput);
+    const result = await authServiceInstance.requestMagicLink(magicLinkInput);
 
     // Safe check: Verify service returned valid result but allow tests to mock properly
     if (!result && process.env.NODE_ENV !== 'test') {
-      logger.error('AuthService.requestMagicLink returned undefined', {
+      loggerInstance.error('AuthService.requestMagicLink returned undefined', {
         email: input.email,
         input: { ...input, email: '[REDACTED]' }
       });
@@ -777,7 +722,7 @@ app.openapi(requestMagicLinkRoute, async (c) => {
 app.openapi(verifyMagicLinkRoute, async (c) => {
   const { token, code_verifier, inviteCode } = c.req.valid('json');
 
-  logger.debug('AuthController verifyMagicLink', {
+  loggerInstance.debug('AuthController verifyMagicLink', {
     token: token ? `${token.substring(0, 10)}...` : undefined,
     inviteCode,
     code_verifier: code_verifier ? `${code_verifier.substring(0, 10)}...` : undefined,
@@ -785,7 +730,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
 
   try {
     // SECURITY: Verify magic link with PKCE validation to prevent cross-user attacks - MANDATORY
-    const authResult = await moduleServices.authService.verifyMagicLink(token, code_verifier);
+    const authResult = await authServiceInstance.verifyMagicLink(token, code_verifier);
 
     if (!authResult) {
       return c.json({
@@ -804,12 +749,12 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
       reason?: string;
     } | null = null;
     if (inviteCode) {
-      logger.debug('AuthController processing invitation', { inviteCode });
+      loggerInstance.debug('AuthController processing invitation', { inviteCode });
       try {
         // Validate and get invitation details
-        const familyValidation = await moduleServices.unifiedInvitationService.validateFamilyInvitation(inviteCode);
-        const groupValidation = await moduleServices.unifiedInvitationService.validateGroupInvitation(inviteCode);
-        logger.debug('Invitation validation results', {
+        const familyValidation = await unifiedInvitationServiceInstance.validateFamilyInvitation(inviteCode);
+        const groupValidation = await unifiedInvitationServiceInstance.validateGroupInvitation(inviteCode);
+        loggerInstance.debug('Invitation validation results', {
           family: familyValidation.valid,
           group: groupValidation.valid,
         });
@@ -825,7 +770,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
             // For family invitations via magic link, if user already has a family,
             // we assume they want to leave it (since they clicked the "leave and join" button)
             const options = { leaveCurrentFamily: true };
-            await moduleServices.unifiedInvitationService.acceptFamilyInvitation(inviteCode, authResult.user.id, options);
+            await unifiedInvitationServiceInstance.acceptFamilyInvitation(inviteCode, authResult.user.id, options);
             invitationResult = {
               processed: true,
               invitationType: 'FAMILY',
@@ -833,10 +778,10 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
             };
           }
         } else if (groupValidation.valid) {
-          logger.debug('Processing group invitation', { userId: authResult.user.id });
+          loggerInstance.debug('Processing group invitation', { userId: authResult.user.id });
           // Try to accept group invitation directly
-          const result = await moduleServices.unifiedInvitationService.acceptGroupInvitation(inviteCode, authResult.user.id);
-          logger.debug('Group invitation result', { result });
+          const result = await unifiedInvitationServiceInstance.acceptGroupInvitation(inviteCode, authResult.user.id);
+          loggerInstance.debug('Group invitation result', { result });
 
           if (result.success) {
             invitationResult = {
@@ -856,10 +801,10 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
               reason: result.message || 'Unable to process group invitation',
             };
           }
-          logger.debug('Final invitation result', invitationResult);
+          loggerInstance.debug('Final invitation result', invitationResult);
         }
       } catch (error) {
-        logger.warn('Failed to process invitation', { error: (error as Error).message });
+        loggerInstance.warn('Failed to process invitation', { error: (error as Error).message });
         // Don't fail the auth flow if invitation processing fails
         invitationResult = {
           processed: false,
@@ -925,7 +870,7 @@ app.openapi(refreshTokenRoute, async (c) => {
 
   try {
     // Use new refreshAccessToken method with rotation
-    const authResult = await moduleServices.authService.refreshAccessToken(refreshToken);
+    const authResult = await authServiceInstance.refreshAccessToken(refreshToken);
 
     return c.json({
       success: true,
@@ -937,7 +882,7 @@ app.openapi(refreshTokenRoute, async (c) => {
       },
     }, 200 as const);
   } catch (error) {
-    logger.error('Refresh token error', { error: (error as Error).message });
+    loggerInstance.error('Refresh token error', { error: (error as Error).message });
     return c.json({
       success: false,
       error: 'Invalid or expired refresh token',
@@ -961,7 +906,7 @@ app.openapi(logoutRoute, async (c) => {
   }
 
   try {
-    await moduleServices.authService.logout(userId);
+    await authServiceInstance.logout(userId);
 
     return c.json({
       success: true,
@@ -970,7 +915,7 @@ app.openapi(logoutRoute, async (c) => {
       },
     }, 200 as const);
   } catch (error) {
-    logger.error('Logout error', { error: (error as Error).message });
+    loggerInstance.error('Logout error', { error: (error as Error).message });
     return c.json({
       success: false,
       error: 'Failed to logout',
@@ -995,7 +940,7 @@ app.openapi(getProfileRoute, async (c) => {
   }
 
   // Fetch complete user data with timestamps from database
-  const userFromDb = await moduleServices.userRepository.findById(userId);
+  const userFromDb = await userRepositoryInstance.findById(userId);
   if (!userFromDb) {
     return c.json({
       success: false,
@@ -1025,14 +970,14 @@ app.openapi(updateProfileRoute, async (c) => {
   const user = c.get('user');
   const profileData = c.req.valid('json');
 
-  logger.debug('updateProfile: Received request', {
+  loggerInstance.debug('updateProfile: Received request', {
     userId,
     profileData,
     userEmail: user?.email,
   });
 
   if (!userId) {
-    logger.error('updateProfile: User authentication required', { userId });
+    loggerInstance.error('updateProfile: User authentication required', { userId });
     return c.json({
       success: false,
       error: 'User authentication required',
@@ -1042,7 +987,7 @@ app.openapi(updateProfileRoute, async (c) => {
 
   // Validate timezone if provided
   if (profileData.timezone && !isValidTimezone(profileData.timezone)) {
-    logger.warn('updateProfile: Invalid timezone provided', {
+    loggerInstance.warn('updateProfile: Invalid timezone provided', {
       userId,
       timezone: profileData.timezone,
     });
@@ -1055,9 +1000,9 @@ app.openapi(updateProfileRoute, async (c) => {
 
   try {
     // Update the user profile
-    const updatedUser = await moduleServices.authService.updateProfile(userId, profileData);
+    const updatedUser = await authServiceInstance.updateProfile(userId, profileData);
 
-    logger.debug('updateProfile: Profile updated successfully', {
+    loggerInstance.debug('updateProfile: Profile updated successfully', {
       userId,
       updatedName: updatedUser.name,
       updatedTimezone: updatedUser.timezone,
@@ -1075,7 +1020,7 @@ app.openapi(updateProfileRoute, async (c) => {
       data: transformedUser,
     }, 200 as const);
   } catch (error) {
-    logger.error('updateProfile: Error occurred', {
+    loggerInstance.error('updateProfile: Error occurred', {
       error: (error as Error).message,
       stack: error instanceof Error ? error.stack : undefined,
       userId,
@@ -1107,7 +1052,7 @@ app.openapi(updateTimezoneRoute, async (c) => {
 
   try {
     // Update timezone via profile update
-    const updatedUser = await moduleServices.authService.updateProfile(userId, { timezone });
+    const updatedUser = await authServiceInstance.updateProfile(userId, { timezone });
 
     // Transform data to match schema expectations (convert Date objects to ISO strings)
     const transformedUser = {
@@ -1121,7 +1066,7 @@ app.openapi(updateTimezoneRoute, async (c) => {
       data: transformedUser,
     }, 200 as const);
   } catch (error) {
-    logger.error('Update timezone error', { error: (error as Error).message });
+    loggerInstance.error('Update timezone error', { error: (error as Error).message });
     return c.json({
       success: false,
       error: 'Failed to update timezone',
@@ -1147,7 +1092,7 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
     }, 401 as const);
   }
 
-  logger.debug('requestAccountDeletion: Request received', {
+  loggerInstance.debug('requestAccountDeletion: Request received', {
     userId,
     userEmail: user?.email,
     code_challenge: code_challenge ? `${code_challenge.substring(0, 10)}...` : undefined,
@@ -1156,7 +1101,7 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
 
   // SECURITY: PKCE code_challenge is required for all deletion requests
   if (!code_challenge || code_challenge.length < 43 || code_challenge.length > 128) {
-    logger.warn('requestAccountDeletion: Invalid PKCE challenge', {
+    loggerInstance.warn('requestAccountDeletion: Invalid PKCE challenge', {
       userId,
       codeChallengeLength: code_challenge?.length || 0,
       timestamp: new Date().toISOString(),
@@ -1170,12 +1115,12 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
 
   try {
     // Request account deletion with PKCE challenge
-    const result = await moduleServices.authService.requestAccountDeletion({
+    const result = await authServiceInstance.requestAccountDeletion({
       userId,
       code_challenge,
     });
 
-    logger.info('requestAccountDeletion: Deletion email sent successfully', {
+    loggerInstance.info('requestAccountDeletion: Deletion email sent successfully', {
       userId,
       userEmail: user?.email,
       message: result.message,
@@ -1190,7 +1135,7 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
       },
     }, 200 as const);
   } catch (error) {
-    logger.error('requestAccountDeletion: Error occurred', {
+    loggerInstance.error('requestAccountDeletion: Error occurred', {
       error: (error as Error).message,
       stack: error instanceof Error ? error.stack : undefined,
       userId,
@@ -1216,7 +1161,7 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
   const startTime = Date.now();
   const { token, code_verifier } = c.req.valid('json');
 
-  logger.debug('confirmAccountDeletion: Request received', {
+  loggerInstance.debug('confirmAccountDeletion: Request received', {
     token: token ? `${token.substring(0, 10)}...` : undefined,
     code_verifier: code_verifier ? `${code_verifier.substring(0, 10)}...` : undefined,
     timestamp: new Date().toISOString(),
@@ -1224,7 +1169,7 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
 
   // SECURITY: PKCE validation is mandatory
   if (!code_verifier) {
-    logger.warn('confirmAccountDeletion: Missing PKCE verifier', {
+    loggerInstance.warn('confirmAccountDeletion: Missing PKCE verifier', {
       token: token ? `${token.substring(0, 10)}...` : undefined,
       timestamp: new Date().toISOString(),
     });
@@ -1237,9 +1182,9 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
 
   try {
     // Confirm and execute account deletion with PKCE validation
-    const result = await moduleServices.authService.confirmAccountDeletion(token, code_verifier);
+    const result = await authServiceInstance.confirmAccountDeletion(token, code_verifier);
 
-    logger.info('confirmAccountDeletion: Account deleted successfully via email confirmation', {
+    loggerInstance.info('confirmAccountDeletion: Account deleted successfully via email confirmation', {
       deletedAt: result.deletedAt,
       message: result.message,
       duration: Date.now() - startTime,
@@ -1254,7 +1199,7 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
       },
     }, 200 as const);
   } catch (error) {
-    logger.error('confirmAccountDeletion: Error occurred', {
+    loggerInstance.error('confirmAccountDeletion: Error occurred', {
       error: (error as Error).message,
       stack: error instanceof Error ? error.stack : undefined,
       token: token ? `${token.substring(0, 10)}...` : undefined,
@@ -1301,42 +1246,8 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
   }
 });
 
-// ============================================================================
-// EXPORTS FOR TESTING
-// ============================================================================
-
-/**
- * Create controller with dependencies for testing
- * This allows tests to inject mocked services
- */
-export function createAuthControllerWithDeps(deps: {
-  prisma?: PrismaClient;
-  authService?: AuthService;
-  userRepository?: UserRepository;
-  secureTokenRepository?: SecureTokenRepository;
-  emailService?: any;
-  unifiedInvitationService?: UnifiedInvitationService;
-}): OpenAPIHono<{ Variables: AuthVariables }> {
-  // Build module services object with provided deps
-  const servicesToReplace: any = {};
-
-  if (deps.prisma) servicesToReplace.prisma = deps.prisma;
-  if (deps.emailService) servicesToReplace.emailService = deps.emailService;
-  if (deps.userRepository) servicesToReplace.userRepository = deps.userRepository;
-  if (deps.secureTokenRepository) servicesToReplace.secureTokenRepository = deps.secureTokenRepository;
-  if (deps.authService) servicesToReplace.authService = deps.authService;
-  if (deps.unifiedInvitationService) servicesToReplace.unifiedInvitationService = deps.unifiedInvitationService;
-
-  // Replace module services with provided mocks
-  __replaceServices(servicesToReplace);
-
-  const testApp = new OpenAPIHono<{ Variables: AuthVariables }>();
-
-  // Copy all routes from app to testApp (now using replaced module services)
-  testApp.route('/', app);
-
-  return testApp;
+  return app;
 }
 
-// Note: AuthVariables type is already exported above (line 37)
-export default app;
+// Default export for backward compatibility (uses real services)
+export default createAuthControllerRoutes();

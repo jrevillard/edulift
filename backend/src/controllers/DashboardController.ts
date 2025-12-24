@@ -11,20 +11,11 @@ import { PrismaClient } from '@prisma/client';
 import { DashboardService } from '../services/DashboardService';
 import { createLogger } from '../utils/logger';
 
-const logger = createLogger('DashboardController');
-
-// Type Hono for context with userId
+// Type for Hono context with userId
 type DashboardVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
-
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: DashboardVariables }>();
-
-// Initialize services
-const prisma = new PrismaClient();
-const dashboardService = new DashboardService(prisma);
 
 // Error response schema
 const ErrorResponseSchema = z.object({
@@ -46,6 +37,29 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
     data: schema,
   });
 };
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+/**
+ * Create DashboardController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createDashboardControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  dashboardService?: DashboardService;
+} = {}): OpenAPIHono<{ Variables: DashboardVariables }> {
+
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('DashboardController');
+  const dashboardServiceInstance = dependencies.dashboardService ?? new DashboardService(prismaInstance);
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: DashboardVariables }>();
 
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
@@ -476,19 +490,19 @@ const getWeeklyDashboardRoute = createRoute({
 app.openapi(getStatsRoute, async (c) => {
   const userId = c.get('userId');
 
-  logger.info('getStats', { userId });
+  loggerInstance.info('getStats', { userId });
 
   try {
-    const stats = await dashboardService.calculateUserStats(userId);
+    const stats = await dashboardServiceInstance.calculateUserStats(userId);
 
-    logger.info('getStats: stats retrieved', { userId });
+    loggerInstance.info('getStats: stats retrieved', { userId });
 
     return c.json({
       success: true,
       data: stats,
     }, 200);
   } catch (error) {
-    logger.error('getStats: error', { userId, error });
+    loggerInstance.error('getStats: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve dashboard statistics',
@@ -503,10 +517,10 @@ app.openapi(getStatsRoute, async (c) => {
 app.openapi(getTodayScheduleRoute, async (c) => {
   const userId = c.get('userId');
 
-  logger.info('getTodaySchedule', { userId });
+  loggerInstance.info('getTodaySchedule', { userId });
 
   try {
-    const trips = await dashboardService.getTodayTripsForUser(userId);
+    const trips = await dashboardServiceInstance.getTodayTripsForUser(userId);
 
     // Transform trips to match expected format
     const upcomingTrips = trips.map(trip => ({
@@ -520,7 +534,7 @@ app.openapi(getTodayScheduleRoute, async (c) => {
       group: trip.group,
     }));
 
-    logger.info('getTodaySchedule: schedule retrieved', {
+    loggerInstance.info('getTodaySchedule: schedule retrieved', {
       userId,
       count: upcomingTrips.length
     });
@@ -532,7 +546,7 @@ app.openapi(getTodayScheduleRoute, async (c) => {
       },
     }, 200);
   } catch (error) {
-    logger.error('getTodaySchedule: error', { userId, error });
+    loggerInstance.error('getTodaySchedule: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve today\'s schedule',
@@ -547,14 +561,14 @@ app.openapi(getTodayScheduleRoute, async (c) => {
 app.openapi(getRecentActivityRoute, async (c) => {
   const userId = c.get('userId');
 
-  logger.info('getRecentActivity', { userId });
+  loggerInstance.info('getRecentActivity', { userId });
 
   try {
     // Get user's family to determine whether to fetch user or family activity
-    const userFamily = await dashboardService.getUserWithFamily(userId);
+    const userFamily = await dashboardServiceInstance.getUserWithFamily(userId);
     const activities = userFamily?.familyMemberships?.[0]?.familyId
-      ? await dashboardService.getRecentActivityForFamily(userFamily.familyMemberships[0].familyId)
-      : await dashboardService.getRecentActivityForUser(userId);
+      ? await dashboardServiceInstance.getRecentActivityForFamily(userFamily.familyMemberships[0].familyId)
+      : await dashboardServiceInstance.getRecentActivityForUser(userId);
 
     // Transform activities to match expected format
     const formattedActivities = activities.map(activity => ({
@@ -569,7 +583,7 @@ app.openapi(getRecentActivityRoute, async (c) => {
       } : undefined,
     }));
 
-    logger.info('getRecentActivity: activity retrieved', {
+    loggerInstance.info('getRecentActivity: activity retrieved', {
       userId,
       count: formattedActivities.length
     });
@@ -581,7 +595,7 @@ app.openapi(getRecentActivityRoute, async (c) => {
       },
     }, 200);
   } catch (error) {
-    logger.error('getRecentActivity: error', { userId, error });
+    loggerInstance.error('getRecentActivity: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve recent activity',
@@ -597,13 +611,13 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
   const userId = c.get('userId');
   const { startDate } = c.req.valid('query');
 
-  logger.info('getWeeklyDashboard', { userId, startDate });
+  loggerInstance.info('getWeeklyDashboard', { userId, startDate });
 
   try {
     // Parse startDate if provided
     const parsedStartDate = startDate ? new Date(startDate) : undefined;
 
-    const weeklyData = await dashboardService.getWeeklyDashboard(userId, parsedStartDate);
+    const weeklyData = await dashboardServiceInstance.getWeeklyDashboard(userId, parsedStartDate);
 
     // Check if service returned an error response
     if (!weeklyData.success) {
@@ -669,7 +683,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
       0
     );
 
-    logger.info('getWeeklyDashboard: weekly data retrieved', {
+    loggerInstance.info('getWeeklyDashboard: weekly data retrieved', {
       userId,
       weekStart: transformedData.weekStart,
       totalTrips: transformedData.weeklyStats.totalTrips
@@ -680,7 +694,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
       data: transformedData,
     }, 200);
   } catch (error) {
-    logger.error('getWeeklyDashboard: error', { userId, error });
+    loggerInstance.error('getWeeklyDashboard: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve weekly dashboard',
@@ -689,4 +703,8 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
   }
 });
 
-export default app;
+  return app;
+}
+
+// Default export for backward compatibility (uses real services)
+export default createDashboardControllerRoutes();

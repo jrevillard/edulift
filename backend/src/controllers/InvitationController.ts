@@ -27,32 +27,11 @@ import {
   CancelInvitationResponseSchema,
 } from '../schemas/invitations';
 
-const logger = createLogger('InvitationController');
-
 // Type for Hono context with userId
 type InvitationVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
-
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: InvitationVariables }>();
-
-// Initialize services
-const prisma = new PrismaClient();
-
-// EmailService configuration for development (to be replaced with real configuration in production)
-const emailService = new EmailService({
-  host: process.env.SMTP_HOST || 'localhost',
-  port: parseInt(process.env.SMTP_PORT || '1025'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER || 'test@example.com',
-    pass: process.env.SMTP_PASS || 'test',
-  },
-});
-
-const invitationService = new UnifiedInvitationService(prisma, logger, emailService);
 
 // Error response schema
 const ErrorResponseSchema = z.object({
@@ -66,6 +45,42 @@ const ErrorResponseSchema = z.object({
     description: 'Error code for programmatic handling',
   }),
 });
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+/**
+ * Create InvitationController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createInvitationControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  emailService?: EmailService;
+  invitationService?: UnifiedInvitationService;
+} = {}): OpenAPIHono<{ Variables: InvitationVariables }> {
+
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('InvitationController');
+
+  // EmailService configuration for development (to be replaced with real configuration in production)
+  const emailServiceInstance = dependencies.emailService ?? new EmailService({
+    host: process.env.SMTP_HOST || 'localhost',
+    port: parseInt(process.env.SMTP_PORT || '1025'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER || 'test@example.com',
+      pass: process.env.SMTP_PASS || 'test',
+    },
+  });
+
+  const invitationServiceInstance = dependencies.invitationService ?? new UnifiedInvitationService(prismaInstance, loggerInstance, emailServiceInstance);
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: InvitationVariables }>();
 
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
@@ -553,13 +568,13 @@ app.openapi(validateInvitationRoute, async (c) => {
   const { code } = c.req.valid('param');
   const currentUserId = c.get('userId');
 
-  logger.info('validateInvitationCode', { code, hasAuth: !!currentUserId });
+  loggerInstance.info('validateInvitationCode', { code, hasAuth: !!currentUserId });
 
   try {
     // Try family validation
-    const familyValidation = await invitationService.validateFamilyInvitation(code, currentUserId);
+    const familyValidation = await invitationServiceInstance.validateFamilyInvitation(code, currentUserId);
     if (familyValidation.valid) {
-      logger.info('validateInvitationCode: valid family invitation', { code });
+      loggerInstance.info('validateInvitationCode: valid family invitation', { code });
       return c.json({
         valid: true,
         type: 'FAMILY' as const,
@@ -576,9 +591,9 @@ app.openapi(validateInvitationRoute, async (c) => {
     }
 
     // Try group validation
-    const groupValidation = await invitationService.validateGroupInvitation(code, currentUserId);
+    const groupValidation = await invitationServiceInstance.validateGroupInvitation(code, currentUserId);
     if (groupValidation.valid) {
-      logger.info('validateInvitationCode: valid group invitation', { code });
+      loggerInstance.info('validateInvitationCode: valid group invitation', { code });
       return c.json({
         valid: true,
         type: 'GROUP' as const,
@@ -593,14 +608,14 @@ app.openapi(validateInvitationRoute, async (c) => {
     }
 
     // No valid invitation found
-    logger.info('validateInvitationCode: invalid invitation', { code });
+    loggerInstance.info('validateInvitationCode: invalid invitation', { code });
     return c.json({
       success: false as const,
       error: familyValidation.error || groupValidation.error || 'Invalid invitation code',
     }, 404);
 
   } catch (error) {
-    logger.error('validateInvitationCode: server error', { code, error });
+    loggerInstance.error('validateInvitationCode: server error', { code, error });
     return c.json({
       success: false,
       error: 'Validation failed. Please try again.',
@@ -616,7 +631,7 @@ app.openapi(createFamilyInvitationRoute, async (c) => {
   const userId = c.get('userId');
   const input = c.req.valid('json');
 
-  logger.info('createFamilyInvitation', { userId, familyId: input.familyId, email: input.email, role: input.role });
+  loggerInstance.info('createFamilyInvitation', { userId, familyId: input.familyId, email: input.email, role: input.role });
 
   try {
     const invitationData: CreateFamilyInvitationData = {
@@ -625,13 +640,13 @@ app.openapi(createFamilyInvitationRoute, async (c) => {
       ...(input.personalMessage && { personalMessage: input.personalMessage }),
     };
 
-    const invitation = await invitationService.createFamilyInvitation(
+    const invitation = await invitationServiceInstance.createFamilyInvitation(
       input.familyId,
       invitationData,
       userId
     );
 
-    logger.info('createFamilyInvitation: family invitation created', {
+    loggerInstance.info('createFamilyInvitation: family invitation created', {
       userId,
       invitationId: invitation.id,
       familyId: input.familyId,
@@ -647,7 +662,7 @@ app.openapi(createFamilyInvitationRoute, async (c) => {
     return c.json(response, 201);
 
   } catch (error) {
-    logger.error('createFamilyInvitation: error', { userId, error });
+    loggerInstance.error('createFamilyInvitation: error', { userId, error });
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to create family invitation';
 
@@ -681,13 +696,13 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
   const { code } = c.req.valid('param');
   const currentUserId = c.get('userId');
 
-  logger.info('validateFamilyInvitation', { code, hasAuth: !!currentUserId });
+  loggerInstance.info('validateFamilyInvitation', { code, hasAuth: !!currentUserId });
 
   try {
-    const validation = await invitationService.validateFamilyInvitation(code, currentUserId);
+    const validation = await invitationServiceInstance.validateFamilyInvitation(code, currentUserId);
 
     if (validation.valid) {
-      logger.info('validateFamilyInvitation: valid family invitation', { code });
+      loggerInstance.info('validateFamilyInvitation: valid family invitation', { code });
       return c.json({
         valid: true,
         type: 'FAMILY' as const,
@@ -702,7 +717,7 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
         personalMessage: validation.personalMessage,
       }, 200);
     } else {
-      logger.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error });
+      loggerInstance.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error });
       return c.json({
         success: false as const,
         error: validation.error || 'Invalid family invitation',
@@ -710,7 +725,7 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
       }, 404);
     }
   } catch (error) {
-    logger.error('validateFamilyInvitation: error', { code, error });
+    loggerInstance.error('validateFamilyInvitation: error', { code, error });
     return c.json({
       success: false,
       error: 'Validation failed',
@@ -727,19 +742,19 @@ app.openapi(acceptFamilyInvitationRoute, async (c) => {
   const { code } = c.req.valid('param');
   const { leaveCurrentFamily } = c.req.valid('json');
 
-  logger.info('acceptFamilyInvitation', { userId, code, leaveCurrentFamily });
+  loggerInstance.info('acceptFamilyInvitation', { userId, code, leaveCurrentFamily });
 
   try {
-    const result = await invitationService.acceptFamilyInvitation(code, userId, { leaveCurrentFamily });
+    const result = await invitationServiceInstance.acceptFamilyInvitation(code, userId, { leaveCurrentFamily });
 
     if (result.success) {
-      logger.info('acceptFamilyInvitation: family invitation accepted', { userId, code });
+      loggerInstance.info('acceptFamilyInvitation: family invitation accepted', { userId, code });
       return c.json({
         success: true,
         message: 'Family invitation accepted successfully',
       }, 200);
     } else {
-      logger.warn('acceptFamilyInvitation: accept failed', { userId, code, error: result.error });
+      loggerInstance.warn('acceptFamilyInvitation: accept failed', { userId, code, error: result.error });
       return c.json({
         success: false,
         error: result.error || 'Failed to accept family invitation',
@@ -747,7 +762,7 @@ app.openapi(acceptFamilyInvitationRoute, async (c) => {
       }, 400);
     }
   } catch (error) {
-    logger.error('acceptFamilyInvitation: error', { userId, code, error });
+    loggerInstance.error('acceptFamilyInvitation: error', { userId, code, error });
     return c.json({
       success: false,
       error: 'Failed to accept family invitation',
@@ -763,7 +778,7 @@ app.openapi(createGroupInvitationRoute, async (c) => {
   const userId = c.get('userId');
   const input = c.req.valid('json');
 
-  logger.info('createGroupInvitation', { userId, groupId: input.groupId, targetFamilyId: input.targetFamilyId, email: input.email, role: input.role });
+  loggerInstance.info('createGroupInvitation', { userId, groupId: input.groupId, targetFamilyId: input.targetFamilyId, email: input.email, role: input.role });
 
   try {
     const invitationData: CreateGroupInvitationData = {
@@ -773,13 +788,13 @@ app.openapi(createGroupInvitationRoute, async (c) => {
       ...(input.personalMessage && { personalMessage: input.personalMessage }),
     };
 
-    const invitation = await invitationService.createGroupInvitation(
+    const invitation = await invitationServiceInstance.createGroupInvitation(
       input.groupId,
       invitationData,
       userId
     );
 
-    logger.info('createGroupInvitation: group invitation created', {
+    loggerInstance.info('createGroupInvitation: group invitation created', {
       userId,
       invitationId: invitation.id,
       groupId: input.groupId,
@@ -797,7 +812,7 @@ app.openapi(createGroupInvitationRoute, async (c) => {
     return c.json(response, 201);
 
   } catch (error) {
-    logger.error('createGroupInvitation: error', { userId, error });
+    loggerInstance.error('createGroupInvitation: error', { userId, error });
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to create group invitation';
 
@@ -845,13 +860,13 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
   const { code } = c.req.valid('param');
   const currentUserId = c.get('userId');
 
-  logger.info('validateGroupInvitation', { code, hasAuth: !!currentUserId });
+  loggerInstance.info('validateGroupInvitation', { code, hasAuth: !!currentUserId });
 
   try {
-    const validation = await invitationService.validateGroupInvitation(code, currentUserId);
+    const validation = await invitationServiceInstance.validateGroupInvitation(code, currentUserId);
 
     if (validation.valid) {
-      logger.info('validateGroupInvitation: valid group invitation', { code });
+      loggerInstance.info('validateGroupInvitation: valid group invitation', { code });
       return c.json({
         valid: true,
         type: 'GROUP' as const,
@@ -864,7 +879,7 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
         email: validation.email,
       }, 200);
     } else {
-      logger.info('validateGroupInvitation: invalid group invitation', { code, error: validation.error });
+      loggerInstance.info('validateGroupInvitation: invalid group invitation', { code, error: validation.error });
       return c.json({
         success: false as const,
         error: validation.error || 'Invalid group invitation',
@@ -872,7 +887,7 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
       }, 404);
     }
   } catch (error) {
-    logger.error('validateGroupInvitation: error', { code, error });
+    loggerInstance.error('validateGroupInvitation: error', { code, error });
     return c.json({
       success: false,
       error: 'Validation failed',
@@ -888,19 +903,19 @@ app.openapi(acceptGroupInvitationRoute, async (c) => {
   const userId = c.get('userId');
   const { code } = c.req.valid('param');
 
-  logger.info('acceptGroupInvitation', { userId, code });
+  loggerInstance.info('acceptGroupInvitation', { userId, code });
 
   try {
-    const result = await invitationService.acceptGroupInvitation(code, userId);
+    const result = await invitationServiceInstance.acceptGroupInvitation(code, userId);
 
     if (result.success) {
-      logger.info('acceptGroupInvitation: group invitation accepted', { userId, code });
+      loggerInstance.info('acceptGroupInvitation: group invitation accepted', { userId, code });
       return c.json({
         success: true,
         message: 'Group invitation accepted successfully',
       }, 200);
     } else {
-      logger.warn('acceptGroupInvitation: accept failed', { userId, code, error: result.error });
+      loggerInstance.warn('acceptGroupInvitation: accept failed', { userId, code, error: result.error });
 
       return c.json({
         success: false,
@@ -910,7 +925,7 @@ app.openapi(acceptGroupInvitationRoute, async (c) => {
       }, 400);
     }
   } catch (error) {
-    logger.error('acceptGroupInvitation: error', { userId, code, error });
+    loggerInstance.error('acceptGroupInvitation: error', { userId, code, error });
     return c.json({
       success: false,
       error: 'Failed to accept group invitation',
@@ -926,12 +941,12 @@ app.openapi(getUserInvitationsRoute, async (c) => {
   const userId = c.get('userId');
   const userEmail = c.get('user').email;
 
-  logger.info('listUserInvitations', { userId });
+  loggerInstance.info('listUserInvitations', { userId });
 
   try {
     // Get full invitation data with family/group info directly from Prisma
     const [familyInvitations, groupInvitations] = await Promise.all([
-      prisma.familyInvitation.findMany({
+      prismaInstance.familyInvitation.findMany({
         where: {
           email: userEmail,
           status: 'PENDING',
@@ -940,7 +955,7 @@ app.openapi(getUserInvitationsRoute, async (c) => {
         include: { family: true },
         orderBy: { createdAt: 'desc' },
       }),
-      prisma.groupInvitation.findMany({
+      prismaInstance.groupInvitation.findMany({
         where: {
           email: userEmail,
           status: 'PENDING',
@@ -951,7 +966,7 @@ app.openapi(getUserInvitationsRoute, async (c) => {
       }),
     ]);
 
-    logger.info('listUserInvitations: invitations retrieved', {
+    loggerInstance.info('listUserInvitations: invitations retrieved', {
       userId,
       familyCount: familyInvitations.length,
       groupCount: groupInvitations.length
@@ -993,7 +1008,7 @@ app.openapi(getUserInvitationsRoute, async (c) => {
       })),
     }, 200);
   } catch (error) {
-    logger.error('listUserInvitations: error', { userId, error });
+    loggerInstance.error('listUserInvitations: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve invitations',
@@ -1009,19 +1024,19 @@ app.openapi(cancelFamilyInvitationRoute, async (c) => {
   const userId = c.get('userId');
   const { invitationId } = c.req.valid('param');
 
-  logger.info('cancelFamilyInvitation', { userId, invitationId });
+  loggerInstance.info('cancelFamilyInvitation', { userId, invitationId });
 
   try {
-    await invitationService.cancelFamilyInvitation(invitationId, userId);
+    await invitationServiceInstance.cancelFamilyInvitation(invitationId, userId);
 
-    logger.info('cancelFamilyInvitation: family invitation cancelled', { userId, invitationId });
+    loggerInstance.info('cancelFamilyInvitation: family invitation cancelled', { userId, invitationId });
 
     return c.json({
       message: 'Family invitation cancelled successfully'
     }, 200);
 
   } catch (error) {
-    logger.error('cancelFamilyInvitation: error', { userId, invitationId, error });
+    loggerInstance.error('cancelFamilyInvitation: error', { userId, invitationId, error });
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to cancel family invitation';
 
@@ -1055,19 +1070,19 @@ app.openapi(cancelGroupInvitationRoute, async (c) => {
   const userId = c.get('userId');
   const { invitationId } = c.req.valid('param');
 
-  logger.info('cancelGroupInvitation', { userId, invitationId });
+  loggerInstance.info('cancelGroupInvitation', { userId, invitationId });
 
   try {
-    await invitationService.cancelGroupInvitation(invitationId, userId);
+    await invitationServiceInstance.cancelGroupInvitation(invitationId, userId);
 
-    logger.info('cancelGroupInvitation: group invitation cancelled', { userId, invitationId });
+    loggerInstance.info('cancelGroupInvitation: group invitation cancelled', { userId, invitationId });
 
     return c.json({
       message: 'Group invitation cancelled successfully'
     }, 200);
 
   } catch (error) {
-    logger.error('cancelGroupInvitation: error', { userId, invitationId, error });
+    loggerInstance.error('cancelGroupInvitation: error', { userId, invitationId, error });
 
     const errorMessage = error instanceof Error ? error.message : 'Failed to cancel group invitation';
 
@@ -1094,4 +1109,8 @@ app.openapi(cancelGroupInvitationRoute, async (c) => {
   }
 });
 
-export default app;
+  return app;
+}
+
+// Default export for backward compatibility (uses real services)
+export default createInvitationControllerRoutes();

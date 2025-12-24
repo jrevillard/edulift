@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
-import { createGroupControllerWithDeps, type GroupVariables } from '../GroupController';
+import { createGroupControllerRoutes, type GroupVariables } from '../GroupController';
 import { GroupService } from '../../services/GroupService';
 import { SchedulingService } from '../../services/SchedulingService';
 import { TEST_IDS } from '../../utils/testHelpers';
@@ -74,7 +74,7 @@ describe('GroupController.validateInviteCode Test Suite', () => {
       schedulingService: mockSchedulingService,
     };
 
-    app = createGroupControllerWithDeps(deps);
+    app = createGroupControllerRoutes(deps);
   });
 
   describe('POST /validate-invite', () => {

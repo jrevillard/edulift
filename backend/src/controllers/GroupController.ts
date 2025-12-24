@@ -30,55 +30,41 @@ import {
   createSuccessSchema,
 } from '../schemas/groups';
 
-const logger = createLogger('GroupController');
-
 // Hono type for context with userId
 export type GroupVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
 
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: GroupVariables }>();
-
-// ============================================================================
-// MODULE SERVICES (replacable for testing)
-// ============================================================================
-
-const moduleServices = {
-  prisma: new PrismaClient(),
-  emailService: EmailServiceFactory.getInstance(),
-  groupService: null as any,  // Will be initialized below
+// Error response schema
+const createErrorResponseSchema = () => {
+  return ErrorResponseSchema;
 };
 
-// Initialize groupService with dependencies
-moduleServices.groupService = new GroupService(moduleServices.prisma, moduleServices.emailService);
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
 
-// Export function to replace services for testing
-export function __replaceServices(newServices: Partial<typeof moduleServices>) {
-  if (newServices.prisma) {
-    moduleServices.prisma = newServices.prisma;
-  }
-  if (newServices.emailService) {
-    moduleServices.emailService = newServices.emailService;
-  }
-  if (newServices.groupService) {
-    moduleServices.groupService = newServices.groupService;
-  } else if (newServices.prisma || newServices.emailService) {
-    // Recreate groupService if prisma or emailService changed
-    moduleServices.groupService = new GroupService(
-      moduleServices.prisma,
-      moduleServices.emailService
-    );
-  }
-}
+/**
+ * Create GroupController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createGroupControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  emailService?: any;
+  groupService?: GroupService;
+} = {}): OpenAPIHono<{ Variables: GroupVariables }> {
 
-// Export function to reset services
-export function __resetServices() {
-  moduleServices.prisma = new PrismaClient();
-  moduleServices.emailService = EmailServiceFactory.getInstance();
-  moduleServices.groupService = new GroupService(moduleServices.prisma, moduleServices.emailService);
-}
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('GroupController');
+  const emailServiceInstance = dependencies.emailService ?? EmailServiceFactory.getInstance();
+  const groupServiceInstance = dependencies.groupService ?? new GroupService(prismaInstance, emailServiceInstance);
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: GroupVariables }>();
 
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
@@ -114,7 +100,7 @@ const validateInviteRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid invite code',
@@ -122,7 +108,7 @@ const validateInviteRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Invalid invite code',
@@ -130,7 +116,7 @@ const validateInviteRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -169,7 +155,7 @@ const createGroupRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid input',
@@ -177,7 +163,7 @@ const createGroupRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -185,7 +171,7 @@ const createGroupRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Insufficient permissions',
@@ -193,7 +179,7 @@ const createGroupRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -232,7 +218,7 @@ const joinGroupRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid invite code',
@@ -240,7 +226,7 @@ const joinGroupRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -248,7 +234,7 @@ const joinGroupRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Invalid invite code',
@@ -256,7 +242,7 @@ const joinGroupRoute = createRoute({
     409: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Conflict - Already member or no family',
@@ -264,7 +250,7 @@ const joinGroupRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -294,7 +280,7 @@ const getMyGroupsRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -302,7 +288,7 @@ const getMyGroupsRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -335,7 +321,7 @@ const getGroupFamiliesRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid group ID',
@@ -343,7 +329,7 @@ const getGroupFamiliesRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -351,7 +337,7 @@ const getGroupFamiliesRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Not a group member',
@@ -359,7 +345,7 @@ const getGroupFamiliesRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Group does not exist',
@@ -367,7 +353,7 @@ const getGroupFamiliesRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -407,7 +393,7 @@ const updateFamilyRoleRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid input',
@@ -415,7 +401,7 @@ const updateFamilyRoleRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -423,7 +409,7 @@ const updateFamilyRoleRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Insufficient permissions',
@@ -431,7 +417,7 @@ const updateFamilyRoleRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Group or family does not exist',
@@ -439,7 +425,7 @@ const updateFamilyRoleRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -472,7 +458,7 @@ const removeFamilyFromGroupRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid IDs',
@@ -480,7 +466,7 @@ const removeFamilyFromGroupRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -488,7 +474,7 @@ const removeFamilyFromGroupRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Insufficient permissions',
@@ -496,7 +482,7 @@ const removeFamilyFromGroupRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Group or family does not exist',
@@ -504,7 +490,7 @@ const removeFamilyFromGroupRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -544,7 +530,7 @@ const updateGroupRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid input',
@@ -552,7 +538,7 @@ const updateGroupRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -560,7 +546,7 @@ const updateGroupRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Insufficient permissions',
@@ -568,7 +554,7 @@ const updateGroupRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Group does not exist',
@@ -576,7 +562,7 @@ const updateGroupRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -609,7 +595,7 @@ const deleteGroupRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid group ID',
@@ -617,7 +603,7 @@ const deleteGroupRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -625,7 +611,7 @@ const deleteGroupRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Not group admin',
@@ -633,7 +619,7 @@ const deleteGroupRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Group does not exist',
@@ -641,7 +627,7 @@ const deleteGroupRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -674,7 +660,7 @@ const leaveGroupRoute = createRoute({
     400: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Bad request - Invalid group ID',
@@ -682,7 +668,7 @@ const leaveGroupRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Unauthorized - Authentication required',
@@ -690,7 +676,7 @@ const leaveGroupRoute = createRoute({
     403: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Forbidden - Cannot leave as last admin',
@@ -698,7 +684,7 @@ const leaveGroupRoute = createRoute({
     404: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Not found - Group does not exist',
@@ -706,7 +692,7 @@ const leaveGroupRoute = createRoute({
     500: {
       content: {
         'application/json': {
-          schema: ErrorResponseSchema,
+          schema: createErrorResponseSchema(),
         },
       },
       description: 'Internal server error',
@@ -724,13 +710,13 @@ const leaveGroupRoute = createRoute({
 app.openapi(validateInviteRoute, async (c) => {
   const input = c.req.valid('json');
 
-  logger.info('validateInviteCode', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
+  loggerInstance.info('validateInviteCode', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
 
   try {
-    const result = await moduleServices.groupService.validateInvitationCode(input.inviteCode.trim());
+    const result = await groupServiceInstance.validateInvitationCode(input.inviteCode.trim());
 
     if (!result.valid) {
-      logger.warn('validateInviteCode: invalid code', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
+      loggerInstance.warn('validateInviteCode: invalid code', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
       return c.json({
         success: false,
         error: result.error || 'Invalid invitation code',
@@ -738,7 +724,7 @@ app.openapi(validateInviteRoute, async (c) => {
       }, 400);
     }
 
-    logger.info('validateInviteCode: success', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
+    loggerInstance.info('validateInviteCode: success', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
 
     return c.json({
       success: true,
@@ -757,7 +743,7 @@ app.openapi(validateInviteRoute, async (c) => {
       },
     }, 200);
   } catch (error) {
-    logger.error('validateInviteCode', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('validateInviteCode', { error: error instanceof Error ? error.message : String(error) });
     return c.json({
       success: false,
       error: 'Failed to validate invitation code',
@@ -774,17 +760,17 @@ app.openapi(createGroupRoute, async (c) => {
   const user = c.get('user');
   const input = c.req.valid('json');
 
-  logger.info('createGroup', { userId, name: input.name, userEmail: user?.email });
+  loggerInstance.info('createGroup', { userId, name: input.name, userEmail: user?.email });
 
   try {
     // Get user's family
-    const userFamily = await moduleServices.prisma.familyMember.findFirst({
+    const userFamily = await prismaInstance.familyMember.findFirst({
       where: { userId },
       select: { familyId: true, role: true },
     });
 
     if (!userFamily) {
-      logger.warn('createGroup: user without family', { userId });
+      loggerInstance.warn('createGroup: user without family', { userId });
       return c.json({
         success: false,
         error: 'User must belong to a family to create groups',
@@ -793,7 +779,7 @@ app.openapi(createGroupRoute, async (c) => {
     }
 
     if (userFamily.role !== 'ADMIN') {
-      logger.warn('createGroup: insufficient permissions', { userId, familyId: userFamily.familyId });
+      loggerInstance.warn('createGroup: insufficient permissions', { userId, familyId: userFamily.familyId });
       return c.json({
         success: false,
         error: 'Only family administrators can create groups',
@@ -801,20 +787,20 @@ app.openapi(createGroupRoute, async (c) => {
       }, 403);
     }
 
-    const group = await moduleServices.groupService.createGroup({
+    const group = await groupServiceInstance.createGroup({
       name: input.name,
       description: input.description,
       familyId: userFamily.familyId,
       createdBy: userId,
     });
 
-    logger.info('createGroup: success', { userId, groupId: group.id });
+    loggerInstance.info('createGroup: success', { userId, groupId: group.id });
     return c.json({
       success: true,
       data: group,
     }, 201);
   } catch (error) {
-    logger.error('createGroup', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('createGroup', { error: error instanceof Error ? error.message : String(error) });
     return c.json({
       success: false,
       error: 'Failed to create group',
@@ -831,18 +817,18 @@ app.openapi(joinGroupRoute, async (c) => {
   const user = c.get('user');
   const input = c.req.valid('json');
 
-  logger.info('joinGroup', { userId, inviteCode: `${input.inviteCode.substring(0, 8)}...`, userEmail: user?.email });
+  loggerInstance.info('joinGroup', { userId, inviteCode: `${input.inviteCode.substring(0, 8)}...`, userEmail: user?.email });
 
   try {
-    const membership = await moduleServices.groupService.joinGroupByInviteCode(input.inviteCode.trim(), userId);
+    const membership = await groupServiceInstance.joinGroupByInviteCode(input.inviteCode.trim(), userId);
 
-    logger.info('joinGroup: success', { userId, membershipId: membership.id });
+    loggerInstance.info('joinGroup: success', { userId, membershipId: membership.id });
     return c.json({
       success: true,
       data: membership,
     }, 200);
   } catch (error: any) {
-    logger.error('joinGroup', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('joinGroup', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -858,18 +844,18 @@ app.openapi(joinGroupRoute, async (c) => {
 app.openapi(getMyGroupsRoute, async (c) => {
   const userId = c.get('userId');
 
-  logger.info('getMyGroups', { userId });
+  loggerInstance.info('getMyGroups', { userId });
 
   try {
-    const groups = await moduleServices.groupService.getUserGroups(userId);
+    const groups = await groupServiceInstance.getUserGroups(userId);
 
-    logger.info('getMyGroups: success', { userId, count: groups.length });
+    loggerInstance.info('getMyGroups: success', { userId, count: groups.length });
     return c.json({
       success: true,
       data: groups,
     }, 200);
   } catch (error) {
-    logger.error('getMyGroups', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('getMyGroups', { error: error instanceof Error ? error.message : String(error) });
     return c.json({
       success: false,
       error: 'Failed to retrieve user groups',
@@ -885,18 +871,18 @@ app.openapi(getGroupFamiliesRoute, async (c) => {
   const userId = c.get('userId');
   const { groupId } = c.req.valid('param');
 
-  logger.info('getGroupFamilies', { userId, groupId });
+  loggerInstance.info('getGroupFamilies', { userId, groupId });
 
   try {
-    const families = await moduleServices.groupService.getGroupFamilies(groupId, userId);
+    const families = await groupServiceInstance.getGroupFamilies(groupId, userId);
 
-    logger.info('getGroupFamilies: success', { userId, groupId, count: families.length });
+    loggerInstance.info('getGroupFamilies: success', { userId, groupId, count: families.length });
     return c.json({
       success: true,
       data: families,
     }, 200);
   } catch (error: any) {
-    logger.error('getGroupFamilies', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('getGroupFamilies', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -915,18 +901,18 @@ app.openapi(updateFamilyRoleRoute, async (c) => {
   const { groupId, familyId } = c.req.valid('param');
   const { role } = c.req.valid('json');
 
-  logger.info('updateFamilyRole', { userId, groupId, familyId, role, userEmail: user?.email });
+  loggerInstance.info('updateFamilyRole', { userId, groupId, familyId, role, userEmail: user?.email });
 
   try {
-    const membership = await moduleServices.groupService.updateFamilyRole(groupId, familyId, role as 'ADMIN' | 'MEMBER', userId);
+    const membership = await groupServiceInstance.updateFamilyRole(groupId, familyId, role as 'ADMIN' | 'MEMBER', userId);
 
-    logger.info('updateFamilyRole: success', { userId, groupId, familyId, role });
+    loggerInstance.info('updateFamilyRole: success', { userId, groupId, familyId, role });
     return c.json({
       success: true,
       data: membership,
     }, 200);
   } catch (error: any) {
-    logger.error('updateFamilyRole', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('updateFamilyRole', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -944,18 +930,18 @@ app.openapi(removeFamilyFromGroupRoute, async (c) => {
   const user = c.get('user');
   const { groupId, familyId } = c.req.valid('param');
 
-  logger.info('removeFamilyFromGroup', { userId, groupId, familyId, userEmail: user?.email });
+  loggerInstance.info('removeFamilyFromGroup', { userId, groupId, familyId, userEmail: user?.email });
 
   try {
-    await moduleServices.groupService.removeFamilyFromGroup(groupId, familyId, userId);
+    await groupServiceInstance.removeFamilyFromGroup(groupId, familyId, userId);
 
-    logger.info('removeFamilyFromGroup: success', { userId, groupId, familyId });
+    loggerInstance.info('removeFamilyFromGroup: success', { userId, groupId, familyId });
     return c.json({
       success: true,
       message: 'Family removed from group successfully',
     }, 200);
   } catch (error: any) {
-    logger.error('removeFamilyFromGroup', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('removeFamilyFromGroup', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -974,7 +960,7 @@ app.openapi(updateGroupRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const updateData = c.req.valid('json');
 
-  logger.info('updateGroup', { userId, groupId, userEmail: user?.email });
+  loggerInstance.info('updateGroup', { userId, groupId, userEmail: user?.email });
 
   try {
     // Filter out undefined values for exactOptionalPropertyTypes compatibility
@@ -985,15 +971,15 @@ app.openapi(updateGroupRoute, async (c) => {
     if (updateData.description !== undefined) {
       filteredUpdateData.description = updateData.description;
     }
-    const group = await moduleServices.groupService.updateGroup(groupId, userId, filteredUpdateData);
+    const group = await groupServiceInstance.updateGroup(groupId, userId, filteredUpdateData);
 
-    logger.info('updateGroup: success', { userId, groupId });
+    loggerInstance.info('updateGroup: success', { userId, groupId });
     return c.json({
       success: true,
       data: group,
     }, 200);
   } catch (error: any) {
-    logger.error('updateGroup', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('updateGroup', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -1011,18 +997,18 @@ app.openapi(deleteGroupRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
 
-  logger.info('deleteGroup', { userId, groupId, userEmail: user?.email });
+  loggerInstance.info('deleteGroup', { userId, groupId, userEmail: user?.email });
 
   try {
-    await moduleServices.groupService.deleteGroup(groupId, userId);
+    await groupServiceInstance.deleteGroup(groupId, userId);
 
-    logger.info('deleteGroup: success', { userId, groupId });
+    loggerInstance.info('deleteGroup: success', { userId, groupId });
     return c.json({
       success: true,
       message: 'Group deleted successfully',
     }, 200);
   } catch (error: any) {
-    logger.error('deleteGroup', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('deleteGroup', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -1040,18 +1026,18 @@ app.openapi(leaveGroupRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
 
-  logger.info('leaveGroup', { userId, groupId, userEmail: user?.email });
+  loggerInstance.info('leaveGroup', { userId, groupId, userEmail: user?.email });
 
   try {
-    await moduleServices.groupService.leaveGroup(groupId, userId);
+    await groupServiceInstance.leaveGroup(groupId, userId);
 
-    logger.info('leaveGroup: success', { userId, groupId });
+    loggerInstance.info('leaveGroup: success', { userId, groupId });
     return c.json({
       success: true,
       message: 'Left group successfully',
     }, 200);
   } catch (error: any) {
-    logger.error('leaveGroup', { error: error instanceof Error ? error.message : String(error) });
+    loggerInstance.error('leaveGroup', { error: error instanceof Error ? error.message : String(error) });
     const statusCode = error.statusCode || 500;
     return c.json({
       success: false,
@@ -1061,28 +1047,8 @@ app.openapi(leaveGroupRoute, async (c) => {
   }
 });
 
-// ============================================================================
-// EXPORTS FOR TESTING
-// ============================================================================
-
-/**
- * Create controller with dependencies for testing
- * This allows tests to inject mocked services
- */
-export function createGroupControllerWithDeps(deps: {
-  prisma?: PrismaClient;
-  groupService?: GroupService;
-}): OpenAPIHono<{ Variables: GroupVariables }> {
-  // Replace module services with provided mocks
-  __replaceServices(deps);
-
-  const testApp = new OpenAPIHono<{ Variables: GroupVariables }>();
-
-  // Copy all routes from app to testApp (now using replaced module services)
-  testApp.route('/', app);
-
-  return testApp;
+  return app;
 }
 
-// Note: GroupVariables type is already exported above (line 36)
-export default app;
+// Default export for backward compatibility (uses real services)
+export default createGroupControllerRoutes();

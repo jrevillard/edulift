@@ -23,20 +23,11 @@ import {
   WeekQuerySchema,
 } from '../schemas/vehicles';
 
-const logger = createLogger('VehicleController');
-
 // Hono type for context with userId
 type VehicleVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
-
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: VehicleVariables }>();
-
-// Initialize services
-const prisma = new PrismaClient();
-const vehicleService = new VehicleService(prisma);
 
 // Error response schema
 const ErrorResponseSchema = z.object({
@@ -58,6 +49,29 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
     data: schema,
   });
 };
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+/**
+ * Create VehicleController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createVehicleControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  vehicleService?: VehicleService;
+} = {}): OpenAPIHono<{ Variables: VehicleVariables }> {
+
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('VehicleController');
+  const vehicleServiceInstance = dependencies.vehicleService ?? new VehicleService(prismaInstance);
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: VehicleVariables }>();
 
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
@@ -378,13 +392,13 @@ app.openapi(createVehicleRoute, async (c) => {
   const user = c.get('user');
   const input = c.req.valid('json');
 
-  logger.info('createVehicle', { userId, name: input.name, capacity: input.capacity, userEmail: user?.email });
+  loggerInstance.info('createVehicle', { userId, name: input.name, capacity: input.capacity, userEmail: user?.email });
 
   try {
     // Verify user family
-    const userFamily = await vehicleService.getUserFamily(userId);
+    const userFamily = await vehicleServiceInstance.getUserFamily(userId);
     if (!userFamily) {
-      logger.warn('createVehicle: user without family', { userId });
+      loggerInstance.warn('createVehicle: user without family', { userId });
       return c.json({
         success: false,
         error: 'User must belong to a family to add vehicles',
@@ -393,9 +407,9 @@ app.openapi(createVehicleRoute, async (c) => {
     }
 
     // Verify family admin permissions
-    const canModifyVehicles = await vehicleService.canUserModifyFamilyVehicles(userId, userFamily.id);
+    const canModifyVehicles = await vehicleServiceInstance.canUserModifyFamilyVehicles(userId, userFamily.id);
     if (!canModifyVehicles) {
-      logger.warn('createVehicle: insufficient permissions', { userId, familyId: userFamily.id });
+      loggerInstance.warn('createVehicle: insufficient permissions', { userId, familyId: userFamily.id });
       return c.json({
         success: false,
         error: 'Insufficient permissions to add vehicles to family',
@@ -404,20 +418,20 @@ app.openapi(createVehicleRoute, async (c) => {
     }
 
     // Create vehicle
-    const vehicle = await vehicleService.createVehicle({
+    const vehicle = await vehicleServiceInstance.createVehicle({
       name: input.name,
       capacity: input.capacity,
       familyId: userFamily.id,
     }, userId);
 
-    logger.info('createVehicle: vehicle created', { userId, vehicleId: vehicle.id });
+    loggerInstance.info('createVehicle: vehicle created', { userId, vehicleId: vehicle.id });
 
     return c.json({
       success: true,
       data: vehicle,
     }, 201);
   } catch (error) {
-    logger.error('createVehicle: error', { userId, error });
+    loggerInstance.error('createVehicle: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to create vehicle',
@@ -432,19 +446,19 @@ app.openapi(createVehicleRoute, async (c) => {
 app.openapi(getVehiclesRoute, async (c) => {
   const userId = c.get('userId');
 
-  logger.info('getVehicles', { userId });
+  loggerInstance.info('getVehicles', { userId });
 
   try {
-    const vehicles = await vehicleService.getVehiclesByUser(userId);
+    const vehicles = await vehicleServiceInstance.getVehiclesByUser(userId);
 
-    logger.info('getVehicles: vehicles retrieved', { userId, count: vehicles.length });
+    loggerInstance.info('getVehicles: vehicles retrieved', { userId, count: vehicles.length });
 
     return c.json({
       success: true,
       data: vehicles,
     }, 200);
   } catch (error) {
-    logger.error('getVehicles: error', { userId, error });
+    loggerInstance.error('getVehicles: error', { userId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve vehicles',
@@ -460,12 +474,12 @@ app.openapi(getAvailableVehiclesRoute, async (c) => {
   const userId = c.get('userId');
   const { groupId, timeSlotId } = c.req.valid('param');
 
-  logger.info('getAvailableVehicles', { userId, groupId, timeSlotId });
+  loggerInstance.info('getAvailableVehicles', { userId, groupId, timeSlotId });
 
   try {
-    const availableVehicles = await vehicleService.getAvailableVehiclesForScheduleSlot(groupId, timeSlotId);
+    const availableVehicles = await vehicleServiceInstance.getAvailableVehiclesForScheduleSlot(groupId, timeSlotId);
 
-    logger.info('getAvailableVehicles: available vehicles', {
+    loggerInstance.info('getAvailableVehicles: available vehicles', {
       groupId,
       timeSlotId,
       count: availableVehicles.length
@@ -476,7 +490,7 @@ app.openapi(getAvailableVehiclesRoute, async (c) => {
       data: availableVehicles,
     }, 200);
   } catch (error) {
-    logger.error('getAvailableVehicles: error', { userId, groupId, timeSlotId, error });
+    loggerInstance.error('getAvailableVehicles: error', { userId, groupId, timeSlotId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve available vehicles',
@@ -492,19 +506,19 @@ app.openapi(getVehicleRoute, async (c) => {
   const userId = c.get('userId');
   const { vehicleId } = c.req.valid('param');
 
-  logger.info('getVehicle', { userId, vehicleId });
+  loggerInstance.info('getVehicle', { userId, vehicleId });
 
   try {
-    const vehicle = await vehicleService.getVehicleById(vehicleId, userId);
+    const vehicle = await vehicleServiceInstance.getVehicleById(vehicleId, userId);
 
-    logger.info('getVehicle: vehicle found', { userId, vehicleId, vehicleName: vehicle.name });
+    loggerInstance.info('getVehicle: vehicle found', { userId, vehicleId, vehicleName: vehicle.name });
 
     return c.json({
       success: true,
       data: vehicle,
     }, 200);
   } catch (error) {
-    logger.error('getVehicle: error', { userId, vehicleId, error });
+    loggerInstance.error('getVehicle: error', { userId, vehicleId, error });
     return c.json({
       success: false,
       error: 'Vehicle not found',
@@ -521,7 +535,7 @@ app.openapi(updateVehicleRoute, async (c) => {
   const { vehicleId } = c.req.valid('param');
   const updateData = c.req.valid('json');
 
-  logger.info('updateVehicle', { userId, vehicleId, updateData });
+  loggerInstance.info('updateVehicle', { userId, vehicleId, updateData });
 
   try {
     // Filter data for UpdateVehicleData
@@ -533,9 +547,9 @@ app.openapi(updateVehicleRoute, async (c) => {
       updateDataFiltered.capacity = updateData.capacity;
     }
 
-    const updatedVehicle = await vehicleService.updateVehicle(vehicleId, userId, updateDataFiltered);
+    const updatedVehicle = await vehicleServiceInstance.updateVehicle(vehicleId, userId, updateDataFiltered);
 
-    logger.info('updateVehicle: vehicle updated', {
+    loggerInstance.info('updateVehicle: vehicle updated', {
       userId,
       vehicleId,
       newName: updatedVehicle.name
@@ -546,7 +560,7 @@ app.openapi(updateVehicleRoute, async (c) => {
       data: updatedVehicle,
     }, 200);
   } catch (error) {
-    logger.error('updateVehicle: error', { userId, vehicleId, error });
+    loggerInstance.error('updateVehicle: error', { userId, vehicleId, error });
     return c.json({
       success: false,
       error: 'Vehicle not found or update failed',
@@ -562,19 +576,19 @@ app.openapi(deleteVehicleRoute, async (c) => {
   const userId = c.get('userId');
   const { vehicleId } = c.req.valid('param');
 
-  logger.info('deleteVehicle', { userId, vehicleId });
+  loggerInstance.info('deleteVehicle', { userId, vehicleId });
 
   try {
-    const result = await vehicleService.deleteVehicle(vehicleId, userId);
+    const result = await vehicleServiceInstance.deleteVehicle(vehicleId, userId);
 
-    logger.info('deleteVehicle: vehicle deleted', { userId, vehicleId });
+    loggerInstance.info('deleteVehicle: vehicle deleted', { userId, vehicleId });
 
     return c.json({
       success: true,
       data: { message: result.message },
     }, 200);
   } catch (error) {
-    logger.error('deleteVehicle: error', { userId, vehicleId, error });
+    loggerInstance.error('deleteVehicle: error', { userId, vehicleId, error });
     return c.json({
       success: false,
       error: 'Vehicle not found or delete failed',
@@ -591,12 +605,12 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
   const { vehicleId } = c.req.valid('param');
   const { week } = c.req.valid('query');
 
-  logger.info('getVehicleSchedule', { userId, vehicleId, week });
+  loggerInstance.info('getVehicleSchedule', { userId, vehicleId, week });
 
   try {
-    const schedule = await vehicleService.getVehicleSchedule(vehicleId, userId, week);
+    const schedule = await vehicleServiceInstance.getVehicleSchedule(vehicleId, userId, week);
 
-    logger.info('getVehicleSchedule: schedule retrieved', {
+    loggerInstance.info('getVehicleSchedule: schedule retrieved', {
       userId,
       vehicleId,
       week
@@ -607,7 +621,7 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
       data: schedule,
     }, 200);
   } catch (error) {
-    logger.error('getVehicleSchedule: error', { userId, vehicleId, error });
+    loggerInstance.error('getVehicleSchedule: error', { userId, vehicleId, error });
     return c.json({
       success: false,
       error: 'Vehicle not found or schedule retrieval failed',
@@ -616,4 +630,8 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
   }
 });
 
-export default app;
+  return app;
+}
+
+// Default export for backward compatibility (uses real services)
+export default createVehicleControllerRoutes();

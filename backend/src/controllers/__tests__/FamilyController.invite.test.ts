@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Hono } from 'hono';
 import { FamilyRole } from '../../types/family';
 import { TEST_IDS } from '../../utils/testHelpers';
-import { createFamilyControllerWithDeps, type FamilyVariables } from '../FamilyController';
+import { createFamilyControllerRoutes, type FamilyVariables } from '../FamilyController';
 
 // Mock all dependencies BEFORE importing FamilyController
 jest.mock('../../services/FamilyService');
@@ -193,7 +193,7 @@ describe('FamilyController Invitation System Test Suite', () => {
       familyAuthService: mockFamilyAuthService,
     };
 
-    app = createFamilyControllerWithDeps(deps);
+    app = createFamilyControllerRoutes(deps);
 
     // Mock the auth middleware AFTER setting up the app
     const { authenticateToken } = require('../../middleware/auth-hono');

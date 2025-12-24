@@ -33,99 +33,11 @@ import {
   InviteCodeValidationSchema,
 } from '../schemas/families';
 
-const logger = createLogger('FamilyController');
-
 // Hono type for context with userId
-export type FamilyVariables = {
+type FamilyVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
-
-// Initialize OpenAPIHono
-const app = new OpenAPIHono<{ Variables: FamilyVariables }>();
-
-// ============================================================================
-// MODULE SERVICES (replacable for testing)
-// ============================================================================
-
-// Mock cache service for now (should be replaced with real cache service)
-const createMockCacheService = () => ({
-  async get(_key: string): Promise<null> { return null; },
-  async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
-});
-
-const moduleServices = {
-  prisma: new PrismaClient(),
-  emailService: EmailServiceFactory.getInstance(),
-  logger: logger,
-  cacheService: createMockCacheService(),
-  familyService: null as any,
-  familyAuthService: null as any,
-};
-
-// Initialize services with dependencies
-moduleServices.familyService = new FamilyService(
-  moduleServices.prisma,
-  moduleServices.logger,
-  undefined,
-  moduleServices.emailService
-);
-moduleServices.familyAuthService = new FamilyAuthService(
-  moduleServices.prisma,
-  moduleServices.cacheService
-);
-
-// Export function to replace services for testing
-export function __replaceServices(newServices: Partial<typeof moduleServices>) {
-  if (newServices.prisma) {
-    moduleServices.prisma = newServices.prisma;
-  }
-  if (newServices.emailService) {
-    moduleServices.emailService = newServices.emailService;
-  }
-  if (newServices.logger) {
-    moduleServices.logger = newServices.logger;
-  }
-  if (newServices.cacheService) {
-    moduleServices.cacheService = newServices.cacheService;
-  }
-  if (newServices.familyService) {
-    moduleServices.familyService = newServices.familyService;
-  } else if (newServices.prisma || newServices.emailService || newServices.logger) {
-    moduleServices.familyService = new FamilyService(
-      moduleServices.prisma,
-      moduleServices.logger,
-      undefined,
-      moduleServices.emailService
-    );
-  }
-  if (newServices.familyAuthService) {
-    moduleServices.familyAuthService = newServices.familyAuthService;
-  } else if (newServices.prisma || newServices.cacheService) {
-    moduleServices.familyAuthService = new FamilyAuthService(
-      moduleServices.prisma,
-      moduleServices.cacheService
-    );
-  }
-}
-
-// Export function to reset services
-export function __resetServices() {
-  moduleServices.prisma = new PrismaClient();
-  moduleServices.emailService = EmailServiceFactory.getInstance();
-  moduleServices.logger = logger;
-  moduleServices.cacheService = createMockCacheService();
-  moduleServices.familyService = new FamilyService(
-    moduleServices.prisma,
-    moduleServices.logger,
-    undefined,
-    moduleServices.emailService
-  );
-  moduleServices.familyAuthService = new FamilyAuthService(
-    moduleServices.prisma,
-    moduleServices.cacheService
-  );
-}
 
 // Error response schema
 const ErrorResponseSchema = z.object({
@@ -181,6 +93,53 @@ const transformFamilyForResponse = (family: any): any => {
     updatedAt: family.updatedAt ? new Date(family.updatedAt).toISOString() : now,
   };
 };
+
+// Mock cache service for now (should be replaced with real cache service)
+const createMockCacheService = () => ({
+  async get(_key: string): Promise<null> { return null; },
+  async set(_key: string, _value: any, _ttl: number): Promise<void> { return; },
+});
+
+// ============================================================================
+// FACTORY FUNCTION
+// ============================================================================
+
+/**
+ * Create FamilyController with injected dependencies
+ * For production: call without params (uses real services)
+ * For tests: inject mocked services
+ */
+export function createFamilyControllerRoutes(dependencies: {
+  prisma?: PrismaClient;
+  logger?: any;
+  emailService?: any;
+  cacheService?: any;
+  familyService?: FamilyService;
+  familyAuthService?: FamilyAuthService;
+} = {}): OpenAPIHono<{ Variables: FamilyVariables }> {
+
+  // Create or use injected services
+  const prismaInstance = dependencies.prisma ?? new PrismaClient();
+  const loggerInstance = dependencies.logger ?? createLogger('FamilyController');
+  const emailServiceInstance = dependencies.emailService ?? EmailServiceFactory.getInstance();
+  const cacheServiceInstance = dependencies.cacheService ?? createMockCacheService();
+
+  // Initialize familyService with dependencies
+  const familyServiceInstance = dependencies.familyService ?? new FamilyService(
+    prismaInstance,
+    loggerInstance,
+    undefined,
+    emailServiceInstance
+  );
+
+  // Initialize familyAuthService with dependencies
+  const familyAuthServiceInstance = dependencies.familyAuthService ?? new FamilyAuthService(
+    prismaInstance,
+    cacheServiceInstance
+  );
+
+  // Create app
+  const app = new OpenAPIHono<{ Variables: FamilyVariables }>();
 
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
@@ -962,20 +921,20 @@ const leaveFamilyRoute = createRoute({
 app.openapi(validateInviteCodeRoute, async (c) => {
   const { inviteCode } = c.req.valid('json');
 
-  logger.info('validateInviteCode', { inviteCode: `${inviteCode.substring(0, 8)}...` });
+  loggerInstance.info('validateInviteCode', { inviteCode: `${inviteCode.substring(0, 8)}...` });
 
   try {
-    const result = await moduleServices.familyService.validateInviteCode(inviteCode.trim());
+    const result = await familyServiceInstance.validateInviteCode(inviteCode.trim());
 
     if (!result) {
-      logger.warn('validateInviteCode: invalid code', { inviteCode: `${inviteCode.substring(0, 8)}...` });
+      loggerInstance.warn('validateInviteCode: invalid code', { inviteCode: `${inviteCode.substring(0, 8)}...` });
       return c.json({
         valid: false,
         family: null,
       }, 400);
     }
 
-    logger.info('validateInviteCode: success', { inviteCode: `${inviteCode.substring(0, 8)}...` });
+    loggerInstance.info('validateInviteCode: success', { inviteCode: `${inviteCode.substring(0, 8)}...` });
 
     // Return basic family info from validateInviteCode
     const now = new Date().toISOString();
@@ -993,7 +952,7 @@ app.openapi(validateInviteCodeRoute, async (c) => {
       },
     }, 200);
   } catch (error) {
-    logger.error('validateInviteCode: error', { error });
+    loggerInstance.error('validateInviteCode: error', { error });
     return c.json({
       valid: false,
       family: null,
@@ -1008,13 +967,13 @@ app.openapi(createFamilyRoute, async (c) => {
   const userId = c.get('userId');
   const { name } = c.req.valid('json');
 
-  logger.info('createFamily', { userId, name });
+  loggerInstance.info('createFamily', { userId, name });
 
   try {
     // Check if user already belongs to a family
-    const existingFamily = await moduleServices.familyService.getUserFamily(userId);
+    const existingFamily = await familyServiceInstance.getUserFamily(userId);
     if (existingFamily) {
-      logger.warn('createFamily: user already belongs to a family', { userId });
+      loggerInstance.warn('createFamily: user already belongs to a family', { userId });
       return c.json({
         success: false,
         error: 'User already belongs to a family',
@@ -1022,15 +981,15 @@ app.openapi(createFamilyRoute, async (c) => {
       }, 409);
     }
 
-    const family = await moduleServices.familyService.createFamily(name, userId);
+    const family = await familyServiceInstance.createFamily(name, userId);
 
-    logger.info('createFamily: success', { userId, familyId: family.id });
+    loggerInstance.info('createFamily: success', { userId, familyId: family.id });
     return c.json({
       success: true,
       data: transformFamilyForResponse(family),
     }, 201);
   } catch (error) {
-    logger.error('createFamily: error', { userId, error });
+    loggerInstance.error('createFamily: error', { userId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1047,18 +1006,18 @@ app.openapi(joinFamilyRoute, async (c) => {
   const userId = c.get('userId');
   const { inviteCode } = c.req.valid('json');
 
-  logger.info('joinFamily', { userId, inviteCode: `${inviteCode.substring(0, 8)}...` });
+  loggerInstance.info('joinFamily', { userId, inviteCode: `${inviteCode.substring(0, 8)}...` });
 
   try {
-    const family = await moduleServices.familyService.joinFamily(inviteCode.trim(), userId);
+    const family = await familyServiceInstance.joinFamily(inviteCode.trim(), userId);
 
-    logger.info('joinFamily: success', { userId, familyId: family.id });
+    loggerInstance.info('joinFamily: success', { userId, familyId: family.id });
     return c.json({
       success: true,
       data: transformFamilyForResponse(family),
     }, 200);
   } catch (error) {
-    logger.error('joinFamily: error', { userId, error });
+    loggerInstance.error('joinFamily: error', { userId, error });
     const normalizedError = normalizeError(error);
     const statusCode = normalizedError.statusCode === 404 ? 404 : 400;
     return c.json({
@@ -1075,12 +1034,12 @@ app.openapi(joinFamilyRoute, async (c) => {
 app.openapi(getCurrentFamilyRoute, async (c) => {
   const userId = c.get('userId');
 
-  logger.info('getCurrentFamily', { userId });
+  loggerInstance.info('getCurrentFamily', { userId });
 
   try {
-    const family = await moduleServices.familyService.getUserFamily(userId);
+    const family = await familyServiceInstance.getUserFamily(userId);
     if (!family) {
-      logger.warn('getCurrentFamily: no family found', { userId });
+      loggerInstance.warn('getCurrentFamily: no family found', { userId });
       return c.json({
         success: false,
         error: 'No family found',
@@ -1088,13 +1047,13 @@ app.openapi(getCurrentFamilyRoute, async (c) => {
       }, 404);
     }
 
-    logger.info('getCurrentFamily: success', { userId, familyId: family.id });
+    loggerInstance.info('getCurrentFamily: success', { userId, familyId: family.id });
     return c.json({
       success: true,
       data: transformFamilyForResponse(family),
     }, 200);
   } catch (error) {
-    logger.error('getCurrentFamily: error', { userId, error });
+    loggerInstance.error('getCurrentFamily: error', { userId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1111,14 +1070,14 @@ app.openapi(getFamilyPermissionsRoute, async (c) => {
   const userId = c.get('userId');
   const { familyId } = c.req.valid('param');
 
-  logger.info('getFamilyPermissions', { userId, familyId });
+  loggerInstance.info('getFamilyPermissions', { userId, familyId });
 
   try {
     // Verify user belongs to this family
-    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+    const userFamily = await familyServiceInstance.getUserFamily(userId);
 
     if (!userFamily || userFamily.id !== familyId) {
-      logger.warn('getFamilyPermissions: access denied', { userId, familyId });
+      loggerInstance.warn('getFamilyPermissions: access denied', { userId, familyId });
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
@@ -1126,15 +1085,15 @@ app.openapi(getFamilyPermissionsRoute, async (c) => {
       }, 403);
     }
 
-    const permissions = await moduleServices.familyAuthService.getUserPermissions(userId);
+    const permissions = await familyAuthServiceInstance.getUserPermissions(userId);
 
-    logger.info('getFamilyPermissions: success', { userId, familyId });
+    loggerInstance.info('getFamilyPermissions: success', { userId, familyId });
     return c.json({
       success: true,
       data: permissions,
     }, 200);
   } catch (error) {
-    logger.error('getFamilyPermissions: error', { userId, familyId, error });
+    loggerInstance.error('getFamilyPermissions: error', { userId, familyId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1152,21 +1111,21 @@ app.openapi(updateMemberRoleRoute, async (c) => {
   const { memberId } = c.req.valid('param');
   const { role } = c.req.valid('json');
 
-  logger.info('updateMemberRole', { userId, memberId, role });
+  loggerInstance.info('updateMemberRole', { userId, memberId, role });
 
   try {
     // Check permissions (only admins can change roles)
-    await moduleServices.familyAuthService.requireFamilyRole(userId, FamilyRole.ADMIN);
+    await familyAuthServiceInstance.requireFamilyRole(userId, FamilyRole.ADMIN);
 
-    await moduleServices.familyService.updateMemberRole(userId, memberId, role as FamilyRole);
+    await familyServiceInstance.updateMemberRole(userId, memberId, role as FamilyRole);
 
-    logger.info('updateMemberRole: success', { userId, memberId, role });
+    loggerInstance.info('updateMemberRole: success', { userId, memberId, role });
     return c.json({
       success: true,
       message: 'Member role updated successfully',
     }, 200);
   } catch (error) {
-    logger.error('updateMemberRole: error', { userId, memberId, error });
+    loggerInstance.error('updateMemberRole: error', { userId, memberId, error });
     const normalizedError = normalizeError(error);
     const statusCode = normalizedError.message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 500;
     return c.json({
@@ -1185,7 +1144,7 @@ app.openapi(inviteMemberRoute, async (c) => {
   const { familyId } = c.req.valid('param');
   const { email, role, personalMessage } = c.req.valid('json');
 
-  logger.info('inviteMember', { userId, familyId, email, role });
+  loggerInstance.info('inviteMember', { userId, familyId, email, role });
 
   try {
     const inviteData: { email: string; role: FamilyRole; personalMessage?: string } = {
@@ -1196,15 +1155,15 @@ app.openapi(inviteMemberRoute, async (c) => {
       inviteData.personalMessage = personalMessage;
     }
 
-    const invitation = await moduleServices.familyService.inviteMember(familyId, inviteData, userId);
+    const invitation = await familyServiceInstance.inviteMember(familyId, inviteData, userId);
 
-    logger.info('inviteMember: success', { userId, familyId, email, role });
+    loggerInstance.info('inviteMember: success', { userId, familyId, email, role });
     return c.json({
       success: true,
       data: invitation,
     }, 201);
   } catch (error) {
-    logger.error('inviteMember: error', { userId, familyId, error });
+    loggerInstance.error('inviteMember: error', { userId, familyId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1221,14 +1180,14 @@ app.openapi(getFamilyInvitationsRoute, async (c) => {
   const userId = c.get('userId');
   const { familyId } = c.req.valid('param');
 
-  logger.info('getFamilyInvitations', { userId, familyId });
+  loggerInstance.info('getFamilyInvitations', { userId, familyId });
 
   try {
     // Verify user belongs to this family
-    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+    const userFamily = await familyServiceInstance.getUserFamily(userId);
 
     if (!userFamily || userFamily.id !== familyId) {
-      logger.warn('getFamilyInvitations: access denied', { userId, familyId });
+      loggerInstance.warn('getFamilyInvitations: access denied', { userId, familyId });
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
@@ -1236,15 +1195,15 @@ app.openapi(getFamilyInvitationsRoute, async (c) => {
       }, 403);
     }
 
-    const invitations = await moduleServices.familyService.getPendingInvitations(familyId);
+    const invitations = await familyServiceInstance.getPendingInvitations(familyId);
 
-    logger.info('getFamilyInvitations: success', { userId, familyId, count: invitations.length });
+    loggerInstance.info('getFamilyInvitations: success', { userId, familyId, count: invitations.length });
     return c.json({
       success: true,
       data: invitations,
     }, 200);
   } catch (error) {
-    logger.error('getFamilyInvitations: error', { userId, familyId, error });
+    loggerInstance.error('getFamilyInvitations: error', { userId, familyId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1261,14 +1220,14 @@ app.openapi(deleteInvitationRoute, async (c) => {
   const userId = c.get('userId');
   const { familyId, invitationId } = c.req.valid('param');
 
-  logger.info('deleteInvitation', { userId, familyId, invitationId });
+  loggerInstance.info('deleteInvitation', { userId, familyId, invitationId });
 
   try {
     // Verify user belongs to this family
-    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+    const userFamily = await familyServiceInstance.getUserFamily(userId);
 
     if (!userFamily || userFamily.id !== familyId) {
-      logger.warn('deleteInvitation: access denied', { userId, familyId });
+      loggerInstance.warn('deleteInvitation: access denied', { userId, familyId });
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
@@ -1276,15 +1235,15 @@ app.openapi(deleteInvitationRoute, async (c) => {
       }, 403);
     }
 
-    await moduleServices.familyService.cancelInvitation(familyId, invitationId, userId);
+    await familyServiceInstance.cancelInvitation(familyId, invitationId, userId);
 
-    logger.info('deleteInvitation: success', { userId, familyId, invitationId });
+    loggerInstance.info('deleteInvitation: success', { userId, familyId, invitationId });
     return c.json({
       success: true,
       message: 'Invitation deleted successfully',
     }, 200);
   } catch (error) {
-    logger.error('deleteInvitation: error', { userId, familyId, invitationId, error });
+    loggerInstance.error('deleteInvitation: error', { userId, familyId, invitationId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1301,18 +1260,18 @@ app.openapi(updateFamilyNameRoute, async (c) => {
   const userId = c.get('userId');
   const { name } = c.req.valid('json');
 
-  logger.info('updateFamilyName', { userId, name });
+  loggerInstance.info('updateFamilyName', { userId, name });
 
   try {
-    const family = await moduleServices.familyService.updateFamilyName(userId, name);
+    const family = await familyServiceInstance.updateFamilyName(userId, name);
 
-    logger.info('updateFamilyName: success', { userId, familyId: family.id, name });
+    loggerInstance.info('updateFamilyName: success', { userId, familyId: family.id, name });
     return c.json({
       success: true,
       data: transformFamilyForResponse(family),
     }, 200);
   } catch (error) {
-    logger.error('updateFamilyName: error', { userId, error });
+    loggerInstance.error('updateFamilyName: error', { userId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1329,21 +1288,21 @@ app.openapi(removeMemberRoute, async (c) => {
   const userId = c.get('userId');
   const { familyId, memberId } = c.req.valid('param');
 
-  logger.info('removeMember', { userId, familyId, memberId });
+  loggerInstance.info('removeMember', { userId, familyId, memberId });
 
   try {
     // Verify user belongs to this family and has admin permissions
-    await moduleServices.familyAuthService.requireFamilyRole(userId, FamilyRole.ADMIN);
+    await familyAuthServiceInstance.requireFamilyRole(userId, FamilyRole.ADMIN);
 
-    await moduleServices.familyService.removeMember(userId, memberId);
+    await familyServiceInstance.removeMember(userId, memberId);
 
-    logger.info('removeMember: success', { userId, familyId, memberId });
+    loggerInstance.info('removeMember: success', { userId, familyId, memberId });
     return c.json({
       success: true,
       message: 'Member removed successfully',
     }, 200);
   } catch (error) {
-    logger.error('removeMember: error', { userId, familyId, memberId, error });
+    loggerInstance.error('removeMember: error', { userId, familyId, memberId, error });
     const normalizedError = normalizeError(error);
     const statusCode = normalizedError.message.includes('INSUFFICIENT_PERMISSIONS') ? 403 : 500;
     return c.json({
@@ -1361,14 +1320,14 @@ app.openapi(leaveFamilyRoute, async (c) => {
   const userId = c.get('userId');
   const { familyId } = c.req.valid('param');
 
-  logger.info('leaveFamily', { userId, familyId });
+  loggerInstance.info('leaveFamily', { userId, familyId });
 
   try {
     // Verify user belongs to this family
-    const userFamily = await moduleServices.familyService.getUserFamily(userId);
+    const userFamily = await familyServiceInstance.getUserFamily(userId);
 
     if (!userFamily || userFamily.id !== familyId) {
-      logger.warn('leaveFamily: access denied', { userId, familyId });
+      loggerInstance.warn('leaveFamily: access denied', { userId, familyId });
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
@@ -1376,15 +1335,15 @@ app.openapi(leaveFamilyRoute, async (c) => {
       }, 403);
     }
 
-    await moduleServices.familyService.leaveFamily(userId);
+    await familyServiceInstance.leaveFamily(userId);
 
-    logger.info('leaveFamily: success', { userId, familyId });
+    loggerInstance.info('leaveFamily: success', { userId, familyId });
     return c.json({
       success: true,
       message: 'Left family successfully',
     }, 200);
   } catch (error) {
-    logger.error('leaveFamily: error', { userId, familyId, error });
+    loggerInstance.error('leaveFamily: error', { userId, familyId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1394,42 +1353,11 @@ app.openapi(leaveFamilyRoute, async (c) => {
   }
 });
 
-// ============================================================================
-// EXPORTS FOR TESTING
-// ============================================================================
-
-/**
- * Create controller with dependencies for testing
- * This allows tests to inject mocked services
- */
-export function createFamilyControllerWithDeps(deps: {
-  prisma?: PrismaClient;
-  familyService?: FamilyService;
-  familyAuthService?: FamilyAuthService;
-  logger?: any;
-  emailService?: any;
-  cacheService?: any;
-}): OpenAPIHono<{ Variables: FamilyVariables }> {
-  // Build module services object with provided deps
-  const servicesToReplace: any = {};
-
-  if (deps.prisma) servicesToReplace.prisma = deps.prisma;
-  if (deps.emailService) servicesToReplace.emailService = deps.emailService;
-  if (deps.logger) servicesToReplace.logger = deps.logger;
-  if (deps.cacheService) servicesToReplace.cacheService = deps.cacheService;
-  if (deps.familyService) servicesToReplace.familyService = deps.familyService;
-  if (deps.familyAuthService) servicesToReplace.familyAuthService = deps.familyAuthService;
-
-  // Replace module services with provided mocks
-  __replaceServices(servicesToReplace);
-
-  const testApp = new OpenAPIHono<{ Variables: FamilyVariables }>();
-
-  // Copy all routes from app to testApp (now using replaced module services)
-  testApp.route('/', app);
-
-  return testApp;
+  return app;
 }
 
-// Note: FamilyVariables type is already exported above (line 39)
-export default app;
+// Default export for backward compatibility (uses real services)
+export default createFamilyControllerRoutes();
+
+// Export the type for use in other files
+export type { FamilyVariables };
