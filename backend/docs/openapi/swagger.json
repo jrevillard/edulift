@@ -16603,7 +16603,7 @@
         }
       }
     },
-    "/schedule-slots/groups/{groupId}/schedule-slots": {
+    "/groups/{groupId}/schedule-slots": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -17167,7 +17167,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/vehicles": {
+    "/schedule-slots/{scheduleSlotId}/vehicles": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -17640,7 +17640,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
+    "/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
       "patch": {
         "tags": [
           "Schedule Slots"
@@ -17898,7 +17898,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/children/{childId}": {
+    "/schedule-slots/{scheduleSlotId}/children/{childId}": {
       "delete": {
         "tags": [
           "Schedule Slots"
@@ -18037,7 +18037,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}": {
+    "/schedule-slots/{scheduleSlotId}": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -18527,7 +18527,7 @@
         }
       }
     },
-    "/schedule-slots/groups/{groupId}/schedule": {
+    "/groups/{groupId}/schedule": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19041,7 +19041,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/conflicts": {
+    "/schedule-slots/{scheduleSlotId}/conflicts": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19139,7 +19139,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/children": {
+    "/schedule-slots/{scheduleSlotId}/children": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -19536,7 +19536,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
+    "/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
       "delete": {
         "tags": [
           "Schedule Slots"
@@ -19666,7 +19666,7 @@
         }
       }
     },
-    "/schedule-slots/schedule-slots/{scheduleSlotId}/children/available": {
+    "/schedule-slots/{scheduleSlotId}/children/available": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19837,7 +19837,7 @@
         }
       }
     },
-    "/schedule-slots/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
+    "/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
       "patch": {
         "tags": [
           "Schedule Slots"

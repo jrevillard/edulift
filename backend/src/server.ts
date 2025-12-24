@@ -139,7 +139,8 @@ app.route('/groups', groupsRoutes);
 app.route('/invitations', invitationsRoutes);
 app.route('/fcm-tokens', fcmTokensRoutes);
 app.route('/dashboard', dashboardRoutes);
-app.route('/schedule-slots', scheduleSlotsRoutes);
+// Schedule slots uses absolute paths, so mount at root to avoid double nesting
+app.route('/', scheduleSlotsRoutes);
 
 /**
  * State-of-the-Art OpenAPI Configuration - Zero Manual Setup!

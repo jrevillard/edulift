@@ -3,29 +3,12 @@
  *
  * Schedule slots management routes using OpenAPI Hono format
  * Controller uses official Hono OpenAPI pattern with createRoute + app.openapi()
+ *
+ * NOTE: The controller uses absolute paths (e.g., /groups/{groupId}/schedule-slots)
+ * so we directly export it without wrapping in another router to avoid double nesting.
  */
 
-import { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticateToken } from '../middleware/auth-hono';
 import scheduleSlotController from '../controllers/ScheduleSlotController';
 
-// Create OpenAPI Hono app
-const app = new OpenAPIHono();
-
-// Apply authentication to all routes
-app.use('*', authenticateToken);
-
-// Mount controller routes (controller already has all OpenAPI definitions)
-app.route('/', scheduleSlotController);
-
-// Health check endpoint
-app.get('/health', (c) => {
-  return c.json({
-    status: 'ok',
-    service: 'schedule-slots',
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Export the OpenAPI Hono routes
-export default app;
+// Direct export of controller (it's already an OpenAPIHono with all routes)
+export default scheduleSlotController;

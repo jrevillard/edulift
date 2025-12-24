@@ -35,9 +35,6 @@ export default {
   // Force exit after tests complete - necessary for Socket.IO tests
   // The worker exit warning is expected and benign
   forceExit: true,
-  // Run tests in band (sequentially) to prevent MaxListenersExceededWarning
-  // This also makes debugging easier as tests don't run in parallel
-  runInBand: true,
   // Increase process max listeners to prevent warnings
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts', '<rootDir>/src/test-max-listeners.ts']
 };
