@@ -100,7 +100,8 @@ describe('Invitations OpenAPI Hono Router', () => {
       );
 
       // Verify createRoute pattern
-      expect(controllerFile).toContain('const validateInvitationRoute = createRoute');
+      expect(controllerFile).toContain('const validateFamilyInvitationRoute = createRoute');
+      expect(controllerFile).toContain('const validateGroupInvitationRoute = createRoute');
       expect(controllerFile).toContain('const createFamilyInvitationRoute = createRoute');
       expect(controllerFile).toContain('const acceptFamilyInvitationRoute = createRoute');
     });

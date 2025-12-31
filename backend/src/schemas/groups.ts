@@ -133,6 +133,18 @@ export const InviteFamilySchema = z.object({
   description: 'Invite a family to join the group',
 });
 
+export const SearchFamiliesQuerySchema = z.object({
+  searchTerm: z.string()
+    .min(1, 'Search term is required')
+    .openapi({
+      example: 'Smith',
+      description: 'Search term to filter families by name',
+    }),
+}).openapi({
+  title: 'Search Families Query',
+  description: 'Query parameters for searching families',
+});
+
 export const ValidateInviteSchema = z.object({
   inviteCode: z.string()
     .min(1, 'Invite code is required')
@@ -490,6 +502,54 @@ export const UpdateFamilyRoleResponseSchema = z.object({
  * Note: Using discriminated union by making all fields optional to avoid
  * Zod union type inference issues with .optional() fields
  */
+/**
+ * Family Search Result Schema
+ * Returned by searchFamiliesForInvitation endpoint
+ * Matches FamilySearchResult interface from GroupTypes.ts
+ */
+export const FamilySearchResultSchema = z.object({
+  id: z.string()
+    .cuid()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'Family identifier',
+    }),
+  name: z.string()
+    .openapi({
+      example: 'Smith Family',
+      description: 'Family display name',
+    }),
+  adminContacts: z.array(z.object({
+    name: z.string().openapi({
+      example: 'John Smith',
+      description: 'Admin name',
+    }),
+    email: z.string().email().openapi({
+      example: 'john.smith@example.com',
+      description: 'Admin email',
+    }),
+  })).openapi({
+    example: [
+      { name: 'John Smith', email: 'john.smith@example.com' },
+      { name: 'Jane Smith', email: 'jane.smith@example.com' },
+    ],
+    description: 'List of family admin contacts',
+  }),
+  memberCount: z.number()
+    .openapi({
+      example: 4,
+      description: 'Number of members in the family',
+    }),
+  canInvite: z.boolean()
+    .openapi({
+      example: true,
+      description: 'Whether this family can be invited (false if already has pending invitation)',
+    }),
+}).openapi({
+  title: 'Family Search Result',
+  description: 'Family search result for group invitations',
+});
+
 export const EnrichedGroupFamilySchema = z.object({
   id: z.string()
     .cuid()
@@ -687,6 +747,108 @@ export const GroupScheduleConfigSuccessResponseSchema = z.object({
 }).openapi({
   title: 'Group Schedule Config Success Response',
   description: 'Success response for schedule configuration operations',
+});
+
+// ============================================================================
+// SCHEDULE CONFIG SCHEMAS
+// ============================================================================
+
+/**
+ * Schedule Hours Schema - Maps weekdays to time slot arrays
+ * All times are stored as UTC times (e.g., "07:00" means 07:00 UTC)
+ */
+export const ScheduleHoursSchema = z.record(
+  z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+  z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'))
+).openapi({
+  example: {
+    MONDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+    TUESDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+    WEDNESDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+    THURSDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+    FRIDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+  },
+  description: 'Schedule hours mapping weekdays to UTC time slots',
+});
+
+/**
+ * Update Schedule Config Request Schema
+ */
+export const UpdateScheduleConfigRequestSchema = z.object({
+  scheduleHours: ScheduleHoursSchema.openapi({
+    description: 'Schedule hours configuration',
+  }),
+}).openapi({
+  title: 'Update Schedule Config Request',
+  description: 'Request body for updating group schedule configuration',
+});
+
+/**
+ * Group Schedule Config Response Schema
+ */
+export const GroupScheduleConfigResponseSchema = z.object({
+  id: z.string().cuid().openapi({
+    example: 'cl123456789012345678901234',
+    description: 'Config ID',
+  }),
+  groupId: z.string().cuid().openapi({
+    example: 'cl123456789012345678901235',
+    description: 'Group ID',
+  }),
+  scheduleHours: ScheduleHoursSchema.openapi({
+    description: 'Schedule hours configuration',
+  }),
+  group: z.object({
+    id: z.string().cuid(),
+    name: z.string(),
+  }).optional()
+    .openapi({
+      description: 'Group information',
+    }),
+  createdAt: z.string().datetime().openapi({
+    example: '2023-01-01T00:00:00.000Z',
+    description: 'Creation timestamp',
+  }),
+  updatedAt: z.string().datetime().openapi({
+    example: '2023-01-15T10:30:00.000Z',
+    description: 'Last update timestamp',
+  }),
+}).openapi({
+  title: 'Group Schedule Config Response',
+  description: 'Group schedule configuration with full details',
+});
+
+/**
+ * Time Slots Response Schema
+ */
+export const TimeSlotsResponseSchema = z.object({
+  weekday: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']).openapi({
+    example: 'MONDAY',
+    description: 'Weekday',
+  }),
+  timeSlots: z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/)).openapi({
+    example: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
+    description: 'Available time slots in UTC (HH:MM format)',
+  }),
+}).openapi({
+  title: 'Time Slots Response',
+  description: 'Time slots for a specific weekday',
+});
+
+/**
+ * Default Schedule Config Response Schema
+ */
+export const DefaultScheduleConfigResponseSchema = z.object({
+  scheduleHours: ScheduleHoursSchema.openapi({
+    description: 'Default schedule hours template',
+  }),
+  description: z.string().openapi({
+    example: 'Default schedule configuration template',
+    description: 'Description of the default configuration',
+  }),
+}).openapi({
+  title: 'Default Schedule Config Response',
+  description: 'Default schedule configuration template',
 });
 
 // ============================================================================

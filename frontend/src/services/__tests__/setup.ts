@@ -147,6 +147,56 @@ const createMockClient = () => {
           data: { data: [], success: true },
           error: undefined
         });
+      case '/groups/{groupId}/schedule-config':
+        return Promise.resolve({
+          data: {
+            data: {
+              id: 'config-1',
+              groupId: 'group-1',
+              scheduleHours: {
+                'MONDAY': ['07:00', '07:30', '08:00'],
+                'TUESDAY': ['07:00', '07:30', '08:00'],
+                'WEDNESDAY': ['07:00', '07:30', '08:00'],
+                'THURSDAY': ['07:00', '07:30', '08:00'],
+                'FRIDAY': ['07:00', '07:30', '08:00']
+              },
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-01T00:00:00Z',
+              isDefault: false
+            },
+            success: true
+          },
+          error: undefined
+        });
+      case '/groups/{groupId}/schedule-config/time-slots':
+        return Promise.resolve({
+          data: {
+            data: {
+              groupId: 'group-1',
+              weekday: 'MONDAY',
+              timeSlots: ['07:00', '07:30', '08:00']
+            },
+            success: true
+          },
+          error: undefined
+        });
+      case '/groups/schedule-config/default':
+        return Promise.resolve({
+          data: {
+            data: {
+              scheduleHours: {
+                'MONDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
+              },
+              isDefault: true
+            },
+            success: true
+          },
+          error: undefined
+        });
 
       // Family endpoints
       case '/families/current':
@@ -354,6 +404,27 @@ const createMockClient = () => {
 
   mockClient.POST.mockImplementation((path: string) => {
     switch (path) {
+      case '/groups/{groupId}/schedule-config/reset':
+        return Promise.resolve({
+          data: {
+            data: {
+              id: 'config-1',
+              groupId: 'group-1',
+              scheduleHours: {
+                'MONDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+                'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
+              },
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-02T00:00:00Z',
+              isDefault: true
+            },
+            success: true
+          },
+          error: undefined
+        });
       case '/groups/{groupId}/invite-family':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
@@ -470,6 +541,27 @@ const createMockClient = () => {
 
   mockClient.PUT.mockImplementation((path: string) => {
     switch (path) {
+      case '/groups/{groupId}/schedule-config':
+        return Promise.resolve({
+          data: {
+            data: {
+              id: 'config-1',
+              groupId: 'group-1',
+              scheduleHours: {
+                'MONDAY': ['07:00', '07:30', '08:00'],
+                'TUESDAY': ['07:00', '07:30', '08:00'],
+                'WEDNESDAY': ['07:00', '07:30', '08:00'],
+                'THURSDAY': ['07:00', '07:30', '08:00'],
+                'FRIDAY': ['07:00', '07:30', '08:00']
+              },
+              createdAt: '2024-01-01T00:00:00Z',
+              updatedAt: '2024-01-02T00:00:00Z',
+              isDefault: false
+            },
+            success: true
+          },
+          error: undefined
+        });
       default:
         return Promise.resolve({
           data: { data: null, success: true },

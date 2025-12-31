@@ -5405,326 +5405,6 @@
         }
       }
     },
-    "/families/validate-invite": {
-      "post": {
-        "tags": [
-          "Families"
-        ],
-        "summary": "Validate family invitation code",
-        "description": "Validate a family invitation code without authentication",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "inviteCode": {
-                    "type": "string",
-                    "minLength": 1,
-                    "example": "ABC123XYZ",
-                    "description": "Family invitation code to validate"
-                  }
-                },
-                "required": [
-                  "inviteCode"
-                ],
-                "title": "Validate Invite Code",
-                "description": "Validate a family invitation code"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Invitation code validation result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "valid": {
-                          "type": "boolean",
-                          "example": true,
-                          "description": "Whether the invite code is valid"
-                        },
-                        "family": {
-                          "type": "object",
-                          "nullable": true,
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid",
-                              "example": "cl123456789012345678901234",
-                              "description": "Unique family identifier (CUID format)"
-                            },
-                            "name": {
-                              "type": "string",
-                              "example": "Johnson Family",
-                              "description": "Family display name"
-                            },
-                            "inviteCode": {
-                              "type": "string",
-                              "example": "ABC123XYZ",
-                              "description": "Family invitation code"
-                            },
-                            "createdAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-01-01T00:00:00.000Z",
-                              "description": "When the family was created"
-                            },
-                            "updatedAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-01-15T10:30:00.000Z",
-                              "description": "When the family was last updated"
-                            },
-                            "members": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "userId": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "role": {
-                                    "type": "string",
-                                    "enum": [
-                                      "ADMIN",
-                                      "MEMBER",
-                                      "VIEWER"
-                                    ],
-                                    "example": "ADMIN",
-                                    "description": "Family member role with different permission levels"
-                                  },
-                                  "joinedAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "user": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "format": "cuid",
-                                        "example": "cl123456789012345678901237",
-                                        "description": "Unique user identifier (CUID format)"
-                                      },
-                                      "email": {
-                                        "type": "string",
-                                        "format": "email",
-                                        "example": "user@example.com",
-                                        "description": "User email address"
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "example": "John Doe",
-                                        "description": "User display name"
-                                      },
-                                      "timezone": {
-                                        "type": "string",
-                                        "example": "America/New_York",
-                                        "description": "User timezone"
-                                      }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "email",
-                                      "name"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "userId",
-                                  "familyId",
-                                  "role",
-                                  "joinedAt"
-                                ]
-                              },
-                              "description": "Family members (included in detailed responses)"
-                            },
-                            "vehicles": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901238",
-                                    "description": "Unique vehicle identifier (CUID format)"
-                                  },
-                                  "make": {
-                                    "type": "string",
-                                    "example": "Toyota",
-                                    "description": "Vehicle make"
-                                  },
-                                  "model": {
-                                    "type": "string",
-                                    "example": "Camry",
-                                    "description": "Vehicle model"
-                                  },
-                                  "capacity": {
-                                    "type": "integer",
-                                    "minimum": 1,
-                                    "maximum": 8,
-                                    "example": 4,
-                                    "description": "Vehicle passenger capacity"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "make",
-                                  "model",
-                                  "capacity"
-                                ]
-                              },
-                              "description": "Family vehicles (included in detailed responses)"
-                            },
-                            "children": {
-                              "type": "array",
-                              "items": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901239",
-                                    "description": "Unique child identifier (CUID format)"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "example": "Emma Johnson",
-                                    "description": "Child name"
-                                  },
-                                  "age": {
-                                    "type": "number",
-                                    "nullable": true,
-                                    "example": 8,
-                                    "description": "Child age (nullable)"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name"
-                                ]
-                              },
-                              "description": "Family children (included in detailed responses)"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name",
-                            "inviteCode",
-                            "createdAt",
-                            "updatedAt"
-                          ],
-                          "title": "Family Response",
-                          "description": "Family information if valid, null if invalid"
-                        }
-                      },
-                      "required": [
-                        "valid",
-                        "family"
-                      ],
-                      "title": "Invite Code Validation",
-                      "description": "Result of invite code validation"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid invite code",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Error message",
-                      "description": "Error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ]
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Error message",
-                      "description": "Error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/families": {
       "post": {
         "tags": [
@@ -5887,33 +5567,47 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Unique vehicle identifier (CUID format)"
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
                               },
-                              "make": {
+                              "name": {
                                 "type": "string",
-                                "example": "Toyota",
-                                "description": "Vehicle make"
-                              },
-                              "model": {
-                                "type": "string",
-                                "example": "Camry",
-                                "description": "Vehicle model"
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
                               },
                               "capacity": {
                                 "type": "integer",
-                                "minimum": 1,
-                                "maximum": 8,
-                                "example": 4,
-                                "description": "Vehicle passenger capacity"
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
                               }
                             },
                             "required": [
                               "id",
-                              "make",
-                              "model",
-                              "capacity"
-                            ]
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -5925,13 +5619,13 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901239",
+                                "example": "cl123456789012345678901234",
                                 "description": "Unique child identifier (CUID format)"
                               },
                               "name": {
                                 "type": "string",
                                 "example": "Emma Johnson",
-                                "description": "Child name"
+                                "description": "Child full name"
                               },
                               "age": {
                                 "type": "number",
@@ -6259,33 +5953,47 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Unique vehicle identifier (CUID format)"
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
                               },
-                              "make": {
+                              "name": {
                                 "type": "string",
-                                "example": "Toyota",
-                                "description": "Vehicle make"
-                              },
-                              "model": {
-                                "type": "string",
-                                "example": "Camry",
-                                "description": "Vehicle model"
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
                               },
                               "capacity": {
                                 "type": "integer",
-                                "minimum": 1,
-                                "maximum": 8,
-                                "example": 4,
-                                "description": "Vehicle passenger capacity"
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
                               }
                             },
                             "required": [
                               "id",
-                              "make",
-                              "model",
-                              "capacity"
-                            ]
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -6297,13 +6005,13 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901239",
+                                "example": "cl123456789012345678901234",
                                 "description": "Unique child identifier (CUID format)"
                               },
                               "name": {
                                 "type": "string",
                                 "example": "Emma Johnson",
-                                "description": "Child name"
+                                "description": "Child full name"
                               },
                               "age": {
                                 "type": "number",
@@ -6641,33 +6349,47 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Unique vehicle identifier (CUID format)"
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
                               },
-                              "make": {
+                              "name": {
                                 "type": "string",
-                                "example": "Toyota",
-                                "description": "Vehicle make"
-                              },
-                              "model": {
-                                "type": "string",
-                                "example": "Camry",
-                                "description": "Vehicle model"
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
                               },
                               "capacity": {
                                 "type": "integer",
-                                "minimum": 1,
-                                "maximum": 8,
-                                "example": 4,
-                                "description": "Vehicle passenger capacity"
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
                               }
                             },
                             "required": [
                               "id",
-                              "make",
-                              "model",
-                              "capacity"
-                            ]
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -6679,13 +6401,13 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901239",
+                                "example": "cl123456789012345678901234",
                                 "description": "Unique child identifier (CUID format)"
                               },
                               "name": {
                                 "type": "string",
                                 "example": "Emma Johnson",
-                                "description": "Child name"
+                                "description": "Child full name"
                               },
                               "age": {
                                 "type": "number",
@@ -8440,33 +8162,47 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Unique vehicle identifier (CUID format)"
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
                               },
-                              "make": {
+                              "name": {
                                 "type": "string",
-                                "example": "Toyota",
-                                "description": "Vehicle make"
-                              },
-                              "model": {
-                                "type": "string",
-                                "example": "Camry",
-                                "description": "Vehicle model"
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
                               },
                               "capacity": {
                                 "type": "integer",
-                                "minimum": 1,
-                                "maximum": 8,
-                                "example": 4,
-                                "description": "Vehicle passenger capacity"
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
                               }
                             },
                             "required": [
                               "id",
-                              "make",
-                              "model",
-                              "capacity"
-                            ]
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -8478,13 +8214,13 @@
                               "id": {
                                 "type": "string",
                                 "format": "cuid",
-                                "example": "cl123456789012345678901239",
+                                "example": "cl123456789012345678901234",
                                 "description": "Unique child identifier (CUID format)"
                               },
                               "name": {
                                 "type": "string",
                                 "example": "Emma Johnson",
-                                "description": "Child name"
+                                "description": "Child full name"
                               },
                               "age": {
                                 "type": "number",
@@ -9090,315 +8826,6 @@
                     "success",
                     "error"
                   ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/groups/validate-invite": {
-      "post": {
-        "tags": [
-          "Groups"
-        ],
-        "summary": "Validate group invitation code",
-        "description": "Validate a group invitation code without authentication",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "inviteCode": {
-                    "type": "string",
-                    "minLength": 1,
-                    "example": "ABC123XYZ",
-                    "description": "Group invitation code to validate"
-                  }
-                },
-                "required": [
-                  "inviteCode"
-                ],
-                "title": "Validate Invite Code",
-                "description": "Validate a group invitation code"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Invitation code validation result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "valid": {
-                          "type": "boolean",
-                          "example": true,
-                          "description": "Whether the invite code is valid"
-                        },
-                        "group": {
-                          "type": "object",
-                          "nullable": true,
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid",
-                              "example": "cl123456789012345678901234",
-                              "description": "Unique group identifier (CUID format)"
-                            },
-                            "name": {
-                              "type": "string",
-                              "example": "Morning School Run",
-                              "description": "Group display name"
-                            },
-                            "description": {
-                              "type": "string",
-                              "nullable": true,
-                              "example": "Carpool group for morning school transportation",
-                              "description": "Group description"
-                            },
-                            "inviteCode": {
-                              "type": "string",
-                              "example": "ABC123XYZ",
-                              "description": "Group invitation code"
-                            },
-                            "familyId": {
-                              "type": "string",
-                              "format": "cuid",
-                              "example": "cl123456789012345678901238",
-                              "description": "Owner family ID"
-                            },
-                            "userRole": {
-                              "type": "string",
-                              "enum": [
-                                "ADMIN",
-                                "MEMBER"
-                              ],
-                              "example": "ADMIN",
-                              "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
-                            },
-                            "ownerFamily": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string",
-                                  "format": "cuid",
-                                  "example": "cl123456789012345678901238",
-                                  "description": "Owner family ID"
-                                },
-                                "name": {
-                                  "type": "string",
-                                  "example": "Smith Family",
-                                  "description": "Owner family name"
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name"
-                              ],
-                              "description": "Owner family information"
-                            },
-                            "familyCount": {
-                              "type": "number",
-                              "example": 3,
-                              "description": "Total number of families in the group (including owner)"
-                            },
-                            "scheduleCount": {
-                              "type": "number",
-                              "example": 5,
-                              "description": "Number of schedule slots configured for the group"
-                            },
-                            "createdAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-01-01T00:00:00.000Z",
-                              "description": "When the group was created"
-                            },
-                            "updatedAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-01-15T10:30:00.000Z",
-                              "description": "When the group was last updated"
-                            },
-                            "_count": {
-                              "type": "object",
-                              "properties": {
-                                "families": {
-                                  "type": "number",
-                                  "example": 3,
-                                  "description": "Number of families in the group"
-                                },
-                                "children": {
-                                  "type": "number",
-                                  "example": 8,
-                                  "description": "Number of children in the group"
-                                }
-                              },
-                              "required": [
-                                "families",
-                                "children"
-                              ],
-                              "description": "Counts of related entities"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name"
-                          ],
-                          "title": "Group Response",
-                          "description": "Group information if valid, null if invalid"
-                        },
-                        "userStatus": {
-                          "type": "string",
-                          "enum": [
-                            "NO_FAMILY",
-                            "FAMILY_MEMBER",
-                            "FAMILY_ADMIN",
-                            "ALREADY_MEMBER"
-                          ],
-                          "example": "FAMILY_MEMBER",
-                          "description": "User family status"
-                        },
-                        "actionRequired": {
-                          "type": "string",
-                          "enum": [
-                            "CREATE_FAMILY",
-                            "CONTACT_ADMIN",
-                            "ALREADY_ACCEPTED",
-                            "READY_TO_JOIN"
-                          ],
-                          "example": "READY_TO_JOIN",
-                          "description": "Action required for user to join"
-                        }
-                      },
-                      "required": [
-                        "valid",
-                        "group",
-                        "userStatus",
-                        "actionRequired"
-                      ],
-                      "title": "Invitation Validation",
-                      "description": "Result of invitation code validation"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Invalid invite code",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad request",
-                      "description": "Error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "BAD_REQUEST",
-                      "description": "Error code for programmatic handling"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found - Invalid invite code",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad request",
-                      "description": "Error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "BAD_REQUEST",
-                      "description": "Error code for programmatic handling"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Bad request",
-                      "description": "Error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "BAD_REQUEST",
-                      "description": "Error code for programmatic handling"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response"
                 }
               }
             }
@@ -10970,6 +10397,726 @@
         }
       }
     },
+    "/groups/{groupId}/invite": {
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Invite a family to join a group",
+        "description": "Send an invitation to a family to join a group (group admin only)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "familyId": {
+                    "type": "string",
+                    "format": "cuid",
+                    "example": "cl123456789012345678901234",
+                    "description": "Family ID to invite"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "ADMIN",
+                      "MEMBER"
+                    ],
+                    "default": "MEMBER",
+                    "example": "MEMBER",
+                    "description": "Role for the invited family (defaults to MEMBER)"
+                  },
+                  "personalMessage": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 500,
+                    "example": "Welcome to our carpool group!",
+                    "description": "Optional personal message for the invitation"
+                  }
+                },
+                "required": [
+                  "familyId"
+                ],
+                "title": "Invite Family",
+                "description": "Invite a family to join the group"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Family invited successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901240",
+                          "description": "Unique invitation identifier (CUID format)"
+                        },
+                        "groupId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Group identifier"
+                        },
+                        "familyId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901241",
+                          "description": "Family identifier being invited"
+                        },
+                        "role": {
+                          "type": "string",
+                          "enum": [
+                            "ADMIN",
+                            "MEMBER"
+                          ],
+                          "example": "MEMBER",
+                          "description": "Invited role"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "PENDING",
+                            "ACCEPTED",
+                            "DECLINED",
+                            "EXPIRED",
+                            "CANCELLED"
+                          ],
+                          "example": "PENDING",
+                          "description": "Invitation status"
+                        },
+                        "personalMessage": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Welcome to our carpool group!",
+                          "description": "Personal invitation message"
+                        },
+                        "invitedBy": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901237",
+                          "description": "User who sent the invitation"
+                        },
+                        "invitedByUser": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string",
+                              "format": "email"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name",
+                            "email"
+                          ],
+                          "description": "User details who sent the invitation"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-02-01T00:00:00.000Z",
+                          "description": "When the invitation expires"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "When the invitation was created"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "When the invitation was last updated"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "groupId",
+                        "familyId",
+                        "role",
+                        "status",
+                        "invitedBy",
+                        "expiresAt",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "title": "Group Invitation",
+                      "description": "Group invitation details"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only group admins can send invitations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Group or family does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Family already invited or member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/{groupId}/search-families": {
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Search families to invite to group",
+        "description": "Search for families by name that can be invited to join a group (group admin only). Excludes families already members or with pending invitations.",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "searchTerm": {
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "Smith",
+                    "description": "Search term to filter families by name"
+                  }
+                },
+                "required": [
+                  "searchTerm"
+                ],
+                "title": "Search Families Query",
+                "description": "Query parameters for searching families"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Families searched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "cuid",
+                            "example": "cl123456789012345678901239",
+                            "description": "Family identifier"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "Smith Family",
+                            "description": "Family display name"
+                          },
+                          "adminContacts": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string",
+                                  "example": "John Smith",
+                                  "description": "Admin name"
+                                },
+                                "email": {
+                                  "type": "string",
+                                  "format": "email",
+                                  "example": "john.smith@example.com",
+                                  "description": "Admin email"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "email"
+                              ]
+                            },
+                            "example": [
+                              {
+                                "name": "John Smith",
+                                "email": "john.smith@example.com"
+                              },
+                              {
+                                "name": "Jane Smith",
+                                "email": "jane.smith@example.com"
+                              }
+                            ],
+                            "description": "List of family admin contacts"
+                          },
+                          "memberCount": {
+                            "type": "number",
+                            "example": 4,
+                            "description": "Number of members in the family"
+                          },
+                          "canInvite": {
+                            "type": "boolean",
+                            "example": true,
+                            "description": "Whether this family can be invited (false if already has pending invitation)"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "adminContacts",
+                          "memberCount",
+                          "canInvite"
+                        ],
+                        "title": "Family Search Result",
+                        "description": "Family search result for group invitations"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only group admins can search families",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Group does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/groups/{groupId}/families/{familyId}": {
       "delete": {
         "tags": [
@@ -12026,166 +12173,195 @@
         }
       }
     },
-    "/invitations/validate/{code}": {
+    "/groups/{groupId}/schedule-config": {
       "get": {
         "tags": [
-          "Invitations"
+          "Groups"
         ],
-        "summary": "Validate invitation code (public)",
-        "description": "Validate an invitation code without authentication. Checks both family and group invitations.",
+        "summary": "Get group schedule configuration",
+        "description": "Get the schedule configuration for a group",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "minLength": 1,
-              "example": "ABC123XYZ789",
-              "description": "Invitation code parameter"
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
             },
             "required": true,
-            "description": "Invitation code parameter",
-            "name": "code",
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
             "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Invitation validation result",
+            "description": "Schedule configuration retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "valid": {
+                    "success": {
                       "type": "boolean",
-                      "example": true,
-                      "description": "Whether the invitation code is valid"
-                    },
-                    "type": {
-                      "type": "string",
                       "enum": [
-                        "FAMILY",
-                        "GROUP"
-                      ],
-                      "description": "Type of invitation (if valid)",
-                      "example": "FAMILY"
+                        true
+                      ]
                     },
-                    "family": {
+                    "data": {
                       "type": "object",
                       "properties": {
                         "id": {
                           "type": "string",
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Family identifier (CUID format)"
+                          "description": "Config ID"
                         },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 100,
-                          "example": "Johnson Family",
-                          "description": "Family display name"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Family creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Family update timestamp"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Family",
-                      "description": "Family information (if family invitation and valid)"
-                    },
-                    "group": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
+                        "groupId": {
                           "type": "string",
                           "format": "cuid",
                           "example": "cl123456789012345678901235",
-                          "description": "Group identifier (CUID format)"
+                          "description": "Group ID"
                         },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 100,
-                          "example": "Carpool Group",
-                          "description": "Group display name"
+                        "scheduleHours": {
+                          "type": "object",
+                          "properties": {
+                            "MONDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "TUESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "WEDNESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "THURSDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "FRIDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            }
+                          },
+                          "example": {
+                            "MONDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "TUESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "WEDNESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "THURSDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "FRIDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ]
+                          },
+                          "description": "Schedule hours configuration"
+                        },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
                         },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Group creation timestamp"
+                          "description": "Creation timestamp"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Group update timestamp"
+                          "example": "2023-01-15T10:30:00.000Z",
+                          "description": "Last update timestamp"
                         }
                       },
                       "required": [
                         "id",
-                        "name",
+                        "groupId",
+                        "scheduleHours",
                         "createdAt",
                         "updatedAt"
                       ],
-                      "title": "Group",
-                      "description": "Group information (if group invitation and valid)"
-                    },
-                    "email": {
-                      "type": "string",
-                      "format": "email",
-                      "example": "john.smith@example.com",
-                      "description": "Email address the invitation was sent to (if valid)"
-                    },
-                    "role": {
-                      "type": "string",
-                      "example": "MEMBER",
-                      "description": "Role in the invitation (if valid)"
-                    },
-                    "personalMessage": {
-                      "type": "string",
-                      "nullable": true,
-                      "example": "Welcome to our family!",
-                      "description": "Personal message from inviter (if valid)"
-                    },
-                    "expiresAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "example": "2023-01-08T00:00:00.000Z",
-                      "description": "Invitation expiration timestamp (if valid)"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Invitation expired",
-                      "description": "Error message if invitation is invalid"
+                      "title": "Group Schedule Config Response",
+                      "description": "Group schedule configuration with full details"
                     }
                   },
                   "required": [
-                    "valid",
-                    "type"
-                  ],
-                  "title": "Invitation Validation Response",
-                  "description": "Invitation validation result"
+                    "success",
+                    "data"
+                  ]
                 }
               }
             }
           },
-          "404": {
-            "description": "Invitation not found or invalid",
+          "400": {
+            "description": "Bad request - Invalid group ID",
             "content": {
               "application/json": {
                 "schema": {
@@ -12199,19 +12375,123 @@
                     },
                     "error": {
                       "type": "string",
-                      "example": "Invitation not found",
+                      "example": "Bad request",
                       "description": "Error message"
                     },
                     "code": {
                       "type": "string",
-                      "example": "INVITATION_NOT_FOUND",
+                      "example": "BAD_REQUEST",
                       "description": "Error code for programmatic handling"
                     }
                   },
                   "required": [
                     "success",
                     "error"
-                  ]
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Access denied to group schedule configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Schedule configuration not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
                 }
               }
             }
@@ -12231,19 +12511,1290 @@
                     },
                     "error": {
                       "type": "string",
-                      "example": "Invitation not found",
+                      "example": "Bad request",
                       "description": "Error message"
                     },
                     "code": {
                       "type": "string",
-                      "example": "INVITATION_NOT_FOUND",
+                      "example": "BAD_REQUEST",
                       "description": "Error code for programmatic handling"
                     }
                   },
                   "required": [
                     "success",
                     "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Update group schedule configuration",
+        "description": "Update the schedule configuration for a group (group admin only)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "scheduleHours": {
+                    "type": "object",
+                    "properties": {
+                      "MONDAY": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                        }
+                      },
+                      "TUESDAY": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                        }
+                      },
+                      "WEDNESDAY": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                        }
+                      },
+                      "THURSDAY": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                        }
+                      },
+                      "FRIDAY": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                        }
+                      }
+                    },
+                    "example": {
+                      "MONDAY": [
+                        "07:00",
+                        "07:30",
+                        "08:00",
+                        "15:00",
+                        "15:30",
+                        "16:00"
+                      ],
+                      "TUESDAY": [
+                        "07:00",
+                        "07:30",
+                        "08:00",
+                        "15:00",
+                        "15:30",
+                        "16:00"
+                      ],
+                      "WEDNESDAY": [
+                        "07:00",
+                        "07:30",
+                        "08:00",
+                        "15:00",
+                        "15:30",
+                        "16:00"
+                      ],
+                      "THURSDAY": [
+                        "07:00",
+                        "07:30",
+                        "08:00",
+                        "15:00",
+                        "15:30",
+                        "16:00"
+                      ],
+                      "FRIDAY": [
+                        "07:00",
+                        "07:30",
+                        "08:00",
+                        "15:00",
+                        "15:30",
+                        "16:00"
+                      ]
+                    },
+                    "description": "Schedule hours configuration"
+                  }
+                },
+                "required": [
+                  "scheduleHours"
+                ],
+                "title": "Update Schedule Config Request",
+                "description": "Request body for updating group schedule configuration"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Schedule configuration updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Config ID"
+                        },
+                        "groupId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901235",
+                          "description": "Group ID"
+                        },
+                        "scheduleHours": {
+                          "type": "object",
+                          "properties": {
+                            "MONDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "TUESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "WEDNESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "THURSDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "FRIDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            }
+                          },
+                          "example": {
+                            "MONDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "TUESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "WEDNESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "THURSDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "FRIDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ]
+                          },
+                          "description": "Schedule hours configuration"
+                        },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "Creation timestamp"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-15T10:30:00.000Z",
+                          "description": "Last update timestamp"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "groupId",
+                        "scheduleHours",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "title": "Group Schedule Config Response",
+                      "description": "Group schedule configuration with full details"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only group administrators can modify schedule configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Group does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/{groupId}/schedule-config/time-slots": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Get time slots for a weekday",
+        "description": "Get available time slots for a specific weekday",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "MONDAY",
+                "TUESDAY",
+                "WEDNESDAY",
+                "THURSDAY",
+                "FRIDAY"
+              ],
+              "example": "MONDAY",
+              "description": "Weekday to get time slots for"
+            },
+            "required": true,
+            "description": "Weekday to get time slots for",
+            "name": "weekday",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time slots retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                      }
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid group ID or weekday",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Access denied to group schedule configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Schedule configuration not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/{groupId}/schedule-config/reset": {
+      "post": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Reset schedule configuration to default",
+        "description": "Reset the schedule configuration to default values (group admin only)",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid",
+              "example": "cl123456789012345678901234",
+              "description": "Unique group identifier (CUID format)"
+            },
+            "required": true,
+            "description": "Unique group identifier (CUID format)",
+            "name": "groupId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schedule configuration reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Config ID"
+                        },
+                        "groupId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901235",
+                          "description": "Group ID"
+                        },
+                        "scheduleHours": {
+                          "type": "object",
+                          "properties": {
+                            "MONDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "TUESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "WEDNESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "THURSDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "FRIDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            }
+                          },
+                          "example": {
+                            "MONDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "TUESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "WEDNESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "THURSDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "FRIDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ]
+                          },
+                          "description": "Schedule hours configuration"
+                        },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "Creation timestamp"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-15T10:30:00.000Z",
+                          "description": "Last update timestamp"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "groupId",
+                        "scheduleHours",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "title": "Group Schedule Config Response",
+                      "description": "Group schedule configuration with full details"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid group ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Only group administrators can reset schedule configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found - Group does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/groups/schedule-config/default": {
+      "get": {
+        "tags": [
+          "Groups"
+        ],
+        "summary": "Get default schedule configuration",
+        "description": "Get the default schedule configuration template",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default schedule configuration retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "scheduleHours": {
+                          "type": "object",
+                          "properties": {
+                            "MONDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "TUESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "WEDNESDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "THURSDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            },
+                            "FRIDAY": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+                              }
+                            }
+                          },
+                          "example": {
+                            "MONDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "TUESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "WEDNESDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "THURSDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ],
+                            "FRIDAY": [
+                              "07:00",
+                              "07:30",
+                              "08:00",
+                              "15:00",
+                              "15:30",
+                              "16:00"
+                            ]
+                          },
+                          "description": "Default schedule hours template"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Default schedule configuration template",
+                          "description": "Description of the default configuration"
+                        }
+                      },
+                      "required": [
+                        "scheduleHours",
+                        "description"
+                      ],
+                      "title": "Default Schedule Config Response",
+                      "description": "Default schedule configuration template"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Bad request",
+                      "description": "Error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "BAD_REQUEST",
+                      "description": "Error code for programmatic handling"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response"
                 }
               }
             }
@@ -12590,16 +14141,14 @@
                     "valid": {
                       "type": "boolean",
                       "example": true,
-                      "description": "Whether the invitation code is valid"
+                      "description": "Whether the family invitation code is valid"
                     },
                     "type": {
                       "type": "string",
                       "enum": [
-                        "FAMILY",
-                        "GROUP"
+                        "FAMILY"
                       ],
-                      "description": "Type of invitation (if valid)",
-                      "example": "FAMILY"
+                      "description": "Type of invitation - always FAMILY for this endpoint"
                     },
                     "family": {
                       "type": "object",
@@ -12636,46 +14185,8 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "title": "Family",
-                      "description": "Family information (if family invitation and valid)"
-                    },
-                    "group": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901235",
-                          "description": "Group identifier (CUID format)"
-                        },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 100,
-                          "example": "Carpool Group",
-                          "description": "Group display name"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Group creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Group update timestamp"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Group",
-                      "description": "Group information (if group invitation and valid)"
+                      "title": "Base Family",
+                      "description": "Family information (if valid)"
                     },
                     "email": {
                       "type": "string",
@@ -12685,33 +14196,26 @@
                     },
                     "role": {
                       "type": "string",
-                      "example": "MEMBER",
-                      "description": "Role in the invitation (if valid)"
+                      "enum": [
+                        "ADMIN",
+                        "MEMBER"
+                      ],
+                      "description": "Role in the family invitation (if valid)",
+                      "example": "MEMBER"
                     },
                     "personalMessage": {
                       "type": "string",
                       "nullable": true,
                       "example": "Welcome to our family!",
                       "description": "Personal message from inviter (if valid)"
-                    },
-                    "expiresAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "example": "2023-01-08T00:00:00.000Z",
-                      "description": "Invitation expiration timestamp (if valid)"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Invitation expired",
-                      "description": "Error message if invitation is invalid"
                     }
                   },
                   "required": [
                     "valid",
                     "type"
                   ],
-                  "title": "Invitation Validation Response",
-                  "description": "Invitation validation result"
+                  "title": "Family Invitation Validation Response",
+                  "description": "Family invitation validation result"
                 }
               }
             }
@@ -13305,54 +14809,14 @@
                     "valid": {
                       "type": "boolean",
                       "example": true,
-                      "description": "Whether the invitation code is valid"
+                      "description": "Whether the group invitation code is valid"
                     },
                     "type": {
                       "type": "string",
                       "enum": [
-                        "FAMILY",
                         "GROUP"
                       ],
-                      "description": "Type of invitation (if valid)",
-                      "example": "FAMILY"
-                    },
-                    "family": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Family identifier (CUID format)"
-                        },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 100,
-                          "example": "Johnson Family",
-                          "description": "Family display name"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Family creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Family update timestamp"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Family",
-                      "description": "Family information (if family invitation and valid)"
+                      "description": "Type of invitation - always GROUP for this endpoint"
                     },
                     "group": {
                       "type": "object",
@@ -13389,44 +14853,22 @@
                         "createdAt",
                         "updatedAt"
                       ],
-                      "title": "Group",
-                      "description": "Group information (if group invitation and valid)"
+                      "title": "Base Group",
+                      "description": "Group information (if valid)"
                     },
                     "email": {
                       "type": "string",
                       "format": "email",
                       "example": "john.smith@example.com",
                       "description": "Email address the invitation was sent to (if valid)"
-                    },
-                    "role": {
-                      "type": "string",
-                      "example": "MEMBER",
-                      "description": "Role in the invitation (if valid)"
-                    },
-                    "personalMessage": {
-                      "type": "string",
-                      "nullable": true,
-                      "example": "Welcome to our family!",
-                      "description": "Personal message from inviter (if valid)"
-                    },
-                    "expiresAt": {
-                      "type": "string",
-                      "format": "date-time",
-                      "example": "2023-01-08T00:00:00.000Z",
-                      "description": "Invitation expiration timestamp (if valid)"
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Invitation expired",
-                      "description": "Error message if invitation is invalid"
                     }
                   },
                   "required": [
                     "valid",
                     "type"
                   ],
-                  "title": "Invitation Validation Response",
-                  "description": "Invitation validation result"
+                  "title": "Group Invitation Validation Response",
+                  "description": "Group invitation validation result"
                 }
               }
             }
@@ -13580,308 +15022,6 @@
                     "success",
                     "error"
                   ]
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Invitation not found",
-                      "description": "Error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "INVITATION_NOT_FOUND",
-                      "description": "Error code for programmatic handling"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ]
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/invitations/user": {
-      "get": {
-        "tags": [
-          "Invitations"
-        ],
-        "summary": "Get user invitations",
-        "description": "Retrieve all pending invitations for the authenticated user",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "User invitations retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "family": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "cuid",
-                            "example": "cl123456789012345678901237",
-                            "description": "Invitation identifier"
-                          },
-                          "familyId": {
-                            "type": "string",
-                            "format": "cuid",
-                            "example": "cl123456789012345678901234",
-                            "description": "Family identifier"
-                          },
-                          "email": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "email",
-                            "example": "john.smith@example.com",
-                            "description": "Invited email address"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": [
-                              "ADMIN",
-                              "MEMBER"
-                            ],
-                            "description": "Invited role in the family",
-                            "example": "MEMBER"
-                          },
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "PENDING",
-                              "ACCEPTED",
-                              "EXPIRED",
-                              "CANCELLED"
-                            ],
-                            "description": "Invitation status",
-                            "example": "PENDING"
-                          },
-                          "personalMessage": {
-                            "type": "string",
-                            "nullable": true,
-                            "example": "Welcome to our family!",
-                            "description": "Personal message from inviter"
-                          },
-                          "expiresAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-08T00:00:00.000Z",
-                            "description": "Invitation expiration timestamp"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-01T00:00:00.000Z",
-                            "description": "Invitation creation timestamp"
-                          },
-                          "family": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901234",
-                                "description": "Family identifier (CUID format)"
-                              },
-                              "name": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 100,
-                                "example": "Johnson Family",
-                                "description": "Family display name"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-01-01T00:00:00.000Z",
-                                "description": "Family creation timestamp"
-                              },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-01-01T00:00:00.000Z",
-                                "description": "Family update timestamp"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "createdAt",
-                              "updatedAt"
-                            ],
-                            "title": "Family",
-                            "description": "Family information (included in some responses)"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "familyId",
-                          "email",
-                          "role",
-                          "status",
-                          "expiresAt",
-                          "createdAt"
-                        ],
-                        "title": "Family Invitation Response",
-                        "description": "Family invitation information"
-                      },
-                      "description": "Family invitations for the user"
-                    },
-                    "group": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string",
-                            "format": "cuid",
-                            "example": "cl123456789012345678901237",
-                            "description": "Invitation identifier"
-                          },
-                          "groupId": {
-                            "type": "string",
-                            "format": "cuid",
-                            "example": "cl123456789012345678901235",
-                            "description": "Group identifier"
-                          },
-                          "targetFamilyId": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "cuid",
-                            "example": "cl123456789012345678901236",
-                            "description": "Target family identifier"
-                          },
-                          "email": {
-                            "type": "string",
-                            "nullable": true,
-                            "format": "email",
-                            "example": "john.smith@example.com",
-                            "description": "Invited email address"
-                          },
-                          "role": {
-                            "type": "string",
-                            "enum": [
-                              "MEMBER",
-                              "ADMIN"
-                            ],
-                            "description": "Invited role in the group",
-                            "example": "MEMBER"
-                          },
-                          "status": {
-                            "type": "string",
-                            "enum": [
-                              "PENDING",
-                              "ACCEPTED",
-                              "EXPIRED",
-                              "CANCELLED"
-                            ],
-                            "description": "Invitation status",
-                            "example": "PENDING"
-                          },
-                          "personalMessage": {
-                            "type": "string",
-                            "nullable": true,
-                            "example": "Welcome to our group!",
-                            "description": "Personal message from inviter"
-                          },
-                          "expiresAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-08T00:00:00.000Z",
-                            "description": "Invitation expiration timestamp"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time",
-                            "example": "2023-01-01T00:00:00.000Z",
-                            "description": "Invitation creation timestamp"
-                          },
-                          "group": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901235",
-                                "description": "Group identifier (CUID format)"
-                              },
-                              "name": {
-                                "type": "string",
-                                "minLength": 1,
-                                "maxLength": 100,
-                                "example": "Carpool Group",
-                                "description": "Group display name"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-01-01T00:00:00.000Z",
-                                "description": "Group creation timestamp"
-                              },
-                              "updatedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-01-01T00:00:00.000Z",
-                                "description": "Group update timestamp"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "name",
-                              "createdAt",
-                              "updatedAt"
-                            ],
-                            "title": "Group",
-                            "description": "Group information (included in some responses)"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "groupId",
-                          "role",
-                          "status",
-                          "expiresAt",
-                          "createdAt"
-                        ],
-                        "title": "Group Invitation Response",
-                        "description": "Group invitation information"
-                      },
-                      "description": "Group invitations for the user"
-                    }
-                  },
-                  "required": [
-                    "family",
-                    "group"
-                  ],
-                  "title": "User Invitations",
-                  "description": "All invitations for a user"
                 }
               }
             }

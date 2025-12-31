@@ -49,11 +49,11 @@ describe('Invitations Router Migration Verification', () => {
     expect(schemasFile).toContain('registerPath');
 
     // Verify schema definitions
-    expect(schemasFile).toContain('InvitationValidationSchema');
+    expect(schemasFile).toContain('FamilyInvitationValidationSchema');
+    expect(schemasFile).toContain('GroupInvitationValidationSchema');
     expect(schemasFile).toContain('FamilyInvitationResponseSchema');
     expect(schemasFile).toContain('GroupInvitationResponseSchema');
     expect(schemasFile).toContain('AcceptInvitationResponseSchema');
-    expect(schemasFile).toContain('UserInvitationsSchema');
     expect(schemasFile).toContain('CancelInvitationResponseSchema');
   });
 
@@ -69,7 +69,8 @@ describe('Invitations Router Migration Verification', () => {
     expect(controllerFile).toContain('const app = new OpenAPIHono');
 
     // Verify createRoute pattern
-    expect(controllerFile).toContain('const validateInvitationRoute = createRoute');
+    expect(controllerFile).toContain('const validateFamilyInvitationRoute = createRoute');
+    expect(controllerFile).toContain('const validateGroupInvitationRoute = createRoute');
     expect(controllerFile).toContain('const createFamilyInvitationRoute = createRoute');
     expect(controllerFile).toContain('const acceptFamilyInvitationRoute = createRoute');
 

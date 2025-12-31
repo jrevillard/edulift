@@ -49,7 +49,7 @@ const ChildrenPage: React.FC = () => {
           childId: membership.childId,
           groupId: membership.groupId,
           addedBy: '', // This field is not available in the API response
-          addedAt: membership.joinedAt, // Map joinedAt to addedAt
+          addedAt: membership.addedAt, // Use addedAt directly
           group: membership.group
         }))
       }));
@@ -395,7 +395,7 @@ const ChildrenPage: React.FC = () => {
                                 <div className="flex items-center space-x-2">
                                   <span className="text-green-600">👥</span>
                                   <span className="font-medium text-green-800">{group.name}</span>
-                                  <span className="text-xs text-green-600">({group._count?.familyMembers || 0} families)</span>
+                                  <span className="text-xs text-green-600">({group._count?.families || group._count?.children || 0} families)</span>
                                 </div>
                                 <button
                                   type="button"
@@ -428,7 +428,7 @@ const ChildrenPage: React.FC = () => {
                               <SelectContent>
                                 {availableGroups.map((group) => (
                                   <SelectItem key={group.id} value={group.id}>
-                                    👥 {group.name} ({group._count?.familyMembers || 0} families)
+                                    👥 {group.name} ({group._count?.families || group._count?.children || 0} families)
                                   </SelectItem>
                                 ))}
                               </SelectContent>

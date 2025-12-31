@@ -41,20 +41,7 @@ export interface VehicleAssignmentSummary {
   }[];
 }
 
-export interface WeeklyDashboardResponse {
-  success: boolean;
-  data?: {
-    days: DayTransportSummary[];
-    startDate?: string;
-    endDate?: string;
-    generatedAt?: string;
-    metadata?: {
-      familyId?: string;
-      familyName?: string;
-      totalGroups?: number;
-      totalChildren?: number;
-    };
-  };
-  error?: string;
-  statusCode?: number;
-}
+// WeeklyDashboardResponse is now imported from api.ts (generated from OpenAPI)
+// This old interface was kept for backwards compatibility during migration
+// Re-export from api.ts to maintain compatibility
+export type { WeeklyDashboardResponse } from './api';

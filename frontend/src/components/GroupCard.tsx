@@ -37,7 +37,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onSelect, onManage }) => {
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground" data-testid="GroupCard-Text-groupOwner">
-          Owner: {group.ownerFamily.name}
+          Owner: {group.ownerFamily?.name || 'Unknown'}
         </p>
         
         <div className="flex gap-2">

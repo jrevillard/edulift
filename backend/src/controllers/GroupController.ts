@@ -9,6 +9,7 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
 import { GroupService } from '../services/GroupService';
+import { GroupScheduleConfigService } from '../services/GroupScheduleConfigService';
 import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { createLogger } from '../utils/logger';
 
@@ -18,16 +19,21 @@ import {
   JoinGroupSchema,
   UpdateGroupSchema,
   UpdateFamilyRoleSchema,
-  ValidateInviteSchema,
+  InviteFamilySchema,
+  SearchFamiliesQuerySchema,
   GroupParamsSchema,
   FamilyRoleParamsSchema,
   GroupResponseSchema,
   UpdateFamilyRoleResponseSchema,
   EnrichedGroupFamilySchema,
-  InvitationValidationSchema,
+  FamilySearchResultSchema,
+  GroupInvitationSchema,
   SimpleSuccessResponseSchema,
   ErrorResponseSchema,
   createSuccessSchema,
+  UpdateScheduleConfigRequestSchema,
+  GroupScheduleConfigResponseSchema,
+  DefaultScheduleConfigResponseSchema,
 } from '../schemas/groups';
 
 // Hono type for context with userId
@@ -55,6 +61,7 @@ export function createGroupControllerRoutes(dependencies: {
   logger?: any;
   emailService?: any;
   groupService?: GroupService;
+  scheduleConfigService?: GroupScheduleConfigService;
 } = {}): OpenAPIHono<{ Variables: GroupVariables }> {
 
   // Create or use injected services
@@ -62,6 +69,7 @@ export function createGroupControllerRoutes(dependencies: {
   const loggerInstance = dependencies.logger ?? createLogger('GroupController');
   const emailServiceInstance = dependencies.emailService ?? EmailServiceFactory.getInstance();
   const groupServiceInstance = dependencies.groupService ?? new GroupService(prismaInstance, emailServiceInstance);
+  const scheduleConfigServiceInstance = dependencies.scheduleConfigService ?? new GroupScheduleConfigService(prismaInstance);
 
   // Create app
   const app = new OpenAPIHono<{ Variables: GroupVariables }>();
@@ -70,59 +78,6 @@ export function createGroupControllerRoutes(dependencies: {
 // OPENAPI ROUTES DEFINITIONS
 // ============================================================================
 
-/**
- * POST /validate-invite - Validate invitation code (public)
- */
-const validateInviteRoute = createRoute({
-  method: 'post',
-  path: '/validate-invite',
-  tags: ['Groups'],
-  summary: 'Validate group invitation code',
-  description: 'Validate a group invitation code without authentication',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: ValidateInviteSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(InvitationValidationSchema),
-        },
-      },
-      description: 'Invitation code validation result',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Bad request - Invalid invite code',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Not found - Invalid invite code',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
 
 /**
  * POST /groups - Create group
@@ -434,6 +389,158 @@ const updateFamilyRoleRoute = createRoute({
 });
 
 /**
+ * POST /groups/:groupId/invite - Invite family to group
+ */
+const inviteFamilyRoute = createRoute({
+  method: 'post',
+  path: '/{groupId}/invite',
+  tags: ['Groups'],
+  summary: 'Invite a family to join a group',
+  description: 'Send an invitation to a family to join a group (group admin only)',
+  security: [{ Bearer: [] }],
+  request: {
+    params: GroupParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: InviteFamilySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(GroupInvitationSchema),
+        },
+      },
+      description: 'Family invited successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Forbidden - Only group admins can send invitations',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Not found - Group or family does not exist',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Conflict - Family already invited or member',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * POST /groups/:groupId/search-families - Search families for invitation
+ */
+const searchFamiliesRoute = createRoute({
+  method: 'post',
+  path: '/{groupId}/search-families',
+  tags: ['Groups'],
+  summary: 'Search families to invite to group',
+  description: 'Search for families by name that can be invited to join a group (group admin only). Excludes families already members or with pending invitations.',
+  security: [{ Bearer: [] }],
+  request: {
+    params: GroupParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: SearchFamiliesQuerySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(z.array(FamilySearchResultSchema)),
+        },
+      },
+      description: 'Families searched successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Forbidden - Only group admins can search families',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Not found - Group does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
  * DELETE /groups/:groupId/families/:familyId - Remove family from group
  */
 const removeFamilyFromGroupRoute = createRoute({
@@ -701,56 +808,323 @@ const leaveGroupRoute = createRoute({
 });
 
 // ============================================================================
-// HANDLERS
+// SCHEDULE CONFIG ROUTES DEFINITIONS
 // ============================================================================
 
 /**
- * POST /validate-invite - Validate invitation code (public)
+ * GET /groups/:groupId/schedule-config - Get schedule config
  */
-app.openapi(validateInviteRoute, async (c) => {
-  const input = c.req.valid('json');
-
-  loggerInstance.info('validateInviteCode', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
-
-  try {
-    const result = await groupServiceInstance.validateInvitationCode(input.inviteCode.trim());
-
-    if (!result.valid) {
-      loggerInstance.warn('validateInviteCode: invalid code', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
-      return c.json({
-        success: false,
-        error: result.error || 'Invalid invitation code',
-        code: 'INVALID_INVITE',
-      }, 400);
-    }
-
-    loggerInstance.info('validateInviteCode: success', { inviteCode: `${input.inviteCode.substring(0, 8)}...` });
-
-    return c.json({
-      success: true,
-      data: {
-        valid: true,
-        group: result.group ? {
-          id: result.group.id,
-          name: result.group.name,
-          inviteCode: '',
-          createdBy: '',
-          createdAt: '',
-          updatedAt: '',
-        } : null,
-        userStatus: 'FAMILY_MEMBER' as const,
-        actionRequired: 'READY_TO_JOIN' as const,
+const getScheduleConfigRoute = createRoute({
+  method: 'get',
+  path: '/{groupId}/schedule-config',
+  tags: ['Groups'],
+  summary: 'Get group schedule configuration',
+  description: 'Get the schedule configuration for a group',
+  security: [{ Bearer: [] }],
+  request: {
+    params: GroupParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(GroupScheduleConfigResponseSchema),
+        },
       },
-    }, 200);
-  } catch (error) {
-    loggerInstance.error('validateInviteCode', { error: error instanceof Error ? error.message : String(error) });
-    return c.json({
-      success: false,
-      error: 'Failed to validate invitation code',
-      code: 'VALIDATION_FAILED',
-    }, 500);
-  }
+      description: 'Schedule configuration retrieved successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Bad request - Invalid group ID',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Forbidden - Access denied to group schedule configuration',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Not found - Schedule configuration not found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
 });
+
+/**
+ * GET /groups/:groupId/schedule-config/time-slots - Get time slots
+ */
+const getTimeSlotsRoute = createRoute({
+  method: 'get',
+  path: '/{groupId}/schedule-config/time-slots',
+  tags: ['Groups'],
+  summary: 'Get time slots for a weekday',
+  description: 'Get available time slots for a specific weekday',
+  security: [{ Bearer: [] }],
+  request: {
+    params: GroupParamsSchema,
+    query: z.object({
+      weekday: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']).openapi({
+        example: 'MONDAY',
+        description: 'Weekday to get time slots for',
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/))),
+        },
+      },
+      description: 'Time slots retrieved successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Bad request - Invalid group ID or weekday',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Forbidden - Access denied to group schedule configuration',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Not found - Schedule configuration not found',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * PUT /groups/:groupId/schedule-config - Update schedule config
+ */
+const updateScheduleConfigRoute = createRoute({
+  method: 'put',
+  path: '/{groupId}/schedule-config',
+  tags: ['Groups'],
+  summary: 'Update group schedule configuration',
+  description: 'Update the schedule configuration for a group (group admin only)',
+  security: [{ Bearer: [] }],
+  request: {
+    params: GroupParamsSchema,
+    body: {
+      content: {
+        'application/json': {
+          schema: UpdateScheduleConfigRequestSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(GroupScheduleConfigResponseSchema),
+        },
+      },
+      description: 'Schedule configuration updated successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Forbidden - Only group administrators can modify schedule configuration',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Not found - Group does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * POST /groups/:groupId/schedule-config/reset - Reset schedule config
+ */
+const resetScheduleConfigRoute = createRoute({
+  method: 'post',
+  path: '/{groupId}/schedule-config/reset',
+  tags: ['Groups'],
+  summary: 'Reset schedule configuration to default',
+  description: 'Reset the schedule configuration to default values (group admin only)',
+  security: [{ Bearer: [] }],
+  request: {
+    params: GroupParamsSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(GroupScheduleConfigResponseSchema),
+        },
+      },
+      description: 'Schedule configuration reset successfully',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Bad request - Invalid group ID',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Forbidden - Only group administrators can reset schedule configuration',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Not found - Group does not exist',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * GET /groups/schedule-config/default - Get default config
+ */
+const getDefaultScheduleConfigRoute = createRoute({
+  method: 'get',
+  path: '/schedule-config/default',
+  tags: ['Groups'],
+  summary: 'Get default schedule configuration',
+  description: 'Get the default schedule configuration template',
+  security: [{ Bearer: [] }],
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(DefaultScheduleConfigResponseSchema),
+        },
+      },
+      description: 'Default schedule configuration retrieved successfully',
+    },
+    401: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Unauthorized - Authentication required',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: createErrorResponseSchema(),
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+// ============================================================================
+// HANDLERS
+// ============================================================================
 
 /**
  * POST /groups - Create group
@@ -923,6 +1297,117 @@ app.openapi(updateFamilyRoleRoute, async (c) => {
 });
 
 /**
+ * POST /groups/:groupId/invite - Invite family to group
+ */
+app.openapi(inviteFamilyRoute, async (c) => {
+  const userId = c.get('userId');
+  const user = c.get('user');
+  const { groupId } = c.req.valid('param');
+  const inviteData = c.req.valid('json');
+
+  loggerInstance.info('inviteFamilyById', {
+    userId,
+    groupId,
+    familyId: inviteData.familyId,
+    role: inviteData.role,
+    userEmail: user?.email
+  });
+
+  try {
+    // Build inviteData conditionally to handle exactOptionalPropertyTypes
+    const serviceInviteData: {
+      familyId: string;
+      role: 'ADMIN' | 'MEMBER';
+      personalMessage?: string;
+    } = {
+      familyId: inviteData.familyId,
+      role: inviteData.role,
+    };
+    if (inviteData.personalMessage !== undefined && inviteData.personalMessage !== null) {
+      serviceInviteData.personalMessage = inviteData.personalMessage;
+    }
+
+    const invitation = await groupServiceInstance.inviteFamilyById(
+      groupId,
+      serviceInviteData,
+      userId,
+    );
+
+    loggerInstance.info('inviteFamilyById: success', {
+      userId,
+      groupId,
+      familyId: inviteData.familyId,
+      invitationId: invitation.id
+    });
+    return c.json({
+      success: true,
+      data: invitation as any, // Cast to any to handle UnifiedInvitationService return type
+    }, 201);
+  } catch (error: any) {
+    loggerInstance.error('inviteFamilyById', {
+      error: error instanceof Error ? error.message : String(error),
+      userId,
+      groupId,
+      familyId: inviteData.familyId
+    });
+    const statusCode = error.statusCode || 500;
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to invite family',
+      code: error.code || 'INVITE_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * POST /groups/:groupId/search-families - Search families for invitation
+ */
+app.openapi(searchFamiliesRoute, async (c) => {
+  const userId = c.get('userId');
+  const user = c.get('user');
+  const { groupId } = c.req.valid('param');
+  const { searchTerm } = c.req.valid('json');
+
+  loggerInstance.info('searchFamiliesForInvitation', {
+    userId,
+    groupId,
+    searchTerm: `${searchTerm.substring(0, 20)}...`,
+    userEmail: user?.email
+  });
+
+  try {
+    const families = await groupServiceInstance.searchFamiliesForInvitation(
+      searchTerm,
+      userId,
+      groupId,
+    );
+
+    loggerInstance.info('searchFamiliesForInvitation: success', {
+      userId,
+      groupId,
+      count: families.length
+    });
+    return c.json({
+      success: true,
+      data: families,
+    }, 200);
+  } catch (error: any) {
+    loggerInstance.error('searchFamiliesForInvitation', {
+      error: error instanceof Error ? error.message : String(error),
+      userId,
+      groupId,
+      searchTerm: `${searchTerm.substring(0, 20)}...`
+    });
+    const statusCode = error.statusCode || 500;
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to search families',
+      code: error.code || 'SEARCH_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
  * DELETE /groups/:groupId/families/:familyId - Remove family from group
  */
 app.openapi(removeFamilyFromGroupRoute, async (c) => {
@@ -1044,6 +1529,229 @@ app.openapi(leaveGroupRoute, async (c) => {
       error: error.message || 'Failed to leave group',
       code: error.code || 'LEAVE_FAILED',
     }, statusCode);
+  }
+});
+
+// ============================================================================
+// SCHEDULE CONFIG HANDLERS
+// ============================================================================
+
+/**
+ * GET /groups/:groupId/schedule-config - Get schedule config
+ */
+app.openapi(getScheduleConfigRoute, async (c) => {
+  const userId = c.get('userId');
+  const { groupId } = c.req.valid('param');
+
+  loggerInstance.info('getScheduleConfig', { userId, groupId });
+
+  try {
+    const config = await scheduleConfigServiceInstance.getGroupScheduleConfig(groupId, userId);
+
+    if (!config) {
+      loggerInstance.warn('getScheduleConfig: config not found', { userId, groupId });
+      return c.json({
+        success: false,
+        error: 'Schedule configuration not found',
+        code: 'CONFIG_NOT_FOUND',
+      }, 404);
+    }
+
+    // Transform Prisma JsonValue to expected format with explicit typing
+    const scheduleHours = config.scheduleHours as Record<string, string[]>;
+    const responseData = {
+      id: config.id,
+      groupId: config.groupId,
+      scheduleHours: {
+        MONDAY: scheduleHours.MONDAY || [],
+        TUESDAY: scheduleHours.TUESDAY || [],
+        WEDNESDAY: scheduleHours.WEDNESDAY || [],
+        THURSDAY: scheduleHours.THURSDAY || [],
+        FRIDAY: scheduleHours.FRIDAY || [],
+      },
+      group: (config as any).group,
+      createdAt: config.createdAt.toISOString(),
+      updatedAt: config.updatedAt.toISOString(),
+    };
+
+    loggerInstance.info('getScheduleConfig: success', { userId, groupId, configId: config.id });
+    return c.json({
+      success: true,
+      data: responseData,
+    }, 200);
+  } catch (error: any) {
+    loggerInstance.error('getScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
+    const statusCode = error.statusCode || 500;
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to fetch schedule configuration',
+      code: error.code || 'FETCH_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * GET /groups/:groupId/schedule-config/time-slots - Get time slots
+ */
+app.openapi(getTimeSlotsRoute, async (c) => {
+  const userId = c.get('userId');
+  const { groupId } = c.req.valid('param');
+  const { weekday } = c.req.valid('query');
+
+  loggerInstance.info('getTimeSlots', { userId, groupId, weekday });
+
+  try {
+    const timeSlots = await scheduleConfigServiceInstance.getGroupTimeSlots(groupId, weekday, userId);
+
+    loggerInstance.info('getTimeSlots: success', { userId, groupId, weekday, count: timeSlots.length });
+    return c.json({
+      success: true,
+      data: timeSlots,
+    }, 200);
+  } catch (error: any) {
+    loggerInstance.error('getTimeSlots', { error: error instanceof Error ? error.message : String(error), userId, groupId, weekday });
+    const statusCode = error.statusCode || 500;
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to fetch time slots',
+      code: error.code || 'FETCH_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * PUT /groups/:groupId/schedule-config - Update schedule config
+ */
+app.openapi(updateScheduleConfigRoute, async (c) => {
+  const userId = c.get('userId');
+  const user = c.get('user');
+  const { groupId } = c.req.valid('param');
+  const { scheduleHours } = c.req.valid('json');
+
+  loggerInstance.info('updateScheduleConfig', { userId, groupId, userEmail: user?.email });
+
+  try {
+    const config = await scheduleConfigServiceInstance.updateGroupScheduleConfig(
+      groupId,
+      scheduleHours,
+      userId,
+      user?.timezone || 'UTC',
+    );
+
+    // Transform Prisma JsonValue to expected format with explicit typing
+    const configScheduleHours = config.scheduleHours as Record<string, string[]>;
+    const responseData = {
+      id: config.id,
+      groupId: config.groupId,
+      scheduleHours: {
+        MONDAY: configScheduleHours.MONDAY || [],
+        TUESDAY: configScheduleHours.TUESDAY || [],
+        WEDNESDAY: configScheduleHours.WEDNESDAY || [],
+        THURSDAY: configScheduleHours.THURSDAY || [],
+        FRIDAY: configScheduleHours.FRIDAY || [],
+      },
+      group: (config as any).group,
+      createdAt: config.createdAt.toISOString(),
+      updatedAt: config.updatedAt.toISOString(),
+    };
+
+    loggerInstance.info('updateScheduleConfig: success', { userId, groupId, configId: config.id });
+    return c.json({
+      success: true,
+      data: responseData,
+    }, 200);
+  } catch (error: any) {
+    loggerInstance.error('updateScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
+    const statusCode = error.statusCode || 500;
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to update schedule configuration',
+      code: error.code || 'UPDATE_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * POST /groups/:groupId/schedule-config/reset - Reset schedule config
+ */
+app.openapi(resetScheduleConfigRoute, async (c) => {
+  const userId = c.get('userId');
+  const user = c.get('user');
+  const { groupId } = c.req.valid('param');
+
+  loggerInstance.info('resetScheduleConfig', { userId, groupId, userEmail: user?.email });
+
+  try {
+    const config = await scheduleConfigServiceInstance.resetGroupScheduleConfig(groupId, userId);
+
+    // Transform Prisma JsonValue to expected format with explicit typing
+    const configScheduleHours = config.scheduleHours as Record<string, string[]>;
+    const responseData = {
+      id: config.id,
+      groupId: config.groupId,
+      scheduleHours: {
+        MONDAY: configScheduleHours.MONDAY || [],
+        TUESDAY: configScheduleHours.TUESDAY || [],
+        WEDNESDAY: configScheduleHours.WEDNESDAY || [],
+        THURSDAY: configScheduleHours.THURSDAY || [],
+        FRIDAY: configScheduleHours.FRIDAY || [],
+      },
+      group: (config as any).group,
+      createdAt: config.createdAt.toISOString(),
+      updatedAt: config.updatedAt.toISOString(),
+    };
+
+    loggerInstance.info('resetScheduleConfig: success', { userId, groupId, configId: config.id });
+    return c.json({
+      success: true,
+      data: responseData,
+    }, 200);
+  } catch (error: any) {
+    loggerInstance.error('resetScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
+    const statusCode = error.statusCode || 500;
+    return c.json({
+      success: false,
+      error: error.message || 'Failed to reset schedule configuration',
+      code: error.code || 'RESET_FAILED',
+    }, statusCode);
+  }
+});
+
+/**
+ * GET /groups/schedule-config/default - Get default config
+ */
+app.openapi(getDefaultScheduleConfigRoute, async (c) => {
+  const userId = c.get('userId');
+
+  loggerInstance.info('getDefaultScheduleConfig', { userId });
+
+  try {
+    const defaultScheduleHours = GroupScheduleConfigService.getDefaultScheduleHours();
+
+    // Ensure the response matches the schema with explicit typing
+    const responseData = {
+      scheduleHours: {
+        MONDAY: defaultScheduleHours.MONDAY || [],
+        TUESDAY: defaultScheduleHours.TUESDAY || [],
+        WEDNESDAY: defaultScheduleHours.WEDNESDAY || [],
+        THURSDAY: defaultScheduleHours.THURSDAY || [],
+        FRIDAY: defaultScheduleHours.FRIDAY || [],
+      },
+      description: 'Default schedule configuration template',
+    };
+
+    loggerInstance.info('getDefaultScheduleConfig: success', { userId });
+    return c.json({
+      success: true,
+      data: responseData,
+    }, 200);
+  } catch (error) {
+    loggerInstance.error('getDefaultScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId });
+    return c.json({
+      success: false,
+      error: 'Failed to fetch default schedule configuration',
+      code: 'FETCH_FAILED',
+    }, 500);
   }
 });
 

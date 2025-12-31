@@ -13,14 +13,14 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "test:run": "vitest run",
-    "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui",
-    "e2e:headed": "playwright test --headed",
-    "e2e:debug": "playwright test --debug",
-    "e2e:report": "playwright show-report",
     "generate-api": "openapi-typescript ../backend/docs/openapi/swagger.json -o src/generated/api/types.ts",
     "generate-api:watch": "openapi-typescript ../backend/docs/openapi/swagger.json -o src/generated/api/types.ts --watch",
-    "validate-api": "openapi-typescript ../backend/docs/openapi/swagger.json --dry-run"
+    "validate-api": "openapi-typescript ../backend/docs/openapi/swagger.json --dry-run",
+    "e2e": "cd ../e2e && npm run e2e:test",
+    "e2e:ui": "cd ../e2e && npm run e2e:test:ui",
+    "e2e:headed": "cd ../e2e && npm run e2e:test:headed",
+    "e2e:debug": "cd ../e2e && npm run e2e:test:debug",
+    "e2e:report": "cd ../e2e && npm run e2e:test:report"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
@@ -61,7 +61,6 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
-    "@playwright/test": "^1.53.1",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.3",

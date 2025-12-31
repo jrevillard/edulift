@@ -6,7 +6,7 @@ export interface EmailConfig {
   host: string;
   port: number;
   secure: boolean;
-  auth: {
+  auth?: {
     user: string;
     pass: string;
   };
@@ -21,7 +21,8 @@ export class EmailService extends BaseEmailService {
   constructor(config: EmailConfig) {
     super();
     this.transporter = nodemailer.createTransport(config);
-    this.fromEmail = config.auth.user;
+    // For MailPit/MailHog without auth, use default from address
+    this.fromEmail = config.auth?.user || process.env.EMAIL_USER || 'noreply@edulift.com';
   }
 
   protected async _send(to: string, subject: string, html: string, attachments?: any[]): Promise<void> {
@@ -34,12 +35,15 @@ export class EmailService extends BaseEmailService {
       encoding: 'utf8',
     };
 
+    // Log email send attempt in all environments for E2E debugging
+    this.logger.info(`Sending email to ${to} with subject "${subject}"`);
+
     try {
-      await this.transporter.sendMail(mailOptions);
+      const info = await this.transporter.sendMail(mailOptions);
+      this.logger.info(`Email sent successfully to ${to}, messageId: ${info.messageId}`);
     } catch (error) {
-      if (process.env.NODE_ENV !== 'test') {
-        this.logger.error(`Failed to send email to ${to} with subject "${subject}"`, { error: error instanceof Error ? error.message : String(error) });
-      }
+      // Always log errors, even in test mode
+      this.logger.error(`Failed to send email to ${to} with subject "${subject}"`, { error: error instanceof Error ? error.message : String(error) });
       throw new Error('Failed to send email');
     }
   }

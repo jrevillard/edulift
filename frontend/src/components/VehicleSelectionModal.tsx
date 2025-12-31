@@ -19,11 +19,13 @@ type VehicleWithOptionalFields = {
 
 // Types for vehicle assignments
 type VehicleAssignment = {
-  id: string;
-  scheduleSlotId: string;
-  vehicleId: string;
+  id?: string;
+  scheduleSlotId?: string;
+  vehicleId?: string;
   driverId?: string | null;
   seatOverride?: number | null;
+  groupId?: string;
+  date?: string;
   vehicle?: {
     id: string;
     name?: string;
@@ -40,6 +42,11 @@ type VehicleAssignment = {
     firstName: string;
     lastName: string;
     email: string;
+  } | {
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
   } | null;
 };
 

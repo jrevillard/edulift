@@ -278,23 +278,21 @@ export const GroupInvitationResponseSchema = z.object({
   description: 'Group invitation information',
 });
 
-export const InvitationValidationSchema = z.object({
+// Family-specific validation response
+export const FamilyInvitationValidationSchema = z.object({
   valid: z.boolean()
     .openapi({
       example: true,
-      description: 'Whether the invitation code is valid',
+      description: 'Whether the family invitation code is valid',
     }),
-  type: InvitationTypeEnum.openapi({
-    example: 'FAMILY',
-    description: 'Type of invitation (if valid)',
-  }),
-  family: FamilySchema.optional()
+  type: z.literal('FAMILY')
     .openapi({
-      description: 'Family information (if family invitation and valid)',
+      description: 'Type of invitation - always FAMILY for this endpoint',
     }),
-  group: GroupSchema.optional()
+  family: BaseFamilySchema
+    .optional()
     .openapi({
-      description: 'Group information (if group invitation and valid)',
+      description: 'Family information (if valid)',
     }),
   email: z.email()
     .optional()
@@ -302,11 +300,10 @@ export const InvitationValidationSchema = z.object({
       example: 'john.smith@example.com',
       description: 'Email address the invitation was sent to (if valid)',
     }),
-  role: z.string()
-    .optional()
+  role: FamilyRoleEnum.optional()
     .openapi({
       example: 'MEMBER',
-      description: 'Role in the invitation (if valid)',
+      description: 'Role in the family invitation (if valid)',
     }),
   personalMessage: z.string()
     .nullable()
@@ -315,33 +312,36 @@ export const InvitationValidationSchema = z.object({
       example: 'Welcome to our family!',
       description: 'Personal message from inviter (if valid)',
     }),
-  expiresAt: z.iso.datetime()
-    .optional()
-    .openapi({
-      example: '2023-01-08T00:00:00.000Z',
-      description: 'Invitation expiration timestamp (if valid)',
-    }),
-  error: z.string()
-    .optional()
-    .openapi({
-      example: 'Invitation expired',
-      description: 'Error message if invitation is invalid',
-    }),
 }).openapi({
-  title: 'Invitation Validation Response',
-  description: 'Invitation validation result',
+  title: 'Family Invitation Validation Response',
+  description: 'Family invitation validation result',
 });
 
-export const UserInvitationsSchema = z.object({
-  family: z.array(FamilyInvitationResponseSchema).openapi({
-    description: 'Family invitations for the user',
-  }),
-  group: z.array(GroupInvitationResponseSchema).openapi({
-    description: 'Group invitations for the user',
-  }),
+// Group-specific validation response
+export const GroupInvitationValidationSchema = z.object({
+  valid: z.boolean()
+    .openapi({
+      example: true,
+      description: 'Whether the group invitation code is valid',
+    }),
+  type: z.literal('GROUP')
+    .openapi({
+      description: 'Type of invitation - always GROUP for this endpoint',
+    }),
+  group: BaseGroupSchema
+    .optional()
+    .openapi({
+      description: 'Group information (if valid)',
+    }),
+  email: z.email()
+    .optional()
+    .openapi({
+      example: 'john.smith@example.com',
+      description: 'Email address the invitation was sent to (if valid)',
+    }),
 }).openapi({
-  title: 'User Invitations',
-  description: 'All invitations for a user',
+  title: 'Group Invitation Validation Response',
+  description: 'Group invitation validation result',
 });
 
 export const AcceptInvitationResponseSchema = z.object({
@@ -388,42 +388,6 @@ registry.register('AcceptFamilyInvitationRequest', AcceptFamilyInvitationSchema)
 // ============================================================================
 // API PATHS REGISTRATION
 // ============================================================================
-
-// Public validation endpoint (no auth required)
-registerPath({
-  method: 'get',
-  path: '/invitations/validate/{code}',
-  tags: ['Invitations'],
-  summary: 'Validate invitation code (public)',
-  description: 'Validate an invitation code without authentication. Checks both family and group invitations.',
-  request: {
-    params: InvitationCodeParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Invitation validation result',
-      content: {
-        'application/json': {
-          schema: InvitationValidationSchema,
-        },
-      },
-    },
-    404: {
-      description: 'Invitation not found or invalid',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(false),
-            error: z.string(),
-          }),
-        },
-      },
-    },
-    500: {
-      description: 'Internal server error',
-    },
-  },
-});
 
 // Family invitation endpoints
 registerPath({
@@ -480,7 +444,7 @@ registerPath({
       description: 'Family invitation validation result',
       content: {
         'application/json': {
-          schema: InvitationValidationSchema,
+          schema: FamilyInvitationValidationSchema,
         },
       },
     },
@@ -595,7 +559,7 @@ registerPath({
       description: 'Group invitation validation result',
       content: {
         'application/json': {
-          schema: InvitationValidationSchema,
+          schema: GroupInvitationValidationSchema,
         },
       },
     },
@@ -632,32 +596,6 @@ registerPath({
     },
     400: {
       description: 'Bad request - Invalid invitation code or cannot accept',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    500: {
-      description: 'Internal server error',
-    },
-  },
-});
-
-// User invitations endpoint
-registerPath({
-  method: 'get',
-  path: '/invitations/user',
-  tags: ['Invitations'],
-  summary: 'Get user invitations',
-  description: 'Retrieve all pending invitations for the authenticated user',
-  security: [{ BearerAuth: [] }],
-  responses: {
-    200: {
-      description: 'User invitations retrieved successfully',
-      content: {
-        'application/json': {
-          schema: UserInvitationsSchema,
-        },
-      },
     },
     401: {
       description: 'Unauthorized - Authentication required',

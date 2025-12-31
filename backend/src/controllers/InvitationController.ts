@@ -21,8 +21,8 @@ import {
   InvitationIdParamsSchema,
   FamilyInvitationResponseSchema,
   GroupInvitationResponseSchema,
-  InvitationValidationSchema,
-  UserInvitationsSchema,
+  FamilyInvitationValidationSchema,
+  GroupInvitationValidationSchema,
   AcceptInvitationResponseSchema,
   CancelInvitationResponseSchema,
 } from '../schemas/invitations';
@@ -86,45 +86,6 @@ export function createInvitationControllerRoutes(dependencies: {
 // OPENAPI ROUTES DEFINITIONS
 // ============================================================================
 
-/**
- * GET /invitations/validate/:code - Validate invitation code (public)
- */
-const validateInvitationRoute = createRoute({
-  method: 'get',
-  path: '/validate/{code}',
-  tags: ['Invitations'],
-  summary: 'Validate invitation code (public)',
-  description: 'Validate an invitation code without authentication. Checks both family and group invitations.',
-  request: {
-    params: InvitationCodeParamsSchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: InvitationValidationSchema,
-        },
-      },
-      description: 'Invitation validation result',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Invitation not found or invalid',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
 
 /**
  * POST /invitations/family - Create family invitation
@@ -205,7 +166,7 @@ const validateFamilyInvitationRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: InvitationValidationSchema,
+          schema: FamilyInvitationValidationSchema,
         },
       },
       description: 'Family invitation validation result',
@@ -364,7 +325,7 @@ const validateGroupInvitationRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: InvitationValidationSchema,
+          schema: GroupInvitationValidationSchema,
         },
       },
       description: 'Group invitation validation result',
@@ -429,35 +390,6 @@ const acceptGroupInvitationRoute = createRoute({
   },
 });
 
-/**
- * GET /invitations/user - Get user invitations
- */
-const getUserInvitationsRoute = createRoute({
-  method: 'get',
-  path: '/user',
-  tags: ['Invitations'],
-  summary: 'Get user invitations',
-  description: 'Retrieve all pending invitations for the authenticated user',
-  security: [{ Bearer: [] }],
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: UserInvitationsSchema,
-        },
-      },
-      description: 'User invitations retrieved successfully',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
 
 /**
  * DELETE /invitations/family/:invitationId - Cancel family invitation
@@ -560,69 +492,6 @@ const cancelGroupInvitationRoute = createRoute({
 // ============================================================================
 // HANDLERS
 // ============================================================================
-
-/**
- * GET /invitations/validate/:code - Validate invitation code (public)
- */
-app.openapi(validateInvitationRoute, async (c) => {
-  const { code } = c.req.valid('param');
-  const currentUserId = c.get('userId');
-
-  loggerInstance.info('validateInvitationCode', { code, hasAuth: !!currentUserId });
-
-  try {
-    // Try family validation
-    const familyValidation = await invitationServiceInstance.validateFamilyInvitation(code, currentUserId);
-    if (familyValidation.valid) {
-      loggerInstance.info('validateInvitationCode: valid family invitation', { code });
-      return c.json({
-        valid: true,
-        type: 'FAMILY' as const,
-        family: {
-          id: familyValidation.familyId!,
-          name: familyValidation.familyName!,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        email: familyValidation.email,
-        role: familyValidation.role,
-        personalMessage: familyValidation.personalMessage,
-      }, 200);
-    }
-
-    // Try group validation
-    const groupValidation = await invitationServiceInstance.validateGroupInvitation(code, currentUserId);
-    if (groupValidation.valid) {
-      loggerInstance.info('validateInvitationCode: valid group invitation', { code });
-      return c.json({
-        valid: true,
-        type: 'GROUP' as const,
-        group: {
-          id: groupValidation.groupId!,
-          name: groupValidation.groupName!,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        email: groupValidation.email,
-      }, 200);
-    }
-
-    // No valid invitation found
-    loggerInstance.info('validateInvitationCode: invalid invitation', { code });
-    return c.json({
-      success: false as const,
-      error: familyValidation.error || groupValidation.error || 'Invalid invitation code',
-    }, 404);
-
-  } catch (error) {
-    loggerInstance.error('validateInvitationCode: server error', { code, error });
-    return c.json({
-      success: false as const,
-      error: 'Validation failed. Please try again.',
-      code: 'VALIDATION_FAILED',
-    }, 500);
-  }
-});
 
 /**
  * POST /invitations/family - Create family invitation
@@ -930,89 +799,6 @@ app.openapi(acceptGroupInvitationRoute, async (c) => {
       success: false as const,
       error: 'Failed to accept group invitation',
       code: 'ACCEPT_FAILED',
-    }, 500);
-  }
-});
-
-/**
- * GET /invitations/user - Get user invitations
- */
-app.openapi(getUserInvitationsRoute, async (c) => {
-  const userId = c.get('userId');
-  const userEmail = c.get('user').email;
-
-  loggerInstance.info('listUserInvitations', { userId });
-
-  try {
-    // Get full invitation data with family/group info directly from Prisma
-    const [familyInvitations, groupInvitations] = await Promise.all([
-      prismaInstance.familyInvitation.findMany({
-        where: {
-          email: userEmail,
-          status: 'PENDING',
-          expiresAt: { gt: new Date() },
-        },
-        include: { family: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-      prismaInstance.groupInvitation.findMany({
-        where: {
-          email: userEmail,
-          status: 'PENDING',
-          expiresAt: { gt: new Date() },
-        },
-        include: { group: true },
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
-
-    loggerInstance.info('listUserInvitations: invitations retrieved', {
-      userId,
-      familyCount: familyInvitations.length,
-      groupCount: groupInvitations.length
-    });
-
-    return c.json({
-      family: familyInvitations.map(inv => ({
-        id: inv.id,
-        familyId: inv.familyId,
-        email: inv.email,
-        role: inv.role as 'ADMIN' | 'MEMBER',
-        status: 'PENDING' as const,
-        personalMessage: inv.personalMessage,
-        expiresAt: inv.expiresAt.toISOString(),
-        createdAt: inv.createdAt.toISOString(),
-        family: {
-          id: inv.family.id,
-          name: inv.family.name,
-          createdAt: inv.family.createdAt.toISOString(),
-          updatedAt: inv.family.updatedAt.toISOString(),
-        },
-      })),
-      group: groupInvitations.map(inv => ({
-        id: inv.id,
-        groupId: inv.groupId,
-        targetFamilyId: inv.targetFamilyId,
-        email: inv.email,
-        role: inv.role as 'ADMIN' | 'MEMBER',
-        status: 'PENDING' as const,
-        personalMessage: inv.personalMessage,
-        expiresAt: inv.expiresAt.toISOString(),
-        createdAt: inv.createdAt.toISOString(),
-        group: {
-          id: inv.group.id,
-          name: inv.group.name,
-          createdAt: inv.group.createdAt?.toISOString() || new Date().toISOString(),
-          updatedAt: inv.group.updatedAt?.toISOString() || new Date().toISOString(),
-        },
-      })),
-    }, 200);
-  } catch (error) {
-    loggerInstance.error('listUserInvitations: error', { userId, error });
-    return c.json({
-      success: false as const,
-      error: 'Failed to retrieve invitations',
-      code: 'RETRIEVE_FAILED',
     }, 500);
   }
 });

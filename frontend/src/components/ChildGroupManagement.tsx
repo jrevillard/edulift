@@ -153,7 +153,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
                           <div>
                             <div className="font-medium text-success-muted-foreground">{membership.group?.name || 'Unknown Group'}</div>
                             <div className="text-xs text-success">
-                              Added {new Date(membership.joinedAt).toLocaleDateString()}
+                              Added {membership.addedAt ? new Date(membership.addedAt).toLocaleDateString() : 'Recently'}
                             </div>
                           </div>
                         </div>

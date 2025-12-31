@@ -6,6 +6,16 @@ import { api } from '../api';
 // Mock the API client
 vi.mock('../api');
 
+/**
+ * ScheduleConfigService Tests
+ *
+ * All backend endpoints are now implemented in OpenAPI:
+ * - GET /groups/{groupId}/schedule-config
+ * - GET /groups/{groupId}/schedule-config/time-slots
+ * - PUT /groups/{groupId}/schedule-config
+ * - POST /groups/{groupId}/schedule-config/reset
+ * - GET /groups/schedule-config/default
+ */
 describe('ScheduleConfigService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,7 +39,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.GET).mockResolvedValue({
-        data: { data: mockConfig },
+        data: { success: true, data: mockConfig },
         error: undefined,
         response: new Response()
       });
@@ -64,7 +74,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.GET).mockResolvedValue({
-        data: { data: mockTimeSlots },
+        data: { success: true, data: mockTimeSlots },
         error: undefined,
         response: new Response()
       });
@@ -116,7 +126,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.PUT).mockResolvedValue({
-        data: { data: mockUpdatedConfig },
+        data: { success: true, data: mockUpdatedConfig },
         error: undefined,
         response: new Response()
       });
@@ -176,7 +186,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.PUT).mockResolvedValue({
-        data: { data: mockUpdatedConfig },
+        data: { success: true, data: mockUpdatedConfig },
         error: undefined,
         response: new Response()
       });
@@ -205,7 +215,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.POST).mockResolvedValue({
-        data: { data: mockDefaultConfig },
+        data: { success: true, data: mockDefaultConfig },
         error: undefined,
         response: new Response()
       });
@@ -246,7 +256,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.GET).mockResolvedValue({
-        data: { data: mockDefaultHours },
+        data: { success: true, data: mockDefaultHours },
         error: undefined,
         response: new Response()
       });
@@ -328,7 +338,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.GET).mockResolvedValue({
-        data: { data: mockConfig },
+        data: { success: true, data: mockConfig },
         error: undefined,
         response: new Response()
       });
@@ -379,7 +389,7 @@ describe('ScheduleConfigService', () => {
       };
 
       vi.mocked(api.PUT).mockResolvedValue({
-        data: { data: mockConfig },
+        data: { success: true, data: mockConfig },
         error: undefined,
         response: new Response()
       });

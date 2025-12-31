@@ -21,7 +21,11 @@ import type { ReactNode } from 'react';
 import type {
   Family,
   FamilyInvitation,
-  FamilyPermissions
+  FamilyPermissions,
+  CreateFamilyRequest,
+  JoinFamilyRequest,
+  CreateFamilyInvitationRequest,
+  UpdateMemberRoleRequest
 } from '../services/familyApiService';
 
 // Define types needed for FamilyContext locally
@@ -254,7 +258,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const family = await familyApiService.createFamily({ name });
+      const family = await familyApiService.createFamily({ name } as CreateFamilyRequest);
       const permissions = await familyApiService.getUserPermissions(family.id);
 
       setState(prev => ({
@@ -281,7 +285,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const family = await familyApiService.joinFamily({ inviteCode });
+      const family = await familyApiService.joinFamily({ inviteCode } as JoinFamilyRequest);
       const permissions = await familyApiService.getUserPermissions(family.id);
 
       setState(prev => ({
@@ -397,7 +401,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         email,
         role: role as FamilyRole,
         personalMessage
-      });
+      } as CreateFamilyInvitationRequest);
 
       // Refresh family to get updated invitations
       await refreshFamily();
@@ -425,7 +429,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      await familyApiService.updateMemberRole(memberId, { role: role as FamilyRole });
+      await familyApiService.updateMemberRole(memberId, { role: role as FamilyRole } as UpdateMemberRoleRequest);
 
       // Refresh family to get updated member roles
       await refreshFamily();

@@ -22,7 +22,6 @@ import {
   UpdateMemberRoleSchema,
   UpdateFamilyNameSchema,
   InviteMemberSchema,
-  ValidateInviteCodeSchema,
   FamilyIdParamsSchema,
   MemberIdParamsSchema,
   FamilyMemberParamsSchema,
@@ -30,7 +29,6 @@ import {
   FamilyResponseSchema,
   FamilyPermissionsSchema,
   FamilyInvitationSchema,
-  InviteCodeValidationSchema,
 } from '../schemas/families';
 
 // Hono type for context with userId
@@ -144,52 +142,6 @@ export function createFamilyControllerRoutes(dependencies: {
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
 // ============================================================================
-
-/**
- * POST /families/validate-invite - Validate invitation code (public)
- */
-const validateInviteCodeRoute = createRoute({
-  method: 'post',
-  path: '/validate-invite',
-  tags: ['Families'],
-  summary: 'Validate family invitation code',
-  description: 'Validate a family invitation code without authentication',
-  request: {
-    body: {
-      content: {
-        'application/json': {
-          schema: ValidateInviteCodeSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(InviteCodeValidationSchema),
-        },
-      },
-      description: 'Invitation code validation result',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Bad request - Invalid invite code',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
 
 /**
  * POST /families - Create family
@@ -914,56 +866,6 @@ const leaveFamilyRoute = createRoute({
 // ============================================================================
 // HANDLERS
 // ============================================================================
-
-/**
- * POST /families/validate-invite - Validate invitation code (public)
- */
-app.openapi(validateInviteCodeRoute, async (c) => {
-  const { inviteCode } = c.req.valid('json');
-
-  loggerInstance.info('validateInviteCode', { inviteCode: `${inviteCode.substring(0, 8)}...` });
-
-  try {
-    const result = await familyServiceInstance.validateInviteCode(inviteCode.trim());
-
-    if (!result) {
-      loggerInstance.warn('validateInviteCode: invalid code', { inviteCode: `${inviteCode.substring(0, 8)}...` });
-      return c.json({
-        success: false,
-        error: 'Invalid or expired invite code',
-        code: 'INVALID_INVITE',
-      }, 400);
-    }
-
-    loggerInstance.info('validateInviteCode: success', { inviteCode: `${inviteCode.substring(0, 8)}...` });
-
-    // Return standardized response format
-    const now = new Date().toISOString();
-    return c.json({
-      success: true,
-      data: {
-        valid: true,
-        family: {
-          id: result.id,
-          name: result.name,
-          inviteCode: '',
-          createdAt: now,
-          updatedAt: now,
-          members: [],
-          vehicles: [],
-          children: [],
-        },
-      },
-    }, 200);
-  } catch (error) {
-    loggerInstance.error('validateInviteCode: error', { error });
-    return c.json({
-      success: false,
-      error: 'Failed to validate invite code',
-      code: 'VALIDATION_FAILED',
-    }, 500);
-  }
-});
 
 /**
  * POST /families - Create family

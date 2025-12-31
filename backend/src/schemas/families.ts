@@ -7,6 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
+import { VehicleResponseSchema } from './vehicles';
+import { BaseChildSchema } from './children';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -209,47 +211,14 @@ const UserSchema = z.object({
     }),
 });
 
-// Vehicle Schema (simplified version)
-const VehicleSchema = z.object({
-  id: z.string()
-    .cuid()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Unique vehicle identifier (CUID format)',
-    }),
-  make: z.string()
-    .openapi({
-      example: 'Toyota',
-      description: 'Vehicle make',
-    }),
-  model: z.string()
-    .openapi({
-      example: 'Camry',
-      description: 'Vehicle model',
-    }),
-  capacity: z.number()
-    .int()
-    .min(1)
-    .max(8)
-    .openapi({
-      example: 4,
-      description: 'Vehicle passenger capacity',
-    }),
-});
+// Use centralized VehicleSchema from vehicles.ts
+const VehicleSchema = VehicleResponseSchema;
 
-// Child Schema (simplified version)
-const ChildSchema = z.object({
-  id: z.string()
-    .cuid()
-    .openapi({
-      example: 'cl123456789012345678901239',
-      description: 'Unique child identifier (CUID format)',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Emma Johnson',
-      description: 'Child name',
-    }),
+// Use centralized ChildSchema from children.ts (simplified for family context)
+const ChildSchema = BaseChildSchema.pick({
+  id: true,
+  name: true,
+}).extend({
   age: z.number()
     .nullable()
     .optional()

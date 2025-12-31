@@ -142,11 +142,11 @@ const SchedulePage: React.FC = () => {
   const groupsQuery = useQuery({
     queryKey: ['user-groups'],
     queryFn: async () => {
-      const { data, error } = await api.GET('/groups/my-groups', {});
-      if (error) {
+      const { data: response, error } = await api.GET('/groups/my-groups', {});
+      if (error || !response?.success) {
         throw new Error('Failed to fetch groups');
       }
-      return data?.data || [];
+      return response.data || [];
     },
   });
 
@@ -162,18 +162,18 @@ const SchedulePage: React.FC = () => {
     queryKey: ['weekly-schedule', selectedGroup, currentWeek],
     queryFn: async () => {
       console.log(`🔍 DEBUG: Fetching schedule for group ${selectedGroup}, week ${currentWeek}`);
-      const { data, error } = await api.GET('/groups/{groupId}/schedule', {
+      const { data: response, error } = await api.GET('/groups/{groupId}/schedule', {
         params: {
           path: {
             groupId: selectedGroup
           }
         }
       });
-      if (error) {
+      if (error || !response?.success || !response?.data) {
         throw new Error('Failed to fetch schedule');
       }
-      console.log(`🔍 DEBUG: Schedule API response:`, data);
-      return data?.data;
+      console.log(`🔍 DEBUG: Schedule API response:`, response);
+      return response.data;
     },
     enabled: !!selectedGroup && !!currentWeek,
   });
@@ -322,8 +322,11 @@ const SchedulePage: React.FC = () => {
   const { data: vehiclesData = { data: [] } } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const result = await api.GET('/vehicles', {});
-      return result.data;
+      const { data: response, error } = await api.GET('/vehicles', {});
+      if (error || !response?.success || !response?.data) {
+        throw new Error('Failed to fetch vehicles');
+      }
+      return response;
     },
   });
 

@@ -16,7 +16,7 @@
  * Last updated: npm run generate-api
  */
 
-import type { components } from '@/generated/api/types';
+import type { components, paths } from '@/generated/api/types';
 
 // ========================================
 // FRONTEND-SPECIFIC TYPES (No OpenAPI equivalent)
@@ -122,11 +122,13 @@ type ExtractScheduleSlotFromResponse = {
  * Extract Vehicle Assignment from OpenAPI response
  */
 type ExtractVehicleAssignmentFromResponse = {
-  id: string;
-  scheduleSlotId: string;
-  vehicleId: string;
+  id?: string;
+  scheduleSlotId?: string;
+  vehicleId?: string;
   driverId?: string | null;
   seatOverride?: number | null;
+  groupId?: string;
+  date?: string;
   vehicle?: {
     id: string;
     make?: string;
@@ -135,12 +137,18 @@ type ExtractVehicleAssignmentFromResponse = {
     capacity: number;
     familyId?: string;
     name?: string;
+    age?: number | null;
   } | Vehicle;
   driver?: {
     id: string;
     firstName: string;
     lastName: string;
     email: string;
+  } | {
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
   } | null;
   _count?: {
     childAssignments: number;
@@ -154,7 +162,7 @@ type ExtractChildAssignmentFromResponse = {
   id?: string;
   scheduleSlotId?: string;
   childId?: string;
-  vehicleAssignmentId: string;
+  vehicleAssignmentId?: string;
   assignedAt?: string;
   child?: Child | {
     id: string;
@@ -168,11 +176,13 @@ type ExtractChildAssignmentFromResponse = {
     name: string;
   };
   vehicleAssignment?: {
-    id: string;
-    scheduleSlotId: string;
-    vehicleId: string;
-    driverId: string | null;
-    seatOverride: number | null;
+    id?: string;
+    vehicleId?: string;
+    scheduleSlotId?: string;
+    driverId?: string | null;
+    seatOverride?: number | null;
+    groupId?: string;
+    date?: string;
   };
 };
 
@@ -244,7 +254,11 @@ export type CreateChildRequest = components['schemas']['CreateChildRequest'];
 export type UpdateChildRequest = components['schemas']['UpdateChildRequest'];
 export type CreateVehicleRequest = components['schemas']['CreateVehicleRequest'];
 export type UpdateVehicleRequest = components['schemas']['UpdateVehicleRequest'];
-export type WeeklyDashboardResponse = components['schemas']['WeeklyDashboardResponse'];
+/**
+ * Weekly Dashboard Response - Extracted from /dashboard/weekly endpoint
+ * Response format for the weekly dashboard data
+ */
+export type WeeklyDashboardResponse = paths['/dashboard/weekly']['get']['responses'][200]['content']['application/json'];
 
 // Re-export for convenience
 export type {

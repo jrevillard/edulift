@@ -282,18 +282,7 @@ class FamilyApiService {
   }
 
   async generateInviteCode(): Promise<string> {
-    const { error } = await api.POST('/families/invite-code');
-
-    // This endpoint is deprecated and should only return errors
-    if (error) {
-      // Handle deprecated endpoint warning
-      if (typeof error === 'object' && error !== null && (error as { status?: number }).status === 400) {
-        throw new Error('Generate invite code feature is deprecated. Please use member invitations instead.');
-      }
-      throw new Error(typeof error === 'string' ? error : 'Failed to generate invite code');
-    }
-
-    // Since the endpoint is deprecated, we shouldn't expect a successful response
+    // This endpoint is deprecated
     throw new Error('Generate invite code feature is deprecated. Please use member invitations instead.');
   }
 
@@ -386,24 +375,32 @@ class FamilyApiService {
       return { valid: false, error: 'Too many validation attempts. Please wait a moment.' };
     }
 
-    const { data: response, error } = await api.POST('/families/validate-invite', {
-      body: { inviteCode },
-    });
+    try {
+      const { data, error } = await api.GET('/invitations/family/{code}/validate', {
+        params: { path: { code: inviteCode } }
+      });
 
-    if (error) {
-      // Handle HTTP error responses (like 400) that contain the actual error message
-      if (typeof error === 'object' && error !== null) {
-        const errorMessage = (error as { message?: string; error?: string }).message || (error as { message?: string; error?: string }).error;
-        return { valid: false, error: errorMessage || 'Failed to validate invite code' };
+      if (error) {
+        // Handle HTTP error responses (like 404) that contain the actual error message
+        if (typeof error === 'object' && error !== null) {
+          const errorMessage = (error as { message?: string; error?: string }).message || (error as { message?: string; error?: string }).error;
+          return { valid: false, error: errorMessage || 'Failed to validate invite code' };
+        }
+        return { valid: false, error: typeof error === 'string' ? error : 'Failed to validate invite code' };
       }
-      return { valid: false, error: typeof error === 'string' ? error : 'Failed to validate invite code' };
-    }
 
-    if (!response?.success) {
-      return { valid: false, error: 'Invalid invite code' };
-    }
+      if (!data?.valid) {
+        return { valid: false, error: 'Invalid invite code' };
+      }
 
-    return response.data || { valid: false };
+      return {
+        valid: true,
+        family: data.family ? { id: data.family.id, name: data.family.name } : undefined,
+      };
+    } catch (error) {
+      console.error('Error validating invite code:', error);
+      return { valid: false, error: 'Failed to validate invite code' };
+    }
   }
 
   async checkFamilyMembership(): Promise<{ hasFamily: boolean; family?: Family }> {
@@ -430,21 +427,9 @@ class FamilyApiService {
       throw new Error('Failed to fetch family children');
     }
 
-    // Transform the API response to match OpenAPI types
     // API returns: { id, name, age, familyId, createdAt, updatedAt }
-    // OpenAPI expects: { id, familyId, firstName, lastName, dateOfBirth, createdAt, updatedAt }
-    return response.data.map((child: { id: string; name: string; age: number | null; familyId: string; createdAt: string; updatedAt: string }) => {
-      const nameParts = child.name.split(' ');
-      return {
-        id: child.id,
-        familyId: child.familyId,
-        firstName: nameParts[0] || '',
-        lastName: nameParts.slice(1).join(' ') || '',
-        dateOfBirth: child.age ? new Date(Date.now() - child.age * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null,
-        createdAt: child.createdAt,
-        updatedAt: child.updatedAt,
-      };
-    });
+    // OpenAPI Child type expects: { id, name, age?, familyId, createdAt, updatedAt }
+    return response.data;
   }
 
   async addFamilyChild(childData: { name: string; age?: number }): Promise<Child> {
@@ -461,18 +446,9 @@ class FamilyApiService {
       throw new Error('Failed to add child to family');
     }
 
-    // Transform the API response to match OpenAPI types
-    const child = response.data;
-    const nameParts = child.name.split(' ');
-    return {
-      id: child.id,
-      familyId: child.familyId,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
-      dateOfBirth: child.age ? new Date(Date.now() - child.age * 365.25 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null,
-      createdAt: child.createdAt,
-      updatedAt: child.updatedAt,
-    };
+    // API returns: { id, name, age, familyId, createdAt, updatedAt }
+    // OpenAPI Child type expects: { id, name, age?, familyId, createdAt, updatedAt }
+    return response.data;
   }
 
   // Vehicles management with family context
@@ -490,26 +466,9 @@ class FamilyApiService {
       throw new Error('Failed to fetch family vehicles');
     }
 
-    // Transform the API response to match OpenAPI types
     // API returns: { id, name, capacity, familyId, createdAt, updatedAt }
-    // OpenAPI expects: { id, familyId, make, model, year, color?, licensePlate?, capacity, createdAt, updatedAt }
-    return response.data.map((vehicle: { id: string; name: string; capacity: number; familyId: string; createdAt: string; updatedAt: string }) => {
-      const nameParts = vehicle.name.split(' ');
-      const year = parseInt(nameParts[0]) || new Date().getFullYear();
-      const make = nameParts[1] || 'Unknown';
-      const model = nameParts.slice(2).join(' ') || 'Unknown';
-
-      return {
-        id: vehicle.id,
-        familyId: vehicle.familyId,
-        make,
-        model,
-        year,
-        capacity: vehicle.capacity,
-        createdAt: vehicle.createdAt,
-        updatedAt: vehicle.updatedAt,
-      };
-    });
+    // OpenAPI Vehicle type expects: { id, name, capacity, familyId, createdAt, updatedAt }
+    return response.data;
   }
 
   async addFamilyVehicle(vehicleData: { name: string; capacity: number }): Promise<Vehicle> {
@@ -526,23 +485,9 @@ class FamilyApiService {
       throw new Error('Failed to add vehicle to family');
     }
 
-    // Transform the API response to match OpenAPI types
-    const vehicle = response.data;
-    const nameParts = vehicle.name.split(' ');
-    const year = parseInt(nameParts[0]) || new Date().getFullYear();
-    const make = nameParts[1] || 'Unknown';
-    const model = nameParts.slice(2).join(' ') || 'Unknown';
-
-    return {
-      id: vehicle.id,
-      familyId: vehicle.familyId,
-      make,
-      model,
-      year,
-      capacity: vehicle.capacity,
-      createdAt: vehicle.createdAt,
-      updatedAt: vehicle.updatedAt,
-    };
+    // API returns: { id, name, capacity, familyId, createdAt, updatedAt }
+    // OpenAPI Vehicle type expects: { id, name, capacity, familyId, createdAt, updatedAt }
+    return response.data;
   }
 }
 

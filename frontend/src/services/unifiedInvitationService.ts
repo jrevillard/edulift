@@ -85,7 +85,8 @@ class UnifiedInvitationService {
       }
 
       // Transform the response to match the expected interface
-      const validationData = data?.data;
+      // The API response is directly the object (no nested 'data' property)
+      const validationData = data;
       if (!validationData) {
         return {
           valid: false,
@@ -100,7 +101,6 @@ class UnifiedInvitationService {
         email: validationData.email,
         role: validationData.role as FamilyRole,
         personalMessage: validationData.personalMessage || undefined,
-        error: validationData.error,
         // Note: Some fields like existingUser, userCurrentFamily, etc.
         // might not be in the OpenAPI response, need to verify the actual API
         existingUser: false, // Default value, adjust based on actual API response
@@ -135,7 +135,8 @@ class UnifiedInvitationService {
         };
       }
 
-      const validationData = data?.data;
+      // The API response is directly the object (no nested 'data' property)
+      const validationData = data;
       if (!validationData) {
         return {
           valid: false,
@@ -149,7 +150,6 @@ class UnifiedInvitationService {
         email: validationData.email,
         // role: validationData.role, // Removed - not part of GroupInvitationValidation interface
         // personalMessage: validationData.personalMessage || undefined, // Removed - not part of GroupInvitationValidation interface
-        error: validationData.error,
         // Note: Some fields like description, ownerFamily, requiresAuth
         // might not be in the OpenAPI response, need to verify the actual API
       };
@@ -186,7 +186,8 @@ class UnifiedInvitationService {
         throw new Error(typeof error === 'string' ? error : 'Failed to accept invitation');
       }
 
-      return data?.data || { success: false, message: 'No data received' };
+      // API returns {success: boolean, message?: string} directly (no nested 'data')
+      return data || { success: false, message: 'No data received' };
     } catch (error: unknown) {
       console.error('Error accepting family invitation:', error);
       if (error && typeof error === 'object' && 'status' in error) {
@@ -214,7 +215,8 @@ class UnifiedInvitationService {
         throw new Error(typeof error === 'string' ? error : 'Failed to accept invitation');
       }
 
-      return data?.data || { success: false, message: 'No data received' };
+      // API returns {success: boolean, message?: string} directly (no nested 'data')
+      return data || { success: false, message: 'No data received' };
     } catch (error: unknown) {
       console.error('Error accepting group invitation:', error);
       const errorMessage = error instanceof Error ? error.message : 'Network error';
@@ -246,7 +248,8 @@ class UnifiedInvitationService {
         throw new Error(typeof error === 'string' ? error : 'Failed to create invitation');
       }
 
-      return responseData?.data;
+      // API returns the created invitation object directly (no nested 'data')
+      return responseData;
     } catch (error) {
       console.error('Error creating family invitation:', error);
       throw error;
@@ -277,7 +280,8 @@ class UnifiedInvitationService {
         throw new Error(typeof error === 'string' ? error : 'Failed to create invitation');
       }
 
-      return responseData?.data;
+      // API returns the created invitation object directly (no nested 'data')
+      return responseData;
     } catch (error) {
       console.error('Error creating group invitation:', error);
       throw error;
