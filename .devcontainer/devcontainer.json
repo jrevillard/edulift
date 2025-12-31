@@ -78,13 +78,38 @@
   "postCreateCommand": "sudo /usr/local/bin/setup-edulift-sudo.sh && /usr/local/bin/setup-edulift-node.sh",
   "portsAttributes": {
     // Dev
-    "3000": { "onAutoForward": "ignore" , "label": "Dev Frontend" },
-    "3001": { "onAutoForward": "ignore" , "label": "Dev Backend" },
-    "5432": { "onAutoForward": "ignore" , "label": "Dev PostgreSQL" },
+    "3000": {
+      "onAutoForward": "ignore",
+      "label": "Dev Frontend"
+    },
+    "3001": {
+      "onAutoForward": "ignore",
+      "label": "Dev Backend"
+    },
+    "5432": {
+      "onAutoForward": "ignore",
+      "label": "Dev PostgreSQL"
+    },
     // Playwright E2E
-    "8001": { "onAutoForward": "ignore", "label": "Playwright E2E Frontend" },
-    "8002": { "onAutoForward": "ignore", "label": "Playwright E2E Backend" },
-    "5435": { "onAutoForward": "ignore", "label": "Playwright E2E PostgreSQL" },
-    "9323": { "onAutoForward": "ignore", "label": "Playwright Report Server" }
+    "8001": {
+      "onAutoForward": "ignore",
+      "label": "Playwright E2E Frontend"
+    },
+    "8002": {
+      "onAutoForward": "ignore",
+      "label": "Playwright E2E Backend"
+    },
+    "8025": {
+      "onAutoForward": "ignore",
+      "label": "Playwright E2E MailPit"
+    },
+    "5435": {
+      "onAutoForward": "ignore",
+      "label": "Playwright E2E PostgreSQL"
+    },
+    "9323": {
+      "onAutoForward": "ignore",
+      "label": "Playwright Report Server"
+    }
   }
 }
