@@ -818,39 +818,6 @@ export const GroupScheduleConfigResponseSchema = z.object({
   description: 'Group schedule configuration with full details',
 });
 
-/**
- * Time Slots Response Schema
- */
-export const TimeSlotsResponseSchema = z.object({
-  weekday: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']).openapi({
-    example: 'MONDAY',
-    description: 'Weekday',
-  }),
-  timeSlots: z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/)).openapi({
-    example: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],
-    description: 'Available time slots in UTC (HH:MM format)',
-  }),
-}).openapi({
-  title: 'Time Slots Response',
-  description: 'Time slots for a specific weekday',
-});
-
-/**
- * Default Schedule Config Response Schema
- */
-export const DefaultScheduleConfigResponseSchema = z.object({
-  scheduleHours: ScheduleHoursSchema.openapi({
-    description: 'Default schedule hours template',
-  }),
-  description: z.string().openapi({
-    example: 'Default schedule configuration template',
-    description: 'Description of the default configuration',
-  }),
-}).openapi({
-  title: 'Default Schedule Config Response',
-  description: 'Default schedule configuration template',
-});
-
 // ============================================================================
 // UTILITY SCHEMAS
 // ============================================================================

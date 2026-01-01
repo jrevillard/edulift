@@ -33,7 +33,6 @@ import {
   createSuccessSchema,
   UpdateScheduleConfigRequestSchema,
   GroupScheduleConfigResponseSchema,
-  DefaultScheduleConfigResponseSchema,
 } from '../schemas/groups';
 
 // Hono type for context with userId
@@ -877,77 +876,6 @@ const getScheduleConfigRoute = createRoute({
 });
 
 /**
- * GET /groups/:groupId/schedule-config/time-slots - Get time slots
- */
-const getTimeSlotsRoute = createRoute({
-  method: 'get',
-  path: '/{groupId}/schedule-config/time-slots',
-  tags: ['Groups'],
-  summary: 'Get time slots for a weekday',
-  description: 'Get available time slots for a specific weekday',
-  security: [{ Bearer: [] }],
-  request: {
-    params: GroupParamsSchema,
-    query: z.object({
-      weekday: z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']).openapi({
-        example: 'MONDAY',
-        description: 'Weekday to get time slots for',
-      }),
-    }),
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/))),
-        },
-      },
-      description: 'Time slots retrieved successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Bad request - Invalid group ID or weekday',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Forbidden - Access denied to group schedule configuration',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Not found - Schedule configuration not found',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
-
-/**
  * PUT /groups/:groupId/schedule-config - Update schedule config
  */
 const updateScheduleConfigRoute = createRoute({
@@ -1072,44 +1000,6 @@ const resetScheduleConfigRoute = createRoute({
         },
       },
       description: 'Not found - Group does not exist',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
-
-/**
- * GET /groups/schedule-config/default - Get default config
- */
-const getDefaultScheduleConfigRoute = createRoute({
-  method: 'get',
-  path: '/schedule-config/default',
-  tags: ['Groups'],
-  summary: 'Get default schedule configuration',
-  description: 'Get the default schedule configuration template',
-  security: [{ Bearer: [] }],
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(DefaultScheduleConfigResponseSchema),
-        },
-      },
-      description: 'Default schedule configuration retrieved successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: createErrorResponseSchema(),
-        },
-      },
-      description: 'Unauthorized - Authentication required',
     },
     500: {
       content: {
@@ -1591,35 +1481,6 @@ app.openapi(getScheduleConfigRoute, async (c) => {
 });
 
 /**
- * GET /groups/:groupId/schedule-config/time-slots - Get time slots
- */
-app.openapi(getTimeSlotsRoute, async (c) => {
-  const userId = c.get('userId');
-  const { groupId } = c.req.valid('param');
-  const { weekday } = c.req.valid('query');
-
-  loggerInstance.info('getTimeSlots', { userId, groupId, weekday });
-
-  try {
-    const timeSlots = await scheduleConfigServiceInstance.getGroupTimeSlots(groupId, weekday, userId);
-
-    loggerInstance.info('getTimeSlots: success', { userId, groupId, weekday, count: timeSlots.length });
-    return c.json({
-      success: true,
-      data: timeSlots,
-    }, 200);
-  } catch (error: any) {
-    loggerInstance.error('getTimeSlots', { error: error instanceof Error ? error.message : String(error), userId, groupId, weekday });
-    const statusCode = error.statusCode || 500;
-    return c.json({
-      success: false,
-      error: error.message || 'Failed to fetch time slots',
-      code: error.code || 'FETCH_FAILED',
-    }, statusCode);
-  }
-});
-
-/**
  * PUT /groups/:groupId/schedule-config - Update schedule config
  */
 app.openapi(updateScheduleConfigRoute, async (c) => {
@@ -1714,44 +1575,6 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
       error: error.message || 'Failed to reset schedule configuration',
       code: error.code || 'RESET_FAILED',
     }, statusCode);
-  }
-});
-
-/**
- * GET /groups/schedule-config/default - Get default config
- */
-app.openapi(getDefaultScheduleConfigRoute, async (c) => {
-  const userId = c.get('userId');
-
-  loggerInstance.info('getDefaultScheduleConfig', { userId });
-
-  try {
-    const defaultScheduleHours = GroupScheduleConfigService.getDefaultScheduleHours();
-
-    // Ensure the response matches the schema with explicit typing
-    const responseData = {
-      scheduleHours: {
-        MONDAY: defaultScheduleHours.MONDAY || [],
-        TUESDAY: defaultScheduleHours.TUESDAY || [],
-        WEDNESDAY: defaultScheduleHours.WEDNESDAY || [],
-        THURSDAY: defaultScheduleHours.THURSDAY || [],
-        FRIDAY: defaultScheduleHours.FRIDAY || [],
-      },
-      description: 'Default schedule configuration template',
-    };
-
-    loggerInstance.info('getDefaultScheduleConfig: success', { userId });
-    return c.json({
-      success: true,
-      data: responseData,
-    }, 200);
-  } catch (error) {
-    loggerInstance.error('getDefaultScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId });
-    return c.json({
-      success: false,
-      error: 'Failed to fetch default schedule configuration',
-      code: 'FETCH_FAILED',
-    }, 500);
   }
 });
 

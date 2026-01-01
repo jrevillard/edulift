@@ -81,7 +81,7 @@ describe('EmailService', () => {
       await (emailService as any)._send(to, subject, html);
 
       expect(mockSendMail).toHaveBeenCalledWith({
-        from: config.auth.user,
+        from: config.auth!.user,
         to,
         subject,
         html,
