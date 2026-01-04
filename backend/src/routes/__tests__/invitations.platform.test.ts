@@ -62,7 +62,7 @@ jest.mock('../../utils/logger', () => ({
 }));
 
 // Now import the controller factory after all mocks are set up
-import { createInvitationControllerRoutes } from '../../controllers/InvitationController';
+import { createInvitationControllerRoutes } from '../../controllers/v1/InvitationController';
 
 describe('Platform Parameter Handling in Invitation Routes', () => {
   let app: Hono;

@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
-import { createGroupControllerRoutes, type GroupVariables } from '../GroupController';
+import { createGroupControllerRoutes, type GroupVariables } from '../v1/GroupController';
 import { GroupService } from '../../services/GroupService';
 import { SchedulingService } from '../../services/SchedulingService';
 import { TEST_IDS } from '../../utils/testHelpers';

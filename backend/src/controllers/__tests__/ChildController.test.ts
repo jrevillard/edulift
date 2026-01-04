@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Hono } from 'hono';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { TEST_IDS } from '../../utils/testHelpers';
-import { createChildControllerRoutes } from '../ChildController';
+import { createChildControllerRoutes } from '../v1/ChildController';
 
 // Mock all dependencies BEFORE importing ChildController
 jest.mock('../../services/ChildService');

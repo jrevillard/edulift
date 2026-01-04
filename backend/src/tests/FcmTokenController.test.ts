@@ -8,7 +8,7 @@
 import { Hono } from 'hono'
 import { createPrismaMock } from '../mocks/prisma-mock'
 import { mockPushNotificationService } from '../mocks/push-notification-service-mock'
-import { createFcmTokenControllerRoutes } from '../controllers/FcmTokenController'
+import { createFcmTokenControllerRoutes } from '../controllers/v1/FcmTokenController'
 
 // Helper function for typing response.json()
 const responseJson = async <T = any>(response: Response): Promise<T> => {

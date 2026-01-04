@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Hono } from 'hono';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { TEST_IDS } from '../../utils/testHelpers';
-import { createVehicleControllerRoutes } from '../VehicleController';
+import { createVehicleControllerRoutes } from '../v1/VehicleController';
 
 // Mock all dependencies BEFORE importing VehicleController
 jest.mock('../../services/VehicleService');

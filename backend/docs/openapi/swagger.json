@@ -69,7 +69,7 @@
     "parameters": {}
   },
   "paths": {
-    "/api/v1/auth/magic-link": {
+    "/auth/magic-link": {
       "post": {
         "tags": [
           "Authentication"
@@ -292,7 +292,7 @@
         }
       }
     },
-    "/api/v1/auth/verify": {
+    "/auth/verify": {
       "post": {
         "tags": [
           "Authentication"
@@ -565,7 +565,7 @@
         }
       }
     },
-    "/api/v1/auth/refresh": {
+    "/auth/refresh": {
       "post": {
         "tags": [
           "Authentication"
@@ -737,7 +737,7 @@
         }
       }
     },
-    "/api/v1/auth/logout": {
+    "/auth/logout": {
       "post": {
         "tags": [
           "Authentication"
@@ -850,7 +850,7 @@
         }
       }
     },
-    "/api/v1/auth/profile": {
+    "/auth/profile": {
       "get": {
         "tags": [
           "Authentication"
@@ -1247,7 +1247,7 @@
         }
       }
     },
-    "/api/v1/auth/timezone": {
+    "/auth/timezone": {
       "patch": {
         "tags": [
           "Authentication"
@@ -1453,7 +1453,7 @@
         }
       }
     },
-    "/api/v1/auth/profile/delete-request": {
+    "/auth/profile/delete-request": {
       "post": {
         "tags": [
           "Authentication"
@@ -1650,7 +1650,7 @@
         }
       }
     },
-    "/api/v1/auth/profile/delete-confirm": {
+    "/auth/profile/delete-confirm": {
       "post": {
         "tags": [
           "Authentication"
@@ -1856,7 +1856,7 @@
         }
       }
     },
-    "/api/v1/vehicles": {
+    "/vehicles": {
       "post": {
         "tags": [
           "Vehicles"
@@ -2187,7 +2187,7 @@
         }
       }
     },
-    "/api/v1/vehicles/available/{groupId}/{timeSlotId}": {
+    "/vehicles/available/{groupId}/{timeSlotId}": {
       "get": {
         "tags": [
           "Vehicles"
@@ -2331,7 +2331,7 @@
         }
       }
     },
-    "/api/v1/vehicles/{vehicleId}": {
+    "/vehicles/{vehicleId}": {
       "get": {
         "tags": [
           "Vehicles"
@@ -2840,7 +2840,7 @@
         }
       }
     },
-    "/api/v1/vehicles/{vehicleId}/schedule": {
+    "/vehicles/{vehicleId}/schedule": {
       "get": {
         "tags": [
           "Vehicles"
@@ -3073,7 +3073,7 @@
         }
       }
     },
-    "/api/v1/children": {
+    "/children": {
       "post": {
         "tags": [
           "Children"
@@ -3504,7 +3504,7 @@
         }
       }
     },
-    "/api/v1/children/{childId}": {
+    "/children/{childId}": {
       "get": {
         "tags": [
           "Children"
@@ -4481,7 +4481,7 @@
         }
       }
     },
-    "/api/v1/children/{childId}/assignments": {
+    "/children/{childId}/assignments": {
       "get": {
         "tags": [
           "Children"
@@ -4679,7 +4679,7 @@
         }
       }
     },
-    "/api/v1/children/{childId}/groups/{groupId}": {
+    "/children/{childId}/groups/{groupId}": {
       "post": {
         "tags": [
           "Children"
@@ -5179,7 +5179,7 @@
         }
       }
     },
-    "/api/v1/children/{childId}/groups": {
+    "/children/{childId}/groups": {
       "get": {
         "tags": [
           "Children"
@@ -5405,7 +5405,7 @@
         }
       }
     },
-    "/api/v1/families": {
+    "/families": {
       "post": {
         "tags": [
           "Families"
@@ -5792,7 +5792,7 @@
         }
       }
     },
-    "/api/v1/families/join": {
+    "/families/join": {
       "post": {
         "tags": [
           "Families"
@@ -6210,7 +6210,7 @@
         }
       }
     },
-    "/api/v1/families/current": {
+    "/families/current": {
       "get": {
         "tags": [
           "Families"
@@ -6542,7 +6542,7 @@
         }
       }
     },
-    "/api/v1/families/{familyId}/permissions": {
+    "/families/{familyId}/permissions": {
       "get": {
         "tags": [
           "Families"
@@ -6789,7 +6789,7 @@
         }
       }
     },
-    "/api/v1/families/members/{memberId}/role": {
+    "/families/members/{memberId}/role": {
       "put": {
         "tags": [
           "Families"
@@ -7032,7 +7032,7 @@
         }
       }
     },
-    "/api/v1/families/{familyId}/invite": {
+    "/families/{familyId}/invite": {
       "post": {
         "tags": [
           "Families"
@@ -7436,7 +7436,7 @@
         }
       }
     },
-    "/api/v1/families/{familyId}/invitations": {
+    "/families/{familyId}/invitations": {
       "get": {
         "tags": [
           "Families"
@@ -7771,7 +7771,7 @@
         }
       }
     },
-    "/api/v1/families/{familyId}/invitations/{invitationId}": {
+    "/families/{familyId}/invitations/{invitationId}": {
       "delete": {
         "tags": [
           "Families"
@@ -8000,7 +8000,7 @@
         }
       }
     },
-    "/api/v1/families/name": {
+    "/families/name": {
       "put": {
         "tags": [
           "Families"
@@ -8387,7 +8387,7 @@
         }
       }
     },
-    "/api/v1/families/{familyId}/members/{memberId}": {
+    "/families/{familyId}/members/{memberId}": {
       "delete": {
         "tags": [
           "Families"
@@ -8616,7 +8616,7 @@
         }
       }
     },
-    "/api/v1/families/{familyId}/leave": {
+    "/families/{familyId}/leave": {
       "post": {
         "tags": [
           "Families"
@@ -8833,7 +8833,7 @@
         }
       }
     },
-    "/api/v1/groups": {
+    "/groups": {
       "post": {
         "tags": [
           "Groups"
@@ -9147,7 +9147,7 @@
         }
       }
     },
-    "/api/v1/groups/join": {
+    "/groups/join": {
       "post": {
         "tags": [
           "Groups"
@@ -9488,7 +9488,7 @@
         }
       }
     },
-    "/api/v1/groups/my-groups": {
+    "/groups/my-groups": {
       "get": {
         "tags": [
           "Groups"
@@ -9708,7 +9708,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/families": {
+    "/groups/{groupId}/families": {
       "get": {
         "tags": [
           "Groups"
@@ -10048,7 +10048,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/families/{familyId}/role": {
+    "/groups/{groupId}/families/{familyId}/role": {
       "patch": {
         "tags": [
           "Groups"
@@ -10397,7 +10397,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/invite": {
+    "/groups/{groupId}/invite": {
       "post": {
         "tags": [
           "Groups"
@@ -10801,7 +10801,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/search-families": {
+    "/groups/{groupId}/search-families": {
       "post": {
         "tags": [
           "Groups"
@@ -11117,7 +11117,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/families/{familyId}": {
+    "/groups/{groupId}/families/{familyId}": {
       "delete": {
         "tags": [
           "Groups"
@@ -11358,7 +11358,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}": {
+    "/groups/{groupId}": {
       "patch": {
         "tags": [
           "Groups"
@@ -11944,7 +11944,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/leave": {
+    "/groups/{groupId}/leave": {
       "post": {
         "tags": [
           "Groups"
@@ -12173,7 +12173,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/schedule-config": {
+    "/groups/{groupId}/schedule-config": {
       "get": {
         "tags": [
           "Groups"
@@ -12990,7 +12990,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/schedule-config/reset": {
+    "/groups/{groupId}/schedule-config/reset": {
       "post": {
         "tags": [
           "Groups"
@@ -13350,7 +13350,7 @@
         }
       }
     },
-    "/api/v1/invitations/family": {
+    "/invitations/family": {
       "post": {
         "tags": [
           "Invitations"
@@ -13657,7 +13657,7 @@
         }
       }
     },
-    "/api/v1/invitations/family/{code}/validate": {
+    "/invitations/family/{code}/validate": {
       "get": {
         "tags": [
           "Invitations"
@@ -13835,7 +13835,7 @@
         }
       }
     },
-    "/api/v1/invitations/family/{code}/accept": {
+    "/invitations/family/{code}/accept": {
       "post": {
         "tags": [
           "Invitations"
@@ -13975,7 +13975,7 @@
         }
       }
     },
-    "/api/v1/invitations/group": {
+    "/invitations/group": {
       "post": {
         "tags": [
           "Invitations"
@@ -14325,7 +14325,7 @@
         }
       }
     },
-    "/api/v1/invitations/group/{code}/validate": {
+    "/invitations/group/{code}/validate": {
       "get": {
         "tags": [
           "Invitations"
@@ -14488,7 +14488,7 @@
         }
       }
     },
-    "/api/v1/invitations/group/{code}/accept": {
+    "/invitations/group/{code}/accept": {
       "post": {
         "tags": [
           "Invitations"
@@ -14609,7 +14609,7 @@
         }
       }
     },
-    "/api/v1/invitations/family/{invitationId}": {
+    "/invitations/family/{invitationId}": {
       "delete": {
         "tags": [
           "Invitations"
@@ -14757,7 +14757,7 @@
         }
       }
     },
-    "/api/v1/invitations/group/{invitationId}": {
+    "/invitations/group/{invitationId}": {
       "delete": {
         "tags": [
           "Invitations"
@@ -14905,7 +14905,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens": {
+    "/fcm-tokens": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15230,7 +15230,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/cleanup-inactive": {
+    "/fcm-tokens/cleanup-inactive": {
       "delete": {
         "tags": [
           "FCM Tokens"
@@ -15315,7 +15315,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/{tokenId}": {
+    "/fcm-tokens/{tokenId}": {
       "delete": {
         "tags": [
           "FCM Tokens"
@@ -15442,7 +15442,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/validate": {
+    "/fcm-tokens/validate": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15561,7 +15561,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/subscribe-topic": {
+    "/fcm-tokens/subscribe-topic": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15719,7 +15719,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/unsubscribe-topic": {
+    "/fcm-tokens/unsubscribe-topic": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15877,7 +15877,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/test-notification": {
+    "/fcm-tokens/test-notification": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -16063,7 +16063,7 @@
         }
       }
     },
-    "/api/v1/fcm-tokens/stats": {
+    "/fcm-tokens/stats": {
       "get": {
         "tags": [
           "FCM Tokens"
@@ -16166,7 +16166,7 @@
         }
       }
     },
-    "/api/v1/dashboard/stats": {
+    "/dashboard/stats": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16435,7 +16435,7 @@
         }
       }
     },
-    "/api/v1/dashboard/today-schedule": {
+    "/dashboard/today-schedule": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16672,7 +16672,7 @@
         }
       }
     },
-    "/api/v1/dashboard/recent-activity": {
+    "/dashboard/recent-activity": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16844,7 +16844,7 @@
         }
       }
     },
-    "/api/v1/dashboard/weekly": {
+    "/dashboard/weekly": {
       "get": {
         "tags": [
           "Dashboard"
@@ -17291,7 +17291,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/schedule-slots": {
+    "/groups/{groupId}/schedule-slots": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -17855,7 +17855,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles": {
+    "/schedule-slots/{scheduleSlotId}/vehicles": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -18328,7 +18328,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
+    "/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
       "patch": {
         "tags": [
           "Schedule Slots"
@@ -18586,7 +18586,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}": {
+    "/schedule-slots/{scheduleSlotId}/children/{childId}": {
       "delete": {
         "tags": [
           "Schedule Slots"
@@ -18725,7 +18725,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}": {
+    "/schedule-slots/{scheduleSlotId}": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19215,7 +19215,7 @@
         }
       }
     },
-    "/api/v1/groups/{groupId}/schedule": {
+    "/groups/{groupId}/schedule": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19729,7 +19729,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/conflicts": {
+    "/schedule-slots/{scheduleSlotId}/conflicts": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19827,7 +19827,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children": {
+    "/schedule-slots/{scheduleSlotId}/children": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -20224,7 +20224,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
+    "/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
       "delete": {
         "tags": [
           "Schedule Slots"
@@ -20354,7 +20354,7 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/available": {
+    "/schedule-slots/{scheduleSlotId}/children/available": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -20525,7 +20525,7 @@
         }
       }
     },
-    "/api/v1/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
+    "/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
       "patch": {
         "tags": [
           "Schedule Slots"

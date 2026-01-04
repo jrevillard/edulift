@@ -51,7 +51,7 @@ describe('Platform Parameter Fix Verification', () => {
   it('should verify the OpenAPI Hono migration is complete and working', () => {
     // Read the actual routes file to verify OpenAPI Hono migration
     const routesFile = fs.readFileSync(
-      path.join(__dirname, '..', 'invitations.ts'),
+      path.join(__dirname, '..', 'v1', 'invitations.ts'),
       'utf8',
     );
 

@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Hono } from 'hono';
 import { FamilyRole, FamilyPermissions } from '../../types/family';
 import { TEST_IDS } from '../../utils/testHelpers';
-import { createFamilyControllerRoutes, type FamilyVariables } from '../FamilyController';
+import { createFamilyControllerRoutes, type FamilyVariables } from '../v1/FamilyController';
 
 // Mock all dependencies BEFORE importing FamilyController
 jest.mock('../../services/FamilyService');

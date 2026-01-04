@@ -1,7 +1,7 @@
 /// <reference types="@types/jest" />
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
-import { createInvitationControllerRoutes } from '../InvitationController';
+import { createInvitationControllerRoutes } from '../v1/InvitationController';
 import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
 import { TEST_IDS } from '../../utils/testHelpers';
 import { PrismaClient } from '@prisma/client';

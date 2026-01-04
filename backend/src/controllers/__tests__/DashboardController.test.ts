@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
 import { TEST_IDS } from '../../utils/testHelpers';
-import { createDashboardControllerRoutes, type DashboardVariables } from '../DashboardController';
+import { createDashboardControllerRoutes, type DashboardVariables } from '../v1/DashboardController';
 
 // Mock all dependencies BEFORE importing DashboardController
 jest.mock('../../services/DashboardService');

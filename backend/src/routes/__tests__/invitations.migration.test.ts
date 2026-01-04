@@ -11,7 +11,7 @@ describe('Invitations Router Migration Verification', () => {
   it('should verify OpenAPI Hono migration is complete', () => {
     // Read the actual routes file to verify OpenAPI Hono migration
     const routesFile = fs.readFileSync(
-      path.join(__dirname, '..', 'invitations.ts'),
+      path.join(__dirname, '..', 'v1', 'invitations.ts'),
       'utf8',
     );
 
@@ -60,7 +60,7 @@ describe('Invitations Router Migration Verification', () => {
   it('should verify controller maintains OpenAPI Hono format', () => {
     // Read the controller file to verify OpenAPI Hono format
     const controllerFile = fs.readFileSync(
-      path.join(__dirname, '..', '..', 'controllers', 'InvitationController.ts'),
+      path.join(__dirname, '..', '..', 'controllers', 'v1', 'InvitationController.ts'),
       'utf8',
     );
 

@@ -35,6 +35,9 @@ describe('EmailService', () => {
 
   describe('sendMagicLink', () => {
     it('should call _send with the correct parameters for a magic link', async () => {
+      // Configure sendMail mock to return success before calling sendMagicLink
+      mockSendMail.mockResolvedValueOnce({ messageId: 'test-magic-link-123' });
+
       const _sendSpy = jest.spyOn(emailService as any, '_send');
       const email = 'test@example.com';
       const token = 'magic-token-123';
@@ -52,6 +55,9 @@ describe('EmailService', () => {
     });
 
     it('should use the magicLinkUrl when provided', async () => {
+        // Configure sendMail mock to return success before calling sendMagicLink
+        mockSendMail.mockResolvedValueOnce({ messageId: 'test-custom-link-456' });
+
         const _sendSpy = jest.spyOn(emailService as any, '_send');
         const email = 'test@example.com';
         const token = 'magic-token-123';

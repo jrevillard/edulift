@@ -2,12 +2,12 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
-import { createAuthControllerRoutes } from '../AuthController';
+import { createAuthControllerRoutes } from '../v1/AuthController';
 import { AuthService } from '../../services/AuthService';
 import { UserRepository } from '../../repositories/UserRepository';
 import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
 import { TEST_IDS, unwrapResponse } from '../../utils/testHelpers';
-import type { AuthVariables } from '../AuthController';
+import type { AuthVariables } from '../v1/AuthController';
 
 jest.mock('../../services/AuthService');
 jest.mock('../../repositories/UserRepository');

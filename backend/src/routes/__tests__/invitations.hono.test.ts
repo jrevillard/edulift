@@ -12,7 +12,7 @@ describe('Invitations OpenAPI Hono Router', () => {
     it('should export default router', () => {
       // Read the actual routes file
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -25,7 +25,7 @@ describe('Invitations OpenAPI Hono Router', () => {
 
     it('should mount controller with route delegation', () => {
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -35,7 +35,7 @@ describe('Invitations OpenAPI Hono Router', () => {
 
     it('should have health check endpoint', () => {
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -47,7 +47,7 @@ describe('Invitations OpenAPI Hono Router', () => {
   describe('Route Delegation Pattern', () => {
     it('should use Hono route delegation pattern', () => {
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -57,7 +57,7 @@ describe('Invitations OpenAPI Hono Router', () => {
 
     it('should support all invitation endpoints', () => {
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -69,7 +69,7 @@ describe('Invitations OpenAPI Hono Router', () => {
   describe('OpenAPI Hono Format Compliance', () => {
     it('should follow OpenAPI Hono patterns without Express dependencies', () => {
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -83,7 +83,7 @@ describe('Invitations OpenAPI Hono Router', () => {
 
     it('should have OpenAPI documentation endpoint', () => {
       const routesFile = fs.readFileSync(
-        path.join(__dirname, '..', 'invitations.ts'),
+        path.join(__dirname, '..', 'v1', 'invitations.ts'),
         'utf8',
       );
 
@@ -95,7 +95,7 @@ describe('Invitations OpenAPI Hono Router', () => {
   describe('Controller Structure', () => {
     it('should use OpenAPI createRoute pattern', () => {
       const controllerFile = fs.readFileSync(
-        path.join(__dirname, '..', '..', 'controllers', 'InvitationController.ts'),
+        path.join(__dirname, '..', '..', 'controllers', 'v1', 'InvitationController.ts'),
         'utf8',
       );
 
@@ -108,7 +108,7 @@ describe('Invitations OpenAPI Hono Router', () => {
 
     it('should register routes with app.openapi', () => {
       const controllerFile = fs.readFileSync(
-        path.join(__dirname, '..', '..', 'controllers', 'InvitationController.ts'),
+        path.join(__dirname, '..', '..', 'controllers', 'v1', 'InvitationController.ts'),
         'utf8',
       );
 
@@ -118,7 +118,7 @@ describe('Invitations OpenAPI Hono Router', () => {
 
     it('should use explicit status codes in responses', () => {
       const controllerFile = fs.readFileSync(
-        path.join(__dirname, '..', '..', 'controllers', 'InvitationController.ts'),
+        path.join(__dirname, '..', '..', 'controllers', 'v1', 'InvitationController.ts'),
         'utf8',
       );
 

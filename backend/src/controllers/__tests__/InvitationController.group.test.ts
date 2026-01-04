@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { Hono } from 'hono';
 import { GroupRole } from '@prisma/client';
 import { TEST_IDS } from '../../utils/testHelpers';
-import { createInvitationControllerRoutes } from '../InvitationController';
+import { createInvitationControllerRoutes } from '../v1/InvitationController';
 import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
 import { EmailService } from '../../services/EmailService';
 

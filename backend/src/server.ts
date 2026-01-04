@@ -70,7 +70,7 @@ const app = new OpenAPIHono({
 app.use('*', cors({
   origin: env === 'production'
     ? ['https://app.familytracker.com', 'https://familytracker.com']
-    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8001', 'http://localhost:8002'],
+    : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true,
 }));
 
@@ -356,7 +356,7 @@ app.notFound((c) => {
       '/api/v1/invitations/*',
       '/api/v1/fcm-tokens/*',
       '/api/v1/dashboard/*',
-      '/api/v1/groups/{groupId}/schedule-slots/*',
+      '/api/v1/schedule-slots/*',
     ],
     documentation: '/docs',
   }, 404);

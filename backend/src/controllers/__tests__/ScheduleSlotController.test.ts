@@ -2,7 +2,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 import { Hono } from 'hono';
-import { createScheduleSlotControllerRoutes, type ScheduleSlotVariables } from '../ScheduleSlotController';
+import { createScheduleSlotControllerRoutes, type ScheduleSlotVariables } from '../v1/ScheduleSlotController';
 import { ScheduleSlotService } from '../../services/ScheduleSlotService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { SocketEmitter } from '../../utils/socketEmitter';
