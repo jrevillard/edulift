@@ -400,7 +400,7 @@ export const InviteCodeValidationSchema = z.object({
 // ============================================================================
 
 export const SimpleSuccessResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string()
     .openapi({
       example: 'Operation completed successfully',
@@ -412,7 +412,7 @@ export const SimpleSuccessResponseSchema = z.object({
 });
 
 export const ErrorResponseSchema = z.object({
-  success: z.literal(false),
+  success: z.boolean(),
   error: z.string()
     .openapi({
       example: 'Bad request',

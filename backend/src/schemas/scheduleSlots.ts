@@ -463,7 +463,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: ScheduleSlotSchema,
           }),
         },
@@ -508,7 +508,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: ScheduleVehicleAssignmentSchema,
           }),
         },
@@ -553,9 +553,9 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.object({
-              success: z.literal(true),
+              success: z.boolean(),
               message: z.string(),
             }),
           }),
@@ -601,7 +601,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: ScheduleVehicleAssignmentSchema,
           }),
         },
@@ -646,7 +646,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: ChildAssignmentSchema,
           }),
         },
@@ -684,9 +684,9 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.object({
-              success: z.literal(true),
+              success: z.boolean(),
               message: z.string(),
             }),
           }),
@@ -725,7 +725,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.array(AvailableChildSchema),
           }),
         },
@@ -763,7 +763,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.array(z.string()),
           }),
         },
@@ -808,7 +808,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: ScheduleVehicleAssignmentSchema,
           }),
         },

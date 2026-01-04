@@ -45,7 +45,7 @@ const ErrorResponseSchema = z.object({
 // Success response schema
 const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
   return z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: schema,
   });
 };
@@ -310,7 +310,7 @@ const deleteVehicleRoute = createRoute({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.object({
               message: z.string(),
             }),

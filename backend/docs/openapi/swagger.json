@@ -69,7 +69,7 @@
     "parameters": {}
   },
   "paths": {
-    "/auth/magic-link": {
+    "/api/v1/auth/magic-link": {
       "post": {
         "tags": [
           "Authentication"
@@ -132,10 +132,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -292,7 +289,7 @@
         }
       }
     },
-    "/auth/verify": {
+    "/api/v1/auth/verify": {
       "post": {
         "tags": [
           "Authentication"
@@ -344,10 +341,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -565,7 +559,7 @@
         }
       }
     },
-    "/auth/refresh": {
+    "/api/v1/auth/refresh": {
       "post": {
         "tags": [
           "Authentication"
@@ -601,10 +595,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -737,7 +728,7 @@
         }
       }
     },
-    "/auth/logout": {
+    "/api/v1/auth/logout": {
       "post": {
         "tags": [
           "Authentication"
@@ -758,10 +749,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -850,7 +838,7 @@
         }
       }
     },
-    "/auth/profile": {
+    "/api/v1/auth/profile": {
       "get": {
         "tags": [
           "Authentication"
@@ -871,10 +859,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -1084,10 +1069,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -1247,7 +1229,7 @@
         }
       }
     },
-    "/auth/timezone": {
+    "/api/v1/auth/timezone": {
       "patch": {
         "tags": [
           "Authentication"
@@ -1290,10 +1272,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -1453,7 +1432,7 @@
         }
       }
     },
-    "/auth/profile/delete-request": {
+    "/api/v1/auth/profile/delete-request": {
       "post": {
         "tags": [
           "Authentication"
@@ -1494,10 +1473,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -1650,7 +1626,7 @@
         }
       }
     },
-    "/auth/profile/delete-confirm": {
+    "/api/v1/auth/profile/delete-confirm": {
       "post": {
         "tags": [
           "Authentication"
@@ -1696,10 +1672,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -1856,7 +1829,7 @@
         }
       }
     },
-    "/vehicles": {
+    "/api/v1/vehicles": {
       "post": {
         "tags": [
           "Vehicles"
@@ -1907,10 +1880,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -2087,10 +2057,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -2187,7 +2154,7 @@
         }
       }
     },
-    "/vehicles/available/{groupId}/{timeSlotId}": {
+    "/api/v1/vehicles/available/{groupId}/{timeSlotId}": {
       "get": {
         "tags": [
           "Vehicles"
@@ -2234,10 +2201,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -2331,7 +2295,7 @@
         }
       }
     },
-    "/vehicles/{vehicleId}": {
+    "/api/v1/vehicles/{vehicleId}": {
       "get": {
         "tags": [
           "Vehicles"
@@ -2366,10 +2330,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -2554,10 +2515,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -2748,10 +2706,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -2840,7 +2795,7 @@
         }
       }
     },
-    "/vehicles/{vehicleId}/schedule": {
+    "/api/v1/vehicles/{vehicleId}/schedule": {
       "get": {
         "tags": [
           "Vehicles"
@@ -2886,10 +2841,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -3073,7 +3025,7 @@
         }
       }
     },
-    "/children": {
+    "/api/v1/children": {
       "post": {
         "tags": [
           "Children"
@@ -3124,10 +3076,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -3354,10 +3303,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -3504,7 +3450,7 @@
         }
       }
     },
-    "/children/{childId}": {
+    "/api/v1/children/{childId}": {
       "get": {
         "tags": [
           "Children"
@@ -3539,10 +3485,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -3778,10 +3721,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -4081,10 +4021,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -4357,10 +4294,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -4481,7 +4415,7 @@
         }
       }
     },
-    "/children/{childId}/assignments": {
+    "/api/v1/children/{childId}/assignments": {
       "get": {
         "tags": [
           "Children"
@@ -4527,10 +4461,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -4679,7 +4610,7 @@
         }
       }
     },
-    "/children/{childId}/groups/{groupId}": {
+    "/api/v1/children/{childId}/groups/{groupId}": {
       "post": {
         "tags": [
           "Children"
@@ -4726,10 +4657,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -5055,10 +4983,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -5179,7 +5104,7 @@
         }
       }
     },
-    "/children/{childId}/groups": {
+    "/api/v1/children/{childId}/groups": {
       "get": {
         "tags": [
           "Children"
@@ -5214,10 +5139,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -5405,7 +5327,7 @@
         }
       }
     },
-    "/families": {
+    "/api/v1/families": {
       "post": {
         "tags": [
           "Families"
@@ -5449,10 +5371,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -5792,7 +5711,7 @@
         }
       }
     },
-    "/families/join": {
+    "/api/v1/families/join": {
       "post": {
         "tags": [
           "Families"
@@ -5835,10 +5754,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -6210,7 +6126,7 @@
         }
       }
     },
-    "/families/current": {
+    "/api/v1/families/current": {
       "get": {
         "tags": [
           "Families"
@@ -6231,10 +6147,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -6542,7 +6455,7 @@
         }
       }
     },
-    "/families/{familyId}/permissions": {
+    "/api/v1/families/{familyId}/permissions": {
       "get": {
         "tags": [
           "Families"
@@ -6577,10 +6490,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -6789,7 +6699,7 @@
         }
       }
     },
-    "/families/members/{memberId}/role": {
+    "/api/v1/families/members/{memberId}/role": {
       "put": {
         "tags": [
           "Families"
@@ -6850,10 +6760,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -7032,7 +6939,7 @@
         }
       }
     },
-    "/families/{familyId}/invite": {
+    "/api/v1/families/{familyId}/invite": {
       "post": {
         "tags": [
           "Families"
@@ -7107,10 +7014,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -7436,7 +7340,7 @@
         }
       }
     },
-    "/families/{familyId}/invitations": {
+    "/api/v1/families/{familyId}/invitations": {
       "get": {
         "tags": [
           "Families"
@@ -7471,10 +7375,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -7771,7 +7672,7 @@
         }
       }
     },
-    "/families/{familyId}/invitations/{invitationId}": {
+    "/api/v1/families/{familyId}/invitations/{invitationId}": {
       "delete": {
         "tags": [
           "Families"
@@ -7818,10 +7719,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -8000,7 +7898,7 @@
         }
       }
     },
-    "/families/name": {
+    "/api/v1/families/name": {
       "put": {
         "tags": [
           "Families"
@@ -8044,10 +7942,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -8387,7 +8282,7 @@
         }
       }
     },
-    "/families/{familyId}/members/{memberId}": {
+    "/api/v1/families/{familyId}/members/{memberId}": {
       "delete": {
         "tags": [
           "Families"
@@ -8434,10 +8329,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -8616,7 +8508,7 @@
         }
       }
     },
-    "/families/{familyId}/leave": {
+    "/api/v1/families/{familyId}/leave": {
       "post": {
         "tags": [
           "Families"
@@ -8651,10 +8543,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -8833,7 +8722,7 @@
         }
       }
     },
-    "/groups": {
+    "/api/v1/groups": {
       "post": {
         "tags": [
           "Groups"
@@ -8883,10 +8772,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -9016,10 +8902,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9050,10 +8933,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9084,10 +8964,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9118,10 +8995,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9147,7 +9021,7 @@
         }
       }
     },
-    "/groups/join": {
+    "/api/v1/groups/join": {
       "post": {
         "tags": [
           "Groups"
@@ -9190,10 +9064,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -9323,10 +9194,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9357,10 +9225,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9391,10 +9256,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9425,10 +9287,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9459,10 +9318,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9488,7 +9344,7 @@
         }
       }
     },
-    "/groups/my-groups": {
+    "/api/v1/groups/my-groups": {
       "get": {
         "tags": [
           "Groups"
@@ -9509,10 +9365,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -9645,10 +9498,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9679,10 +9529,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9708,7 +9555,7 @@
         }
       }
     },
-    "/groups/{groupId}/families": {
+    "/api/v1/groups/{groupId}/families": {
       "get": {
         "tags": [
           "Groups"
@@ -9743,10 +9590,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -9883,10 +9727,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9917,10 +9758,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9951,10 +9789,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -9985,10 +9820,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10019,10 +9851,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10048,7 +9877,7 @@
         }
       }
     },
-    "/groups/{groupId}/families/{familyId}/role": {
+    "/api/v1/groups/{groupId}/families/{familyId}/role": {
       "patch": {
         "tags": [
           "Groups"
@@ -10120,10 +9949,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -10232,10 +10058,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10266,10 +10089,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10300,10 +10120,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10334,10 +10151,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10368,10 +10182,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10397,7 +10208,7 @@
         }
       }
     },
-    "/groups/{groupId}/invite": {
+    "/api/v1/groups/{groupId}/invite": {
       "post": {
         "tags": [
           "Groups"
@@ -10471,10 +10282,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -10602,10 +10410,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10636,10 +10441,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10670,10 +10472,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10704,10 +10503,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10738,10 +10534,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10772,10 +10565,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10801,7 +10591,7 @@
         }
       }
     },
-    "/groups/{groupId}/search-families": {
+    "/api/v1/groups/{groupId}/search-families": {
       "post": {
         "tags": [
           "Groups"
@@ -10858,10 +10648,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -10952,10 +10739,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -10986,10 +10770,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11020,10 +10801,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11054,10 +10832,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11088,10 +10863,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11117,7 +10889,7 @@
         }
       }
     },
-    "/groups/{groupId}/families/{familyId}": {
+    "/api/v1/groups/{groupId}/families/{familyId}": {
       "delete": {
         "tags": [
           "Groups"
@@ -11164,10 +10936,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -11193,10 +10962,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11227,10 +10993,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11261,10 +11024,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11295,10 +11055,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11329,10 +11086,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11358,7 +11112,7 @@
         }
       }
     },
-    "/groups/{groupId}": {
+    "/api/v1/groups/{groupId}": {
       "patch": {
         "tags": [
           "Groups"
@@ -11419,10 +11173,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -11552,10 +11303,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11586,10 +11334,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11620,10 +11365,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11654,10 +11396,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11688,10 +11427,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11750,10 +11486,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -11779,10 +11512,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11813,10 +11543,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11847,10 +11574,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11881,10 +11605,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11915,10 +11636,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -11944,7 +11662,7 @@
         }
       }
     },
-    "/groups/{groupId}/leave": {
+    "/api/v1/groups/{groupId}/leave": {
       "post": {
         "tags": [
           "Groups"
@@ -11979,10 +11697,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "message": {
                       "type": "string",
@@ -12008,10 +11723,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12042,10 +11754,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12076,10 +11785,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12110,10 +11816,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12144,10 +11847,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12173,7 +11873,7 @@
         }
       }
     },
-    "/groups/{groupId}/schedule-config": {
+    "/api/v1/groups/{groupId}/schedule-config": {
       "get": {
         "tags": [
           "Groups"
@@ -12208,10 +11908,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -12368,10 +12065,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12402,10 +12096,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12436,10 +12127,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12470,10 +12158,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12504,10 +12189,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12665,10 +12347,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -12825,10 +12504,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12859,10 +12535,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12893,10 +12566,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12927,10 +12597,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12961,10 +12628,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -12990,7 +12654,7 @@
         }
       }
     },
-    "/groups/{groupId}/schedule-config/reset": {
+    "/api/v1/groups/{groupId}/schedule-config/reset": {
       "post": {
         "tags": [
           "Groups"
@@ -13025,10 +12689,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -13185,10 +12846,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -13219,10 +12877,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -13253,10 +12908,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -13287,10 +12939,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -13321,10 +12970,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "type": "boolean"
                     },
                     "error": {
                       "type": "string",
@@ -13350,7 +12996,7 @@
         }
       }
     },
-    "/invitations/family": {
+    "/api/v1/invitations/family": {
       "post": {
         "tags": [
           "Invitations"
@@ -13657,7 +13303,7 @@
         }
       }
     },
-    "/invitations/family/{code}/validate": {
+    "/api/v1/invitations/family/{code}/validate": {
       "get": {
         "tags": [
           "Invitations"
@@ -13835,7 +13481,7 @@
         }
       }
     },
-    "/invitations/family/{code}/accept": {
+    "/api/v1/invitations/family/{code}/accept": {
       "post": {
         "tags": [
           "Invitations"
@@ -13975,7 +13621,7 @@
         }
       }
     },
-    "/invitations/group": {
+    "/api/v1/invitations/group": {
       "post": {
         "tags": [
           "Invitations"
@@ -14325,7 +13971,7 @@
         }
       }
     },
-    "/invitations/group/{code}/validate": {
+    "/api/v1/invitations/group/{code}/validate": {
       "get": {
         "tags": [
           "Invitations"
@@ -14488,7 +14134,7 @@
         }
       }
     },
-    "/invitations/group/{code}/accept": {
+    "/api/v1/invitations/group/{code}/accept": {
       "post": {
         "tags": [
           "Invitations"
@@ -14609,7 +14255,7 @@
         }
       }
     },
-    "/invitations/family/{invitationId}": {
+    "/api/v1/invitations/family/{invitationId}": {
       "delete": {
         "tags": [
           "Invitations"
@@ -14757,7 +14403,7 @@
         }
       }
     },
-    "/invitations/group/{invitationId}": {
+    "/api/v1/invitations/group/{invitationId}": {
       "delete": {
         "tags": [
           "Invitations"
@@ -14905,7 +14551,7 @@
         }
       }
     },
-    "/fcm-tokens": {
+    "/api/v1/fcm-tokens": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -14964,10 +14610,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15117,10 +14760,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15230,7 +14870,7 @@
         }
       }
     },
-    "/fcm-tokens/cleanup-inactive": {
+    "/api/v1/fcm-tokens/cleanup-inactive": {
       "delete": {
         "tags": [
           "FCM Tokens"
@@ -15251,10 +14891,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15315,7 +14952,7 @@
         }
       }
     },
-    "/fcm-tokens/{tokenId}": {
+    "/api/v1/fcm-tokens/{tokenId}": {
       "delete": {
         "tags": [
           "FCM Tokens"
@@ -15350,10 +14987,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15442,7 +15076,7 @@
         }
       }
     },
-    "/fcm-tokens/validate": {
+    "/api/v1/fcm-tokens/validate": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15485,10 +15119,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15561,7 +15192,7 @@
         }
       }
     },
-    "/fcm-tokens/subscribe-topic": {
+    "/api/v1/fcm-tokens/subscribe-topic": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15611,10 +15242,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15719,7 +15347,7 @@
         }
       }
     },
-    "/fcm-tokens/unsubscribe-topic": {
+    "/api/v1/fcm-tokens/unsubscribe-topic": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15769,10 +15397,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -15877,7 +15502,7 @@
         }
       }
     },
-    "/fcm-tokens/test-notification": {
+    "/api/v1/fcm-tokens/test-notification": {
       "post": {
         "tags": [
           "FCM Tokens"
@@ -15946,10 +15571,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -16063,7 +15685,7 @@
         }
       }
     },
-    "/fcm-tokens/stats": {
+    "/api/v1/fcm-tokens/stats": {
       "get": {
         "tags": [
           "FCM Tokens"
@@ -16084,10 +15706,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -16166,7 +15785,7 @@
         }
       }
     },
-    "/dashboard/stats": {
+    "/api/v1/dashboard/stats": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16187,10 +15806,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -16435,7 +16051,7 @@
         }
       }
     },
-    "/dashboard/today-schedule": {
+    "/api/v1/dashboard/today-schedule": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16456,10 +16072,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -16672,7 +16285,7 @@
         }
       }
     },
-    "/dashboard/recent-activity": {
+    "/api/v1/dashboard/recent-activity": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16693,10 +16306,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -16844,7 +16454,7 @@
         }
       }
     },
-    "/dashboard/weekly": {
+    "/api/v1/dashboard/weekly": {
       "get": {
         "tags": [
           "Dashboard"
@@ -16879,10 +16489,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -17291,7 +16898,7 @@
         }
       }
     },
-    "/groups/{groupId}/schedule-slots": {
+    "/api/v1/groups/{groupId}/schedule-slots": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -17368,10 +16975,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -17855,7 +17459,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/vehicles": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -17925,10 +17529,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -18200,10 +17801,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -18328,7 +17926,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
       "patch": {
         "tags": [
           "Schedule Slots"
@@ -18398,10 +17996,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -18586,7 +18181,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/children/{childId}": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}": {
       "delete": {
         "tags": [
           "Schedule Slots"
@@ -18633,10 +18228,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -18725,7 +18317,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}": {
+    "/api/v1/schedule-slots/{scheduleSlotId}": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -18760,10 +18352,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -19215,7 +18804,7 @@
         }
       }
     },
-    "/groups/{groupId}/schedule": {
+    "/api/v1/groups/{groupId}/schedule": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19274,10 +18863,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -19729,7 +19315,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/conflicts": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/conflicts": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -19764,10 +19350,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -19827,7 +19410,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/children": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children": {
       "post": {
         "tags": [
           "Schedule Slots"
@@ -19891,10 +19474,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",
@@ -20224,7 +19804,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
       "delete": {
         "tags": [
           "Schedule Slots"
@@ -20271,10 +19851,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "nullable": true
@@ -20354,7 +19931,7 @@
         }
       }
     },
-    "/schedule-slots/{scheduleSlotId}/children/available": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children/available": {
       "get": {
         "tags": [
           "Schedule Slots"
@@ -20389,10 +19966,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "array",
@@ -20525,7 +20099,7 @@
         }
       }
     },
-    "/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
+    "/api/v1/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
       "patch": {
         "tags": [
           "Schedule Slots"
@@ -20580,10 +20154,7 @@
                   "type": "object",
                   "properties": {
                     "success": {
-                      "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "type": "boolean"
                     },
                     "data": {
                       "type": "object",

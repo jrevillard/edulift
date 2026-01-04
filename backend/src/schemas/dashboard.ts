@@ -295,7 +295,7 @@ export const RecentActivityResponseSchema = z.object({
 // Weekly Dashboard Response Schema - Matches the ACTUAL backend structure
 // This schema aligns with what DashboardService.getWeeklyDashboard() returns
 export const WeeklyDashboardResponseSchema = z.object({
-  success: z.literal(true)
+  success: z.boolean()
     .openapi({
       description: 'Operation success indicator',
     }),
@@ -484,7 +484,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: DashboardStatsSchema,
           }),
         },
@@ -495,7 +495,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -506,7 +506,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -528,7 +528,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: TodayScheduleResponseSchema,
           }),
         },
@@ -539,7 +539,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -550,7 +550,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -583,7 +583,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -594,7 +594,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -605,7 +605,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -627,7 +627,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: RecentActivityResponseSchema,
           }),
         },
@@ -638,7 +638,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -649,7 +649,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },

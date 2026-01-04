@@ -70,7 +70,7 @@ export function createChildControllerRoutes(dependencies: {
   // Success response schema helper
   const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
     return z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: schema,
     });
   };
@@ -351,7 +351,7 @@ const deleteChildRoute = createRoute({
     content: {
     'application/json': {
     schema: z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: z.object({
     message: z.string(),
     }),
@@ -512,7 +512,7 @@ const removeChildFromGroupRoute = createRoute({
     content: {
     'application/json': {
     schema: z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: z.object({
     message: z.string(),
     }),

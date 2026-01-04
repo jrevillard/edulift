@@ -28,7 +28,7 @@ extendZodWithOpenApi(z);
 */
 export const createSuccessResponseSchema = <T extends z.ZodType>(dataSchema: T) => {
   return z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: dataSchema,
   }).openapi({
     title: 'Success Response',
@@ -49,7 +49,7 @@ registry.register('SuccessResponse', UniversalSuccessResponseSchema);
 * Generic Error Response
 */
 export const ErrorResponseSchema = z.object({
-success: z.literal(false),
+success: z.boolean(),
 error: z.string()
 .openapi({
 example: 'Validation failed',

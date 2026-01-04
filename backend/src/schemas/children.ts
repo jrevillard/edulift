@@ -290,7 +290,7 @@ export const ChildAssignmentSchema = z.object({
 
 // Success/Error Response Schemas
 export const SimpleSuccessResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string()
     .openapi({
       example: 'Operation completed successfully',

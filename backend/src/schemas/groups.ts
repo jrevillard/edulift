@@ -723,7 +723,7 @@ export const InvitationValidationSchema = z.object({
 });
 
 export const GroupScheduleConfigSuccessResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string()
     .openapi({
       example: 'Schedule configuration updated successfully',
@@ -828,13 +828,13 @@ export const GroupScheduleConfigResponseSchema = z.object({
  */
 export const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
   return z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: schema,
   });
 };
 
 export const SimpleSuccessResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string()
     .openapi({
       example: 'Operation completed successfully',
@@ -846,7 +846,7 @@ export const SimpleSuccessResponseSchema = z.object({
 });
 
 export const ErrorResponseSchema = z.object({
-  success: z.literal(false),
+  success: z.boolean(),
   error: z.string()
     .openapi({
       example: 'Bad request',

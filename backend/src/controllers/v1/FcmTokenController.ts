@@ -46,7 +46,7 @@ const ErrorResponseSchema = z.object({
 // Success response schema helper
 const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
   return z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: schema,
   });
 };

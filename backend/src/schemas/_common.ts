@@ -373,7 +373,7 @@ export const UUIDSchema = z.string().uuid('Invalid UUID format');
 
 // Standard error response
 export const ErrorResponseSchema = z.object({
-  success: z.literal(false),
+  success: z.boolean(),
   error: z.string().openapi({
     example: 'Validation failed',
     description: 'Human-readable error message',

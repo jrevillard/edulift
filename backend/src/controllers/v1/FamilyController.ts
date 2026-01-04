@@ -53,14 +53,14 @@ const ErrorResponseSchema = z.object({
 // Success response schema
 const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
   return z.object({
-    success: z.literal(true),
+    success: z.boolean(),
     data: schema,
   });
 };
 
 // Simple success response schema
 const SimpleSuccessResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   message: z.string()
     .openapi({
       example: 'Operation completed successfully',
@@ -70,7 +70,7 @@ const SimpleSuccessResponseSchema = z.object({
 
 // Family permissions success response schema (non-generic to avoid type inference issues)
 const FamilyPermissionsSuccessSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   data: FamilyPermissionsSchema,
 }).openapi({
   title: 'Family Permissions Success',

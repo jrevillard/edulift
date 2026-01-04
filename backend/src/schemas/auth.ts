@@ -341,7 +341,7 @@ export const RefreshTokenResponseSchema = z.object({
 
 // Dedicated response schemas for profile endpoints
 export const ProfileUpdateResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   data: UserResponseSchema,
 }).openapi({
   title: 'Profile Update Response',
@@ -349,7 +349,7 @@ export const ProfileUpdateResponseSchema = z.object({
 });
 
 export const DeleteAccountResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.boolean(),
   data: z.object({
     message: z.string()
       .openapi({
@@ -407,7 +407,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.object({
               message: z.string(),
               userExists: z.boolean(),
@@ -632,7 +632,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.object({
               message: z.string()
                 .openapi({
@@ -654,7 +654,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string()
               .openapi({
                 example: 'Invalid PKCE code challenge format',
@@ -674,7 +674,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -685,7 +685,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -696,7 +696,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -735,7 +735,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string()
               .openapi({
                 example: 'Invalid deletion token or PKCE verification failed',
@@ -755,7 +755,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string()
               .openapi({
                 example: 'Deletion token has expired or already been used',
@@ -770,7 +770,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
@@ -781,7 +781,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(false),
+            success: z.boolean(),
             error: z.string(),
           }),
         },
