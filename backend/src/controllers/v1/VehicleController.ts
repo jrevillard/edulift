@@ -8,8 +8,8 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { VehicleService, UpdateVehicleData } from '../services/VehicleService';
-import { createLogger } from '../utils/logger';
+import { VehicleService, UpdateVehicleData } from '../../services/VehicleService';
+import { createLogger } from '../../utils/logger';
 
 // Import Hono-native schemas
 import {
@@ -21,7 +21,7 @@ import {
   AvailableVehicleSchema,
   VehicleScheduleSchema,
   WeekQuerySchema,
-} from '../schemas/vehicles';
+} from '../../schemas/vehicles';
 
 // Hono type for context with userId
 type VehicleVariables = {

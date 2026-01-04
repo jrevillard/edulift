@@ -8,8 +8,8 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { DashboardService } from '../services/DashboardService';
-import { createLogger } from '../utils/logger';
+import { DashboardService } from '../../services/DashboardService';
+import { createLogger } from '../../utils/logger';
 
 // Type for Hono context with userId
 type DashboardVariables = {

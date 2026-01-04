@@ -8,9 +8,9 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { ChildService } from '../services/ChildService';
-import { ChildAssignmentService } from '../services/ChildAssignmentService';
-import { createLogger } from '../utils/logger';
+import { ChildService } from '../../services/ChildService';
+import { ChildAssignmentService } from '../../services/ChildAssignmentService';
+import { createLogger } from '../../utils/logger';
 
 // Import Hono-native schemas
 import {
@@ -22,7 +22,7 @@ import {
   ChildGroupMembershipSchema,
   ChildAssignmentSchema,
   WeekQuerySchema,
-} from '../schemas/children';
+} from '../../schemas/children';
 
 // Type for Hono context with userId
 type ChildVariables = {

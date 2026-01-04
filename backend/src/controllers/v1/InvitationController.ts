@@ -8,9 +8,9 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { UnifiedInvitationService, CreateFamilyInvitationData, CreateGroupInvitationData } from '../services/UnifiedInvitationService';
-import { createLogger } from '../utils/logger';
-import { EmailService } from '../services/EmailService';
+import { UnifiedInvitationService, CreateFamilyInvitationData, CreateGroupInvitationData } from '../../services/UnifiedInvitationService';
+import { createLogger } from '../../utils/logger';
+import { EmailService } from '../../services/EmailService';
 
 // Import Hono-native schemas
 import {
@@ -25,7 +25,7 @@ import {
   GroupInvitationValidationSchema,
   AcceptInvitationResponseSchema,
   CancelInvitationResponseSchema,
-} from '../schemas/invitations';
+} from '../../schemas/invitations';
 
 // Type for Hono context with userId
 type InvitationVariables = {

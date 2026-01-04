@@ -8,9 +8,9 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { PushNotificationServiceFactory } from '../services/PushNotificationServiceFactory';
-import { FcmTokenData, PushNotificationData } from '../types/PushNotificationInterface';
-import { createLogger } from '../utils/logger';
+import { PushNotificationServiceFactory } from '../../services/PushNotificationServiceFactory';
+import { FcmTokenData, PushNotificationData } from '../../types/PushNotificationInterface';
+import { createLogger } from '../../utils/logger';
 import {
   SaveTokenSchema,
   ValidateTokenSchema,
@@ -22,7 +22,7 @@ import {
   TopicSubscriptionResponseSchema,
   TestNotificationResponseSchema,
   FcmTokenStatsResponseSchema,
-} from '../schemas/fcmTokens';
+} from '../../schemas/fcmTokens';
 
 // Hono context type with userId
 type FcmTokenVariables = {

@@ -6,8 +6,8 @@
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticateToken } from '../middleware/auth-hono';
-import dashboardController from '../controllers/DashboardController';
+import { authenticateToken } from '../../middleware/auth-hono';
+import dashboardController from '../../controllers/v1/DashboardController';
 
 // Create OpenAPI Hono app
 const app = new OpenAPIHono();

@@ -4,8 +4,8 @@
  * Routes for FCM token management endpoints
  */
 
-import { authenticateToken } from '../middleware/auth-hono';
-import fcmTokenController from '../controllers/FcmTokenController';
+import { authenticateToken } from '../../middleware/auth-hono';
+import fcmTokenController from '../../controllers/v1/FcmTokenController';
 
 const app = fcmTokenController;
 

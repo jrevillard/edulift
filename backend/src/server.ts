@@ -31,15 +31,16 @@ import {
 import { prisma } from './database';
 
 // Import all route modules (auto-registers OpenAPI)
-import authRoutes from './routes/auth';
-import vehiclesRoutes from './routes/vehicles';
-import childrenRoutes from './routes/children';
-import familiesRoutes from './routes/families';
-import groupsRoutes from './routes/groups';
-import invitationsRoutes from './routes/invitations';
-import fcmTokensRoutes from './routes/fcmTokens'; // Test de réactivation
-import dashboardRoutes from './routes/dashboard';
-import scheduleSlotsRoutes from './routes/scheduleSlots';
+// API v1 routes - organized in v1/ directory for future multi-versioning support
+import authRoutes from './routes/v1/auth';
+import vehiclesRoutes from './routes/v1/vehicles';
+import childrenRoutes from './routes/v1/children';
+import familiesRoutes from './routes/v1/families';
+import groupsRoutes from './routes/v1/groups';
+import invitationsRoutes from './routes/v1/invitations';
+import fcmTokensRoutes from './routes/v1/fcmTokens';
+import dashboardRoutes from './routes/v1/dashboard';
+import scheduleSlotsRoutes from './routes/v1/scheduleSlots';
 
 // Environment configuration
 const port = parseInt(process.env.PORT || '3000');
@@ -69,20 +70,20 @@ const app = new OpenAPIHono({
 app.use('*', cors({
   origin: env === 'production'
     ? ['https://app.familytracker.com', 'https://familytracker.com']
-    : ['http://localhost:3000', 'http://localhost:5173'],
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:8001', 'http://localhost:8002'],
   credentials: true,
 }));
 
 app.use('*', logger());
 
 // Apply rate limiting to all API routes
-app.use('/api/*', globalRateLimiter);
+app.use('/api/v1/*', globalRateLimiter);
 
 // Apply stricter rate limiting to authentication endpoints
-app.use('/api/auth/*', authEndpointRateLimiter);
+app.use('/api/v1/auth/*', authEndpointRateLimiter);
 
 // Apply admin rate limiting to admin operations (if they exist)
-app.use('/api/admin/*', adminRateLimiter);
+app.use('/api/v1/admin/*', adminRateLimiter);
 
 // Health check endpoint (always available)
 app.get('/health', (c) => {
@@ -130,17 +131,17 @@ app.get('/health/database', async (c) => {
   }
 });
 
-// Mount all routers (versioning handled globally in OpenAPI config)
-app.route('/auth', authRoutes);
-app.route('/vehicles', vehiclesRoutes);
-app.route('/children', childrenRoutes);
-app.route('/families', familiesRoutes);
-app.route('/groups', groupsRoutes);
-app.route('/invitations', invitationsRoutes);
-app.route('/fcm-tokens', fcmTokensRoutes);
-app.route('/dashboard', dashboardRoutes);
+// Mount all routers with /api/v1 prefix for proper API versioning
+app.route('/api/v1/auth', authRoutes);
+app.route('/api/v1/vehicles', vehiclesRoutes);
+app.route('/api/v1/children', childrenRoutes);
+app.route('/api/v1/families', familiesRoutes);
+app.route('/api/v1/groups', groupsRoutes);
+app.route('/api/v1/invitations', invitationsRoutes);
+app.route('/api/v1/fcm-tokens', fcmTokensRoutes);
+app.route('/api/v1/dashboard', dashboardRoutes);
 // Schedule slots uses absolute paths, so mount at root to avoid double nesting
-app.route('/', scheduleSlotsRoutes);
+app.route('/api/v1', scheduleSlotsRoutes);
 
 /**
  * State-of-the-Art OpenAPI Configuration - Zero Manual Setup!
@@ -347,16 +348,17 @@ app.notFound((c) => {
       '/health/database',
       '/docs',
       '/openapi.json',
-      '/auth/*',
-      '/vehicles/*',
-      '/children/*',
-      '/families/*',
-      '/groups/*',
-      '/invitations/*',
-      '/fcm-tokens/*',
-      '/dashboard/*',
-      '/schedule-slots/*',
+      '/api/v1/auth/*',
+      '/api/v1/vehicles/*',
+      '/api/v1/children/*',
+      '/api/v1/families/*',
+      '/api/v1/groups/*',
+      '/api/v1/invitations/*',
+      '/api/v1/fcm-tokens/*',
+      '/api/v1/dashboard/*',
+      '/api/v1/groups/{groupId}/schedule-slots/*',
     ],
+    documentation: '/docs',
   }, 404);
 });
 

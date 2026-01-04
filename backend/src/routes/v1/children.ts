@@ -6,8 +6,8 @@
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticateToken } from '../middleware/auth-hono';
-import childController from '../controllers/ChildController';
+import { authenticateToken } from '../../middleware/auth-hono';
+import childController from '../../controllers/v1/ChildController';
 
 // Type for context with userId
 type ChildVariables = {

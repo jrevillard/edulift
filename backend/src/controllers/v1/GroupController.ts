@@ -8,10 +8,10 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { GroupService } from '../services/GroupService';
-import { GroupScheduleConfigService } from '../services/GroupScheduleConfigService';
-import { EmailServiceFactory } from '../services/EmailServiceFactory';
-import { createLogger } from '../utils/logger';
+import { GroupService } from '../../services/GroupService';
+import { GroupScheduleConfigService } from '../../services/GroupScheduleConfigService';
+import { EmailServiceFactory } from '../../services/EmailServiceFactory';
+import { createLogger } from '../../utils/logger';
 
 // Import all schemas
 import {
@@ -33,7 +33,7 @@ import {
   createSuccessSchema,
   UpdateScheduleConfigRequestSchema,
   GroupScheduleConfigResponseSchema,
-} from '../schemas/groups';
+} from '../../schemas/groups';
 
 // Hono type for context with userId
 export type GroupVariables = {

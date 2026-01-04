@@ -8,7 +8,7 @@
  * so we directly export it without wrapping in another router to avoid double nesting.
  */
 
-import scheduleSlotController from '../controllers/ScheduleSlotController';
+import scheduleSlotController from '../../controllers/v1/ScheduleSlotController';
 
 // Direct export of controller (it's already an OpenAPIHono with all routes)
 export default scheduleSlotController;

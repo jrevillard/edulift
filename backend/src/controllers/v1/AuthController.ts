@@ -8,14 +8,14 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { AuthService } from '../services/AuthService';
-import { EmailServiceFactory } from '../services/EmailServiceFactory';
-import { UnifiedInvitationService } from '../services/UnifiedInvitationService';
-import { UserRepository } from '../repositories/UserRepository';
-import { SecureTokenRepository } from '../repositories/SecureTokenRepository';
-import { createLogger } from '../utils/logger';
-import { sanitizeSecurityError, logSecurityEvent } from '../utils/security';
-import { isValidTimezone } from '../utils/timezoneUtils';
+import { AuthService } from '../../services/AuthService';
+import { EmailServiceFactory } from '../../services/EmailServiceFactory';
+import { UnifiedInvitationService } from '../../services/UnifiedInvitationService';
+import { UserRepository } from '../../repositories/UserRepository';
+import { SecureTokenRepository } from '../../repositories/SecureTokenRepository';
+import { createLogger } from '../../utils/logger';
+import { sanitizeSecurityError, logSecurityEvent } from '../../utils/security';
+import { isValidTimezone } from '../../utils/timezoneUtils';
 
 // Middleware Hono - Applied at route level in routes/auth.ts
 
@@ -29,7 +29,7 @@ import {
   RequestAccountDeletionSchema,
   ConfirmAccountDeletionSchema,
   UserResponseSchema,
-} from '../schemas/auth';
+} from '../../schemas/auth';
 
 // Hono type for context with auth
 export type AuthVariables = {

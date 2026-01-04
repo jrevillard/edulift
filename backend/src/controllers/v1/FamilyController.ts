@@ -8,12 +8,12 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { FamilyService } from '../services/FamilyService';
-import { FamilyAuthService } from '../services/FamilyAuthService';
-import { FamilyRole } from '../types/family';
-import { createLogger } from '../utils/logger';
-import { normalizeError } from '../utils/errorHandler';
-import { EmailServiceFactory } from '../services/EmailServiceFactory';
+import { FamilyService } from '../../services/FamilyService';
+import { FamilyAuthService } from '../../services/FamilyAuthService';
+import { FamilyRole } from '../../types/family';
+import { createLogger } from '../../utils/logger';
+import { normalizeError } from '../../utils/errorHandler';
+import { EmailServiceFactory } from '../../services/EmailServiceFactory';
 
 // Import Hono-native schemas
 import {
@@ -29,7 +29,7 @@ import {
   FamilyResponseSchema,
   FamilyPermissionsSchema,
   FamilyInvitationSchema,
-} from '../schemas/families';
+} from '../../schemas/families';
 
 // Hono type for context with userId
 type FamilyVariables = {

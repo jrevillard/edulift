@@ -20,7 +20,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 
 // Import controller with default import
-import invitationController from '../controllers/InvitationController';
+import invitationController from '../../controllers/v1/InvitationController';
 
 // Initialize OpenAPIHono
 const app = new OpenAPIHono();

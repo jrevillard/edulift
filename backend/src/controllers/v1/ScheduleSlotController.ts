@@ -8,13 +8,13 @@
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
-import { ScheduleSlotService } from '../services/ScheduleSlotService';
-import { ChildAssignmentService } from '../services/ChildAssignmentService';
-import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
-import { SocketEmitter } from '../utils/socketEmitter';
-import { createLogger } from '../utils/logger';
-import { normalizeError } from '../utils/errorHandler';
-import type { ScheduleSlotWithDetails, AssignVehicleToSlotData, UpdateSeatOverrideData } from '../types';
+import { ScheduleSlotService } from '../../services/ScheduleSlotService';
+import { ChildAssignmentService } from '../../services/ChildAssignmentService';
+import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
+import { SocketEmitter } from '../../utils/socketEmitter';
+import { createLogger } from '../../utils/logger';
+import { normalizeError } from '../../utils/errorHandler';
+import type { ScheduleSlotWithDetails, AssignVehicleToSlotData, UpdateSeatOverrideData } from '../../types';
 
 // Import Hono-native schemas
 import {
@@ -35,7 +35,7 @@ import {
   ChildAssignmentSchema,
   AvailableChildSchema,
   ScheduleResponseSchema,
-} from '../schemas/scheduleSlots';
+} from '../../schemas/scheduleSlots';
 
 // Type for Hono variables with userId
 type ScheduleSlotVariables = {

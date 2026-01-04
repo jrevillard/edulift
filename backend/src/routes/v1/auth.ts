@@ -19,7 +19,7 @@
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
-import authController from '../controllers/AuthController';
+import authController from '../../controllers/v1/AuthController';
 
 // Initialize OpenAPIHono
 const app = new OpenAPIHono();

@@ -1,19 +1,19 @@
 /**
- * OPENAPI NATIF Hono Groups Router - Phase 2
+ * OPENAPI NATIF Hono Vehicles Router - Phase 1
  *
- * OpenAPI native Hono router for groups endpoints with native Zod validation
+ * OpenAPI native Hono router for vehicles endpoints with native Zod validation
  * Authentication via Hono auth-hono middleware
  * Direct response format: c.json(data, status) - NO wrapper
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
-import groupController from '../controllers/GroupController';
+import vehicleController from '../../controllers/v1/VehicleController';
 
-// Initialize OpenAPIHono
+// Initialisation OpenAPIHono
 const router = new OpenAPIHono();
 
 // OpenAPI Hono router - mount OpenAPI controller
 // Controller already handles authentication, validation, and OpenAPI routes
-router.route('/', groupController);
+router.route('/', vehicleController);
 
 export default router;
