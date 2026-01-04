@@ -1,9 +1,11 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 import { FileSpecificTestData } from './file-specific-test-data';
 import type { TestUser, TestFamily } from './file-specific-test-data';
 import { createHmac } from 'crypto';
 import { createTimingHelper, EnhancedTimingHelper } from './enhanced-timing-helper';
 import { execSync } from 'child_process';
+import { E2EEmailHelper } from './e2e-email-helper';
+import { E2E_TEST_OVERRIDE_IV } from './e2e-constants';
 
 export interface AuthUser {
   id: string;
@@ -50,6 +52,17 @@ export class UniversalAuthHelper {
 
   // Worker-specific cache to track created users per worker
   private static createdUsers: Map<string, Set<string>> = new Map();
+
+  /**
+   * Timeout constants for authentication operations
+   * Centralized timeout management for better maintainability
+   */
+  private static readonly TIMEOUTS = {
+    EMAIL_SENT: 15000,
+    AUTH_VERIFICATION: 30000,
+    PAGE_LOAD: 15000,
+    AUTH_STABILITY: 15000,
+  } as const;
 
   /**
    * Get the current worker ID for isolation
@@ -240,22 +253,20 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async cleanupUserFamilyMemberships(userId: string): Promise<void> {
     try {
-      // execSync already imported at top of file
-
-      execSync(`docker exec edulift-backend-e2e node -e "
+      const script = `
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
-        
+
         async function cleanupFamilyMemberships() {
           try {
             console.log('Starting cleanup for user ${userId}');
-            
+
             // Check existing memberships first
             const existingMemberships = await prisma.familyMember.findMany({
               where: { userId: '${userId}' }
             });
             console.log('Found existing memberships:', existingMemberships.length);
-            
+
             // Remove any family memberships for this user
             const deleteResult = await prisma.familyMember.deleteMany({
               where: { userId: '${userId}' }
@@ -264,16 +275,14 @@ All tests MUST use automatic prefix detection for consistency.
           } catch (error) {
             console.error('Error cleaning up family memberships:', error.message);
           } finally {
-            await prisma.\\$disconnect();
+            await prisma['$disconnect']();
           }
         }
-        
+
         (async () => { await cleanupFamilyMemberships(); })();
-      "`, {
-        encoding: 'utf8',
-        timeout: 20000, // Increased for parallel execution
-        stdio: 'inherit'
-      });
+      `;
+
+      execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', timeout: 20000, stdio: 'inherit' });
     } catch (error) {
       console.log(`Family membership cleanup for ${userId}:`, error.message);
     }
@@ -287,13 +296,10 @@ All tests MUST use automatic prefix detection for consistency.
     // No need for static cache checks - just create directly
 
     try {
-      // Use Docker exec to create user directly in the database
-      // execSync already imported at top of file
-
-      execSync(`docker exec edulift-backend-e2e node -e "
+      const script = `
         const { PrismaClient } = require('@prisma/client');
         const prisma = new PrismaClient();
-        
+
         async function createUser() {
           try {
             const user = await prisma.user.upsert({
@@ -318,16 +324,14 @@ All tests MUST use automatic prefix detection for consistency.
               throw error;
             }
           } finally {
-            await prisma.\\$disconnect();
+            await prisma['$disconnect']();
           }
         }
-        
+
         (async () => { await createUser(); })();
-      "`, {
-        encoding: 'utf8',
-        timeout: 300000, // 5 minutes for heavy parallel load
-        stdio: 'inherit'
-      });
+      `;
+
+      execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', timeout: 300000, stdio: 'inherit' });
     } catch (error) {
       // Handle cases where user creation fails due to existing users
       if (error.message.includes('Unique constraint failed') ||
@@ -337,6 +341,40 @@ All tests MUST use automatic prefix detection for consistency.
         console.error('Failed to create user in database:', error);
         throw new Error(`Failed to create user ${user.email} in database: ${error.message}`);
       }
+    }
+  }
+
+  /**
+   * Verify that a user exists in the database
+   * @throws Error if user not found or database check fails
+   */
+  private async verifyUserExists(userId: string): Promise<void> {
+    try {
+      // Use a heredoc to avoid shell escaping issues with $disconnect
+      const script = `
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        (async () => {
+          try {
+            const user = await prisma.user.findUnique({
+              where: { id: '${userId}' }
+            });
+            if (!user) {
+              console.error('USER_NOT_FOUND');
+              process.exit(1);
+            }
+            console.log('USER_FOUND');
+          } catch (e) {
+            console.error('ERROR:', e.message);
+            process.exit(1);
+          } finally {
+            await prisma['$disconnect']();
+          }
+        })();
+      `;
+      execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', stdio: 'pipe', timeout: 10000 });
+    } catch (error) {
+      throw new Error(`User verification failed for ID ${userId}: ${error.message}`);
     }
   }
 
@@ -432,50 +470,71 @@ All tests MUST use automatic prefix detection for consistency.
       await this.page.evaluate(
         ({ token, userData, opts }) => {
           // Clear any existing auth data first to avoid conflicts
+          // 🔧 FIX: Also clear secure_* keys
           localStorage.removeItem('authToken');
           localStorage.removeItem('userData');
           localStorage.removeItem('auth-storage');
+          localStorage.removeItem('secure_authToken');
+          localStorage.removeItem('secure_userData');
+          localStorage.removeItem('secure_refreshToken');
 
-          // Set legacy formats for compatibility
-          localStorage.setItem('authToken', token);
-          localStorage.setItem('userData', JSON.stringify(userData));
+          // 🔧 FIX: Store in secure_* format to match secureStorage keys
+          // Format: { encrypted: base64(data), iv: base64(iv), timestamp: number }
+          const encodeBase64 = (str: string) => btoa(str);
+          const e2eTestIv = encodeBase64(E2E_TEST_OVERRIDE_IV);
 
-          // Set modern auth-storage format
-          const _authData = {
-            state: {
-              user: userData,
-              isAuthenticated: true,
-              isNewUser: opts.isNewUser ?? false,
-              accessToken: token,
-              refreshToken: 'test-refresh-token'
-            },
-            version: 0
-          };
-          localStorage.setItem('auth-storage', JSON.stringify(_authData));
+          // 🔧 CRITICAL: Set E2E test mode flags so secureStorage recognizes test data
+          (window as any).__E2E_TEST_MODE__ = true;
+          localStorage.setItem('__E2E_TEST_MODE__', 'true');
+
+          // Store authToken in secure_authToken
+          localStorage.setItem('secure_authToken', JSON.stringify({
+            encrypted: encodeBase64(token),
+            iv: e2eTestIv,
+            timestamp: Date.now()
+          }));
+
+          // Store userData in secure_userData
+          localStorage.setItem('secure_userData', JSON.stringify({
+            encrypted: encodeBase64(JSON.stringify(userData)),
+            iv: e2eTestIv,
+            timestamp: Date.now()
+          }));
+
+          // Store refreshToken in secure_refreshToken
+          localStorage.setItem('secure_refreshToken', JSON.stringify({
+            encrypted: encodeBase64('test-refresh-token'),
+            iv: e2eTestIv,
+            timestamp: Date.now()
+          }));
 
           // Force authService to re-read localStorage by triggering a storage event
           // This simulates what would happen if auth was set in another tab
           const storageEvent = new StorageEvent('storage', {
-            key: 'authToken',
-            newValue: token,
+            key: 'secure_authToken',
+            newValue: JSON.stringify({
+              encrypted: btoa(token),
+              iv: btoa(E2E_TEST_OVERRIDE_IV),
+              timestamp: Date.now()
+            }),
             oldValue: null,
             storageArea: localStorage
           });
           window.dispatchEvent(storageEvent);
 
           // Verify ALL auth data was set correctly
-          const verifyToken = localStorage.getItem('authToken');
-          const verifyUserData = localStorage.getItem('userData');
-          const verifyAuthStorage = localStorage.getItem('auth-storage');
+          const verifyToken = localStorage.getItem('secure_authToken');
+          const verifyUserData = localStorage.getItem('secure_userData');
+          const verifyRefreshToken = localStorage.getItem('secure_refreshToken');
 
-          if (verifyToken !== token) {
-            throw new Error(`Token verification failed: expected ${token}, got ${verifyToken}`);
+          if (!verifyToken) {
+            throw new Error('Token not set in secure_authToken');
           }
           if (!verifyUserData) {
-            throw new Error('User data not set in localStorage');
+            throw new Error('User data not set in secure_userData');
           }
-          if (!verifyAuthStorage) {
-            throw new Error('Auth storage not set in localStorage');
+          if (!verifyRefreshToken) {
+            throw new Error('Refresh token not set in secure_refreshToken');
           }
 
           console.log('✅ E2E auth data successfully set and verified in localStorage');
@@ -517,22 +576,35 @@ All tests MUST use automatic prefix detection for consistency.
     try {
       await this.page.evaluate(
         ({ token, userData, opts }) => {
-          // Set legacy formats for compatibility
-          localStorage.setItem('authToken', token);
-          localStorage.setItem('userData', JSON.stringify(userData));
+          // 🔧 FIX: Store in secure_* format to match secureStorage keys
+          // Format: { encrypted: base64(data), iv: base64(iv), timestamp: number }
+          const encodeBase64 = (str: string) => btoa(str);
+          const e2eTestIv = encodeBase64(E2E_TEST_OVERRIDE_IV);
 
-          // Set modern auth-storage format
-          const _authData = {
-            state: {
-              user: userData,
-              isAuthenticated: true,
-              isNewUser: opts.isNewUser ?? false,
-              accessToken: token,
-              refreshToken: 'test-refresh-token'
-            },
-            version: 0
-          };
-          localStorage.setItem('auth-storage', JSON.stringify(_authData));
+          // 🔧 CRITICAL: Set E2E test mode flags so secureStorage recognizes test data
+          (window as any).__E2E_TEST_MODE__ = true;
+          localStorage.setItem('__E2E_TEST_MODE__', 'true');
+
+          // Store authToken in secure_authToken
+          localStorage.setItem('secure_authToken', JSON.stringify({
+            encrypted: encodeBase64(token),
+            iv: e2eTestIv,
+            timestamp: Date.now()
+          }));
+
+          // Store userData in secure_userData
+          localStorage.setItem('secure_userData', JSON.stringify({
+            encrypted: encodeBase64(JSON.stringify(userData)),
+            iv: e2eTestIv,
+            timestamp: Date.now()
+          }));
+
+          // Store refreshToken in secure_refreshToken
+          localStorage.setItem('secure_refreshToken', JSON.stringify({
+            encrypted: encodeBase64('test-refresh-token'),
+            iv: e2eTestIv,
+            timestamp: Date.now()
+          }));
         },
         {
           token: jwtToken,
@@ -559,7 +631,7 @@ All tests MUST use automatic prefix detection for consistency.
       // Ensure we're not stuck in a redirect loop
       const url = window.location.pathname;
       const isAuthPage = url.includes('/login') || url.includes('/auth');
-      const hasAuth = localStorage.getItem('authToken') !== null;
+      const hasAuth = localStorage.getItem('secure_authToken') !== null;
 
       // Page should be ready and not on auth pages if we have auth
       return document.readyState === 'complete' && (!isAuthPage || !hasAuth);
@@ -634,7 +706,7 @@ All tests MUST use automatic prefix detection for consistency.
     await this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]').fill(familyName);
 
     // Verify authentication token is still available before submitting
-    const authToken = await this.page.evaluate(() => localStorage.getItem('authToken'));
+    const authToken = await this.page.evaluate(() => localStorage.getItem('secure_authToken'));
     if (!authToken) {
       throw new Error('Authentication token lost during onboarding process');
     }
@@ -750,8 +822,8 @@ All tests MUST use automatic prefix detection for consistency.
       throw error;
     }
 
-    // Optimized wait for navigation
-    await this.page.waitForLoadState('networkidle');
+    // Optimized wait for navigation - use domcontentloaded for SPA compatibility
+    await this.page.waitForLoadState('domcontentloaded');
     await this.timingHelper.waitForSessionStateChange('authenticated');
 
     // Check final URL - session MUST persist through family creation
@@ -803,7 +875,7 @@ All tests MUST use automatic prefix detection for consistency.
       // If we're still not at the right page, wait a bit more
       if (!currentUrl.includes(targetPath.split('?')[0])) {
         await this.timingHelper.waitForAuthenticationReady();
-        await this.page.waitForLoadState('networkidle');
+        await this.page.waitForLoadState('domcontentloaded');
       }
     }
 
@@ -875,7 +947,17 @@ All tests MUST use automatic prefix detection for consistency.
    * Direct setup for test users that should already have families
    */
   /**
-   * Enhanced directUserSetup - requires predefined user key for safety
+   * ⚠️ DEPRECATED: directUserSetup does NOT work with PKCE authentication
+   *
+   * This method attempts to bypass the real authentication flow by writing
+   * directly to localStorage, but this approach is incompatible with:
+   * - PKCE (Proof Key for Code Exchange) security
+   * - secureStorage encryption
+   * - authService initialization timing
+   *
+   * ✅ SOLUTION: Use realUserSetup() or implement proper magic link flow
+   *
+   * @deprecated Use realUserSetup() instead for tests requiring authentication
    * @param userKey - Key of a user defined with defineUser()
    * @param targetPath - Path to navigate to after authentication
    */
@@ -946,11 +1028,10 @@ All tests MUST use automatic prefix detection for consistency.
 
         // Try to check if family exists in database
         try {
-          // execSync already imported at top of file
-          const checkResult = execSync(`docker exec edulift-backend-e2e node -e "
+          const script = `
             const { PrismaClient } = require('@prisma/client');
             const prisma = new PrismaClient();
-            
+
             (async () => {
               try {
                 const user = await prisma.user.findUnique({
@@ -961,10 +1042,11 @@ All tests MUST use automatic prefix detection for consistency.
               } catch (e) {
                 console.error('Database check error:', e.message);
               } finally {
-                await prisma.\\$disconnect();
+                await prisma['$disconnect']();
               }
             })();
-          "`, { encoding: 'utf8', stdio: 'pipe' });
+          `;
+          const checkResult = execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', stdio: 'pipe' });
           console.log('🔍 Database check result:', checkResult);
         } catch (e) {
           console.error('Database check failed:', e.message);
@@ -979,6 +1061,158 @@ All tests MUST use automatic prefix detection for consistency.
         await this.waitForAuthenticationStability();
       }
     }
+
+    return user;
+  }
+
+  /**
+   * Real authentication flow through the UI - tests complete backend connectivity
+   *
+   * This method performs actual user authentication by:
+   * 1. Navigating to login page
+   * 2. Filling out the login form with user email
+   * 3. Submitting the form to backend
+   * 4. Retrieving magic link from MailHog
+   * 5. Clicking the magic link to authenticate
+   * 6. Verifying authentication success
+   *
+   * @param userKey - Key of a predefined user (must exist in FileSpecificTestData)
+   * @param targetPath - Path to navigate to after authentication (default: '/dashboard')
+   * @returns The authenticated user object
+   *
+   * Usage:
+   * ```typescript
+   * const authHelper = UniversalAuthHelper.forCurrentFile(page);
+   * const user = await authHelper.realUserSetup('connectivityUser', '/dashboard');
+   * ```
+   */
+  async realUserSetup(
+    userKey: string,
+    targetPath: string = '/dashboard'
+  ): Promise<TestUser> {
+    const authStartTime = Date.now();
+    const emailHelper = new E2EEmailHelper();
+
+    // Get the predefined user
+    const user = this.testData.getUser(userKey);
+    console.log(`🔐 Starting real authentication flow for user: ${user.email}`);
+
+    // Verify user exists in database (helps catch setup issues early)
+    try {
+      await this.verifyUserExists(user.id);
+      console.log(`✅ User ${user.email} (ID: ${user.id}) verified in database`);
+    } catch (error) {
+      throw new Error(
+        `User ${user.email} (ID: ${user.id}) not found in database. ` +
+        `Did you forget to call createUsersInDatabase() in beforeAll()? ` +
+        `Error: ${error.message}`
+      );
+    }
+
+    // Navigate to login page
+    console.log('📍 Navigating to login page...');
+    await this.page.goto('/login');
+    await this.page.waitForLoadState('domcontentloaded');
+
+    // Wait for login form to be visible
+    await expect(this.page.locator('[data-testid="LoginPage-Heading-welcome"]')).toBeVisible({ timeout: UniversalAuthHelper.TIMEOUTS.PAGE_LOAD });
+    await expect(this.page.locator('[data-testid="LoginPage-Input-email-existing"]')).toBeVisible();
+
+    // Fill in email for existing user
+    console.log(`📝 Entering email: ${user.email}`);
+    const emailInput = this.page.locator('[data-testid="LoginPage-Input-email-existing"]');
+    await emailInput.fill(user.email);
+
+    // Submit the form to request magic link
+    console.log('📤 Submitting login request to backend...');
+    const submitButton = this.page.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
+    await submitButton.click();
+
+    // Wait for success message or email sent confirmation
+    console.log('⏳ Waiting for email to be sent...');
+    try {
+      await expect(this.page.locator('[data-testid="LoginPage-Alert-emailSent"]'))
+        .toBeVisible({ timeout: UniversalAuthHelper.TIMEOUTS.EMAIL_SENT });
+      console.log('✅ Backend received login request and sent email');
+    } catch {
+      // Alternative: check for redirect to magic-link-sent page
+      await this.page.waitForURL(url => url.toString().includes('magic-link-sent') || url.toString().includes('login'), { timeout: UniversalAuthHelper.TIMEOUTS.EMAIL_SENT });
+      console.log('✅ Redirected to magic link sent page');
+    }
+
+    // Now retrieve the magic link from MailHog
+    console.log('📧 Retrieving magic link from MailHog...');
+
+    // Wait for email to arrive (with timeout)
+    const magicLink = await emailHelper.extractMagicLinkForRecipient(user.email);
+
+    if (!magicLink) {
+      throw new Error(
+        `❌ No magic link email received for ${user.email} within timeout. ` +
+        `Possible issues:\n` +
+        `  - Backend not sending emails (check MailHog: http://localhost:8025)\n` +
+        `  - Email service not configured\n` +
+        `  - User ${user.email} not properly created in database\n` +
+        `  - Network connectivity issues between frontend and backend`
+      );
+    }
+
+    console.log(`✅ Magic link retrieved: ${magicLink.substring(0, 50)}...`);
+
+    // Navigate to magic link to authenticate
+    console.log('🔗 Navigating to magic link to authenticate...');
+    await this.page.goto(magicLink);
+
+    // Wait for authentication to complete and navigation to target
+    console.log(`⏳ Waiting for authentication to complete...`);
+
+    // Wait for URL to change from auth/verify to target or dashboard
+    await this.page.waitForURL(
+      url => !url.toString().includes('/auth/verify'),
+      { timeout: UniversalAuthHelper.TIMEOUTS.AUTH_VERIFICATION }
+    );
+
+    console.log('✅ Authentication successful - token verified by backend');
+
+    // Wait for page to stabilize
+    await this.page.waitForLoadState('networkidle', { timeout: UniversalAuthHelper.TIMEOUTS.PAGE_LOAD }).catch(() => {
+      console.log('⚠️ networkidle timeout, continuing with domcontentloaded');
+      return this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+    });
+
+    // Wait for authentication state to stabilize
+    await this.waitForAuthenticationStability();
+
+    // Check current URL
+    const currentUrl = this.page.url();
+    console.log(`📍 Current URL after authentication: ${currentUrl}`);
+
+    // If not on target page, navigate there
+    if (!currentUrl.includes(targetPath.split('?')[0])) {
+      console.log(`🔄 Navigating to target path: ${targetPath}`);
+      await this.page.goto(targetPath);
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.waitForAuthenticationStability();
+    }
+
+    // Verify we're authenticated and on a valid page
+    const finalUrl = this.page.url();
+    if (finalUrl.includes('/login')) {
+      throw new Error(
+        `❌ Authentication failed for user ${user.email}. ` +
+        `User was redirected back to login page after clicking magic link. ` +
+        `This may indicate:\n` +
+        `  - Invalid or expired magic link\n` +
+        `  - User ${user.email} does not exist in database\n` +
+        `  - Backend authentication service issues\n` +
+        `  - JWT token validation failure`
+      );
+    }
+
+    const authDuration = Date.now() - authStartTime;
+    console.log(`⏱️ Authentication completed in ${authDuration}ms`);
+    console.log(`✅ Real authentication flow completed successfully`);
+    console.log(`📍 Final URL: ${finalUrl}`);
 
     return user;
   }
@@ -1325,34 +1559,33 @@ All tests MUST use automatic prefix detection for consistency.
 
     // Wait for authentication state to be consistent with more flexibility
     await this.page.waitForFunction(() => {
-      const authToken = localStorage.getItem('authToken');
-      const authStorage = localStorage.getItem('auth-storage');
+      // 🔧 FIX: Check for secure_* keys instead of plain localStorage keys
+      // The frontend now uses secureStorage which prefixes all keys with 'secure_'
+      const authToken = localStorage.getItem('secure_authToken');
+      const userData = localStorage.getItem('secure_userData');
       const currentUrl = window.location.pathname;
 
+      // Debug logging to help diagnose authentication state
+      const allKeys = Object.keys(localStorage);
+      const authKeys = allKeys.filter(k => k.startsWith('secure_') || k.startsWith('auth'));
+
       // Check authentication consistency
-      if (!authToken || !authStorage) {
+      const hasAuth = authToken && userData;
+
+      if (!hasAuth) {
         // No auth - should be on login page, and page should be ready
         return (currentUrl.includes('/login') || currentUrl.includes('/auth')) &&
           document.readyState === 'complete';
       }
 
-      try {
-        const auth = JSON.parse(authStorage);
-        if (!auth.state?.isAuthenticated) {
-          return false;
-        }
+      // Has auth - should NOT be on login page and page should be ready
+      const notOnAuthPage = !currentUrl.includes('/login') && !currentUrl.includes('/auth');
+      const pageReady = document.readyState === 'complete';
 
-        // Has auth - should NOT be on login page and page should be ready
-        const notOnAuthPage = !currentUrl.includes('/login') && !currentUrl.includes('/auth');
-        const pageReady = document.readyState === 'complete';
+      // For complex pages, also check that React has finished initial rendering
+      const reactReady = !document.querySelector('[data-loading="true"]');
 
-        // For complex pages, also check that React has finished initial rendering
-        const reactReady = !document.querySelector('[data-loading="true"]');
-
-        return notOnAuthPage && pageReady && reactReady;
-      } catch {
-        return false;
-      }
+      return notOnAuthPage && pageReady && reactReady;
     }, { timeout: Math.min(timeoutMs, 20000) }); // Cap timeout to prevent excessive waits
 
     // Ensure React router has settled - shorter timeout for faster execution
@@ -1656,11 +1889,11 @@ All tests MUST use automatic prefix detection for consistency.
     // Now verify the expected state with proper conditions and improved polling
     // Increased timeout for parallel execution environments
     await this.page.waitForFunction((expected) => {
-      const authToken = localStorage.getItem('authToken');
-      const authStorage = localStorage.getItem('auth-storage');
+      const authToken = localStorage.getItem('secure_authToken');
+      const userData = localStorage.getItem('secure_userData');
       const currentUrl = window.location.pathname;
 
-      const isAuthenticated = !!(authToken && authStorage);
+      const isAuthenticated = !!(authToken && userData);
 
       if (expected === 'authenticated') {
         // For authenticated state, verify we're not on auth pages
@@ -1694,11 +1927,15 @@ All tests MUST use automatic prefix detection for consistency.
     await this.page.waitForTimeout(500); // Wait for logout click to process
 
     // Manually clear storage items to ensure proper cleanup
+    // 🔧 FIX: Also clear secure_* keys
     await this.page.evaluate(() => {
       localStorage.removeItem('authToken');
       localStorage.removeItem('auth-storage');
       localStorage.removeItem('userEmail');
       localStorage.removeItem('userId');
+      localStorage.removeItem('secure_authToken');
+      localStorage.removeItem('secure_userData');
+      localStorage.removeItem('secure_refreshToken');
 
       // Trigger storage event for other tabs to synchronize
       const storageEvent = new StorageEvent('storage', {
@@ -1727,9 +1964,10 @@ All tests MUST use automatic prefix detection for consistency.
 
     // Final verification that session is actually cleared
     const sessionCleared = await this.page.evaluate(() => {
-      const authToken = localStorage.getItem('authToken');
-      const authStorage = localStorage.getItem('auth-storage');
-      return !authToken && !authStorage;
+      const authToken = localStorage.getItem('secure_authToken');
+      const userData = localStorage.getItem('secure_userData');
+      const refreshToken = localStorage.getItem('secure_refreshToken');
+      return !authToken && !userData && !refreshToken;
     });
 
     if (!sessionCleared) {
@@ -1935,11 +2173,13 @@ All tests MUST use automatic prefix detection for consistency.
 
         // Verify user actually has family access now with improved validation
         await this.page.waitForFunction(() => {
-          const authStorage = localStorage.getItem('auth-storage');
-          if (authStorage) {
+          const secureUserData = localStorage.getItem('secure_userData');
+          if (secureUserData) {
             try {
-              const auth = JSON.parse(authStorage);
-              return auth.state?.user?.familyId !== undefined;
+              const parsed = JSON.parse(secureUserData);
+              const decoded = atob(parsed.encrypted);
+              const userData = JSON.parse(decoded);
+              return userData.familyId !== undefined;
             } catch {
               return false;
             }
@@ -2038,5 +2278,80 @@ All tests MUST use automatic prefix detection for consistency.
     // Additional stabilization wait
     await this.waitForReactQueryStable(5000);
     console.log('✅ Family conflict detection completed');
+  }
+
+  /**
+   * Save PKCE security context from global window variable
+   * Use before navigating to a magic link URL to preserve authentication state
+   *
+   * The PKCE data is stored in a global variable by storePKCEPair() for E2E testing.
+   * This avoids decryption issues with secureStorage.
+   *
+   * @returns Promise<Record<string, string>> - PKCE data from window.__E2E_PKCE_DATA__
+   */
+  async saveSecurityContext(): Promise<Record<string, string>> {
+    const pkceData = await this.page.evaluate(() => {
+      // Read from global variable set by storePKCEPair()
+      const e2eData = (window as any).__E2E_PKCE_DATA__;
+
+      if (!e2eData || !e2eData.code_verifier || !e2eData.code_challenge || !e2eData.email) {
+        console.error('E2E PKCE data not found in window.__E2E_PKCE_DATA__');
+        return {};
+      }
+
+      // Return flat structure with just the values we need
+      return {
+        code_verifier: e2eData.code_verifier,
+        code_challenge: e2eData.code_challenge,
+        email: e2eData.email
+      };
+    });
+
+    console.log('🔐 PKCE data saved from window.__E2E_PKCE_DATA__:', Object.keys(pkceData));
+    return pkceData;
+  }
+
+  /**
+   * Restore PKCE security context to localStorage
+   * Use after navigating to a magic link URL to restore authentication state
+   *
+   * The PKCE data is stored with a special IV flag that secureStorage recognizes
+   * in test environment, bypassing the normal AES-GCM encryption.
+   *
+   * @param pkceData - PKCE data previously saved by saveSecurityContext()
+   */
+  async restoreSecurityContext(pkceData: Record<string, string>): Promise<void> {
+    await this.page.evaluate((args) => {
+      const { data, testOverrideIv } = args;
+
+      // Set E2E test mode flag BOTH in window AND localStorage for persistence
+      (window as any).__E2E_TEST_MODE__ = true;
+      localStorage.setItem('__E2E_TEST_MODE__', 'true');
+
+      // Store with E2E test override IV for secureStorage to recognize
+      // Map the data to the expected keys
+      const mapping: Record<string, string> = {
+        'code_verifier': 'pkce_code_verifier',
+        'code_challenge': 'pkce_code_challenge',
+        'email': 'pkce_email'
+      };
+
+      Object.entries(data).forEach(([subKey, value]) => {
+        if (value && mapping[subKey]) {
+          const storageKey = mapping[subKey];
+          const fullKey = `secure_${storageKey}`; // secure_pkce_code_verifier, etc.
+
+          const storageData = {
+            encrypted: btoa(value), // Base64 encode (not encrypted)
+            iv: btoa(testOverrideIv), // Special IV for test data (passed as arg)
+            timestamp: Date.now()
+          };
+
+          localStorage.setItem(fullKey, JSON.stringify(storageData));
+        }
+      });
+    }, { data: pkceData, testOverrideIv: E2E_TEST_OVERRIDE_IV });
+
+    console.log('🔐 PKCE data restored after navigation with E2E test override');
   }
 }
