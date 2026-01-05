@@ -241,11 +241,6 @@ const BaseFamilySchema = z.object({
       example: 'Johnson Family',
       description: 'Family display name',
     }),
-  inviteCode: z.string()
-    .openapi({
-      example: 'ABC123XYZ',
-      description: 'Family invitation code',
-    }),
   createdAt: z.string()
     .datetime()
     .openapi({

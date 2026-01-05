@@ -5387,11 +5387,6 @@
                           "example": "Johnson Family",
                           "description": "Family display name"
                         },
-                        "inviteCode": {
-                          "type": "string",
-                          "example": "ABC123XYZ",
-                          "description": "Family invitation code"
-                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -5564,7 +5559,6 @@
                       "required": [
                         "id",
                         "name",
-                        "inviteCode",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -5770,11 +5764,6 @@
                           "example": "Johnson Family",
                           "description": "Family display name"
                         },
-                        "inviteCode": {
-                          "type": "string",
-                          "example": "ABC123XYZ",
-                          "description": "Family invitation code"
-                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -5947,7 +5936,6 @@
                       "required": [
                         "id",
                         "name",
-                        "inviteCode",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -6163,11 +6151,6 @@
                           "example": "Johnson Family",
                           "description": "Family display name"
                         },
-                        "inviteCode": {
-                          "type": "string",
-                          "example": "ABC123XYZ",
-                          "description": "Family invitation code"
-                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -6340,7 +6323,6 @@
                       "required": [
                         "id",
                         "name",
-                        "inviteCode",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -7958,11 +7940,6 @@
                           "example": "Johnson Family",
                           "description": "Family display name"
                         },
-                        "inviteCode": {
-                          "type": "string",
-                          "example": "ABC123XYZ",
-                          "description": "Family invitation code"
-                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -8135,7 +8112,6 @@
                       "required": [
                         "id",
                         "name",
-                        "inviteCode",
                         "createdAt",
                         "updatedAt"
                       ],

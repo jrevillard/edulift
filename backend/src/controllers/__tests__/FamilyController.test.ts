@@ -192,7 +192,6 @@ describe('FamilyController Test Suite', () => {
       const mockFamily = {
         id: TEST_IDS.FAMILY,
         name: 'Test Family',
-        inviteCode: 'INV123',
         members: [],
         children: [],
         vehicles: [],
@@ -215,7 +214,6 @@ describe('FamilyController Test Suite', () => {
       expect(jsonResponse.data).toMatchObject({
         id: TEST_IDS.FAMILY,
         name: 'Test Family',
-        inviteCode: 'INV123',
         createdAt: mockFamily.createdAt.toISOString(),
         updatedAt: mockFamily.updatedAt.toISOString(),
       });
@@ -269,7 +267,6 @@ describe('FamilyController Test Suite', () => {
       const mockFamily = {
         id: TEST_IDS.FAMILY,
         name: 'Test Family',
-        inviteCode: 'INV123',
         members: [],
         children: [],
         vehicles: [],
@@ -335,7 +332,6 @@ describe('FamilyController Test Suite', () => {
       const mockFamily = {
         id: TEST_IDS.FAMILY,
         name: 'Test Family',
-        inviteCode: 'INV123',
         members: [],
         children: [],
         vehicles: [],
