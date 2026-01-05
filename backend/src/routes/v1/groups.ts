@@ -7,13 +7,16 @@
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { authenticateToken } from '../../middleware/auth-hono';
 import groupController from '../../controllers/v1/GroupController';
 
 // Initialize OpenAPIHono
 const router = new OpenAPIHono();
 
+// Apply authentication to all routes
+router.use('*', authenticateToken);
+
 // OpenAPI Hono router - mount OpenAPI controller
-// Controller already handles authentication, validation, and OpenAPI routes
 router.route('/', groupController);
 
 export default router;
