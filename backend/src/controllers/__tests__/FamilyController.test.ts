@@ -220,7 +220,7 @@ describe('FamilyController Test Suite', () => {
         updatedAt: mockFamily.updatedAt.toISOString(),
       });
 
-      expect(mockFamilyService.createFamily).toHaveBeenCalledWith('Test Family', mockUserId);
+      expect(mockFamilyService.createFamily).toHaveBeenCalledWith(mockUserId, 'Test Family');
     });
 
     it('should handle service errors during family creation', async () => {

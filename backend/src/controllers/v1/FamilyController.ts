@@ -888,7 +888,7 @@ app.openapi(createFamilyRoute, async (c) => {
       }, 409);
     }
 
-    const family = await familyServiceInstance.createFamily(name, userId);
+    const family = await familyServiceInstance.createFamily(userId, name);
 
     loggerInstance.info('createFamily: success', { userId, familyId: family.id });
     return c.json({
