@@ -26,7 +26,7 @@ async function globalSetup(config: FullConfig) {
     
     // Wait for services to be ready
     console.log('⏳ Waiting for services to be ready...');
-    await waitForDockerHealth('edulift-mailhog-e2e', 30000);
+    await waitForDockerHealth('edulift-mailpit-e2e', 30000);
     await waitForDockerHealth('edulift-backend-e2e', 60000);
     await waitForDockerHealth('edulift-frontend-e2e', 60000);
     

@@ -28,9 +28,9 @@ services:
       timeout: 10s
       retries: 3
 
-  mailhog-e2e:
-    image: mailhog/mailhog:v1.0.1
-    container_name: edulift-mailhog-e2e
+  mailpit-e2e:
+    image: axllent/mailpit:v1.20
+    container_name: edulift-mailpit-e2e
     restart: unless-stopped
     ports:
       - "8025:8025" # Web UI
@@ -56,8 +56,8 @@ services:
       REDIS_URL: redis://redis-e2e:6379
       JWT_ACCESS_SECRET: e2e-test-access-secret-key-very-long
       JWT_REFRESH_SECRET: e2e-test-refresh-secret-key-very-long
-      # Email configuration for MailHog
-      EMAIL_HOST: mailhog-e2e
+      # Email configuration for MailPit
+      EMAIL_HOST: mailpit-e2e
       EMAIL_PORT: 1025
       EMAIL_ENCRYPTION: NONE
       EMAIL_USER: e2e-test@edulift.com
@@ -75,7 +75,7 @@ services:
         condition: service_healthy
       redis-e2e:
         condition: service_healthy
-      mailhog-e2e:
+      mailpit-e2e:
         condition: service_healthy
     command: >
       sh -c "
@@ -96,8 +96,8 @@ services:
     ports:
       - "8001:3000"
     environment:
-      VITE_API_URL: http://localhost:8002/api/v1
-      VITE_SOCKET_URL: http://localhost:8002
+      VITE_API_URL: http://edulift-backend-e2e:3001/api/v1
+      VITE_SOCKET_URL: http://edulift-backend-e2e:3001
       VITE_HMR_CLIENT_PORT: 8001
       VITE_APP_STORE_URL: https://apps.apple.com/app/edulift
       VITE_PLAY_STORE_URL: https://play.google.com/store/apps/details?id=com.edulift.app
