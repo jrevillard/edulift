@@ -308,13 +308,11 @@ export const FamilyPermissionsSchema = z.object({
 
 export const FamilyInvitationSchema = z.object({
   id: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901240',
       description: 'Unique invitation identifier (CUID format)',
     }),
   familyId: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Family identifier',
@@ -342,11 +340,20 @@ export const FamilyInvitationSchema = z.object({
       example: 'Welcome to our family!',
       description: 'Personal invitation message',
     }),
+  inviteCode: z.string()
+    .openapi({
+      example: 'ABC123XYZ',
+      description: 'Unique invitation code for joining the family',
+    }),
   invitedBy: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'User who sent the invitation',
+    }),
+  createdBy: z.string()
+    .openapi({
+      example: 'cl123456789012345678901237',
+      description: 'User who created the invitation',
     }),
   invitedByUser: UserSchema.optional()
     .openapi({

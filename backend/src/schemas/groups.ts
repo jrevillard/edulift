@@ -626,19 +626,16 @@ export const EnrichedGroupFamilySchema = z.object({
 
 export const GroupInvitationSchema = z.object({
   id: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901240',
       description: 'Unique invitation identifier (CUID format)',
     }),
   groupId: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Group identifier',
     }),
   familyId: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901241',
       description: 'Family identifier being invited',
@@ -660,14 +657,23 @@ export const GroupInvitationSchema = z.object({
       example: 'Welcome to our carpool group!',
       description: 'Personal invitation message',
     }),
+  inviteCode: z.string()
+    .openapi({
+      example: 'ABC123XYZ',
+      description: 'Unique invitation code for joining the group',
+    }),
   invitedBy: z.string()
-    .cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'User who sent the invitation',
     }),
+  createdBy: z.string()
+    .openapi({
+      example: 'cl123456789012345678901237',
+      description: 'User who created the invitation',
+    }),
   invitedByUser: z.object({
-    id: z.string().cuid(),
+    id: z.string(),
     name: z.string(),
     email: z.string().email(),
   }).optional()

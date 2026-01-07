@@ -7003,13 +7003,11 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901240",
                           "description": "Unique invitation identifier (CUID format)"
                         },
                         "familyId": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901234",
                           "description": "Family identifier"
                         },
@@ -7046,11 +7044,20 @@
                           "example": "Welcome to our family!",
                           "description": "Personal invitation message"
                         },
+                        "inviteCode": {
+                          "type": "string",
+                          "example": "ABC123XYZ",
+                          "description": "Unique invitation code for joining the family"
+                        },
                         "invitedBy": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901237",
                           "description": "User who sent the invitation"
+                        },
+                        "createdBy": {
+                          "type": "string",
+                          "example": "cl123456789012345678901237",
+                          "description": "User who created the invitation"
                         },
                         "invitedByUser": {
                           "type": "object",
@@ -7110,7 +7117,9 @@
                         "email",
                         "role",
                         "status",
+                        "inviteCode",
                         "invitedBy",
+                        "createdBy",
                         "expiresAt",
                         "createdAt",
                         "updatedAt"
@@ -7366,13 +7375,11 @@
                         "properties": {
                           "id": {
                             "type": "string",
-                            "format": "cuid",
                             "example": "cl123456789012345678901240",
                             "description": "Unique invitation identifier (CUID format)"
                           },
                           "familyId": {
                             "type": "string",
-                            "format": "cuid",
                             "example": "cl123456789012345678901234",
                             "description": "Family identifier"
                           },
@@ -7409,11 +7416,20 @@
                             "example": "Welcome to our family!",
                             "description": "Personal invitation message"
                           },
+                          "inviteCode": {
+                            "type": "string",
+                            "example": "ABC123XYZ",
+                            "description": "Unique invitation code for joining the family"
+                          },
                           "invitedBy": {
                             "type": "string",
-                            "format": "cuid",
                             "example": "cl123456789012345678901237",
                             "description": "User who sent the invitation"
+                          },
+                          "createdBy": {
+                            "type": "string",
+                            "example": "cl123456789012345678901237",
+                            "description": "User who created the invitation"
                           },
                           "invitedByUser": {
                             "type": "object",
@@ -7473,7 +7489,9 @@
                           "email",
                           "role",
                           "status",
+                          "inviteCode",
                           "invitedBy",
+                          "createdBy",
                           "expiresAt",
                           "createdAt",
                           "updatedAt"
@@ -10265,19 +10283,16 @@
                       "properties": {
                         "id": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901240",
                           "description": "Unique invitation identifier (CUID format)"
                         },
                         "groupId": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901234",
                           "description": "Group identifier"
                         },
                         "familyId": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901241",
                           "description": "Family identifier being invited"
                         },
@@ -10308,18 +10323,26 @@
                           "example": "Welcome to our carpool group!",
                           "description": "Personal invitation message"
                         },
+                        "inviteCode": {
+                          "type": "string",
+                          "example": "ABC123XYZ",
+                          "description": "Unique invitation code for joining the group"
+                        },
                         "invitedBy": {
                           "type": "string",
-                          "format": "cuid",
                           "example": "cl123456789012345678901237",
                           "description": "User who sent the invitation"
+                        },
+                        "createdBy": {
+                          "type": "string",
+                          "example": "cl123456789012345678901237",
+                          "description": "User who created the invitation"
                         },
                         "invitedByUser": {
                           "type": "object",
                           "properties": {
                             "id": {
-                              "type": "string",
-                              "format": "cuid"
+                              "type": "string"
                             },
                             "name": {
                               "type": "string"
@@ -10361,7 +10384,9 @@
                         "familyId",
                         "role",
                         "status",
+                        "inviteCode",
                         "invitedBy",
+                        "createdBy",
                         "expiresAt",
                         "createdAt",
                         "updatedAt"
