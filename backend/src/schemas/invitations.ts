@@ -312,6 +312,19 @@ export const FamilyInvitationValidationSchema = z.object({
       example: 'Welcome to our family!',
       description: 'Personal message from inviter (if valid)',
     }),
+  inviterName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'John Doe',
+      description: 'Name of the user who sent the invitation',
+    }),
+  existingUser: z.boolean()
+    .optional()
+    .openapi({
+      example: false,
+      description: 'Whether the invited email already corresponds to an existing user account',
+    }),
 }).openapi({
   title: 'Family Invitation Validation Response',
   description: 'Family invitation validation result',
@@ -338,6 +351,31 @@ export const GroupInvitationValidationSchema = z.object({
     .openapi({
       example: 'john.smith@example.com',
       description: 'Email address the invitation was sent to (if valid)',
+    }),
+  inviterName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'John Doe',
+      description: 'Name of the user who sent the invitation',
+    }),
+  existingUser: z.boolean()
+    .optional()
+    .openapi({
+      example: false,
+      description: 'Whether the invited email already corresponds to an existing user account',
+    }),
+  targetFamilyId: z.string()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901236',
+      description: 'Target family ID (present when a family is invited to join the group)',
+    }),
+  targetFamilyName: z.string()
+    .optional()
+    .openapi({
+      example: 'Smith Family',
+      description: 'Name of the invited family',
     }),
 }).openapi({
   title: 'Group Invitation Validation Response',

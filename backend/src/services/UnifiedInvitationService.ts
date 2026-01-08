@@ -59,10 +59,13 @@ export interface GroupInvitationValidation {
   valid: boolean;
   groupId?: string;
   groupName?: string;
+  targetFamilyId?: string;  // Present when a family is invited to a group
+  targetFamilyName?: string;  // Name of the invited family
   requiresAuth?: boolean;
   error?: string;
   errorCode?: string;
   email?: string;
+  inviterName?: string | null;
   existingUser?: boolean;
 }
 
@@ -702,7 +705,7 @@ export class UnifiedInvitationService {
   }
 
   async validateGroupInvitation(inviteCode: string, currentUserId?: string): Promise<GroupInvitationValidation> {
-    
+
     const invitation = await this.prisma.groupInvitation.findFirst({
       where: {
         inviteCode,
@@ -711,6 +714,7 @@ export class UnifiedInvitationService {
       include: {
         group: true,
         invitedByUser: true,  // Include inviter information
+        targetFamily: true,    // Include target family if this is a family invitation
       },
     });
 
@@ -728,6 +732,12 @@ export class UnifiedInvitationService {
       groupName: invitation.group.name,
       inviterName: invitation.invitedByUser?.name || null,
     };
+
+    // If this is a family invitation (targetFamilyId exists), include family info
+    if (invitation.targetFamilyId && invitation.targetFamily) {
+      result.targetFamilyId = invitation.targetFamilyId;
+      result.targetFamilyName = invitation.targetFamily.name;
+    }
 
     // SECURITY CHECK: If there's a current authenticated user and the invitation has an email
     if (currentUserId && invitation.email) {

@@ -13403,6 +13403,17 @@
                       "nullable": true,
                       "example": "Welcome to our family!",
                       "description": "Personal message from inviter (if valid)"
+                    },
+                    "inviterName": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "John Doe",
+                      "description": "Name of the user who sent the invitation"
+                    },
+                    "existingUser": {
+                      "type": "boolean",
+                      "example": false,
+                      "description": "Whether the invited email already corresponds to an existing user account"
                     }
                   },
                   "required": [
@@ -14056,6 +14067,27 @@
                       "format": "email",
                       "example": "john.smith@example.com",
                       "description": "Email address the invitation was sent to (if valid)"
+                    },
+                    "inviterName": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "John Doe",
+                      "description": "Name of the user who sent the invitation"
+                    },
+                    "existingUser": {
+                      "type": "boolean",
+                      "example": false,
+                      "description": "Whether the invited email already corresponds to an existing user account"
+                    },
+                    "targetFamilyId": {
+                      "type": "string",
+                      "example": "cl123456789012345678901236",
+                      "description": "Target family ID (present when a family is invited to join the group)"
+                    },
+                    "targetFamilyName": {
+                      "type": "string",
+                      "example": "Smith Family",
+                      "description": "Name of the invited family"
                     }
                   },
                   "required": [

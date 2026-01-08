@@ -399,6 +399,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
         include: {
           group: true,
           invitedByUser: true,
+          targetFamily: true,
         },
       });
     });

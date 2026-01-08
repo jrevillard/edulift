@@ -584,6 +584,8 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
         email: validation.email,
         role: validation.role,
         personalMessage: validation.personalMessage,
+        inviterName: validation.inviterName,
+        existingUser: validation.existingUser,
       }, 200);
     } else {
       loggerInstance.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error });
@@ -746,6 +748,12 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
           updatedAt: new Date().toISOString(),
         },
         email: validation.email,
+        inviterName: validation.inviterName,
+        existingUser: validation.existingUser,
+        ...(validation.targetFamilyId && {
+          targetFamilyId: validation.targetFamilyId,
+          targetFamilyName: validation.targetFamilyName,
+        }),
       }, 200);
     } else {
       loggerInstance.info('validateGroupInvitation: invalid group invitation', { code, error: validation.error });
