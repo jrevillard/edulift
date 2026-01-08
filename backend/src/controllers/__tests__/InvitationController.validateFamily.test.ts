@@ -39,6 +39,8 @@ describe('InvitationController - Family Invitation Validation Test Suite', () =>
     email: 'test@example.com',
     role: 'MEMBER' as const,
     personalMessage: 'Welcome to our family!',
+    inviterName: 'Test Inviter',
+    existingUser: false,
   };
 
   beforeEach(() => {
@@ -107,6 +109,8 @@ describe('InvitationController - Family Invitation Validation Test Suite', () =>
         email: 'test@example.com',
         role: 'MEMBER',
         personalMessage: 'Welcome to our family!',
+        inviterName: 'Test Inviter',
+        existingUser: false,
       });
 
       expect(mockInvitationService.validateFamilyInvitation).toHaveBeenCalledWith(inviteCode, undefined);
@@ -192,6 +196,8 @@ describe('InvitationController - Family Invitation Validation Test Suite', () =>
         email: 'complete@example.com',
         role: 'ADMIN' as const,
         personalMessage: 'Welcome!',
+        inviterName: 'Complete Inviter',
+        existingUser: true,
       };
 
       mockInvitationService.validateFamilyInvitation.mockResolvedValue(fullValidationResult);
@@ -215,6 +221,8 @@ describe('InvitationController - Family Invitation Validation Test Suite', () =>
         email: 'complete@example.com',
         role: 'ADMIN',
         personalMessage: 'Welcome!',
+        inviterName: 'Complete Inviter',
+        existingUser: true,
       });
 
       expect(mockInvitationService.validateFamilyInvitation).toHaveBeenCalledWith(inviteCode, undefined);

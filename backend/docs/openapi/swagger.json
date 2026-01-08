@@ -13418,7 +13418,9 @@
                   },
                   "required": [
                     "valid",
-                    "type"
+                    "type",
+                    "inviterName",
+                    "existingUser"
                   ],
                   "title": "Family Invitation Validation Response",
                   "description": "Family invitation validation result"
@@ -14081,18 +14083,22 @@
                     },
                     "targetFamilyId": {
                       "type": "string",
+                      "nullable": true,
                       "example": "cl123456789012345678901236",
                       "description": "Target family ID (present when a family is invited to join the group)"
                     },
                     "targetFamilyName": {
                       "type": "string",
+                      "nullable": true,
                       "example": "Smith Family",
                       "description": "Name of the invited family"
                     }
                   },
                   "required": [
                     "valid",
-                    "type"
+                    "type",
+                    "inviterName",
+                    "existingUser"
                   ],
                   "title": "Group Invitation Validation Response",
                   "description": "Group invitation validation result"

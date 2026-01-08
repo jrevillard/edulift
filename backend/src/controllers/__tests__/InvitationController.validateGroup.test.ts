@@ -37,6 +37,8 @@ describe('InvitationController - Group Invitation Validation Test Suite', () => 
     groupId: TEST_IDS.GROUP,
     groupName: 'Test Group',
     email: 'test@example.com',
+    inviterName: 'Test Inviter',
+    existingUser: false,
   };
 
   beforeEach(() => {
@@ -103,6 +105,8 @@ describe('InvitationController - Group Invitation Validation Test Suite', () => 
           updatedAt: expect.any(String),
         },
         email: 'test@example.com',
+        inviterName: 'Test Inviter',
+        existingUser: false,
       });
 
       expect(mockInvitationService.validateGroupInvitation).toHaveBeenCalledWith(inviteCode, undefined);
@@ -186,6 +190,8 @@ describe('InvitationController - Group Invitation Validation Test Suite', () => 
         groupId: TEST_IDS.GROUP,
         groupName: 'Complete Test Group',
         email: 'complete@example.com',
+        inviterName: 'Complete Inviter',
+        existingUser: true,
       };
 
       mockInvitationService.validateGroupInvitation.mockResolvedValue(fullValidationResult);
@@ -207,6 +213,8 @@ describe('InvitationController - Group Invitation Validation Test Suite', () => 
           updatedAt: expect.any(String),
         },
         email: 'complete@example.com',
+        inviterName: 'Complete Inviter',
+        existingUser: true,
       });
 
       expect(mockInvitationService.validateGroupInvitation).toHaveBeenCalledWith(inviteCode, undefined);

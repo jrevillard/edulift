@@ -257,6 +257,8 @@ export class UnifiedInvitationService {
         familyName: invitation.family.name,
         role: invitation.role,
         inviterName: invitation.createdByUser?.name || null,
+        existingUser: false,  // Default to false if no email
+        email: undefined,     // Default to undefined if not present
       };
 
       if (invitation.personalMessage) {
@@ -275,10 +277,10 @@ export class UnifiedInvitationService {
             },
           },
         });
-        
+
         if (currentUser && currentUser.email !== invitation.email) {
-          return { 
-            valid: false, 
+          return {
+            valid: false,
             error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
             errorCode: 'EMAIL_MISMATCH',
           };
@@ -299,7 +301,7 @@ export class UnifiedInvitationService {
           },
         });
         result.existingUser = !!existingUser;
-        
+
         // If user exists, check if they already belong to a family
         if (existingUser && existingUser.familyMemberships && existingUser.familyMemberships.length > 0) {
           const currentFamilyMembership = existingUser.familyMemberships[0];
@@ -731,6 +733,7 @@ export class UnifiedInvitationService {
       groupId: invitation.group.id,
       groupName: invitation.group.name,
       inviterName: invitation.invitedByUser?.name || null,
+      existingUser: false,  // Default to false if no email
     };
 
     // If this is a family invitation (targetFamilyId exists), include family info
