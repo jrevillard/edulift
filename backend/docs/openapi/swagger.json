@@ -13418,6 +13418,16 @@
                       "type": "boolean",
                       "example": false,
                       "description": "Whether the invited email already corresponds to an existing user account"
+                    },
+                    "errorCode": {
+                      "type": "string",
+                      "enum": [
+                        "EMAIL_MISMATCH",
+                        "ALREADY_MEMBER",
+                        "EXPIRED"
+                      ],
+                      "example": "EMAIL_MISMATCH",
+                      "description": "Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED)"
                     }
                   },
                   "required": [
@@ -14096,6 +14106,16 @@
                       "nullable": true,
                       "example": "Smith Family",
                       "description": "Name of the invited family"
+                    },
+                    "errorCode": {
+                      "type": "string",
+                      "enum": [
+                        "EMAIL_MISMATCH",
+                        "ALREADY_MEMBER",
+                        "EXPIRED"
+                      ],
+                      "example": "EMAIL_MISMATCH",
+                      "description": "Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED)"
                     }
                   },
                   "required": [
