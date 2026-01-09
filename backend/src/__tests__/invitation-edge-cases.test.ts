@@ -199,7 +199,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         expect(result.role).toBe(FamilyRole.MEMBER);
         expect(result.email).toBeUndefined();
         expect(result.personalMessage).toBeUndefined();
-        expect(result.existingUser).toBeUndefined();
+        expect(result.existingUser).toBe(false); // Default to false when no email
       });
 
       it('should handle validation with corrupted invitation data', async () => {

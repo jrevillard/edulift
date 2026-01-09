@@ -417,7 +417,7 @@ describe('AuthController Test Suite', () => {
 
       mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
 
-      const response = await makeAuthenticatedRequest(app, '/timezone', {
+      const response = await makeAuthenticatedRequest(app, '/profile/timezone', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone }),
@@ -445,7 +445,7 @@ describe('AuthController Test Suite', () => {
       });
       appWithoutAuth.route('/', authRoutes);
 
-      const response = await appWithoutAuth.request('/timezone', {
+      const response = await appWithoutAuth.request('/profile/timezone', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone: 'America/New_York' }),
@@ -467,7 +467,7 @@ describe('AuthController Test Suite', () => {
       const error = new Error('Database connection failed');
       mockAuthService.updateProfile.mockRejectedValue(error);
 
-      const response = await makeAuthenticatedRequest(app, '/timezone', {
+      const response = await makeAuthenticatedRequest(app, '/profile/timezone', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone }),
@@ -506,7 +506,7 @@ describe('AuthController Test Suite', () => {
 
         mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
 
-        const response = await makeAuthenticatedRequest(app, '/timezone', {
+        const response = await makeAuthenticatedRequest(app, '/profile/timezone', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ timezone }),
@@ -539,7 +539,7 @@ describe('AuthController Test Suite', () => {
 
       mockAuthService.updateProfile.mockResolvedValue(mockUpdatedUser);
 
-      const response = await makeAuthenticatedRequest(app, '/timezone', {
+      const response = await makeAuthenticatedRequest(app, '/profile/timezone', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone }),
@@ -724,7 +724,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle missing PKCE code_verifier', async () => {
-      const response = await app.request('/profile/delete-confirm', {
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),

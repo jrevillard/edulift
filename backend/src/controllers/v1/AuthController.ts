@@ -446,11 +446,11 @@ const updateProfileRoute = createRoute({
 });
 
 /**
- * PATCH /auth/timezone - Update timezone
+ * PATCH /auth/profile/timezone - Update timezone
  */
 const updateTimezoneRoute = createRoute({
   method: 'patch',
-  path: '/timezone',
+  path: '/profile/timezone',
   tags: ['Authentication'],
   summary: 'Update user timezone',
   description: 'Update user timezone setting. Must be valid IANA timezone format. Requires valid JWT access token.',
@@ -573,8 +573,8 @@ const confirmAccountDeletionRoute = createRoute({
   path: '/profile/delete-confirm',
   tags: ['Authentication'],
   summary: 'Confirm account deletion',
-  description: 'Confirm account deletion using PKCE-protected token from email. This action is irreversible.',
-  security: [],
+  description: 'Confirm account deletion using PKCE-protected token from email. Requires valid JWT access token and email token. This action is irreversible.',
+  security: [{ Bearer: [] }],
   request: {
     body: {
       content: {
@@ -1036,7 +1036,7 @@ app.openapi(updateProfileRoute, async (c) => {
 });
 
 /**
- * PATCH /auth/timezone - Update timezone
+ * PATCH /auth/profile/timezone - Update timezone
  */
 app.openapi(updateTimezoneRoute, async (c) => {
   const userId = c.get('userId');
@@ -1167,9 +1167,24 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
     timestamp: new Date().toISOString(),
   });
 
+  // SECURITY: JWT authentication is mandatory
+  const userId = c.get('userId');
+  if (!userId) {
+    loggerInstance.warn('confirmAccountDeletion: User authentication required', {
+      token: token ? `${token.substring(0, 10)}...` : undefined,
+      timestamp: new Date().toISOString(),
+    });
+    return c.json({
+      success: false,
+      error: 'User authentication required',
+      code: 'UNAUTHORIZED',
+    }, 401 as const);
+  }
+
   // SECURITY: PKCE validation is mandatory
   if (!code_verifier) {
     loggerInstance.warn('confirmAccountDeletion: Missing PKCE verifier', {
+      userId,
       token: token ? `${token.substring(0, 10)}...` : undefined,
       timestamp: new Date().toISOString(),
     });

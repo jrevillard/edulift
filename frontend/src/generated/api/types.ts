@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/auth/magic-link": {
+    "/api/v1/auth/magic-link": {
         parameters: {
             query?: never;
             header?: never;
@@ -64,8 +64,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                                 userExists: boolean;
@@ -169,7 +168,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/verify": {
+    "/api/v1/auth/verify": {
         parameters: {
             query?: never;
             header?: never;
@@ -218,8 +217,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * User Response
@@ -353,7 +351,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/refresh": {
+    "/api/v1/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
@@ -392,8 +390,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 accessToken: string;
                                 refreshToken: string;
@@ -477,7 +474,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/logout": {
+    "/api/v1/auth/logout": {
         parameters: {
             query?: never;
             header?: never;
@@ -506,8 +503,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -566,7 +562,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/profile": {
+    "/api/v1/auth/profile": {
         parameters: {
             query?: never;
             header?: never;
@@ -593,8 +589,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * User Response
                              * @description User profile information
@@ -747,8 +742,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * User Response
                              * @description User profile information
@@ -867,7 +861,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/timezone": {
+    "/api/v1/auth/profile/timezone": {
         parameters: {
             query?: never;
             header?: never;
@@ -910,8 +904,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * User Response
                              * @description User profile information
@@ -1025,7 +1018,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/auth/profile/delete-request": {
+    "/api/v1/auth/profile/delete-request": {
         parameters: {
             query?: never;
             header?: never;
@@ -1064,8 +1057,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -1168,7 +1160,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/profile/delete-confirm": {
+    "/api/v1/auth/profile/delete-confirm": {
         parameters: {
             query?: never;
             header?: never;
@@ -1179,7 +1171,7 @@ export interface paths {
         put?: never;
         /**
          * Confirm account deletion
-         * @description Confirm account deletion using PKCE-protected token from email. This action is irreversible.
+         * @description Confirm account deletion using PKCE-protected token from email. Requires valid JWT access token and email token. This action is irreversible.
          */
         post: {
             parameters: {
@@ -1212,8 +1204,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                                 deletedAt: string;
@@ -1317,7 +1308,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/vehicles": {
+    "/api/v1/vehicles": {
         parameters: {
             query?: never;
             header?: never;
@@ -1344,8 +1335,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -1445,8 +1435,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /** @description Vehicle response data */
                             data: {
                                 /**
@@ -1561,7 +1550,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/vehicles/available/{groupId}/{timeSlotId}": {
+    "/api/v1/vehicles/available/{groupId}/{timeSlotId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1593,8 +1582,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -1663,7 +1651,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/vehicles/{vehicleId}": {
+    "/api/v1/vehicles/{vehicleId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -1693,8 +1681,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /** @description Vehicle response data */
                             data: {
                                 /**
@@ -1806,8 +1793,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -1900,8 +1886,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /** @description Vehicle response data */
                             data: {
                                 /**
@@ -2012,7 +1997,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/vehicles/{vehicleId}/schedule": {
+    "/api/v1/vehicles/{vehicleId}/schedule": {
         parameters: {
             query?: never;
             header?: never;
@@ -2045,8 +2030,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /** @description Vehicle schedule information */
                             data: {
                                 /**
@@ -2173,7 +2157,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/children": {
+    "/api/v1/children": {
         parameters: {
             query?: never;
             header?: never;
@@ -2200,8 +2184,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -2317,8 +2300,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Child Response
                              * @description Complete child information with optional group memberships
@@ -2452,7 +2434,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/children/{childId}": {
+    "/api/v1/children/{childId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -2482,8 +2464,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Child Response
                              * @description Complete child information with optional group memberships
@@ -2627,8 +2608,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Child Response
                              * @description Complete child information with optional group memberships
@@ -2802,8 +2782,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -2918,8 +2897,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Child Response
                              * @description Complete child information with optional group memberships
@@ -3071,7 +3049,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/children/{childId}/assignments": {
+    "/api/v1/children/{childId}/assignments": {
         parameters: {
             query?: never;
             header?: never;
@@ -3104,8 +3082,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -3201,7 +3178,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/children/{childId}/groups/{groupId}": {
+    "/api/v1/children/{childId}/groups/{groupId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3235,8 +3212,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Child Group Membership
                              * @description Child membership in a group
@@ -3458,8 +3434,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -3539,7 +3514,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/children/{childId}/groups": {
+    "/api/v1/children/{childId}/groups": {
         parameters: {
             query?: never;
             header?: never;
@@ -3569,8 +3544,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -3705,7 +3679,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families": {
+    "/api/v1/families": {
         parameters: {
             query?: never;
             header?: never;
@@ -3744,8 +3718,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Family Response
                              * @description Complete family information with optional related data
@@ -3762,11 +3735,6 @@ export interface paths {
                                  * @example Johnson Family
                                  */
                                 name: string;
-                                /**
-                                 * @description Family invitation code
-                                 * @example ABC123XYZ
-                                 */
-                                inviteCode: string;
                                 /**
                                  * Format: date-time
                                  * @description When the family was created
@@ -3976,7 +3944,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/join": {
+    "/api/v1/families/join": {
         parameters: {
             query?: never;
             header?: never;
@@ -4015,8 +3983,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Family Response
                              * @description Complete family information with optional related data
@@ -4033,11 +4000,6 @@ export interface paths {
                                  * @example Johnson Family
                                  */
                                 name: string;
-                                /**
-                                 * @description Family invitation code
-                                 * @example ABC123XYZ
-                                 */
-                                inviteCode: string;
                                 /**
                                  * Format: date-time
                                  * @description When the family was created
@@ -4269,7 +4231,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/current": {
+    "/api/v1/families/current": {
         parameters: {
             query?: never;
             header?: never;
@@ -4296,8 +4258,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Family Response
                              * @description Complete family information with optional related data
@@ -4314,11 +4275,6 @@ export interface paths {
                                  * @example Johnson Family
                                  */
                                 name: string;
-                                /**
-                                 * @description Family invitation code
-                                 * @example ABC123XYZ
-                                 */
-                                inviteCode: string;
                                 /**
                                  * Format: date-time
                                  * @description When the family was created
@@ -4508,7 +4464,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/permissions": {
+    "/api/v1/families/{familyId}/permissions": {
         parameters: {
             query?: never;
             header?: never;
@@ -4538,8 +4494,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Family Permissions
                              * @description User permissions within the family
@@ -4689,7 +4644,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/members/{memberId}/role": {
+    "/api/v1/families/members/{memberId}/role": {
         parameters: {
             query?: never;
             header?: never;
@@ -4731,8 +4686,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -4860,7 +4814,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/invite": {
+    "/api/v1/families/{familyId}/invite": {
         parameters: {
             query?: never;
             header?: never;
@@ -4915,21 +4869,18 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Family Invitation
                              * @description Family invitation details
                              */
                             data: {
                                 /**
-                                 * Format: cuid
                                  * @description Unique invitation identifier (CUID format)
                                  * @example cl123456789012345678901240
                                  */
                                 id: string;
                                 /**
-                                 * Format: cuid
                                  * @description Family identifier
                                  * @example cl123456789012345678901234
                                  */
@@ -4958,11 +4909,20 @@ export interface paths {
                                  */
                                 personalMessage?: string | null;
                                 /**
-                                 * Format: cuid
+                                 * @description Unique invitation code for joining the family
+                                 * @example ABC123XYZ
+                                 */
+                                inviteCode: string;
+                                /**
                                  * @description User who sent the invitation
                                  * @example cl123456789012345678901237
                                  */
                                 invitedBy: string;
+                                /**
+                                 * @description User who created the invitation
+                                 * @example cl123456789012345678901237
+                                 */
+                                createdBy: string;
                                 /** @description User details who sent the invitation */
                                 invitedByUser?: {
                                     /**
@@ -5150,7 +5110,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/invitations": {
+    "/api/v1/families/{familyId}/invitations": {
         parameters: {
             query?: never;
             header?: never;
@@ -5180,17 +5140,14 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
-                                 * Format: cuid
                                  * @description Unique invitation identifier (CUID format)
                                  * @example cl123456789012345678901240
                                  */
                                 id: string;
                                 /**
-                                 * Format: cuid
                                  * @description Family identifier
                                  * @example cl123456789012345678901234
                                  */
@@ -5219,11 +5176,20 @@ export interface paths {
                                  */
                                 personalMessage?: string | null;
                                 /**
-                                 * Format: cuid
+                                 * @description Unique invitation code for joining the family
+                                 * @example ABC123XYZ
+                                 */
+                                inviteCode: string;
+                                /**
                                  * @description User who sent the invitation
                                  * @example cl123456789012345678901237
                                  */
                                 invitedBy: string;
+                                /**
+                                 * @description User who created the invitation
+                                 * @example cl123456789012345678901237
+                                 */
+                                createdBy: string;
                                 /** @description User details who sent the invitation */
                                 invitedByUser?: {
                                     /**
@@ -5391,7 +5357,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/invitations/{invitationId}": {
+    "/api/v1/families/{familyId}/invitations/{invitationId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -5426,8 +5392,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -5553,7 +5518,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/name": {
+    "/api/v1/families/name": {
         parameters: {
             query?: never;
             header?: never;
@@ -5591,8 +5556,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Family Response
                              * @description Complete family information with optional related data
@@ -5609,11 +5573,6 @@ export interface paths {
                                  * @example Johnson Family
                                  */
                                 name: string;
-                                /**
-                                 * @description Family invitation code
-                                 * @example ABC123XYZ
-                                 */
-                                inviteCode: string;
                                 /**
                                  * Format: date-time
                                  * @description When the family was created
@@ -5824,7 +5783,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/members/{memberId}": {
+    "/api/v1/families/{familyId}/members/{memberId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -5859,8 +5818,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -5986,7 +5944,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/leave": {
+    "/api/v1/families/{familyId}/leave": {
         parameters: {
             query?: never;
             header?: never;
@@ -6018,8 +5976,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -6146,7 +6103,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups": {
+    "/api/v1/groups": {
         parameters: {
             query?: never;
             header?: never;
@@ -6190,8 +6147,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Response
                              * @description Complete group information with user context
@@ -6290,8 +6246,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6312,8 +6267,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6334,8 +6288,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6356,8 +6309,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6379,7 +6331,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/join": {
+    "/api/v1/groups/join": {
         parameters: {
             query?: never;
             header?: never;
@@ -6418,8 +6370,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Response
                              * @description Complete group information with user context
@@ -6518,8 +6469,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6540,8 +6490,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6562,8 +6511,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6584,8 +6532,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6606,8 +6553,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6629,7 +6575,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/my-groups": {
+    "/api/v1/groups/my-groups": {
         parameters: {
             query?: never;
             header?: never;
@@ -6656,8 +6602,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -6752,8 +6697,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6774,8 +6718,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6799,7 +6742,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/families": {
+    "/api/v1/groups/{groupId}/families": {
         parameters: {
             query?: never;
             header?: never;
@@ -6829,8 +6772,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -6925,8 +6867,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6947,8 +6888,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6969,8 +6909,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -6991,8 +6930,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7013,8 +6951,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7038,7 +6975,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/families/{familyId}/role": {
+    "/api/v1/groups/{groupId}/families/{familyId}/role": {
         parameters: {
             query?: never;
             header?: never;
@@ -7087,8 +7024,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Update Family Role Response
                              * @description Response after updating a family role in a group, with nested family details
@@ -7167,8 +7103,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7189,8 +7124,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7211,8 +7145,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7233,8 +7166,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7255,8 +7187,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7274,7 +7205,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/groups/{groupId}/invite": {
+    "/api/v1/groups/{groupId}/invite": {
         parameters: {
             query?: never;
             header?: never;
@@ -7329,27 +7260,23 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Invitation
                              * @description Group invitation details
                              */
                             data: {
                                 /**
-                                 * Format: cuid
                                  * @description Unique invitation identifier (CUID format)
                                  * @example cl123456789012345678901240
                                  */
                                 id: string;
                                 /**
-                                 * Format: cuid
                                  * @description Group identifier
                                  * @example cl123456789012345678901234
                                  */
                                 groupId: string;
                                 /**
-                                 * Format: cuid
                                  * @description Family identifier being invited
                                  * @example cl123456789012345678901241
                                  */
@@ -7372,14 +7299,22 @@ export interface paths {
                                  */
                                 personalMessage?: string | null;
                                 /**
-                                 * Format: cuid
+                                 * @description Unique invitation code for joining the group
+                                 * @example ABC123XYZ
+                                 */
+                                inviteCode: string;
+                                /**
                                  * @description User who sent the invitation
                                  * @example cl123456789012345678901237
                                  */
                                 invitedBy: string;
+                                /**
+                                 * @description User who created the invitation
+                                 * @example cl123456789012345678901237
+                                 */
+                                createdBy: string;
                                 /** @description User details who sent the invitation */
                                 invitedByUser?: {
-                                    /** Format: cuid */
                                     id: string;
                                     name: string;
                                     /** Format: email */
@@ -7414,8 +7349,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7436,8 +7370,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7458,8 +7391,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7480,8 +7412,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7502,8 +7433,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7524,8 +7454,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7547,7 +7476,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/search-families": {
+    "/api/v1/groups/{groupId}/search-families": {
         parameters: {
             query?: never;
             header?: never;
@@ -7589,8 +7518,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -7650,8 +7578,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7672,8 +7599,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7694,8 +7620,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7716,8 +7641,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7738,8 +7662,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7761,7 +7684,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/families/{familyId}": {
+    "/api/v1/groups/{groupId}/families/{familyId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -7796,8 +7719,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -7813,8 +7735,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7835,8 +7756,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7857,8 +7777,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7879,8 +7798,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7901,8 +7819,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7923,7 +7840,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}": {
+    "/api/v1/groups/{groupId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -7956,8 +7873,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -7973,8 +7889,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -7995,8 +7910,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8017,8 +7931,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8039,8 +7952,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8061,8 +7973,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8118,8 +8029,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Response
                              * @description Complete group information with user context
@@ -8218,8 +8128,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8240,8 +8149,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8262,8 +8170,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8284,8 +8191,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8306,8 +8212,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8325,7 +8230,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/groups/{groupId}/leave": {
+    "/api/v1/groups/{groupId}/leave": {
         parameters: {
             query?: never;
             header?: never;
@@ -8357,8 +8262,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * @description Success message
                              * @example Operation completed successfully
@@ -8374,8 +8278,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8396,8 +8299,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8418,8 +8320,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8440,8 +8341,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8462,8 +8362,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8485,7 +8384,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/schedule-config": {
+    "/api/v1/groups/{groupId}/schedule-config": {
         parameters: {
             query?: never;
             header?: never;
@@ -8515,8 +8414,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Schedule Config Response
                              * @description Group schedule configuration with full details
@@ -8615,8 +8513,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8637,8 +8534,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8659,8 +8555,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8681,8 +8576,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8703,8 +8597,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8800,8 +8693,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Schedule Config Response
                              * @description Group schedule configuration with full details
@@ -8900,8 +8792,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8922,8 +8813,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8944,8 +8834,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8966,8 +8855,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -8988,8 +8876,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -9012,166 +8899,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/schedule-config/time-slots": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get time slots for a weekday
-         * @description Get available time slots for a specific weekday
-         */
-        get: {
-            parameters: {
-                query: {
-                    /** @description Weekday to get time slots for */
-                    weekday: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY";
-                };
-                header?: never;
-                path: {
-                    /** @description Unique group identifier (CUID format) */
-                    groupId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Time slots retrieved successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            data: string[];
-                        };
-                    };
-                };
-                /** @description Bad request - Invalid group ID or weekday */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Unauthorized - Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Forbidden - Access denied to group schedule configuration */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Not found - Schedule configuration not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/groups/{groupId}/schedule-config/reset": {
+    "/api/v1/groups/{groupId}/schedule-config/reset": {
         parameters: {
             query?: never;
             header?: never;
@@ -9203,8 +8931,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Group Schedule Config Response
                              * @description Group schedule configuration with full details
@@ -9303,8 +9030,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -9325,8 +9051,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -9347,8 +9072,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -9369,8 +9093,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -9391,8 +9114,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            success: boolean;
                             /**
                              * @description Error message
                              * @example Bad request
@@ -9414,156 +9136,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/schedule-config/default": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get default schedule configuration
-         * @description Get the default schedule configuration template
-         */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default schedule configuration retrieved successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
-                            /**
-                             * Default Schedule Config Response
-                             * @description Default schedule configuration template
-                             */
-                            data: {
-                                /**
-                                 * @description Default schedule hours template
-                                 * @example {
-                                 *       "MONDAY": [
-                                 *         "07:00",
-                                 *         "07:30",
-                                 *         "08:00",
-                                 *         "15:00",
-                                 *         "15:30",
-                                 *         "16:00"
-                                 *       ],
-                                 *       "TUESDAY": [
-                                 *         "07:00",
-                                 *         "07:30",
-                                 *         "08:00",
-                                 *         "15:00",
-                                 *         "15:30",
-                                 *         "16:00"
-                                 *       ],
-                                 *       "WEDNESDAY": [
-                                 *         "07:00",
-                                 *         "07:30",
-                                 *         "08:00",
-                                 *         "15:00",
-                                 *         "15:30",
-                                 *         "16:00"
-                                 *       ],
-                                 *       "THURSDAY": [
-                                 *         "07:00",
-                                 *         "07:30",
-                                 *         "08:00",
-                                 *         "15:00",
-                                 *         "15:30",
-                                 *         "16:00"
-                                 *       ],
-                                 *       "FRIDAY": [
-                                 *         "07:00",
-                                 *         "07:30",
-                                 *         "08:00",
-                                 *         "15:00",
-                                 *         "15:30",
-                                 *         "16:00"
-                                 *       ]
-                                 *     }
-                                 */
-                                scheduleHours: {
-                                    MONDAY?: string[];
-                                    TUESDAY?: string[];
-                                    WEDNESDAY?: string[];
-                                    THURSDAY?: string[];
-                                    FRIDAY?: string[];
-                                };
-                                /**
-                                 * @description Description of the default configuration
-                                 * @example Default schedule configuration template
-                                 */
-                                description: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Unauthorized - Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Bad request
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/invitations/family": {
+    "/api/v1/invitations/family": {
         parameters: {
             query?: never;
             header?: never;
@@ -9795,7 +9368,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/family/{code}/validate": {
+    "/api/v1/invitations/family/{code}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -9881,6 +9454,16 @@ export interface paths {
                              * @example Welcome to our family!
                              */
                             personalMessage?: string | null;
+                            /**
+                             * @description Name of the user who sent the invitation
+                             * @example John Doe
+                             */
+                            inviterName: string | null;
+                            /**
+                             * @description Whether the invited email already corresponds to an existing user account
+                             * @example false
+                             */
+                            existingUser: boolean;
                         };
                     };
                 };
@@ -9938,7 +9521,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/family/{code}/accept": {
+    "/api/v1/invitations/family/{code}/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -10046,7 +9629,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/group": {
+    "/api/v1/invitations/group": {
         parameters: {
             query?: never;
             header?: never;
@@ -10312,7 +9895,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/group/{code}/validate": {
+    "/api/v1/invitations/group/{code}/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -10387,6 +9970,26 @@ export interface paths {
                              * @example john.smith@example.com
                              */
                             email?: string;
+                            /**
+                             * @description Name of the user who sent the invitation
+                             * @example John Doe
+                             */
+                            inviterName: string | null;
+                            /**
+                             * @description Whether the invited email already corresponds to an existing user account
+                             * @example false
+                             */
+                            existingUser: boolean;
+                            /**
+                             * @description Target family ID (present when a family is invited to join the group)
+                             * @example cl123456789012345678901236
+                             */
+                            targetFamilyId?: string | null;
+                            /**
+                             * @description Name of the invited family
+                             * @example Smith Family
+                             */
+                            targetFamilyName?: string | null;
                         };
                     };
                 };
@@ -10444,7 +10047,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/group/{code}/accept": {
+    "/api/v1/invitations/group/{code}/accept": {
         parameters: {
             query?: never;
             header?: never;
@@ -10541,7 +10144,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/family/{invitationId}": {
+    "/api/v1/invitations/family/{invitationId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -10655,7 +10258,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/invitations/group/{invitationId}": {
+    "/api/v1/invitations/group/{invitationId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -10769,7 +10372,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens": {
+    "/api/v1/fcm-tokens": {
         parameters: {
             query?: never;
             header?: never;
@@ -10796,8 +10399,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 tokens: {
                                     /**
@@ -10904,8 +10506,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * FCM Token Response
                              * @description FCM token information response
@@ -11000,7 +10601,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/cleanup-inactive": {
+    "/api/v1/fcm-tokens/cleanup-inactive": {
         parameters: {
             query?: never;
             header?: never;
@@ -11030,8 +10631,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                                 cleanedUpTokens: number;
@@ -11068,7 +10668,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/{tokenId}": {
+    "/api/v1/fcm-tokens/{tokenId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -11101,8 +10701,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -11160,7 +10759,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/validate": {
+    "/api/v1/fcm-tokens/validate": {
         parameters: {
             query?: never;
             header?: never;
@@ -11199,8 +10798,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * FCM Token Validation Response
                              * @description Response for FCM token validation
@@ -11255,7 +10853,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/subscribe-topic": {
+    "/api/v1/fcm-tokens/subscribe-topic": {
         parameters: {
             query?: never;
             header?: never;
@@ -11299,8 +10897,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Topic Subscription Response
                              * @description Response for topic subscription operations
@@ -11377,7 +10974,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/unsubscribe-topic": {
+    "/api/v1/fcm-tokens/unsubscribe-topic": {
         parameters: {
             query?: never;
             header?: never;
@@ -11421,8 +11018,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Topic Subscription Response
                              * @description Response for topic subscription operations
@@ -11499,7 +11095,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/test-notification": {
+    "/api/v1/fcm-tokens/test-notification": {
         parameters: {
             query?: never;
             header?: never;
@@ -11558,8 +11154,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Test Notification Response
                              * @description Response for test notification sending
@@ -11641,7 +11236,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/fcm-tokens/stats": {
+    "/api/v1/fcm-tokens/stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -11668,8 +11263,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * FCM Token Statistics Response
                              * @description Response for FCM token statistics
@@ -11731,7 +11325,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dashboard/stats": {
+    "/api/v1/dashboard/stats": {
         parameters: {
             query?: never;
             header?: never;
@@ -11758,8 +11352,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * @description Number of groups the user belongs to
@@ -11913,7 +11506,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dashboard/today-schedule": {
+    "/api/v1/dashboard/today-schedule": {
         parameters: {
             query?: never;
             header?: never;
@@ -11940,8 +11533,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /** @description List of upcoming trips */
                                 upcomingTrips: {
@@ -12081,7 +11673,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dashboard/recent-activity": {
+    "/api/v1/dashboard/recent-activity": {
         parameters: {
             query?: never;
             header?: never;
@@ -12108,8 +11700,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /** @description List of recent activities */
                                 activities: {
@@ -12206,7 +11797,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dashboard/weekly": {
+    "/api/v1/dashboard/weekly": {
         parameters: {
             query?: never;
             header?: never;
@@ -12236,8 +11827,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * @description Week start date
@@ -12500,7 +12090,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/schedule-slots": {
+    "/api/v1/groups/{groupId}/schedule-slots": {
         parameters: {
             query?: never;
             header?: never;
@@ -12560,8 +12150,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Schedule Slot
                              * @description Schedule slot information
@@ -12860,7 +12449,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/vehicles": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles": {
         parameters: {
             query?: never;
             header?: never;
@@ -12914,8 +12503,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Schedule Vehicle Assignment
                              * @description Vehicle assignment for schedule slot (matches Prisma database schema)
@@ -13086,8 +12674,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                                 slotDeleted: boolean;
@@ -13168,7 +12755,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
         parameters: {
             query?: never;
             header?: never;
@@ -13217,8 +12804,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Schedule Vehicle Assignment
                              * @description Vehicle assignment for schedule slot (matches Prisma database schema)
@@ -13335,7 +12921,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/children/{childId}": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -13370,8 +12956,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 message: string;
                             };
@@ -13429,7 +13014,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}": {
+    "/api/v1/schedule-slots/{scheduleSlotId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -13459,8 +13044,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Schedule Slot
                              * @description Schedule slot information
@@ -13739,7 +13323,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/groups/{groupId}/schedule": {
+    "/api/v1/groups/{groupId}/schedule": {
         parameters: {
             query?: never;
             header?: never;
@@ -13774,8 +13358,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Schedule Response
                              * @description Group schedule information with date range and slots
@@ -14050,7 +13633,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/conflicts": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/conflicts": {
         parameters: {
             query?: never;
             header?: never;
@@ -14080,8 +13663,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 conflicts: string[];
                             };
@@ -14120,7 +13702,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/children": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children": {
         parameters: {
             query?: never;
             header?: never;
@@ -14169,8 +13751,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Child Assignment
                              * @description Child assignment information for a schedule slot
@@ -14384,7 +13965,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
         parameters: {
             query?: never;
             header?: never;
@@ -14419,8 +14000,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data?: unknown;
                         };
                     };
@@ -14476,7 +14056,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/schedule-slots/{scheduleSlotId}/children/available": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/children/available": {
         parameters: {
             query?: never;
             header?: never;
@@ -14506,8 +14086,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             data: {
                                 /**
                                  * Format: cuid
@@ -14604,7 +14183,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
+    "/api/v1/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
         parameters: {
             query?: never;
             header?: never;
@@ -14650,8 +14229,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** @enum {boolean} */
-                            success: true;
+                            success: boolean;
                             /**
                              * Schedule Vehicle Assignment
                              * @description Vehicle assignment for schedule slot (matches Prisma database schema)

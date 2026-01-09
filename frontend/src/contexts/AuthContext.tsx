@@ -78,6 +78,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('🔄 Initializing auth...');
 
         try {
+          // CRITICAL: First, try to load token from secure storage
+          // This is essential for E2E tests and for session persistence after page refresh
+          await authService.refreshTokenFromStorage();
+
           if (authService.isAuthenticated() && !authService.isTokenExpired()) {
             setUser(authService.getUser());
           } else if (authService.getToken()) {

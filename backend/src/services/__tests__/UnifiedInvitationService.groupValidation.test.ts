@@ -125,7 +125,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
       expect(result.valid).toBe(true);
       expect(result.groupName).toBe('Public Group');
       expect(result.email).toBeUndefined();
-      expect(result.existingUser).toBeUndefined();
+      expect(result.existingUser).toBe(false); // Default to false when no email
     });
   });
 
@@ -267,7 +267,7 @@ describe('UnifiedInvitationService - Group Invitation Validation Security', () =
       expect(result.valid).toBe(true);
       expect(result.groupName).toBe('Public Group');
       expect(result.email).toBeUndefined();
-      expect(result.existingUser).toBeUndefined();
+      expect(result.existingUser).toBe(false); // Default to false when no email
       expect(result.error).toBeUndefined();
       expect(result.errorCode).toBeUndefined();
     });

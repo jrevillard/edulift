@@ -616,7 +616,7 @@ class AuthService {
 
     try {
       const response = await axios.patch<ApiResponse<User>>(
-        `${API_BASE_URL}/auth/timezone`,
+        `${API_BASE_URL}/auth/profile/timezone`,
         { timezone },
         {
           headers: { Authorization: `Bearer ${this.token}` }

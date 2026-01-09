@@ -1229,7 +1229,7 @@
         }
       }
     },
-    "/api/v1/auth/timezone": {
+    "/api/v1/auth/profile/timezone": {
       "patch": {
         "tags": [
           "Authentication"
@@ -1632,8 +1632,12 @@
           "Authentication"
         ],
         "summary": "Confirm account deletion",
-        "description": "Confirm account deletion using PKCE-protected token from email. This action is irreversible.",
-        "security": [],
+        "description": "Confirm account deletion using PKCE-protected token from email. Requires valid JWT access token and email token. This action is irreversible.",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
