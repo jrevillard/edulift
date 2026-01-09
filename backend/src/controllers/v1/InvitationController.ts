@@ -584,18 +584,18 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
         email: validation.email ?? undefined,
         role: validation.role ?? undefined,
         personalMessage: validation.personalMessage ?? undefined,
-        inviterName: validation.inviterName ?? null,
-        existingUser: validation.existingUser ?? false,
+        ...(validation.inviterName && { inviterName: validation.inviterName }),
+        ...(validation.existingUser !== undefined && { existingUser: validation.existingUser }),
       }, 200);
     } else {
       loggerInstance.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error, errorCode: validation.errorCode });
       return c.json({
         valid: false,
         type: 'FAMILY' as const,
-        email: validation.email,
-        inviterName: validation.inviterName ?? null,
-        existingUser: validation.existingUser ?? false,
-        errorCode: validation.errorCode,
+        ...(validation.email && { email: validation.email }),
+        ...(validation.inviterName && { inviterName: validation.inviterName }),
+        ...(validation.existingUser !== undefined && { existingUser: validation.existingUser }),
+        ...(validation.errorCode && { errorCode: validation.errorCode }),
       }, 200);
     }
   } catch (error) {
@@ -751,8 +751,8 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
           updatedAt: new Date().toISOString(),
         },
         email: validation.email ?? undefined,
-        inviterName: validation.inviterName ?? null,
-        existingUser: validation.existingUser ?? false,
+        ...(validation.inviterName && { inviterName: validation.inviterName }),
+        ...(validation.existingUser !== undefined && { existingUser: validation.existingUser }),
         ...(validation.targetFamilyId && {
           targetFamilyId: validation.targetFamilyId ?? undefined,
           targetFamilyName: validation.targetFamilyName ?? undefined,
@@ -763,12 +763,12 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
       return c.json({
         valid: false,
         type: 'GROUP' as const,
-        email: validation.email,
-        inviterName: validation.inviterName ?? null,
-        existingUser: validation.existingUser ?? false,
-        targetFamilyId: validation.targetFamilyId ?? undefined,
-        targetFamilyName: validation.targetFamilyName ?? undefined,
-        errorCode: validation.errorCode,
+        ...(validation.email && { email: validation.email }),
+        ...(validation.inviterName && { inviterName: validation.inviterName }),
+        ...(validation.existingUser !== undefined && { existingUser: validation.existingUser }),
+        ...(validation.targetFamilyId && { targetFamilyId: validation.targetFamilyId }),
+        ...(validation.targetFamilyName && { targetFamilyName: validation.targetFamilyName }),
+        ...(validation.errorCode && { errorCode: validation.errorCode }),
       }, 200);
     }
   } catch (error) {

@@ -13410,14 +13410,13 @@
                     },
                     "inviterName": {
                       "type": "string",
-                      "nullable": true,
                       "example": "John Doe",
-                      "description": "Name of the user who sent the invitation"
+                      "description": "Name of the user who sent the invitation (only present if valid)"
                     },
                     "existingUser": {
                       "type": "boolean",
                       "example": false,
-                      "description": "Whether the invited email already corresponds to an existing user account"
+                      "description": "Whether the invited email already corresponds to an existing user account (only present if valid)"
                     },
                     "errorCode": {
                       "type": "string",
@@ -14086,14 +14085,13 @@
                     },
                     "inviterName": {
                       "type": "string",
-                      "nullable": true,
                       "example": "John Doe",
-                      "description": "Name of the user who sent the invitation"
+                      "description": "Name of the user who sent the invitation (only present if valid)"
                     },
                     "existingUser": {
                       "type": "boolean",
                       "example": false,
-                      "description": "Whether the invited email already corresponds to an existing user account"
+                      "description": "Whether the invited email already corresponds to an existing user account (only present if valid)"
                     },
                     "targetFamilyId": {
                       "type": "string",

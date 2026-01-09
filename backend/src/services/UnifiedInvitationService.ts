@@ -22,7 +22,7 @@ export interface FamilyInvitationValidation {
   valid: boolean;
   familyId?: string;
   familyName?: string;
-  inviterName?: string | null;
+  inviterName?: string;
   role?: FamilyRole;
   personalMessage?: string;
   error?: string;
@@ -65,7 +65,7 @@ export interface GroupInvitationValidation {
   error?: string;
   errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED';
   email?: string;
-  inviterName?: string | null;
+  inviterName?: string;
   existingUser?: boolean;
 }
 
@@ -256,7 +256,7 @@ export class UnifiedInvitationService {
         familyId: invitation.familyId,
         familyName: invitation.family.name,
         role: invitation.role,
-        inviterName: invitation.createdByUser?.name || null,
+        inviterName: invitation.createdByUser?.name || 'Unknown',
         existingUser: false,  // Default to false if no email
         email: undefined,     // Default to undefined if not present
       };
@@ -283,6 +283,8 @@ export class UnifiedInvitationService {
             valid: false,
             error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
             errorCode: 'EMAIL_MISMATCH',
+            inviterName: invitation.createdByUser?.name || 'Unknown',
+            existingUser: true,
           };
         }
       }
@@ -732,7 +734,7 @@ export class UnifiedInvitationService {
       valid: true,
       groupId: invitation.group.id,
       groupName: invitation.group.name,
-      inviterName: invitation.invitedByUser?.name || null,
+      inviterName: invitation.invitedByUser?.name || 'Unknown',
       existingUser: false,  // Default to false if no email
     };
 
@@ -753,6 +755,8 @@ export class UnifiedInvitationService {
           valid: false,
           error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
           errorCode: 'EMAIL_MISMATCH',
+          inviterName: invitation.invitedByUser?.name || 'Unknown',
+          existingUser: true,
         };
       }
     }

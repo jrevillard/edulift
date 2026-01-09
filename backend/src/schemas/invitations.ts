@@ -313,15 +313,16 @@ export const FamilyInvitationValidationSchema = z.object({
       description: 'Personal message from inviter (if valid)',
     }),
   inviterName: z.string()
-    .nullable()
+    .optional()
     .openapi({
       example: 'John Doe',
-      description: 'Name of the user who sent the invitation',
+      description: 'Name of the user who sent the invitation (only present if valid)',
     }),
   existingUser: z.boolean()
+    .optional()
     .openapi({
       example: false,
-      description: 'Whether the invited email already corresponds to an existing user account',
+      description: 'Whether the invited email already corresponds to an existing user account (only present if valid)',
     }),
   errorCode: z.enum(['EMAIL_MISMATCH', 'ALREADY_MEMBER', 'EXPIRED'])
     .optional()
@@ -358,15 +359,16 @@ export const GroupInvitationValidationSchema = z.object({
       description: 'Email address the invitation was sent to (if valid)',
     }),
   inviterName: z.string()
-    .nullable()
+    .optional()
     .openapi({
       example: 'John Doe',
-      description: 'Name of the user who sent the invitation',
+      description: 'Name of the user who sent the invitation (only present if valid)',
     }),
   existingUser: z.boolean()
+    .optional()
     .openapi({
       example: false,
-      description: 'Whether the invited email already corresponds to an existing user account',
+      description: 'Whether the invited email already corresponds to an existing user account (only present if valid)',
     }),
   targetFamilyId: z.string()
     .nullable()
