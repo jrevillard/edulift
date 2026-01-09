@@ -19,16 +19,22 @@
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticateToken } from '../../middleware/auth-hono';
+import { authenticateToken, publicEndpoint, refreshEndpoint } from '../../middleware/auth-hono';
 import authController from '../../controllers/v1/AuthController';
 
 // Initialize OpenAPIHono
 const app = new OpenAPIHono();
 
-// Apply JWT authentication middleware to protected routes
-// Pattern: /profile/* matches /profile and all sub-paths
-app.use('/logout', authenticateToken);
-app.use('/profile/*', authenticateToken);
+// Public endpoints (no authentication required)
+app.use('/magic-link', publicEndpoint);
+app.use('/verify', publicEndpoint);
+
+// Refresh endpoint (no JWT required, but refresh token is mandatory)
+app.use('/refresh', refreshEndpoint);
+
+// Protected endpoints (JWT authentication required)
+// All other routes require authentication
+app.use('*', authenticateToken);
 
 // Mount auth controller after middleware is configured
 app.route('/', authController);

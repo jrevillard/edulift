@@ -30,8 +30,15 @@ interface JwtPayload {
 
 /**
  * Hono authentication middleware that extracts JWT token and validates user
+ * Routes can skip authentication by setting c.set('skipAuth', true) before this middleware
  */
 export const authenticateToken = async (c: Context, next: Next): Promise<void | Response> => {
+  // Allow routes to explicitly skip authentication
+  if (c.get('skipAuth')) {
+    await next();
+    return;
+  }
+
   const authHeader = c.req.header('authorization');
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -122,6 +129,28 @@ export const authenticateToken = async (c: Context, next: Next): Promise<void | 
       error: 'Invalid or expired token',
     }, 401);
   }
+};
+
+/**
+ * Public endpoint middleware
+ * Marks a route as public (skips authentication)
+ * Must be applied BEFORE authenticateToken middleware
+ */
+export const publicEndpoint = async (c: Context, next: Next): Promise<void> => {
+  c.set('skipAuth', true);
+  await next();
+};
+
+/**
+ * Refresh endpoint middleware
+ * Marks a route as a token refresh endpoint (no JWT required, but refresh token is mandatory)
+ * Must be applied BEFORE authenticateToken middleware
+ * Handler is responsible for validating refresh token presence
+ */
+export const refreshEndpoint = async (c: Context, next: Next): Promise<void> => {
+  c.set('skipAuth', true);
+  c.set('isRefresh', true);
+  await next();
 };
 
 /**

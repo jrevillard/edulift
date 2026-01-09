@@ -897,14 +897,6 @@ app.openapi(refreshTokenRoute, async (c) => {
 app.openapi(logoutRoute, async (c) => {
   const userId = c.get('userId');
 
-  if (!userId) {
-    return c.json({
-      success: false,
-      error: 'Authentication required',
-      code: 'UNAUTHORIZED',
-    }, 401 as const);
-  }
-
   try {
     await authServiceInstance.logout(userId);
 
@@ -930,14 +922,6 @@ app.openapi(logoutRoute, async (c) => {
 app.openapi(getProfileRoute, async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
-
-  if (!userId || !user) {
-    return c.json({
-      success: false,
-      error: 'User authentication required',
-      code: 'UNAUTHORIZED',
-    }, 401 as const);
-  }
 
   // Fetch complete user data with timestamps from database
   const userFromDb = await userRepositoryInstance.findById(userId);
@@ -975,15 +959,6 @@ app.openapi(updateProfileRoute, async (c) => {
     profileData,
     userEmail: user?.email,
   });
-
-  if (!userId) {
-    loggerInstance.error('updateProfile: User authentication required', { userId });
-    return c.json({
-      success: false,
-      error: 'User authentication required',
-      code: 'UNAUTHORIZED',
-    }, 401 as const);
-  }
 
   // Validate timezone if provided
   if (profileData.timezone && !isValidTimezone(profileData.timezone)) {
@@ -1042,14 +1017,6 @@ app.openapi(updateTimezoneRoute, async (c) => {
   const userId = c.get('userId');
   const { timezone } = c.req.valid('json');
 
-  if (!userId) {
-    return c.json({
-      success: false,
-      error: 'User authentication required',
-      code: 'UNAUTHORIZED',
-    }, 401 as const);
-  }
-
   try {
     // Update timezone via profile update
     const updatedUser = await authServiceInstance.updateProfile(userId, { timezone });
@@ -1083,14 +1050,6 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
   const { code_challenge } = c.req.valid('json');
-
-  if (!userId) {
-    return c.json({
-      success: false,
-      error: 'Authentication required',
-      code: 'UNAUTHORIZED',
-    }, 401 as const);
-  }
 
   loggerInstance.debug('requestAccountDeletion: Request received', {
     userId,
@@ -1169,17 +1128,6 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
 
   // SECURITY: JWT authentication is mandatory
   const userId = c.get('userId');
-  if (!userId) {
-    loggerInstance.warn('confirmAccountDeletion: User authentication required', {
-      token: token ? `${token.substring(0, 10)}...` : undefined,
-      timestamp: new Date().toISOString(),
-    });
-    return c.json({
-      success: false,
-      error: 'User authentication required',
-      code: 'UNAUTHORIZED',
-    }, 401 as const);
-  }
 
   // SECURITY: PKCE validation is mandatory
   if (!code_verifier) {

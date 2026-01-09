@@ -810,14 +810,6 @@ app.openapi(createScheduleSlotRoute, async (c) => {
     }, 400);
   }
 
-  if (!userId) {
-    loggerInstance.error('createScheduleSlotWithVehicle: Authentication required', { userId });
-    return c.json({
-      success: false,
-      error: 'Authentication required',
-    }, 401);
-  }
-
   try {
     const slotData = {
       groupId,
@@ -1157,13 +1149,6 @@ app.openapi(assignChildRoute, async (c) => {
   const input = c.req.valid('json');
   const userId = c.get('userId');
 
-  if (!userId) {
-    return c.json({
-      success: false,
-      error: 'Authentication required',
-    }, 401);
-  }
-
   if (!input.childId) {
     return c.json({
       success: false,
@@ -1207,13 +1192,6 @@ app.openapi(removeChildFromScheduleSlotRoute, async (c) => {
   const { scheduleSlotId, childId } = c.req.valid('param');
   const userId = c.get('userId');
 
-  if (!userId) {
-    return c.json({
-      success: false,
-      error: 'Authentication required',
-    }, 401);
-  }
-
   const result = await childAssignmentServiceInstance.removeChildFromScheduleSlot(
     scheduleSlotId,
     childId,
@@ -1232,13 +1210,6 @@ app.openapi(removeChildFromScheduleSlotRoute, async (c) => {
 app.openapi(getAvailableChildrenRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
   const userId = c.get('userId');
-
-  if (!userId) {
-    return c.json({
-      success: false,
-      error: 'Authentication required',
-    }, 401);
-  }
 
   const children = await childAssignmentServiceInstance.getAvailableChildrenForScheduleSlot(
     scheduleSlotId,
