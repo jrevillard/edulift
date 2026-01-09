@@ -148,6 +148,9 @@ export const publicEndpoint = async (c: Context, next: Next): Promise<void> => {
  * Must be applied BEFORE authenticateToken middleware
  */
 export const optionalAuthentication = async (c: Context, next: Next): Promise<void> => {
+  // CRITICAL: Set skipAuth to prevent authenticateToken middleware from blocking
+  c.set('skipAuth', true);
+
   const authHeader = c.req.header('authorization');
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
