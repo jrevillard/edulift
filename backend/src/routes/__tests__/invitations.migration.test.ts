@@ -28,7 +28,8 @@ describe('Invitations Router Migration Verification', () => {
     expect(routesFile).toContain('app.route(\'/\', invitationController)');
 
     // Verify Express middleware is gone
-    expect(routesFile).not.toContain('authenticateToken,');
+    // Note: authenticateToken is now imported from auth-hono (Hono middleware), not Express
+    expect(routesFile).not.toContain('from \'../middleware/auth\'');  // Old Express import
     expect(routesFile).not.toContain('asyncHandler');
     expect(routesFile).not.toContain('sendSuccessResponse');
     expect(routesFile).not.toContain('sendErrorResponse');
@@ -87,7 +88,7 @@ describe('Invitations Router Migration Verification', () => {
     expect(controllerFile).not.toContain('sendSuccessResponse(');
     expect(controllerFile).not.toContain('sendErrorResponse(');
 
-    // Verify default export pattern (controller exports factory function result)
+    // Verify OpenAPI Hono controller export pattern (factory function for dependency injection)
     expect(controllerFile).toContain('export default createInvitationControllerRoutes()');
   });
 });

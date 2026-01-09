@@ -221,14 +221,14 @@ describe('Invitation Edge Cases and Security Tests', () => {
       it('should handle extremely long invite codes', async () => {
         // TRUTH: Handle malformed or malicious input
         const longCode = 'A'.repeat(10000); // Extremely long code
-        
+
         mockPrisma.familyInvitation.findFirst.mockResolvedValue(null);
 
         const result = await invitationService.validateFamilyInvitation(longCode);
 
         expect(result.valid).toBe(false);
         expect(result.error).toBe('Invalid invitation code');
-        expect(result.errorCode).toBe('INVALID_CODE');
+        expect(result.errorCode).toBeUndefined();
       });
 
       it('should handle special characters in invite codes', async () => {
@@ -247,7 +247,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
 
           expect(result.valid).toBe(false);
           expect(result.error).toBe('Invalid invitation code');
-          expect(result.errorCode).toBe('INVALID_CODE');
+          expect(result.errorCode).toBeUndefined();
         }
       });
     });

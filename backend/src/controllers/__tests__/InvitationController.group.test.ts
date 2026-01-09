@@ -561,55 +561,63 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
   });
 
   describe('GET /group/:code/validate - Error Cases', () => {
-    it('should return 404 when invitation code is invalid', async () => {
+    it('should return 200 with valid:false when invitation code is invalid', async () => {
       mockInvitationService.validateGroupInvitation.mockResolvedValue({
         valid: false,
         error: 'Invalid invitation code',
-        errorCode: 'INVALID_CODE',
       });
 
       const response = await app.request(`/group/INVALIDCODE/validate`, {
         method: 'GET',
       });
 
-      expect(response.status).toBe(404);
-      const json = await responseJson<{ success: boolean; error: string; code: string }>(response);
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('Invalid invitation code');
-      expect(json.code).toBe('INVALID_INVITATION');
+      expect(response.status).toBe(200);
+      const json = await responseJson<{ valid: boolean; type: string; errorCode?: string }>(response);
+      expect(json.valid).toBe(false);
+      expect(json.type).toBe('GROUP');
+      expect(json.errorCode).toBeUndefined();
     });
 
-    it('should return 404 when invitation has expired', async () => {
+    it('should return 200 with errorCode when invitation has expired', async () => {
       mockInvitationService.validateGroupInvitation.mockResolvedValue({
         valid: false,
         error: 'Invitation has expired',
+        errorCode: 'EXPIRED',
+        email: 'invited@example.com',
+        inviterName: 'John Doe',
+        existingUser: false,
       });
 
       const response = await app.request(`/group/${mockInviteCode}/validate`, {
         method: 'GET',
       });
 
-      expect(response.status).toBe(404);
-      const json = await responseJson<{ success: boolean; error: string; code: string }>(response);
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('Invitation has expired');
+      expect(response.status).toBe(200);
+      const json = await responseJson<{ valid: boolean; type: string; errorCode?: string }>(response);
+      expect(json.valid).toBe(false);
+      expect(json.type).toBe('GROUP');
+      expect(json.errorCode).toBe('EXPIRED');
     });
 
-    it('should return 404 for email mismatch', async () => {
+    it('should return 200 with errorCode for email mismatch', async () => {
       mockInvitationService.validateGroupInvitation.mockResolvedValue({
         valid: false,
         error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
         errorCode: 'EMAIL_MISMATCH',
+        email: 'invited@example.com',
+        inviterName: 'John Doe',
+        existingUser: false,
       });
 
       const response = await app.request(`/group/${mockInviteCode}/validate`, {
         method: 'GET',
       });
 
-      expect(response.status).toBe(404);
-      const json = await responseJson<{ success: boolean; error: string; code: string }>(response);
-      expect(json.success).toBe(false);
-      expect(json.code).toBe('INVALID_INVITATION');
+      expect(response.status).toBe(200);
+      const json = await responseJson<{ valid: boolean; type: string; errorCode?: string }>(response);
+      expect(json.valid).toBe(false);
+      expect(json.type).toBe('GROUP');
+      expect(json.errorCode).toBe('EMAIL_MISMATCH');
     });
   });
 

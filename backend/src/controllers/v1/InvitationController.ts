@@ -588,12 +588,15 @@ app.openapi(validateFamilyInvitationRoute, async (c) => {
         existingUser: validation.existingUser ?? false,
       }, 200);
     } else {
-      loggerInstance.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error });
+      loggerInstance.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error, errorCode: validation.errorCode });
       return c.json({
-        success: false as const,
-        error: validation.error || 'Invalid family invitation',
-        code: 'INVALID_INVITATION',
-      }, 404);
+        valid: false,
+        type: 'FAMILY' as const,
+        email: validation.email,
+        inviterName: validation.inviterName ?? null,
+        existingUser: validation.existingUser ?? false,
+        errorCode: validation.errorCode,
+      }, 200);
     }
   } catch (error) {
     loggerInstance.error('validateFamilyInvitation: error', { code, error });
@@ -756,12 +759,17 @@ app.openapi(validateGroupInvitationRoute, async (c) => {
         }),
       }, 200);
     } else {
-      loggerInstance.info('validateGroupInvitation: invalid group invitation', { code, error: validation.error });
+      loggerInstance.info('validateGroupInvitation: invalid group invitation', { code, error: validation.error, errorCode: validation.errorCode });
       return c.json({
-        success: false as const,
-        error: validation.error || 'Invalid group invitation',
-        code: 'INVALID_INVITATION',
-      }, 404);
+        valid: false,
+        type: 'GROUP' as const,
+        email: validation.email,
+        inviterName: validation.inviterName ?? null,
+        existingUser: validation.existingUser ?? false,
+        targetFamilyId: validation.targetFamilyId ?? undefined,
+        targetFamilyName: validation.targetFamilyName ?? undefined,
+        errorCode: validation.errorCode,
+      }, 200);
     }
   } catch (error) {
     loggerInstance.error('validateGroupInvitation: error', { code, error });

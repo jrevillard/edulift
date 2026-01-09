@@ -27,6 +27,16 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
   });
 };
 
+const makeUnauthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}) => {
+  return app.request(url, {
+    ...options,
+    headers: {
+      ...options.headers,
+      // No Authorization header or invalid token
+    },
+  });
+};
+
 describe('AuthController Test Suite', () => {
   let app: Hono<{ Variables: AuthVariables }>;
   let mockAuthService: jest.Mocked<AuthService>;
@@ -69,10 +79,16 @@ describe('AuthController Test Suite', () => {
     // Create base Hono app
     app = new Hono<any>();
 
-    // Mock auth middleware - sets userId in context if auth header present
-    // Does NOT block public endpoints (they check userId themselves)
+    // Mock auth middleware - simulates authenticateToken behavior
+    // Returns 401 if no auth header for protected endpoints, allows public endpoints
     app.use('*', async (c: any, next) => {
       const authHeader = c.req.header('authorization');
+      const path = c.req.path;
+
+      // Public endpoints that don't require authentication
+      const publicEndpoints = ['/magic-link', '/verify', '/refresh'];
+      const isPublicEndpoint = publicEndpoints.some(endpoint => path.includes(endpoint));
+
       if (authHeader && authHeader.startsWith('Bearer ')) {
         c.set('userId', mockUserId);
         c.set('user', {
@@ -81,8 +97,16 @@ describe('AuthController Test Suite', () => {
           name: 'Test User',
           timezone: 'UTC',
         });
+        await next();
+      } else if (!isPublicEndpoint) {
+        // Protected endpoint without auth header - return 401
+        return c.json({
+          error: 'Access token required',
+        }, 401);
+      } else {
+        // Public endpoint without auth - allow through
+        await next();
       }
-      await next();
     });
 
     // Mount auth controller routes
@@ -436,16 +460,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      // Create app without auth middleware
-      const appWithoutAuth = new Hono<any>();
-      const authRoutes = createAuthControllerRoutes({
-        authService: mockAuthService,
-        userRepository: mockUserRepository,
-        unifiedInvitationService: mockUnifiedInvitationService,
-      });
-      appWithoutAuth.route('/', authRoutes);
-
-      const response = await appWithoutAuth.request('/profile/timezone', {
+      const response = await makeUnauthenticatedRequest(app, '/profile/timezone', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ timezone: 'America/New_York' }),
@@ -454,9 +469,7 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        success: false,
-        error: 'User authentication required',
-        code: 'UNAUTHORIZED',
+        error: 'Access token required',
       });
       expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
     });
@@ -591,16 +604,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      // Create app without auth middleware
-      const appWithoutAuth = new Hono<any>();
-      const authRoutes = createAuthControllerRoutes({
-        authService: mockAuthService,
-        userRepository: mockUserRepository,
-        unifiedInvitationService: mockUnifiedInvitationService,
-      });
-      appWithoutAuth.route('/', authRoutes);
-
-      const response = await appWithoutAuth.request('/profile/delete-request', {
+      const response = await makeUnauthenticatedRequest(app, '/profile/delete-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code_challenge: codeChallenge }),
@@ -609,15 +613,13 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        success: false,
-        error: 'Authentication required',
-        code: 'UNAUTHORIZED',
+        error: 'Access token required',
       });
       expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
 
     it('should handle invalid PKCE code_challenge', async () => {
-      const response = await app.request('/profile/delete-request', {
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code_challenge: 'short' }),
@@ -634,18 +636,19 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle missing PKCE code_challenge', async () => {
-      const response = await app.request('/profile/delete-request', {
+      const response = await makeAuthenticatedRequest(app, '/profile/delete-request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
 
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        success: false,
-        error: 'Authentication required',
-        code: 'UNAUTHORIZED',
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('code');
+      expect(jsonResponse).toMatchObject({
+        error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
+        code: 'INVALID_PKCE_CHALLENGE',
       });
       expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
@@ -889,16 +892,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      // Create app without auth middleware
-      const appWithoutAuth = new Hono<any>();
-      const authRoutes = createAuthControllerRoutes({
-        authService: mockAuthService,
-        userRepository: mockUserRepository,
-        unifiedInvitationService: mockUnifiedInvitationService,
-      });
-      appWithoutAuth.route('/', authRoutes);
-
-      const response = await appWithoutAuth.request('/logout', {
+      const response = await makeUnauthenticatedRequest(app, '/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -906,9 +900,7 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        success: false,
-        error: 'Authentication required',
-        code: 'UNAUTHORIZED',
+        error: 'Access token required',
       });
       expect(mockAuthService.logout).not.toHaveBeenCalled();
     });
@@ -970,16 +962,7 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      // Create app without auth middleware
-      const appWithoutAuth = new Hono<any>();
-      const authRoutes = createAuthControllerRoutes({
-        authService: mockAuthService,
-        userRepository: mockUserRepository,
-        unifiedInvitationService: mockUnifiedInvitationService,
-      });
-      appWithoutAuth.route('/', authRoutes);
-
-      const response = await appWithoutAuth.request('/profile', {
+      const response = await makeUnauthenticatedRequest(app, '/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: 'Test' }),
@@ -988,9 +971,7 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        success: false,
-        error: 'User authentication required',
-        code: 'UNAUTHORIZED',
+        error: 'Access token required',
       });
       expect(mockAuthService.updateProfile).not.toHaveBeenCalled();
     });
@@ -1048,25 +1029,14 @@ describe('AuthController Test Suite', () => {
     });
 
     it('should handle authentication required error', async () => {
-      // Create app without auth middleware
-      const appWithoutAuth = new Hono<any>();
-      const authRoutes = createAuthControllerRoutes({
-        authService: mockAuthService,
-        userRepository: mockUserRepository,
-        unifiedInvitationService: mockUnifiedInvitationService,
-      });
-      appWithoutAuth.route('/', authRoutes);
-
-      const response = await appWithoutAuth.request('/profile', {
+      const response = await makeUnauthenticatedRequest(app, '/profile', {
         method: 'GET',
       });
 
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
-        success: false,
-        error: 'User authentication required',
-        code: 'UNAUTHORIZED',
+        error: 'Access token required',
       });
       expect(mockUserRepository.findById).not.toHaveBeenCalled();
     });

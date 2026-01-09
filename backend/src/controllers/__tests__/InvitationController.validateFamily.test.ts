@@ -129,13 +129,12 @@ describe('InvitationController - Family Invitation Validation Test Suite', () =>
         method: 'GET',
       });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(200);
       const result = await responseJson(response);
 
-      expect(result).toEqual({
-        success: false,
-        error: 'Invalid or expired invitation code',
-        code: 'INVALID_INVITATION',
+      expect(result).toMatchObject({
+        valid: false,
+        type: 'FAMILY',
       });
 
       expect(mockInvitationService.validateFamilyInvitation).toHaveBeenCalledWith(inviteCode, undefined);
@@ -154,13 +153,12 @@ describe('InvitationController - Family Invitation Validation Test Suite', () =>
         method: 'GET',
       });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(200);
       const result = await responseJson(response);
 
-      expect(result).toEqual({
-        success: false,
-        error: 'Invalid family invitation',
-        code: 'INVALID_INVITATION',
+      expect(result).toMatchObject({
+        valid: false,
+        type: 'FAMILY',
       });
 
       expect(mockInvitationService.validateFamilyInvitation).toHaveBeenCalledWith(inviteCode, undefined);

@@ -921,7 +921,6 @@ app.openapi(logoutRoute, async (c) => {
  */
 app.openapi(getProfileRoute, async (c) => {
   const userId = c.get('userId');
-  const user = c.get('user');
 
   // Fetch complete user data with timestamps from database
   const userFromDb = await userRepositoryInstance.findById(userId);

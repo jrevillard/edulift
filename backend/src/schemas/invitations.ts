@@ -323,6 +323,12 @@ export const FamilyInvitationValidationSchema = z.object({
       example: false,
       description: 'Whether the invited email already corresponds to an existing user account',
     }),
+  errorCode: z.enum(['EMAIL_MISMATCH', 'ALREADY_MEMBER', 'EXPIRED'])
+    .optional()
+    .openapi({
+      example: 'EMAIL_MISMATCH',
+      description: 'Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED)',
+    }),
 }).openapi({
   title: 'Family Invitation Validation Response',
   description: 'Family invitation validation result',
@@ -375,6 +381,12 @@ export const GroupInvitationValidationSchema = z.object({
     .openapi({
       example: 'Smith Family',
       description: 'Name of the invited family',
+    }),
+  errorCode: z.enum(['EMAIL_MISMATCH', 'ALREADY_MEMBER', 'EXPIRED'])
+    .optional()
+    .openapi({
+      example: 'EMAIL_MISMATCH',
+      description: 'Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED)',
     }),
 }).openapi({
   title: 'Group Invitation Validation Response',
