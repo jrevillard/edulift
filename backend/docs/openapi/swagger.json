@@ -13431,9 +13431,7 @@
                   },
                   "required": [
                     "valid",
-                    "type",
-                    "inviterName",
-                    "existingUser"
+                    "type"
                   ],
                   "title": "Family Invitation Validation Response",
                   "description": "Family invitation validation result"
@@ -14118,9 +14116,7 @@
                   },
                   "required": [
                     "valid",
-                    "type",
-                    "inviterName",
-                    "existingUser"
+                    "type"
                   ],
                   "title": "Group Invitation Validation Response",
                   "description": "Group invitation validation result"

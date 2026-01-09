@@ -38,17 +38,35 @@ export class EnhancedTimingHelper {
    */
   async waitForAuthenticationReady(): Promise<void> {
     await this.page.waitForFunction(() => {
-      // Check for authentication tokens
+      // Check for E2E test mode authentication tokens (secure_* keys)
+      const secureAuthToken = localStorage.getItem('secure_authToken');
+      const secureUserData = localStorage.getItem('secure_userData');
+
+      // Fall back to legacy keys for non-E2E tests
       const authToken = localStorage.getItem('authToken');
       const authStorage = localStorage.getItem('auth-storage');
-      
-      if (!authToken || !authStorage) {
+
+      const hasE2EAuth = secureAuthToken && secureUserData;
+      const hasLegacyAuth = authToken && authStorage;
+
+      if (!hasE2EAuth && !hasLegacyAuth) {
         return false;
       }
 
-      // Verify auth storage is valid JSON and has user data
+      // For E2E tests, verify secure data exists and is valid JSON
+      if (hasE2EAuth) {
+        try {
+          const tokenData = JSON.parse(secureAuthToken!);
+          const userData = JSON.parse(secureUserData!);
+          return tokenData.encrypted && userData.encrypted;
+        } catch {
+          return false;
+        }
+      }
+
+      // For legacy auth, verify auth storage is valid JSON and has user data
       try {
-        const auth = JSON.parse(authStorage);
+        const auth = JSON.parse(authStorage!);
         return auth.state?.user && auth.state?.isAuthenticated === true;
       } catch {
         return false;

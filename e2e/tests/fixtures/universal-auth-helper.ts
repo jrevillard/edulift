@@ -468,7 +468,7 @@ All tests MUST use automatic prefix detection for consistency.
 
     try {
       await this.page.evaluate(
-        ({ token, userData, opts }) => {
+        ({ token, userData, opts, testOverrideIv }) => {
           // Clear any existing auth data first to avoid conflicts
           // 🔧 FIX: Also clear secure_* keys
           localStorage.removeItem('authToken');
@@ -481,7 +481,7 @@ All tests MUST use automatic prefix detection for consistency.
           // 🔧 FIX: Store in secure_* format to match secureStorage keys
           // Format: { encrypted: base64(data), iv: base64(iv), timestamp: number }
           const encodeBase64 = (str: string) => btoa(str);
-          const e2eTestIv = encodeBase64(E2E_TEST_OVERRIDE_IV);
+          const e2eTestIv = encodeBase64(testOverrideIv);
 
           // 🔧 CRITICAL: Set E2E test mode flags so secureStorage recognizes test data
           (window as any).__E2E_TEST_MODE__ = true;
@@ -514,7 +514,7 @@ All tests MUST use automatic prefix detection for consistency.
             key: 'secure_authToken',
             newValue: JSON.stringify({
               encrypted: btoa(token),
-              iv: btoa(E2E_TEST_OVERRIDE_IV),
+              iv: btoa(testOverrideIv),
               timestamp: Date.now()
             }),
             oldValue: null,
@@ -542,7 +542,8 @@ All tests MUST use automatic prefix detection for consistency.
         {
           token: jwtToken,
           userData: user,
-          opts: options
+          opts: options,
+          testOverrideIv: E2E_TEST_OVERRIDE_IV
         }
       );
     } catch (error) {
@@ -575,11 +576,11 @@ All tests MUST use automatic prefix detection for consistency.
 
     try {
       await this.page.evaluate(
-        ({ token, userData, opts }) => {
+        ({ token, userData, opts, testOverrideIv }) => {
           // 🔧 FIX: Store in secure_* format to match secureStorage keys
           // Format: { encrypted: base64(data), iv: base64(iv), timestamp: number }
           const encodeBase64 = (str: string) => btoa(str);
-          const e2eTestIv = encodeBase64(E2E_TEST_OVERRIDE_IV);
+          const e2eTestIv = encodeBase64(testOverrideIv);
 
           // 🔧 CRITICAL: Set E2E test mode flags so secureStorage recognizes test data
           (window as any).__E2E_TEST_MODE__ = true;
@@ -609,7 +610,8 @@ All tests MUST use automatic prefix detection for consistency.
         {
           token: jwtToken,
           userData: user,
-          opts: options
+          opts: options,
+          testOverrideIv: E2E_TEST_OVERRIDE_IV
         }
       );
     } catch (error) {

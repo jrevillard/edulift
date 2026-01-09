@@ -333,7 +333,7 @@ export const FamilyInvitationValidationSchema = z.object({
 }).openapi({
   title: 'Family Invitation Validation Response',
   description: 'Family invitation validation result',
-  required: ['valid', 'type', 'inviterName', 'existingUser'],
+  required: ['valid', 'type'],
 });
 
 // Group-specific validation response
@@ -393,7 +393,7 @@ export const GroupInvitationValidationSchema = z.object({
 }).openapi({
   title: 'Group Invitation Validation Response',
   description: 'Group invitation validation result',
-  required: ['valid', 'type', 'inviterName', 'existingUser'],
+  required: ['valid', 'type'],
 });
 
 export const AcceptInvitationResponseSchema = z.object({
