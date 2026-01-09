@@ -142,6 +142,49 @@ export const publicEndpoint = async (c: Context, next: Next): Promise<void> => {
 };
 
 /**
+ * Optional authentication middleware
+ * Validates token if present but doesn't block if absent
+ * Used for validation endpoints where we want to check EMAIL_MISMATCH if user is logged in
+ * Must be applied BEFORE authenticateToken middleware
+ */
+export const optionalAuthentication = async (c: Context, next: Next): Promise<void> => {
+  const authHeader = c.req.header('authorization');
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+  if (token) {
+    try {
+      // JWT secret MUST be set
+      const jwtAccessSecret = process.env.JWT_SECRET || process.env.JWT_ACCESS_SECRET;
+      if (!jwtAccessSecret) {
+        throw new Error('JWT_SECRET environment variable must be set');
+      }
+
+      const decoded = jwt.verify(token, jwtAccessSecret) as JwtPayload;
+
+      // Fetch user details from database
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { id: true, email: true, name: true, timezone: true },
+      });
+
+      // Set userId if user exists (token valid)
+      if (user) {
+        c.set('userId', user.id);
+        c.set('user', user);
+      }
+    } catch (error) {
+      // Token invalid - ignore, continue without authentication
+      logger.debug('Optional auth: invalid token provided, continuing without auth', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  // Never block - always continue
+  await next();
+};
+
+/**
  * Refresh endpoint middleware
  * Marks a route as a token refresh endpoint (no JWT required, but refresh token is mandatory)
  * Must be applied BEFORE authenticateToken middleware

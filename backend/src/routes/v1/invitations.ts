@@ -4,10 +4,10 @@
  * Invitation system routes using OpenAPI Hono format
  * Authentication applied selectively to protected routes
  *
- * Public endpoints (no authentication required):
- * - GET /invitations/validate/:code → Validate invitation
- * - GET /invitations/family/:code/validate → Validate family invitation
- * - GET /invitations/group/:code/validate → Validate group invitation
+ * Validation endpoints (optional authentication):
+ * - GET /invitations/validate/:code → Validate invitation (JWT optional for EMAIL_MISMATCH check)
+ * - GET /invitations/family/:code/validate → Validate family invitation (JWT optional for EMAIL_MISMATCH check)
+ * - GET /invitations/group/:code/validate → Validate group invitation (JWT optional for EMAIL_MISMATCH check)
  *
  * Protected endpoints (JWT authentication required):
  * - POST /invitations/family → Create family invitation
@@ -20,15 +20,17 @@
  */
 
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { authenticateToken, publicEndpoint } from '../../middleware/auth-hono';
+import { authenticateToken, optionalAuthentication } from '../../middleware/auth-hono';
 import invitationController from '../../controllers/v1/InvitationController';
 
 const app = new OpenAPIHono();
 
-// Public endpoints (no authentication required)
-app.use('/validate/:code', publicEndpoint);
-app.use('/family/:code/validate', publicEndpoint);
-app.use('/group/:code/validate', publicEndpoint);
+// Validation endpoints with optional authentication
+// - Accessible without token for basic validation
+// - If JWT provided, validates it and checks EMAIL_MISMATCH
+app.use('/validate/:code', optionalAuthentication);
+app.use('/family/:code/validate', optionalAuthentication);
+app.use('/group/:code/validate', optionalAuthentication);
 
 // Protected endpoints (JWT authentication required)
 // All other routes require authentication

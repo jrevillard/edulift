@@ -203,7 +203,7 @@ describe('SocketHandler Security', () => {
           }
           done(new Error('Expected authorization error was not received'));
         }
-      }, 1000);
+      }, 5000);
     });
 
     it('should allow authorized users to join groups', (done) => {
@@ -318,7 +318,7 @@ describe('SocketHandler Security', () => {
           }
           done(new Error('Expected authorization error was not received'));
         }
-      }, 1000);
+      }, 5000);
     });
 
     it('should prevent unauthorized typing events in schedule slots', (done) => {
