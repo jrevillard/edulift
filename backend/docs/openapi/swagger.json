@@ -13423,10 +13423,11 @@
                       "enum": [
                         "EMAIL_MISMATCH",
                         "ALREADY_MEMBER",
-                        "EXPIRED"
+                        "EXPIRED",
+                        "INVALID_CODE"
                       ],
                       "example": "EMAIL_MISMATCH",
-                      "description": "Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED)"
+                      "description": "Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED, INVALID_CODE)"
                     }
                   },
                   "required": [
@@ -14108,10 +14109,11 @@
                       "enum": [
                         "EMAIL_MISMATCH",
                         "ALREADY_MEMBER",
-                        "EXPIRED"
+                        "EXPIRED",
+                        "INVALID_CODE"
                       ],
                       "example": "EMAIL_MISMATCH",
-                      "description": "Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED)"
+                      "description": "Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED, INVALID_CODE)"
                     }
                   },
                   "required": [

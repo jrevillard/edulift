@@ -26,7 +26,7 @@ export interface FamilyInvitationValidation {
   role?: FamilyRole;
   personalMessage?: string;
   error?: string;
-  errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED';
+  errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED' | 'INVALID_CODE';
   email?: string;
   existingUser?: boolean;
   userCurrentFamily?: {
@@ -63,7 +63,7 @@ export interface GroupInvitationValidation {
   targetFamilyName?: string;  // Name of the invited family
   requiresAuth?: boolean;
   error?: string;
-  errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED';
+  errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED' | 'INVALID_CODE';
   email?: string;
   inviterName?: string;
   existingUser?: boolean;
@@ -244,11 +244,19 @@ export class UnifiedInvitationService {
       });
 
       if (!invitation) {
-        return { valid: false, error: 'Invalid invitation code' };
+        return {
+          valid: false,
+          error: 'Invalid invitation code',
+          errorCode: 'INVALID_CODE',
+        };
       }
 
       if (invitation.expiresAt < new Date()) {
-        return { valid: false, error: 'Invitation has expired' };
+        return {
+          valid: false,
+          error: 'Invitation has expired',
+          errorCode: 'EXPIRED',
+        };
       }
 
       const result: any = {
@@ -723,11 +731,19 @@ export class UnifiedInvitationService {
     });
 
     if (!invitation) {
-      return { valid: false, error: 'Invalid invitation code' };
+      return {
+        valid: false,
+        error: 'Invalid invitation code',
+        errorCode: 'INVALID_CODE',
+      };
     }
 
     if (invitation.expiresAt < new Date()) {
-      return { valid: false, error: 'Invitation has expired' };
+      return {
+        valid: false,
+        error: 'Invitation has expired',
+        errorCode: 'EXPIRED',
+      };
     }
 
     const result: any = {
