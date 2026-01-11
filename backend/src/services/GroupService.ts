@@ -705,9 +705,9 @@ export class GroupService {
       });
 
       // Convert Date objects to ISO strings for JSON serialization
-      // Return in schema order: id, groupId, familyId, role, joinedAt, addedBy, family
+      // Return in schema order: groupId, familyId, role, joinedAt, addedBy, family
+      // Note: GroupFamilyMember uses composite key (familyId+groupId), not separate id field
       return {
-        id: updatedMembership.id,
         groupId: updatedMembership.groupId,
         familyId: updatedMembership.familyId,
         role: updatedMembership.role,

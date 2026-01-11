@@ -424,12 +424,6 @@ export const GroupMembershipSchema = z.object({
  * Returned by GroupService.updateFamilyRole()
  */
 export const UpdateFamilyRoleResponseSchema = z.object({
-  id: z.string()
-    .cuid()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Unique membership identifier (CUID format)',
-    }),
   groupId: z.string()
     .cuid()
     .openapi({

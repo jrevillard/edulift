@@ -15232,12 +15232,6 @@
                     "data": {
                       "type": "object",
                       "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901238",
-                          "description": "Unique membership identifier (CUID format)"
-                        },
                         "groupId": {
                           "type": "string",
                           "format": "cuid",
@@ -15308,7 +15302,6 @@
                         }
                       },
                       "required": [
-                        "id",
                         "groupId",
                         "familyId",
                         "role",
