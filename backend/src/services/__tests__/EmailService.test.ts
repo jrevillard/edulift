@@ -99,7 +99,10 @@ describe('EmailService', () => {
     it('should throw an error if sending fails', async () => {
         mockSendMail.mockRejectedValueOnce(new Error('SMTP Error'));
 
-        await expect((emailService as any)._send('a@b.com', 's', 'h')).rejects.toThrow('Failed to send email');
+        const error = await (emailService as any)._send('a@b.com', 's', 'h').catch((e: Error) => e);
+        expect(error.message).toBe('Email service temporarily unavailable');
+        expect(error.code).toBe('EMAIL_SERVICE_UNAVAILABLE');
+        expect(error.retryable).toBe(true);
     });
   });
 

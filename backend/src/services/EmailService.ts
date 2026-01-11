@@ -43,8 +43,15 @@ export class EmailService extends BaseEmailService {
       this.logger.info(`Email sent successfully to ${to}, messageId: ${info.messageId}`);
     } catch (error) {
       // Always log errors, even in test mode
-      this.logger.error(`Failed to send email to ${to} with subject "${subject}"`, { error: error instanceof Error ? error.message : String(error) });
-      throw new Error('Failed to send email');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Failed to send email to ${to} with subject "${subject}"`, { error: errorMessage });
+
+      // Throw specific error that can be caught and handled by controllers
+      const emailError = new Error('Email service temporarily unavailable') as any;
+      emailError.code = 'EMAIL_SERVICE_UNAVAILABLE';
+      emailError.retryable = true;
+      emailError.originalError = errorMessage;
+      throw emailError;
     }
   }
 

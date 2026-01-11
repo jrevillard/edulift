@@ -29,11 +29,11 @@ import {
   FamilySearchResultSchema,
   GroupInvitationSchema,
   SimpleSuccessResponseSchema,
-  ErrorResponseSchema,
   createSuccessSchema,
   UpdateScheduleConfigRequestSchema,
   GroupScheduleConfigResponseSchema,
 } from '../../schemas/groups';
+import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Hono type for context with userId
 export type GroupVariables = {

@@ -2,8 +2,7 @@
 import { PrismaClient, GroupRole } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
-import { EmailService } from './EmailService';
-import { MockEmailService } from './MockEmailService';
+import { EmailServiceFactory } from './EmailServiceFactory';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { UnifiedInvitationService } from './UnifiedInvitationService';
 import {
@@ -50,27 +49,9 @@ export class GroupService {
 
   constructor(private prisma: PrismaClient, emailService?: EmailServiceInterface) {
     this.activityLogRepo = new ActivityLogRepository(prisma);
-    
-    // Use provided email service or create appropriate one based on environment
-    if (emailService) {
-      this.emailService = emailService;
-    } else {
-      const hasEmailCredentials = !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
-      
-      if (process.env.NODE_ENV === 'production' && hasEmailCredentials) {
-        this.emailService = new EmailService({
-          host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-          port: parseInt(process.env.EMAIL_PORT || '587'),
-          secure: false,
-          auth: {
-            user: process.env.EMAIL_USER!,
-            pass: process.env.EMAIL_PASSWORD!,
-          },
-        });
-      } else {
-        this.emailService = new MockEmailService();
-      }
-    }
+
+    // Use provided email service or use EmailServiceFactory for consistent configuration
+    this.emailService = emailService ?? EmailServiceFactory.getInstance();
 
     // Initialize UnifiedInvitationService
     this.unifiedInvitationService = new UnifiedInvitationService(

@@ -49,11 +49,21 @@ registry.register('SuccessResponse', UniversalSuccessResponseSchema);
 * Generic Error Response
 */
 export const ErrorResponseSchema = z.object({
-success: z.boolean(),
+success: z.literal(false),
 error: z.string()
 .openapi({
 example: 'Validation failed',
 description: 'Human-readable error message',
+}),
+code: z.string().optional()
+.openapi({
+example: 'ERROR_CODE',
+description: 'Error code for programmatic handling',
+}),
+retryable: z.boolean().optional()
+.openapi({
+example: true,
+description: 'Whether the request can be retried',
 }),
 validationErrors: z.array(z.object({
 field: z.string(),
@@ -70,7 +80,7 @@ description: 'Detailed validation errors (when applicable)',
 }),
 }).openapi({
 title: 'Error Response',
-description: 'Standard error response format with optional validation details',
+description: 'Standard error response format with optional code, retryable, and validation details',
 });
 
 

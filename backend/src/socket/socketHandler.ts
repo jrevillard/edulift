@@ -5,8 +5,7 @@ import { ScheduleSlotService } from '../services/ScheduleSlotService';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
 import { ScheduleSlotValidationService } from '../services/ScheduleSlotValidationService';
 import { NotificationService } from '../services/NotificationService';
-import { EmailService } from '../services/EmailService';
-import { MockEmailService } from '../services/MockEmailService';
+import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { UserRepository } from '../repositories/UserRepository';
 import { prisma as globalPrisma } from '../config/database';
 import jwt from 'jsonwebtoken';
@@ -49,23 +48,10 @@ export class SocketHandler {
     const prisma = this.prisma;
     const scheduleSlotRepository = new ScheduleSlotRepository(prisma);
     const userRepository = new UserRepository(prisma);
-    
-    // Setup email service based on configuration
-    const hasEmailCredentials = !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
-    const hasEmailConfig = !!(process.env.EMAIL_HOST && process.env.EMAIL_PORT);
-    
-    const emailService = hasEmailConfig && hasEmailCredentials
-      ? new EmailService({
-          host: process.env.EMAIL_HOST!,
-          port: parseInt(process.env.EMAIL_PORT!),
-          secure: process.env.EMAIL_ENCRYPTION === 'SSL',
-          auth: {
-            user: process.env.EMAIL_USER!,
-            pass: process.env.EMAIL_PASSWORD!,
-          },
-        })
-      : new MockEmailService();
-    
+
+    // Use EmailServiceFactory for consistent email configuration
+    const emailService = EmailServiceFactory.getInstance();
+
     const notificationService = new NotificationService(emailService, userRepository, scheduleSlotRepository, prisma);
     const scheduleSlotValidationService = new ScheduleSlotValidationService(prisma);
     const scheduleSlotService = new ScheduleSlotService(scheduleSlotRepository, notificationService, scheduleSlotValidationService);

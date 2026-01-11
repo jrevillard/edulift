@@ -22,25 +22,13 @@ import {
   VehicleScheduleSchema,
   WeekQuerySchema,
 } from '../../schemas/vehicles';
+import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Hono type for context with userId
 type VehicleVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
-
-// Error response schema
-const ErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string().openapi({
-    example: 'Vehicle not found',
-    description: 'Error message',
-  }),
-  code: z.string().optional().openapi({
-    example: 'VEHICLE_NOT_FOUND',
-    description: 'Error code for programmatic handling',
-  }),
-});
 
 // Success response schema
 const createSuccessSchema = <T extends z.ZodType>(schema: T) => {

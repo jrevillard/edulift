@@ -851,18 +851,5 @@ export const SimpleSuccessResponseSchema = z.object({
   description: 'Standard success response with message',
 });
 
-export const ErrorResponseSchema = z.object({
-  success: z.boolean(),
-  error: z.string()
-    .openapi({
-      example: 'Bad request',
-      description: 'Error message',
-    }),
-  code: z.string().optional().openapi({
-    example: 'BAD_REQUEST',
-    description: 'Error code for programmatic handling',
-  }),
-}).openapi({
-  title: 'Error Response',
-  description: 'Standard error response',
-});
+// Re-export ErrorResponseSchema from responses.ts for backward compatibility
+export { ErrorResponseSchema } from './responses';

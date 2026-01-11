@@ -5,18 +5,21 @@
  * start calculation was incorrect (✅ FIXED) and ensure trip counting works correctly for the current week.
  */
 
+// Mock the logger BEFORE any imports that might use it
+const mockLogger = {
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
+
+jest.mock('../../utils/logger', () => ({
+  logger: mockLogger,
+  createLogger: jest.fn(() => mockLogger),
+}));
+
 import { DashboardService } from '../DashboardService';
 import { TEST_IDS } from '../../utils/testHelpers';
-
-// Mock the logger
-jest.mock('../../utils/logger', () => ({
-  createLogger: jest.fn(() => ({
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-  })),
-}));
 
 describe('DashboardService - This Week Trips TDD Tests', () => {
   let dashboardService: DashboardService;
@@ -31,6 +34,9 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
         count: jest.fn(),
       },
       user: {
+        findFirst: jest.fn(),
+      },
+      familyMember: {
         findFirst: jest.fn(),
       },
     };
@@ -84,8 +90,8 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
   describe('This Week Trip Counting ✅', () => {
     it('✅ GREEN: should count trips correctly via internal method', async () => {
       // Mock user with family
-      mockPrisma.user.findFirst.mockResolvedValue({
-        familyMemberships: [{ familyId: TEST_IDS.FAMILY }],
+      mockPrisma.familyMember.findFirst.mockResolvedValue({
+        family: { id: TEST_IDS.FAMILY, name: 'Test Family' },
       });
 
       // Mock Prisma count to return some trips
@@ -95,15 +101,15 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
       const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser(TEST_IDS.USER);
 
       // ✅ GREEN: Should have the correct trip count (actual implementation value)
-      expect(tripCount).toBe(0);
+      expect(tripCount).toBe(5);
 
       // ✅ GREEN: Test validates trip counting functionality
     });
 
     it('should return zero trips when no trips exist', async () => {
       // Mock user with family
-      mockPrisma.user.findFirst.mockResolvedValue({
-        familyMemberships: [{ familyId: TEST_IDS.FAMILY }],
+      mockPrisma.familyMember.findFirst.mockResolvedValue({
+        family: { id: TEST_IDS.FAMILY, name: 'Test Family' },
       });
 
       // Mock Prisma count to return zero
@@ -117,7 +123,7 @@ describe('DashboardService - This Week Trips TDD Tests', () => {
 
     it('should handle user without family gracefully', async () => {
       // Mock user without family
-      mockPrisma.user.findFirst.mockResolvedValue(null);
+      mockPrisma.familyMember.findFirst.mockResolvedValue(null);
 
       // Call the internal method directly
       const tripCount = await (dashboardService as any).getThisWeekTripsCountForUser(TEST_IDS.USER);

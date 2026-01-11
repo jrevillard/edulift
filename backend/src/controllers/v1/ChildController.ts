@@ -23,6 +23,7 @@ import {
   ChildAssignmentSchema,
   WeekQuerySchema,
 } from '../../schemas/children';
+import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Type for Hono context with userId
 type ChildVariables = {
@@ -54,18 +55,6 @@ export function createChildControllerRoutes(dependencies: {
   // OPENAPI ROUTES DEFINITIONS
   // ============================================================================
 
-  // Error response schema
-  const ErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string().openapi({
-    example: 'Child not found',
-    description: 'Error message',
-  }),
-  code: z.string().optional().openapi({
-    example: 'CHILD_NOT_FOUND',
-    description: 'Error code for programmatic handling',
-  }),
-});
 
   // Success response schema helper
   const createSuccessSchema = <T extends z.ZodType>(schema: T) => {

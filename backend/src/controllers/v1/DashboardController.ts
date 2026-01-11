@@ -10,25 +10,13 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
 import { DashboardService } from '../../services/DashboardService';
 import { createLogger } from '../../utils/logger';
+import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Type for Hono context with userId
 type DashboardVariables = {
   userId: string;
   user: { id: string; email: string; name: string; timezone: string };
 };
-
-// Error response schema
-const ErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string().openapi({
-    example: 'Failed to retrieve dashboard data',
-    description: 'Error message',
-  }),
-  code: z.string().optional().openapi({
-    example: 'DASHBOARD_ERROR',
-    description: 'Error code for programmatic handling',
-  }),
-});
 
 // Success response schema helper
 const createSuccessSchema = <T extends z.ZodType>(schema: T) => {

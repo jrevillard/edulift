@@ -228,7 +228,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
 
         expect(result.valid).toBe(false);
         expect(result.error).toBe('Invalid invitation code');
-        expect(result.errorCode).toBeUndefined();
+        expect(result.errorCode).toBe('INVALID_CODE');
       });
 
       it('should handle special characters in invite codes', async () => {
@@ -247,7 +247,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
 
           expect(result.valid).toBe(false);
           expect(result.error).toBe('Invalid invitation code');
-          expect(result.errorCode).toBeUndefined();
+          expect(result.errorCode).toBe('INVALID_CODE');
         }
       });
     });

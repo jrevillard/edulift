@@ -422,6 +422,31 @@ registerPath({
     422: {
       description: 'Unprocessable entity - Validation failed',
     },
+    503: {
+      description: 'Email service temporarily unavailable - retryable',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string()
+              .openapi({
+                example: 'Email service temporarily unavailable. Please try again later.',
+                description: 'Error message',
+              }),
+            code: z.literal('EMAIL_SERVICE_UNAVAILABLE')
+              .openapi({
+                example: 'EMAIL_SERVICE_UNAVAILABLE',
+                description: 'Error code for email service failure',
+              }),
+            retryable: z.boolean()
+              .openapi({
+                example: true,
+                description: 'Whether the request can be retried',
+              }),
+          }),
+        },
+      },
+    },
   },
 });
 
@@ -698,6 +723,31 @@ registerPath({
           schema: z.object({
             success: z.boolean(),
             error: z.string(),
+          }),
+        },
+      },
+    },
+    503: {
+      description: 'Email service temporarily unavailable - retryable',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string()
+              .openapi({
+                example: 'Email service temporarily unavailable. Please try again later.',
+                description: 'Error message',
+              }),
+            code: z.literal('EMAIL_SERVICE_UNAVAILABLE')
+              .openapi({
+                example: 'EMAIL_SERVICE_UNAVAILABLE',
+                description: 'Error code for email service failure',
+              }),
+            retryable: z.boolean()
+              .openapi({
+                example: true,
+                description: 'Whether the request can be retried',
+              }),
           }),
         },
       },

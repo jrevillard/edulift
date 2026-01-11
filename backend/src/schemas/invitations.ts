@@ -27,6 +27,22 @@ export const InvitationStatusEnum = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'C
   example: 'PENDING',
 });
 
+// Error response schema
+const ErrorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.string().openapi({
+    example: 'Invitation not found',
+    description: 'Error message',
+  }),
+  code: z.string().optional().openapi({
+    example: 'INVITATION_NOT_FOUND',
+    description: 'Error code for programmatic handling',
+  }),
+  retryable: z.boolean().optional().openapi({
+    example: true,
+    description: 'Whether the request can be retried',
+  }),
+});
 
 // ============================================================================
 // REQUEST SCHEMAS
@@ -476,6 +492,14 @@ registerPath({
     403: {
       description: 'Forbidden - Only family administrators can send invitations',
     },
+    503: {
+      description: 'Email service temporarily unavailable - retryable',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+    },
     500: {
       description: 'Internal server error',
     },
@@ -590,6 +614,14 @@ registerPath({
     },
     409: {
       description: 'Conflict - Family already a member or already has pending invitation',
+    },
+    503: {
+      description: 'Email service temporarily unavailable - retryable',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
     },
     500: {
       description: 'Internal server error',

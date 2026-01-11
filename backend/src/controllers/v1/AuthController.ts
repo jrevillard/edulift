@@ -30,6 +30,7 @@ import {
   ConfirmAccountDeletionSchema,
   UserResponseSchema,
 } from '../../schemas/auth';
+import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Hono type for context with auth
 export type AuthVariables = {
@@ -42,18 +43,6 @@ export type AuthVariables = {
   };
 };
 
-// Error response schema
-const ErrorResponseSchema = z.object({
-  success: z.literal(false),
-  error: z.string().openapi({
-    example: 'Error message',
-    description: 'Error message',
-  }),
-  code: z.string().optional().openapi({
-    example: 'ERROR_CODE',
-    description: 'Error code for programmatic handling',
-  }),
-});
 
 // Success response schema helper
 const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
@@ -170,6 +159,28 @@ const requestMagicLinkRoute = createRoute({
         },
       },
       description: 'Internal server error',
+    },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string().openapi({
+              example: 'Email service temporarily unavailable. Please try again later.',
+              description: 'Error message',
+            }),
+            code: z.literal('EMAIL_SERVICE_UNAVAILABLE').openapi({
+              example: 'EMAIL_SERVICE_UNAVAILABLE',
+              description: 'Error code for email service failure',
+            }),
+            retryable: z.boolean().openapi({
+              example: true,
+              description: 'Whether the request can be retried',
+            }),
+          }),
+        },
+      },
+      description: 'Email service temporarily unavailable - retryable',
     },
   },
 });
@@ -562,6 +573,28 @@ const requestAccountDeletionRoute = createRoute({
       },
       description: 'Internal server error',
     },
+    503: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.literal(false),
+            error: z.string().openapi({
+              example: 'Email service temporarily unavailable. Please try again later.',
+              description: 'Error message',
+            }),
+            code: z.literal('EMAIL_SERVICE_UNAVAILABLE').openapi({
+              example: 'EMAIL_SERVICE_UNAVAILABLE',
+              description: 'Error code for email service failure',
+            }),
+            retryable: z.boolean().openapi({
+              example: true,
+              description: 'Whether the request can be retried',
+            }),
+          }),
+        },
+      },
+      description: 'Email service temporarily unavailable - retryable',
+    },
   },
 });
 
@@ -690,6 +723,7 @@ app.openapi(requestMagicLinkRoute, async (c) => {
   } catch (error) {
     // SECURITY: Use sanitized error messages for production
     const securityError = sanitizeSecurityError(error as Error);
+    const errorCode = (error as any).code;
 
     // Log security-related failures for monitoring
     logSecurityEvent('AUTH_REQUEST_FAILED', {
@@ -698,6 +732,16 @@ app.openapi(requestMagicLinkRoute, async (c) => {
       userAgent: c.req.header('user-agent'),
       ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown',
     }, 'warn');
+
+    // Check if this is an email service error
+    if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
+      return c.json({
+        success: false,
+        error: 'Email service temporarily unavailable. Please try again later.',
+        code: 'EMAIL_SERVICE_UNAVAILABLE',
+        retryable: true,
+      }, 503 as const);
+    }
 
     // Special handling for common validation errors that should pass through
     if (error instanceof Error && error.message === 'Name is required for new users') {
@@ -1100,6 +1144,18 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
       providedCodeChallenge: code_challenge ? `${code_challenge.substring(0, 10)}...` : undefined,
       duration: Date.now() - startTime,
     });
+
+    const errorCode = (error as any).code;
+
+    // Check if this is an email service error
+    if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
+      return c.json({
+        success: false,
+        error: 'Email service temporarily unavailable. Please try again later.',
+        code: 'EMAIL_SERVICE_UNAVAILABLE',
+        retryable: true,
+      }, 503 as const);
+    }
 
     // Use sanitized error messages for security
     const securityError = sanitizeSecurityError(error as Error);

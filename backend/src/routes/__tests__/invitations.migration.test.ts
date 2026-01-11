@@ -66,7 +66,7 @@ describe('Invitations Router Migration Verification', () => {
     );
 
     // Verify OpenAPI Hono imports and patterns
-    expect(controllerFile).toContain('import { OpenAPIHono, createRoute, z } from \'@hono/zod-openapi\'');
+    expect(controllerFile).toContain('import { OpenAPIHono, createRoute');
     expect(controllerFile).toContain('const app = new OpenAPIHono');
 
     // Verify createRoute pattern
