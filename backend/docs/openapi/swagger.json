@@ -18688,11 +18688,8 @@
                         }
                       },
                       "required": [
-                        "id",
                         "groupId",
-                        "scheduleHours",
-                        "createdAt",
-                        "updatedAt"
+                        "scheduleHours"
                       ],
                       "title": "Group Schedule Config Response",
                       "description": "Group schedule configuration with full details"
@@ -19320,11 +19317,8 @@
                         }
                       },
                       "required": [
-                        "id",
                         "groupId",
-                        "scheduleHours",
-                        "createdAt",
-                        "updatedAt"
+                        "scheduleHours"
                       ],
                       "title": "Group Schedule Config Response",
                       "description": "Group schedule configuration with full details"
@@ -19855,11 +19849,8 @@
                         }
                       },
                       "required": [
-                        "id",
                         "groupId",
-                        "scheduleHours",
-                        "createdAt",
-                        "updatedAt"
+                        "scheduleHours"
                       ],
                       "title": "Group Schedule Config Response",
                       "description": "Group schedule configuration with full details"
