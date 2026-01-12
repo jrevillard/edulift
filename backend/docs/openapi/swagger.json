@@ -18561,9 +18561,10 @@
                       "properties": {
                         "id": {
                           "type": "string",
+                          "nullable": true,
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Config ID"
+                          "description": "Config ID (null for empty default configs that are not persisted)"
                         },
                         "groupId": {
                           "type": "string",
@@ -18673,15 +18674,17 @@
                         },
                         "createdAt": {
                           "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Creation timestamp"
+                          "description": "Creation timestamp (null for empty default configs that are not persisted)"
                         },
                         "updatedAt": {
                           "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
-                          "description": "Last update timestamp"
+                          "description": "Last update timestamp (null for empty default configs that are not persisted)"
                         }
                       },
                       "required": [
@@ -19190,9 +19193,10 @@
                       "properties": {
                         "id": {
                           "type": "string",
+                          "nullable": true,
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Config ID"
+                          "description": "Config ID (null for empty default configs that are not persisted)"
                         },
                         "groupId": {
                           "type": "string",
@@ -19302,15 +19306,17 @@
                         },
                         "createdAt": {
                           "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Creation timestamp"
+                          "description": "Creation timestamp (null for empty default configs that are not persisted)"
                         },
                         "updatedAt": {
                           "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
-                          "description": "Last update timestamp"
+                          "description": "Last update timestamp (null for empty default configs that are not persisted)"
                         }
                       },
                       "required": [
@@ -19722,9 +19728,10 @@
                       "properties": {
                         "id": {
                           "type": "string",
+                          "nullable": true,
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Config ID"
+                          "description": "Config ID (null for empty default configs that are not persisted)"
                         },
                         "groupId": {
                           "type": "string",
@@ -19834,15 +19841,17 @@
                         },
                         "createdAt": {
                           "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Creation timestamp"
+                          "description": "Creation timestamp (null for empty default configs that are not persisted)"
                         },
                         "updatedAt": {
                           "type": "string",
+                          "nullable": true,
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
-                          "description": "Last update timestamp"
+                          "description": "Last update timestamp (null for empty default configs that are not persisted)"
                         }
                       },
                       "required": [

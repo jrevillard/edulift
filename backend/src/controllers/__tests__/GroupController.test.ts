@@ -11,7 +11,6 @@ import {
   mockGetGroupTimeSlots,
   mockUpdateGroupScheduleConfig,
   mockResetGroupScheduleConfig,
-  mockGetDefaultScheduleHours,
   mockPrisma,
   createMockGroupController,
 } from './helpers/mockGroupController';
@@ -68,32 +67,36 @@ describe('GroupController - Group Schedule Config Endpoints', () => {
   });
 
   describe('GET /:groupId/schedule-config', () => {
-    it('should validate groupId parameter format', async () => {
-      const invalidGroupId = 'invalid-id';
-
-      // Mock to return null for invalid group
-      mockGetGroupScheduleConfig.mockResolvedValue(null);
-
-      const response = await app.request(`/${invalidGroupId}/schedule-config`, {
-        method: 'GET',
-      });
-
-      expect(response.status).toBe(404);
-      const data = await responseJson(response);
-      expect(data.error).toContain('Group schedule configuration not found');
-    });
-
-    it('should handle valid groupId format', async () => {
+    it('should return empty default config when not found', async () => {
       // Mock the service to return null (config not found)
-      mockGetGroupScheduleConfig.mockResolvedValue(null);
+      // Service now returns empty default config instead of null
+      mockGetGroupScheduleConfig.mockResolvedValue({
+        id: null,
+        groupId: mockGroupId,
+        scheduleHours: {
+          MONDAY: [],
+          TUESDAY: [],
+          WEDNESDAY: [],
+          THURSDAY: [],
+          FRIDAY: [],
+        },
+        group: { id: mockGroupId, name: 'Test Group' },
+        createdAt: null,
+        updatedAt: null,
+      });
 
       const response = await app.request(`/${mockGroupId}/schedule-config`, {
         method: 'GET',
       });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(200);
       const data = await responseJson(response);
-      expect(data.error).toContain('Group schedule configuration not found');
+      expect(data.success).toBe(true);
+      expect(data.data.id).toBeNull();
+      expect(data.data.scheduleHours.MONDAY).toEqual([]);
+      expect(data.data.scheduleHours.TUESDAY).toEqual([]);
+      expect(data.data.createdAt).toBeNull();
+      expect(data.data.updatedAt).toBeNull();
     });
   });
 
@@ -212,15 +215,7 @@ describe('GroupController - Group Schedule Config Endpoints', () => {
   });
 
   describe('GET /schedule-config/default', () => {
-    it('should get default schedule hours successfully', async () => {
-      const mockDefaultHours = {
-        MONDAY: ['07:00', '08:00', '15:00', '16:00'],
-        FRIDAY: ['07:00', '08:00', '15:00', '16:00'],
-      };
-
-      // Set the mock return value
-      mockGetDefaultScheduleHours.mockReturnValue(mockDefaultHours);
-
+    it('should get empty default schedule hours', async () => {
       const response = await app.request('/schedule-config/default', {
         method: 'GET',
       });
@@ -228,7 +223,13 @@ describe('GroupController - Group Schedule Config Endpoints', () => {
       expect(response.status).toBe(200);
       const data = await responseJson(response);
       expect(data.success).toBe(true);
-      expect(data.data).toEqual(mockDefaultHours);
+      expect(data.data).toEqual({
+        MONDAY: [],
+        TUESDAY: [],
+        WEDNESDAY: [],
+        THURSDAY: [],
+        FRIDAY: [],
+      });
     });
   });
 });

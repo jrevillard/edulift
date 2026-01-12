@@ -1438,19 +1438,10 @@ app.openapi(getScheduleConfigRoute, async (c) => {
   try {
     const config = await scheduleConfigServiceInstance.getGroupScheduleConfig(groupId, userId);
 
-    if (!config) {
-      loggerInstance.warn('getScheduleConfig: config not found', { userId, groupId });
-      return c.json({
-        success: false,
-        error: 'Schedule configuration not found',
-        code: 'CONFIG_NOT_FOUND',
-      }, 404);
-    }
-
     // Transform Prisma JsonValue to expected format with explicit typing
     const scheduleHours = config.scheduleHours as Record<string, string[]>;
     const responseData = {
-      id: config.id,
+      id: config.id,  // null for default empty config (not persisted)
       groupId: config.groupId,
       scheduleHours: {
         MONDAY: scheduleHours.MONDAY || [],
@@ -1460,11 +1451,11 @@ app.openapi(getScheduleConfigRoute, async (c) => {
         FRIDAY: scheduleHours.FRIDAY || [],
       },
       group: (config as any).group,
-      createdAt: config.createdAt.toISOString(),
-      updatedAt: config.updatedAt.toISOString(),
+      createdAt: config.createdAt ? config.createdAt.toISOString() : null,
+      updatedAt: config.updatedAt ? config.updatedAt.toISOString() : null,
     };
 
-    loggerInstance.info('getScheduleConfig: success', { userId, groupId, configId: config.id });
+    loggerInstance.info('getScheduleConfig: success', { userId, groupId, configId: config.id || 'default-empty' });
     return c.json({
       success: true,
       data: responseData,

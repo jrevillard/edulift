@@ -10,10 +10,6 @@ const mockGetGroupScheduleConfig = jest.fn();
 const mockGetGroupTimeSlots = jest.fn();
 const mockUpdateGroupScheduleConfig = jest.fn();
 const mockResetGroupScheduleConfig = jest.fn();
-const mockGetDefaultScheduleHours = jest.fn(() => ({
-  MONDAY: ['07:00', '08:00', '15:00', '16:00'],
-  FRIDAY: ['07:00', '08:00', '15:00', '16:00'],
-}));
 
 // Mock prisma
 const mockPrisma = {
@@ -30,10 +26,28 @@ const createMockGroupController = () => {
   app.get('/:groupId/schedule-config', async (c) => {
     const groupId = c.req.param('groupId');
     const result = await mockGetGroupScheduleConfig(groupId);
-    if (!result) {
-      return c.json({ error: 'Group schedule configuration not found' }, 404);
-    }
-    return c.json(result, 200);
+
+    // Transform result to match controller response format
+    const scheduleHours = result.scheduleHours || {};
+    const responseData = {
+      id: result.id,
+      groupId: result.groupId,
+      scheduleHours: {
+        MONDAY: scheduleHours.MONDAY || [],
+        TUESDAY: scheduleHours.TUESDAY || [],
+        WEDNESDAY: scheduleHours.WEDNESDAY || [],
+        THURSDAY: scheduleHours.THURSDAY || [],
+        FRIDAY: scheduleHours.FRIDAY || [],
+      },
+      group: result.group,
+      createdAt: result.createdAt ? result.createdAt.toISOString() : null,
+      updatedAt: result.updatedAt ? result.updatedAt.toISOString() : null,
+    };
+
+    return c.json({
+      success: true,
+      data: responseData,
+    }, 200);
   });
 
   // GET /:groupId/schedule-config/time-slots
@@ -88,7 +102,13 @@ const createMockGroupController = () => {
   app.get('/schedule-config/default', async (c) => {
     return c.json({
       success: true,
-      data: mockGetDefaultScheduleHours(),
+      data: {
+        MONDAY: [],
+        TUESDAY: [],
+        WEDNESDAY: [],
+        THURSDAY: [],
+        FRIDAY: [],
+      },
     }, 200);
   });
 
@@ -100,7 +120,6 @@ export {
   mockGetGroupTimeSlots,
   mockUpdateGroupScheduleConfig,
   mockResetGroupScheduleConfig,
-  mockGetDefaultScheduleHours,
   mockPrisma,
   createMockGroupController,
 };

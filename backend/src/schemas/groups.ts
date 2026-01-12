@@ -787,9 +787,9 @@ export const UpdateScheduleConfigRequestSchema = z.object({
  * Group Schedule Config Response Schema
  */
 export const GroupScheduleConfigResponseSchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.string().cuid().nullable().openapi({
     example: 'cl123456789012345678901234',
-    description: 'Config ID',
+    description: 'Config ID (null for empty default configs that are not persisted)',
   }),
   groupId: z.string().cuid().openapi({
     example: 'cl123456789012345678901235',
@@ -805,13 +805,13 @@ export const GroupScheduleConfigResponseSchema = z.object({
     .openapi({
       description: 'Group information',
     }),
-  createdAt: z.string().datetime().openapi({
+  createdAt: z.string().datetime().nullable().openapi({
     example: '2023-01-01T00:00:00.000Z',
-    description: 'Creation timestamp',
+    description: 'Creation timestamp (null for empty default configs that are not persisted)',
   }),
-  updatedAt: z.string().datetime().openapi({
+  updatedAt: z.string().datetime().nullable().openapi({
     example: '2023-01-15T10:30:00.000Z',
-    description: 'Last update timestamp',
+    description: 'Last update timestamp (null for empty default configs that are not persisted)',
   }),
 }).openapi({
   title: 'Group Schedule Config Response',

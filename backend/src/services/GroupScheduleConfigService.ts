@@ -174,37 +174,55 @@ export class GroupScheduleConfigService {
   /**
    * Get schedule configuration for a group
    */
-  async getGroupScheduleConfig(groupId: string, userId: string): Promise<GroupScheduleConfig | null> {
-    try {
-      // Verify user has access to the group
-      const userGroups = await this.groupService.getUserGroups(userId);
-      const hasAccess = userGroups.some(group => group.id === groupId);
-      
-      if (!hasAccess) {
-        throw new AppError('Access denied to group schedule configuration', 403);
-      }
+  async getGroupScheduleConfig(groupId: string, userId: string): Promise<GroupScheduleConfig | any> {
+  try {
+    // Verify user has access to the group
+    const userGroups = await this.groupService.getUserGroups(userId);
+    const hasAccess = userGroups.some(group => group.id === groupId);
+    
+    if (!hasAccess) {
+      throw new AppError('Access denied to group schedule configuration', 403);
+    }
 
-      const config = await this.prisma.groupScheduleConfig.findUnique({
-        where: { groupId },
-        include: {
-          group: {
-            select: {
-              id: true,
-              name: true,
-            },
+    const config = await this.prisma.groupScheduleConfig.findUnique({
+      where: { groupId },
+      include: {
+        group: {
+          select: {
+            id: true,
+            name: true,
           },
         },
-      });
+      },
+    });
 
-      return config;
-    } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-      logger.error('Failed to fetch group schedule configuration', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, groupId });
-      throw new AppError('Failed to fetch group schedule configuration', 500);
+    // Return empty default config if not found (instead of null/404)
+    if (!config) {
+      return {
+        id: null,  // Indicates not persisted
+        groupId,
+        scheduleHours: {
+          MONDAY: [],
+          TUESDAY: [],
+          WEDNESDAY: [],
+          THURSDAY: [],
+          FRIDAY: [],
+        },
+        group: userGroups.find(g => g.id === groupId),
+        createdAt: null,
+        updatedAt: null,
+      };
     }
+
+    return config;
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    logger.error('Failed to fetch group schedule configuration', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, groupId });
+    throw new AppError('Failed to fetch group schedule configuration', 500);
   }
+}
 
   /**
    * Get time slots for a specific group and weekday
@@ -431,12 +449,5 @@ export class GroupScheduleConfigService {
         400,
       );
     }
-  }
-
-  /**
-   * Get default schedule hours template
-   */
-  static getDefaultScheduleHours(): ScheduleHours {
-    return { ...DEFAULT_SCHEDULE_HOURS };
   }
 }
