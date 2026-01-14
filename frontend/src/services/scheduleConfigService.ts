@@ -1,18 +1,13 @@
 import { api } from './api';
+import type { GroupScheduleConfig } from '@/types/api';
 
 // Types based on OpenAPI schema responses
 export interface ScheduleHours {
   [key: string]: string[]; // { 'MONDAY': ['07:00', '07:30'], 'TUESDAY': ['08:00'] }
 }
 
-export interface GroupScheduleConfig {
-  id: string;
-  groupId: string;
-  scheduleHours: ScheduleHours;
-  createdAt: string;
-  updatedAt: string;
-  isDefault?: boolean;
-}
+// Re-export GroupScheduleConfig from generated types for convenience
+export type { GroupScheduleConfig };
 
 export interface GroupTimeSlots {
   groupId: string;

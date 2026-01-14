@@ -1,19 +1,27 @@
 /**
  * FAMILY SYSTEM TYPES
- * 
+ *
  * Purpose: Resource ownership and management system
- * 
+ *
  * The family system manages shared resources (children, vehicles) that can be used
  * across multiple scheduling groups. This is separate from the group system which
  * handles scheduling coordination.
- * 
+ *
  * Key Concepts:
  * - Families own resources (children, vehicles)
  * - Family members have roles with different permissions
  * - Resources can be shared across multiple scheduling groups
  * - One user can only be in one family at a time
  * - Family resources are accessible to authorized family members
+ *
+ * NOTE: User, Child, and Vehicle types are now imported from @/types/api
+ * These types are generated from OpenAPI specification to ensure consistency
  */
+
+import type { User, Child, Vehicle } from '@/types/api';
+
+// Re-export types for convenience
+export type { User, Child, Vehicle };
 
 // Family role enum matching backend Prisma enum
 export const FamilyRole = {
@@ -24,14 +32,6 @@ export const FamilyRole = {
 export type FamilyRole = typeof FamilyRole[keyof typeof FamilyRole];
 
 // Basic entities matching backend structure
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Family {
   id: string;
   name: string;
@@ -50,24 +50,6 @@ export interface FamilyMember {
   role: FamilyRole;
   joinedAt: string;
   user: User;
-}
-
-export interface Child {
-  id: string;
-  name: string;
-  age?: number;
-  familyId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Vehicle {
-  id: string;
-  name: string;
-  capacity: number;
-  familyId: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 // Family permissions interface

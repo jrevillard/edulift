@@ -4,6 +4,18 @@ import React from 'react'
 import { AuthProvider, useAuth } from '../AuthContext'
 import * as authService from '../../services/authService'
 import { mockUser } from '../../test/test-utils'
+import { secureStorage } from '../../utils/secureStorage'
+
+// Mock secure storage
+vi.mock('../../utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+  },
+}))
+
+const mockSecureStorage = vi.mocked(secureStorage)
 
 // Mock the auth service
 vi.mock('../../services/authService', () => ({
@@ -17,6 +29,7 @@ vi.mock('../../services/authService', () => ({
     refreshToken: vi.fn(),
     logout: vi.fn(),
     setAuthChangeCallback: vi.fn(),
+    refreshTokenFromStorage: vi.fn(),
   },
 }))
 
@@ -32,6 +45,11 @@ describe('AuthContext', () => {
     vi.clearAllMocks()
     // Reset localStorage
     localStorage.clear()
+
+    // Setup secureStorage mocks
+    mockSecureStorage.getItem.mockResolvedValue(null)
+    mockSecureStorage.setItem.mockResolvedValue(undefined)
+    mockSecureStorage.removeItem.mockResolvedValue(undefined)
   })
 
   it('provides initial unauthenticated state', async () => {

@@ -1,16 +1,10 @@
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { ApiResponse } from '@/types';
+import type { User } from '@/types/api';  // Import directly from api.ts to avoid ambiguity
 import { secureStorage } from '@/utils/secureStorage';
 
 import { API_BASE_URL } from '@/config/runtime';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  timezone?: string; // User's preferred timezone (e.g., "America/New_York", "Asia/Tokyo")
-}
 
 export interface AuthResponse {
   user: User;

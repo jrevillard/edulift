@@ -69,7 +69,7 @@ export const mockUser = {
   id: 'user-1',
   email: 'test@example.com',
   name: 'Test User',
-  timezone: 'UTC',
+  timezone: 'UTC' as string | null, // Explicitly typed to match User type from OpenAPI
 }
 
 // Mock group data for testing
@@ -94,7 +94,7 @@ export const mockGroup = {
 export const mockChild = {
   id: 'child-1',
   name: 'Test Child',
-  age: 10,
+  age: 10 as number | null, // Explicitly typed to match Child type from OpenAPI
   familyId: 'family-1',
   userId: 'user-1',
   createdAt: '2024-01-01T00:00:00Z',

@@ -69,7 +69,8 @@ export interface FamilySearchResult {
  */
 export type Vehicle = ExtractVehicleFromResponse;
 export type Child = ExtractChildFromResponse;
-export type User = components['schemas']['ProfileGetResponse']['data'];
+export type User = ExtractUserFromResponse;
+export type GroupScheduleConfig = ExtractGroupScheduleConfigFromResponse;
 
 /**
  * Extract Vehicle type from OpenAPI response data
@@ -94,6 +95,31 @@ type ExtractChildFromResponse = {
   createdAt: string;
   updatedAt: string;
   groupMemberships?: GroupChildMembership[];
+};
+
+/**
+ * Extract User type from OpenAPI response data
+ * Note: timezone is nullable (can be null)
+ */
+type ExtractUserFromResponse = {
+  id: string;
+  email: string;
+  name: string;
+  timezone: string | null;
+};
+
+/**
+ * Extract GroupScheduleConfig type from OpenAPI response data
+ * Note: id, createdAt, updatedAt are nullable for default empty configs
+ */
+type ExtractGroupScheduleConfigFromResponse = {
+  id?: string | null;
+  groupId: string;
+  scheduleHours: {
+    [key: string]: string[];
+  };
+  createdAt?: string | null;
+  updatedAt?: string | null;
 };
 
 /**
