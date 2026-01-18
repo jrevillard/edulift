@@ -3072,24 +3072,22 @@
                           "type": "string",
                           "format": "date-time",
                           "example": "2024-01-15T10:30:00Z",
-                          "description": "Vehicle creation timestamp"
+                          "description": "Vehicle creation timestamp (optional in partial responses)"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2024-01-15T10:30:00Z",
-                          "description": "Vehicle last update timestamp"
+                          "description": "Vehicle last update timestamp (optional in partial responses)"
                         }
                       },
                       "required": [
                         "id",
                         "name",
                         "capacity",
-                        "familyId",
-                        "createdAt",
-                        "updatedAt"
+                        "familyId"
                       ],
-                      "description": "Vehicle response data"
+                      "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                     }
                   },
                   "required": [
@@ -3362,24 +3360,22 @@
                             "type": "string",
                             "format": "date-time",
                             "example": "2024-01-15T10:30:00Z",
-                            "description": "Vehicle creation timestamp"
+                            "description": "Vehicle creation timestamp (optional in partial responses)"
                           },
                           "updatedAt": {
                             "type": "string",
                             "format": "date-time",
                             "example": "2024-01-15T10:30:00Z",
-                            "description": "Vehicle last update timestamp"
+                            "description": "Vehicle last update timestamp (optional in partial responses)"
                           }
                         },
                         "required": [
                           "id",
                           "name",
                           "capacity",
-                          "familyId",
-                          "createdAt",
-                          "updatedAt"
+                          "familyId"
                         ],
-                        "description": "Vehicle response data"
+                        "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                       }
                     }
                   },
@@ -3707,24 +3703,22 @@
                           "type": "string",
                           "format": "date-time",
                           "example": "2024-01-15T10:30:00Z",
-                          "description": "Vehicle creation timestamp"
+                          "description": "Vehicle creation timestamp (optional in partial responses)"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2024-01-15T10:30:00Z",
-                          "description": "Vehicle last update timestamp"
+                          "description": "Vehicle last update timestamp (optional in partial responses)"
                         }
                       },
                       "required": [
                         "id",
                         "name",
                         "capacity",
-                        "familyId",
-                        "createdAt",
-                        "updatedAt"
+                        "familyId"
                       ],
-                      "description": "Vehicle response data"
+                      "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                     }
                   },
                   "required": [
@@ -3966,24 +3960,22 @@
                           "type": "string",
                           "format": "date-time",
                           "example": "2024-01-15T10:30:00Z",
-                          "description": "Vehicle creation timestamp"
+                          "description": "Vehicle creation timestamp (optional in partial responses)"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2024-01-15T10:30:00Z",
-                          "description": "Vehicle last update timestamp"
+                          "description": "Vehicle last update timestamp (optional in partial responses)"
                         }
                       },
                       "required": [
                         "id",
                         "name",
                         "capacity",
-                        "familyId",
-                        "createdAt",
-                        "updatedAt"
+                        "familyId"
                       ],
-                      "description": "Vehicle response data"
+                      "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                     }
                   },
                   "required": [
@@ -8256,24 +8248,22 @@
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle creation timestamp"
+                                "description": "Vehicle creation timestamp (optional in partial responses)"
                               },
                               "updatedAt": {
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle last update timestamp"
+                                "description": "Vehicle last update timestamp (optional in partial responses)"
                               }
                             },
                             "required": [
                               "id",
                               "name",
                               "capacity",
-                              "familyId",
-                              "createdAt",
-                              "updatedAt"
+                              "familyId"
                             ],
-                            "description": "Vehicle response data"
+                            "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -8781,24 +8771,22 @@
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle creation timestamp"
+                                "description": "Vehicle creation timestamp (optional in partial responses)"
                               },
                               "updatedAt": {
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle last update timestamp"
+                                "description": "Vehicle last update timestamp (optional in partial responses)"
                               }
                             },
                             "required": [
                               "id",
                               "name",
                               "capacity",
-                              "familyId",
-                              "createdAt",
-                              "updatedAt"
+                              "familyId"
                             ],
-                            "description": "Vehicle response data"
+                            "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -9353,24 +9341,22 @@
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle creation timestamp"
+                                "description": "Vehicle creation timestamp (optional in partial responses)"
                               },
                               "updatedAt": {
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle last update timestamp"
+                                "description": "Vehicle last update timestamp (optional in partial responses)"
                               }
                             },
                             "required": [
                               "id",
                               "name",
                               "capacity",
-                              "familyId",
-                              "createdAt",
-                              "updatedAt"
+                              "familyId"
                             ],
-                            "description": "Vehicle response data"
+                            "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -12233,24 +12219,22 @@
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle creation timestamp"
+                                "description": "Vehicle creation timestamp (optional in partial responses)"
                               },
                               "updatedAt": {
                                 "type": "string",
                                 "format": "date-time",
                                 "example": "2024-01-15T10:30:00Z",
-                                "description": "Vehicle last update timestamp"
+                                "description": "Vehicle last update timestamp (optional in partial responses)"
                               }
                             },
                             "required": [
                               "id",
                               "name",
                               "capacity",
-                              "familyId",
-                              "createdAt",
-                              "updatedAt"
+                              "familyId"
                             ],
-                            "description": "Vehicle response data"
+                            "description": "Vehicle response data. Timestamps are optional to support partial responses in schedule slots."
                           },
                           "description": "Family vehicles (included in detailed responses)"
                         },
@@ -26195,24 +26179,22 @@
                                     "type": "string",
                                     "format": "date-time",
                                     "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle creation timestamp"
+                                    "description": "Vehicle creation timestamp (optional in partial responses)"
                                   },
                                   "updatedAt": {
                                     "type": "string",
                                     "format": "date-time",
                                     "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle update timestamp"
+                                    "description": "Vehicle update timestamp (optional in partial responses)"
                                   }
                                 },
                                 "required": [
                                   "id",
                                   "name",
-                                  "capacity",
-                                  "createdAt",
-                                  "updatedAt"
+                                  "capacity"
                                 ],
                                 "title": "Base Vehicle",
-                                "description": "Common vehicle fields matching Prisma database structure"
+                                "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                               },
                               "driver": {
                                 "type": "object",
@@ -26376,24 +26358,22 @@
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle creation timestamp"
+                                        "description": "Vehicle creation timestamp (optional in partial responses)"
                                       },
                                       "updatedAt": {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle update timestamp"
+                                        "description": "Vehicle update timestamp (optional in partial responses)"
                                       }
                                     },
                                     "required": [
                                       "id",
                                       "name",
-                                      "capacity",
-                                      "createdAt",
-                                      "updatedAt"
+                                      "capacity"
                                     ],
                                     "title": "Base Vehicle",
-                                    "description": "Common vehicle fields matching Prisma database structure"
+                                    "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                                   },
                                   "driver": {
                                     "type": "object",
@@ -26818,24 +26798,22 @@
                               "type": "string",
                               "format": "date-time",
                               "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle creation timestamp"
+                              "description": "Vehicle creation timestamp (optional in partial responses)"
                             },
                             "updatedAt": {
                               "type": "string",
                               "format": "date-time",
                               "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle update timestamp"
+                              "description": "Vehicle update timestamp (optional in partial responses)"
                             }
                           },
                           "required": [
                             "id",
                             "name",
-                            "capacity",
-                            "createdAt",
-                            "updatedAt"
+                            "capacity"
                           ],
                           "title": "Base Vehicle",
-                          "description": "Common vehicle fields matching Prisma database structure"
+                          "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                         },
                         "driver": {
                           "type": "object",
@@ -27507,24 +27485,22 @@
                               "type": "string",
                               "format": "date-time",
                               "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle creation timestamp"
+                              "description": "Vehicle creation timestamp (optional in partial responses)"
                             },
                             "updatedAt": {
                               "type": "string",
                               "format": "date-time",
                               "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle update timestamp"
+                              "description": "Vehicle update timestamp (optional in partial responses)"
                             }
                           },
                           "required": [
                             "id",
                             "name",
-                            "capacity",
-                            "createdAt",
-                            "updatedAt"
+                            "capacity"
                           ],
                           "title": "Base Vehicle",
-                          "description": "Common vehicle fields matching Prisma database structure"
+                          "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                         },
                         "driver": {
                           "type": "object",
@@ -28053,24 +28029,22 @@
                                     "type": "string",
                                     "format": "date-time",
                                     "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle creation timestamp"
+                                    "description": "Vehicle creation timestamp (optional in partial responses)"
                                   },
                                   "updatedAt": {
                                     "type": "string",
                                     "format": "date-time",
                                     "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle update timestamp"
+                                    "description": "Vehicle update timestamp (optional in partial responses)"
                                   }
                                 },
                                 "required": [
                                   "id",
                                   "name",
-                                  "capacity",
-                                  "createdAt",
-                                  "updatedAt"
+                                  "capacity"
                                 ],
                                 "title": "Base Vehicle",
-                                "description": "Common vehicle fields matching Prisma database structure"
+                                "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                               },
                               "driver": {
                                 "type": "object",
@@ -28234,24 +28208,22 @@
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle creation timestamp"
+                                        "description": "Vehicle creation timestamp (optional in partial responses)"
                                       },
                                       "updatedAt": {
                                         "type": "string",
                                         "format": "date-time",
                                         "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle update timestamp"
+                                        "description": "Vehicle update timestamp (optional in partial responses)"
                                       }
                                     },
                                     "required": [
                                       "id",
                                       "name",
-                                      "capacity",
-                                      "createdAt",
-                                      "updatedAt"
+                                      "capacity"
                                     ],
                                     "title": "Base Vehicle",
-                                    "description": "Common vehicle fields matching Prisma database structure"
+                                    "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                                   },
                                   "driver": {
                                     "type": "object",
@@ -28658,24 +28630,22 @@
                                           "type": "string",
                                           "format": "date-time",
                                           "example": "2023-01-01T00:00:00.000Z",
-                                          "description": "Vehicle creation timestamp"
+                                          "description": "Vehicle creation timestamp (optional in partial responses)"
                                         },
                                         "updatedAt": {
                                           "type": "string",
                                           "format": "date-time",
                                           "example": "2023-01-01T00:00:00.000Z",
-                                          "description": "Vehicle update timestamp"
+                                          "description": "Vehicle update timestamp (optional in partial responses)"
                                         }
                                       },
                                       "required": [
                                         "id",
                                         "name",
-                                        "capacity",
-                                        "createdAt",
-                                        "updatedAt"
+                                        "capacity"
                                       ],
                                       "title": "Base Vehicle",
-                                      "description": "Common vehicle fields matching Prisma database structure"
+                                      "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                                     },
                                     "driver": {
                                       "type": "object",
@@ -28839,24 +28809,22 @@
                                               "type": "string",
                                               "format": "date-time",
                                               "example": "2023-01-01T00:00:00.000Z",
-                                              "description": "Vehicle creation timestamp"
+                                              "description": "Vehicle creation timestamp (optional in partial responses)"
                                             },
                                             "updatedAt": {
                                               "type": "string",
                                               "format": "date-time",
                                               "example": "2023-01-01T00:00:00.000Z",
-                                              "description": "Vehicle update timestamp"
+                                              "description": "Vehicle update timestamp (optional in partial responses)"
                                             }
                                           },
                                           "required": [
                                             "id",
                                             "name",
-                                            "capacity",
-                                            "createdAt",
-                                            "updatedAt"
+                                            "capacity"
                                           ],
                                           "title": "Base Vehicle",
-                                          "description": "Common vehicle fields matching Prisma database structure"
+                                          "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                                         },
                                         "driver": {
                                           "type": "object",
@@ -29351,24 +29319,22 @@
                                   "type": "string",
                                   "format": "date-time",
                                   "example": "2023-01-01T00:00:00.000Z",
-                                  "description": "Vehicle creation timestamp"
+                                  "description": "Vehicle creation timestamp (optional in partial responses)"
                                 },
                                 "updatedAt": {
                                   "type": "string",
                                   "format": "date-time",
                                   "example": "2023-01-01T00:00:00.000Z",
-                                  "description": "Vehicle update timestamp"
+                                  "description": "Vehicle update timestamp (optional in partial responses)"
                                 }
                               },
                               "required": [
                                 "id",
                                 "name",
-                                "capacity",
-                                "createdAt",
-                                "updatedAt"
+                                "capacity"
                               ],
                               "title": "Base Vehicle",
-                              "description": "Common vehicle fields matching Prisma database structure"
+                              "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                             },
                             "driver": {
                               "type": "object",
@@ -30257,24 +30223,22 @@
                               "type": "string",
                               "format": "date-time",
                               "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle creation timestamp"
+                              "description": "Vehicle creation timestamp (optional in partial responses)"
                             },
                             "updatedAt": {
                               "type": "string",
                               "format": "date-time",
                               "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle update timestamp"
+                              "description": "Vehicle update timestamp (optional in partial responses)"
                             }
                           },
                           "required": [
                             "id",
                             "name",
-                            "capacity",
-                            "createdAt",
-                            "updatedAt"
+                            "capacity"
                           ],
                           "title": "Base Vehicle",
-                          "description": "Common vehicle fields matching Prisma database structure"
+                          "description": "Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses."
                         },
                         "driver": {
                           "type": "object",
