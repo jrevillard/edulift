@@ -121,8 +121,7 @@ export const ValidateInviteCodeSchema = z.object({
 // ============================================================================
 
 export const FamilyIdParamsSchema = z.object({
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique family identifier (CUID format)',
@@ -133,8 +132,7 @@ export const FamilyIdParamsSchema = z.object({
 });
 
 export const MemberIdParamsSchema = z.object({
-  memberId: z.string()
-    .cuid()
+  memberId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique member identifier (CUID format)',
@@ -145,14 +143,12 @@ export const MemberIdParamsSchema = z.object({
 });
 
 export const FamilyMemberParamsSchema = z.object({
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique family identifier (CUID format)',
     }),
-  memberId: z.string()
-    .cuid()
+  memberId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique member identifier (CUID format)',
@@ -163,14 +159,12 @@ export const FamilyMemberParamsSchema = z.object({
 });
 
 export const FamilyInvitationParamsSchema = z.object({
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique family identifier (CUID format)',
     }),
-  invitationId: z.string()
-    .cuid()
+  invitationId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Unique invitation identifier (CUID format)',
@@ -186,8 +180,7 @@ export const FamilyInvitationParamsSchema = z.object({
 
 // User Schema (simplified version)
 const UserSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Unique user identifier (CUID format)',
@@ -230,8 +223,7 @@ const ChildSchema = BaseChildSchema.pick({
 
 // Core Family Schema
 const BaseFamilySchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique family identifier (CUID format)',
@@ -241,14 +233,12 @@ const BaseFamilySchema = z.object({
       example: 'Johnson Family',
       description: 'Family display name',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the family was created',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-15T10:30:00.000Z',
       description: 'When the family was last updated',
@@ -257,11 +247,11 @@ const BaseFamilySchema = z.object({
 
 export const FamilyResponseSchema = BaseFamilySchema.extend({
   members: z.array(z.object({
-    id: z.string().cuid(),
-    userId: z.string().cuid(),
-    familyId: z.string().cuid(),
+    id: z.cuid(),
+    userId: z.cuid(),
+    familyId: z.cuid(),
     role: FamilyRoleEnum,
-    joinedAt: z.string().datetime(),
+    joinedAt: z.iso.datetime(),
     user: UserSchema.optional(),
   })).optional()
     .openapi({
@@ -359,20 +349,17 @@ export const FamilyInvitationSchema = z.object({
     .openapi({
       description: 'User details who sent the invitation',
     }),
-  expiresAt: z.string()
-    .datetime()
+  expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-02-01T00:00:00.000Z',
       description: 'When the invitation expires',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the invitation was created',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the invitation was last updated',

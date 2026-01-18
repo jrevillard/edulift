@@ -74,8 +74,7 @@ export const UpdateChildSchema = z.object({
 });
 
 export const ChildParamsSchema = z.object({
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
@@ -86,14 +85,12 @@ export const ChildParamsSchema = z.object({
 });
 
 export const ChildGroupParamsSchema = z.object({
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Unique group identifier (CUID format)',
@@ -105,8 +102,7 @@ export const ChildGroupParamsSchema = z.object({
 
 // Response Schemas
 export const BaseChildSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Unique child identifier (CUID format)',
@@ -116,20 +112,17 @@ export const BaseChildSchema = z.object({
       example: 'Emma Johnson',
       description: 'Child full name',
     }),
-  familyId: z.string()
-    .cuid()
+  familyId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901233',
       description: 'Family identifier the child belongs to',
     }),
-  createdAt: z.string()
-    .datetime()
+  createdAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the child record was created',
     }),
-  updatedAt: z.string()
-    .datetime()
+  updatedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-15T10:30:00.000Z',
       description: 'When the child record was last updated',
@@ -144,12 +137,12 @@ export const ChildResponseSchema = BaseChildSchema.extend({
       description: 'Child age (null if not specified)',
     }),
   groupMemberships: z.array(z.object({
-    childId: z.string().cuid(),
-    groupId: z.string().cuid(),
-    addedBy: z.string().cuid(),
-    addedAt: z.string().datetime(),
+    childId: z.cuid(),
+    groupId: z.cuid(),
+    addedBy: z.cuid(),
+    addedAt: z.iso.datetime(),
     group: z.object({
-      id: z.string().cuid(),
+      id: z.cuid(),
       name: z.string(),
     }),
   })).optional()
@@ -162,33 +155,28 @@ export const ChildResponseSchema = BaseChildSchema.extend({
 });
 
 export const ChildGroupMembershipSchema = z.object({
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Child identifier',
     }),
-  groupId: z.string()
-    .cuid()
+  groupId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
     }),
-  addedBy: z.string()
-    .cuid()
+  addedBy: z.cuid()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'User ID who added the child to the group',
     }),
-  addedAt: z.string()
-    .datetime()
+  addedAt: z.iso.datetime()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the child was added to the group',
     }),
   child: z.object({
-    id: z.string()
-      .cuid()
+    id: z.cuid()
       .openapi({
         example: 'cl123456789012345678901234',
         description: 'Child identifier',
@@ -198,20 +186,17 @@ export const ChildGroupMembershipSchema = z.object({
         example: 'Emma Johnson',
         description: 'Child name',
       }),
-    familyId: z.string()
-      .cuid()
+    familyId: z.cuid()
       .openapi({
         example: 'cl123456789012345678901233',
         description: 'Family identifier',
       }),
-    createdAt: z.string()
-      .datetime()
+    createdAt: z.iso.datetime()
       .openapi({
         example: '2023-01-01T00:00:00.000Z',
         description: 'When the child was created',
       }),
-    updatedAt: z.string()
-      .datetime()
+    updatedAt: z.iso.datetime()
       .openapi({
         example: '2023-01-15T10:30:00.000Z',
         description: 'When the child was last updated',
@@ -227,8 +212,7 @@ export const ChildGroupMembershipSchema = z.object({
       description: 'Child information (included when adding child to group)',
     }),
   group: z.object({
-    id: z.string()
-      .cuid()
+    id: z.cuid()
       .openapi({
         example: 'cl123456789012345678901235',
         description: 'Group identifier',
@@ -248,14 +232,12 @@ export const ChildGroupMembershipSchema = z.object({
 });
 
 export const ChildAssignmentSchema = z.object({
-  id: z.string()
-    .cuid()
+  id: z.cuid()
     .openapi({
       example: 'cl123456789012345678901238',
       description: 'Unique assignment identifier (CUID format)',
     }),
-  childId: z.string()
-    .cuid()
+  childId: z.cuid()
     .openapi({
       example: 'cl123456789012345678901234',
       description: 'Child identifier',
@@ -277,7 +259,7 @@ export const ChildAssignmentSchema = z.object({
       description: 'Assignment status',
     }),
   group: z.object({
-    id: z.string().cuid(),
+    id: z.cuid(),
     name: z.string(),
   }).optional()
     .openapi({

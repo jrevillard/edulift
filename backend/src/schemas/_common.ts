@@ -64,7 +64,7 @@ export const RecurringPatternEnum = z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).opena
 
 // Base entity schema with common audit fields
 export const BaseEntitySchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901234',
     description: 'Unique identifier (CUID format)',
   }),
@@ -83,7 +83,7 @@ export const BaseEntitySchema = z.object({
 
 // Base user schema with common fields
 export const BaseUserSchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901234',
     description: 'User identifier (CUID format)',
   }),
@@ -118,11 +118,11 @@ export const BaseUserSchema = z.object({
 
 // Base child schema with common fields
 export const BaseChildSchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901239',
     description: 'Child identifier (CUID format)',
   }),
-  familyId: z.string().cuid().openapi({
+  familyId: z.cuid().openapi({
     example: 'cl123456789012345678901234',
     description: 'Family identifier',
   }),
@@ -157,7 +157,7 @@ export const BaseChildSchema = z.object({
 
 // Base vehicle schema with common fields - MATCHES PRISMA DATABASE STRUCTURE
 export const BaseVehicleSchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901240',
     description: 'Vehicle identifier (CUID format)',
   }),
@@ -169,7 +169,7 @@ export const BaseVehicleSchema = z.object({
     example: 30,
     description: 'Vehicle seat capacity',
   }),
-  familyId: z.string().cuid().optional().openapi({
+  familyId: z.cuid().optional().openapi({
     example: 'cl123456789012345678901234',
     description: 'Family identifier that owns the vehicle',
   }),
@@ -188,7 +188,7 @@ export const BaseVehicleSchema = z.object({
 
 // Base family schema with common fields
 export const BaseFamilySchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901234',
     description: 'Family identifier (CUID format)',
   }),
@@ -211,7 +211,7 @@ export const BaseFamilySchema = z.object({
 
 // Base group schema with common fields
 export const BaseGroupSchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901235',
     description: 'Group identifier (CUID format)',
   }),
@@ -245,23 +245,23 @@ export const WeekQuerySchema = z.object({
 
 // Common vehicle assignment schema
 export const VehicleAssignmentSchema = z.object({
-  id: z.string().cuid().openapi({
+  id: z.cuid().openapi({
     example: 'cl123456789012345678901236',
     description: 'Vehicle assignment identifier (CUID format)',
   }),
-  vehicleId: z.string().cuid().openapi({
+  vehicleId: z.cuid().openapi({
     example: 'cl123456789012345678901234',
     description: 'Vehicle identifier',
   }),
-  scheduleSlotId: z.string().cuid().openapi({
+  scheduleSlotId: z.cuid().openapi({
     example: 'cl123456789012345678901237',
     description: 'Schedule slot identifier',
   }),
-  driverId: z.string().cuid().nullable().openapi({
+  driverId: z.cuid().nullable().openapi({
     example: 'cl123456789012345678901239',
     description: 'Driver identifier (null if not assigned)',
   }),
-  groupId: z.string().cuid().openapi({
+  groupId: z.cuid().openapi({
     example: 'cl123456789012345678901235',
     description: 'Group identifier',
   }),

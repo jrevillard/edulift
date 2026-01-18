@@ -278,8 +278,8 @@ export const ChildAssignmentSchema = z.object({
     name: z.string(),
     age: z.number().nullable(),
     familyId: z.cuid(),
-    createdAt: z.string().datetime(),
-    updatedAt: z.string().datetime(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
   }).optional()
     .openapi({
       description: 'Child information (included when requested)',
