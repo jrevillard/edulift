@@ -156,8 +156,6 @@ export const BaseChildSchema = z.object({
 });
 
 // Base vehicle schema with common fields - MATCHES PRISMA DATABASE STRUCTURE
-// Note: createdAt and updatedAt are optional to support partial vehicle responses
-// (e.g., in schedule slots where only basic vehicle info is needed)
 export const BaseVehicleSchema = z.object({
   id: z.string().cuid().openapi({
     example: 'cl123456789012345678901240',
@@ -175,17 +173,17 @@ export const BaseVehicleSchema = z.object({
     example: 'cl123456789012345678901234',
     description: 'Family identifier that owns the vehicle',
   }),
-  createdAt: z.iso.datetime().optional().openapi({
+  createdAt: z.iso.datetime().openapi({
     example: '2023-01-01T00:00:00.000Z',
-    description: 'Vehicle creation timestamp (optional in partial responses)',
+    description: 'Vehicle creation timestamp',
   }),
-  updatedAt: z.iso.datetime().optional().openapi({
+  updatedAt: z.iso.datetime().openapi({
     example: '2023-01-01T00:00:00.000Z',
-    description: 'Vehicle update timestamp (optional in partial responses)',
+    description: 'Vehicle update timestamp',
   }),
 }).openapi({
   title: 'Base Vehicle',
-  description: 'Common vehicle fields matching Prisma database structure. Timestamps are optional to support partial responses.',
+  description: 'Common vehicle fields matching Prisma database structure',
 });
 
 // Base family schema with common fields

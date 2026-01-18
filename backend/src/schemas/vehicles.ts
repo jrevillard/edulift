@@ -105,18 +105,18 @@ export const VehicleResponseSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Family ID that owns the vehicle',
     }),
-  createdAt: z.string().datetime().optional()
+  createdAt: z.string().datetime()
     .openapi({
       example: '2024-01-15T10:30:00Z',
-      description: 'Vehicle creation timestamp (optional in partial responses)',
+      description: 'Vehicle creation timestamp',
     }),
-  updatedAt: z.string().datetime().optional()
+  updatedAt: z.string().datetime()
     .openapi({
       example: '2024-01-15T10:30:00Z',
-      description: 'Vehicle last update timestamp (optional in partial responses)',
+      description: 'Vehicle last update timestamp',
     }),
 }).openapi({
-  description: 'Vehicle response data. Timestamps are optional to support partial responses in schedule slots.',
+  description: 'Vehicle response data',
 });
 
 export const AvailableVehicleSchema = z.object({

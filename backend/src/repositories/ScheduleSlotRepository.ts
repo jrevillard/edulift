@@ -12,7 +12,7 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields
             driver: { select: { id: true, name: true } },
           },
         },
@@ -33,7 +33,7 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields (id, name, capacity, familyId, createdAt, updatedAt)
             driver: { select: { id: true, name: true } },
           },
         },
@@ -54,7 +54,7 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields
             driver: { select: { id: true, name: true } },
           },
         },
@@ -85,7 +85,7 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields
             driver: { select: { id: true, name: true } },
           },
         },
@@ -169,9 +169,7 @@ export class ScheduleSlotRepository {
             seatOverride: seatOverride || null,
           },
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -262,9 +260,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -328,9 +324,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -390,9 +384,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -533,9 +525,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },

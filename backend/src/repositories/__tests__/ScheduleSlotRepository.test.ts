@@ -69,7 +69,7 @@ describe('ScheduleSlotRepository', () => {
           group: { select: { id: true, name: true } },
           vehicleAssignments: {
             include: {
-              vehicle: { select: { id: true, name: true, capacity: true } },
+              vehicle: true, // Return ALL vehicle fields
               driver: { select: { id: true, name: true } },
             },
           },
@@ -393,7 +393,7 @@ describe('ScheduleSlotRepository', () => {
             group: { select: { id: true, name: true } },
             vehicleAssignments: {
               include: {
-                vehicle: { select: { id: true, name: true, capacity: true } },
+                vehicle: true, // Return ALL vehicle fields (including timestamps)
                 driver: { select: { id: true, name: true } },
               },
             },
@@ -506,7 +506,7 @@ describe('ScheduleSlotRepository', () => {
             group: { select: { id: true, name: true } },
             vehicleAssignments: {
               include: {
-                vehicle: { select: { id: true, name: true, capacity: true } },
+                vehicle: true, // Return ALL vehicle fields (including timestamps)
                 driver: { select: { id: true, name: true } },
               },
             },
@@ -547,7 +547,7 @@ describe('ScheduleSlotRepository', () => {
             vehicleAssignments: [
               {
                 id: 'vehicle-assignment-1',
-                vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8 },
+                vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
                 driver: { id: 'driver-1', name: 'John Driver' },
               },
             ],
@@ -571,12 +571,12 @@ describe('ScheduleSlotRepository', () => {
             vehicleAssignments: [
               {
                 id: 'vehicle-assignment-2',
-                vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4 },
+                vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
                 driver: { id: 'driver-2', name: 'Jane Driver' },
               },
               {
                 id: 'vehicle-assignment-3',
-                vehicle: { id: 'vehicle-3', name: 'Car #1', capacity: 2 },
+                vehicle: { id: 'vehicle-3', name: 'Car #1', capacity: 2, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
                 driver: null,
               },
             ],
@@ -607,7 +607,7 @@ describe('ScheduleSlotRepository', () => {
           include: {
             vehicleAssignments: {
               include: {
-                vehicle: { select: { id: true, name: true, capacity: true } },
+                vehicle: true, // Return ALL vehicle fields (including timestamps)
                 driver: { select: { id: true, name: true } },
               },
             },
