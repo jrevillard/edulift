@@ -97,6 +97,9 @@ export class SchedulingService {
             id: va.vehicle.id,
             name: va.vehicle.name,
             capacity: va.vehicle.capacity,
+            familyId: va.vehicle.familyId,
+            createdAt: va.vehicle.createdAt.toISOString(),
+            updatedAt: va.vehicle.updatedAt.toISOString(),
           },
           driver: va.driver ? {
             id: va.driver.id,
