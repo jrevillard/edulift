@@ -168,7 +168,6 @@ describe('ChildController Test Suite', () => {
       getChildById: jest.fn(),
       updateChild: jest.fn(),
       deleteChild: jest.fn(),
-      getChildScheduleAssignments: jest.fn(),
     } as any;
 
     // Mock child assignment service methods
@@ -860,104 +859,6 @@ describe('ChildController Test Suite', () => {
       const response = await makeAuthenticatedRequest(app, '/invalid-child-id', {
         method: 'DELETE',
       });
-
-      expect(response.status).toBe(400);
-      const jsonResponse = await responseJson(response);
-      const errorMessage = parseZodError(jsonResponse.error);
-      expect(errorMessage).toContain('Invalid');
-    });
-  });
-
-  describe('GET /:childId/assignments - Get child assignments', () => {
-    it('should return child assignments successfully', async () => {
-      const childId = TEST_IDS.CHILD;
-
-      const mockAssignments = [
-        {
-          id: `${TEST_IDS.SLOT}_${childId}`,
-          childId: childId,
-          tripDate: '2025-12-13',
-          tripType: 'PICKUP',
-          status: 'ASSIGNED',
-        },
-        {
-          id: `${TEST_IDS.SLOT_2}_${childId}`,
-          childId: childId,
-          tripDate: '2025-12-13',
-          tripType: 'DROPOFF',
-          status: 'ASSIGNED',
-        },
-      ];
-
-      mockChildService.getChildScheduleAssignments.mockResolvedValue(mockAssignments as any);
-
-      const response = await makeAuthenticatedRequest(app, `/${childId}/assignments`);
-
-      expect(response.status).toBe(200);
-      const jsonResponse = await responseJson(response);
-      expect(jsonResponse.success).toBe(true);
-      expect(jsonResponse.data).toHaveLength(2);
-      expect(jsonResponse.data[0].tripType).toBe('PICKUP');
-
-      expect(mockChildService.getChildScheduleAssignments).toHaveBeenCalledWith(childId, mockUserId, undefined);
-    });
-
-    it('should return child assignments with week parameter', async () => {
-      const childId = TEST_IDS.CHILD;
-      const week = '2025-W42';
-
-      const mockAssignments = [
-        {
-          id: `${TEST_IDS.SLOT}_${childId}`,
-          childId: childId,
-          tripDate: '2025-10-20',
-          tripType: 'PICKUP',
-          status: 'ASSIGNED',
-        },
-      ];
-
-      mockChildService.getChildScheduleAssignments.mockResolvedValue(mockAssignments as any);
-
-      const response = await makeAuthenticatedRequest(app, `/${childId}/assignments?week=${week}`);
-
-      expect(response.status).toBe(200);
-      expect(mockChildService.getChildScheduleAssignments).toHaveBeenCalledWith(childId, mockUserId, week);
-    });
-
-    it('should return 404 when child not found', async () => {
-      const childId = TEST_IDS.CHILD;
-
-      mockChildService.getChildScheduleAssignments.mockRejectedValue(new Error('Child not found'));
-
-      const response = await makeAuthenticatedRequest(app, `/${childId}/assignments`);
-
-      expect(response.status).toBe(404);
-      const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        success: false,
-        error: 'Child not found or assignments retrieval failed',
-        code: 'RETRIEVE_FAILED',
-      });
-    });
-
-    it('should return 500 on service error', async () => {
-      const childId = TEST_IDS.CHILD;
-
-      mockChildService.getChildScheduleAssignments.mockRejectedValue(new Error('Database connection failed'));
-
-      const response = await makeAuthenticatedRequest(app, `/${childId}/assignments`);
-
-      expect(response.status).toBe(404);
-      const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        success: false,
-        error: 'Child not found or assignments retrieval failed',
-        code: 'RETRIEVE_FAILED',
-      });
-    });
-
-    it('should validate childId format', async () => {
-      const response = await makeAuthenticatedRequest(app, '/invalid-child-id/assignments');
 
       expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);

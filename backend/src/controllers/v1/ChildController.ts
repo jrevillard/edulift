@@ -20,8 +20,6 @@ import {
   ChildGroupParamsSchema,
   ChildResponseSchema,
   ChildGroupMembershipSchema,
-  ChildScheduleAssignmentSchema,
-  WeekQuerySchema,
 } from '../../schemas/children';
 import { ErrorResponseSchema } from '../../schemas/responses';
 
@@ -356,48 +354,6 @@ const deleteChildRoute = createRoute({
     },
     },
     description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-    content: {
-    'application/json': {
-    schema: ErrorResponseSchema,
-    },
-    },
-    description: 'Child not found',
-    },
-    500: {
-    content: {
-    'application/json': {
-    schema: ErrorResponseSchema,
-    },
-    },
-    description: 'Internal server error',
-    },
-  },
-});
-
-/**
- * GET /children/:childId/assignments - Get child assignments
- */
-const getChildAssignmentsRoute = createRoute({
-  method: 'get',
-  path: '/{childId}/assignments',
-  tags: ['Children'],
-  summary: 'Get child trip assignments',
-  description: 'Get all trip assignments for a specific child',
-  security: [{ Bearer: [] }],
-  request: {
-    params: ChildParamsSchema,
-    query: WeekQuerySchema,
-  },
-  responses: {
-    200: {
-    content: {
-    'application/json': {
-    schema: createSuccessSchema(z.array(ChildScheduleAssignmentSchema)),
-    },
-    },
-    description: 'List of assignments',
     },
     404: {
     content: {
@@ -827,44 +783,10 @@ const getChildGroupsRoute = createRoute({
     }, 404);
     }
     });
-    
+
   /**
-     * GET /children/:childId/assignments - Get child assignments
-     */
-  app.openapi(getChildAssignmentsRoute, async (c) => {
-    const userId = c.get('userId');
-    const { childId } = c.req.valid('param');
-    const { week } = c.req.valid('query');
-    
-    loggerInstance.info('getChildAssignments', { userId, childId, week });
-    
-    try {
-    const assignments = await childServiceInstance.getChildScheduleAssignments(childId, userId, week);
-    
-    loggerInstance.info('getChildAssignments: assignments retrieved', {
-    userId,
-    childId,
-    count: assignments.length,
-    week,
-    });
-    
-    return c.json({
-    success: true,
-    data: assignments,
-    }, 200);
-    } catch (error) {
-    loggerInstance.error('getChildAssignments: error', { userId, childId, week, error });
-    return c.json({
-    success: false,
-    error: 'Child not found or assignments retrieval failed',
-    code: 'RETRIEVE_FAILED',
-    }, 404);
-    }
-  });
-  
-  /**
-     * POST /children/:childId/groups/:groupId - Add child to group
-     */
+   * POST /children/:childId/groups/:groupId - Add child to group
+   */
   app.openapi(addChildToGroupRoute, async (c) => {
     const userId = c.get('userId');
     const { childId, groupId } = c.req.valid('param');
