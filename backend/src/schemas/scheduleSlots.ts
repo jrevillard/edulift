@@ -299,10 +299,10 @@ export const ScheduleSlotSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Schedule slot identifier',
     }),
-  datetime: z.union([z.string(), z.date()])
+  datetime: z.iso.datetime()
     .openapi({
       example: '2023-12-15T08:00:00.000Z',
-      description: 'Schedule slot datetime (ISO string or Date object - services return Date objects)',
+      description: 'Schedule slot datetime (ISO 8601 UTC string)',
     }),
   groupId: z.cuid()
     .openapi({

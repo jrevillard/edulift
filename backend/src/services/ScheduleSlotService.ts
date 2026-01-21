@@ -363,7 +363,7 @@ export class ScheduleSlotService {
       return {
         id: slot.id,
         groupId: slot.groupId,
-        datetime: slot.datetime,
+        datetime: slot.datetime.toISOString(),
         vehicleAssignments: slot.vehicleAssignments.map((va: unknown) => ({
           id: va.id,
           vehicle: {

@@ -25828,17 +25828,10 @@
                           "description": "Schedule slot identifier"
                         },
                         "datetime": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "string",
-                              "format": "date"
-                            }
-                          ],
+                          "type": "string",
+                          "format": "date-time",
                           "example": "2023-12-15T08:00:00.000Z",
-                          "description": "Schedule slot datetime (ISO string or Date object - services return Date objects)"
+                          "description": "Schedule slot datetime (ISO 8601 UTC string)"
                         },
                         "groupId": {
                           "type": "string",
@@ -27685,17 +27678,10 @@
                           "description": "Schedule slot identifier"
                         },
                         "datetime": {
-                          "anyOf": [
-                            {
-                              "type": "string"
-                            },
-                            {
-                              "type": "string",
-                              "format": "date"
-                            }
-                          ],
+                          "type": "string",
+                          "format": "date-time",
                           "example": "2023-12-15T08:00:00.000Z",
-                          "description": "Schedule slot datetime (ISO string or Date object - services return Date objects)"
+                          "description": "Schedule slot datetime (ISO 8601 UTC string)"
                         },
                         "groupId": {
                           "type": "string",
@@ -28289,17 +28275,10 @@
                                 "description": "Schedule slot identifier"
                               },
                               "datetime": {
-                                "anyOf": [
-                                  {
-                                    "type": "string"
-                                  },
-                                  {
-                                    "type": "string",
-                                    "format": "date"
-                                  }
-                                ],
+                                "type": "string",
+                                "format": "date-time",
                                 "example": "2023-12-15T08:00:00.000Z",
-                                "description": "Schedule slot datetime (ISO string or Date object - services return Date objects)"
+                                "description": "Schedule slot datetime (ISO 8601 UTC string)"
                               },
                               "groupId": {
                                 "type": "string",
