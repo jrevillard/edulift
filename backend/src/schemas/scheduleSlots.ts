@@ -248,10 +248,10 @@ export const ScheduleVehicleAssignmentSchema = z.object({
 });
 
 export const ChildAssignmentSchema = z.object({
-  id: z.cuid()
+  id: z.string()
     .openapi({
-      example: 'cl123456789012345678901240',
-      description: 'Child assignment identifier',
+      example: 'clslot123_child456',
+      description: 'Child assignment identifier (composite key: scheduleSlotId_childId)',
     }),
   scheduleSlotId: z.cuid()
     .openapi({

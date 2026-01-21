@@ -108,6 +108,7 @@ export class SchedulingService {
           seatOverride: va.seatOverride,
         })),
         childAssignments: slot.childAssignments.map((assignment: unknown) => ({
+          id: `${assignment.scheduleSlotId}_${assignment.childId}`,
           vehicleAssignmentId: assignment.vehicleAssignmentId,
           child: {
             id: assignment.child.id,

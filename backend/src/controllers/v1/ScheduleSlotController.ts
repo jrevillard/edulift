@@ -134,8 +134,12 @@ function transformAvailableChild(child: any): any {
 function transformChildAssignment(assignment: any): any {
   if (!assignment) return assignment;
 
+  // ScheduleSlotChild uses composite key (@@id([scheduleSlotId, childId]))
+  // Generate a synthetic ID for API compatibility with frontend DTOs
+  const syntheticId = `${assignment.scheduleSlotId}_${assignment.childId}`;
+
   return {
-    id: assignment.id,
+    id: syntheticId,
     scheduleSlotId: assignment.scheduleSlotId,
     childId: assignment.childId,
     vehicleAssignmentId: assignment.vehicleAssignmentId,

@@ -701,7 +701,7 @@ describe('ScheduleSlotController Test Suite', () => {
   describe('POST /schedule-slots/:scheduleSlotId/children', () => {
     it('should assign child to slot successfully', async () => {
       const mockAssignment = {
-        id: 'cltestassignment123456789012345',
+        id: `${TEST_IDS.SLOT}_${TEST_IDS.CHILD}`, // Composite ID for child assignment
         scheduleSlotId: TEST_IDS.SLOT,
         childId: TEST_IDS.CHILD,
         vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
@@ -770,7 +770,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: true,
         data: expect.objectContaining({
-          id: 'cltestassignment123456789012345',
+          id: `${TEST_IDS.SLOT}_${TEST_IDS.CHILD}`, // Composite ID
           childId: TEST_IDS.CHILD,
           scheduleSlotId: TEST_IDS.SLOT,
           vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
