@@ -231,45 +231,6 @@ export const ChildGroupMembershipSchema = z.object({
   description: 'Child membership in a group',
 });
 
-export const ChildAssignmentSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Unique assignment identifier (CUID format)',
-    }),
-  childId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Child identifier',
-    }),
-  tripDate: z.string()
-    .date()
-    .openapi({
-      example: '2023-04-15',
-      description: 'Date of the assigned trip',
-    }),
-  tripType: z.enum(['PICKUP', 'DROPOFF'])
-    .openapi({
-      example: 'PICKUP',
-      description: 'Type of trip assignment',
-    }),
-  status: z.enum(['ASSIGNED', 'COMPLETED', 'CANCELLED'])
-    .openapi({
-      example: 'ASSIGNED',
-      description: 'Assignment status',
-    }),
-  group: z.object({
-    id: z.cuid(),
-    name: z.string(),
-  }).optional()
-    .openapi({
-      description: 'Group information for the assignment',
-    }),
-}).openapi({
-  title: 'Child Assignment',
-  description: 'Child trip assignment information',
-});
-
 // Success/Error Response Schemas
 export const SimpleSuccessResponseSchema = z.object({
   success: z.boolean(),

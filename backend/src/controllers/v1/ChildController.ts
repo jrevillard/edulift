@@ -20,7 +20,6 @@ import {
   ChildGroupParamsSchema,
   ChildResponseSchema,
   ChildGroupMembershipSchema,
-  ChildAssignmentSchema,
   WeekQuerySchema,
 } from '../../schemas/children';
 import { ErrorResponseSchema } from '../../schemas/responses';
@@ -394,7 +393,9 @@ const getChildAssignmentsRoute = createRoute({
     200: {
     content: {
     'application/json': {
-    schema: createSuccessSchema(z.array(ChildAssignmentSchema)),
+    schema: createSuccessSchema(z.array(z.unknown()).openapi({
+      description: 'Array of child schedule assignments (Prisma ScheduleSlotChild objects with included relations)',
+    })),
     },
     },
     description: 'List of assignments',
