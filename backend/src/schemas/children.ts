@@ -231,6 +231,62 @@ export const ChildGroupMembershipSchema = z.object({
   description: 'Child membership in a group',
 });
 
+export const ChildScheduleAssignmentSchema = z.object({
+  id: z.string()
+    .openapi({
+      example: 'clslot123_child456',
+      description: 'Child assignment identifier (composite key: scheduleSlotId_childId)',
+    }),
+  childId: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'Child identifier',
+    }),
+  tripDate: z.string()
+    .date()
+    .openapi({
+      example: '2023-04-15',
+      description: 'Date of the assigned trip',
+    }),
+  tripType: z.enum(['PICKUP', 'DROPOFF'])
+    .openapi({
+      example: 'PICKUP',
+      description: 'Type of trip assignment',
+    }),
+  status: z.enum(['ASSIGNED', 'COMPLETED', 'CANCELLED'])
+    .openapi({
+      example: 'ASSIGNED',
+      description: 'Assignment status',
+    }),
+  group: z.object({
+    id: z.cuid(),
+    name: z.string(),
+  }).optional()
+    .openapi({
+      description: 'Group information for the assignment',
+    }),
+  vehicle: z.object({
+    id: z.cuid(),
+    name: z.string(),
+    capacity: z.number(),
+    driver: z.object({
+      id: z.cuid(),
+      name: z.string(),
+    }).optional(),
+  }).optional()
+    .openapi({
+      description: 'Vehicle information for the assignment',
+    }),
+  assignedAt: z.iso.datetime()
+    .openapi({
+      example: '2023-12-01T08:00:00.000Z',
+      description: 'When the child was assigned to this slot',
+    }),
+}).openapi({
+  title: 'Child Schedule Assignment',
+  description: 'Child schedule/trip assignment information (simplified view for parents)',
+});
+
 // Success/Error Response Schemas
 export const SimpleSuccessResponseSchema = z.object({
   success: z.boolean(),
