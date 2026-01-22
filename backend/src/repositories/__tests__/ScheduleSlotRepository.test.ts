@@ -74,7 +74,11 @@ describe('ScheduleSlotRepository', () => {
             },
           },
           childAssignments: {
-            include: {
+            select: {
+              scheduleSlotId: true,
+              childId: true,
+              vehicleAssignmentId: true,
+              assignedAt: true,
               child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
             },
           },
@@ -399,7 +403,10 @@ describe('ScheduleSlotRepository', () => {
             },
             childAssignments: {
               select: {
+                scheduleSlotId: true,
+                childId: true,
                 vehicleAssignmentId: true,
+                assignedAt: true,
                 child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
               },
             },
@@ -512,7 +519,10 @@ describe('ScheduleSlotRepository', () => {
             },
             childAssignments: {
               select: {
+                scheduleSlotId: true,
+                childId: true,
                 vehicleAssignmentId: true,
+                assignedAt: true,
                 child: {
                   select: {
                     id: true,
@@ -557,12 +567,18 @@ describe('ScheduleSlotRepository', () => {
             ],
             childAssignments: [
               {
+                scheduleSlotId: 'slot-1',
+                childId: TEST_IDS.CHILD,
                 vehicleAssignmentId: 'vehicle-assignment-1',
-                child: { id: TEST_IDS.CHILD, name: 'Alice', familyId: TEST_IDS.FAMILY },
+                assignedAt: new Date('2024-01-08T08:00:00.000Z'),
+                child: { id: TEST_IDS.CHILD, name: 'Alice', age: 8, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
               {
+                scheduleSlotId: 'slot-1',
+                childId: 'child-2',
                 vehicleAssignmentId: 'vehicle-assignment-1',
-                child: { id: 'child-2', name: 'Bob', familyId: 'family-2' },
+                assignedAt: new Date('2024-01-08T08:00:00.000Z'),
+                child: { id: 'child-2', name: 'Bob', age: 9, familyId: 'family-2', createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
             ],
           },
@@ -586,12 +602,18 @@ describe('ScheduleSlotRepository', () => {
             ],
             childAssignments: [
               {
+                scheduleSlotId: 'slot-2',
+                childId: 'child-3',
                 vehicleAssignmentId: 'vehicle-assignment-2',
-                child: { id: 'child-3', name: 'Charlie', familyId: 'family-3' },
+                assignedAt: new Date('2024-01-09T08:00:00.000Z'),
+                child: { id: 'child-3', name: 'Charlie', age: 7, familyId: 'family-3', createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
               {
+                scheduleSlotId: 'slot-2',
+                childId: 'child-4',
                 vehicleAssignmentId: 'vehicle-assignment-3',
-                child: { id: 'child-4', name: 'David', familyId: 'family-4' },
+                assignedAt: new Date('2024-01-09T08:00:00.000Z'),
+                child: { id: 'child-4', name: 'David', age: 6, familyId: 'family-4', createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
             ],
           },
@@ -617,7 +639,10 @@ describe('ScheduleSlotRepository', () => {
             },
             childAssignments: {
               select: {
+                scheduleSlotId: true,
+                childId: true,
                 vehicleAssignmentId: true,
+                assignedAt: true,
                 child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
               },
             },

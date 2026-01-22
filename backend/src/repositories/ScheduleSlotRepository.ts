@@ -17,7 +17,11 @@ export class ScheduleSlotRepository {
           },
         },
         childAssignments: {
-          include: {
+          select: {
+            scheduleSlotId: true,
+            childId: true,
+            vehicleAssignmentId: true,
+            assignedAt: true,
             child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
           },
         },
@@ -39,7 +43,10 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
           },
         },
@@ -60,7 +67,10 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
               select: {
                 id: true,
@@ -94,7 +104,11 @@ export class ScheduleSlotRepository {
           },
         },
         childAssignments: {
-          include: {
+          select: {
+            scheduleSlotId: true,
+            childId: true,
+            vehicleAssignmentId: true,
+            assignedAt: true,
             child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
           },
         },
@@ -272,7 +286,10 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
               select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
@@ -336,7 +353,10 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
               select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
@@ -396,7 +416,10 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
               select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },

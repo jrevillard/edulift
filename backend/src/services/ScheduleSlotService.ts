@@ -282,7 +282,10 @@ export class ScheduleSlotService {
 
         return validAssignments.map((assignment: unknown) => ({
           id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+          scheduleSlotId: assignment.scheduleSlotId,
+          childId: assignment.childId,
           vehicleAssignmentId: assignment.vehicleAssignmentId,
+          assignedAt: assignment.assignedAt.toISOString(),
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
@@ -387,7 +390,10 @@ export class ScheduleSlotService {
         })),
         childAssignments: validAssignments.map((assignment: unknown) => ({
           id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+          scheduleSlotId: assignment.scheduleSlotId,
+          childId: assignment.childId,
           vehicleAssignmentId: assignment.vehicleAssignmentId,
+          assignedAt: assignment.assignedAt.toISOString(),
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
