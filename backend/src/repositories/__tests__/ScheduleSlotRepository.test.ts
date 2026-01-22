@@ -75,7 +75,7 @@ describe('ScheduleSlotRepository', () => {
           },
           childAssignments: {
             include: {
-              child: { select: { id: true, name: true } },
+              child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
             },
           },
         },
@@ -400,7 +400,7 @@ describe('ScheduleSlotRepository', () => {
             childAssignments: {
               select: {
                 vehicleAssignmentId: true,
-                child: { select: { id: true, name: true } },
+                child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
               },
             },
           },
@@ -513,11 +513,15 @@ describe('ScheduleSlotRepository', () => {
             childAssignments: {
               select: {
                 vehicleAssignmentId: true,
-                child: { 
-                  select: { 
-                    id: true, 
+                child: {
+                  select: {
+                    id: true,
                     name: true,
-                  }, 
+                    age: true,
+                    familyId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
                 },
               },
             },
