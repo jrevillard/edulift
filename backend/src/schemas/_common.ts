@@ -116,45 +116,6 @@ export const BaseUserSchema = z.object({
   description: 'Common user fields shared across schemas',
 });
 
-// Base child schema with common fields
-export const BaseChildSchema = z.object({
-  id: z.cuid().openapi({
-    example: 'cl123456789012345678901239',
-    description: 'Child identifier (CUID format)',
-  }),
-  familyId: z.cuid().openapi({
-    example: 'cl123456789012345678901234',
-    description: 'Family identifier',
-  }),
-  firstName: z.string().openapi({
-    example: 'Emma',
-    description: 'Child first name',
-  }),
-  lastName: z.string().openapi({
-    example: 'Johnson',
-    description: 'Child last name',
-  }),
-  dateOfBirth: z.iso.datetime().nullable().openapi({
-    example: '2015-05-15T00:00:00.000Z',
-    description: 'Child date of birth',
-  }),
-  joinedAt: z.iso.datetime().openapi({
-    example: '2023-01-01T00:00:00.000Z',
-    description: 'Date child joined the family',
-  }),
-  createdAt: z.iso.datetime().openapi({
-    example: '2023-01-01T00:00:00.000Z',
-    description: 'Child creation timestamp',
-  }),
-  updatedAt: z.iso.datetime().openapi({
-    example: '2023-01-01T00:00:00.000Z',
-    description: 'Child update timestamp',
-  }),
-}).openapi({
-  title: 'Base Child',
-  description: 'Common child fields shared across schemas',
-});
-
 // Base vehicle schema with common fields - MATCHES PRISMA DATABASE STRUCTURE
 export const BaseVehicleSchema = z.object({
   id: z.cuid().openapi({
@@ -169,9 +130,9 @@ export const BaseVehicleSchema = z.object({
     example: 30,
     description: 'Vehicle seat capacity',
   }),
-  familyId: z.cuid().optional().openapi({
+  familyId: z.cuid().openapi({
     example: 'cl123456789012345678901234',
-    description: 'Family identifier that owns the vehicle',
+    description: 'Family identifier that owns the vehicle (required)',
   }),
   createdAt: z.iso.datetime().openapi({
     example: '2023-01-01T00:00:00.000Z',
@@ -473,7 +434,6 @@ registry.register('RecurringPattern', RecurringPatternEnum);
 // Register base schemas
 registry.register('BaseEntity', BaseEntitySchema);
 registry.register('BaseUser', BaseUserSchema);
-registry.register('BaseChild', BaseChildSchema);
 registry.register('BaseVehicle', BaseVehicleSchema);
 registry.register('BaseFamily', BaseFamilySchema);
 registry.register('BaseGroup', BaseGroupSchema);

@@ -270,7 +270,7 @@ export class ScheduleSlotRepository {
           select: {
             vehicleAssignmentId: true,
             child: {
-              select: { id: true, name: true, familyId: true },
+              select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
           },
         },
@@ -334,7 +334,7 @@ export class ScheduleSlotRepository {
           select: {
             vehicleAssignmentId: true,
             child: {
-              select: { id: true, name: true, familyId: true },
+              select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
           },
         },
@@ -394,7 +394,7 @@ export class ScheduleSlotRepository {
           select: {
             vehicleAssignmentId: true,
             child: {
-              select: { id: true, name: true, familyId: true },
+              select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
           },
         },

@@ -281,10 +281,15 @@ export class ScheduleSlotService {
         }
 
         return validAssignments.map((assignment: unknown) => ({
+          id: `${assignment.scheduleSlotId}_${assignment.childId}`,
           vehicleAssignmentId: assignment.vehicleAssignmentId,
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
+            age: assignment.child.age,
+            familyId: assignment.child.familyId,
+            createdAt: assignment.child.createdAt.toISOString(),
+            updatedAt: assignment.child.updatedAt.toISOString(),
           },
         }));
       })(),
@@ -386,6 +391,10 @@ export class ScheduleSlotService {
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
+            age: assignment.child.age,
+            familyId: assignment.child.familyId,
+            createdAt: assignment.child.createdAt.toISOString(),
+            updatedAt: assignment.child.updatedAt.toISOString(),
           },
         })),
         totalCapacity,

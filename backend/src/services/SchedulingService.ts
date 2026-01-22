@@ -113,6 +113,10 @@ export class SchedulingService {
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
+            age: assignment.child.age,
+            familyId: assignment.child.familyId,
+            createdAt: assignment.child.createdAt.toISOString(),
+            updatedAt: assignment.child.updatedAt.toISOString(),
           },
         })),
         totalCapacity,

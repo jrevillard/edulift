@@ -25913,7 +25913,7 @@
                                     "type": "string",
                                     "format": "cuid",
                                     "example": "cl123456789012345678901234",
-                                    "description": "Family identifier that owns the vehicle"
+                                    "description": "Family identifier that owns the vehicle (required)"
                                   },
                                   "createdAt": {
                                     "type": "string",
@@ -25932,6 +25932,7 @@
                                   "id",
                                   "name",
                                   "capacity",
+                                  "familyId",
                                   "createdAt",
                                   "updatedAt"
                                 ],
@@ -26093,7 +26094,7 @@
                                         "type": "string",
                                         "format": "cuid",
                                         "example": "cl123456789012345678901234",
-                                        "description": "Family identifier that owns the vehicle"
+                                        "description": "Family identifier that owns the vehicle (required)"
                                       },
                                       "createdAt": {
                                         "type": "string",
@@ -26112,6 +26113,7 @@
                                       "id",
                                       "name",
                                       "capacity",
+                                      "familyId",
                                       "createdAt",
                                       "updatedAt"
                                     ],
@@ -26535,7 +26537,7 @@
                               "type": "string",
                               "format": "cuid",
                               "example": "cl123456789012345678901234",
-                              "description": "Family identifier that owns the vehicle"
+                              "description": "Family identifier that owns the vehicle (required)"
                             },
                             "createdAt": {
                               "type": "string",
@@ -26554,6 +26556,7 @@
                             "id",
                             "name",
                             "capacity",
+                            "familyId",
                             "createdAt",
                             "updatedAt"
                           ],
@@ -27224,7 +27227,7 @@
                               "type": "string",
                               "format": "cuid",
                               "example": "cl123456789012345678901234",
-                              "description": "Family identifier that owns the vehicle"
+                              "description": "Family identifier that owns the vehicle (required)"
                             },
                             "createdAt": {
                               "type": "string",
@@ -27243,6 +27246,7 @@
                             "id",
                             "name",
                             "capacity",
+                            "familyId",
                             "createdAt",
                             "updatedAt"
                           ],
@@ -27763,7 +27767,7 @@
                                     "type": "string",
                                     "format": "cuid",
                                     "example": "cl123456789012345678901234",
-                                    "description": "Family identifier that owns the vehicle"
+                                    "description": "Family identifier that owns the vehicle (required)"
                                   },
                                   "createdAt": {
                                     "type": "string",
@@ -27782,6 +27786,7 @@
                                   "id",
                                   "name",
                                   "capacity",
+                                  "familyId",
                                   "createdAt",
                                   "updatedAt"
                                 ],
@@ -27943,7 +27948,7 @@
                                         "type": "string",
                                         "format": "cuid",
                                         "example": "cl123456789012345678901234",
-                                        "description": "Family identifier that owns the vehicle"
+                                        "description": "Family identifier that owns the vehicle (required)"
                                       },
                                       "createdAt": {
                                         "type": "string",
@@ -27962,6 +27967,7 @@
                                       "id",
                                       "name",
                                       "capacity",
+                                      "familyId",
                                       "createdAt",
                                       "updatedAt"
                                     ],
@@ -28360,7 +28366,7 @@
                                           "type": "string",
                                           "format": "cuid",
                                           "example": "cl123456789012345678901234",
-                                          "description": "Family identifier that owns the vehicle"
+                                          "description": "Family identifier that owns the vehicle (required)"
                                         },
                                         "createdAt": {
                                           "type": "string",
@@ -28379,6 +28385,7 @@
                                         "id",
                                         "name",
                                         "capacity",
+                                        "familyId",
                                         "createdAt",
                                         "updatedAt"
                                       ],
@@ -28540,7 +28547,7 @@
                                               "type": "string",
                                               "format": "cuid",
                                               "example": "cl123456789012345678901234",
-                                              "description": "Family identifier that owns the vehicle"
+                                              "description": "Family identifier that owns the vehicle (required)"
                                             },
                                             "createdAt": {
                                               "type": "string",
@@ -28559,6 +28566,7 @@
                                             "id",
                                             "name",
                                             "capacity",
+                                            "familyId",
                                             "createdAt",
                                             "updatedAt"
                                           ],
@@ -29051,7 +29059,7 @@
                                   "type": "string",
                                   "format": "cuid",
                                   "example": "cl123456789012345678901234",
-                                  "description": "Family identifier that owns the vehicle"
+                                  "description": "Family identifier that owns the vehicle (required)"
                                 },
                                 "createdAt": {
                                   "type": "string",
@@ -29070,6 +29078,7 @@
                                 "id",
                                 "name",
                                 "capacity",
+                                "familyId",
                                 "createdAt",
                                 "updatedAt"
                               ],
@@ -29957,7 +29966,7 @@
                               "type": "string",
                               "format": "cuid",
                               "example": "cl123456789012345678901234",
-                              "description": "Family identifier that owns the vehicle"
+                              "description": "Family identifier that owns the vehicle (required)"
                             },
                             "createdAt": {
                               "type": "string",
@@ -29976,6 +29985,7 @@
                             "id",
                             "name",
                             "capacity",
+                            "familyId",
                             "createdAt",
                             "updatedAt"
                           ],
