@@ -323,10 +323,37 @@ describe('ChildAssignmentService', () => {
           vehicleAssignmentId: 'vehicle-assignment-id',
         },
         include: {
-          child: true,
+          child: {
+            select: {
+              id: true,
+              name: true,
+              age: true,
+              familyId: true,
+              createdAt: true,
+              updatedAt: true,
+            },
+          },
           scheduleSlot: true,
           vehicleAssignment: {
-            include: { vehicle: true },
+            include: {
+              vehicle: {
+                select: {
+                  id: true,
+                  name: true,
+                  capacity: true,
+                  familyId: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+              driver: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+            },
           },
         },
       });
