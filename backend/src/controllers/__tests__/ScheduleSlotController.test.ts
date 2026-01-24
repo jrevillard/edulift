@@ -538,12 +538,8 @@ describe('ScheduleSlotController Test Suite', () => {
           vehicleId: TEST_IDS.VEHICLE,
           scheduleSlotId: TEST_IDS.SLOT,
           driverId: TEST_IDS.USER,
-          groupId: TEST_IDS.GROUP,
-          date: '2024-01-01',
-          assignedSeats: 0,
           seatOverride: 0,
           createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
           vehicle: {
             id: TEST_IDS.VEHICLE,
             name: 'Bus 1',
@@ -554,8 +550,7 @@ describe('ScheduleSlotController Test Suite', () => {
           },
           driver: {
             id: TEST_IDS.USER,
-            firstName: 'John',
-            lastName: 'Doe',
+            name: 'John Doe',
             email: 'john@example.com',
           },
         }],

@@ -25868,23 +25868,10 @@
                               "driverId": {
                                 "type": "string"
                               },
-                              "groupId": {
-                                "type": "string"
-                              },
-                              "date": {
-                                "type": "string"
-                              },
-                              "assignedSeats": {
-                                "type": "number"
-                              },
                               "seatOverride": {
                                 "type": "number"
                               },
                               "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "updatedAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
@@ -25945,10 +25932,7 @@
                                   "id": {
                                     "type": "string"
                                   },
-                                  "firstName": {
-                                    "type": "string"
-                                  },
-                                  "lastName": {
+                                  "name": {
                                     "type": "string"
                                   },
                                   "email": {
@@ -26049,23 +26033,10 @@
                                   "driverId": {
                                     "type": "string"
                                   },
-                                  "groupId": {
-                                    "type": "string"
-                                  },
-                                  "date": {
-                                    "type": "string"
-                                  },
-                                  "assignedSeats": {
-                                    "type": "number"
-                                  },
                                   "seatOverride": {
                                     "type": "number"
                                   },
                                   "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "updatedAt": {
                                     "type": "string",
                                     "format": "date-time"
                                   },
@@ -26126,10 +26097,7 @@
                                       "id": {
                                         "type": "string"
                                       },
-                                      "firstName": {
-                                        "type": "string"
-                                      },
-                                      "lastName": {
+                                      "name": {
                                         "type": "string"
                                       },
                                       "email": {
@@ -26492,23 +26460,10 @@
                         "driverId": {
                           "type": "string"
                         },
-                        "groupId": {
-                          "type": "string"
-                        },
-                        "date": {
-                          "type": "string"
-                        },
-                        "assignedSeats": {
-                          "type": "number"
-                        },
                         "seatOverride": {
                           "type": "number"
                         },
                         "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -26569,10 +26524,7 @@
                             "id": {
                               "type": "string"
                             },
-                            "firstName": {
-                              "type": "string"
-                            },
-                            "lastName": {
+                            "name": {
                               "type": "string"
                             },
                             "email": {
@@ -27182,23 +27134,10 @@
                         "driverId": {
                           "type": "string"
                         },
-                        "groupId": {
-                          "type": "string"
-                        },
-                        "date": {
-                          "type": "string"
-                        },
-                        "assignedSeats": {
-                          "type": "number"
-                        },
                         "seatOverride": {
                           "type": "number"
                         },
                         "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -27259,10 +27198,7 @@
                             "id": {
                               "type": "string"
                             },
-                            "firstName": {
-                              "type": "string"
-                            },
-                            "lastName": {
+                            "name": {
                               "type": "string"
                             },
                             "email": {
@@ -27722,23 +27658,10 @@
                               "driverId": {
                                 "type": "string"
                               },
-                              "groupId": {
-                                "type": "string"
-                              },
-                              "date": {
-                                "type": "string"
-                              },
-                              "assignedSeats": {
-                                "type": "number"
-                              },
                               "seatOverride": {
                                 "type": "number"
                               },
                               "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "updatedAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
@@ -27799,10 +27722,7 @@
                                   "id": {
                                     "type": "string"
                                   },
-                                  "firstName": {
-                                    "type": "string"
-                                  },
-                                  "lastName": {
+                                  "name": {
                                     "type": "string"
                                   },
                                   "email": {
@@ -27903,23 +27823,10 @@
                                   "driverId": {
                                     "type": "string"
                                   },
-                                  "groupId": {
-                                    "type": "string"
-                                  },
-                                  "date": {
-                                    "type": "string"
-                                  },
-                                  "assignedSeats": {
-                                    "type": "number"
-                                  },
                                   "seatOverride": {
                                     "type": "number"
                                   },
                                   "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "updatedAt": {
                                     "type": "string",
                                     "format": "date-time"
                                   },
@@ -27980,10 +27887,7 @@
                                       "id": {
                                         "type": "string"
                                       },
-                                      "firstName": {
-                                        "type": "string"
-                                      },
-                                      "lastName": {
+                                      "name": {
                                         "type": "string"
                                       },
                                       "email": {
@@ -28321,23 +28225,10 @@
                                     "driverId": {
                                       "type": "string"
                                     },
-                                    "groupId": {
-                                      "type": "string"
-                                    },
-                                    "date": {
-                                      "type": "string"
-                                    },
-                                    "assignedSeats": {
-                                      "type": "number"
-                                    },
                                     "seatOverride": {
                                       "type": "number"
                                     },
                                     "createdAt": {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    "updatedAt": {
                                       "type": "string",
                                       "format": "date-time"
                                     },
@@ -28398,10 +28289,7 @@
                                         "id": {
                                           "type": "string"
                                         },
-                                        "firstName": {
-                                          "type": "string"
-                                        },
-                                        "lastName": {
+                                        "name": {
                                           "type": "string"
                                         },
                                         "email": {
@@ -28502,23 +28390,10 @@
                                         "driverId": {
                                           "type": "string"
                                         },
-                                        "groupId": {
-                                          "type": "string"
-                                        },
-                                        "date": {
-                                          "type": "string"
-                                        },
-                                        "assignedSeats": {
-                                          "type": "number"
-                                        },
                                         "seatOverride": {
                                           "type": "number"
                                         },
                                         "createdAt": {
-                                          "type": "string",
-                                          "format": "date-time"
-                                        },
-                                        "updatedAt": {
                                           "type": "string",
                                           "format": "date-time"
                                         },
@@ -28579,10 +28454,7 @@
                                             "id": {
                                               "type": "string"
                                             },
-                                            "firstName": {
-                                              "type": "string"
-                                            },
-                                            "lastName": {
+                                            "name": {
                                               "type": "string"
                                             },
                                             "email": {
@@ -29014,23 +28886,10 @@
                             "driverId": {
                               "type": "string"
                             },
-                            "groupId": {
-                              "type": "string"
-                            },
-                            "date": {
-                              "type": "string"
-                            },
-                            "assignedSeats": {
-                              "type": "number"
-                            },
                             "seatOverride": {
                               "type": "number"
                             },
                             "createdAt": {
-                              "type": "string",
-                              "format": "date-time"
-                            },
-                            "updatedAt": {
                               "type": "string",
                               "format": "date-time"
                             },
@@ -29091,10 +28950,7 @@
                                 "id": {
                                   "type": "string"
                                 },
-                                "firstName": {
-                                  "type": "string"
-                                },
-                                "lastName": {
+                                "name": {
                                   "type": "string"
                                 },
                                 "email": {
@@ -29921,23 +29777,10 @@
                         "driverId": {
                           "type": "string"
                         },
-                        "groupId": {
-                          "type": "string"
-                        },
-                        "date": {
-                          "type": "string"
-                        },
-                        "assignedSeats": {
-                          "type": "number"
-                        },
                         "seatOverride": {
                           "type": "number"
                         },
                         "createdAt": {
-                          "type": "string",
-                          "format": "date-time"
-                        },
-                        "updatedAt": {
                           "type": "string",
                           "format": "date-time"
                         },
@@ -29998,10 +29841,7 @@
                             "id": {
                               "type": "string"
                             },
-                            "firstName": {
-                              "type": "string"
-                            },
-                            "lastName": {
+                            "name": {
                               "type": "string"
                             },
                             "email": {
