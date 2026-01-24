@@ -284,12 +284,8 @@ describe('ScheduleSlotController Test Suite', () => {
         vehicleId: TEST_IDS.VEHICLE,
         scheduleSlotId: TEST_IDS.SLOT,
         driverId: TEST_IDS.USER,
-        groupId: TEST_IDS.GROUP,
-        date: '2024-01-01',
-        assignedSeats: 0,
         seatOverride: 0,
         createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
         vehicle: {
           id: TEST_IDS.VEHICLE,
           name: 'Unknown Vehicle',
@@ -300,8 +296,7 @@ describe('ScheduleSlotController Test Suite', () => {
         },
         driver: {
           id: TEST_IDS.USER,
-          firstName: 'John',
-          lastName: 'Doe',
+          name: 'John Doe',
           email: 'driver@example.com',
         },
       };
@@ -585,8 +580,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse.data.vehicleAssignments).toBeDefined();
       expect(jsonResponse.data.vehicleAssignments.length).toBe(1);
       expect(jsonResponse.data.vehicleAssignments[0].driver).toHaveProperty('id', TEST_IDS.USER);
-      expect(jsonResponse.data.vehicleAssignments[0].driver).toHaveProperty('firstName', 'John');
-      expect(jsonResponse.data.vehicleAssignments[0].driver).toHaveProperty('lastName', 'Doe');
+      expect(jsonResponse.data.vehicleAssignments[0].driver).toHaveProperty('name', 'John Doe');
 
       expect(mockScheduleSlotService.getScheduleSlotDetails).toHaveBeenCalledWith(TEST_IDS.SLOT);
     });
@@ -738,6 +732,11 @@ describe('ScheduleSlotController Test Suite', () => {
             createdAt: new Date('2024-01-01T00:00:00.000Z'),
             updatedAt: new Date('2024-01-01T00:00:00.000Z'),
           },
+          driver: {
+            id: TEST_IDS.USER,
+            name: 'Test Driver',
+            email: 'driver@test.com',
+          },
         },
       };
 
@@ -861,7 +860,6 @@ describe('ScheduleSlotController Test Suite', () => {
         driverId: TEST_IDS.USER,
         seatOverride: 5, // Changed from 25 to 5 (max is 10 per schema)
         createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
         vehicle: {
           id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
@@ -872,8 +870,7 @@ describe('ScheduleSlotController Test Suite', () => {
         },
         driver: {
           id: TEST_IDS.USER,
-          firstName: 'John',
-          lastName: 'Doe',
+          name: 'John Doe',
           email: 'john@example.com',
         },
       };
@@ -900,8 +897,7 @@ describe('ScheduleSlotController Test Suite', () => {
           }),
           driver: expect.objectContaining({
             id: TEST_IDS.USER,
-            firstName: 'John',
-            lastName: 'Doe',
+            name: 'John Doe',
           }),
         }),
       });

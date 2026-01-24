@@ -94,17 +94,12 @@ function transformVehicleAssignment(assignment: any): any {
     vehicleId: assignment.vehicleId,
     scheduleSlotId: assignment.scheduleSlotId,
     driverId: assignment.driverId,
-    groupId: assignment.groupId,
-    date: assignment.date ? dateToISOString(assignment.date) : assignment.date,
-    assignedSeats: assignment.assignedSeats,
     seatOverride: assignment.seatOverride,
     createdAt: assignment.createdAt ? dateToISOString(assignment.createdAt) : assignment.createdAt,
-    updatedAt: assignment.updatedAt ? dateToISOString(assignment.updatedAt) : assignment.updatedAt,
     vehicle: assignment.vehicle,
     driver: assignment.driver ? {
       id: assignment.driver.id,
-      firstName: assignment.driver.firstName,
-      lastName: assignment.driver.lastName,
+      name: assignment.driver.name,
       email: assignment.driver.email,
     } : undefined,
   };

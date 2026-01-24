@@ -229,17 +229,12 @@ export const ScheduleVehicleAssignmentSchema = z.object({
   vehicleId: z.string().optional(),
   scheduleSlotId: z.string().optional(),
   driverId: z.string().optional(),
-  groupId: z.string().optional(),
-  date: z.string().optional(),
-  assignedSeats: z.number().optional(),
   seatOverride: z.number().optional(),
   createdAt: z.iso.datetime().optional(),
-  updatedAt: z.iso.datetime().optional(),
   vehicle: BaseVehicleSchema.optional(),
   driver: z.object({
     id: z.string().optional(),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    name: z.string().optional(),
     email: z.string().email('Invalid email format').optional(),
   }).optional(),
 }).openapi({
