@@ -457,7 +457,7 @@ const removeChildRoute = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Schedule slot not found',
+      description: 'Schedule slot not found or child assignment does not exist',
     },
     500: {
       content: {
@@ -1036,6 +1036,15 @@ app.openapi(removeChildRoute, async (c) => {
       data: { message: 'Child removed successfully' },
     }, 200);
   } catch (error) {
+    // Check if it's a Prisma "record not found" error
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
+      return c.json({
+        success: false,
+        error: 'Child assignment not found',
+        code: 'CHILD_NOT_FOUND',
+      }, 404);
+    }
+
     return c.json({
       success: false,
       error: 'Failed to remove child',
