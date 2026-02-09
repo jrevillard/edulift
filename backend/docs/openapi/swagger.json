@@ -27431,7 +27431,7 @@
             }
           },
           "404": {
-            "description": "Schedule slot not found",
+            "description": "Schedule slot not found or child assignment does not exist",
             "content": {
               "application/json": {
                 "schema": {

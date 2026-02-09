@@ -317,6 +317,20 @@ export class ChildAssignmentService {
                       email: true,
                     },
                   },
+                  childAssignments: {
+                    include: {
+                      child: {
+                        select: {
+                          id: true,
+                          name: true,
+                          age: true,
+                          familyId: true,
+                          createdAt: true,
+                          updatedAt: true,
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
