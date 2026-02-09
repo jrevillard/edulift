@@ -548,7 +548,7 @@ registerPath({
   path: '/schedule-slots/{scheduleSlotId}/vehicles',
   tags: ['Schedule Slots'],
   summary: 'Remove vehicle from schedule slot',
-  description: 'Remove a vehicle assignment from a schedule slot',
+  description: 'Remove a vehicle assignment from a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families. If this was the last vehicle, the ScheduleSlot is deleted and a message is returned.',
   security: [{ BearerAuth: [] }],
   request: {
     params: ScheduleSlotParamsSchema,
@@ -567,10 +567,13 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean(),
-            data: z.object({
-              success: z.boolean(),
-              message: z.string(),
-            }),
+            data: z.union([
+              ScheduleSlotSchema, // When slot still exists with other vehicles
+              z.object({
+                message: z.string(),
+                slotDeleted: z.literal(true),
+              }), // When slot was deleted (last vehicle)
+            ]),
           }),
         },
       },
@@ -596,7 +599,7 @@ registerPath({
   path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver',
   tags: ['Schedule Slots'],
   summary: 'Update vehicle driver assignment',
-  description: 'Update or remove driver for a vehicle assignment in a schedule slot',
+  description: 'Update or remove driver for a vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ BearerAuth: [] }],
   request: {
     params: ScheduleSlotVehicleParamsSchema,
@@ -615,7 +618,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean(),
-            data: ScheduleVehicleAssignmentSchema,
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -641,7 +644,7 @@ registerPath({
   path: '/schedule-slots/{scheduleSlotId}/children',
   tags: ['Schedule Slots'],
   summary: 'Assign child to schedule slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot',
+  description: 'Assign a child to a specific vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ BearerAuth: [] }],
   request: {
     params: ScheduleSlotParamsSchema,
@@ -660,7 +663,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean(),
-            data: ChildAssignmentSchema,
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -797,16 +800,16 @@ registerPath({
   },
 });
 
-// Update seat override for vehicle assignment
+// Update seat override for vehicle in schedule slot
 registerPath({
   method: 'patch',
-  path: '/schedule-slots/vehicle-assignments/{vehicleAssignmentId}/seat-override',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/seat-override',
   tags: ['Schedule Slots'],
-  summary: 'Update seat override for vehicle assignment',
-  description: 'Update seat capacity override for a vehicle assignment',
+  summary: 'Update seat override for vehicle',
+  description: 'Update seat capacity override for a vehicle in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ BearerAuth: [] }],
   request: {
-    params: VehicleAssignmentParamsSchema,
+    params: ScheduleSlotVehicleParamsSchema,
     body: {
       content: {
         'application/json': {
@@ -822,7 +825,7 @@ registerPath({
         'application/json': {
           schema: z.object({
             success: z.boolean(),
-            data: ScheduleVehicleAssignmentSchema,
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -837,7 +840,7 @@ registerPath({
       description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      description: 'Not found - Vehicle assignment does not exist',
+      description: 'Not found - Schedule slot or vehicle does not exist',
     },
   },
 });

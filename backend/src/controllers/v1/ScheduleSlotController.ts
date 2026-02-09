@@ -14,7 +14,7 @@ import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepositor
 import { SocketEmitter } from '../../utils/socketEmitter';
 import { createLogger } from '../../utils/logger';
 import { normalizeError } from '../../utils/errorHandler';
-import type { ScheduleSlotWithDetails, AssignVehicleToSlotData, UpdateSeatOverrideData } from '../../types';
+import type { ScheduleSlotWithDetails, AssignVehicleToSlotData } from '../../types';
 
 // Import Hono-native schemas
 import {
@@ -28,11 +28,9 @@ import {
   GroupParamsSchema,
   ScheduleSlotChildParamsSchema,
   ScheduleSlotVehicleParamsSchema,
-  VehicleAssignmentParamsSchema,
   DateRangeQuerySchema,
   ScheduleSlotSchema,
   ScheduleVehicleAssignmentSchema,
-  ChildAssignmentSchema,
   AvailableChildSchema,
   ScheduleResponseSchema,
 } from '../../schemas/scheduleSlots';
@@ -383,7 +381,7 @@ const updateVehicleDriverRoute = createRoute({
   path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver',
   tags: ['Schedule Slots'],
   summary: 'Update vehicle driver',
-  description: 'Update or remove driver for a vehicle assignment in a schedule slot',
+  description: 'Update or remove driver for a vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ Bearer: [] }],
   request: {
     params: ScheduleSlotVehicleParamsSchema,
@@ -399,7 +397,7 @@ const updateVehicleDriverRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(ScheduleVehicleAssignmentSchema),
+          schema: createSuccessSchema(ScheduleSlotSchema),
         },
       },
       description: 'Driver updated successfully',
@@ -582,7 +580,7 @@ const assignChildRoute = createRoute({
   path: '/schedule-slots/{scheduleSlotId}/children',
   tags: ['Schedule Slots'],
   summary: 'Assign child to schedule slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot',
+  description: 'Assign a child to a specific vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ Bearer: [] }],
   request: {
     params: ScheduleSlotParamsSchema,
@@ -598,7 +596,7 @@ const assignChildRoute = createRoute({
     201: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(ChildAssignmentSchema),
+          schema: createSuccessSchema(ScheduleSlotSchema),
         },
       },
       description: 'Child assigned successfully',
@@ -721,17 +719,17 @@ const getAvailableChildrenRoute = createRoute({
 });
 
 /**
- * PATCH /vehicle-assignments/:vehicleAssignmentId/seat-override - Update seat override
+ * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleId/seat-override - Update seat override
  */
 const updateSeatOverrideRoute = createRoute({
   method: 'patch',
-  path: '/vehicle-assignments/{vehicleAssignmentId}/seat-override',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/seat-override',
   tags: ['Schedule Slots'],
-  summary: 'Update seat override',
-  description: 'Update seat capacity override for a vehicle assignment',
+  summary: 'Update seat override for vehicle',
+  description: 'Update seat capacity override for a vehicle in a schedule slot',
   security: [{ Bearer: [] }],
   request: {
-    params: VehicleAssignmentParamsSchema,
+    params: ScheduleSlotVehicleParamsSchema,
     body: {
       content: {
         'application/json': {
@@ -744,10 +742,18 @@ const updateSeatOverrideRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(ScheduleVehicleAssignmentSchema),
+          schema: createSuccessSchema(ScheduleSlotSchema),
         },
       },
       description: 'Seat override updated successfully',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Schedule slot or vehicle not found',
     },
     500: {
       content: {
@@ -987,19 +993,28 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
       }, 404);
     }
 
-    const result = await scheduleSlotServiceInstance.updateVehicleDriver(scheduleSlotId, vehicleId, input.driverId);
+    // Update the driver
+    await scheduleSlotServiceInstance.updateVehicleDriver(scheduleSlotId, vehicleId, input.driverId);
 
-    // Transform result to OpenAPI format
-    const transformedResult = transformVehicleAssignment(result);
+    // ✅ Fetch the complete updated ScheduleSlot with all families' data
+    const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+
+    // Edge case: ScheduleSlot might have been deleted during the update
+    if (!updatedSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot was deleted during update',
+      }, 404);
+    }
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({
       success: true,
-      data: transformedResult,
-    }, 200);
+      data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
+    }, 200) as any; // Type narrowing: Hono's strict typing doesn't match our union response type
   } catch (error) {
     return c.json({
       success: false,
@@ -1161,24 +1176,33 @@ app.openapi(assignChildRoute, async (c) => {
     }, 404);
   }
 
-  const assignment = await childAssignmentServiceInstance.assignChildToScheduleSlot(
+  // Create the assignment
+  await childAssignmentServiceInstance.assignChildToScheduleSlot(
     scheduleSlotId,
     input.childId,
     input.vehicleAssignmentId,
     userId,
   );
 
-  // Transform assignment to API format (excludes scheduleSlot, converts Dates)
-  const transformedAssignment = transformChildAssignment(assignment);
+  // ✅ Fetch the complete updated ScheduleSlot with all families' data
+  const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+
+  // Edge case: ScheduleSlot might have been deleted during the update
+  if (!updatedSlot) {
+    return c.json({
+      success: false,
+      error: 'Schedule slot was deleted during update',
+    }, 404);
+  }
 
   // Emit WebSocket event for real-time updates
-  SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, assignment);
+  SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
   SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
   return c.json({
     success: true,
-    data: transformedAssignment,
-  }, 201);
+    data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
+  }, 201) as any; // Type narrowing: Hono's strict typing doesn't match our union response type
 });
 
 /**
@@ -1222,29 +1246,44 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
 });
 
 /**
- * PATCH /vehicle-assignments/:vehicleAssignmentId/seat-override - Update seat override
+ * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleId/seat-override - Update seat override
  */
 app.openapi(updateSeatOverrideRoute, async (c) => {
-  const { vehicleAssignmentId } = c.req.valid('param');
+  const { scheduleSlotId, vehicleId } = c.req.valid('param');
   const input = c.req.valid('json');
 
   try {
-    const updateData: UpdateSeatOverrideData = {
-      vehicleAssignmentId,
-    };
-    if (input.seatOverride !== undefined) {
-      updateData.seatOverride = input.seatOverride;
+    // Get the schedule slot first to obtain groupId for WebSocket emissions
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+    if (!scheduleSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot not found',
+      }, 404);
     }
 
-    const result = await scheduleSlotServiceInstance.updateSeatOverride(updateData);
+    // Update seat override using scheduleSlotId and vehicleId
+    await scheduleSlotServiceInstance.updateSeatOverrideByVehicle(scheduleSlotId, vehicleId, input.seatOverride);
 
-    // Transform result to OpenAPI format
-    const transformedResult = transformVehicleAssignment(result);
+    // ✅ Fetch the complete updated ScheduleSlot with all families' data
+    const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+
+    // Edge case: ScheduleSlot might have been deleted during the update
+    if (!updatedSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot was deleted during update',
+      }, 404);
+    }
+
+    // Emit WebSocket event for real-time updates
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({
       success: true,
-      data: transformedResult,
-    }, 200);
+      data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
+    }, 200) as any; // Type narrowing: Hono's strict typing doesn't match our union response type
   } catch (error) {
     return c.json({
       success: false,

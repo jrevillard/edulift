@@ -234,6 +234,31 @@ export class ScheduleSlotService {
     return result;
   }
 
+  async updateSeatOverrideByVehicle(scheduleSlotId: string, vehicleId: string, seatOverride?: number) {
+    // Validate slot is not in the past
+    await this.validateSlotNotInPast(scheduleSlotId);
+
+    // Validate seat override value
+    if (seatOverride !== undefined && this.validationService) {
+      await this.validationService.validateSeatOverride(seatOverride);
+    }
+
+    const result = await this.scheduleSlotRepository.updateSeatOverrideByVehicle(scheduleSlotId, vehicleId, seatOverride);
+
+    // Validate slot integrity after update
+    if (this.validationService) {
+      await this.validationService.validateSlotIntegrity(scheduleSlotId);
+    }
+
+    // Send notification for seat override update
+    if (this.notificationService) {
+      this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'SEAT_OVERRIDE_UPDATED')
+        .catch(error => logger.error('Failed to send seat override update notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
+    }
+
+    return result;
+  }
+
   async getScheduleSlotDetails(scheduleSlotId: string): Promise<ScheduleSlotWithDetails | null> {
     logger.debug('Fetching schedule slot details', { scheduleSlotId });
     const slot = await this.scheduleSlotRepository.findById(scheduleSlotId);

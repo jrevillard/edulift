@@ -280,48 +280,57 @@ export class ScheduleSlotRepository {
   }
 
   async updateVehicleDriver(scheduleSlotId: string, vehicleId: string, driverId: string | null): Promise<unknown> {
-    return this.prisma.scheduleSlotVehicle.update({
-      where: {
-        scheduleSlotId_vehicleId: {
-          scheduleSlotId,
-          vehicleId,
-        },
-      },
-      data: { driverId },
-      include: {
-        vehicle: {
-          select: {
-            id: true,
-            name: true,
-            capacity: true,
-            familyId: true,
-            createdAt: true,
-            updatedAt: true,
+    // ✅ Use SERIALIZABLE transaction to prevent race conditions
+    return await this.prisma.$transaction(
+      async (tx) => {
+        return await tx.scheduleSlotVehicle.update({
+          where: {
+            scheduleSlotId_vehicleId: {
+              scheduleSlotId,
+              vehicleId,
+            },
           },
-        },
-        driver: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        childAssignments: {
+          data: { driverId },
           include: {
-            child: {
+            vehicle: {
               select: {
                 id: true,
                 name: true,
-                age: true,
+                capacity: true,
                 familyId: true,
                 createdAt: true,
                 updatedAt: true,
               },
             },
+            driver: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            childAssignments: {
+              include: {
+                child: {
+                  select: {
+                    id: true,
+                    name: true,
+                    age: true,
+                    familyId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
           },
-        },
+        });
       },
-    });
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 10000,
+      },
+    );
   }
 
 
@@ -686,6 +695,60 @@ export class ScheduleSlotRepository {
         },
       },
     });
+  }
+
+  async updateSeatOverrideByVehicle(scheduleSlotId: string, vehicleId: string, seatOverride?: number): Promise<unknown> {
+    // ✅ Use SERIALIZABLE transaction to prevent race conditions
+    return await this.prisma.$transaction(
+      async (tx) => {
+        return await tx.scheduleSlotVehicle.update({
+          where: {
+            scheduleSlotId_vehicleId: {
+              scheduleSlotId,
+              vehicleId,
+            },
+          },
+          data: { seatOverride: seatOverride || null },
+          include: {
+            vehicle: {
+              select: {
+                id: true,
+                name: true,
+                capacity: true,
+                familyId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+            driver: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            childAssignments: {
+              include: {
+                child: {
+                  select: {
+                    id: true,
+                    name: true,
+                    age: true,
+                    familyId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 10000,
+      },
+    );
   }
 
   async findVehicleAssignmentById(vehicleAssignmentId: string): Promise<unknown> {
