@@ -338,13 +338,20 @@ const removeVehicleRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(z.object({
-            message: z.string(),
-            slotDeleted: z.boolean(),
-          })),
+          schema: createSuccessSchema(
+            z.union([
+              // Case 1: Schedule slot was deleted (last vehicle removed)
+              z.object({
+                message: z.string(),
+                slotDeleted: z.literal(true),
+              }),
+              // Case 2: Schedule slot still exists with remaining vehicles
+              ScheduleSlotSchema,
+            ]),
+          ),
         },
       },
-      description: 'Vehicle removed successfully',
+      description: 'Vehicle removed successfully. Returns either a confirmation message (if slot was deleted) or the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
     },
     400: {
       content: {
@@ -954,7 +961,7 @@ app.openapi(removeVehicleRoute, async (c) => {
         success: true,
         data: {
           message: 'Vehicle removed successfully - schedule slot deleted (last vehicle)',
-          slotDeleted: true,
+          slotDeleted: true as const,
         },
       }, 200);
     } else {
