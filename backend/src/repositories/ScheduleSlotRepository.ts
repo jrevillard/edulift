@@ -245,6 +245,39 @@ export class ScheduleSlotRepository {
         },
       },
       data: { driverId },
+      include: {
+        vehicle: {
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
+            familyId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        driver: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        childAssignments: {
+          include: {
+            child: {
+              select: {
+                id: true,
+                name: true,
+                age: true,
+                familyId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
