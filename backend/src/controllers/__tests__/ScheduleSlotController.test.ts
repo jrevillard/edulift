@@ -732,6 +732,7 @@ describe('ScheduleSlotController Test Suite', () => {
             name: 'Test Driver',
             email: 'driver@test.com',
           },
+          childAssignments: [],
         },
       };
 

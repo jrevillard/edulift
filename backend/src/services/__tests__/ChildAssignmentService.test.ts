@@ -353,6 +353,20 @@ describe('ChildAssignmentService', () => {
                   email: true,
                 },
               },
+              childAssignments: {
+                include: {
+                  child: {
+                    select: {
+                      age: true,
+                      createdAt: true,
+                      familyId: true,
+                      id: true,
+                      name: true,
+                      updatedAt: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
