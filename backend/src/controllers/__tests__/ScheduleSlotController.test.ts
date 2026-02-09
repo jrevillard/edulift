@@ -397,24 +397,32 @@ describe('ScheduleSlotController Test Suite', () => {
       };
 
       const mockResult = {
-        vehicleAssignment: {
-          id: 'cltestvlassignment1234567890',
-          scheduleSlotId: TEST_IDS.SLOT,
-          vehicleId: TEST_IDS.VEHICLE,
-          driverId: null,
-          seatOverride: expect.any(Number),
-          createdAt: new Date('2024-01-01T00:00:00.000Z'),
-          vehicle: {
-            id: TEST_IDS.VEHICLE,
-            name: 'Bus 1',
-            capacity: 30,
-            familyId: TEST_IDS.FAMILY,
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
+        id: TEST_IDS.SLOT,
+        groupId: TEST_IDS.GROUP,
+        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        vehicleAssignments: [
+          {
+            id: 'remaining-vehicle-assignment',
+            vehicleId: 'remaining-vehicle-id',
+            driverId: null,
+            seatOverride: null,
+            vehicle: {
+              id: 'remaining-vehicle-id',
+              name: 'Remaining Bus',
+              capacity: 20,
+              familyId: TEST_IDS.FAMILY,
+              createdAt: '2024-01-01T00:00:00.000Z',
+              updatedAt: '2024-01-01T00:00:00.000Z',
+            },
+            driver: null,
+            childAssignments: [],
           },
-          driver: null,
-        },
-        slotDeleted: false,
+        ],
+        childAssignments: [],
+        totalCapacity: 0,
+        availableSeats: 0,
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
       mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
@@ -428,13 +436,10 @@ describe('ScheduleSlotController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        success: true,
-        data: {
-          message: 'Vehicle removed successfully',
-          slotDeleted: false,
-        },
-      });
+      expect(jsonResponse.success).toBe(true);
+      expect(jsonResponse.data).toHaveProperty('id', TEST_IDS.SLOT);
+      expect(jsonResponse.data).toHaveProperty('vehicleAssignments');
+      expect(jsonResponse.data.vehicleAssignments).toHaveLength(1);
 
       expect(mockScheduleSlotService.removeVehicleFromSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
 
@@ -461,29 +466,9 @@ describe('ScheduleSlotController Test Suite', () => {
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      const mockResult = {
-        vehicleAssignment: {
-          id: 'cltestvlassignment1234567890',
-          scheduleSlotId: TEST_IDS.SLOT,
-          vehicleId: TEST_IDS.VEHICLE,
-          driverId: null,
-          seatOverride: expect.any(Number),
-          createdAt: new Date('2024-01-01T00:00:00.000Z'),
-          vehicle: {
-            id: TEST_IDS.VEHICLE,
-            name: 'Bus 1',
-            capacity: 30,
-            familyId: TEST_IDS.FAMILY,
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
-          },
-          driver: null,
-        },
-        slotDeleted: true,
-      };
-
+      // ✅ NEW: Returns null when slot is deleted (last vehicle removed)
       mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue(mockResult);
+      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue(null);
 
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
         method: 'DELETE',
@@ -496,7 +481,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: true,
         data: {
-          message: 'Vehicle removed successfully',
+          message: 'Vehicle removed successfully - schedule slot deleted (last vehicle)',
           slotDeleted: true,
         },
       });

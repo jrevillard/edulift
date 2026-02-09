@@ -223,14 +223,71 @@ describe('ScheduleSlotRepository', () => {
     });
   });
 
-  describe('removeVehicleFromSlot', () => {
-    it('should remove vehicle and keep slot when other vehicles exist', async () => {
-      const mockResult = { id: 'assignment-1' };
+  describe('removeVehicleFromSlot - Cross-family carpooling', () => {
+    it('should return ScheduleSlot with remaining vehicles including childAssignments when not last vehicle', async () => {
+      const mockDeletionResult = { id: 'assignment-1' };
+      const mockUpdatedSlot = {
+        id: 'slot-1',
+        groupId: TEST_IDS.GROUP,
+        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        vehicleAssignments: [
+          {
+            id: 'remaining-vehicle-id',
+            vehicleId: 'remaining-vehicle-id',
+            driverId: 'driver-id',
+            vehicle: {
+              id: 'remaining-vehicle-id',
+              name: 'Remaining Vehicle',
+              capacity: 6,
+              familyId: 'family-id',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+            },
+            driver: {
+              id: 'driver-id',
+              name: 'Driver',
+              email: 'driver@test.com',
+            },
+            childAssignments: [
+              {
+                id: 'ca1',
+                childId: 'child1-id',
+                vehicleAssignmentId: 'remaining-vehicle-id',
+                child: {
+                  id: 'child1-id',
+                  name: 'Child 1',
+                  age: 8,
+                  familyId: 'family1-id',
+                  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+                  updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+                },
+              },
+              {
+                id: 'ca2',
+                childId: 'child2-id',
+                vehicleAssignmentId: 'remaining-vehicle-id',
+                child: {
+                  id: 'child2-id',
+                  name: 'Child 2',
+                  age: 9,
+                  familyId: 'family2-id',
+                  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+                  updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+                },
+              },
+            ],
+          },
+        ],
+        childAssignments: [],
+      };
 
       const mockTransaction = {
         scheduleSlotVehicle: {
-          delete: jest.fn().mockResolvedValue(mockResult),
-          count: jest.fn().mockResolvedValue(1), // Other vehicles still exist
+          count: jest.fn().mockResolvedValue(2), // BEFORE deletion: 2 vehicles
+          delete: jest.fn().mockResolvedValue(mockDeletionResult),
+        },
+        scheduleSlot: {
+          findUnique: jest.fn().mockResolvedValue(mockUpdatedSlot),
         },
       };
 
@@ -240,8 +297,20 @@ describe('ScheduleSlotRepository', () => {
 
       const result = await repository.removeVehicleFromSlot('slot-1', TEST_IDS.VEHICLE);
 
-      expect(result.vehicleAssignment).toEqual(mockResult);
-      expect(result.slotDeleted).toBe(false);
+      // Verify the structure includes childAssignments
+      expect(result).toBeTruthy();
+      expect((result as any).vehicleAssignments).toBeDefined();
+      expect((result as any).vehicleAssignments).toHaveLength(1);
+      expect((result as any).vehicleAssignments[0].childAssignments).toBeDefined();
+      expect((result as any).vehicleAssignments[0].childAssignments).toHaveLength(2);
+
+      // Verify count was called BEFORE deletion (for race condition fix)
+      expect(mockTransaction.scheduleSlotVehicle.count).toHaveBeenCalledWith({
+        where: { scheduleSlotId: 'slot-1' },
+      });
+      expect(mockTransaction.scheduleSlotVehicle.count).toHaveBeenCalledTimes(1);
+
+      // Verify delete was called
       expect(mockTransaction.scheduleSlotVehicle.delete).toHaveBeenCalledWith({
         where: {
           scheduleSlotId_vehicleId: {
@@ -250,18 +319,31 @@ describe('ScheduleSlotRepository', () => {
           },
         },
       });
+
+      // Verify findUnique was called to get updated slot with childAssignments
+      expect(mockTransaction.scheduleSlot.findUnique).toHaveBeenCalledWith({
+        where: { id: 'slot-1' },
+        include: expect.objectContaining({
+          vehicleAssignments: expect.objectContaining({
+            include: expect.objectContaining({
+              childAssignments: expect.any(Object),
+            }),
+          }),
+        }),
+      });
     });
 
-    it('should remove vehicle and delete slot when it was the last vehicle', async () => {
-      const mockResult = { id: 'assignment-1' };
+    it('should return null when last vehicle is removed (slot deleted)', async () => {
+      const mockDeletionResult = { id: 'assignment-1' };
 
       const mockTransaction = {
         scheduleSlotVehicle: {
-          delete: jest.fn().mockResolvedValue(mockResult),
-          count: jest.fn().mockResolvedValue(0), // No vehicles left
+          count: jest.fn().mockResolvedValue(1), // BEFORE deletion: 1 vehicle = last
+          delete: jest.fn().mockResolvedValue(mockDeletionResult),
         },
         scheduleSlot: {
-          delete: jest.fn().mockResolvedValue({}),
+          delete: jest.fn().mockResolvedValue({ id: 'slot-1' }),
+          findUnique: jest.fn(), // Will not be called
         },
       };
 
@@ -271,11 +353,21 @@ describe('ScheduleSlotRepository', () => {
 
       const result = await repository.removeVehicleFromSlot('slot-1', TEST_IDS.VEHICLE);
 
-      expect(result.vehicleAssignment).toEqual(mockResult);
-      expect(result.slotDeleted).toBe(true);
+      // Verify null is returned when slot is deleted
+      expect(result).toBeNull();
+
+      // Verify count was called BEFORE deletion
+      expect(mockTransaction.scheduleSlotVehicle.count).toHaveBeenCalledWith({
+        where: { scheduleSlotId: 'slot-1' },
+      });
+
+      // Verify slot was deleted
       expect(mockTransaction.scheduleSlot.delete).toHaveBeenCalledWith({
         where: { id: 'slot-1' },
       });
+
+      // Verify findUnique was NOT called (slot deleted, nothing to return)
+      expect(mockTransaction.scheduleSlot.findUnique).not.toHaveBeenCalled();
     });
   });
 

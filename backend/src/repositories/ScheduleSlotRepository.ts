@@ -207,8 +207,13 @@ export class ScheduleSlotRepository {
   async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string): Promise<unknown> {
     // Use transaction to ensure atomicity
     return await this.prisma.$transaction(async (tx) => {
+      // ✅ FIX: Count vehicles BEFORE deletion to avoid race condition
+      const vehicleCount = await tx.scheduleSlotVehicle.count({
+        where: { scheduleSlotId },
+      });
+
       // Remove the vehicle assignment
-      const result = await tx.scheduleSlotVehicle.delete({
+      await tx.scheduleSlotVehicle.delete({
         where: {
           scheduleSlotId_vehicleId: {
             scheduleSlotId,
@@ -217,22 +222,60 @@ export class ScheduleSlotRepository {
         },
       });
 
-      // Check remaining vehicle assignments after removal
-      const remainingVehicleCount = await tx.scheduleSlotVehicle.count({ 
-        where: { scheduleSlotId }, 
-      });
-
       // Business rule: ScheduleSlot must have at least one vehicle
       // If last vehicle is removed, delete the entire ScheduleSlot
-      let slotDeleted = false;
-      if (remainingVehicleCount === 0) {
+      if (vehicleCount === 1) {
         await tx.scheduleSlot.delete({
           where: { id: scheduleSlotId },
         });
-        slotDeleted = true;
+        // Return null to indicate slot was deleted
+        return null;
       }
 
-      return { vehicleAssignment: result, slotDeleted };
+      // ✅ Return updated ScheduleSlot with all remaining vehicles and childAssignments
+      const updatedSlot = await tx.scheduleSlot.findUnique({
+        where: { id: scheduleSlotId },
+        include: {
+          vehicleAssignments: {
+            include: {
+              vehicle: {
+                select: {
+                  id: true,
+                  name: true,
+                  capacity: true,
+                  familyId: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+              driver: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              childAssignments: {
+                include: {
+                  child: {
+                    select: {
+                      id: true,
+                      name: true,
+                      age: true,
+                      familyId: true,
+                      createdAt: true,
+                      updatedAt: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          childAssignments: true,
+        },
+      });
+
+      return updatedSlot;
     });
   }
 

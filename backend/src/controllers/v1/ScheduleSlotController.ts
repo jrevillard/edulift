@@ -44,12 +44,6 @@ type ScheduleSlotVariables = {
   user: { id: string; email: string; name: string; timezone?: string };
 };
 
-// Type for removeVehicleFromSlot result
-interface RemoveVehicleResult {
-  vehicleAssignment: unknown;
-  slotDeleted: boolean;
-}
-
 // ============================================================================
 // DATA TRANSFORMATION HELPERS
 // ============================================================================
@@ -942,25 +936,31 @@ app.openapi(removeVehicleRoute, async (c) => {
       }, 404);
     }
 
-    const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId) as RemoveVehicleResult;
+    const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId);
 
     // Emit WebSocket event for real-time updates
-    if (result.slotDeleted) {
+    if (!result) {
+      // Slot was deleted (last vehicle removed)
       SocketEmitter.broadcastScheduleSlotDeleted(scheduleSlot.groupId, scheduleSlotId);
+      SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+
+      return c.json({
+        success: true,
+        data: {
+          message: 'Vehicle removed successfully - schedule slot deleted (last vehicle)',
+          slotDeleted: true,
+        },
+      }, 200);
     } else {
+      // Slot still exists with remaining vehicles
       SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
+      SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+
+      return c.json({
+        success: true,
+        data: result, // Returns full ScheduleSlot with vehicleAssignments and childAssignments
+      }, 200);
     }
-    SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-
-    const responseData = {
-      message: 'Vehicle removed successfully',
-      slotDeleted: result.slotDeleted || false,
-    };
-
-    return c.json({
-      success: true,
-      data: responseData,
-    }, 200);
   } catch (error) {
     return c.json({
       success: false,
