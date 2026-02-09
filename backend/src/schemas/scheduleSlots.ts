@@ -237,6 +237,24 @@ export const ScheduleVehicleAssignmentSchema = z.object({
     name: z.string().optional(),
     email: z.string().email('Invalid email format').optional(),
   }).optional(),
+  childAssignments: z.array(
+    z.object({
+      id: z.string().optional(),
+      childId: z.string().optional(),
+      vehicleAssignmentId: z.string().optional(),
+      child: z.object({
+        id: z.cuid(),
+        name: z.string(),
+        age: z.number().nullable(),
+        familyId: z.cuid(),
+        createdAt: z.iso.datetime(),
+        updatedAt: z.iso.datetime(),
+      }).optional(),
+    })
+  ).optional()
+  .openapi({
+    description: 'All child assignments for this vehicle (cross-family carpooling support)',
+  }),
 }).openapi({
   title: 'Schedule Vehicle Assignment',
   description: 'Vehicle assignment for schedule slot (matches Prisma database schema)',

@@ -25940,6 +25940,60 @@
                                     "format": "email"
                                   }
                                 }
+                              },
+                              "childAssignments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "childId": {
+                                      "type": "string"
+                                    },
+                                    "vehicleAssignmentId": {
+                                      "type": "string"
+                                    },
+                                    "child": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "age": {
+                                          "type": "number",
+                                          "nullable": true
+                                        },
+                                        "familyId": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "createdAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        "updatedAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "name",
+                                        "age",
+                                        "familyId",
+                                        "createdAt",
+                                        "updatedAt"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "description": "All child assignments for this vehicle (cross-family carpooling support)"
                               }
                             },
                             "title": "Schedule Vehicle Assignment",
@@ -26105,6 +26159,60 @@
                                         "format": "email"
                                       }
                                     }
+                                  },
+                                  "childAssignments": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "childId": {
+                                          "type": "string"
+                                        },
+                                        "vehicleAssignmentId": {
+                                          "type": "string"
+                                        },
+                                        "child": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            },
+                                            "age": {
+                                              "type": "number",
+                                              "nullable": true
+                                            },
+                                            "familyId": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "createdAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "name",
+                                            "age",
+                                            "familyId",
+                                            "createdAt",
+                                            "updatedAt"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "description": "All child assignments for this vehicle (cross-family carpooling support)"
                                   }
                                 },
                                 "title": "Schedule Vehicle Assignment",
@@ -26532,6 +26640,60 @@
                               "format": "email"
                             }
                           }
+                        },
+                        "childAssignments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "childId": {
+                                "type": "string"
+                              },
+                              "vehicleAssignmentId": {
+                                "type": "string"
+                              },
+                              "child": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "age": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "age",
+                                  "familyId",
+                                  "createdAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "description": "All child assignments for this vehicle (cross-family carpooling support)"
                         }
                       },
                       "title": "Schedule Vehicle Assignment",
@@ -27206,6 +27368,60 @@
                               "format": "email"
                             }
                           }
+                        },
+                        "childAssignments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "childId": {
+                                "type": "string"
+                              },
+                              "vehicleAssignmentId": {
+                                "type": "string"
+                              },
+                              "child": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "age": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "age",
+                                  "familyId",
+                                  "createdAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "description": "All child assignments for this vehicle (cross-family carpooling support)"
                         }
                       },
                       "title": "Schedule Vehicle Assignment",
@@ -27730,6 +27946,60 @@
                                     "format": "email"
                                   }
                                 }
+                              },
+                              "childAssignments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "childId": {
+                                      "type": "string"
+                                    },
+                                    "vehicleAssignmentId": {
+                                      "type": "string"
+                                    },
+                                    "child": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "age": {
+                                          "type": "number",
+                                          "nullable": true
+                                        },
+                                        "familyId": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "createdAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        "updatedAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "name",
+                                        "age",
+                                        "familyId",
+                                        "createdAt",
+                                        "updatedAt"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "description": "All child assignments for this vehicle (cross-family carpooling support)"
                               }
                             },
                             "title": "Schedule Vehicle Assignment",
@@ -27895,6 +28165,60 @@
                                         "format": "email"
                                       }
                                     }
+                                  },
+                                  "childAssignments": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "childId": {
+                                          "type": "string"
+                                        },
+                                        "vehicleAssignmentId": {
+                                          "type": "string"
+                                        },
+                                        "child": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            },
+                                            "age": {
+                                              "type": "number",
+                                              "nullable": true
+                                            },
+                                            "familyId": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "createdAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "name",
+                                            "age",
+                                            "familyId",
+                                            "createdAt",
+                                            "updatedAt"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "description": "All child assignments for this vehicle (cross-family carpooling support)"
                                   }
                                 },
                                 "title": "Schedule Vehicle Assignment",
@@ -28297,6 +28621,60 @@
                                           "format": "email"
                                         }
                                       }
+                                    },
+                                    "childAssignments": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "id": {
+                                            "type": "string"
+                                          },
+                                          "childId": {
+                                            "type": "string"
+                                          },
+                                          "vehicleAssignmentId": {
+                                            "type": "string"
+                                          },
+                                          "child": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string",
+                                                "format": "cuid"
+                                              },
+                                              "name": {
+                                                "type": "string"
+                                              },
+                                              "age": {
+                                                "type": "number",
+                                                "nullable": true
+                                              },
+                                              "familyId": {
+                                                "type": "string",
+                                                "format": "cuid"
+                                              },
+                                              "createdAt": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                              },
+                                              "updatedAt": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                              }
+                                            },
+                                            "required": [
+                                              "id",
+                                              "name",
+                                              "age",
+                                              "familyId",
+                                              "createdAt",
+                                              "updatedAt"
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "description": "All child assignments for this vehicle (cross-family carpooling support)"
                                     }
                                   },
                                   "title": "Schedule Vehicle Assignment",
@@ -28462,6 +28840,60 @@
                                               "format": "email"
                                             }
                                           }
+                                        },
+                                        "childAssignments": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string"
+                                              },
+                                              "childId": {
+                                                "type": "string"
+                                              },
+                                              "vehicleAssignmentId": {
+                                                "type": "string"
+                                              },
+                                              "child": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "id": {
+                                                    "type": "string",
+                                                    "format": "cuid"
+                                                  },
+                                                  "name": {
+                                                    "type": "string"
+                                                  },
+                                                  "age": {
+                                                    "type": "number",
+                                                    "nullable": true
+                                                  },
+                                                  "familyId": {
+                                                    "type": "string",
+                                                    "format": "cuid"
+                                                  },
+                                                  "createdAt": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  },
+                                                  "updatedAt": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                "required": [
+                                                  "id",
+                                                  "name",
+                                                  "age",
+                                                  "familyId",
+                                                  "createdAt",
+                                                  "updatedAt"
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "description": "All child assignments for this vehicle (cross-family carpooling support)"
                                         }
                                       },
                                       "title": "Schedule Vehicle Assignment",
@@ -28958,6 +29390,60 @@
                                   "format": "email"
                                 }
                               }
+                            },
+                            "childAssignments": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "childId": {
+                                    "type": "string"
+                                  },
+                                  "vehicleAssignmentId": {
+                                    "type": "string"
+                                  },
+                                  "child": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "format": "cuid"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "age": {
+                                        "type": "number",
+                                        "nullable": true
+                                      },
+                                      "familyId": {
+                                        "type": "string",
+                                        "format": "cuid"
+                                      },
+                                      "createdAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      },
+                                      "updatedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "name",
+                                      "age",
+                                      "familyId",
+                                      "createdAt",
+                                      "updatedAt"
+                                    ]
+                                  }
+                                }
+                              },
+                              "description": "All child assignments for this vehicle (cross-family carpooling support)"
                             }
                           },
                           "title": "Schedule Vehicle Assignment",
@@ -29849,6 +30335,60 @@
                               "format": "email"
                             }
                           }
+                        },
+                        "childAssignments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "childId": {
+                                "type": "string"
+                              },
+                              "vehicleAssignmentId": {
+                                "type": "string"
+                              },
+                              "child": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "age": {
+                                    "type": "number",
+                                    "nullable": true
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "age",
+                                  "familyId",
+                                  "createdAt",
+                                  "updatedAt"
+                                ]
+                              }
+                            }
+                          },
+                          "description": "All child assignments for this vehicle (cross-family carpooling support)"
                         }
                       },
                       "title": "Schedule Vehicle Assignment",
