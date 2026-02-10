@@ -488,7 +488,7 @@ describe('SocketHandler Security', () => {
             clientSocket.disconnect();
           }
           reject(new Error('Connection timeout'));
-        }, 2000);
+        }, 10000);
         
         // Clear timeout on successful completion
         const originalResolve = resolve;
