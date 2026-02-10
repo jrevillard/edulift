@@ -28186,7 +28186,76 @@
             }
           },
           "404": {
-            "description": "Schedule slot not found",
+            "description": "Schedule slot or vehicle assignment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Vehicle conflicts detected (same datetime in same group)",
             "content": {
               "application/json": {
                 "schema": {
@@ -30643,6 +30712,75 @@
               }
             }
           },
+          "409": {
+            "description": "Conflict - Child already assigned to this slot or vehicle is at full capacity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -31682,6 +31820,75 @@
           },
           "404": {
             "description": "Schedule slot or vehicle not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Child already assigned to this slot or vehicle is at full capacity",
             "content": {
               "application/json": {
                 "schema": {

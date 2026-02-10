@@ -322,20 +322,42 @@ await handleCLI();
 app.onError((err, c) => {
   console.error('❌ Unhandled error:', err);
 
-  // Use our enhanced error handling for consistent responses
-  const errorResponse = createErrorResponse(err);
+  // Check if it's an AppError with custom status code
+  if (err instanceof AppError) {
+    const statusCode = err.statusCode || 500;
+    if (process.env.NODE_ENV === 'development') {
+      return c.json({
+        success: false,
+        error: err.message,
+        stack: err.stack,
+      }, statusCode);
+    }
+    return c.json({
+      success: false,
+      error: err.message,
+    }, statusCode);
+  }
+
+  // For other errors, use our enhanced error handling
+  const errorForLogging = getErrorForLogging(err);
+  const statusCode = errorForLogging.statusCode || 500;
 
   if (process.env.NODE_ENV === 'development') {
     // Include stack trace in development
-    const errorForLogging = getErrorForLogging(err);
     return c.json({
-      ...errorResponse,
+      success: false,
+      error: errorForLogging.message,
+      code: errorForLogging.code,
       stack: err.stack,
       debugInfo: errorForLogging,
-    }, 500);
+    }, statusCode);
   }
 
-  return c.json(errorResponse, 500);
+  return c.json({
+    success: false,
+    error: errorForLogging.message,
+    code: errorForLogging.code,
+  }, statusCode);
 });
 
 // 404 handler

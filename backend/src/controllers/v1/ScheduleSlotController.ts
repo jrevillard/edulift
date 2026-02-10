@@ -415,7 +415,15 @@ const updateVehicleDriverRoute = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Schedule slot not found',
+      description: 'Schedule slot or vehicle assignment not found',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Conflict - Vehicle conflicts detected (same datetime in same group)',
     },
     500: {
       content: {
@@ -632,6 +640,14 @@ const assignChildRoute = createRoute({
       },
       description: 'Schedule slot not found',
     },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Conflict - Child already assigned to this slot or vehicle is at full capacity',
+    },
     500: {
       content: {
         'application/json': {
@@ -761,6 +777,14 @@ const updateSeatOverrideRoute = createRoute({
         },
       },
       description: 'Schedule slot or vehicle not found',
+    },
+    409: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Conflict - Child already assigned to this slot or vehicle is at full capacity',
     },
     500: {
       content: {
