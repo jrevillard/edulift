@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, ScheduleSlot } from '@prisma/client';
 import { CreateScheduleSlotData } from '../types';
 import { getWeekBoundaries, getDateFromISOWeek } from '../utils/isoWeekUtils';
 
@@ -334,14 +334,67 @@ export class ScheduleSlotRepository {
   }
 
 
-  async removeChildFromSlot(scheduleSlotId: string, childId: string): Promise<unknown> {
-    return this.prisma.scheduleSlotChild.delete({
-      where: {
-        scheduleSlotId_childId: {
-          scheduleSlotId,
-          childId,
+  async removeChildFromSlot(scheduleSlotId: string, childId: string): Promise<ScheduleSlot> {
+    // Use transaction to ensure atomicity
+    return await this.prisma.$transaction(async (tx) => {
+      // Delete the child assignment
+      await tx.scheduleSlotChild.delete({
+        where: {
+          scheduleSlotId_childId: {
+            scheduleSlotId,
+            childId,
+          },
         },
-      },
+      });
+
+      // Return updated ScheduleSlot with all remaining vehicles and childAssignments
+      const updatedSlot = await tx.scheduleSlot.findUnique({
+        where: { id: scheduleSlotId },
+        include: {
+          vehicleAssignments: {
+            include: {
+              vehicle: {
+                select: {
+                  id: true,
+                  name: true,
+                  capacity: true,
+                  familyId: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+              driver: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              childAssignments: {
+                include: {
+                  child: {
+                    select: {
+                      id: true,
+                      name: true,
+                      age: true,
+                      familyId: true,
+                      createdAt: true,
+                      updatedAt: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          childAssignments: true,
+        },
+      });
+
+      if (!updatedSlot) {
+        throw new Error('Schedule slot not found after child removal');
+      }
+
+      return updatedSlot;
     });
   }
 

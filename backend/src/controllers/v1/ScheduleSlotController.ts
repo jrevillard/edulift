@@ -193,11 +193,6 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
   });
 };
 
-// Message response schema for operations with success message
-const MessageResponseSchema = z.object({
-  message: z.string(),
-});
-
 // ============================================================================
 // OPENAPI ROUTES DEFINITIONS
 // ============================================================================
@@ -453,7 +448,7 @@ const removeChildRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(MessageResponseSchema),
+          schema: createSuccessSchema(ScheduleSlotSchema),
         },
       },
       description: 'Child removed successfully',
@@ -1071,15 +1066,15 @@ app.openapi(removeChildRoute, async (c) => {
       }, 404);
     }
 
-    const result = await scheduleSlotServiceInstance.removeChildFromSlot(scheduleSlotId, childId);
+    const updatedSlot = await scheduleSlotServiceInstance.removeChildFromSlot(scheduleSlotId, childId);
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
-    SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+    SocketEmitter.broadcastScheduleSlotUpdate(updatedSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleUpdate(updatedSlot.groupId);
 
     return c.json({
       success: true,
-      data: { message: 'Child removed successfully' },
+      data: updatedSlot,
     }, 200);
   } catch (error) {
     // Check if it's a Prisma "record not found" error

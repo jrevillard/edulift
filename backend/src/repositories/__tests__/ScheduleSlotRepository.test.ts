@@ -374,9 +374,18 @@ describe('ScheduleSlotRepository', () => {
 
   describe('removeChildFromSlot', () => {
     it('should remove child from slot successfully', async () => {
-      const mockResult = { scheduleSlotId: 'slot-1', childId: TEST_IDS.CHILD };
+      const mockSlot = {
+        ...mockScheduleSlot,
+        vehicleAssignments: [],
+        childAssignments: [],
+      };
 
-      mockPrisma.scheduleSlotChild.delete.mockResolvedValue(mockResult);
+      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        return await callback(mockPrisma);
+      });
+
+      mockPrisma.scheduleSlotChild.delete.mockResolvedValue({});
+      mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
 
       const result = await repository.removeChildFromSlot('slot-1', TEST_IDS.CHILD);
 
@@ -388,7 +397,7 @@ describe('ScheduleSlotRepository', () => {
           },
         },
       });
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual(mockSlot);
     });
   });
 
