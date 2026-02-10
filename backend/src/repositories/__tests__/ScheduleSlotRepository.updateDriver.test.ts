@@ -6,6 +6,11 @@ const mockPrisma = {
   scheduleSlotVehicle: {
     update: jest.fn(),
   },
+  // Mock $transaction to execute the callback immediately with the mock
+  $transaction: jest.fn(async (callback: any) => {
+    // Execute the callback with mockPrisma as the transaction context
+    return await callback(mockPrisma);
+  }),
 } as any;
 
 describe('ScheduleSlotRepository - Cross-family carpooling', () => {
