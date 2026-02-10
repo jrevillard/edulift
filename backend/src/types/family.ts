@@ -36,7 +36,7 @@ export interface IFamilyService {
   joinFamily(inviteCode: string, userId: string): Promise<Family>;
   getUserFamily(userId: string): Promise<Family | null>;
   updateMemberRole(adminId: string, memberId: string, newRole: PrismaFamilyRole): Promise<void>;
-  removeMember(adminId: string, memberId: string): Promise<void>;
+  removeMember(adminId: string, memberId: string): Promise<Family>;
   // generateNewInviteCode removed - using unified invitation system
 }
 

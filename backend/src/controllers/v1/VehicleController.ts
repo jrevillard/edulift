@@ -89,7 +89,7 @@ const createVehicleRoute = createRoute({
     201: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(VehicleResponseSchema),
+          schema: createSuccessSchema(FamilyResponseSchema),
         },
       },
       description: 'Vehicle created successfully',
@@ -249,7 +249,7 @@ const updateVehicleRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(VehicleResponseSchema),
+          schema: createSuccessSchema(FamilyResponseSchema),
         },
       },
       description: 'Vehicle updated successfully',
@@ -402,17 +402,17 @@ app.openapi(createVehicleRoute, async (c) => {
     }
 
     // Create vehicle
-    const vehicle = await vehicleServiceInstance.createVehicle({
+    const family = await vehicleServiceInstance.createVehicle({
       name: input.name,
       capacity: input.capacity,
       familyId: userFamily.id,
     }, userId);
 
-    loggerInstance.info('createVehicle: vehicle created', { userId, vehicleId: vehicle.id });
+    loggerInstance.info('createVehicle: vehicle created', { userId, familyId: family.id });
 
     return c.json({
       success: true,
-      data: vehicle,
+      data: family,
     }, 201);
   } catch (error) {
     loggerInstance.error('createVehicle: error', { userId, error });
@@ -531,17 +531,17 @@ app.openapi(updateVehicleRoute, async (c) => {
       updateDataFiltered.capacity = updateData.capacity;
     }
 
-    const updatedVehicle = await vehicleServiceInstance.updateVehicle(vehicleId, userId, updateDataFiltered);
+    const family = await vehicleServiceInstance.updateVehicle(vehicleId, userId, updateDataFiltered);
 
     loggerInstance.info('updateVehicle: vehicle updated', {
       userId,
       vehicleId,
-      newName: updatedVehicle.name
+      familyId: family.id,
     });
 
     return c.json({
       success: true,
-      data: updatedVehicle,
+      data: family,
     }, 200);
   } catch (error) {
     loggerInstance.error('updateVehicle: error', { userId, vehicleId, error });

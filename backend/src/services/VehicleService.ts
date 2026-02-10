@@ -81,6 +81,13 @@ export class VehicleService {
         },
       });
 
+      // Emit WebSocket event for vehicle creation
+      SocketEmitter.broadcastVehicleUpdate(userId, data.familyId, 'added', {
+        vehicleId: vehicle.id,
+        familyId: data.familyId,
+        newVehicle: vehicle,
+      });
+
       // Log the activity
       await this.activityLogRepo.createActivity({
         userId,
@@ -92,7 +99,17 @@ export class VehicleService {
         metadata: { capacity: data.capacity },
       });
 
-      return vehicle;
+      // Fetch and return complete updated Family
+      const updatedFamily = await this.prisma.family.findUnique({
+        where: { id: data.familyId },
+        include: VehicleService.FAMILY_INCLUDE,
+      });
+
+      if (!updatedFamily) {
+        throw new AppError('Family not found after vehicle creation', 500);
+      }
+
+      return updatedFamily;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -169,7 +186,7 @@ export class VehicleService {
 
       // Verify vehicle exists and belongs to user's family
       const existingVehicle = await this.getVehicleById(vehicleId, userId);
-      
+
       if (!existingVehicle) {
         throw new AppError('Vehicle not found or access denied', 404);
       }
@@ -182,7 +199,7 @@ export class VehicleService {
       // If reducing capacity, check if it conflicts with existing trip assignments
       if (data.capacity !== undefined && data.capacity < existingVehicle.capacity) {
         const tripsWithTooManyAssignments = await this.checkCapacityConflicts(vehicleId, data.capacity);
-        
+
         if (tripsWithTooManyAssignments.length > 0) {
           throw new AppError(
             `Cannot reduce capacity: ${tripsWithTooManyAssignments.length} trip(s) exceed new capacity. Please reassign children first.`,
@@ -199,7 +216,25 @@ export class VehicleService {
         },
       });
 
-      return updatedVehicle;
+      // Emit WebSocket event for vehicle update
+      SocketEmitter.broadcastVehicleUpdate(userId, userFamily.id, 'updated', {
+        vehicleId,
+        familyId: userFamily.id,
+        previousVehicle: existingVehicle,
+        updatedVehicle,
+      });
+
+      // Fetch and return complete updated Family
+      const updatedFamily = await this.prisma.family.findUnique({
+        where: { id: userFamily.id },
+        include: VehicleService.FAMILY_INCLUDE,
+      });
+
+      if (!updatedFamily) {
+        throw new AppError('Family not found after vehicle update', 500);
+      }
+
+      return updatedFamily;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
