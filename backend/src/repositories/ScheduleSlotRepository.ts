@@ -336,19 +336,20 @@ export class ScheduleSlotRepository {
 
   async removeChildFromSlot(scheduleSlotId: string, childId: string): Promise<ScheduleSlot> {
     // Use transaction to ensure atomicity
-    return await this.prisma.$transaction(async (tx) => {
-      // Delete the child assignment
-      await tx.scheduleSlotChild.delete({
-        where: {
-          scheduleSlotId_childId: {
-            scheduleSlotId,
-            childId,
+    return await this.prisma.$transaction(
+      async (tx) => {
+        // Delete the child assignment
+        await tx.scheduleSlotChild.delete({
+          where: {
+            scheduleSlotId_childId: {
+              scheduleSlotId,
+              childId,
+            },
           },
-        },
-      });
+        });
 
-      // Return updated ScheduleSlot with all remaining vehicles and childAssignments
-      const updatedSlot = await tx.scheduleSlot.findUnique({
+        // Return updated ScheduleSlot with all remaining vehicles and childAssignments
+        const updatedSlot = await tx.scheduleSlot.findUnique({
         where: { id: scheduleSlotId },
         include: {
           vehicleAssignments: {
@@ -395,7 +396,13 @@ export class ScheduleSlotRepository {
       }
 
       return updatedSlot;
-    });
+    },
+    {
+      // ✅ SERIALIZABLE = Maximum isolation - prevents race conditions
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      timeout: 10000,
+    },
+  );
   }
 
   /**
