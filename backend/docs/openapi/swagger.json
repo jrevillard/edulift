@@ -20053,6 +20053,37 @@
                       "example": "Welcome to our family!",
                       "description": "Personal message from inviter"
                     },
+                    "inviteCode": {
+                      "type": "string",
+                      "example": "ABC123XYZ789",
+                      "description": "Unique invitation code for joining the family"
+                    },
+                    "invitedBy": {
+                      "type": "string",
+                      "format": "cuid",
+                      "example": "cl123456789012345678901238",
+                      "description": "User ID of the inviter"
+                    },
+                    "acceptedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "example": "2023-01-02T00:00:00.000Z",
+                      "description": "Invitation acceptance timestamp (null until accepted)"
+                    },
+                    "acceptedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "cuid",
+                      "example": "cl123456789012345678901239",
+                      "description": "User ID who accepted the invitation (null until accepted)"
+                    },
+                    "createdBy": {
+                      "type": "string",
+                      "format": "cuid",
+                      "example": "cl123456789012345678901238",
+                      "description": "User ID who created the invitation"
+                    },
                     "expiresAt": {
                       "type": "string",
                       "format": "date-time",
@@ -20064,44 +20095,6 @@
                       "format": "date-time",
                       "example": "2023-01-01T00:00:00.000Z",
                       "description": "Invitation creation timestamp"
-                    },
-                    "family": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Family identifier (CUID format)"
-                        },
-                        "name": {
-                          "type": "string",
-                          "minLength": 1,
-                          "maxLength": 100,
-                          "example": "Johnson Family",
-                          "description": "Family display name"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Family creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-01-01T00:00:00.000Z",
-                          "description": "Family update timestamp"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Family",
-                      "description": "Family information (included in some responses)"
                     }
                   },
                   "required": [
@@ -20110,6 +20103,9 @@
                     "email",
                     "role",
                     "status",
+                    "inviteCode",
+                    "invitedBy",
+                    "createdBy",
                     "expiresAt",
                     "createdAt"
                   ],
@@ -21076,6 +21072,37 @@
                       "example": "Welcome to our group!",
                       "description": "Personal message from inviter"
                     },
+                    "inviteCode": {
+                      "type": "string",
+                      "example": "ABC123XYZ789",
+                      "description": "Unique invitation code for joining the group"
+                    },
+                    "invitedBy": {
+                      "type": "string",
+                      "format": "cuid",
+                      "example": "cl123456789012345678901238",
+                      "description": "User ID of the inviter"
+                    },
+                    "acceptedAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "date-time",
+                      "example": "2023-01-02T00:00:00.000Z",
+                      "description": "Invitation acceptance timestamp (null until accepted)"
+                    },
+                    "acceptedBy": {
+                      "type": "string",
+                      "nullable": true,
+                      "format": "cuid",
+                      "example": "cl123456789012345678901239",
+                      "description": "User ID who accepted the invitation (null until accepted)"
+                    },
+                    "createdBy": {
+                      "type": "string",
+                      "format": "cuid",
+                      "example": "cl123456789012345678901238",
+                      "description": "User ID who created the invitation"
+                    },
                     "expiresAt": {
                       "type": "string",
                       "format": "date-time",
@@ -21100,6 +21127,9 @@
                     "groupId",
                     "role",
                     "status",
+                    "inviteCode",
+                    "invitedBy",
+                    "createdBy",
                     "expiresAt",
                     "createdAt",
                     "updatedAt"

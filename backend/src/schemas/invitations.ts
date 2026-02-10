@@ -219,6 +219,35 @@ export const FamilyInvitationResponseSchema = z.object({
     example: 'Welcome to our family!',
     description: 'Personal message from inviter',
   }),
+  inviteCode: z.string()
+    .openapi({
+      example: 'ABC123XYZ789',
+      description: 'Unique invitation code for joining the family',
+    }),
+  invitedBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID of the inviter',
+    }),
+  acceptedAt: z.iso.datetime()
+    .nullable()
+    .optional()
+    .openapi({
+      example: '2023-01-02T00:00:00.000Z',
+      description: 'Invitation acceptance timestamp (null until accepted)',
+    }),
+  acceptedBy: z.cuid()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'User ID who accepted the invitation (null until accepted)',
+    }),
+  createdBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID who created the invitation',
+    }),
   expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
@@ -228,10 +257,6 @@ export const FamilyInvitationResponseSchema = z.object({
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
-    }),
-  family: FamilySchema.optional()
-    .openapi({
-      description: 'Family information (included in some responses)',
     }),
 }).openapi({
   title: 'Family Invitation Response',
@@ -275,6 +300,35 @@ export const GroupInvitationResponseSchema = z.object({
     example: 'Welcome to our group!',
     description: 'Personal message from inviter',
   }),
+  inviteCode: z.string()
+    .openapi({
+      example: 'ABC123XYZ789',
+      description: 'Unique invitation code for joining the group',
+    }),
+  invitedBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID of the inviter',
+    }),
+  acceptedAt: z.iso.datetime()
+    .nullable()
+    .optional()
+    .openapi({
+      example: '2023-01-02T00:00:00.000Z',
+      description: 'Invitation acceptance timestamp (null until accepted)',
+    }),
+  acceptedBy: z.cuid()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'User ID who accepted the invitation (null until accepted)',
+    }),
+  createdBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID who created the invitation',
+    }),
   expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
