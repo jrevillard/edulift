@@ -556,7 +556,7 @@ const removeFamilyFromGroupRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: SimpleSuccessResponseSchema,
+          schema: createSuccessSchema(GroupResponseSchema),
         },
       },
       description: 'Family removed from group successfully',
@@ -758,7 +758,7 @@ const leaveGroupRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: SimpleSuccessResponseSchema,
+          schema: createSuccessSchema(GroupResponseSchema),
         },
       },
       description: 'Left group successfully',
@@ -1308,12 +1308,12 @@ app.openapi(removeFamilyFromGroupRoute, async (c) => {
   loggerInstance.info('removeFamilyFromGroup', { userId, groupId, familyId, userEmail: user?.email });
 
   try {
-    await groupServiceInstance.removeFamilyFromGroup(groupId, familyId, userId);
+    const updatedGroup = await groupServiceInstance.removeFamilyFromGroup(groupId, familyId, userId);
 
     loggerInstance.info('removeFamilyFromGroup: success', { userId, groupId, familyId });
     return c.json({
       success: true,
-      message: 'Family removed from group successfully',
+      data: updatedGroup,
     }, 200);
   } catch (error: any) {
     loggerInstance.error('removeFamilyFromGroup', { error: error instanceof Error ? error.message : String(error) });
@@ -1404,12 +1404,12 @@ app.openapi(leaveGroupRoute, async (c) => {
   loggerInstance.info('leaveGroup', { userId, groupId, userEmail: user?.email });
 
   try {
-    await groupServiceInstance.leaveGroup(groupId, userId);
+    const updatedGroup = await groupServiceInstance.leaveGroup(groupId, userId);
 
     loggerInstance.info('leaveGroup: success', { userId, groupId });
     return c.json({
       success: true,
-      message: 'Left group successfully',
+      data: updatedGroup,
     }, 200);
   } catch (error: any) {
     loggerInstance.error('leaveGroup', { error: error instanceof Error ? error.message : String(error) });

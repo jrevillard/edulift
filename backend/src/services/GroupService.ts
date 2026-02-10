@@ -44,7 +44,39 @@ export class GroupService {
   private emailService: EmailServiceInterface;
   private unifiedInvitationService: UnifiedInvitationService;
   private logger = createLogger('group');
-  
+
+  // Consistent include pattern for fetching complete Group objects
+  private static readonly GROUP_INCLUDE = {
+    ownerFamily: {
+      include: {
+        members: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    },
+    familyMembers: {
+      include: {
+        family: {
+          include: {
+            members: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    _count: {
+      select: {
+        familyMembers: true,
+        scheduleSlots: true,
+      },
+    },
+  };
+
   // Constants
 
   constructor(private prisma: PrismaClient, emailService?: EmailServiceInterface) {
@@ -770,6 +802,16 @@ export class GroupService {
         },
       });
 
+      // Fetch the complete updated Group with all includes
+      const updatedGroup = await this.prisma.group.findUnique({
+        where: { id: groupId },
+        include: GroupService.GROUP_INCLUDE,
+      });
+
+      if (!updatedGroup) {
+        throw new AppError('Group not found after removing family', 500);
+      }
+
       // Log the activity
       await this.activityLogRepo.createActivity({
         userId: requesterId,
@@ -779,7 +821,8 @@ export class GroupService {
         entityId: groupId,
       });
 
-      return { success: true };
+      // Return enriched Group with userRole (RESTful consistency)
+      return await this.enrichGroupWithUserContext(updatedGroup, requesterId);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -961,6 +1004,16 @@ export class GroupService {
         },
       });
 
+      // Fetch the complete updated Group with all includes
+      const updatedGroup = await this.prisma.group.findUnique({
+        where: { id: groupId },
+        include: GroupService.GROUP_INCLUDE,
+      });
+
+      if (!updatedGroup) {
+        throw new AppError('Group not found after leaving', 500);
+      }
+
       // Log the activity
       await this.activityLogRepo.createActivity({
         userId,
@@ -970,7 +1023,8 @@ export class GroupService {
         entityId: groupId,
       });
 
-      return { success: true };
+      // Return enriched Group with userRole (RESTful consistency)
+      return await this.enrichGroupWithUserContext(updatedGroup, userId);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

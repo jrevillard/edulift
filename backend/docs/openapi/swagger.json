@@ -17104,18 +17104,122 @@
                     "success": {
                       "type": "boolean"
                     },
-                    "message": {
-                      "type": "string",
-                      "example": "Operation completed successfully",
-                      "description": "Success message"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Unique group identifier (CUID format)"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Morning School Run",
+                          "description": "Group display name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Carpool group for morning school transportation",
+                          "description": "Group description"
+                        },
+                        "inviteCode": {
+                          "type": "string",
+                          "example": "ABC123XYZ",
+                          "description": "Group invitation code"
+                        },
+                        "familyId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901238",
+                          "description": "Owner family ID"
+                        },
+                        "userRole": {
+                          "type": "string",
+                          "enum": [
+                            "ADMIN",
+                            "MEMBER"
+                          ],
+                          "example": "ADMIN",
+                          "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                        },
+                        "ownerFamily": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901238",
+                              "description": "Owner family ID"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Smith Family",
+                              "description": "Owner family name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Owner family information"
+                        },
+                        "familyCount": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Total number of families in the group (including owner)"
+                        },
+                        "scheduleCount": {
+                          "type": "number",
+                          "example": 5,
+                          "description": "Number of schedule slots configured for the group"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "When the group was created"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-15T10:30:00.000Z",
+                          "description": "When the group was last updated"
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "families": {
+                              "type": "number",
+                              "example": 3,
+                              "description": "Number of families in the group"
+                            },
+                            "children": {
+                              "type": "number",
+                              "example": 8,
+                              "description": "Number of children in the group"
+                            }
+                          },
+                          "required": [
+                            "families",
+                            "children"
+                          ],
+                          "description": "Counts of related entities"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "title": "Group Response",
+                      "description": "Complete group information with user context"
                     }
                   },
                   "required": [
                     "success",
-                    "message"
-                  ],
-                  "title": "Simple Success Response",
-                  "description": "Standard success response with message"
+                    "data"
+                  ]
                 }
               }
             }
@@ -18435,18 +18539,122 @@
                     "success": {
                       "type": "boolean"
                     },
-                    "message": {
-                      "type": "string",
-                      "example": "Operation completed successfully",
-                      "description": "Success message"
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Unique group identifier (CUID format)"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Morning School Run",
+                          "description": "Group display name"
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true,
+                          "example": "Carpool group for morning school transportation",
+                          "description": "Group description"
+                        },
+                        "inviteCode": {
+                          "type": "string",
+                          "example": "ABC123XYZ",
+                          "description": "Group invitation code"
+                        },
+                        "familyId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901238",
+                          "description": "Owner family ID"
+                        },
+                        "userRole": {
+                          "type": "string",
+                          "enum": [
+                            "ADMIN",
+                            "MEMBER"
+                          ],
+                          "example": "ADMIN",
+                          "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                        },
+                        "ownerFamily": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901238",
+                              "description": "Owner family ID"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Smith Family",
+                              "description": "Owner family name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Owner family information"
+                        },
+                        "familyCount": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Total number of families in the group (including owner)"
+                        },
+                        "scheduleCount": {
+                          "type": "number",
+                          "example": 5,
+                          "description": "Number of schedule slots configured for the group"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-01T00:00:00.000Z",
+                          "description": "When the group was created"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-01-15T10:30:00.000Z",
+                          "description": "When the group was last updated"
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "families": {
+                              "type": "number",
+                              "example": 3,
+                              "description": "Number of families in the group"
+                            },
+                            "children": {
+                              "type": "number",
+                              "example": 8,
+                              "description": "Number of children in the group"
+                            }
+                          },
+                          "required": [
+                            "families",
+                            "children"
+                          ],
+                          "description": "Counts of related entities"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ],
+                      "title": "Group Response",
+                      "description": "Complete group information with user context"
                     }
                   },
                   "required": [
                     "success",
-                    "message"
-                  ],
-                  "title": "Simple Success Response",
-                  "description": "Standard success response with message"
+                    "data"
+                  ]
                 }
               }
             }

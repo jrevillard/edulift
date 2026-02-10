@@ -504,7 +504,7 @@ describe('GroupService - Family-Based Architecture', () => {
   });
 
   describe('removeFamilyFromGroup', () => {
-    it('should remove family from group when user has admin permissions', async () => {
+    it('should remove family from group and return updated Group', async () => {
       const groupId = TEST_IDS.GROUP;
       const targetFamilyId = TEST_IDS.FAMILY_2;
       const requesterId = TEST_IDS.USER;
@@ -515,19 +515,49 @@ describe('GroupService - Family-Based Architecture', () => {
         role: 'ADMIN',
       });
 
-      mockPrisma.group.findUnique
-        .mockResolvedValueOnce({
-          id: TEST_IDS.GROUP,
-          familyId: TEST_IDS.FAMILY,
-          ownerFamily: {
-            members: [{ userId: TEST_IDS.USER, role: 'ADMIN' }],
-          },
-          familyMembers: [],
-        })
-        .mockResolvedValueOnce({
-          id: TEST_IDS.GROUP,
-          familyId: TEST_IDS.FAMILY,
-        });
+      // Mock findUnique to return different objects based on whether it includes data
+      let callCount = 0;
+      mockPrisma.group.findUnique.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // First call - basic group check
+          return Promise.resolve({
+            id: TEST_IDS.GROUP,
+            familyId: TEST_IDS.FAMILY,
+          });
+        } else {
+          // Second call - fetch updated Group with includes
+          return Promise.resolve({
+            id: TEST_IDS.GROUP,
+            name: 'Test Group',
+            description: null,
+            familyId: TEST_IDS.FAMILY,
+            inviteCode: 'TEST123',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            ownerFamily: {
+              id: TEST_IDS.FAMILY,
+              name: 'Test Family',
+              members: [{
+                id: 'member1',
+                userId: TEST_IDS.USER,
+                familyId: TEST_IDS.FAMILY,
+                role: 'ADMIN',
+                user: {
+                  id: TEST_IDS.USER,
+                  name: 'Test User',
+                  email: 'test@example.com',
+                },
+              }],
+            },
+            familyMembers: [],
+            _count: {
+              familyMembers: 1,
+              scheduleSlots: 0,
+            },
+          });
+        }
+      });
 
       // Mock successful deletion
       mockPrisma.groupFamilyMember.delete.mockResolvedValue({});
@@ -544,7 +574,9 @@ describe('GroupService - Family-Based Architecture', () => {
         },
       });
 
-      expect(result).toEqual({ success: true });
+      expect(result).toHaveProperty('id', TEST_IDS.GROUP);
+      expect(result).toHaveProperty('name', 'Test Group');
+      expect(result).toHaveProperty('userRole');
     });
   });
 
