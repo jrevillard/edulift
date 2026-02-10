@@ -580,6 +580,113 @@ describe('GroupService - Family-Based Architecture', () => {
     });
   });
 
+  describe('leaveGroup', () => {
+    it('should leave group and return updated Group', async () => {
+      const groupId = TEST_IDS.GROUP;
+      const userId = TEST_IDS.USER;
+
+      // Mock user's family
+      mockPrisma.familyMember.findFirst.mockResolvedValue({
+        id: 'family-member-1',
+        userId,
+        familyId: TEST_IDS.FAMILY_2,
+        role: 'ADMIN',
+        family: {
+          id: TEST_IDS.FAMILY_2,
+          name: 'Test Family 2',
+        },
+      });
+
+      // Mock findUnique to return different objects based on call
+      let callCount = 0;
+      mockPrisma.group.findUnique.mockImplementation(() => {
+        callCount++;
+        if (callCount === 1) {
+          // First call - basic group check
+          return Promise.resolve({
+            id: TEST_IDS.GROUP,
+            familyId: TEST_IDS.FAMILY,
+          });
+        } else {
+          // Second call - fetch updated Group with includes
+          return Promise.resolve({
+            id: TEST_IDS.GROUP,
+            name: 'Test Group',
+            description: null,
+            familyId: TEST_IDS.FAMILY,
+            inviteCode: 'TEST123',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            ownerFamily: {
+              id: TEST_IDS.FAMILY,
+              name: 'Test Family',
+              members: [{
+                id: 'member1',
+                userId: TEST_IDS.USER,
+                familyId: TEST_IDS.FAMILY,
+                role: 'ADMIN',
+                user: {
+                  id: TEST_IDS.USER,
+                  name: 'Test User',
+                  email: 'test@example.com',
+                },
+              }],
+            },
+            familyMembers: [],
+            _count: {
+              familyMembers: 1,
+              scheduleSlots: 0,
+            },
+          });
+        }
+      });
+
+      // Mock successful deletion
+      mockPrisma.groupFamilyMember.delete.mockResolvedValue({});
+      mockPrisma.groupChildMember.deleteMany.mockResolvedValue({ count: 0 });
+
+      const result = await groupService.leaveGroup(groupId, userId);
+
+      expect(mockPrisma.groupFamilyMember.delete).toHaveBeenCalledWith({
+        where: {
+          familyId_groupId: {
+            familyId: TEST_IDS.FAMILY_2,
+            groupId: TEST_IDS.GROUP,
+          },
+        },
+      });
+
+      expect(result).toHaveProperty('id', TEST_IDS.GROUP);
+      expect(result).toHaveProperty('name', 'Test Group');
+      expect(result).toHaveProperty('userRole');
+    });
+
+    it('should throw error when owner family tries to leave', async () => {
+      const groupId = TEST_IDS.GROUP;
+      const userId = TEST_IDS.USER;
+
+      // Mock user's family as the owner family
+      mockPrisma.familyMember.findFirst.mockResolvedValue({
+        id: 'family-member-1',
+        userId,
+        familyId: TEST_IDS.FAMILY, // Same as group.familyId
+        role: 'ADMIN',
+        family: {
+          id: TEST_IDS.FAMILY,
+          name: 'Owner Family',
+        },
+      });
+
+      // Mock group exists
+      mockPrisma.group.findUnique.mockResolvedValue({
+        id: TEST_IDS.GROUP,
+        familyId: TEST_IDS.FAMILY,
+      });
+
+      await expect(groupService.leaveGroup(groupId, userId)).rejects.toThrow('Owner family cannot leave their own group');
+    });
+  });
+
   describe('inviteFamilyToGroup', () => {
     it('should send invitation when user has admin permissions', async () => {
       const groupId = TEST_IDS.GROUP;
