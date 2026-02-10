@@ -166,59 +166,71 @@ export class FamilyService implements IFamilyService {
     });
   }
 
-  async removeMember(adminId: string, memberId: string): Promise<void> {
-    this.logger.info(`Admin ${adminId} removing member ${memberId}`);
+  async removeMember(adminId: string, memberId: string): Promise<Family> {
+  this.logger.info(`Admin ${adminId} removing member ${memberId}`);
 
-    return await this.prisma.$transaction(async (tx: any) => {
-      // Verify admin permissions
-      const adminMember = await tx.familyMember.findFirst({
-        where: { userId: adminId, role: FamilyRole.ADMIN },
-      });
-
-      if (!adminMember) {
-        throw new FamilyError('UNAUTHORIZED', 'User is not a family admin');
-      }
-
-      // Find and remove target member
-      const targetMember = await tx.familyMember.findFirst({
-        where: { id: memberId, familyId: adminMember.familyId },
-      });
-
-      if (!targetMember) {
-        throw new FamilyError('MEMBER_NOT_FOUND', 'Member not found in family');
-      }
-
-      // Prevent admin from removing themselves
-      if (targetMember.userId === adminId) {
-        throw new FamilyError('CANNOT_REMOVE_SELF', 'Admin cannot remove themselves');
-      }
-
-      // Prevent removing the last admin
-      if (targetMember.role === FamilyRole.ADMIN) {
-        const adminCount = await tx.familyMember.count({
-          where: { familyId: adminMember.familyId, role: FamilyRole.ADMIN },
-        });
-
-        if (adminCount <= 1) {
-          throw new FamilyError('LAST_ADMIN', 'Cannot remove the last admin from family');
-        }
-      }
-
-      await tx.familyMember.delete({
-        where: { id: memberId },
-      });
-
-      this.logger.info(`Member ${memberId} removed from family`);
-      
-      // Emit WebSocket event for member removal
-      SocketEmitter.broadcastFamilyUpdate(adminMember.familyId, 'memberLeft', {
-        action: 'memberRemoved',
-        memberId,
-        userId: targetMember.userId,
-        removedBy: adminId,
-      });
+  return await this.prisma.$transaction(async (tx: any) => {
+    // Verify admin permissions
+    const adminMember = await tx.familyMember.findFirst({
+      where: { userId: adminId, role: FamilyRole.ADMIN },
     });
-  }
+
+    if (!adminMember) {
+      throw new FamilyError('UNAUTHORIZED', 'User is not a family admin');
+    }
+
+    // Find and remove target member
+    const targetMember = await tx.familyMember.findFirst({
+      where: { id: memberId, familyId: adminMember.familyId },
+    });
+
+    if (!targetMember) {
+      throw new FamilyError('MEMBER_NOT_FOUND', 'Member not found in family');
+    }
+
+    // Prevent admin from removing themselves
+    if (targetMember.userId === adminId) {
+      throw new FamilyError('CANNOT_REMOVE_SELF', 'Admin cannot remove themselves');
+    }
+
+    // Prevent removing the last admin
+    if (targetMember.role === FamilyRole.ADMIN) {
+      const adminCount = await tx.familyMember.count({
+        where: { familyId: adminMember.familyId, role: FamilyRole.ADMIN },
+      });
+
+      if (adminCount <= 1) {
+        throw new FamilyError('LAST_ADMIN', 'Cannot remove the last admin from family');
+      }
+    }
+
+    await tx.familyMember.delete({
+      where: { id: memberId },
+    });
+
+    this.logger.info(`Member ${memberId} removed from family`);
+    
+    // Emit WebSocket event for member removal
+    SocketEmitter.broadcastFamilyUpdate(adminMember.familyId, 'memberLeft', {
+      action: 'memberRemoved',
+      memberId,
+      userId: targetMember.userId,
+      removedBy: adminId,
+    });
+
+    // Fetch and return complete updated Family
+    const updatedFamily = await tx.family.findUnique({
+      where: { id: adminMember.familyId },
+      include: FamilyService.FAMILY_INCLUDE,
+    });
+
+    if (!updatedFamily) {
+      throw new Error('Family not found after member removal');
+    }
+
+    return updatedFamily;
+  });
+}
 
 
   async leaveFamily(userId: string): Promise<void> {

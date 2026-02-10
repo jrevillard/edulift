@@ -738,7 +738,7 @@ const removeMemberRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: SimpleSuccessResponseSchema,
+          schema: createSuccessSchema(FamilyResponseSchema),
         },
       },
       description: 'Member removed successfully',
@@ -1201,12 +1201,13 @@ app.openapi(removeMemberRoute, async (c) => {
     // Verify user has admin permissions
     await familyAuthServiceInstance.requireFamilyRole(userId, FamilyRole.ADMIN);
 
-    await familyServiceInstance.removeMember(userId, memberId);
+    // Remove member - now returns complete Family
+    const updatedFamily = await familyServiceInstance.removeMember(userId, memberId);
 
     loggerInstance.info('removeMember: success', { userId, familyId, memberId });
     return c.json({
       success: true,
-      message: 'Member removed successfully',
+      data: updatedFamily,
     }, 200);
   } catch (error) {
     loggerInstance.error('removeMember: error', { userId, familyId, memberId, error });

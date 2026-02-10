@@ -21,6 +21,7 @@ import {
   ChildResponseSchema,
   ChildGroupMembershipSchema,
 } from '../../schemas/children';
+import { FamilyResponseSchema } from '../../schemas/families';
 import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Type for Hono context with userId
@@ -337,12 +338,7 @@ const deleteChildRoute = createRoute({
     200: {
     content: {
     'application/json': {
-    schema: z.object({
-    success: z.boolean(),
-    data: z.object({
-    message: z.string(),
-    }),
-    }),
+    schema: createSuccessSchema(FamilyResponseSchema),
     },
     },
     description: 'Child deleted successfully',
@@ -762,17 +758,18 @@ const getChildGroupsRoute = createRoute({
   app.openapi(deleteChildRoute, async (c) => {
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
-    
+
     loggerInstance.info('deleteChild', { userId, childId });
-    
+
     try {
-    await childServiceInstance.deleteChild(childId, userId);
-    
+    // Delete child - now returns complete Family
+    const updatedFamily = await childServiceInstance.deleteChild(childId, userId);
+
     loggerInstance.info('deleteChild: child deleted', { userId, childId });
-    
+
     return c.json({
     success: true,
-    data: { message: 'Child deleted successfully' },
+    data: updatedFamily,
     }, 200);
     } catch (error) {
     loggerInstance.error('deleteChild: error', { userId, childId, error });

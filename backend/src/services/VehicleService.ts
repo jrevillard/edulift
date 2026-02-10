@@ -19,6 +19,15 @@ export class VehicleService {
   private activityLogRepo: ActivityLogRepository;
   private logger = createLogger('vehicle');
 
+  // Same include pattern as FamilyService for consistency
+  private static readonly FAMILY_INCLUDE = {
+    members: {
+      include: { user: true },
+    },
+    children: true,
+    vehicles: true,
+  };
+
   constructor(private prisma: PrismaClient) {
     this.activityLogRepo = new ActivityLogRepository(prisma);
   }
@@ -232,10 +241,17 @@ export class VehicleService {
         where: { id: vehicleId },
       });
 
-      return {
-        success: true,
-        message: 'Vehicle deleted successfully',
-      };
+      // Fetch and return complete updated Family
+      const updatedFamily = await this.prisma.family.findUnique({
+        where: { id: userFamily.id },
+        include: VehicleService.FAMILY_INCLUDE,
+      });
+
+      if (!updatedFamily) {
+        throw new AppError('Family not found after vehicle deletion', 500);
+      }
+
+      return updatedFamily;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

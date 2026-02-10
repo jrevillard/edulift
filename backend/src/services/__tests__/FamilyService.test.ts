@@ -324,6 +324,17 @@ describe('FamilyService', () => {
               }),
             delete: jest.fn().mockResolvedValue({}),
           },
+          family: {
+            findUnique: jest.fn().mockResolvedValue({
+              id: familyId,
+              name: 'Test Family',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              members: [],
+              children: [],
+              vehicles: [],
+            }),
+          },
         });
       });
 
@@ -432,6 +443,17 @@ describe('FamilyService', () => {
               }),
             delete: jest.fn().mockResolvedValue({}),
           },
+          family: {
+            findUnique: jest.fn().mockResolvedValue({
+              id: familyId,
+              name: 'Test Family',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              members: [],
+              children: [],
+              vehicles: [],
+            }),
+          },
         });
       });
 
@@ -464,6 +486,17 @@ describe('FamilyService', () => {
               }),
             count: jest.fn().mockResolvedValue(2), // 2 admins in family
             delete: jest.fn().mockResolvedValue({}),
+          },
+          family: {
+            findUnique: jest.fn().mockResolvedValue({
+              id: familyId,
+              name: 'Test Family',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              members: [],
+              children: [],
+              vehicles: [],
+            }),
           },
         });
       });

@@ -580,7 +580,18 @@ describe('FamilyController Test Suite', () => {
       const memberId = TEST_IDS.USER_2;
 
       mockFamilyAuthService.requireFamilyRole.mockResolvedValue(undefined);
-      mockFamilyService.removeMember.mockResolvedValue(undefined);
+
+      // Mock the returned Family object after member removal
+      const updatedFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [],
+      };
+      mockFamilyService.removeMember.mockResolvedValue(updatedFamily as any);
 
       const response = await makeAuthenticatedRequest(app, `/${familyId}/members/${memberId}`, {
         method: 'DELETE',
@@ -589,7 +600,8 @@ describe('FamilyController Test Suite', () => {
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse.success).toBe(true);
-      expect(jsonResponse.message).toBe('Member removed successfully');
+      expect(jsonResponse.data).toBeDefined();
+      expect(jsonResponse.data.id).toBe(TEST_IDS.FAMILY);
 
       expect(mockFamilyAuthService.requireFamilyRole).toHaveBeenCalledWith(mockUserId, FamilyRole.ADMIN);
       expect(mockFamilyService.removeMember).toHaveBeenCalledWith(mockUserId, memberId);

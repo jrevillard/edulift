@@ -37,6 +37,9 @@ describe('ChildService WebSocket Events', () => {
         update: jest.fn(),
         delete: jest.fn(),
       },
+      family: {
+        findUnique: jest.fn(),
+      },
       familyMember: {
         findFirst: jest.fn(),
       },
@@ -306,10 +309,20 @@ describe('ChildService WebSocket Events', () => {
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
       mockPrisma.child.delete.mockResolvedValue(mockExistingChild);
+      mockPrisma.family.findUnique.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [], // Child deleted
+        vehicles: [],
+      });
 
       const result = await childService.deleteChild(childId, userId);
 
-      expect(result).toMatchObject({ success: true });
+      expect(result).toBeDefined();
+      expect(result.id).toBe(familyId);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         userId,
         familyId,
@@ -472,6 +485,15 @@ describe('ChildService WebSocket Events', () => {
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
       mockPrisma.child.delete.mockResolvedValue(mockExistingChild);
+      mockPrisma.family.findUnique.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [], // Child deleted
+        vehicles: [],
+      });
 
       await childService.deleteChild(childId, userId);
 

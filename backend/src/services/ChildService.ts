@@ -17,6 +17,15 @@ export interface UpdateChildData {
 export class ChildService {
   private logger = createLogger('child');
 
+  // Same include pattern as FamilyService for consistency
+  private static readonly FAMILY_INCLUDE = {
+    members: {
+      include: { user: true },
+    },
+    children: true,
+    vehicles: true,
+  };
+
   constructor(private prisma: PrismaClient) {}
 
   async createChild(data: CreateChildData) {
@@ -228,7 +237,17 @@ export class ChildService {
         deletedChild: existingChild,
       });
 
-      return { success: true };
+      // Fetch and return complete updated Family
+      const updatedFamily = await this.prisma.family.findUnique({
+        where: { id: userFamily.id },
+        include: ChildService.FAMILY_INCLUDE,
+      });
+
+      if (!updatedFamily) {
+        throw new AppError('Family not found after child deletion', 500);
+      }
+
+      return updatedFamily;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

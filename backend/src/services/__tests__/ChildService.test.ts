@@ -12,6 +12,9 @@ const mockPrisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  family: {
+    findUnique: jest.fn(),
+  },
   familyMember: {
     findFirst: jest.fn(),
   },
@@ -417,13 +420,23 @@ describe('ChildService', () => {
 
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
       (mockPrisma.child.delete as jest.Mock).mockResolvedValue(existingChild);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [], // Child deleted
+        vehicles: [],
+      });
 
       const result = await childService.deleteChild(childId, userId);
 
       expect(mockPrisma.child.delete).toHaveBeenCalledWith({
         where: { id: childId },
       });
-      expect(result).toEqual({ success: true });
+      expect(result).toBeDefined();
+      expect(result.id).toBe(familyId);
     });
 
     it('should throw error when deletion fails', async () => {

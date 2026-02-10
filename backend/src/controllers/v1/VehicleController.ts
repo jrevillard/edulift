@@ -22,6 +22,7 @@ import {
   VehicleScheduleSchema,
   WeekQuerySchema,
 } from '../../schemas/vehicles';
+import { FamilyResponseSchema } from '../../schemas/families';
 import { ErrorResponseSchema } from '../../schemas/responses';
 
 // Hono type for context with userId
@@ -297,12 +298,7 @@ const deleteVehicleRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.boolean(),
-            data: z.object({
-              message: z.string(),
-            }),
-          }),
+          schema: createSuccessSchema(FamilyResponseSchema),
         },
       },
       description: 'Vehicle deleted successfully',
@@ -567,13 +563,14 @@ app.openapi(deleteVehicleRoute, async (c) => {
   loggerInstance.info('deleteVehicle', { userId, vehicleId });
 
   try {
-    const result = await vehicleServiceInstance.deleteVehicle(vehicleId, userId);
+    // Delete vehicle - now returns complete Family
+    const updatedFamily = await vehicleServiceInstance.deleteVehicle(vehicleId, userId);
 
     loggerInstance.info('deleteVehicle: vehicle deleted', { userId, vehicleId });
 
     return c.json({
       success: true,
-      data: { message: result.message },
+      data: updatedFamily,
     }, 200);
   } catch (error) {
     loggerInstance.error('deleteVehicle: error', { userId, vehicleId, error });

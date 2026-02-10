@@ -666,10 +666,17 @@ describe('VehicleController Test Suite', () => {
     it('should delete vehicle successfully', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.deleteVehicle.mockResolvedValue({
-        success: true,
-        message: 'Vehicle deleted successfully',
-      } as any);
+      // Mock the returned Family object after vehicle deletion
+      const updatedFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [], // Vehicle deleted, so empty array
+      };
+      mockVehicleService.deleteVehicle.mockResolvedValue(updatedFamily as any);
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`, {
         method: 'DELETE',
@@ -677,12 +684,9 @@ describe('VehicleController Test Suite', () => {
 
       expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        success: true,
-        data: {
-          message: 'Vehicle deleted successfully',
-        },
-      });
+      expect(jsonResponse.success).toBe(true);
+      expect(jsonResponse.data).toBeDefined();
+      expect(jsonResponse.data.id).toBe(TEST_IDS.FAMILY);
 
       expect(mockVehicleService.deleteVehicle).toHaveBeenCalledWith(vehicleId, mockUserId);
     });

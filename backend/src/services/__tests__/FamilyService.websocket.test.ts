@@ -235,6 +235,17 @@ describe('FamilyService WebSocket Events', () => {
             delete: jest.fn().mockResolvedValue({}),
             count: jest.fn().mockResolvedValue(2), // Not last admin
           },
+          family: {
+            findUnique: jest.fn().mockResolvedValue({
+              id: familyId,
+              name: 'Test Family',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              members: [],
+              children: [],
+              vehicles: [],
+            }),
+          },
         };
         return await callback(mockTx);
       });
