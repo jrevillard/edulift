@@ -581,7 +581,7 @@ describe('GroupService - Family-Based Architecture', () => {
   });
 
   describe('leaveGroup', () => {
-    it('should leave group and return updated Group', async () => {
+    it('should leave group and return success', async () => {
       const groupId = TEST_IDS.GROUP;
       const userId = TEST_IDS.USER;
 
@@ -597,48 +597,10 @@ describe('GroupService - Family-Based Architecture', () => {
         },
       });
 
-      // Mock findUnique to return different objects based on call
-      let callCount = 0;
-      mockPrisma.group.findUnique.mockImplementation(() => {
-        callCount++;
-        if (callCount === 1) {
-          // First call - basic group check
-          return Promise.resolve({
-            id: TEST_IDS.GROUP,
-            familyId: TEST_IDS.FAMILY,
-          });
-        } else {
-          // Second call - fetch updated Group with includes
-          return Promise.resolve({
-            id: TEST_IDS.GROUP,
-            name: 'Test Group',
-            description: null,
-            familyId: TEST_IDS.FAMILY,
-            inviteCode: 'TEST123',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            ownerFamily: {
-              id: TEST_IDS.FAMILY,
-              name: 'Test Family',
-              members: [{
-                id: 'member1',
-                userId: TEST_IDS.USER,
-                familyId: TEST_IDS.FAMILY,
-                role: 'ADMIN',
-                user: {
-                  id: TEST_IDS.USER,
-                  name: 'Test User',
-                  email: 'test@example.com',
-                },
-              }],
-            },
-            familyMembers: [],
-            _count: {
-              familyMembers: 1,
-              scheduleSlots: 0,
-            },
-          });
-        }
+      // Mock group exists
+      mockPrisma.group.findUnique.mockResolvedValue({
+        id: TEST_IDS.GROUP,
+        familyId: TEST_IDS.FAMILY,
       });
 
       // Mock successful deletion
@@ -656,9 +618,7 @@ describe('GroupService - Family-Based Architecture', () => {
         },
       });
 
-      expect(result).toHaveProperty('id', TEST_IDS.GROUP);
-      expect(result).toHaveProperty('name', 'Test Group');
-      expect(result).toHaveProperty('userRole');
+      expect(result).toEqual({ success: true });
     });
 
     it('should throw error when owner family tries to leave', async () => {

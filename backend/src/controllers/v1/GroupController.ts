@@ -758,7 +758,7 @@ const leaveGroupRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(GroupResponseSchema),
+          schema: SimpleSuccessResponseSchema,
         },
       },
       description: 'Left group successfully',
@@ -1404,12 +1404,12 @@ app.openapi(leaveGroupRoute, async (c) => {
   loggerInstance.info('leaveGroup', { userId, groupId, userEmail: user?.email });
 
   try {
-    const updatedGroup = await groupServiceInstance.leaveGroup(groupId, userId);
+    await groupServiceInstance.leaveGroup(groupId, userId);
 
     loggerInstance.info('leaveGroup: success', { userId, groupId });
     return c.json({
       success: true,
-      data: updatedGroup,
+      message: 'Left group successfully',
     }, 200);
   } catch (error: any) {
     loggerInstance.error('leaveGroup', { error: error instanceof Error ? error.message : String(error) });

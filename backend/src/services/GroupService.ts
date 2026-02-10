@@ -1004,16 +1004,6 @@ export class GroupService {
         },
       });
 
-      // Fetch the complete updated Group with all includes
-      const updatedGroup = await this.prisma.group.findUnique({
-        where: { id: groupId },
-        include: GroupService.GROUP_INCLUDE,
-      });
-
-      if (!updatedGroup) {
-        throw new AppError('Group not found after leaving', 500);
-      }
-
       // Log the activity
       await this.activityLogRepo.createActivity({
         userId,
@@ -1023,8 +1013,7 @@ export class GroupService {
         entityId: groupId,
       });
 
-      // Return enriched Group with userRole (RESTful consistency)
-      return await this.enrichGroupWithUserContext(updatedGroup, userId);
+      return { success: true };
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
