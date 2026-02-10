@@ -14,6 +14,7 @@ import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepositor
 import { SocketEmitter } from '../../utils/socketEmitter';
 import { createLogger } from '../../utils/logger';
 import { normalizeError } from '../../utils/errorHandler';
+import { verifyGroupAccess } from '../../utils/accessControl';
 import type { ScheduleSlotWithDetails, AssignVehicleToSlotData } from '../../types';
 
 // Import Hono-native schemas
@@ -298,6 +299,14 @@ const assignVehicleRoute = createRoute({
       },
       description: 'Schedule slot not found',
     },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     500: {
       content: {
         'application/json': {
@@ -364,6 +373,14 @@ const removeVehicleRoute = createRoute({
       },
       description: 'Schedule slot not found',
     },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     500: {
       content: {
         'application/json': {
@@ -411,6 +428,14 @@ const updateVehicleDriverRoute = createRoute({
         },
       },
       description: 'Schedule slot or vehicle assignment not found',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
     },
     409: {
       content: {
@@ -461,6 +486,14 @@ const removeChildRoute = createRoute({
       },
       description: 'Schedule slot not found or child assignment does not exist',
     },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     500: {
       content: {
         'application/json': {
@@ -502,6 +535,14 @@ const getScheduleSlotRoute = createRoute({
       },
       description: 'Schedule slot not found',
     },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     500: {
       content: {
         'application/json': {
@@ -535,6 +576,22 @@ const getScheduleRoute = createRoute({
         },
       },
       description: 'Group schedule retrieved successfully',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Group not found',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
     },
     500: {
       content: {
@@ -570,6 +627,22 @@ const getScheduleSlotConflictsRoute = createRoute({
         },
       },
       description: 'Schedule slot conflicts retrieved successfully',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Schedule slot not found',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
     },
     500: {
       content: {
@@ -725,6 +798,22 @@ const getAvailableChildrenRoute = createRoute({
       },
       description: 'Unauthorized - Authentication required',
     },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Schedule slot not found',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     500: {
       content: {
         'application/json': {
@@ -772,6 +861,14 @@ const updateSeatOverrideRoute = createRoute({
         },
       },
       description: 'Schedule slot or vehicle not found',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
     },
     409: {
       content: {
@@ -891,6 +988,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
  * POST /schedule-slots/:scheduleSlotId/vehicles - Assign vehicle to slot
  */
 app.openapi(assignVehicleRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId } = c.req.valid('param');
   const input = c.req.valid('json');
 
@@ -909,6 +1007,12 @@ app.openapi(assignVehicleRoute, async (c) => {
         success: false,
         error: 'Schedule slot not found',
       }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     const assignmentData: AssignVehicleToSlotData = {
@@ -948,6 +1052,7 @@ app.openapi(assignVehicleRoute, async (c) => {
  * DELETE /schedule-slots/:scheduleSlotId/vehicles - Remove vehicle from slot
  */
 app.openapi(removeVehicleRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId } = c.req.valid('param');
   const input = c.req.valid('json');
 
@@ -966,6 +1071,12 @@ app.openapi(removeVehicleRoute, async (c) => {
         success: false,
         error: 'Schedule slot not found',
       }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId);
@@ -1006,6 +1117,7 @@ app.openapi(removeVehicleRoute, async (c) => {
  * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleId/driver - Update vehicle driver
  */
 app.openapi(updateVehicleDriverRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId, vehicleId } = c.req.valid('param');
   const input = c.req.valid('json');
 
@@ -1017,6 +1129,12 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
         success: false,
         error: 'Schedule slot not found',
       }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // Update the driver
@@ -1054,6 +1172,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
  * DELETE /schedule-slots/:scheduleSlotId/children/:childId - Remove child from slot
  */
 app.openapi(removeChildRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId, childId } = c.req.valid('param');
 
   try {
@@ -1064,6 +1183,12 @@ app.openapi(removeChildRoute, async (c) => {
         success: false,
         error: 'Schedule slot not found',
       }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     const updatedSlot = await scheduleSlotServiceInstance.removeChildFromSlot(scheduleSlotId, childId);
@@ -1098,6 +1223,7 @@ app.openapi(removeChildRoute, async (c) => {
  * GET /schedule-slots/:scheduleSlotId - Get schedule slot details
  */
 app.openapi(getScheduleSlotRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId } = c.req.valid('param');
 
   try {
@@ -1108,6 +1234,12 @@ app.openapi(getScheduleSlotRoute, async (c) => {
         success: false,
         error: 'Schedule slot not found',
       }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, slot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // Transform slot to OpenAPI format
@@ -1130,8 +1262,15 @@ app.openapi(getScheduleSlotRoute, async (c) => {
  * GET /groups/:groupId/schedule - Get group schedule
  */
 app.openapi(getScheduleRoute, async (c) => {
+  const userId = c.get('userId');
   const { groupId } = c.req.valid('param');
   const { startDate, endDate } = c.req.valid('query');
+
+  // Verify user has access to the group
+  const accessError = await verifyGroupAccess(prismaInstance, userId, groupId);
+  if (!accessError.hasAccess) {
+    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+  }
 
   loggerInstance.debug(`getSchedule CONTROLLER called for group ${groupId}, startDate: ${startDate}, endDate: ${endDate}`);
 
@@ -1160,9 +1299,24 @@ app.openapi(getScheduleRoute, async (c) => {
  * GET /schedule-slots/:scheduleSlotId/conflicts - Get schedule slot conflicts
  */
 app.openapi(getScheduleSlotConflictsRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId } = c.req.valid('param');
 
   try {
+    // Verify user has access to the schedule slot's group
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+    if (!scheduleSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot not found',
+      }, 404);
+    }
+
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+    }
+
     const conflicts = await scheduleSlotServiceInstance.validateSlotConflicts(scheduleSlotId);
 
     return c.json({
@@ -1257,6 +1411,20 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
   const userId = c.get('userId');
 
+  // Verify user has access to the schedule slot's group
+  const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+  if (!scheduleSlot) {
+    return c.json({
+      success: false,
+      error: 'Schedule slot not found',
+    }, 404);
+  }
+
+  const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+  if (!accessError.hasAccess) {
+    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+  }
+
   const children = await childAssignmentServiceInstance.getAvailableChildrenForScheduleSlot(
     scheduleSlotId,
     userId,
@@ -1275,6 +1443,7 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
  * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleId/seat-override - Update seat override
  */
 app.openapi(updateSeatOverrideRoute, async (c) => {
+  const userId = c.get('userId');
   const { scheduleSlotId, vehicleId } = c.req.valid('param');
   const input = c.req.valid('json');
 
@@ -1286,6 +1455,12 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
         success: false,
         error: 'Schedule slot not found',
       }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // Update seat override using scheduleSlotId and vehicleId

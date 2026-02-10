@@ -14,6 +14,21 @@ jest.mock('../../utils/socketEmitter');
 
 jest.mock('../../middleware/auth-hono');
 
+// Mock PrismaClient
+jest.mock('@prisma/client', () => {
+  const mockPrisma = {
+    familyMember: {
+      findFirst: jest.fn(),
+    },
+    groupFamilyMember: {
+      findFirst: jest.fn(),
+    },
+  };
+  return {
+    PrismaClient: jest.fn(() => mockPrisma),
+  };
+});
+
 const responseJson = async <T = any>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
@@ -68,9 +83,7 @@ describe('ScheduleSlotController Test Suite', () => {
       },
       driver: {
         id: TEST_IDS.USER,
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'driver@example.com',
+        name: 'John Doe',
       },
     }],
     childAssignments: [],
@@ -82,6 +95,21 @@ describe('ScheduleSlotController Test Suite', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock Prisma queries for access control
+    // @ts-ignore - Mocking Prisma for testing
+    const { PrismaClient: MockedPrisma } = require('@prisma/client');
+    const mockPrisma = new MockedPrisma() as any;
+    mockPrisma.familyMember.findFirst = jest.fn() as any;
+    mockPrisma.familyMember.findFirst.mockResolvedValue({
+      userId: mockUserId,
+      familyId: TEST_IDS.FAMILY,
+    });
+    mockPrisma.groupFamilyMember.findFirst = jest.fn() as any;
+    mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
+      groupId: TEST_IDS.GROUP,
+      familyId: TEST_IDS.FAMILY,
+    });
 
     // Mock SocketEmitter
     mockSocketEmitter = SocketEmitter as jest.Mocked<typeof SocketEmitter>;
@@ -869,6 +897,8 @@ describe('ScheduleSlotController Test Suite', () => {
     it('should return schedule slot conflicts', async () => {
       const mockConflicts = ['CAPACITY_EXCEEDED', 'DRIVER_DOUBLE_BOOKING'];
 
+      // Mock getScheduleSlotDetails for access control
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
       mockScheduleSlotService.validateSlotConflicts.mockResolvedValue(mockConflicts);
 
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/conflicts`, {
