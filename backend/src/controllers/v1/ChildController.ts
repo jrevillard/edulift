@@ -577,7 +577,7 @@ const getChildGroupsRoute = createRoute({
     childData.age = input.age;
     }
 
-    const child = await childServiceInstance.createChild(childData);
+    const child = await childServiceInstance.createChild(childData, userId);
 
     loggerInstance.info('createChild: child created', { userId, childId: child.id });
 

@@ -239,7 +239,7 @@ describe('ChildController Test Suite', () => {
         name: 'Test Child',
         age: 8,
         familyId: TEST_IDS.FAMILY,
-      });
+      }, mockUserId);
     });
 
     it('should create child without age', async () => {

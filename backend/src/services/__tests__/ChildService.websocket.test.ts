@@ -76,7 +76,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
-      const result = await childService.createChild(childData);
+      const result = await childService.createChild(childData, 'system');
 
       expect(result).toMatchObject(mockCreatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
@@ -106,7 +106,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
-      await childService.createChild(childData);
+      await childService.createChild(childData, 'system');
 
       expect(mockPrisma.child.create).toHaveBeenCalledWith({
         data: {
@@ -135,7 +135,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockRejectedValue(new Error('Database error'));
 
-      await expect(childService.createChild(childData)).rejects.toThrow(AppError);
+      await expect(childService.createChild(childData, 'system')).rejects.toThrow(AppError);
       expect(mockSocketEmitter.broadcastChildUpdate).not.toHaveBeenCalled();
     });
   });
@@ -402,7 +402,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
-      await childService.createChild(childData);
+      await childService.createChild(childData, 'system');
 
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         'system',
@@ -529,7 +529,7 @@ describe('ChildService WebSocket Events', () => {
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
       // Should not throw error even without socket handler
-      const result = await childService.createChild(childData);
+      const result = await childService.createChild(childData, 'system');
       expect(result).toMatchObject(mockCreatedChild);
 
       // SocketEmitter should still be called (it handles null socket handler internally)

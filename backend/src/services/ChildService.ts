@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { SocketEmitter } from '../utils/socketEmitter';
 import { createLogger } from '../utils/logger';
 
@@ -15,6 +16,7 @@ export interface UpdateChildData {
 }
 
 export class ChildService {
+  private activityLogRepo: ActivityLogRepository;
   private logger = createLogger('child');
 
   // Same include pattern as FamilyService for consistency
@@ -26,9 +28,11 @@ export class ChildService {
     vehicles: true,
   };
 
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient) {
+    this.activityLogRepo = new ActivityLogRepository(prisma);
+  }
 
-  async createChild(data: CreateChildData) {
+  async createChild(data: CreateChildData, userId: string) {
     try {
       const child = await this.prisma.child.create({
         data: {
@@ -38,8 +42,19 @@ export class ChildService {
         },
       });
 
+      // Log the activity
+      await this.activityLogRepo.createActivity({
+        userId,
+        actionType: 'CHILD_ADD',
+        actionDescription: `Added child "${data.name}"`,
+        entityType: 'child',
+        entityId: child.id,
+        entityName: data.name,
+        metadata: { age: data.age },
+      });
+
       // Emit WebSocket event for child creation
-      SocketEmitter.broadcastChildUpdate('system', data.familyId, 'added', {
+      SocketEmitter.broadcastChildUpdate(userId, data.familyId, 'added', {
         child,
         familyId: data.familyId,
       });
@@ -218,7 +233,7 @@ export class ChildService {
 
       // Verify child exists and belongs to user's family
       const existingChild = await this.getChildById(childId, userId);
-      
+
       if (!existingChild) {
         throw new AppError('Child not found or access denied', 404);
       }
@@ -228,6 +243,16 @@ export class ChildService {
 
       await this.prisma.child.delete({
         where: { id: childId },
+      });
+
+      // Log the activity
+      await this.activityLogRepo.createActivity({
+        userId,
+        actionType: 'CHILD_DELETE',
+        actionDescription: `Deleted child "${existingChild.name}"`,
+        entityType: 'child',
+        entityId: childId,
+        entityName: existingChild.name,
       });
 
       // Emit WebSocket event for child deletion

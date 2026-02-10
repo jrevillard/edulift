@@ -23,6 +23,13 @@ const mockPrisma = {
   },
 } as unknown as PrismaClient;
 
+// Mock ActivityLogRepository
+jest.mock('../../repositories/ActivityLogRepository', () => ({
+  ActivityLogRepository: jest.fn().mockImplementation(() => ({
+    createActivity: jest.fn().mockResolvedValue({}),
+  })),
+}));
+
 describe('ChildService', () => {
   let childService: ChildService;
 
@@ -38,6 +45,7 @@ describe('ChildService', () => {
         age: 8,
         familyId: TEST_IDS.FAMILY,
       };
+      const userId = TEST_IDS.USER;
 
       const expectedChild = {
         id: TEST_IDS.CHILD,
@@ -48,7 +56,7 @@ describe('ChildService', () => {
 
       (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
 
-      const result = await childService.createChild(childData);
+      const result = await childService.createChild(childData, userId);
 
       expect(mockPrisma.child.create).toHaveBeenCalledWith({
         data: {
@@ -77,7 +85,7 @@ describe('ChildService', () => {
 
       (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
 
-      await childService.createChild(childData);
+      await childService.createChild(childData, TEST_IDS.USER);
 
       expect(mockPrisma.child.create).toHaveBeenCalledWith({
         data: {
@@ -96,8 +104,8 @@ describe('ChildService', () => {
 
       (mockPrisma.child.create as jest.Mock).mockRejectedValue(new Error('Database error'));
 
-      await expect(childService.createChild(childData)).rejects.toThrow(AppError);
-      await expect(childService.createChild(childData)).rejects.toThrow('Failed to create child');
+      await expect(childService.createChild(childData, TEST_IDS.USER)).rejects.toThrow(AppError);
+      await expect(childService.createChild(childData, TEST_IDS.USER)).rejects.toThrow('Failed to create child');
     });
   });
 
