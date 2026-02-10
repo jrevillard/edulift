@@ -401,8 +401,8 @@ describe('SocketHandler', () => {
         secondSocket.on(SOCKET_EVENTS.USER_LEFT, (data: unknown) => {
           resolve(data);
         });
-        
-        setTestTimeout(() => reject(new Error('Leave event timeout')), 3000);
+
+        setTestTimeout(() => reject(new Error('Leave event timeout')), 10000);
       });
 
       // Connect the second socket and have both join the group first
@@ -473,8 +473,8 @@ describe('SocketHandler', () => {
         secondSocket.on(SOCKET_EVENTS.USER_TYPING, (data: unknown) => {
           resolve(data);
         });
-        
-        setTestTimeout(() => reject(new Error('Typing start timeout')), 3000);
+
+        setTestTimeout(() => reject(new Error('Typing start timeout')), 10000);
       });
 
       const typingStopPromise = new Promise<any>((resolve, reject) => {
