@@ -846,10 +846,12 @@ export class GroupService {
         throw new AppError('Group not found', 404);
       }
 
-      // Check if user has ADMIN or OWNER role in the group
+      // Check if user has ADMIN role in the group
+      // Note: OWNER is not a user role - it's a display role for the owning family in getGroupFamilies()
+      // Users can only be ADMIN or MEMBER (see calculateUserRoleInGroup documentation)
       const userRole = await this.calculateUserRoleInGroup(group, requesterId);
-      if (userRole !== 'OWNER' && userRole !== 'ADMIN') {
-        throw new AppError('Only group owners and administrators can update group settings', 403);
+      if (userRole !== 'ADMIN') {
+        throw new AppError('Only group administrators can update group settings', 403);
       }
 
       // Build update data
