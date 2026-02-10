@@ -3,6 +3,7 @@ import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 import { createLogger } from '../utils/logger';
+import { SocketEmitter } from '../utils/socketEmitter';
 
 export interface CreateVehicleData {
   name: string;
@@ -239,6 +240,13 @@ export class VehicleService {
 
       await this.prisma.vehicle.delete({
         where: { id: vehicleId },
+      });
+
+      // Emit WebSocket event for vehicle deletion
+      SocketEmitter.broadcastVehicleUpdate(userId, userFamily.id, 'deleted', {
+        vehicleId,
+        familyId: userFamily.id,
+        deletedVehicle: existingVehicle,
       });
 
       // Fetch and return complete updated Family
