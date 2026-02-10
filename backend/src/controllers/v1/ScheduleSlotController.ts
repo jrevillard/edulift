@@ -243,6 +243,14 @@ const createScheduleSlotRoute = createRoute({
       },
       description: 'Unauthorized - Authentication required',
     },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     500: {
       content: {
         'application/json': {
@@ -700,6 +708,14 @@ const assignChildRoute = createRoute({
       },
       description: 'Unauthorized - Authentication required',
     },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
     404: {
       content: {
         'application/json': {
@@ -756,6 +772,22 @@ const removeChildFromScheduleSlotRoute = createRoute({
         },
       },
       description: 'Unauthorized - Authentication required',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Schedule slot not found',
     },
     500: {
       content: {
@@ -918,6 +950,12 @@ app.openapi(createScheduleSlotRoute, async (c) => {
       success: false,
       error: 'Vehicle ID is required to create a schedule slot',
     }, 400);
+  }
+
+  // Verify user has access to the group
+  const accessError = await verifyGroupAccess(prismaInstance, userId, groupId);
+  if (!accessError.hasAccess) {
+    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
   }
 
   try {
@@ -1356,6 +1394,12 @@ app.openapi(assignChildRoute, async (c) => {
     }, 404);
   }
 
+  // Verify user has access to the group
+  const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+  if (!accessError.hasAccess) {
+    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+  }
+
   // Create the assignment
   await childAssignmentServiceInstance.assignChildToScheduleSlot(
     scheduleSlotId,
@@ -1391,6 +1435,21 @@ app.openapi(assignChildRoute, async (c) => {
 app.openapi(removeChildFromScheduleSlotRoute, async (c) => {
   const { scheduleSlotId, childId } = c.req.valid('param');
   const userId = c.get('userId');
+
+  // Get the schedule slot first to obtain groupId for access check
+  const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+  if (!scheduleSlot) {
+    return c.json({
+      success: false,
+      error: 'Schedule slot not found',
+    }, 404);
+  }
+
+  // Verify user has access to the group
+  const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+  if (!accessError.hasAccess) {
+    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+  }
 
   const result = await childAssignmentServiceInstance.removeChildFromScheduleSlot(
     scheduleSlotId,

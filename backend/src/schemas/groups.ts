@@ -135,6 +135,8 @@ export const InviteFamilySchema = z.object({
 export const SearchFamiliesQuerySchema = z.object({
   searchTerm: z.string()
     .min(1, 'Search term is required')
+    .max(100, 'Search term too long')
+    .trim()
     .openapi({
       example: 'Smith',
       description: 'Search term to filter families by name',

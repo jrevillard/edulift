@@ -23,6 +23,10 @@ type VehicleVariables = {
 
 let mockAuthenticateToken: jest.Mock;
 
+// Mock Prisma for verifyGroupAccess (needed by getAvailableVehicles endpoint)
+const mockPrismaFamilyMemberFindFirst = jest.fn() as any;
+const mockPrismaGroupFamilyMemberFindFirst = jest.fn() as any;
+
 const responseJson = async <T = any>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
@@ -169,9 +173,28 @@ describe('VehicleController Test Suite', () => {
       getVehicleSchedule: jest.fn(),
     } as any;
 
+    // Setup Prisma mocks for verifyGroupAccess
+    mockPrismaFamilyMemberFindFirst.mockResolvedValue({
+      familyId: TEST_IDS.FAMILY,
+    });
+    mockPrismaGroupFamilyMemberFindFirst.mockResolvedValue({
+      groupId: TEST_IDS.GROUP,
+      familyId: TEST_IDS.FAMILY,
+    });
+
+    const mockPrisma = {
+      familyMember: {
+        findFirst: mockPrismaFamilyMemberFindFirst,
+      },
+      groupFamilyMember: {
+        findFirst: mockPrismaGroupFamilyMemberFindFirst,
+      },
+    };
+
     // Set up the controller with mocked dependencies using factory pattern
-    const deps = {
+    const deps: any = {
       vehicleService: mockVehicleService,
+      prisma: mockPrisma,
     };
 
     const vehicleApp = createVehicleControllerRoutes(deps);
@@ -308,7 +331,7 @@ describe('VehicleController Test Suite', () => {
 
       mockVehicleService.getUserFamily.mockResolvedValue(mockFamily as any);
       mockVehicleService.canUserModifyFamilyVehicles.mockResolvedValue(true);
-      mockVehicleService.createVehicle.mockRejectedValue(new Error('Database error'));
+      mockVehicleService.createVehicle.mockRejectedValue(new Error('Failed to create vehicle'));
 
       const response = await makeAuthenticatedRequest(app, '/', {
         method: 'POST',
@@ -374,7 +397,7 @@ describe('VehicleController Test Suite', () => {
     });
 
     it('should return 500 on service error', async () => {
-      mockVehicleService.getVehiclesByUser.mockRejectedValue(new Error('Database error'));
+      mockVehicleService.getVehiclesByUser.mockRejectedValue(new Error('Failed to retrieve vehicles'));
 
       const response = await makeAuthenticatedRequest(app, '/');
 
@@ -429,7 +452,7 @@ describe('VehicleController Test Suite', () => {
       const groupId = TEST_IDS.GROUP;
       const timeSlotId = TEST_IDS.SLOT;
 
-      mockVehicleService.getAvailableVehiclesForScheduleSlot.mockRejectedValue(new Error('Database error'));
+      mockVehicleService.getAvailableVehiclesForScheduleSlot.mockRejectedValue(new Error('Failed to retrieve available vehicles'));
 
       const response = await makeAuthenticatedRequest(app, `/available/${groupId}/${timeSlotId}`);
 

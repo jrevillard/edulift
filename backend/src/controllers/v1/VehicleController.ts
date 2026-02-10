@@ -10,6 +10,7 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
 import { VehicleService, UpdateVehicleData } from '../../services/VehicleService';
 import { createLogger } from '../../utils/logger';
+import { verifyGroupAccess } from '../../utils/accessControl';
 
 // Import Hono-native schemas
 import {
@@ -172,6 +173,22 @@ const getAvailableVehiclesRoute = createRoute({
         },
       },
       description: 'List of available vehicles',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied - user does not have access to this group',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Schedule slot not found',
     },
     500: {
       content: {
@@ -414,13 +431,15 @@ app.openapi(createVehicleRoute, async (c) => {
       success: true,
       data: family,
     }, 201);
-  } catch (error) {
+  } catch (error: any) {
     loggerInstance.error('createVehicle: error', { userId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to create vehicle';
     return c.json({
       success: false,
-      error: 'Failed to create vehicle',
+      error: errorMessage,
       code: 'CREATE_FAILED',
-    }, 500);
+    }, statusCode);
   }
 });
 
@@ -441,13 +460,15 @@ app.openapi(getVehiclesRoute, async (c) => {
       success: true,
       data: vehicles,
     }, 200);
-  } catch (error) {
+  } catch (error: any) {
     loggerInstance.error('getVehicles: error', { userId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to retrieve vehicles';
     return c.json({
       success: false,
-      error: 'Failed to retrieve vehicles',
+      error: errorMessage,
       code: 'RETRIEVE_FAILED',
-    }, 500);
+    }, statusCode);
   }
 });
 
@@ -459,6 +480,12 @@ app.openapi(getAvailableVehiclesRoute, async (c) => {
   const { groupId, timeSlotId } = c.req.valid('param');
 
   loggerInstance.info('getAvailableVehicles', { userId, groupId, timeSlotId });
+
+  // Verify user has access to the group
+  const accessError = await verifyGroupAccess(prismaInstance, userId, groupId);
+  if (!accessError.hasAccess) {
+    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+  }
 
   try {
     const availableVehicles = await vehicleServiceInstance.getAvailableVehiclesForScheduleSlot(groupId, timeSlotId);
@@ -473,13 +500,15 @@ app.openapi(getAvailableVehiclesRoute, async (c) => {
       success: true,
       data: availableVehicles,
     }, 200);
-  } catch (error) {
+  } catch (error: any) {
     loggerInstance.error('getAvailableVehicles: error', { userId, groupId, timeSlotId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to retrieve available vehicles';
     return c.json({
       success: false,
-      error: 'Failed to retrieve available vehicles',
+      error: errorMessage,
       code: 'RETRIEVE_FAILED',
-    }, 500);
+    }, statusCode);
   }
 });
 

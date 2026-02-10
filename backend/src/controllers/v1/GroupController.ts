@@ -13,6 +13,19 @@ import { GroupScheduleConfigService } from '../../services/GroupScheduleConfigSe
 import { EmailServiceFactory } from '../../services/EmailServiceFactory';
 import { createLogger } from '../../utils/logger';
 
+// Type for GroupScheduleConfig with group included (service returns this but type doesn't declare it)
+interface GroupScheduleConfigWithGroup {
+  id: string | null;
+  groupId: string;
+  scheduleHours: Record<string, string[]>;
+  group?: {
+    id: string;
+    name: string;
+  };
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
 // Import all schemas
 import {
   CreateGroupSchema,
@@ -1231,7 +1244,7 @@ app.openapi(inviteFamilyRoute, async (c) => {
     });
     return c.json({
       success: true,
-      data: invitation as any, // Cast to any to handle UnifiedInvitationService return type
+      data: invitation as any,
     }, 201);
   } catch (error: any) {
     loggerInstance.error('inviteFamilyById', {
@@ -1436,7 +1449,7 @@ app.openapi(getScheduleConfigRoute, async (c) => {
   loggerInstance.info('getScheduleConfig', { userId, groupId });
 
   try {
-    const config = await scheduleConfigServiceInstance.getGroupScheduleConfig(groupId, userId);
+    const config = await scheduleConfigServiceInstance.getGroupScheduleConfig(groupId, userId) as GroupScheduleConfigWithGroup;
 
     // Transform Prisma JsonValue to expected format with explicit typing
     const scheduleHours = config.scheduleHours as Record<string, string[]>;
@@ -1450,7 +1463,7 @@ app.openapi(getScheduleConfigRoute, async (c) => {
         THURSDAY: scheduleHours.THURSDAY || [],
         FRIDAY: scheduleHours.FRIDAY || [],
       },
-      group: (config as any).group,
+      group: config.group,
       createdAt: config.createdAt ? config.createdAt.toISOString() : null,
       updatedAt: config.updatedAt ? config.updatedAt.toISOString() : null,
     };
@@ -1488,7 +1501,7 @@ app.openapi(updateScheduleConfigRoute, async (c) => {
       scheduleHours,
       userId,
       user?.timezone || 'UTC',
-    );
+    ) as GroupScheduleConfigWithGroup;
 
     // Transform Prisma JsonValue to expected format with explicit typing
     const configScheduleHours = config.scheduleHours as Record<string, string[]>;
@@ -1502,9 +1515,9 @@ app.openapi(updateScheduleConfigRoute, async (c) => {
         THURSDAY: configScheduleHours.THURSDAY || [],
         FRIDAY: configScheduleHours.FRIDAY || [],
       },
-      group: (config as any).group,
-      createdAt: config.createdAt.toISOString(),
-      updatedAt: config.updatedAt.toISOString(),
+      group: config.group,
+      createdAt: (config.createdAt as Date).toISOString(),
+      updatedAt: (config.updatedAt as Date).toISOString(),
     };
 
     loggerInstance.info('updateScheduleConfig: success', { userId, groupId, configId: config.id });
@@ -1534,7 +1547,7 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
   loggerInstance.info('resetScheduleConfig', { userId, groupId, userEmail: user?.email });
 
   try {
-    const config = await scheduleConfigServiceInstance.resetGroupScheduleConfig(groupId, userId);
+    const config = await scheduleConfigServiceInstance.resetGroupScheduleConfig(groupId, userId) as GroupScheduleConfigWithGroup;
 
     // Transform Prisma JsonValue to expected format with explicit typing
     const configScheduleHours = config.scheduleHours as Record<string, string[]>;
@@ -1548,9 +1561,9 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
         THURSDAY: configScheduleHours.THURSDAY || [],
         FRIDAY: configScheduleHours.FRIDAY || [],
       },
-      group: (config as any).group,
-      createdAt: config.createdAt.toISOString(),
-      updatedAt: config.updatedAt.toISOString(),
+      group: config.group,
+      createdAt: (config.createdAt as Date).toISOString(),
+      updatedAt: (config.updatedAt as Date).toISOString(),
     };
 
     loggerInstance.info('resetScheduleConfig: success', { userId, groupId, configId: config.id });

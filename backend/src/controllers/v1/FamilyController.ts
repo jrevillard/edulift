@@ -1207,7 +1207,7 @@ app.openapi(removeMemberRoute, async (c) => {
     loggerInstance.info('removeMember: success', { userId, familyId, memberId });
     return c.json({
       success: true,
-      data: updatedFamily,
+      data: transformFamilyForResponse(updatedFamily),
     }, 200);
   } catch (error) {
     loggerInstance.error('removeMember: error', { userId, familyId, memberId, error });

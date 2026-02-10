@@ -10,11 +10,12 @@ export interface GroupAccessResult {
 
 /**
  * Error result when access control fails
+ * Note: This only returns 403 for access denial. Resource not found (404) should be checked separately.
  */
 export interface GroupAccessError {
   hasAccess: false;
   error: string;
-  statusCode: 403 | 404;
+  statusCode: 403;
 }
 
 export type GroupAccessCheck = GroupAccessResult | GroupAccessError;

@@ -851,7 +851,7 @@ export class GroupService {
       // Users can only be ADMIN or MEMBER (see calculateUserRoleInGroup documentation)
       const userRole = await this.calculateUserRoleInGroup(group, requesterId);
       if (userRole !== 'ADMIN') {
-        throw new AppError('Only group administrators can update group settings', 403);
+        throw new AppError('Only group owners and administrators can update group settings', 403);
       }
 
       // Build update data
