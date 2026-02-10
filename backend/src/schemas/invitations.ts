@@ -285,9 +285,10 @@ export const GroupInvitationResponseSchema = z.object({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
     }),
-  group: GroupSchema.optional()
+  updatedAt: z.iso.datetime()
     .openapi({
-      description: 'Group information (included in some responses)',
+      example: '2023-01-01T00:00:00.000Z',
+      description: 'Invitation update timestamp',
     }),
 }).openapi({
   title: 'Group Invitation Response',
