@@ -22,6 +22,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
+import { AppError } from './middleware/errorHandler';
 import { createErrorResponse, getErrorForLogging, ErrorCodes } from './utils/errorHandler';
 import {
   globalRateLimiter,
@@ -322,9 +323,12 @@ await handleCLI();
 app.onError((err, c) => {
   console.error('❌ Unhandled error:', err);
 
+  // Type definition for valid HTTP status codes in error responses
+  type ErrorStatusCode = 400 | 401 | 403 | 404 | 409 | 422 | 429 | 500 | 502 | 503;
+
   // Check if it's an AppError with custom status code
   if (err instanceof AppError) {
-    const statusCode = err.statusCode || 500;
+    const statusCode = (err.statusCode || 500) as ErrorStatusCode;
     if (process.env.NODE_ENV === 'development') {
       return c.json({
         success: false,
@@ -340,7 +344,7 @@ app.onError((err, c) => {
 
   // For other errors, use our enhanced error handling
   const errorForLogging = getErrorForLogging(err);
-  const statusCode = errorForLogging.statusCode || 500;
+  const statusCode = (errorForLogging.statusCode || 500) as ErrorStatusCode;
 
   if (process.env.NODE_ENV === 'development') {
     // Include stack trace in development
