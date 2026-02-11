@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { TEST_IDS } from '../../utils/testHelpers';
 import { createChildControllerRoutes } from '../v1/ChildController';
+import { AppError } from '../../middleware/errorHandler';
 
 // Mock all dependencies BEFORE importing ChildController
 jest.mock('../../services/ChildService');
@@ -348,7 +349,7 @@ describe('ChildController Test Suite', () => {
 
       mockChildService.getUserFamily.mockResolvedValue(mockFamily as any);
       mockChildService.canUserModifyFamilyChildren.mockResolvedValue(true);
-      mockChildService.createChild.mockRejectedValue(new Error('Database error'));
+      mockChildService.createChild.mockRejectedValue(new AppError('Database error', 500));
 
       const response = await makeAuthenticatedRequest(app, '/', {
         method: 'POST',
@@ -440,7 +441,7 @@ describe('ChildController Test Suite', () => {
     });
 
     it('should return 500 on service error', async () => {
-      mockChildService.getChildrenByUser.mockRejectedValue(new Error('Database error'));
+      mockChildService.getChildrenByUser.mockRejectedValue(new AppError('Database error', 500));
 
       const response = await makeAuthenticatedRequest(app, '/');
 
@@ -486,7 +487,7 @@ describe('ChildController Test Suite', () => {
     it('should return 404 when child not found', async () => {
       const childId = TEST_IDS.CHILD;
 
-      mockChildService.getChildById.mockRejectedValue(new Error('Child not found'));
+      mockChildService.getChildById.mockRejectedValue(new AppError('Child not found or access denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`);
 
@@ -502,7 +503,7 @@ describe('ChildController Test Suite', () => {
     it('should return 500 on service error', async () => {
       const childId = TEST_IDS.CHILD;
 
-      mockChildService.getChildById.mockRejectedValue(new Error('Database connection failed'));
+      mockChildService.getChildById.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`);
 
@@ -650,7 +651,7 @@ describe('ChildController Test Suite', () => {
         name: 'Updated Name',
       };
 
-      mockChildService.updateChild.mockRejectedValue(new Error('Child not found'));
+      mockChildService.updateChild.mockRejectedValue(new AppError('Child not found or access denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`, {
         method: 'PUT',
@@ -744,7 +745,7 @@ describe('ChildController Test Suite', () => {
         name: 'Updated Name',
       };
 
-      mockChildService.updateChild.mockRejectedValue(new Error('Child not found'));
+      mockChildService.updateChild.mockRejectedValue(new AppError('Child not found or access denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`, {
         method: 'PATCH',
@@ -809,7 +810,7 @@ describe('ChildController Test Suite', () => {
     it('should return 404 when child not found', async () => {
       const childId = TEST_IDS.CHILD;
 
-      mockChildService.deleteChild.mockRejectedValue(new Error('Child not found'));
+      mockChildService.deleteChild.mockRejectedValue(new AppError('Child not found or access denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`, {
         method: 'DELETE',
@@ -847,7 +848,7 @@ describe('ChildController Test Suite', () => {
     it('should return 500 on service error', async () => {
       const childId = TEST_IDS.CHILD;
 
-      mockChildService.deleteChild.mockRejectedValue(new Error('Database connection failed'));
+      mockChildService.deleteChild.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`, {
         method: 'DELETE',
@@ -916,7 +917,7 @@ describe('ChildController Test Suite', () => {
       const childId = TEST_IDS.CHILD;
       const groupId = TEST_IDS.GROUP;
 
-      mockChildAssignmentService.addChildToGroup.mockRejectedValue(new Error('Child not found or permission denied'));
+      mockChildAssignmentService.addChildToGroup.mockRejectedValue(new AppError('Child not found or permission denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups/${groupId}`, {
         method: 'POST',
@@ -926,7 +927,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to add child to group',
+        error: 'Child not found or permission denied',
         code: 'ADD_FAILED',
       });
     });
@@ -947,7 +948,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to add child to group',
+        error: 'Child not found or permission denied',
         code: 'ADD_FAILED',
       });
     });
@@ -968,7 +969,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to add child to group',
+        error: 'Child not found or permission denied',
         code: 'ADD_FAILED',
       });
     });
@@ -977,7 +978,7 @@ describe('ChildController Test Suite', () => {
       const childId = TEST_IDS.CHILD;
       const groupId = TEST_IDS.GROUP;
 
-      mockChildAssignmentService.addChildToGroup.mockRejectedValue(new Error('Database connection failed'));
+      mockChildAssignmentService.addChildToGroup.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups/${groupId}`, {
         method: 'POST',
@@ -987,7 +988,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to add child to group',
+        error: 'Child not found or permission denied',
         code: 'ADD_FAILED',
       });
     });
@@ -1046,7 +1047,7 @@ describe('ChildController Test Suite', () => {
       const childId = TEST_IDS.CHILD;
       const groupId = TEST_IDS.GROUP;
 
-      mockChildAssignmentService.removeChildFromGroup.mockRejectedValue(new Error('Child not found or permission denied'));
+      mockChildAssignmentService.removeChildFromGroup.mockRejectedValue(new AppError('Child not found or permission denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups/${groupId}`, {
         method: 'DELETE',
@@ -1087,7 +1088,7 @@ describe('ChildController Test Suite', () => {
       const childId = TEST_IDS.CHILD;
       const groupId = TEST_IDS.GROUP;
 
-      mockChildAssignmentService.removeChildFromGroup.mockRejectedValue(new Error('Database connection failed'));
+      mockChildAssignmentService.removeChildFromGroup.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups/${groupId}`, {
         method: 'DELETE',
@@ -1185,7 +1186,7 @@ describe('ChildController Test Suite', () => {
     it('should return 404 when child not found', async () => {
       const childId = TEST_IDS.CHILD;
 
-      mockChildAssignmentService.getChildGroupMemberships.mockRejectedValue(new Error('Child not found or permission denied'));
+      mockChildAssignmentService.getChildGroupMemberships.mockRejectedValue(new AppError('Child not found or permission denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups`);
 
@@ -1193,7 +1194,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or memberships retrieval failed',
+        error: 'Child not found or permission denied',
         code: 'RETRIEVE_FAILED',
       });
     });
@@ -1201,7 +1202,7 @@ describe('ChildController Test Suite', () => {
     it('should return 500 on service error', async () => {
       const childId = TEST_IDS.CHILD;
 
-      mockChildAssignmentService.getChildGroupMemberships.mockRejectedValue(new Error('Database connection failed'));
+      mockChildAssignmentService.getChildGroupMemberships.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups`);
 
@@ -1209,7 +1210,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or memberships retrieval failed',
+        error: 'Child not found or permission denied',
         code: 'RETRIEVE_FAILED',
       });
     });

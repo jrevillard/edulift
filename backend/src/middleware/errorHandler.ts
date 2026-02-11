@@ -84,7 +84,7 @@ export interface ErrorInfo {
 }
 
 export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERROR'): ErrorInfo {
-  // Handle AppError instances
+  // Handle AppError instances (MOST IMPORTANT - must come first)
   if (error instanceof AppError) {
     return {
       statusCode: error.statusCode,
@@ -92,7 +92,21 @@ export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERRO
     };
   }
 
-  // Handle standard Error instances
+  // Handle objects with statusCode property (includes AppError-like objects)
+  if (typeof error === 'object' && error !== null && 'statusCode' in error) {
+    const err = error as { message?: string; statusCode: number; code?: string };
+    const result: ErrorInfo = {
+      statusCode: err.statusCode,
+      message: err.message || 'Unknown error',
+    };
+    // Only include code property if it exists (exactOptionalPropertyTypes compliance)
+    if (err.code !== undefined) {
+      result.code = err.code;
+    }
+    return result;
+  }
+
+  // Handle standard Error instances (without statusCode)
   if (error instanceof Error) {
     return {
       statusCode: 500,
@@ -108,14 +122,14 @@ export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERRO
     };
   }
 
-  // Handle objects with message property (non-standard errors)
+  // Handle objects with message property (non-standard errors without statusCode)
   if (typeof error === 'object' && error !== null && 'message' in error) {
-    const err = error as { message?: string; statusCode?: number; code?: string };
+    const err = error as { message?: string; code?: string };
     const result: ErrorInfo = {
-      statusCode: err.statusCode || 500,
+      statusCode: 500,
       message: err.message || 'Unknown error',
     };
-    // Only include code property if it exists (exactOptionalPropertyTypes compliance)
+    // Only include code property if it exists
     if (err.code !== undefined) {
       result.code = err.code;
     }

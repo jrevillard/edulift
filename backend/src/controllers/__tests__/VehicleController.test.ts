@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { TEST_IDS } from '../../utils/testHelpers';
 import { createVehicleControllerRoutes } from '../v1/VehicleController';
+import { AppError } from '../../middleware/errorHandler';
 
 // Mock all dependencies BEFORE importing VehicleController
 jest.mock('../../services/VehicleService');
@@ -331,7 +332,7 @@ describe('VehicleController Test Suite', () => {
 
       mockVehicleService.getUserFamily.mockResolvedValue(mockFamily as any);
       mockVehicleService.canUserModifyFamilyVehicles.mockResolvedValue(true);
-      mockVehicleService.createVehicle.mockRejectedValue(new Error('Failed to create vehicle'));
+      mockVehicleService.createVehicle.mockRejectedValue(new AppError('Failed to create vehicle', 500));
 
       const response = await makeAuthenticatedRequest(app, '/', {
         method: 'POST',
@@ -397,7 +398,7 @@ describe('VehicleController Test Suite', () => {
     });
 
     it('should return 500 on service error', async () => {
-      mockVehicleService.getVehiclesByUser.mockRejectedValue(new Error('Failed to retrieve vehicles'));
+      mockVehicleService.getVehiclesByUser.mockRejectedValue(new AppError('Failed to retrieve vehicles', 500));
 
       const response = await makeAuthenticatedRequest(app, '/');
 
@@ -452,7 +453,7 @@ describe('VehicleController Test Suite', () => {
       const groupId = TEST_IDS.GROUP;
       const timeSlotId = TEST_IDS.SLOT;
 
-      mockVehicleService.getAvailableVehiclesForScheduleSlot.mockRejectedValue(new Error('Failed to retrieve available vehicles'));
+      mockVehicleService.getAvailableVehiclesForScheduleSlot.mockRejectedValue(new AppError('Failed to retrieve available vehicles', 500));
 
       const response = await makeAuthenticatedRequest(app, `/available/${groupId}/${timeSlotId}`);
 
@@ -498,7 +499,7 @@ describe('VehicleController Test Suite', () => {
     it('should return 404 when vehicle not found', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.getVehicleById.mockRejectedValue(new Error('Vehicle not found'));
+      mockVehicleService.getVehicleById.mockRejectedValue(new AppError('Vehicle not found', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`);
 
@@ -514,7 +515,7 @@ describe('VehicleController Test Suite', () => {
     it('should return 500 on service error', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.getVehicleById.mockRejectedValue(new Error('Database connection failed'));
+      mockVehicleService.getVehicleById.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`);
 
@@ -637,7 +638,7 @@ describe('VehicleController Test Suite', () => {
         name: 'Updated Name',
       };
 
-      mockVehicleService.updateVehicle.mockRejectedValue(new Error('Vehicle not found'));
+      mockVehicleService.updateVehicle.mockRejectedValue(new AppError('Vehicle not found', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`, {
         method: 'PATCH',
@@ -717,7 +718,7 @@ describe('VehicleController Test Suite', () => {
     it('should return 404 when vehicle not found', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.deleteVehicle.mockRejectedValue(new Error('Vehicle not found'));
+      mockVehicleService.deleteVehicle.mockRejectedValue(new AppError('Vehicle not found', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`, {
         method: 'DELETE',
@@ -755,7 +756,7 @@ describe('VehicleController Test Suite', () => {
     it('should return 500 on service error', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.deleteVehicle.mockRejectedValue(new Error('Database connection failed'));
+      mockVehicleService.deleteVehicle.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`, {
         method: 'DELETE',
@@ -818,7 +819,7 @@ describe('VehicleController Test Suite', () => {
     it('should return 404 when vehicle not found', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.getVehicleSchedule.mockRejectedValue(new Error('Vehicle not found'));
+      mockVehicleService.getVehicleSchedule.mockRejectedValue(new AppError('Vehicle not found', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}/schedule`);
 
@@ -852,7 +853,7 @@ describe('VehicleController Test Suite', () => {
     it('should return 500 on service error', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      mockVehicleService.getVehicleSchedule.mockRejectedValue(new Error('Database connection failed'));
+      mockVehicleService.getVehicleSchedule.mockRejectedValue(new AppError('Database connection failed', 500));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}/schedule`);
 
