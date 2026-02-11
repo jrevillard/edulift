@@ -508,7 +508,7 @@ describe('VehicleController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: false,
         error: 'Vehicle not found',
-        code: 'VEHICLE_NOT_FOUND',
+        code: 'RETRIEVE_FAILED',
       });
     });
 
@@ -519,12 +519,12 @@ describe('VehicleController Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}`);
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Vehicle not found',
-        code: 'VEHICLE_NOT_FOUND',
+        error: 'Database connection failed',
+        code: 'RETRIEVE_FAILED',
       });
     });
   });
@@ -827,25 +827,23 @@ describe('VehicleController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Vehicle not found or schedule retrieval failed',
+        error: 'Vehicle not found',
         code: 'RETRIEVE_FAILED',
       });
     });
 
-    it('should return 404 when user has no family', async () => {
+    it('should return 403 when user has no family', async () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
-      const error = new Error('User must belong to a family to access vehicle schedules');
-      (error as any).statusCode = 403;
-      mockVehicleService.getVehicleSchedule.mockRejectedValue(error);
+      mockVehicleService.getVehicleSchedule.mockRejectedValue(new AppError('User must belong to a family to access vehicle schedules', 403));
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}/schedule`);
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(403);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Vehicle not found or schedule retrieval failed',
+        error: 'User must belong to a family to access vehicle schedules',
         code: 'RETRIEVE_FAILED',
       });
     });
@@ -857,11 +855,11 @@ describe('VehicleController Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(app, `/${vehicleId}/schedule`);
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Vehicle not found or schedule retrieval failed',
+        error: 'Database connection failed',
         code: 'RETRIEVE_FAILED',
       });
     });

@@ -663,7 +663,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or update failed',
+        error: 'Child not found or access denied',
         code: 'UPDATE_FAILED',
       });
     });
@@ -757,7 +757,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or update failed',
+        error: 'Child not found or access denied',
         code: 'UPDATE_FAILED',
       });
     });
@@ -820,7 +820,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or delete failed',
+        error: 'Child not found or access denied',
         code: 'DELETE_FAILED',
       });
     });
@@ -836,11 +836,11 @@ describe('ChildController Test Suite', () => {
         method: 'DELETE',
       });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(403);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or delete failed',
+        error: 'Insufficient permissions to delete children in family',
         code: 'DELETE_FAILED',
       });
     });
@@ -854,11 +854,11 @@ describe('ChildController Test Suite', () => {
         method: 'DELETE',
       });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or delete failed',
+        error: 'Database connection failed',
         code: 'DELETE_FAILED',
       });
     });
@@ -923,7 +923,7 @@ describe('ChildController Test Suite', () => {
         method: 'POST',
       });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(404);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
@@ -936,19 +936,17 @@ describe('ChildController Test Suite', () => {
       const childId = TEST_IDS.CHILD;
       const groupId = TEST_IDS.GROUP;
 
-      const error = new Error('Child is already member of this group');
-      (error as any).statusCode = 400;
-      mockChildAssignmentService.addChildToGroup.mockRejectedValue(error);
+      mockChildAssignmentService.addChildToGroup.mockRejectedValue(new AppError('Child already assigned to this slot', 409));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups/${groupId}`, {
         method: 'POST',
       });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(409);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or permission denied',
+        error: 'Child already assigned to this slot',
         code: 'ADD_FAILED',
       });
     });
@@ -965,11 +963,11 @@ describe('ChildController Test Suite', () => {
         method: 'POST',
       });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(403);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or permission denied',
+        error: 'User must be part of a family',
         code: 'ADD_FAILED',
       });
     });
@@ -988,7 +986,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or permission denied',
+        error: 'Database connection failed',
         code: 'ADD_FAILED',
       });
     });
@@ -1057,7 +1055,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child, group, or membership not found',
+        error: 'Child not found or permission denied',
         code: 'REMOVE_FAILED',
       });
     });
@@ -1066,10 +1064,7 @@ describe('ChildController Test Suite', () => {
       const childId = TEST_IDS.CHILD;
       const groupId = TEST_IDS.GROUP;
 
-      // Prisma throws record not found error
-      const error = new Error('Record not found');
-      (error as any).code = 'P2025';
-      mockChildAssignmentService.removeChildFromGroup.mockRejectedValue(error);
+      mockChildAssignmentService.removeChildFromGroup.mockRejectedValue(new AppError('Child not found or permission denied', 404));
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups/${groupId}`, {
         method: 'DELETE',
@@ -1079,7 +1074,7 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child, group, or membership not found',
+        error: 'Child not found or permission denied',
         code: 'REMOVE_FAILED',
       });
     });
@@ -1094,11 +1089,11 @@ describe('ChildController Test Suite', () => {
         method: 'DELETE',
       });
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child, group, or membership not found',
+        error: 'Database connection failed',
         code: 'REMOVE_FAILED',
       });
     });
@@ -1206,11 +1201,11 @@ describe('ChildController Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(app, `/${childId}/groups`);
 
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Child not found or permission denied',
+        error: 'Database connection failed',
         code: 'RETRIEVE_FAILED',
       });
     });
