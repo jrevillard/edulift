@@ -12,6 +12,7 @@ import { ChildService } from '../../services/ChildService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { createLogger } from '../../utils/logger';
 import { getErrorInfo } from '../../middleware/errorHandler';
+import { transformFamilyForResponse } from '../../utils/transformers';
 
 // Import Hono-native schemas
 import {
@@ -772,7 +773,7 @@ const getChildGroupsRoute = createRoute({
 
     return c.json({
     success: true,
-    data: updatedFamily,
+    data: transformFamilyForResponse(updatedFamily),
     }, 200);
     } catch (error) {
     loggerInstance.error('deleteChild: error', { userId, childId, error });

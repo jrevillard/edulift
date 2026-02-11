@@ -12,6 +12,7 @@ import { VehicleService, UpdateVehicleData } from '../../services/VehicleService
 import { createLogger } from '../../utils/logger';
 import { verifyGroupAccess } from '../../utils/accessControl';
 import { getErrorInfo } from '../../middleware/errorHandler';
+import { transformFamilyForResponse } from '../../utils/transformers';
 
 // Import Hono-native schemas
 import {
@@ -600,7 +601,7 @@ app.openapi(deleteVehicleRoute, async (c) => {
 
     return c.json({
       success: true,
-      data: updatedFamily,
+      data: transformFamilyForResponse(updatedFamily),
     }, 200);
   } catch (error) {
     loggerInstance.error('deleteVehicle: error', { userId, vehicleId, error });

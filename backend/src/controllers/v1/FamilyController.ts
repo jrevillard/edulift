@@ -14,6 +14,7 @@ import { FamilyRole } from '../../types/family';
 import { createLogger } from '../../utils/logger';
 import { normalizeError } from '../../utils/errorHandler';
 import { EmailServiceFactory } from '../../services/EmailServiceFactory';
+import { transformFamilyForResponse } from '../../utils/transformers';
 
 // Import Hono-native schemas
 import {
@@ -68,7 +69,6 @@ const FamilyPermissionsSuccessSchema = z.object({
 /**
  * Transform family data to ISO strings for OpenAPI compliance
  */
-const transformFamilyForResponse = (family: any): any => {
   if (!family) return family;
 
   const now = new Date().toISOString();
@@ -107,7 +107,6 @@ const transformFamilyForResponse = (family: any): any => {
     children: transformedChildren,
     vehicles: transformedVehicles,
   };
-};
 
 // Mock cache service for now (should be replaced with real cache service)
 const createMockCacheService = () => ({

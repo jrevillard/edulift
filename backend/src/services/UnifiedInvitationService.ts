@@ -222,7 +222,7 @@ export class UnifiedInvitationService {
         personalMessageLength: inviteData.personalMessage?.length || 0,
       });
 
-      return invitation;
+      return invitationWithUser;
     });
   }
 
@@ -662,6 +662,20 @@ export class UnifiedInvitationService {
           expiresAt,
           createdBy: adminId,
           invitedBy: adminId,
+        },
+      });
+
+      // Fetch invitation with invitedByUser relation for complete response
+      const invitationWithUser = await tx.groupInvitation.findUnique({
+        where: { id: invitation.id },
+        include: {
+          invitedBy: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
       });
 
