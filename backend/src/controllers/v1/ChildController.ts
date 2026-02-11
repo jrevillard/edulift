@@ -694,12 +694,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
-    const errorInfo = getErrorInfo(error, 'UPDATE_FAILED');
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: errorInfo.message,
+      error: errorMessage,
       code: 'UPDATE_FAILED',
-    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
+    }, statusCode as 400 | 403 | 404 | 500);
     }
   });
 
@@ -758,7 +758,7 @@ const getChildGroupsRoute = createRoute({
   /**
      * DELETE /children/:childId - Delete child
      */
-  app.openapi(deleteChildRoute, async (c) => {
+  app.openapi(deleteChildRoute, async (c): Promise<any> => {
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
 
@@ -776,12 +776,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('deleteChild: error', { userId, childId, error });
-    const errorInfo = getErrorInfo(error, 'DELETE_FAILED');
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'DELETE_FAILED');
     return c.json({
       success: false,
-      error: errorInfo.message,
+      error: errorMessage,
       code: 'DELETE_FAILED',
-    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
+    }, statusCode as 400 | 403 | 404 | 500);
     }
     });
 
@@ -822,7 +822,7 @@ const getChildGroupsRoute = createRoute({
   /**
    * DELETE /children/:childId/groups/:groupId - Remove child from group
      */
-  app.openapi(removeChildFromGroupRoute, async (c) => {
+  app.openapi(removeChildFromGroupRoute, async (c): Promise<any> => {
     const userId = c.get('userId');
     const { childId, groupId } = c.req.valid('param');
     
@@ -843,19 +843,19 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('removeChildFromGroup: error', { userId, childId, groupId, error });
-    const errorInfo = getErrorInfo(error, 'REMOVE_FAILED');
+    const { statusCode, message: errorMessage, code } = getErrorInfo(error, 'REMOVE_FAILED');
     return c.json({
       success: false,
-      error: errorInfo.message,
-      code: errorInfo.code || 'REMOVE_FAILED',
-    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
+      error: errorMessage,
+      code: code || 'REMOVE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 500);
     }
   });
 
   /**
    * GET /children/:childId/groups - Get child group memberships
      */
-  app.openapi(getChildGroupsRoute, async (c) => {
+  app.openapi(getChildGroupsRoute, async (c): Promise<any> => {
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
     
@@ -876,12 +876,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('getChildGroups: error', { userId, childId, error });
-    const errorInfo = getErrorInfo(error, 'RETRIEVE_FAILED');
+    const { statusCode, message: errorMessage, code } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: errorInfo.message,
-      code: errorInfo.code || 'RETRIEVE_FAILED',
-    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
+      error: errorMessage,
+      code: code || 'RETRIEVE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 500);
     }
     });
 

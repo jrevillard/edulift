@@ -516,7 +516,7 @@ app.openapi(getAvailableVehiclesRoute, async (c) => {
 /**
  * GET /vehicles/:vehicleId - Get specific vehicle
  */
-app.openapi(getVehicleRoute, async (c) => {
+app.openapi(getVehicleRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const { vehicleId } = c.req.valid('param');
 
@@ -533,12 +533,12 @@ app.openapi(getVehicleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicle: error', { userId, vehicleId, error });
-    const errorInfo = getErrorInfo(error, 'RETRIEVE_FAILED');
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: errorInfo.message,
+      error: errorMessage,
       code: 'RETRIEVE_FAILED',
-    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -616,7 +616,7 @@ app.openapi(deleteVehicleRoute, async (c) => {
 /**
  * GET /vehicles/:vehicleId/schedule - Get vehicle schedule
  */
-app.openapi(getVehicleScheduleRoute, async (c) => {
+app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const { vehicleId } = c.req.valid('param');
   const { week } = c.req.valid('query');
@@ -638,12 +638,12 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicleSchedule: error', { userId, vehicleId, error });
-    const errorInfo = getErrorInfo(error, 'RETRIEVE_FAILED');
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: errorInfo.message,
+      error: errorMessage,
       code: 'RETRIEVE_FAILED',
-    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 

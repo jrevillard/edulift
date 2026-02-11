@@ -77,10 +77,8 @@ export function createServerError(message: string = 'Internal server error'): Ap
  * Extract error information safely from unknown error type
  * Modern TypeScript approach with type guards
  */
-export type AppStatusCode = 200 | 201 | 400 | 401 | 403 | 404 | 500 | 503;
-
 export interface ErrorInfo {
-  statusCode: AppStatusCode;
+  statusCode: number;
   message: string;
   code?: string;
 }
@@ -89,7 +87,7 @@ export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERRO
   // Handle AppError instances
   if (error instanceof AppError) {
     return {
-      statusCode: error.statusCode as AppStatusCode,
+      statusCode: error.statusCode,
       message: error.message,
     };
   }
@@ -113,11 +111,15 @@ export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERRO
   // Handle objects with message property (non-standard errors)
   if (typeof error === 'object' && error !== null && 'message' in error) {
     const err = error as { message?: string; statusCode?: number; code?: string };
-    return {
-      statusCode: (err.statusCode || 500) as AppStatusCode,
+    const result: ErrorInfo = {
+      statusCode: err.statusCode || 500,
       message: err.message || 'Unknown error',
-      code: err.code,
     };
+    // Only include code property if it exists (exactOptionalPropertyTypes compliance)
+    if (err.code !== undefined) {
+      result.code = err.code;
+    }
+    return result;
   }
 
   // Fallback for completely unknown errors
