@@ -10,6 +10,7 @@ import { OpenAPIHono, createRoute } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
 import { UnifiedInvitationService, CreateFamilyInvitationData, CreateGroupInvitationData } from '../../services/UnifiedInvitationService';
 import { createLogger } from '../../utils/logger';
+import { getErrorInfo } from '../../middleware/errorHandler';
 import { EmailServiceFactory } from '../../services/EmailServiceFactory';
 
 // Import Hono-native schemas
@@ -529,8 +530,7 @@ export function createInvitationControllerRoutes(dependencies: {
     } catch (error) {
       loggerInstance.error('createFamilyInvitation: error', { userId, error });
 
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create family invitation';
-      const errorCode = (error as any).code;
+      const { statusCode, message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
 
       // Check if this is an email service error
       if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
@@ -695,8 +695,7 @@ export function createInvitationControllerRoutes(dependencies: {
     } catch (error) {
       loggerInstance.error('createGroupInvitation: error', { userId, error });
 
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create group invitation';
-      const errorCode = (error as any).code;
+      const { statusCode, message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
 
       // Check if this is an email service error
       if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {

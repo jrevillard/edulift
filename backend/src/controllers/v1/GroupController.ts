@@ -12,6 +12,7 @@ import { GroupService } from '../../services/GroupService';
 import { GroupScheduleConfigService } from '../../services/GroupScheduleConfigService';
 import { EmailServiceFactory } from '../../services/EmailServiceFactory';
 import { createLogger } from '../../utils/logger';
+import { getErrorInfo } from '../../middleware/errorHandler';
 
 // Type for GroupScheduleConfig with group included (service returns this but type doesn't declare it)
 interface GroupScheduleConfigWithGroup {
@@ -1104,14 +1105,14 @@ app.openapi(joinGroupRoute, async (c) => {
       success: true,
       data: membership,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('joinGroup', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'JOIN_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to join group',
-      code: error.code || 'JOIN_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'JOIN_FAILED',
+    }, statusCode as 400 | 403 | 404 | 409 | 500);
   }
 });
 
@@ -1158,14 +1159,14 @@ app.openapi(getGroupFamiliesRoute, async (c) => {
       success: true,
       data: families,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('getGroupFamilies', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to retrieve group families',
-      code: error.code || 'RETRIEVE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'RETRIEVE_FAILED',
+    }, statusCode as 500);
   }
 });
 
@@ -1188,14 +1189,14 @@ app.openapi(updateFamilyRoleRoute, async (c) => {
       success: true,
       data: membership,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('updateFamilyRole', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to update family role',
-      code: error.code || 'UPDATE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'UPDATE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -1246,19 +1247,19 @@ app.openapi(inviteFamilyRoute, async (c) => {
       success: true,
       data: invitation as any,
     }, 201);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('inviteFamilyById', {
       error: error instanceof Error ? error.message : String(error),
       userId,
       groupId,
       familyId: inviteData.familyId
     });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'INVITE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to invite family',
-      code: error.code || 'INVITE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'INVITE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 409 | 500);
   }
 });
 
@@ -1294,19 +1295,19 @@ app.openapi(searchFamiliesRoute, async (c) => {
       success: true,
       data: families,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('searchFamiliesForInvitation', {
       error: error instanceof Error ? error.message : String(error),
       userId,
       groupId,
       searchTerm: `${searchTerm.substring(0, 20)}...`
     });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'SEARCH_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to search families',
-      code: error.code || 'SEARCH_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'SEARCH_FAILED',
+    }, statusCode as 500);
   }
 });
 
@@ -1328,14 +1329,14 @@ app.openapi(removeFamilyFromGroupRoute, async (c) => {
       success: true,
       data: updatedGroup,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('removeFamilyFromGroup', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'REMOVE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to remove family from group',
-      code: error.code || 'REMOVE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'REMOVE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 409 | 500);
   }
 });
 
@@ -1366,14 +1367,14 @@ app.openapi(updateGroupRoute, async (c) => {
       success: true,
       data: group,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('updateGroup', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to update group',
-      code: error.code || 'UPDATE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'UPDATE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -1395,14 +1396,14 @@ app.openapi(deleteGroupRoute, async (c) => {
       success: true,
       message: 'Group deleted successfully',
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('deleteGroup', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'DELETE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to delete group',
-      code: error.code || 'DELETE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'DELETE_FAILED',
+    }, statusCode as 403 | 404 | 500);
   }
 });
 
@@ -1424,14 +1425,14 @@ app.openapi(leaveGroupRoute, async (c) => {
       success: true,
       message: 'Left group successfully',
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('leaveGroup', { error: error instanceof Error ? error.message : String(error) });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'LEAVE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to leave group',
-      code: error.code || 'LEAVE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'LEAVE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 409 | 500);
   }
 });
 
@@ -1473,14 +1474,14 @@ app.openapi(getScheduleConfigRoute, async (c) => {
       success: true,
       data: responseData,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('getScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'FETCH_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to fetch schedule configuration',
-      code: error.code || 'FETCH_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'FETCH_FAILED',
+    }, statusCode as 500);
   }
 });
 
@@ -1525,14 +1526,14 @@ app.openapi(updateScheduleConfigRoute, async (c) => {
       success: true,
       data: responseData,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('updateScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to update schedule configuration',
-      code: error.code || 'UPDATE_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'UPDATE_FAILED',
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -1571,14 +1572,14 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
       success: true,
       data: responseData,
     }, 200);
-  } catch (error: any) {
+  } catch (error) {
     loggerInstance.error('resetScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
-    const statusCode = error.statusCode || 500;
+    const { statusCode, message: errorMessage } = getErrorInfo(error, 'RESET_FAILED');
     return c.json({
       success: false,
-      error: error.message || 'Failed to reset schedule configuration',
-      code: error.code || 'RESET_FAILED',
-    }, statusCode);
+      error: errorMessage,
+      code: 'RESET_FAILED',
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 

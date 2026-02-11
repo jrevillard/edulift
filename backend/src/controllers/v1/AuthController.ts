@@ -16,6 +16,7 @@ import { SecureTokenRepository } from '../../repositories/SecureTokenRepository'
 import { createLogger } from '../../utils/logger';
 import { sanitizeSecurityError, logSecurityEvent } from '../../utils/security';
 import { isValidTimezone } from '../../utils/timezoneUtils';
+import { getErrorInfo } from '../../middleware/errorHandler';
 
 // Middleware Hono - Applied at route level in routes/auth.ts
 
@@ -723,7 +724,7 @@ app.openapi(requestMagicLinkRoute, async (c) => {
   } catch (error) {
     // SECURITY: Use sanitized error messages for production
     const securityError = sanitizeSecurityError(error as Error);
-    const errorCode = (error as any).code;
+    const { code: errorCode } = getErrorInfo(error, 'AUTH_REQUEST_FAILED');
 
     // Log security-related failures for monitoring
     logSecurityEvent('AUTH_REQUEST_FAILED', {
@@ -752,11 +753,13 @@ app.openapi(requestMagicLinkRoute, async (c) => {
       }, 422 as const);
     }
 
+    const { statusCode: securityStatusCode } = getErrorInfo(error, 'AUTH_REQUEST_FAILED');
+
     return c.json({
       success: false,
       error: securityError.userMessage,
       code: 'AUTH_REQUEST_FAILED',
-    }, securityError.statusCode as any);
+    }, securityStatusCode as 400 | 401 | 403 | 404 | 500);
   }
 });
 
@@ -1145,7 +1148,7 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
       duration: Date.now() - startTime,
     });
 
-    const errorCode = (error as any).code;
+    const { code: errorCode } = getErrorInfo(error, 'RESET_REQUEST_FAILED');
 
     // Check if this is an email service error
     if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
@@ -1159,12 +1162,13 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
 
     // Use sanitized error messages for security
     const securityError = sanitizeSecurityError(error as Error);
+    const { statusCode: securityStatusCode } = getErrorInfo(error, 'REQUEST_DELETION_FAILED');
 
     return c.json({
       success: false,
       error: securityError.userMessage,
       code: 'REQUEST_DELETION_FAILED',
-    }, securityError.statusCode as any);
+    }, securityStatusCode as 400 | 401 | 403 | 404 | 500);
   }
 });
 
