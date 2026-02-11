@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { VehicleService, UpdateVehicleData } from '../../services/VehicleService';
 import { createLogger } from '../../utils/logger';
 import { verifyGroupAccess } from '../../utils/accessControl';
+import { getErrorInfo } from '../../middleware/errorHandler';
 
 // Import Hono-native schemas
 import {
@@ -532,13 +533,12 @@ app.openapi(getVehicleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicle: error', { userId, vehicleId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Failed to retrieve vehicle';
+    const errorInfo = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
+      error: errorInfo.message,
       code: 'RETRIEVE_FAILED',
-    }, statusCode);
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -638,13 +638,12 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicleSchedule: error', { userId, vehicleId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Failed to retrieve vehicle schedule';
+    const errorInfo = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
+      error: errorInfo.message,
       code: 'RETRIEVE_FAILED',
-    }, statusCode);
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
   }
 });
 

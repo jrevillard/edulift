@@ -72,3 +72,58 @@ export function createForbiddenError(message: string = 'Forbidden'): AppError {
 export function createServerError(message: string = 'Internal server error'): AppError {
   return new AppError(message, 500);
 }
+
+/**
+ * Extract error information safely from unknown error type
+ * Modern TypeScript approach with type guards
+ */
+export type AppStatusCode = 200 | 201 | 400 | 401 | 403 | 404 | 500 | 503;
+
+export interface ErrorInfo {
+  statusCode: AppStatusCode;
+  message: string;
+  code?: string;
+}
+
+export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERROR'): ErrorInfo {
+  // Handle AppError instances
+  if (error instanceof AppError) {
+    return {
+      statusCode: error.statusCode as AppStatusCode,
+      message: error.message,
+    };
+  }
+
+  // Handle standard Error instances
+  if (error instanceof Error) {
+    return {
+      statusCode: 500,
+      message: error.message,
+    };
+  }
+
+  // Handle string errors
+  if (typeof error === 'string') {
+    return {
+      statusCode: 500,
+      message: error,
+    };
+  }
+
+  // Handle objects with message property (non-standard errors)
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const err = error as { message?: string; statusCode?: number; code?: string };
+    return {
+      statusCode: (err.statusCode || 500) as AppStatusCode,
+      message: err.message || 'Unknown error',
+      code: err.code,
+    };
+  }
+
+  // Fallback for completely unknown errors
+  return {
+    statusCode: 500,
+    message: 'Unknown error',
+    code: defaultCode,
+  };
+}

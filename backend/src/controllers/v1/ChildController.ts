@@ -11,6 +11,7 @@ import { PrismaClient } from '@prisma/client';
 import { ChildService } from '../../services/ChildService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { createLogger } from '../../utils/logger';
+import { getErrorInfo } from '../../middleware/errorHandler';
 
 // Import Hono-native schemas
 import {
@@ -693,13 +694,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Child not found or update failed';
+    const errorInfo = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
+      error: errorInfo.message,
       code: 'UPDATE_FAILED',
-    }, statusCode);
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
     }
   });
 
@@ -746,13 +746,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Child not found or update failed';
+    const errorInfo = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
+      error: errorInfo.message,
       code: 'UPDATE_FAILED',
-    }, statusCode);
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
     }
     });
 
@@ -777,13 +776,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('deleteChild: error', { userId, childId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Child not found or delete failed';
+    const errorInfo = getErrorInfo(error, 'DELETE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
+      error: errorInfo.message,
       code: 'DELETE_FAILED',
-    }, statusCode);
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
     }
     });
 
@@ -845,13 +843,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('removeChildFromGroup: error', { userId, childId, groupId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Failed to remove child from group';
+    const errorInfo = getErrorInfo(error, 'REMOVE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
-      code: (error as any).code || 'REMOVE_FAILED',
-    }, statusCode);
+      error: errorInfo.message,
+      code: errorInfo.code || 'REMOVE_FAILED',
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
     }
   });
 
@@ -879,13 +876,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('getChildGroups: error', { userId, childId, error });
-    const statusCode = (error as any).statusCode || 500;
-    const errorMessage = (error as any).message || 'Child not found or memberships retrieval failed';
+    const errorInfo = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: errorMessage,
-      code: (error as any).code || 'RETRIEVE_FAILED',
-    }, statusCode);
+      error: errorInfo.message,
+      code: errorInfo.code || 'RETRIEVE_FAILED',
+    }, errorInfo.statusCode as 400 | 403 | 404 | 500);
     }
     });
 
