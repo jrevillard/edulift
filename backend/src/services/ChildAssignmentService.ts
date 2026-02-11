@@ -128,7 +128,7 @@ export class ChildAssignmentService {
 
   async removeChildFromGroup(childId: string, groupId: string, userId: string) {
     try {
-      // Verify child ownership through family membership
+      // 1. Verify child ownership through family membership
       const child = await this.prisma.child.findUnique({
         where: { id: childId },
         include: {
@@ -146,7 +146,35 @@ export class ChildAssignmentService {
         throw new AppError('Child not found or permission denied', 404);
       }
 
-      // Remove child from group
+      // 2. Verify user's family has group access (same check as addChildToGroup)
+      const userFamily = await this.prisma.familyMember.findFirst({
+        where: { userId },
+        select: { familyId: true },
+      });
+
+      if (!userFamily) {
+        throw new AppError('User must be part of a family', 403);
+      }
+
+      const group = await this.prisma.group.findFirst({
+        where: {
+          id: groupId,
+          OR: [
+            { familyId: userFamily.familyId }, // User's family owns the group
+            {
+              familyMembers: {
+                some: { familyId: userFamily.familyId }, // User's family is a member
+              },
+            },
+          ],
+        },
+      });
+
+      if (!group) {
+        throw new AppError('User\'s family must have access to group', 403);
+      }
+
+      // 3. Remove child from group
       await this.prisma.groupChildMember.delete({
         where: {
           childId_groupId: {

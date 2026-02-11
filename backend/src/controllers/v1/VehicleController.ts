@@ -532,11 +532,13 @@ app.openapi(getVehicleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicle: error', { userId, vehicleId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to retrieve vehicle';
     return c.json({
       success: false,
-      error: 'Vehicle not found',
-      code: 'VEHICLE_NOT_FOUND',
-    }, 404);
+      error: errorMessage,
+      code: 'RETRIEVE_FAILED',
+    }, statusCode);
   }
 });
 
@@ -636,11 +638,13 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicleSchedule: error', { userId, vehicleId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to retrieve vehicle schedule';
     return c.json({
       success: false,
-      error: 'Vehicle not found or schedule retrieval failed',
+      error: errorMessage,
       code: 'RETRIEVE_FAILED',
-    }, 404);
+    }, statusCode);
   }
 });
 
