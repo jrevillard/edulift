@@ -389,7 +389,7 @@ const getVehicleScheduleRoute = createRoute({
 /**
  * POST /vehicles - Create a new vehicle
  */
-app.openapi(createVehicleRoute, async (c) => {
+app.openapi(createVehicleRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const user = c.get('user');
   const input = c.req.valid('json');
@@ -432,22 +432,21 @@ app.openapi(createVehicleRoute, async (c) => {
       success: true,
       data: family,
     }, 201);
-  } catch (error: any) {
-    loggerInstance.error('createVehicle: error', { userId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Failed to create vehicle';
-    return c.json({
-      success: false,
-      error: errorMessage,
-      code: 'CREATE_FAILED',
-    }, statusCode);
-  }
+  } catch (error) {
+      loggerInstance.error('createVehicle: error', { userId, error });
+      const { statusCode, message: errorMessage } = getErrorInfo(error, 'CREATE_FAILED');
+      return c.json({
+        success: false,
+        error: errorMessage,
+        code: 'CREATE_FAILED',
+      }, statusCode as 400 | 403 | 404 | 500);
+    }
 });
 
 /**
  * GET /vehicles - List all vehicles
  */
-app.openapi(getVehiclesRoute, async (c) => {
+app.openapi(getVehiclesRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
 
   loggerInstance.info('getVehicles', { userId });
@@ -476,7 +475,7 @@ app.openapi(getVehiclesRoute, async (c) => {
 /**
  * GET /vehicles/available/:groupId/:timeSlotId - Get available vehicles
  */
-app.openapi(getAvailableVehiclesRoute, async (c) => {
+app.openapi(getAvailableVehiclesRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const { groupId, timeSlotId } = c.req.valid('param');
 
