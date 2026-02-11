@@ -693,11 +693,13 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Child not found or update failed';
     return c.json({
-    success: false,
-    error: 'Child not found or update failed',
-    code: 'UPDATE_FAILED',
-    }, 404);
+      success: false,
+      error: errorMessage,
+      code: 'UPDATE_FAILED',
+    }, statusCode);
     }
   });
   
@@ -744,11 +746,13 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Child not found or update failed';
     return c.json({
-    success: false,
-    error: 'Child not found or update failed',
-    code: 'UPDATE_FAILED',
-    }, 404);
+      success: false,
+      error: errorMessage,
+      code: 'UPDATE_FAILED',
+    }, statusCode);
     }
     });
     
@@ -773,11 +777,13 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('deleteChild: error', { userId, childId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Child not found or delete failed';
     return c.json({
-    success: false,
-    error: 'Child not found or delete failed',
-    code: 'DELETE_FAILED',
-    }, 404);
+      success: false,
+      error: errorMessage,
+      code: 'DELETE_FAILED',
+    }, statusCode);
     }
     });
 
@@ -803,13 +809,15 @@ const getChildGroupsRoute = createRoute({
     success: true,
     data: membership,
     }, 201);
-    } catch (error) {
+    } catch (error: any) {
     loggerInstance.error('addChildToGroup: error', { userId, childId, groupId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to add child to group';
     return c.json({
     success: false,
-    error: 'Failed to add child to group',
-    code: 'ADD_FAILED',
-    }, 500);
+    error: errorMessage,
+    code: error.code || 'ADD_FAILED',
+    }, statusCode);
     }
   });
   
@@ -837,11 +845,13 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('removeChildFromGroup: error', { userId, childId, groupId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Failed to remove child from group';
     return c.json({
-    success: false,
-    error: 'Child, group, or membership not found',
-    code: 'REMOVE_FAILED',
-    }, 404);
+      success: false,
+      error: errorMessage,
+      code: error.code || 'REMOVE_FAILED',
+    }, statusCode);
     }
   });
   
@@ -869,11 +879,13 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('getChildGroups: error', { userId, childId, error });
+    const statusCode = error.statusCode || 500;
+    const errorMessage = error.message || 'Child not found or memberships retrieval failed';
     return c.json({
-    success: false,
-    error: 'Child not found or memberships retrieval failed',
-    code: 'RETRIEVE_FAILED',
-    }, 404);
+      success: false,
+      error: errorMessage,
+      code: error.code || 'RETRIEVE_FAILED',
+    }, statusCode);
     }
     });
 
