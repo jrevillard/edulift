@@ -693,8 +693,8 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Child not found or update failed';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Child not found or update failed';
     return c.json({
       success: false,
       error: errorMessage,
@@ -702,7 +702,7 @@ const getChildGroupsRoute = createRoute({
     }, statusCode);
     }
   });
-  
+
   /**
    * PATCH /children/:childId - Update child (partial)
      */
@@ -746,8 +746,8 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('updateChild: error', { userId, childId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Child not found or update failed';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Child not found or update failed';
     return c.json({
       success: false,
       error: errorMessage,
@@ -755,7 +755,7 @@ const getChildGroupsRoute = createRoute({
     }, statusCode);
     }
     });
-    
+
   /**
      * DELETE /children/:childId - Delete child
      */
@@ -777,8 +777,8 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('deleteChild: error', { userId, childId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Child not found or delete failed';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Child not found or delete failed';
     return c.json({
       success: false,
       error: errorMessage,
@@ -845,16 +845,16 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('removeChildFromGroup: error', { userId, childId, groupId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Failed to remove child from group';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Failed to remove child from group';
     return c.json({
       success: false,
       error: errorMessage,
-      code: error.code || 'REMOVE_FAILED',
+      code: (error as any).code || 'REMOVE_FAILED',
     }, statusCode);
     }
   });
-  
+
   /**
    * GET /children/:childId/groups - Get child group memberships
      */
@@ -879,12 +879,12 @@ const getChildGroupsRoute = createRoute({
     }, 200);
     } catch (error) {
     loggerInstance.error('getChildGroups: error', { userId, childId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Child not found or memberships retrieval failed';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Child not found or memberships retrieval failed';
     return c.json({
       success: false,
       error: errorMessage,
-      code: error.code || 'RETRIEVE_FAILED',
+      code: (error as any).code || 'RETRIEVE_FAILED',
     }, statusCode);
     }
     });

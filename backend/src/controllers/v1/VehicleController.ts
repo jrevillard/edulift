@@ -532,8 +532,8 @@ app.openapi(getVehicleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicle: error', { userId, vehicleId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Failed to retrieve vehicle';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Failed to retrieve vehicle';
     return c.json({
       success: false,
       error: errorMessage,
@@ -638,8 +638,8 @@ app.openapi(getVehicleScheduleRoute, async (c) => {
     }, 200);
   } catch (error) {
     loggerInstance.error('getVehicleSchedule: error', { userId, vehicleId, error });
-    const statusCode = error.statusCode || 500;
-    const errorMessage = error.message || 'Failed to retrieve vehicle schedule';
+    const statusCode = (error as any).statusCode || 500;
+    const errorMessage = (error as any).message || 'Failed to retrieve vehicle schedule';
     return c.json({
       success: false,
       error: errorMessage,

@@ -73,10 +73,39 @@ const transformFamilyForResponse = (family: any): any => {
 
   const now = new Date().toISOString();
 
+  // Helper to transform date fields to ISO strings
+  const toDateISOString = (date: Date | string | null | undefined): string => {
+    if (!date) return now;
+    if (date instanceof Date) return date.toISOString();
+    const d = new Date(date);
+    return !isNaN(d.getTime()) ? d.toISOString() : now;
+  };
+
+  // Transform nested arrays - members, children, vehicles
+  const transformedMembers = family.members?.map((member: any) => ({
+    ...member,
+    joinedAt: toDateISOString(member.joinedAt),
+  }));
+
+  const transformedChildren = family.children?.map((child: any) => ({
+    ...child,
+    createdAt: toDateISOString(child.createdAt),
+    updatedAt: toDateISOString(child.updatedAt),
+  }));
+
+  const transformedVehicles = family.vehicles?.map((vehicle: any) => ({
+    ...vehicle,
+    createdAt: toDateISOString(vehicle.createdAt),
+    updatedAt: toDateISOString(vehicle.updatedAt),
+  }));
+
   return {
     ...family,
-    createdAt: family.createdAt ? new Date(family.createdAt).toISOString() : now,
-    updatedAt: family.updatedAt ? new Date(family.updatedAt).toISOString() : now,
+    createdAt: toDateISOString(family.createdAt),
+    updatedAt: toDateISOString(family.updatedAt),
+    members: transformedMembers,
+    children: transformedChildren,
+    vehicles: transformedVehicles,
   };
 };
 
