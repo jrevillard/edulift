@@ -554,7 +554,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'User must belong to a family to add children',
-    code: 'NO_FAMILY',
+      code: 'NO_FAMILY' as const,
     }, 403);
     }
 
@@ -565,7 +565,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'Insufficient permissions to add children to family',
-    code: 'INSUFFICIENT_PERMISSIONS',
+      code: 'INSUFFICIENT_PERMISSIONS' as const,
     }, 403);
     }
 
@@ -592,7 +592,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'Failed to create child',
-    code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
     }, 500);
     }
   });
@@ -619,7 +619,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'Failed to retrieve children',
-    code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
     }
     });
@@ -647,7 +647,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'Child not found',
-    code: 'CHILD_NOT_FOUND',
+      code: 'CHILD_NOT_FOUND' as const,
     }, 404);
     }
     });
@@ -677,7 +677,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'No update data provided',
-    code: 'NO_DATA',
+      code: 'NO_DATA' as const,
     }, 400);
     }
     
@@ -699,7 +699,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
     }
   });
@@ -729,7 +729,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
     success: false,
     error: 'No update data provided',
-    code: 'NO_DATA',
+      code: 'NO_DATA' as const,
     }, 400);
     }
     
@@ -751,7 +751,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
       success: false,
       error: errorInfo.message,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, errorInfo.statusCode as 400 | 403 | 404 | 500);
     }
     });
@@ -781,7 +781,7 @@ const getChildGroupsRoute = createRoute({
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'DELETE_FAILED',
+      code: 'DELETE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
     }
     });

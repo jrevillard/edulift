@@ -530,14 +530,14 @@ export function createInvitationControllerRoutes(dependencies: {
     } catch (error) {
       loggerInstance.error('createFamilyInvitation: error', { userId, error });
 
-      const { statusCode, message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
+      const { message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
 
       // Check if this is an email service error
       if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
         return c.json({
           success: false as const,
           error: 'Email service temporarily unavailable. Please try again later.',
-          code: 'EMAIL_SERVICE_UNAVAILABLE',
+      code: 'EMAIL_SERVICE_UNAVAILABLE' as const,
           retryable: true,
         }, 503);
       }
@@ -546,21 +546,21 @@ export function createInvitationControllerRoutes(dependencies: {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'FORBIDDEN',
+      code: 'FORBIDDEN' as const,
         }, 403);
       }
       if (errorMessage.includes('already a member') || errorMessage.includes('already exists') || errorMessage.includes('Family has reached maximum capacity')) {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'CONFLICT',
+      code: 'CONFLICT' as const,
         }, 409);
       }
 
       return c.json({
         success: false as const,
         error: 'Failed to create family invitation',
-        code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
       }, 500);
     }
   });
@@ -610,7 +610,7 @@ export function createInvitationControllerRoutes(dependencies: {
       return c.json({
         success: false as const,
         error: 'Validation failed',
-        code: 'VALIDATION_FAILED',
+      code: 'VALIDATION_FAILED' as const,
       }, 500);
     }
   });
@@ -639,7 +639,7 @@ export function createInvitationControllerRoutes(dependencies: {
         return c.json({
           success: false as const,
           error: result.error || 'Failed to accept family invitation',
-          code: 'ACCEPT_FAILED',
+      code: 'ACCEPT_FAILED' as const,
         }, 400);
       }
     } catch (error) {
@@ -647,7 +647,7 @@ export function createInvitationControllerRoutes(dependencies: {
       return c.json({
         success: false as const,
         error: 'Failed to accept family invitation',
-        code: 'ACCEPT_FAILED',
+      code: 'ACCEPT_FAILED' as const,
       }, 500);
     }
   });
@@ -675,6 +675,14 @@ export function createInvitationControllerRoutes(dependencies: {
         userId
       );
 
+      if (!invitation) {
+        return c.json({
+          success: false,
+          error: 'Failed to create group invitation',
+      code: 'CREATE_FAILED' as const,
+        }, 500);
+      }
+
       loggerInstance.info('createGroupInvitation: group invitation created', {
         userId,
         invitationId: invitation.id,
@@ -695,14 +703,14 @@ export function createInvitationControllerRoutes(dependencies: {
     } catch (error) {
       loggerInstance.error('createGroupInvitation: error', { userId, error });
 
-      const { statusCode, message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
+      const { message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
 
       // Check if this is an email service error
       if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
         return c.json({
           success: false as const,
           error: 'Email service temporarily unavailable. Please try again later.',
-          code: 'EMAIL_SERVICE_UNAVAILABLE',
+      code: 'EMAIL_SERVICE_UNAVAILABLE' as const,
           retryable: true,
         }, 503);
       }
@@ -711,35 +719,35 @@ export function createInvitationControllerRoutes(dependencies: {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'FORBIDDEN',
+      code: 'FORBIDDEN' as const,
         }, 403);
       }
       if (errorMessage.includes('not found')) {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'NOT_FOUND',
+      code: 'NOT_FOUND' as const,
         }, 404);
       }
       if (errorMessage.includes('already') || errorMessage.includes('pending invitation')) {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'CONFLICT',
+      code: 'CONFLICT' as const,
         }, 409);
       }
       if (errorMessage.includes('Either targetFamilyId or email must be provided')) {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'INVALID_INPUT',
+      code: 'INVALID_INPUT' as const,
         }, 400);
       }
 
       return c.json({
         success: false as const,
         error: 'Failed to create group invitation',
-        code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
       }, 500);
     }
   });
@@ -793,7 +801,7 @@ export function createInvitationControllerRoutes(dependencies: {
       return c.json({
         success: false as const,
         error: 'Validation failed',
-        code: 'VALIDATION_FAILED',
+      code: 'VALIDATION_FAILED' as const,
       }, 500);
     }
   });
@@ -831,7 +839,7 @@ export function createInvitationControllerRoutes(dependencies: {
       return c.json({
         success: false as const,
         error: 'Failed to accept group invitation',
-        code: 'ACCEPT_FAILED',
+      code: 'ACCEPT_FAILED' as const,
       }, 500);
     }
   });
@@ -863,21 +871,21 @@ export function createInvitationControllerRoutes(dependencies: {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'FORBIDDEN',
+      code: 'FORBIDDEN' as const,
         }, 403);
       }
       if (errorMessage.includes('not found')) {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'NOT_FOUND',
+      code: 'NOT_FOUND' as const,
         }, 404);
       }
 
       return c.json({
         success: false as const,
         error: 'Failed to cancel family invitation',
-        code: 'CANCEL_FAILED',
+      code: 'CANCEL_FAILED' as const,
       }, 500);
     }
   });
@@ -909,21 +917,21 @@ export function createInvitationControllerRoutes(dependencies: {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'FORBIDDEN',
+      code: 'FORBIDDEN' as const,
         }, 403);
       }
       if (errorMessage.includes('not found')) {
         return c.json({
           success: false as const,
           error: errorMessage,
-          code: 'NOT_FOUND',
+      code: 'NOT_FOUND' as const,
         }, 404);
       }
 
       return c.json({
         success: false as const,
         error: 'Failed to cancel group invitation',
-        code: 'CANCEL_FAILED',
+      code: 'CANCEL_FAILED' as const,
       }, 500);
     }
   });

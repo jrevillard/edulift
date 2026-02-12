@@ -66,47 +66,6 @@ const FamilyPermissionsSuccessSchema = z.object({
   description: 'Successful response with family permissions',
 });
 
-/**
- * Transform family data to ISO strings for OpenAPI compliance
- */
-  if (!family) return family;
-
-  const now = new Date().toISOString();
-
-  // Helper to transform date fields to ISO strings
-  const toDateISOString = (date: Date | string | null | undefined): string => {
-    if (!date) return now;
-    if (date instanceof Date) return date.toISOString();
-    const d = new Date(date);
-    return !isNaN(d.getTime()) ? d.toISOString() : now;
-  };
-
-  // Transform nested arrays - members, children, vehicles
-  const transformedMembers = family.members?.map((member: any) => ({
-    ...member,
-    joinedAt: toDateISOString(member.joinedAt),
-  }));
-
-  const transformedChildren = family.children?.map((child: any) => ({
-    ...child,
-    createdAt: toDateISOString(child.createdAt),
-    updatedAt: toDateISOString(child.updatedAt),
-  }));
-
-  const transformedVehicles = family.vehicles?.map((vehicle: any) => ({
-    ...vehicle,
-    createdAt: toDateISOString(vehicle.createdAt),
-    updatedAt: toDateISOString(vehicle.updatedAt),
-  }));
-
-  return {
-    ...family,
-    createdAt: toDateISOString(family.createdAt),
-    updatedAt: toDateISOString(family.updatedAt),
-    members: transformedMembers,
-    children: transformedChildren,
-    vehicles: transformedVehicles,
-  };
 
 // Mock cache service for now (should be replaced with real cache service)
 const createMockCacheService = () => ({
@@ -900,7 +859,7 @@ app.openapi(createFamilyRoute, async (c) => {
       return c.json({
         success: false,
         error: 'User already belongs to a family',
-        code: 'ALREADY_IN_FAMILY',
+      code: 'ALREADY_IN_FAMILY' as const,
       }, 409);
     }
 
@@ -917,7 +876,7 @@ app.openapi(createFamilyRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
     }, 500);
   }
 });
@@ -946,7 +905,7 @@ app.openapi(joinFamilyRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'JOIN_FAILED',
+      code: 'JOIN_FAILED' as const,
     }, statusCode);
   }
 });
@@ -966,7 +925,7 @@ app.openapi(getCurrentFamilyRoute, async (c) => {
       return c.json({
         success: false,
         error: 'No family found',
-        code: 'NO_FAMILY',
+      code: 'NO_FAMILY' as const,
       }, 404);
     }
 
@@ -981,7 +940,7 @@ app.openapi(getCurrentFamilyRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1004,7 +963,7 @@ app.openapi(getFamilyPermissionsRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
-        code: 'ACCESS_DENIED',
+      code: 'ACCESS_DENIED' as const,
       }, 403);
     }
 
@@ -1021,7 +980,7 @@ app.openapi(getFamilyPermissionsRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'PERMISSION_CHECK_FAILED',
+      code: 'PERMISSION_CHECK_FAILED' as const,
     }, 500);
   }
 });
@@ -1054,7 +1013,7 @@ app.openapi(updateMemberRoleRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, statusCode);
   }
 });
@@ -1091,7 +1050,7 @@ app.openapi(inviteMemberRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'INVITE_FAILED',
+      code: 'INVITE_FAILED' as const,
     }, 400);
   }
 });
@@ -1114,7 +1073,7 @@ app.openapi(getFamilyInvitationsRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
-        code: 'ACCESS_DENIED',
+      code: 'ACCESS_DENIED' as const,
       }, 403);
     }
 
@@ -1131,7 +1090,7 @@ app.openapi(getFamilyInvitationsRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1154,7 +1113,7 @@ app.openapi(deleteInvitationRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
-        code: 'ACCESS_DENIED',
+      code: 'ACCESS_DENIED' as const,
       }, 403);
     }
 
@@ -1171,7 +1130,7 @@ app.openapi(deleteInvitationRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'DELETE_FAILED',
+      code: 'DELETE_FAILED' as const,
     }, 400);
   }
 });
@@ -1199,7 +1158,7 @@ app.openapi(updateFamilyNameRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, 400);
   }
 });
@@ -1222,7 +1181,7 @@ app.openapi(removeMemberRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
-        code: 'ACCESS_DENIED',
+      code: 'ACCESS_DENIED' as const,
       }, 403);
     }
 
@@ -1244,7 +1203,7 @@ app.openapi(removeMemberRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'REMOVE_FAILED',
+      code: 'REMOVE_FAILED' as const,
     }, statusCode);
   }
 });
@@ -1267,7 +1226,7 @@ app.openapi(leaveFamilyRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Access denied: not a member of this family',
-        code: 'ACCESS_DENIED',
+      code: 'ACCESS_DENIED' as const,
       }, 403);
     }
 
@@ -1284,7 +1243,7 @@ app.openapi(leaveFamilyRoute, async (c) => {
     return c.json({
       success: false,
       error: normalizedError.message,
-      code: 'LEAVE_FAILED',
+      code: 'LEAVE_FAILED' as const,
     }, 400);
   }
 });

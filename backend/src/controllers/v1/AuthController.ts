@@ -672,7 +672,7 @@ const confirmAccountDeletionRoute = createRoute({
 /**
  * POST /auth/magic-link - Request magic link
  */
-app.openapi(requestMagicLinkRoute, async (c) => {
+app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
   const input = c.req.valid('json');
 
   loggerInstance.debug('AuthController received magic link request', {
@@ -739,7 +739,7 @@ app.openapi(requestMagicLinkRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Email service temporarily unavailable. Please try again later.',
-        code: 'EMAIL_SERVICE_UNAVAILABLE',
+        code: 'EMAIL_SERVICE_UNAVAILABLE' as const,
         retryable: true,
       }, 503 as const);
     }
@@ -749,17 +749,15 @@ app.openapi(requestMagicLinkRoute, async (c) => {
       return c.json({
         success: false,
         error: error.message,
-        code: 'VALIDATION_ERROR',
+        code: 'VALIDATION_ERROR' as const,
       }, 422 as const);
     }
-
-    const { statusCode: securityStatusCode } = getErrorInfo(error, 'AUTH_REQUEST_FAILED');
 
     return c.json({
       success: false,
       error: securityError.userMessage,
-      code: 'AUTH_REQUEST_FAILED',
-    }, securityStatusCode as 400 | 401 | 403 | 404 | 500);
+      code: 'AUTH_REQUEST_FAILED' as const,
+    }, securityError.statusCode as 400 | 401 | 403 | 404 | 500);
   }
 });
 
@@ -783,7 +781,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Invalid or expired magic link',
-        code: 'INVALID_TOKEN',
+      code: 'INVALID_TOKEN' as const,
       }, 401 as const);
     }
 
@@ -896,7 +894,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
     return c.json({
       success: false,
       error: securityError.userMessage,
-      code: 'AUTH_VERIFY_FAILED',
+      code: 'AUTH_VERIFY_FAILED' as const,
     }, securityError.statusCode as any);
   }
 });
@@ -911,7 +909,7 @@ app.openapi(refreshTokenRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Refresh token required',
-      code: 'MISSING_REFRESH_TOKEN',
+      code: 'MISSING_REFRESH_TOKEN' as const,
     }, 400 as const);
   }
 
@@ -933,7 +931,7 @@ app.openapi(refreshTokenRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Invalid or expired refresh token',
-      code: 'INVALID_REFRESH_TOKEN',
+      code: 'INVALID_REFRESH_TOKEN' as const,
     }, 401 as const);
   }
 });
@@ -958,7 +956,7 @@ app.openapi(logoutRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to logout',
-      code: 'LOGOUT_FAILED',
+      code: 'LOGOUT_FAILED' as const,
     }, 500 as const);
   }
 });
@@ -975,7 +973,7 @@ app.openapi(getProfileRoute, async (c) => {
     return c.json({
       success: false,
       error: 'User not found',
-      code: 'USER_NOT_FOUND',
+      code: 'USER_NOT_FOUND' as const,
     }, 404 as const);
   }
 
@@ -1015,7 +1013,7 @@ app.openapi(updateProfileRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Invalid IANA timezone format. Please use format like "Europe/Paris" or "America/New_York"',
-      code: 'INVALID_TIMEZONE',
+      code: 'INVALID_TIMEZONE' as const,
     }, 400 as const);
   }
 
@@ -1051,7 +1049,7 @@ app.openapi(updateProfileRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to update profile',
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, 500 as const);
   }
 });
@@ -1083,7 +1081,7 @@ app.openapi(updateTimezoneRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to update timezone',
-      code: 'UPDATE_TIMEZONE_FAILED',
+      code: 'UPDATE_TIMEZONE_FAILED' as const,
     }, 500 as const);
   }
 });
@@ -1091,7 +1089,7 @@ app.openapi(updateTimezoneRoute, async (c) => {
 /**
  * POST /auth/profile/delete-request - Request account deletion
  */
-app.openapi(requestAccountDeletionRoute, async (c) => {
+app.openapi(requestAccountDeletionRoute, async (c): Promise<any> => {
   const startTime = Date.now();
   const userId = c.get('userId');
   const user = c.get('user');
@@ -1114,7 +1112,7 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
     return c.json({
       success: false,
       error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
-      code: 'INVALID_PKCE_CHALLENGE',
+      code: 'INVALID_PKCE_CHALLENGE' as const,
     }, 400 as const);
   }
 
@@ -1148,27 +1146,23 @@ app.openapi(requestAccountDeletionRoute, async (c) => {
       duration: Date.now() - startTime,
     });
 
-    const { code: errorCode } = getErrorInfo(error, 'RESET_REQUEST_FAILED');
+    const securityError = sanitizeSecurityError(error as Error);
 
     // Check if this is an email service error
-    if (errorCode === 'EMAIL_SERVICE_UNAVAILABLE') {
+    if (securityError.userMessage.includes('Email service') || securityError.userMessage.includes('email service')) {
       return c.json({
         success: false,
         error: 'Email service temporarily unavailable. Please try again later.',
-        code: 'EMAIL_SERVICE_UNAVAILABLE',
+        code: 'EMAIL_SERVICE_UNAVAILABLE' as const,
         retryable: true,
       }, 503 as const);
     }
 
-    // Use sanitized error messages for security
-    const securityError = sanitizeSecurityError(error as Error);
-    const { statusCode: securityStatusCode } = getErrorInfo(error, 'REQUEST_DELETION_FAILED');
-
     return c.json({
       success: false,
       error: securityError.userMessage,
-      code: 'REQUEST_DELETION_FAILED',
-    }, securityStatusCode as 400 | 401 | 403 | 404 | 500);
+      code: 'REQUEST_DELETION_FAILED' as const,
+    }, securityError.statusCode as 400 | 401 | 403 | 404 | 500);
   }
 });
 
@@ -1198,7 +1192,7 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
     return c.json({
       success: false,
       error: 'code_verifier required for PKCE validation',
-      code: 'MISSING_PKCE_VERIFIER',
+      code: 'MISSING_PKCE_VERIFIER' as const,
     }, 400 as const);
   }
 

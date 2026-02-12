@@ -481,7 +481,7 @@ app.openapi(saveTokenRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to save FCM token',
-      code: 'SAVE_FAILED',
+      code: 'SAVE_FAILED' as const,
     }, 500);
   }
 });
@@ -529,7 +529,7 @@ app.openapi(getTokensRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve FCM tokens',
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
 });
@@ -589,7 +589,7 @@ app.openapi(cleanupInactiveRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to clean up inactive tokens',
-      code: 'CLEANUP_FAILED',
+      code: 'CLEANUP_FAILED' as const,
     }, 500);
   }
 });
@@ -614,7 +614,7 @@ app.openapi(deleteTokenRoute, async (c) => {
       return c.json({
         success: false,
         error: 'FCM token not found',
-        code: 'TOKEN_NOT_FOUND',
+      code: 'TOKEN_NOT_FOUND' as const,
       }, 404);
     }
 
@@ -634,7 +634,7 @@ app.openapi(deleteTokenRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to delete FCM token',
-      code: 'DELETE_FAILED',
+      code: 'DELETE_FAILED' as const,
     }, 500);
   }
 });
@@ -678,7 +678,7 @@ app.openapi(validateTokenRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to validate FCM token',
-      code: 'VALIDATION_FAILED',
+      code: 'VALIDATION_FAILED' as const,
     }, 500);
   }
 });
@@ -706,7 +706,7 @@ app.openapi(subscribeTopicRoute, async (c) => {
       return c.json({
         success: false,
         error: 'FCM token not found or inactive',
-        code: 'TOKEN_NOT_FOUND',
+      code: 'TOKEN_NOT_FOUND' as const,
       }, 404);
     }
 
@@ -732,7 +732,7 @@ app.openapi(subscribeTopicRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to subscribe to topic',
-      code: 'SUBSCRIBE_FAILED',
+      code: 'SUBSCRIBE_FAILED' as const,
     }, 500);
   }
 });
@@ -760,7 +760,7 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
       return c.json({
         success: false,
         error: 'FCM token not found or inactive',
-        code: 'TOKEN_NOT_FOUND',
+      code: 'TOKEN_NOT_FOUND' as const,
       }, 404);
     }
 
@@ -786,7 +786,7 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to unsubscribe from topic',
-      code: 'UNSUBSCRIBE_FAILED',
+      code: 'UNSUBSCRIBE_FAILED' as const,
     }, 500);
   }
 });
@@ -816,7 +816,7 @@ app.openapi(testNotificationRoute, async (c) => {
       return c.json({
         success: false,
         error: 'No active FCM tokens found',
-        code: 'NO_TOKENS',
+      code: 'NO_TOKENS' as const,
       }, 404);
     }
 
@@ -858,7 +858,7 @@ app.openapi(testNotificationRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to send test notification',
-      code: 'SEND_FAILED',
+      code: 'SEND_FAILED' as const,
     }, 500);
   }
 });
@@ -903,7 +903,7 @@ app.openapi(getStatsRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve token statistics',
-      code: 'STATS_FAILED',
+      code: 'STATS_FAILED' as const,
     }, 500);
   }
 });

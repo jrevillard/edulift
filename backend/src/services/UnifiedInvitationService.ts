@@ -222,7 +222,7 @@ export class UnifiedInvitationService {
         personalMessageLength: inviteData.personalMessage?.length || 0,
       });
 
-      return invitationWithUser;
+      return invitation;
     });
   }
 
@@ -665,20 +665,6 @@ export class UnifiedInvitationService {
         },
       });
 
-      // Fetch invitation with invitedByUser relation for complete response
-      const invitationWithUser = await tx.groupInvitation.findUnique({
-        where: { id: invitation.id },
-        include: {
-          invitedBy: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-            },
-          },
-        },
-      });
-
       // Send emails to family admins if target family specified
       if (targetFamily) {
         const admins = targetFamily.members.filter(member => member.role === FamilyRole.ADMIN);
@@ -725,7 +711,7 @@ export class UnifiedInvitationService {
       } else{
         //error if no target family or email provided
         throw new Error('Either targetFamilyId or email must be provided for group invitations');
-      } 
+      }
       return invitation;
     });
   }

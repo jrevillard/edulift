@@ -1052,7 +1052,7 @@ app.openapi(createGroupRoute, async (c) => {
       return c.json({
         success: false,
         error: 'User must belong to a family to create groups',
-        code: 'NO_FAMILY',
+      code: 'NO_FAMILY' as const,
       }, 403);
     }
 
@@ -1061,7 +1061,7 @@ app.openapi(createGroupRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Only family administrators can create groups',
-        code: 'INSUFFICIENT_PERMISSIONS',
+      code: 'INSUFFICIENT_PERMISSIONS' as const,
       }, 403);
     }
 
@@ -1082,7 +1082,7 @@ app.openapi(createGroupRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to create group',
-      code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
     }, 500);
   }
 });
@@ -1090,7 +1090,7 @@ app.openapi(createGroupRoute, async (c) => {
 /**
  * POST /groups/join - Join group
  */
-app.openapi(joinGroupRoute, async (c) => {
+app.openapi(joinGroupRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const user = c.get('user');
   const input = c.req.valid('json');
@@ -1111,8 +1111,8 @@ app.openapi(joinGroupRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'JOIN_FAILED',
-    }, statusCode as 400 | 403 | 404 | 409 | 500);
+      code: 'JOIN_FAILED' as const,
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -1137,7 +1137,7 @@ app.openapi(getMyGroupsRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve user groups',
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1165,7 +1165,7 @@ app.openapi(getGroupFamiliesRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, statusCode as 500);
   }
 });
@@ -1195,7 +1195,7 @@ app.openapi(updateFamilyRoleRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
   }
 });
@@ -1237,6 +1237,14 @@ app.openapi(inviteFamilyRoute, async (c) => {
       userId,
     );
 
+    if (!invitation) {
+      return c.json({
+        success: false,
+        error: 'Failed to create invitation',
+      code: 'INVITE_FAILED' as const,
+      }, 500);
+    }
+
     loggerInstance.info('inviteFamilyById: success', {
       userId,
       groupId,
@@ -1258,8 +1266,8 @@ app.openapi(inviteFamilyRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'INVITE_FAILED',
-    }, statusCode as 400 | 403 | 404 | 409 | 500);
+      code: 'INVITE_FAILED' as const,
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -1302,19 +1310,37 @@ app.openapi(searchFamiliesRoute, async (c) => {
       groupId,
       searchTerm: `${searchTerm.substring(0, 20)}...`
     });
-    const { statusCode, message: errorMessage } = getErrorInfo(error, 'SEARCH_FAILED');
+
+    // Map error messages to expected error codes
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage === 'Only group administrators can perform this action') {
+      return c.json({
+        success: false,
+        error: 'User is not a group admin',
+        code: 'FORBIDDEN' as const,
+      }, 403);
+    }
+    if (errorMessage === 'Group not found') {
+      return c.json({
+        success: false,
+        error: 'Group not found',
+        code: 'GROUP_NOT_FOUND' as const,
+      }, 404);
+    }
+
+    // Fallback to generic error
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'SEARCH_FAILED',
-    }, statusCode as 500);
+      code: 'SEARCH_FAILED' as const,
+    }, 500);
   }
 });
 
 /**
  * DELETE /groups/:groupId/families/:familyId - Remove family from group
  */
-app.openapi(removeFamilyFromGroupRoute, async (c) => {
+app.openapi(removeFamilyFromGroupRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const user = c.get('user');
   const { groupId, familyId } = c.req.valid('param');
@@ -1335,7 +1361,7 @@ app.openapi(removeFamilyFromGroupRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'REMOVE_FAILED',
+      code: 'REMOVE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 409 | 500);
   }
 });
@@ -1373,7 +1399,7 @@ app.openapi(updateGroupRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
   }
 });
@@ -1402,7 +1428,7 @@ app.openapi(deleteGroupRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'DELETE_FAILED',
+      code: 'DELETE_FAILED' as const,
     }, statusCode as 403 | 404 | 500);
   }
 });
@@ -1431,8 +1457,8 @@ app.openapi(leaveGroupRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'LEAVE_FAILED',
-    }, statusCode as 400 | 403 | 404 | 409 | 500);
+      code: 'LEAVE_FAILED' as const,
+    }, statusCode as 400 | 403 | 404 | 500);
   }
 });
 
@@ -1480,7 +1506,7 @@ app.openapi(getScheduleConfigRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'FETCH_FAILED',
+      code: 'FETCH_FAILED' as const,
     }, statusCode as 500);
   }
 });
@@ -1532,7 +1558,7 @@ app.openapi(updateScheduleConfigRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
   }
 });
@@ -1578,7 +1604,7 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'RESET_FAILED',
+      code: 'RESET_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
   }
 });

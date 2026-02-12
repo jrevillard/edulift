@@ -1017,7 +1017,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to create schedule slot',
-      code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
     }, 500);
   }
 });
@@ -1081,7 +1081,7 @@ app.openapi(assignVehicleRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to assign vehicle',
-      code: 'ASSIGN_FAILED',
+      code: 'ASSIGN_FAILED' as const,
     }, 500);
   }
 });
@@ -1146,7 +1146,7 @@ app.openapi(removeVehicleRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to remove vehicle',
-      code: 'REMOVE_FAILED',
+      code: 'REMOVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1201,7 +1201,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to update driver',
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, 500);
   }
 });
@@ -1245,14 +1245,14 @@ app.openapi(removeChildRoute, async (c) => {
       return c.json({
         success: false,
         error: 'Child assignment not found',
-        code: 'CHILD_NOT_FOUND',
+      code: 'CHILD_NOT_FOUND' as const,
       }, 404);
     }
 
     return c.json({
       success: false,
       error: 'Failed to remove child',
-      code: 'REMOVE_FAILED',
+      code: 'REMOVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1291,7 +1291,7 @@ app.openapi(getScheduleSlotRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve schedule slot',
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1365,7 +1365,7 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve conflicts',
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
 });
@@ -1548,7 +1548,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to update seat override',
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, 500);
   }
 });

@@ -494,7 +494,7 @@ app.openapi(getStatsRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve dashboard statistics',
-      code: 'STATS_RETRIEVAL_FAILED',
+      code: 'STATS_RETRIEVAL_FAILED' as const,
     }, 500);
   }
 });
@@ -538,7 +538,7 @@ app.openapi(getTodayScheduleRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve today\'s schedule',
-      code: 'SCHEDULE_RETRIEVAL_FAILED',
+      code: 'SCHEDULE_RETRIEVAL_FAILED' as const,
     }, 500);
   }
 });
@@ -587,7 +587,7 @@ app.openapi(getRecentActivityRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve recent activity',
-      code: 'ACTIVITY_RETRIEVAL_FAILED',
+      code: 'ACTIVITY_RETRIEVAL_FAILED' as const,
     }, 500);
   }
 });
@@ -613,7 +613,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
       return c.json({
         success: false,
         error: weeklyData.error || 'Failed to retrieve weekly dashboard',
-        code: 'WEEKLY_DASHBOARD_FAILED',
+      code: 'WEEKLY_DASHBOARD_FAILED' as const,
       }, statusCode);
     }
 
@@ -686,7 +686,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Failed to retrieve weekly dashboard',
-      code: 'WEEKLY_DASHBOARD_FAILED',
+      code: 'WEEKLY_DASHBOARD_FAILED' as const,
     }, 500);
   }
 });

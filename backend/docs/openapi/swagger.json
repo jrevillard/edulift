@@ -3713,6 +3713,144 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Schedule slot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -16890,6 +17028,7 @@
                   "searchTerm": {
                     "type": "string",
                     "minLength": 1,
+                    "maxLength": 100,
                     "example": "Smith",
                     "description": "Search term to filter families by name"
                   }
@@ -27349,6 +27488,75 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -27650,6 +27858,75 @@
           },
           "400": {
             "description": "Bad request - Invalid input or vehicle ID missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
             "content": {
               "application/json": {
                 "schema": {
@@ -28459,6 +28736,75 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Schedule slot not found",
             "content": {
@@ -29121,6 +29467,75 @@
                     "success",
                     "data"
                   ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
                 }
               }
             }
@@ -29837,6 +30252,75 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Schedule slot not found or child assignment does not exist",
             "content": {
@@ -30464,6 +30948,75 @@
                     "success",
                     "data"
                   ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
                 }
               }
             }
@@ -31155,6 +31708,144 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Group not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -31283,6 +31974,144 @@
                     "success",
                     "data"
                   ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Schedule slot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
                 }
               }
             }
@@ -32016,6 +32845,75 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Schedule slot not found",
             "content": {
@@ -32355,6 +33253,144 @@
               }
             }
           },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Schedule slot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal server error",
             "content": {
@@ -32530,6 +33566,144 @@
           },
           "401": {
             "description": "Unauthorized - Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Schedule slot not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -33187,6 +34361,75 @@
                     "success",
                     "data"
                   ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied - user does not have access to this group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
                 }
               }
             }

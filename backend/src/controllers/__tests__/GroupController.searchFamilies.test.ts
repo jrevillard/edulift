@@ -223,7 +223,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
     });
 
     it('should return 403 when user is not group admin', async () => {
-      const error = new Error('User is not a group admin');
+      const error = new Error('Only group administrators can perform this action');
       (error as any).statusCode = 403;
       (error as any).code = 'FORBIDDEN';
       mockGroupService.searchFamiliesForInvitation.mockRejectedValue(error);

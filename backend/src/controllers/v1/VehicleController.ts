@@ -405,7 +405,7 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
       return c.json({
         success: false,
         error: 'User must belong to a family to add vehicles',
-        code: 'NO_FAMILY',
+      code: 'NO_FAMILY' as const,
       }, 403);
     }
 
@@ -416,7 +416,7 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
       return c.json({
         success: false,
         error: 'Insufficient permissions to add vehicles to family',
-        code: 'INSUFFICIENT_PERMISSIONS',
+      code: 'INSUFFICIENT_PERMISSIONS' as const,
       }, 403);
     }
 
@@ -439,7 +439,7 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
       return c.json({
         success: false,
         error: errorMessage,
-        code: 'CREATE_FAILED',
+      code: 'CREATE_FAILED' as const,
       }, statusCode as 400 | 403 | 404 | 500);
     }
 });
@@ -468,7 +468,7 @@ app.openapi(getVehiclesRoute, async (c): Promise<any> => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, statusCode);
   }
 });
@@ -508,7 +508,7 @@ app.openapi(getAvailableVehiclesRoute, async (c): Promise<any> => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, statusCode);
   }
 });
@@ -537,7 +537,7 @@ app.openapi(getVehicleRoute, async (c): Promise<any> => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
   }
 });
@@ -579,7 +579,7 @@ app.openapi(updateVehicleRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Vehicle not found or update failed',
-      code: 'UPDATE_FAILED',
+      code: 'UPDATE_FAILED' as const,
     }, 404);
   }
 });
@@ -608,7 +608,7 @@ app.openapi(deleteVehicleRoute, async (c) => {
     return c.json({
       success: false,
       error: 'Vehicle not found or delete failed',
-      code: 'DELETE_FAILED',
+      code: 'DELETE_FAILED' as const,
     }, 404);
   }
 });
@@ -642,7 +642,7 @@ app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
     return c.json({
       success: false,
       error: errorMessage,
-      code: 'RETRIEVE_FAILED',
+      code: 'RETRIEVE_FAILED' as const,
     }, statusCode as 400 | 403 | 404 | 500);
   }
 });
