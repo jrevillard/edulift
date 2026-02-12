@@ -712,7 +712,21 @@ export class UnifiedInvitationService {
         //error if no target family or email provided
         throw new Error('Either targetFamilyId or email must be provided for group invitations');
       }
-      return invitation;
+
+      // Enrich invitation with additional fields for better UX
+      // These fields are already available in the transaction context
+      return {
+        ...invitation,
+        groupName: group.name,
+        invitedByName: adminMember.user.name || adminMember.user.email,
+        targetFamilyName: targetFamily?.name || null,
+        ownerFamilyName: adminMember.family?.name || null,
+      } as typeof invitation & {
+        groupName: string;
+        invitedByName: string;
+        targetFamilyName: string | null;
+        ownerFamilyName: string | null;
+      };
     });
   }
 

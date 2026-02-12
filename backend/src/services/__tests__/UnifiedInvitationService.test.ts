@@ -669,6 +669,13 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 userId: adminId,
                 familyId: 'admin-family-123',
                 role: FamilyRole.ADMIN,
+                user: {
+                  name: 'Admin User',
+                  email: 'admin@example.com',
+                },
+                family: {
+                  name: 'Admin Family',
+                },
               }),
             },
             groupFamilyMember: {
@@ -739,6 +746,13 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 userId: adminId,
                 familyId: 'admin-family-123',
                 role: FamilyRole.ADMIN,
+                user: {
+                  name: 'Admin User',
+                  email: 'admin@example.com',
+                },
+                family: {
+                  name: 'Admin Family',
+                },
               }),
             },
             groupFamilyMember: {
@@ -795,6 +809,13 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 userId: adminId,
                 familyId: 'admin-family-123',
                 role: FamilyRole.ADMIN,
+                user: {
+                  name: 'Admin User',
+                  email: 'admin@example.com',
+                },
+                family: {
+                  name: 'Admin Family',
+                },
               }),
             },
             groupFamilyMember: {
@@ -821,6 +842,174 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
         expect(result.targetFamilyId).toBeNull();
         expect(result.email).toBe('public@example.com');
         expect(result.inviteCode).toBe('ABC1234');
+      });
+
+      it('should return invitation with enriched fields for better UX', async () => {
+        // BLUE: Enriched fields for mobile team (2025-02-12)
+        const inviteData = {
+          targetFamilyId,
+          role: GroupRole.MEMBER,
+          personalMessage: 'Welcome to our group!',
+        };
+
+        const mockGroup = {
+          id: groupId,
+          name: 'Test Group',
+          familyId: 'admin-family-123',
+        };
+
+        const mockTargetFamily = {
+          id: targetFamilyId,
+          name: 'Target Family',
+          members: [],
+        };
+
+        const mockAdminMember = {
+          userId: adminId,
+          familyId: 'admin-family-123',
+          role: FamilyRole.ADMIN,
+          user: {
+            name: 'Admin User',
+            email: 'admin@example.com',
+          },
+          family: {
+            id: 'admin-family-123',
+            name: 'Admin Family',
+          },
+        };
+
+        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+          const tx = {
+            group: {
+              findUnique: jest.fn().mockResolvedValue(mockGroup),
+            },
+            familyMember: {
+              findFirst: jest.fn().mockResolvedValue(mockAdminMember),
+            },
+            groupFamilyMember: {
+              findFirst: jest.fn().mockResolvedValue(null),
+            },
+            groupInvitation: {
+              findFirst: jest.fn().mockResolvedValue(null),
+              create: jest.fn().mockResolvedValue({
+                id: 'group-invite-enriched-123',
+                groupId,
+                targetFamilyId,
+                inviteCode: 'ENRICHED123',
+                status: InvitationStatus.PENDING,
+                personalMessage: inviteData.personalMessage,
+                role: inviteData.role,
+              }),
+            },
+            family: {
+              findUnique: jest.fn().mockResolvedValue(mockTargetFamily),
+            },
+          };
+          return await callback(tx);
+        });
+
+        const result = await invitationService.createGroupInvitation(groupId, inviteData, adminId);
+
+        // Verify base invitation fields
+        expect(result.id).toBe('group-invite-enriched-123');
+        expect(result.groupId).toBe(groupId);
+        expect(result.targetFamilyId).toBe(targetFamilyId);
+        expect(result.inviteCode).toBe('ENRICHED123');
+        expect(result.status).toBe(InvitationStatus.PENDING);
+        expect(result.personalMessage).toBe(inviteData.personalMessage);
+        expect(result.role).toBe(inviteData.role);
+
+        // ✅ Verify enriched fields (mobile team request)
+        expect(result.groupName).toBe('Test Group');
+        expect(result.invitedByName).toBe('Admin User');
+        expect(result.targetFamilyName).toBe('Target Family');
+        expect(result.ownerFamilyName).toBe('Admin Family');
+      });
+
+      it('should enrich invitation when create() returns raw invitation without enriched fields', async () => {
+        // 🔧 TRUE UNIT TEST - verify implementation ACTUALLY enriches
+        // Mock create() to return RAW invitation (without enriched fields)
+        const inviteData = {
+          targetFamilyId,
+          role: GroupRole.MEMBER,
+        };
+
+        const mockSendGroupInvitation = jest.fn().mockResolvedValue(undefined);
+
+        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+          const tx = {
+            group: {
+              findUnique: jest.fn().mockResolvedValue({
+                id: groupId,
+                name: 'Expected Group Name', // ← Should end up in result.groupName
+                familyId: 'admin-family-123', // ← Pour groupMembership check
+              }),
+            },
+            familyMember: {
+              findFirst: jest.fn().mockResolvedValue({
+                userId: adminId,
+                familyId: 'admin-family-123',
+                role: FamilyRole.ADMIN,
+                user: {
+                  name: 'Expected User', // ← Should end up in result.invitedByName
+                  email: 'admin@example.com',
+                },
+                family: {
+                  name: 'Expected Family', // ← Should end up in result.ownerFamilyName
+                },
+              }),
+            },
+            groupFamilyMember: {
+              findFirst: jest.fn().mockResolvedValue(null), // Not already a member
+            },
+            groupInvitation: {
+              findFirst: jest.fn().mockResolvedValue(null),
+              create: jest.fn().mockResolvedValue({
+                // ❌ RAW invitation WITHOUT enriched fields
+                id: 'raw-invite-123',
+                groupId,
+                targetFamilyId,
+                inviteCode: 'RAW123',
+                status: InvitationStatus.PENDING,
+                role: GroupRole.MEMBER,
+                // ❌ NO: groupName, invitedByName, targetFamilyName, ownerFamilyName
+              }),
+            },
+            family: {
+              findUnique: jest.fn().mockResolvedValue({
+                id: targetFamilyId,
+                name: 'Expected Target Family', // ← Should end up in result.targetFamilyName
+                members: [
+                  {
+                    userId: 'other-admin-123',
+                    role: FamilyRole.ADMIN,
+                    user: {
+                      email: 'otheradmin@example.com',
+                    },
+                  },
+                ],
+              }),
+            },
+            // Mock email service
+            emailService: {
+              sendGroupInvitation: mockSendGroupInvitation,
+            },
+          };
+          return await callback(tx);
+        });
+
+        const result = await invitationService.createGroupInvitation(groupId, inviteData, adminId);
+
+        // Verify BASE fields (from create() mock)
+        expect(result.id).toBe('raw-invite-123');
+        expect(result.groupId).toBe(groupId);
+        expect(result.inviteCode).toBe('RAW123');
+
+        // 🔥 Verify ENRICHED fields (added by SERVICE implementation)
+        expect(result.groupName).toBe('Expected Group Name');
+        expect(result.invitedByName).toBe('Expected User');
+        expect(result.targetFamilyName).toBe('Expected Target Family');
+        expect(result.ownerFamilyName).toBe('Expected Family');
       });
     });
 
@@ -1123,6 +1312,13 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 userId: adminId,
                 familyId: 'admin-family-123',
                 role: FamilyRole.ADMIN,
+                user: {
+                  name: 'Admin User',
+                  email: 'admin@example.com',
+                },
+                family: {
+                  name: 'Admin Family',
+                },
               }),
             },
           };

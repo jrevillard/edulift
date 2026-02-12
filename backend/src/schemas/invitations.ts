@@ -344,6 +344,31 @@ export const GroupInvitationResponseSchema = z.object({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation update timestamp',
     }),
+  // Enriched fields for better UX (mobile team request 2025-02-12)
+  groupName: z.string()
+    .openapi({
+      example: 'School Transport 2024-2025',
+      description: 'Group name',
+    }),
+  invitedByName: z.string()
+    .openapi({
+      example: 'John Smith',
+      description: 'Name of user who created the invitation',
+    }),
+  targetFamilyName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'Johnson Family',
+      description: 'Target family name (null if invited by email)',
+    }),
+  ownerFamilyName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'Smith Family',
+      description: 'Name of family that created the invitation',
+    }),
 }).openapi({
   title: 'Group Invitation Response',
   description: 'Group invitation information',

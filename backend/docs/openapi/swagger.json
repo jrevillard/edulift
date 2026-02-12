@@ -22205,6 +22205,28 @@
                       "format": "date-time",
                       "example": "2023-01-01T00:00:00.000Z",
                       "description": "Invitation update timestamp"
+                    },
+                    "groupName": {
+                      "type": "string",
+                      "example": "School Transport 2024-2025",
+                      "description": "Group name"
+                    },
+                    "invitedByName": {
+                      "type": "string",
+                      "example": "John Smith",
+                      "description": "Name of user who created the invitation"
+                    },
+                    "targetFamilyName": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Johnson Family",
+                      "description": "Target family name (null if invited by email)"
+                    },
+                    "ownerFamilyName": {
+                      "type": "string",
+                      "nullable": true,
+                      "example": "Smith Family",
+                      "description": "Name of family that created the invitation"
                     }
                   },
                   "required": [
@@ -22217,7 +22239,9 @@
                     "createdBy",
                     "expiresAt",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "groupName",
+                    "invitedByName"
                   ],
                   "title": "Group Invitation Response",
                   "description": "Group invitation information"

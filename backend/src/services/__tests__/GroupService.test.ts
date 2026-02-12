@@ -663,6 +663,15 @@ describe('GroupService - Family-Based Architecture', () => {
         .mockResolvedValueOnce({
           familyId: TEST_IDS.FAMILY,
           role: 'ADMIN',
+          user: {
+            id: TEST_IDS.USER,
+            name: 'Test User',
+            email: 'test@example.com',
+          },
+          family: {
+            id: TEST_IDS.FAMILY,
+            name: 'Test Family',
+          },
         })
         // Second call: get target family data for invitation
         .mockResolvedValueOnce({
