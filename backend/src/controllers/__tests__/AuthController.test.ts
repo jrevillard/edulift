@@ -147,6 +147,7 @@ describe('AuthController Test Suite', () => {
     it('should handle magic link request with valid data', async () => {
       const email = 'valid@email.com';
       const name = 'Test User';
+      const code_challenge = 'aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG'; // Valid PKCE challenge
 
       mockAuthService.requestMagicLink.mockResolvedValue({
         success: true,
@@ -157,7 +158,7 @@ describe('AuthController Test Suite', () => {
       const response = await app.request('/magic-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, code_challenge }),
       });
 
       expect(response.status).toBe(200);
@@ -169,7 +170,7 @@ describe('AuthController Test Suite', () => {
         userExists: false,
       });
       expect(mockAuthService.requestMagicLink).toHaveBeenCalledWith(
-        { email, name, code_challenge: '' },
+        { email, name, code_challenge },
       );
     });
 
@@ -645,11 +646,10 @@ describe('AuthController Test Suite', () => {
       expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toHaveProperty('error');
-      expect(jsonResponse).toHaveProperty('code');
-      expect(jsonResponse).toMatchObject({
-        error: 'code_challenge is required and must be 43-128 characters for PKCE validation',
-        code: 'INVALID_PKCE_CHALLENGE',
-      });
+      expect(jsonResponse).toHaveProperty('success', false);
+      // Zod validation returns error with name: 'ZodError' and message array
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error.message).toContain('code_challenge');
       expect(mockAuthService.requestAccountDeletion).not.toHaveBeenCalled();
     });
 
@@ -723,7 +723,7 @@ describe('AuthController Test Suite', () => {
         message: 'Account deleted successfully via email confirmation',
         deletedAt: mockResult.deletedAt,
       });
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier, mockUserId);
     });
 
     it('should handle missing PKCE code_verifier', async () => {
@@ -735,11 +735,11 @@ describe('AuthController Test Suite', () => {
 
       expect(response.status).toBe(400);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse).toEqual({
-        success: false,
-        error: 'code_verifier required for PKCE validation',
-        code: 'MISSING_PKCE_VERIFIER',
-      });
+      expect(jsonResponse).toHaveProperty('error');
+      expect(jsonResponse).toHaveProperty('success', false);
+      // Zod validation returns error with name: 'ZodError' and message array
+      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.error.message).toContain('code_verifier');
       expect(mockAuthService.confirmAccountDeletion).not.toHaveBeenCalled();
     });
 
@@ -777,7 +777,7 @@ describe('AuthController Test Suite', () => {
         error: 'Invalid or expired deletion token',
         code: 'INVALID_TOKEN',
       });
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier, mockUserId);
     });
 
     it('should handle user not found error', async () => {
@@ -797,7 +797,7 @@ describe('AuthController Test Suite', () => {
         error: 'User not found',
         code: 'USER_NOT_FOUND',
       });
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier, mockUserId);
     });
 
     it('should handle PKCE validation security errors', async () => {
@@ -834,7 +834,7 @@ describe('AuthController Test Suite', () => {
         error: 'Database connection failed',
         code: 'CONFIRM_DELETION_FAILED',
       });
-      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier);
+      expect(mockAuthService.confirmAccountDeletion).toHaveBeenCalledWith(token, codeVerifier, mockUserId);
     });
 
     it('should handle missing token gracefully', async () => {

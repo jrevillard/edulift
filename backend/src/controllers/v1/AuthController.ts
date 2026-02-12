@@ -1197,8 +1197,12 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
   }
 
   try {
-    // Confirm and execute account deletion with PKCE validation
-    const result = await authServiceInstance.confirmAccountDeletion(token, code_verifier);
+    // Request account deletion with PKCE challenge
+    const result = await authServiceInstance.confirmAccountDeletion(
+      token,
+      code_verifier,
+      userId  // ← Pass JWT userId to prevent cross-user account deletion
+    );
 
     loggerInstance.info('confirmAccountDeletion: Account deleted successfully via email confirmation', {
       deletedAt: result.deletedAt,

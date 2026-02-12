@@ -860,7 +860,7 @@ describe('AuthService', () => {
       (mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE as jest.Mock).mockResolvedValue(mockMagicLink);
 
       await expect(authService.confirmAccountDeletion(token, codeVerifier))
-        .rejects.toThrow('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
+        .rejects.toThrow('🚨 SECURITY: Invalid PKCE validation for deletion token - potential cross-user attack');
 
       expect(mockSecureTokenRepository.findValidAccountDeletionTokenWithPKCE).toHaveBeenCalledWith(token);
       expect(mockSecureTokenRepository.markAsUsed).not.toHaveBeenCalled();

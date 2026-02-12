@@ -14,7 +14,7 @@ import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepositor
 import { SocketEmitter } from '../../utils/socketEmitter';
 import { createLogger } from '../../utils/logger';
 import { normalizeError } from '../../utils/errorHandler';
-import { verifyGroupAccess } from '../../utils/accessControl';
+import { verifyGroupAccess, verifyVehicleOwnership } from '../../utils/accessControl';
 import type { ScheduleSlotWithDetails, AssignVehicleToSlotData } from '../../types';
 
 // Import Hono-native schemas
@@ -958,6 +958,17 @@ app.openapi(createScheduleSlotRoute, async (c) => {
     return c.json({ success: false, error: accessError.error }, accessError.statusCode);
   }
 
+  // SECURITY: Verify user's family owns the vehicle being assigned
+  const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, input.vehicleId);
+  if (!vehicleAccessError.hasAccess) {
+    // Vehicle not found or access denied - return 403 for authorization issues
+    if (vehicleAccessError.statusCode === 403) {
+      return c.json({ success: false, error: vehicleAccessError.error }, 403);
+    }
+    // Vehicle not found - treat as bad request (400) since vehicleId comes from request body
+    return c.json({ success: false, error: vehicleAccessError.error }, 400);
+  }
+
   try {
     const slotData = {
       groupId,
@@ -1053,6 +1064,12 @@ app.openapi(assignVehicleRoute, async (c) => {
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
+    // SECURITY: Verify user's family owns the vehicle being assigned
+    const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, input.vehicleId);
+    if (!vehicleAccessError.hasAccess) {
+      return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
+    }
+
     const assignmentData: AssignVehicleToSlotData = {
       scheduleSlotId,
       vehicleId: input.vehicleId,
@@ -1117,6 +1134,12 @@ app.openapi(removeVehicleRoute, async (c) => {
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
+    // SECURITY: Verify user's family owns the vehicle being removed
+    const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, input.vehicleId);
+    if (!vehicleAccessError.hasAccess) {
+      return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
+    }
+
     const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId);
 
     // Emit WebSocket event for real-time updates
@@ -1173,6 +1196,12 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+    }
+
+    // SECURITY: Verify user's family owns the vehicle being updated
+    const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, vehicleId);
+    if (!vehicleAccessError.hasAccess) {
+      return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
     }
 
     // Update the driver
@@ -1520,6 +1549,12 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+    }
+
+    // SECURITY: Verify user's family owns the vehicle being updated
+    const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, vehicleId);
+    if (!vehicleAccessError.hasAccess) {
+      return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
     }
 
     // Update seat override using scheduleSlotId and vehicleId

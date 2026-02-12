@@ -817,6 +817,14 @@ export class UnifiedInvitationService {
         return { success: false, error: 'User not found' };
       }
 
+      // SECURITY: If invitation has an email, verify it matches the user's email
+      if (invitation.email && user.email !== invitation.email) {
+        return {
+          success: false,
+          error: 'This invitation was sent to a different email address',
+        };
+      }
+
       const familyMember = await tx.familyMember.findFirst({
         where: { userId },
         include: {

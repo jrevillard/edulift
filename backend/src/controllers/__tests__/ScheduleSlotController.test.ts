@@ -23,6 +23,9 @@ jest.mock('@prisma/client', () => {
     groupFamilyMember: {
       findFirst: jest.fn(),
     },
+    vehicle: {
+      findUnique: jest.fn(),
+    },
   };
   return {
     PrismaClient: jest.fn(() => mockPrisma),
@@ -108,6 +111,12 @@ describe('ScheduleSlotController Test Suite', () => {
     mockPrisma.groupFamilyMember.findFirst = jest.fn() as any;
     mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
       groupId: TEST_IDS.GROUP,
+      familyId: TEST_IDS.FAMILY,
+    });
+
+    // Mock vehicle ownership check
+    mockPrisma.vehicle.findUnique = jest.fn() as any;
+    mockPrisma.vehicle.findUnique.mockResolvedValue({
       familyId: TEST_IDS.FAMILY,
     });
 

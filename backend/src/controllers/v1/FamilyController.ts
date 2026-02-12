@@ -1029,6 +1029,24 @@ app.openapi(inviteMemberRoute, async (c) => {
   loggerInstance.info('inviteMember', { userId, familyId, email, role });
 
   try {
+    // SECURITY: Verify user belongs to this family BEFORE inviting others
+    const userFamily = await familyServiceInstance.getUserFamily(userId);
+    if (!userFamily || userFamily.id !== familyId) {
+      loggerInstance.warn('inviteMember: access denied - user not member of family', {
+        userId,
+        familyId,
+        userFamilyId: userFamily?.id,
+      });
+      return c.json({
+        success: false,
+        error: 'Access denied: you are not a member of this family',
+        code: 'ACCESS_DENIED' as const,
+      }, 403);
+    }
+
+    // SECURITY: Verify user is admin of this family (only admins can invite members)
+    await familyAuthServiceInstance.requireFamilyRole(userId, FamilyRole.ADMIN);
+
     const inviteData: { email: string; role: FamilyRole; personalMessage?: string } = {
       email,
       role: role as FamilyRole,
@@ -1076,6 +1094,9 @@ app.openapi(getFamilyInvitationsRoute, async (c) => {
       code: 'ACCESS_DENIED' as const,
       }, 403);
     }
+
+    // SECURITY: Verify user is admin of this family before viewing invitations (PII protection)
+    await familyAuthServiceInstance.requireFamilyRole(userId, FamilyRole.ADMIN);
 
     const invitations = await familyServiceInstance.getPendingInvitations(familyId);
 

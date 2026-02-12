@@ -168,7 +168,7 @@ export class AuthService {
       userId,
       userEmail: user.email,
       userName: user.name,
-      tokenId: `${magicLink.token.substring(0, 10)  }...`,
+      tokenId: `${magicLink.token.substring(0, 10)}...`,
       expiresAt: magicLink.expiresAt.toISOString(),
     });
 
@@ -238,7 +238,7 @@ export class AuthService {
   /**
    * Confirm and execute account deletion using PKCE-protected token
    */
-  async confirmAccountDeletion(token: string, code_verifier?: string): Promise<{ success: boolean; message: string; deletedAt: string }> {
+  async confirmAccountDeletion(token: string, code_verifier?: string, requestingUserId?: string): Promise<{ success: boolean; message: string; deletedAt: string }> {
     // Find valid token using existing repository method
     const magicLink = await this.secureTokenRepository.findValidAccountDeletionTokenWithPKCE(token);
 
@@ -251,12 +251,24 @@ export class AuthService {
       throw new Error('code_verifier required for PKCE validation');
     }
 
+    // SECURITY: Verify JWT userId matches deletion token userId - prevents cross-user account deletion
+    if (requestingUserId && magicLink.userId !== requestingUserId) {
+      logger.warn(`🚨 SECURITY: Cross-user account deletion attempt blocked`, {
+        tokenUserId: magicLink.userId,
+        requestingUserId,
+        timestamp: new Date().toISOString(),
+      });
+      const error = new Error('Unauthorized: You can only delete your own account');
+      (error as any).statusCode = 403;
+      throw error;
+    }
+
     // SECURITY: Use timing-safe PKCE validation to prevent timing attacks
     const isValid = await timingSafeVerifyChallenge(code_verifier, magicLink.codeChallenge);
     if (!isValid) {
       // Invalid PKCE validation - potential cross-user attack
-      logger.warn(`🚨 SECURITY: Invalid PKCE validation for deletion token ${token} - potential cross-user attack`);
-      throw new Error('🚨 SECURITY: Invalid PKCE validation for token - potential cross-user attack');
+      logger.warn(`🚨 SECURITY: Invalid PKCE validation for deletion token ${token.substring(0, 10)}... - potential cross-user attack`);
+      throw new Error('🚨 SECURITY: Invalid PKCE validation for deletion token - potential cross-user attack');
     }
 
     // Get user for logging
@@ -269,7 +281,7 @@ export class AuthService {
       userId: magicLink.userId,
       userEmail: user.email,
       userName: user.name,
-      tokenId: `${token.substring(0, 10)  }...`,
+      tokenId: `${token.substring(0, 10)}...`,
       timestamp: new Date().toISOString(),
     });
 
@@ -411,7 +423,7 @@ export class AuthService {
   /**
    * Private helper method to perform account deletion (used by confirmAccountDeletion)
    */
-  private async performAccountDeletion(userId: string, user: any): Promise<{success: boolean; message: string; deletedAt: string}> {
+  private async performAccountDeletion(userId: string, user: any): Promise<{ success: boolean; message: string; deletedAt: string }> {
     const startTime = Date.now();
 
     logger.info('performAccountDeletion: Starting account deletion', {

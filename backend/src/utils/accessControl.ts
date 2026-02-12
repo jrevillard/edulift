@@ -104,3 +104,74 @@ export async function verifyGroupAccessOrThrow(
 ): Promise<GroupAccessCheck> {
   return verifyGroupAccess(prisma, userId, groupId);
 }
+
+/**
+ * Result of vehicle ownership verification
+ */
+export interface VehicleAccessResult {
+  hasAccess: true;
+  familyId: string;
+}
+
+/**
+ * Error result when vehicle ownership verification fails
+ */
+export interface VehicleAccessError {
+  hasAccess: false;
+  error: string;
+  statusCode: 403 | 404;
+}
+
+export type VehicleAccessCheck = VehicleAccessResult | VehicleAccessError;
+
+/**
+ * Verifies that a user's family owns a vehicle.
+ *
+ * This function performs the following checks:
+ * 1. Vehicle exists
+ * 2. User belongs to a family
+ * 3. User's family owns the vehicle
+ *
+ * @param prisma - Prisma client instance
+ * @param userId - ID of user to verify
+ * @param vehicleId - ID of vehicle to check ownership for
+ * @returns VehicleAccessResult if user's family owns vehicle, VehicleAccessError otherwise
+ */
+export async function verifyVehicleOwnership(
+  prisma: PrismaClient,
+  userId: string,
+  vehicleId: string,
+): Promise<VehicleAccessCheck> {
+  // Check if vehicle exists
+  const vehicle = await prisma.vehicle.findUnique({
+    where: { id: vehicleId },
+    select: { familyId: true },
+  });
+
+  if (!vehicle) {
+    return {
+      hasAccess: false,
+      error: 'Vehicle not found',
+      statusCode: 404,
+    };
+  }
+
+  // Check if user belongs to a family
+  const userFamily = await prisma.familyMember.findFirst({
+    where: { userId },
+    select: { familyId: true },
+  });
+
+  if (!userFamily || userFamily.familyId !== vehicle.familyId) {
+    return {
+      hasAccess: false,
+      error: 'Access denied: vehicle owned by another family',
+      statusCode: 403,
+    };
+  }
+
+  return {
+    hasAccess: true,
+    familyId: userFamily.familyId,
+  };
+}

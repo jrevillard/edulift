@@ -111,11 +111,12 @@
                     "minLength": 43,
                     "maxLength": 128,
                     "example": "aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG",
-                    "description": "PKCE code challenge for security (optional but recommended)"
+                    "description": "PKCE code challenge for security (required)"
                   }
                 },
                 "required": [
-                  "email"
+                  "email",
+                  "code_challenge"
                 ],
                 "title": "Request Magic Link",
                 "description": "Request a magic link for passwordless authentication"
@@ -2274,9 +2275,12 @@
                     "minLength": 43,
                     "maxLength": 128,
                     "example": "aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG",
-                    "description": "PKCE code challenge for secure account deletion confirmation email"
+                    "description": "PKCE code challenge for secure account deletion confirmation email (required)"
                   }
                 },
+                "required": [
+                  "code_challenge"
+                ],
                 "title": "Request Account Deletion",
                 "description": "Request a secure account deletion confirmation email with PKCE-protected link"
               }
@@ -2664,11 +2668,12 @@
                     "minLength": 43,
                     "maxLength": 128,
                     "example": "aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG",
-                    "description": "PKCE code verifier to validate the deletion token"
+                    "description": "PKCE code verifier to validate the deletion token (required)"
                   }
                 },
                 "required": [
-                  "token"
+                  "token",
+                  "code_verifier"
                 ],
                 "title": "Confirm Account Deletion",
                 "description": "Confirm account deletion using PKCE-protected token from email"
