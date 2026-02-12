@@ -1,0 +1,280 @@
+# This file instructs Redocly's linter to ignore the rules contained for specific parts of your API.
+# See https://redocly.com/docs/cli/ for more information.
+docs/openapi/swagger.json:
+  no-server-example.com:
+    - '#/servers/0/url'
+  operation-operationId:
+    - '#/paths/~1api~1v1~1auth~1magic-link/post/operationId'
+    - '#/paths/~1api~1v1~1auth~1verify/post/operationId'
+    - '#/paths/~1api~1v1~1auth~1refresh/post/operationId'
+    - '#/paths/~1api~1v1~1auth~1logout/post/operationId'
+    - '#/paths/~1api~1v1~1auth~1profile/get/operationId'
+    - '#/paths/~1api~1v1~1auth~1profile/put/operationId'
+    - '#/paths/~1api~1v1~1auth~1profile~1timezone/patch/operationId'
+    - '#/paths/~1api~1v1~1auth~1profile~1delete-request/post/operationId'
+    - '#/paths/~1api~1v1~1auth~1profile~1delete-confirm/post/operationId'
+    - '#/paths/~1api~1v1~1vehicles/get/operationId'
+    - '#/paths/~1api~1v1~1vehicles/post/operationId'
+    - >-
+      #/paths/~1api~1v1~1vehicles~1available~1{groupId}~1{timeSlotId}/get/operationId
+    - '#/paths/~1api~1v1~1vehicles~1{vehicleId}/get/operationId'
+    - '#/paths/~1api~1v1~1vehicles~1{vehicleId}/delete/operationId'
+    - '#/paths/~1api~1v1~1vehicles~1{vehicleId}/patch/operationId'
+    - '#/paths/~1api~1v1~1vehicles~1{vehicleId}~1schedule/get/operationId'
+    - '#/paths/~1api~1v1~1children/get/operationId'
+    - '#/paths/~1api~1v1~1children/post/operationId'
+    - '#/paths/~1api~1v1~1children~1{childId}/get/operationId'
+    - '#/paths/~1api~1v1~1children~1{childId}/put/operationId'
+    - '#/paths/~1api~1v1~1children~1{childId}/delete/operationId'
+    - '#/paths/~1api~1v1~1children~1{childId}/patch/operationId'
+    - '#/paths/~1api~1v1~1children~1{childId}~1groups~1{groupId}/post/operationId'
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}~1groups~1{groupId}/delete/operationId
+    - '#/paths/~1api~1v1~1children~1{childId}~1groups/get/operationId'
+    - '#/paths/~1api~1v1~1families/post/operationId'
+    - '#/paths/~1api~1v1~1families~1join/post/operationId'
+    - '#/paths/~1api~1v1~1families~1current/get/operationId'
+    - '#/paths/~1api~1v1~1families~1{familyId}~1permissions/get/operationId'
+    - '#/paths/~1api~1v1~1families~1members~1{memberId}~1role/put/operationId'
+    - '#/paths/~1api~1v1~1families~1{familyId}~1invite/post/operationId'
+    - '#/paths/~1api~1v1~1families~1{familyId}~1invitations/get/operationId'
+    - >-
+      #/paths/~1api~1v1~1families~1{familyId}~1invitations~1{invitationId}/delete/operationId
+    - '#/paths/~1api~1v1~1families~1name/put/operationId'
+    - >-
+      #/paths/~1api~1v1~1families~1{familyId}~1members~1{memberId}/delete/operationId
+    - '#/paths/~1api~1v1~1families~1{familyId}~1leave/post/operationId'
+    - '#/paths/~1api~1v1~1groups/post/operationId'
+    - '#/paths/~1api~1v1~1groups~1join/post/operationId'
+    - '#/paths/~1api~1v1~1groups~1my-groups/get/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1families/get/operationId'
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1families~1{familyId}~1role/patch/operationId
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1invite/post/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1search-families/post/operationId'
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1families~1{familyId}/delete/operationId
+    - '#/paths/~1api~1v1~1groups~1{groupId}/delete/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}/patch/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1leave/post/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/get/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/put/operationId'
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config~1reset/post/operationId
+    - '#/paths/~1api~1v1~1invitations~1family/post/operationId'
+    - '#/paths/~1api~1v1~1invitations~1family~1{code}~1validate/get/operationId'
+    - '#/paths/~1api~1v1~1invitations~1family~1{code}~1accept/post/operationId'
+    - '#/paths/~1api~1v1~1invitations~1group/post/operationId'
+    - '#/paths/~1api~1v1~1invitations~1group~1{code}~1validate/get/operationId'
+    - '#/paths/~1api~1v1~1invitations~1group~1{code}~1accept/post/operationId'
+    - '#/paths/~1api~1v1~1invitations~1family~1{invitationId}/delete/operationId'
+    - '#/paths/~1api~1v1~1invitations~1group~1{invitationId}/delete/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens/get/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens/post/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1cleanup-inactive/delete/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1{tokenId}/delete/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1validate/post/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1subscribe-topic/post/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1unsubscribe-topic/post/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1test-notification/post/operationId'
+    - '#/paths/~1api~1v1~1fcm-tokens~1stats/get/operationId'
+    - '#/paths/~1api~1v1~1dashboard~1stats/get/operationId'
+    - '#/paths/~1api~1v1~1dashboard~1today-schedule/get/operationId'
+    - '#/paths/~1api~1v1~1dashboard~1recent-activity/get/operationId'
+    - '#/paths/~1api~1v1~1dashboard~1weekly/get/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/operationId'
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/operationId
+    - '#/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/operationId'
+    - '#/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/operationId'
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1conflicts/get/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}~1remove/delete/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1available/get/operationId
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/operationId
+  struct:
+    - >-
+      #/paths/~1api~1v1~1auth~1verify/post/responses/200/content/application~1json/schema/properties/data/properties/user/properties/timezone/nullable
+    - >-
+      #/paths/~1api~1v1~1auth~1verify/post/responses/200/content/application~1json/schema/properties/data/properties/invitationResult/nullable
+    - >-
+      #/paths/~1api~1v1~1auth~1profile/get/responses/200/content/application~1json/schema/properties/data/properties/timezone/nullable
+    - >-
+      #/paths/~1api~1v1~1auth~1profile/put/responses/200/content/application~1json/schema/properties/data/properties/timezone/nullable
+    - >-
+      #/paths/~1api~1v1~1auth~1profile~1timezone/patch/responses/200/content/application~1json/schema/properties/data/properties/timezone/nullable
+    - >-
+      #/paths/~1api~1v1~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1vehicles~1available~1{groupId}~1{timeSlotId}/get/responses/200/content/application~1json/schema/properties/data/items/properties/driverName/nullable
+    - >-
+      #/paths/~1api~1v1~1vehicles~1{vehicleId}/delete/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1vehicles~1{vehicleId}/patch/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children/get/responses/200/content/application~1json/schema/properties/data/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children/post/responses/201/content/application~1json/schema/properties/data/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}/get/responses/200/content/application~1json/schema/properties/data/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}/put/responses/200/content/application~1json/schema/properties/data/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}/patch/responses/200/content/application~1json/schema/properties/data/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}~1groups~1{groupId}/post/responses/201/content/application~1json/schema/properties/data/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1children~1{childId}~1groups/get/responses/200/content/application~1json/schema/properties/data/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1families/post/responses/201/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1join/post/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1current/get/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1{familyId}~1invite/post/requestBody/content/application~1json/schema/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1{familyId}~1invite/post/responses/201/content/application~1json/schema/properties/data/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1{familyId}~1invitations/get/responses/200/content/application~1json/schema/properties/data/items/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1name/put/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1families~1{familyId}~1members~1{memberId}/delete/responses/200/content/application~1json/schema/properties/data/properties/children/items/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups/post/responses/201/content/application~1json/schema/properties/data/properties/description/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1join/post/responses/200/content/application~1json/schema/properties/data/properties/description/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1my-groups/get/responses/200/content/application~1json/schema/properties/data/items/properties/description/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1invite/post/requestBody/content/application~1json/schema/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1invite/post/responses/201/content/application~1json/schema/properties/data/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1families~1{familyId}/delete/responses/200/content/application~1json/schema/properties/data/properties/description/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}/patch/responses/200/content/application~1json/schema/properties/data/properties/description/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/get/responses/200/content/application~1json/schema/properties/data/properties/id/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/get/responses/200/content/application~1json/schema/properties/data/properties/createdAt/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/get/responses/200/content/application~1json/schema/properties/data/properties/updatedAt/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/put/responses/200/content/application~1json/schema/properties/data/properties/id/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/put/responses/200/content/application~1json/schema/properties/data/properties/createdAt/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config/put/responses/200/content/application~1json/schema/properties/data/properties/updatedAt/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config~1reset/post/responses/200/content/application~1json/schema/properties/data/properties/id/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config~1reset/post/responses/200/content/application~1json/schema/properties/data/properties/createdAt/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-config~1reset/post/responses/200/content/application~1json/schema/properties/data/properties/updatedAt/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1family/post/responses/201/content/application~1json/schema/properties/email/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1family/post/responses/201/content/application~1json/schema/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1family/post/responses/201/content/application~1json/schema/properties/acceptedAt/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1family/post/responses/201/content/application~1json/schema/properties/acceptedBy/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1family~1{code}~1validate/get/responses/200/content/application~1json/schema/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/targetFamilyId/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/email/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/personalMessage/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/acceptedAt/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/acceptedBy/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group~1{code}~1validate/get/responses/200/content/application~1json/schema/properties/targetFamilyId/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group~1{code}~1validate/get/responses/200/content/application~1json/schema/properties/targetFamilyName/nullable
+    - >-
+      #/paths/~1api~1v1~1fcm-tokens/get/responses/200/content/application~1json/schema/properties/data/properties/tokens/items/properties/deviceId/nullable
+    - >-
+      #/paths/~1api~1v1~1fcm-tokens/post/responses/201/content/application~1json/schema/properties/data/properties/deviceId/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/requestBody/content/application~1json/schema/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}~1remove/delete/responses/200/content/application~1json/schema/properties/data/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+  operation-4xx-response:
+    - '#/paths/~1api~1v1~1vehicles/get/responses'
+    - '#/paths/~1api~1v1~1children/get/responses'
+    - '#/paths/~1api~1v1~1fcm-tokens/get/responses'
+    - '#/paths/~1api~1v1~1fcm-tokens~1cleanup-inactive/delete/responses'
+    - '#/paths/~1api~1v1~1fcm-tokens~1validate/post/responses'
+    - '#/paths/~1api~1v1~1fcm-tokens~1stats/get/responses'
+  security-defined:
+    - '#/paths/~1api~1v1~1invitations~1family~1{code}~1validate/get'
+    - '#/paths/~1api~1v1~1invitations~1group~1{code}~1validate/get'
