@@ -11,6 +11,9 @@ const mockPrisma = {
     findUnique: jest.fn(),
     findMany: jest.fn(),
   },
+  groupFamilyMember: {
+    findFirst: jest.fn(),
+  },
   scheduleSlot: {
     findUnique: jest.fn(),
   },
@@ -37,11 +40,11 @@ describe('AuthorizationService', () => {
         familyId: TEST_FAMILY_ID,
       });
 
-      // Mock group with user's family as owner
-      (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: TEST_GROUP_ID,
+      // Mock group membership with OWNER role
+      (mockPrisma.groupFamilyMember.findFirst as jest.Mock).mockResolvedValue({
+        groupId: TEST_GROUP_ID,
         familyId: TEST_FAMILY_ID,
-        familyMembers: [],
+        role: 'OWNER',
       });
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, TEST_GROUP_ID);
@@ -54,11 +57,11 @@ describe('AuthorizationService', () => {
         familyId: TEST_FAMILY_ID,
       });
 
-      // Mock group with user's family as member (not owner)
-      (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: TEST_GROUP_ID,
-        familyId: 'different-family-id',
-        familyMembers: [{ familyId: TEST_FAMILY_ID }],
+      // Mock group membership with ADMIN role (not owner)
+      (mockPrisma.groupFamilyMember.findFirst as jest.Mock).mockResolvedValue({
+        groupId: TEST_GROUP_ID,
+        familyId: TEST_FAMILY_ID,
+        role: 'ADMIN',
       });
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, TEST_GROUP_ID);
@@ -71,12 +74,8 @@ describe('AuthorizationService', () => {
         familyId: TEST_FAMILY_ID,
       });
 
-      // Mock group with no relationship to user's family
-      (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: UNAUTHORIZED_GROUP_ID,
-        familyId: 'different-family-id',
-        familyMembers: [],
-      });
+      // Mock no group membership
+      (mockPrisma.groupFamilyMember.findFirst as jest.Mock).mockResolvedValue(null);
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, UNAUTHORIZED_GROUP_ID);
       expect(canAccess).toBe(false);
@@ -93,7 +92,7 @@ describe('AuthorizationService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         familyId: TEST_FAMILY_ID,
       });
-      (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue(null);
+      (mockPrisma.groupFamilyMember.findFirst as jest.Mock).mockResolvedValue(null);
 
       const canAccess = await authService.canUserAccessGroup(TEST_USER_ID, 'non-existent-group');
       expect(canAccess).toBe(false);
@@ -119,10 +118,10 @@ describe('AuthorizationService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         familyId: TEST_FAMILY_ID,
       });
-      (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: TEST_GROUP_ID,
+      (mockPrisma.groupFamilyMember.findFirst as jest.Mock).mockResolvedValue({
+        groupId: TEST_GROUP_ID,
         familyId: TEST_FAMILY_ID,
-        familyMembers: [],
+        role: 'OWNER',
       });
 
       const canAccess = await authService.canUserAccessScheduleSlot(TEST_USER_ID, TEST_SCHEDULE_SLOT_ID);
@@ -147,11 +146,7 @@ describe('AuthorizationService', () => {
       (mockPrisma.familyMember.findFirst as jest.Mock).mockResolvedValue({
         familyId: TEST_FAMILY_ID,
       });
-      (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: UNAUTHORIZED_GROUP_ID,
-        familyId: 'different-family-id',
-        familyMembers: [],
-      });
+      (mockPrisma.groupFamilyMember.findFirst as jest.Mock).mockResolvedValue(null);
 
       const canAccess = await authService.canUserAccessScheduleSlot(TEST_USER_ID, TEST_SCHEDULE_SLOT_ID);
       expect(canAccess).toBe(false);
