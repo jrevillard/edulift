@@ -54,12 +54,18 @@ describe('GroupService - searchFamiliesForInvitation', () => {
         });
       });
 
-      // Mock group - requester's family is owner
+      // Mock group - requester's family is admin (new schema)
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: 'requester-family',
         name: 'Test Group',
-        familyMembers: [], // Include relation for hasGroupAdminPermissions
+        familyMembers: [
+          {
+            familyId: 'requester-family',
+            role: 'ADMIN',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       });
 
       // Mock groupFamilyMember for fallback check
@@ -215,8 +221,15 @@ describe('GroupService - searchFamiliesForInvitation', () => {
 
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: 'requester-family',
-        familyMembers: [],
+        name: 'Test Group',
+        familyMembers: [
+          {
+            familyId: 'requester-family',
+            role: 'ADMIN',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       });
 
       mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
