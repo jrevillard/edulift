@@ -782,7 +782,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
         success: false,
         error: 'Invalid or expired magic link',
       code: 'INVALID_TOKEN' as const,
-      }, 401 as const);
+      }, 400 as const);
     }
 
     // Process invitation if inviteCode is provided (per invitation-system-proposal.md)
