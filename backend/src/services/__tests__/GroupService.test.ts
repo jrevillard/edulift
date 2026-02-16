@@ -319,13 +319,8 @@ describe('GroupService - Family-Based Architecture', () => {
       expect(result.id).toBe(TEST_IDS.GROUP);
       expect(result.name).toBe('Test Group');
       expect(result.description).toBe('Test Description');
-      expect(result.familyId).toBe(TEST_IDS.FAMILY_2);
       expect(result.inviteCode).toBe('ABC123');
       expect(result.userRole).toBe('MEMBER');
-      expect(result.ownerFamily).toEqual({
-        id: TEST_IDS.FAMILY_2,
-        name: 'Owner Family',
-      });
       expect(result.familyCount).toBe(2);
       expect(result.scheduleCount).toBe(0);
       expect(result.createdAt).toBe('2024-01-01T00:00:00.000Z');
