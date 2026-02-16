@@ -656,7 +656,14 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
         const mockGroup = {
           id: groupId,
           name: 'Test Group',
-          familyId: 'admin-family-123',
+          familyMembers: [
+            {
+              familyId: 'admin-family-123',
+              role: 'OWNER',
+              addedBy: 'creator',
+              joinedAt: new Date('2024-01-01'),
+            },
+          ],
         };
 
         mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
@@ -679,7 +686,18 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null), // Not already member
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                // Return OWNER membership for admin's family (permission check)
+                // Return null for target family (not already a member)
+                if (where.familyId === 'admin-family-123') {
+                  return Promise.resolve({
+                    groupId: groupId,
+                    familyId: 'admin-family-123',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(null), // No existing
@@ -723,7 +741,14 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
         const mockGroup = {
           id: groupId,
           name: 'Test Group',
-          familyId: 'admin-family-123',
+          familyMembers: [
+            {
+              familyId: 'admin-family-123',
+              role: 'OWNER',
+              addedBy: 'creator',
+              joinedAt: new Date('2024-01-01'),
+            },
+          ],
         };
 
         const mockTargetFamily = {
@@ -756,7 +781,16 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null),
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                if (where.familyId === 'admin-family-123') {
+                  return Promise.resolve({
+                    groupId: groupId,
+                    familyId: 'admin-family-123',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(null),
@@ -819,7 +853,16 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null),
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                if (where.familyId === 'admin-family-123') {
+                  return Promise.resolve({
+                    groupId: groupId,
+                    familyId: 'admin-family-123',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             groupInvitation: {
               create: jest.fn().mockResolvedValue({
@@ -855,7 +898,14 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
         const mockGroup = {
           id: groupId,
           name: 'Test Group',
-          familyId: 'admin-family-123',
+          familyMembers: [
+            {
+              familyId: 'admin-family-123',
+              role: 'OWNER',
+              addedBy: 'creator',
+              joinedAt: new Date('2024-01-01'),
+            },
+          ],
         };
 
         const mockTargetFamily = {
@@ -887,7 +937,16 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               findFirst: jest.fn().mockResolvedValue(mockAdminMember),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null),
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                if (where.familyId === 'admin-family-123') {
+                  return Promise.resolve({
+                    groupId: groupId,
+                    familyId: 'admin-family-123',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(null),
@@ -942,7 +1001,14 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               findUnique: jest.fn().mockResolvedValue({
                 id: groupId,
                 name: 'Expected Group Name', // ← Should end up in result.groupName
-                familyId: 'admin-family-123', // ← Pour groupMembership check
+                familyMembers: [
+                  {
+                    familyId: 'admin-family-123',
+                    role: 'OWNER',
+                    addedBy: 'creator',
+                    joinedAt: new Date('2024-01-01'),
+                  },
+                ],
               }),
             },
             familyMember: {
@@ -960,7 +1026,18 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null), // Not already a member
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                // Return OWNER membership for admin's family (permission check)
+                // Return null for target family (not already a member)
+                if (where.familyId === 'admin-family-123') {
+                  return Promise.resolve({
+                    groupId: groupId,
+                    familyId: 'admin-family-123',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(null),
@@ -1136,6 +1213,24 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           inviteCode,
           status: InvitationStatus.PENDING,
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          group: {
+            id: 'group-123',
+            name: 'Test Group',
+            familyMembers: [
+              {
+                familyId: 'admin-family-123',
+                role: 'OWNER',
+                addedBy: 'creator',
+                joinedAt: new Date('2024-01-01'),
+              },
+              {
+                familyId: 'family-123',
+                role: 'MEMBER',
+                addedBy: 'creator',
+                joinedAt: new Date('2024-01-01'),
+              },
+            ],
+          },
         };
 
         mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
@@ -1159,7 +1254,11 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null),
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                // Return null for user's family (not already a member)
+                // This allows test to proceed to admin check
+                return Promise.resolve(null);
+              }),
             },
           };
           return await callback(tx);
@@ -1303,7 +1402,16 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 id: invitationId,
                 groupId: 'group-123',
                 status: InvitationStatus.PENDING,
-                group: { familyId: 'admin-family-123' },
+                group: {
+                  familyMembers: [
+                    {
+                      familyId: 'admin-family-123',
+                      role: 'OWNER',
+                      addedBy: 'creator',
+                      joinedAt: new Date('2024-01-01'),
+                    },
+                  ],
+                },
               }),
               update: jest.fn(),
             },
@@ -1319,6 +1427,13 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 family: {
                   name: 'Admin Family',
                 },
+              }),
+            },
+            groupFamilyMember: {
+              findFirst: jest.fn().mockResolvedValue({
+                groupId: 'group-123',
+                familyId: 'admin-family-123',
+                role: 'OWNER',
               }),
             },
           };
