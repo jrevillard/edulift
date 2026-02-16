@@ -90,23 +90,29 @@ describe('GroupService - Family-Based Architecture', () => {
         id: TEST_IDS.GROUP,
         name: 'Test Group',
         description: null,
-        familyId: TEST_IDS.FAMILY,
         inviteCode: 'INVITE123',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        ownerFamily: {
-          id: TEST_IDS.FAMILY,
-          name: 'Test Family',
-          members: [
-            {
-              user: { id: TEST_IDS.USER, name: 'Test User', email: 'test@example.com' },
-              role: 'ADMIN',
+        familyMembers: [
+          {
+            familyId: TEST_IDS.FAMILY,
+            role: 'OWNER',
+            addedBy: TEST_IDS.USER,
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY,
+              name: 'Test Family',
+              members: [
+                {
+                  user: { id: TEST_IDS.USER, name: 'Test User', email: 'test@example.com' },
+                  role: 'ADMIN',
+                },
+              ],
             },
-          ],
-        },
-        familyMembers: [],
+          },
+        ],
         _count: {
-          familyMembers: 0,
+          familyMembers: 1,
           scheduleSlots: 0,
         },
       });
@@ -127,6 +133,13 @@ describe('GroupService - Family-Based Architecture', () => {
           name: 'Test Group',
           description: null,
           familyId: TEST_IDS.FAMILY,
+          familyMembers: {
+            create: {
+              familyId: TEST_IDS.FAMILY,
+              role: 'OWNER',
+              addedBy: TEST_IDS.USER,
+            },
+          },
           inviteCode: expect.any(String),
         },
         include: expect.any(Object),
@@ -137,10 +150,7 @@ describe('GroupService - Family-Based Architecture', () => {
       expect(result.userRole).toBe('ADMIN');
       expect(result.familyCount).toBe(1);
       expect(result.scheduleCount).toBe(0);
-      expect(result.ownerFamily).toEqual({
-        id: TEST_IDS.FAMILY,
-        name: 'Test Family',
-      });
+      expect(result.familyId).toBe(TEST_IDS.FAMILY);
     });
 
     it('should throw error when user is not family admin', async () => {
@@ -215,7 +225,6 @@ describe('GroupService - Family-Based Architecture', () => {
         group: {
           id: TEST_IDS.GROUP,
           name: 'Test Group',
-          familyId: TEST_IDS.FAMILY_2, // Different family owns it
           familyMembers: [], // Family not already a member
         },
       });
@@ -245,25 +254,33 @@ describe('GroupService - Family-Based Architecture', () => {
         id: TEST_IDS.GROUP,
         name: 'Test Group',
         description: 'Test Description',
-        familyId: TEST_IDS.FAMILY_2,
         inviteCode: 'ABC123',
         createdAt: new Date('2024-01-01'),
         updatedAt: new Date('2024-01-01'),
-        ownerFamily: {
-          id: TEST_IDS.FAMILY_2,
-          name: 'Owner Family',
-          members: [
-            {
-              user: { id: 'owner-user', email: 'owner@test.com', name: 'Owner' },
-            },
-          ],
-        },
         familyMembers: [
-          { familyId: TEST_IDS.FAMILY_2, role: 'ADMIN' },
-          { familyId: TEST_IDS.FAMILY, role: 'MEMBER' },
+          {
+            familyId: TEST_IDS.FAMILY_2,
+            role: 'OWNER',
+            addedBy: 'owner-user',
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY_2,
+              name: 'Owner Family',
+            },
+          },
+          {
+            familyId: TEST_IDS.FAMILY,
+            role: 'MEMBER',
+            addedBy: TEST_IDS.USER,
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY,
+              name: 'Test Family',
+            },
+          },
         ],
         _count: {
-          familyMembers: 1,
+          familyMembers: 2,
           scheduleSlots: 0,
         },
       });
@@ -336,7 +353,6 @@ describe('GroupService - Family-Based Architecture', () => {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         group: {
           id: TEST_IDS.GROUP,
-          familyId: TEST_IDS.FAMILY_2,
           familyMembers: [{ familyId: TEST_IDS.FAMILY }], // Family already a member
         },
       });
@@ -365,9 +381,15 @@ describe('GroupService - Family-Based Architecture', () => {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         group: {
           id: TEST_IDS.GROUP,
-          familyId: TEST_IDS.FAMILY, // Same family owns it
-          familyMembers: [],
+          familyMembers: [], // Family not a member yet
         },
+      });
+
+      // Mock owner family membership check
+      mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
+        familyId: TEST_IDS.FAMILY,
+        groupId: TEST_IDS.GROUP,
+        role: 'OWNER',
       });
 
       await expect(groupService.joinGroupByInviteCode(inviteCode, userId)).rejects.toThrow(
@@ -391,23 +413,24 @@ describe('GroupService - Family-Based Architecture', () => {
         {
           id: TEST_IDS.GROUP,
           name: 'Owned Group',
-          familyId: TEST_IDS.FAMILY,
           inviteCode: 'INVITE123',
           createdAt: mockDate,
           updatedAt: mockDate,
-          ownerFamily: { id: TEST_IDS.FAMILY, name: 'Test Family' },
-          familyMembers: [],
-          _count: { familyMembers: 0, scheduleSlots: 2 },
+          familyMembers: [
+            { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER, joinedAt: mockDate }
+          ],
+          _count: { familyMembers: 1, scheduleSlots: 2 },
         },
         {
           id: TEST_IDS.GROUP_2,
           name: 'Member Group',
-          familyId: TEST_IDS.FAMILY_2,
           inviteCode: 'INVITE456',
           createdAt: mockDate,
           updatedAt: mockDate,
-          ownerFamily: { id: TEST_IDS.FAMILY_2, name: 'Other Family' },
-          familyMembers: [{ familyId: TEST_IDS.FAMILY }],
+          familyMembers: [
+            { familyId: TEST_IDS.FAMILY_2, role: 'OWNER', addedBy: 'owner', joinedAt: mockDate },
+            { familyId: TEST_IDS.FAMILY, role: 'MEMBER', addedBy: TEST_IDS.USER, joinedAt: mockDate }
+          ],
           _count: { familyMembers: 2, scheduleSlots: 1 },
         },
       ]);
@@ -459,11 +482,17 @@ describe('GroupService - Family-Based Architecture', () => {
 
       mockPrisma.group.findUnique.mockResolvedValue({
         id: TEST_IDS.GROUP,
-        familyId: TEST_IDS.FAMILY, // Requester's family owns the group
-        ownerFamily: {
-          members: [{ userId: TEST_IDS.USER, role: 'ADMIN' }],
-        },
-        familyMembers: [],
+        familyMembers: [
+          { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER },
+          { familyId: TEST_IDS.FAMILY_2, role: 'MEMBER', addedBy: TEST_IDS.USER }
+        ],
+      });
+
+      // Mock current membership of target family
+      mockPrisma.groupFamilyMember.findUnique.mockResolvedValue({
+        familyId: TEST_IDS.FAMILY_2,
+        groupId: TEST_IDS.GROUP,
+        role: 'MEMBER',
       });
 
       // Mock successful update
@@ -523,7 +552,9 @@ describe('GroupService - Family-Based Architecture', () => {
           // First call - basic group check
           return Promise.resolve({
             id: TEST_IDS.GROUP,
-            familyId: TEST_IDS.FAMILY,
+            familyMembers: [
+              { familyId: TEST_IDS.FAMILY, role: 'OWNER' }
+            ],
           });
         } else {
           // Second call - fetch updated Group with includes
@@ -531,32 +562,45 @@ describe('GroupService - Family-Based Architecture', () => {
             id: TEST_IDS.GROUP,
             name: 'Test Group',
             description: null,
-            familyId: TEST_IDS.FAMILY,
             inviteCode: 'TEST123',
             createdAt: new Date(),
             updatedAt: new Date(),
-            ownerFamily: {
-              id: TEST_IDS.FAMILY,
-              name: 'Test Family',
-              members: [{
-                id: 'member1',
-                userId: TEST_IDS.USER,
+            familyMembers: [
+              {
                 familyId: TEST_IDS.FAMILY,
-                role: 'ADMIN',
-                user: {
-                  id: TEST_IDS.USER,
-                  name: 'Test User',
-                  email: 'test@example.com',
+                role: 'OWNER',
+                addedBy: TEST_IDS.USER,
+                joinedAt: new Date(),
+                family: {
+                  id: TEST_IDS.FAMILY,
+                  name: 'Test Family',
+                  members: [{
+                    id: 'member1',
+                    userId: TEST_IDS.USER,
+                    familyId: TEST_IDS.FAMILY,
+                    role: 'ADMIN',
+                    user: {
+                      id: TEST_IDS.USER,
+                      name: 'Test User',
+                      email: 'test@example.com',
+                    },
+                  }],
                 },
-              }],
-            },
-            familyMembers: [],
+              },
+            ],
             _count: {
               familyMembers: 1,
               scheduleSlots: 0,
             },
           });
         }
+      });
+
+      // Mock current membership of target family
+      mockPrisma.groupFamilyMember.findUnique.mockResolvedValue({
+        familyId: TEST_IDS.FAMILY_2,
+        groupId: TEST_IDS.GROUP,
+        role: 'MEMBER',
       });
 
       // Mock successful deletion
@@ -597,10 +641,11 @@ describe('GroupService - Family-Based Architecture', () => {
         },
       });
 
-      // Mock group exists
-      mockPrisma.group.findUnique.mockResolvedValue({
-        id: TEST_IDS.GROUP,
-        familyId: TEST_IDS.FAMILY,
+      // Mock group family member exists (not owner)
+      mockPrisma.groupFamilyMember.findUnique.mockResolvedValue({
+        familyId: TEST_IDS.FAMILY_2,
+        groupId: TEST_IDS.GROUP,
+        role: 'MEMBER',
       });
 
       // Mock successful deletion
@@ -629,7 +674,7 @@ describe('GroupService - Family-Based Architecture', () => {
       mockPrisma.familyMember.findFirst.mockResolvedValue({
         id: 'family-member-1',
         userId,
-        familyId: TEST_IDS.FAMILY, // Same as group.familyId
+        familyId: TEST_IDS.FAMILY,
         role: 'ADMIN',
         family: {
           id: TEST_IDS.FAMILY,
@@ -637,10 +682,11 @@ describe('GroupService - Family-Based Architecture', () => {
         },
       });
 
-      // Mock group exists
-      mockPrisma.group.findUnique.mockResolvedValue({
-        id: TEST_IDS.GROUP,
+      // Mock group family member with OWNER role
+      mockPrisma.groupFamilyMember.findUnique.mockResolvedValue({
         familyId: TEST_IDS.FAMILY,
+        groupId: TEST_IDS.GROUP,
+        role: 'OWNER',
       });
 
       await expect(groupService.leaveGroup(groupId, userId)).rejects.toThrow('Owner family cannot leave their own group');
@@ -695,18 +741,23 @@ describe('GroupService - Family-Based Architecture', () => {
         });
 
       // Mock for hasGroupAdminPermissions group check
+      mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
+        familyId: TEST_IDS.FAMILY,
+        groupId: TEST_IDS.GROUP,
+        role: 'OWNER',
+      });
+
       mockPrisma.group.findUnique
         .mockResolvedValueOnce({
           id: TEST_IDS.GROUP,
-          familyId: TEST_IDS.FAMILY, // Same as user's family (owner)
-          familyMembers: [],
+          familyMembers: [
+            { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER }
+          ],
         })
         // Mock for main logic in inviteFamilyToGroup
         .mockResolvedValueOnce({
           id: TEST_IDS.GROUP,
           name: 'Test Group',
-          // Note: inviteCode removed as per unified invitation system
-          ownerFamily: { name: 'Test Family' },
         })
         // Mock for the final group name lookup
         .mockResolvedValueOnce({
@@ -781,19 +832,28 @@ describe('GroupService - Family-Based Architecture', () => {
       // Mock group with families
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: TEST_IDS.FAMILY, // Owner family
-        ownerFamily: {
-          id: TEST_IDS.FAMILY,
-          name: 'Owner Family',
-          members: [{
-            user: {
-              name: 'Admin User',
-              email: 'admin@owner.com',
-            },
-          }],
-        },
         familyMembers: [
           {
+            familyId: TEST_IDS.FAMILY,
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY,
+              name: 'Owner Family',
+              members: [{
+                user: {
+                  name: 'Admin User',
+                  email: 'admin@owner.com',
+                },
+              }],
+            },
+          },
+          {
+            familyId: TEST_IDS.FAMILY_2,
+            role: 'MEMBER',
+            addedBy: TEST_IDS.USER,
+            joinedAt: new Date('2024-01-01'),
             family: {
               id: TEST_IDS.FAMILY_2,
               name: 'Member Family',
@@ -804,7 +864,6 @@ describe('GroupService - Family-Based Architecture', () => {
                 },
               }],
             },
-            role: 'MEMBER',
           },
         ],
         invitations: [], // No pending invitations in this test
@@ -854,30 +913,40 @@ describe('GroupService - Family-Based Architecture', () => {
       // Mock group with owner, member families, and pending invitations
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: TEST_IDS.FAMILY,
-        ownerFamily: {
-          id: TEST_IDS.FAMILY,
-          name: 'Owner Family',
-          members: [{
-            user: {
-              name: 'Admin User',
-              email: 'admin@owner.com',
+        familyMembers: [
+          {
+            familyId: TEST_IDS.FAMILY,
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY,
+              name: 'Owner Family',
+              members: [{
+                user: {
+                  name: 'Admin User',
+                  email: 'admin@owner.com',
+                },
+              }],
             },
-          }],
-        },
-        familyMembers: [{
-          family: {
-            id: TEST_IDS.FAMILY_2,
-            name: 'Member Family',
-            members: [{
-              user: {
-                name: 'Member Admin',
-                email: 'admin@member.com',
-              },
-            }],
           },
-          role: 'MEMBER',
-        }],
+          {
+            familyId: TEST_IDS.FAMILY_2,
+            role: 'MEMBER',
+            addedBy: TEST_IDS.USER,
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY_2,
+              name: 'Member Family',
+              members: [{
+                user: {
+                  name: 'Member Admin',
+                  email: 'admin@member.com',
+                },
+              }],
+            },
+          },
+        ],
         invitations: [{
           id: TEST_IDS.INVITATION,
           role: 'MEMBER', // The invited role
@@ -959,32 +1028,41 @@ describe('GroupService - Family-Based Architecture', () => {
       // Mock group with a family having multiple admins
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: TEST_IDS.FAMILY,
-        ownerFamily: {
-          id: TEST_IDS.FAMILY,
-          name: 'Multi-Admin Family',
-          members: [
-            {
-              user: {
-                name: 'First Admin',
-                email: 'first@admin.com',
-              },
+        familyMembers: [
+          {
+            familyId: TEST_IDS.FAMILY,
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+            family: {
+              id: TEST_IDS.FAMILY,
+              name: 'Multi-Admin Family',
+              members: [
+                {
+                  user: {
+                    name: 'First Admin',
+                    email: 'first@admin.com',
+                  },
+                  role: 'ADMIN',
+                },
+                {
+                  user: {
+                    name: 'Second Admin',
+                    email: 'second@admin.com',
+                  },
+                  role: 'ADMIN',
+                },
+                {
+                  user: {
+                    name: 'Third Admin',
+                    email: 'third@admin.com',
+                  },
+                  role: 'ADMIN',
+                },
+              ],
             },
-            {
-              user: {
-                name: 'Second Admin',
-                email: 'second@admin.com',
-              },
-            },
-            {
-              user: {
-                name: 'Third Admin',
-                email: 'third@admin.com',
-              },
-            },
-          ],
-        },
-        familyMembers: [],
+          },
+        ],
         invitations: [],
       });
 

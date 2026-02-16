@@ -12,9 +12,9 @@ model User {
   id                        String                @id @default(cuid())
   email                     String                @unique
   name                      String
+  timezone                  String                @default("UTC")
   createdAt                 DateTime              @default(now())
   updatedAt                 DateTime              @updatedAt
-  timezone                  String                @default("UTC")
   activityLogs              ActivityLog[]
   acceptedFamilyInvitations FamilyInvitation[]    @relation("FamilyInvitationsAcceptedBy")
   createdFamilyInvitations  FamilyInvitation[]    @relation("FamilyInvitationsCreatedBy")
@@ -26,9 +26,9 @@ model User {
   acceptedGroupInvitations  GroupInvitation[]     @relation("GroupInvitationsAcceptedBy")
   createdGroupInvitations   GroupInvitation[]     @relation("GroupInvitationsCreatedBy")
   sentGroupInvitations      GroupInvitation[]     @relation("GroupInvitationsInvitedBy")
-  secureTokens             SecureToken[]
   refreshTokens             RefreshToken[]
   drivenVehicles            ScheduleSlotVehicle[] @relation("ScheduleSlotVehicleDriver")
+  secureTokens              SecureToken[]
 
   @@map("users")
 }
@@ -36,18 +36,16 @@ model User {
 model Group {
   id             String               @id @default(cuid())
   name           String
+  description    String?
   inviteCode     String               @unique
-  familyId       String
+  timezone       String               @default("UTC")
+  operatingHours Json?
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
-  description    String?
-  operatingHours Json?
-  timezone       String               @default("UTC")
   childMembers   GroupChildMember[]
   familyMembers  GroupFamilyMember[]
   invitations    GroupInvitation[]
   scheduleConfig GroupScheduleConfig?
-  ownerFamily    Family               @relation("GroupFamily", fields: [familyId], references: [id], onDelete: Cascade)
   scheduleSlots  ScheduleSlot[]
 
   @@map("groups")
@@ -121,9 +119,9 @@ model Vehicle {
 model ScheduleSlot {
   id                 String                @id @default(cuid())
   groupId            String
+  datetime           DateTime
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
-  datetime           DateTime
   childAssignments   ScheduleSlotChild[]
   vehicleAssignments ScheduleSlotVehicle[]
   group              Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -137,8 +135,8 @@ model ScheduleSlotVehicle {
   scheduleSlotId   String
   vehicleId        String
   driverId         String?
-  createdAt        DateTime            @default(now())
   seatOverride     Int?
+  createdAt        DateTime            @default(now())
   childAssignments ScheduleSlotChild[]
   driver           User?               @relation("ScheduleSlotVehicleDriver", fields: [driverId], references: [id], onDelete: Cascade)
   scheduleSlot     ScheduleSlot        @relation(fields: [scheduleSlotId], references: [id], onDelete: Cascade)
@@ -188,7 +186,6 @@ model Family {
   members                  FamilyMember[]
   groupMembers             GroupFamilyMember[]
   targetedGroupInvitations GroupInvitation[]   @relation("GroupInvitationTargetFamily")
-  ownedGroups              Group[]             @relation("GroupFamily")
   vehicles                 Vehicle[]           @relation("FamilyVehicles")
 
   @@map("families")
@@ -214,14 +211,14 @@ model FamilyInvitation {
   role            FamilyRole             @default(MEMBER)
   personalMessage String?
   invitedBy       String
+  createdBy       String
+  acceptedBy      String?
   status          FamilyInvitationStatus @default(PENDING)
   inviteCode      String
   expiresAt       DateTime
   acceptedAt      DateTime?
   createdAt       DateTime               @default(now())
   updatedAt       DateTime               @updatedAt
-  acceptedBy      String?
-  createdBy       String
   acceptedByUser  User?                  @relation("FamilyInvitationsAcceptedBy", fields: [acceptedBy], references: [id])
   createdByUser   User                   @relation("FamilyInvitationsCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
   family          Family                 @relation(fields: [familyId], references: [id], onDelete: Cascade)
@@ -236,19 +233,19 @@ model FamilyInvitation {
 model GroupInvitation {
   id              String                @id @default(cuid())
   groupId         String
+  targetFamilyId  String?
   email           String?
   role            String                @default("MEMBER")
   personalMessage String?
   invitedBy       String
+  createdBy       String
+  acceptedBy      String?
   status          GroupInvitationStatus @default(PENDING)
   inviteCode      String
   expiresAt       DateTime
   acceptedAt      DateTime?
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @updatedAt
-  acceptedBy      String?
-  createdBy       String
-  targetFamilyId  String?
   acceptedByUser  User?                 @relation("GroupInvitationsAcceptedBy", fields: [acceptedBy], references: [id])
   createdByUser   User                  @relation("GroupInvitationsCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
   group           Group                 @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -296,23 +293,16 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-enum TokenType {
-  MAGIC_LINK           // Authentification existante (PKCE)
-  ACCOUNT_DELETION     // Suppression compte (PKCE déjà implémenté)
-  EMAIL_MODIFICATION   // Modification email (nouveau - PKCE)
-  // Note: FAMILY_INVITATION et GROUP_INVITATION n'utilisent pas PKCE
-}
-
 model SecureToken {
-  id            String     @id @default(cuid())
-  token         String     @unique
+  id            String    @id @default(cuid())
+  token         String    @unique
   userId        String
   expiresAt     DateTime
-  used          Boolean    @default(false)
+  used          Boolean   @default(false)
   codeChallenge String
-  type          TokenType  @default(MAGIC_LINK)
-  createdAt     DateTime   @default(now())
-  users         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          TokenType @default(MAGIC_LINK)
+  createdAt     DateTime  @default(now())
+  users         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([codeChallenge])
   @@index([token, codeChallenge])
@@ -321,9 +311,16 @@ model SecureToken {
   @@map("secure_tokens")
 }
 
+enum TokenType {
+  MAGIC_LINK
+  ACCOUNT_DELETION
+  EMAIL_MODIFICATION
+}
+
 enum GroupRole {
   ADMIN
   MEMBER
+  OWNER
 }
 
 enum FamilyRole {

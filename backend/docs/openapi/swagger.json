@@ -14189,11 +14189,12 @@
                         "userRole": {
                           "type": "string",
                           "enum": [
+                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
                           "example": "ADMIN",
-                          "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                          "description": "User's role in the group (OWNER, ADMIN, or MEMBER)"
                         },
                         "ownerFamily": {
                           "type": "object",
@@ -14633,11 +14634,12 @@
                         "userRole": {
                           "type": "string",
                           "enum": [
+                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
                           "example": "ADMIN",
-                          "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                          "description": "User's role in the group (OWNER, ADMIN, or MEMBER)"
                         },
                         "ownerFamily": {
                           "type": "object",
@@ -15126,11 +15128,12 @@
                           "userRole": {
                             "type": "string",
                             "enum": [
+                              "OWNER",
                               "ADMIN",
                               "MEMBER"
                             ],
                             "example": "ADMIN",
-                            "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                            "description": "User's role in the group (OWNER, ADMIN, or MEMBER)"
                           },
                           "ownerFamily": {
                             "type": "object",
@@ -15913,6 +15916,7 @@
                   "role": {
                     "type": "string",
                     "enum": [
+                      "OWNER",
                       "ADMIN",
                       "MEMBER"
                     ],
@@ -15958,6 +15962,7 @@
                         "role": {
                           "type": "string",
                           "enum": [
+                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
@@ -16421,6 +16426,7 @@
                   "role": {
                     "type": "string",
                     "enum": [
+                      "OWNER",
                       "ADMIN",
                       "MEMBER"
                     ],
@@ -16477,6 +16483,7 @@
                         "role": {
                           "type": "string",
                           "enum": [
+                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
@@ -17570,11 +17577,12 @@
                         "userRole": {
                           "type": "string",
                           "enum": [
+                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
                           "example": "ADMIN",
-                          "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                          "description": "User's role in the group (OWNER, ADMIN, or MEMBER)"
                         },
                         "ownerFamily": {
                           "type": "object",
@@ -18101,11 +18109,12 @@
                         "userRole": {
                           "type": "string",
                           "enum": [
+                            "OWNER",
                             "ADMIN",
                             "MEMBER"
                           ],
                           "example": "ADMIN",
-                          "description": "User's role in the group (ADMIN or MEMBER, never OWNER)"
+                          "description": "User's role in the group (OWNER, ADMIN, or MEMBER)"
                         },
                         "ownerFamily": {
                           "type": "object",
@@ -22074,8 +22083,9 @@
                   "role": {
                     "type": "string",
                     "enum": [
-                      "MEMBER",
-                      "ADMIN"
+                      "OWNER",
+                      "ADMIN",
+                      "MEMBER"
                     ],
                     "description": "Role for the invited member in the group",
                     "example": "MEMBER"
@@ -22134,8 +22144,9 @@
                     "role": {
                       "type": "string",
                       "enum": [
-                        "MEMBER",
-                        "ADMIN"
+                        "OWNER",
+                        "ADMIN",
+                        "MEMBER"
                       ],
                       "description": "Invited role in the group",
                       "example": "MEMBER"

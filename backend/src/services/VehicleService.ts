@@ -343,11 +343,10 @@ export class VehicleService {
 
   async getAvailableVehiclesForScheduleSlot(groupId: string, timeSlotId: string) {
     try {
-      // Get all families that have access to the group
+      // Get all families that have access to the group (including owner family)
       const group = await this.prisma.group.findUnique({
         where: { id: groupId },
         include: {
-          ownerFamily: true,
           familyMembers: {
             include: {
               family: true,
@@ -369,11 +368,8 @@ export class VehicleService {
         throw new AppError('Time slot not found', 404);
       }
 
-      // Collect all family IDs that have access to the group
-      const familyIds = [group.familyId]; // Owner family
-      group.familyMembers.forEach((fm: { familyId: string }) => {
-        familyIds.push(fm.familyId);
-      });
+      // Collect all family IDs that have access to the group (owner family is now in familyMembers)
+      const familyIds = group.familyMembers.map((fm: { familyId: string }) => fm.familyId);
 
       // Find vehicles owned by families of group members
       const vehicles = await this.prisma.vehicle.findMany({

@@ -15,10 +15,10 @@ extendZodWithOpenApi(z);
 // ENUMS
 // ============================================================================
 
-export const GroupRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  enum: ['ADMIN', 'MEMBER'],
+export const GroupRoleEnum = z.enum(['OWNER', 'ADMIN', 'MEMBER']).openapi({
+  enum: ['OWNER', 'ADMIN', 'MEMBER'],
   example: 'ADMIN',
-  description: 'Group member role with different permission levels',
+  description: 'Group member role with different permission levels - OWNER is the group owning family',
 });
 
 export const UserRoleEnum = z.enum(['PARENT', 'DRIVER']).openapi({
@@ -312,7 +312,7 @@ export const GroupResponseSchema = z.object({
   userRole: GroupRoleEnum.optional()
     .openapi({
       example: 'ADMIN',
-      description: "User's role in the group (ADMIN or MEMBER, never OWNER)",
+      description: "User's role in the group (OWNER, ADMIN, or MEMBER)",
     }),
   ownerFamily: z.object({
     id: z.cuid().openapi({

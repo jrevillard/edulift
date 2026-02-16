@@ -99,27 +99,15 @@ export class ActivityLogRepository {
       try {
         // Get recent data from various tables for the family
         const [groups, children, vehicles] = await Promise.all([
-          // Get groups owned by or having this family as member
+          // Get groups where this family is a member (including owned groups via role='OWNER')
           this.prisma.group.findMany({
             where: {
-              OR: [
-                // Groups owned by this family
-                { ownerFamily: { id: familyId } },
-                // Groups where this family is a member
-                {
-                  familyMembers: {
-                    some: { familyId },
-                  },
-                },
-              ],
+              familyMembers: {
+                some: { familyId },
+              },
             },
             orderBy: { createdAt: 'desc' },
             take: 5,
-            include: {
-              ownerFamily: {
-                select: { name: true },
-              },
-            },
           }),
           // Get children belonging to this family
           this.prisma.child.findMany({
@@ -206,39 +194,21 @@ export class ActivityLogRepository {
       try {
         // Get recent data from various tables
         const [groups, children, vehicles] = await Promise.all([
-          // Get user's groups through family memberships
+          // Get user's groups through family memberships (including owned groups)
           this.prisma.group.findMany({
             where: {
-              OR: [
-                // Groups owned by user's family
-                {
-                  ownerFamily: {
+              familyMembers: {
+                some: {
+                  family: {
                     members: {
                       some: { userId },
                     },
                   },
                 },
-                // Groups where user's family is a member
-                {
-                  familyMembers: {
-                    some: {
-                      family: {
-                        members: {
-                          some: { userId },
-                        },
-                      },
-                    },
-                  },
-                },
-              ],
+              },
             },
             orderBy: { createdAt: 'desc' },
             take: 5,
-            include: {
-              ownerFamily: {
-                select: { name: true },
-              },
-            },
           }),
           // Get user's children through family
           this.prisma.child.findMany({
@@ -269,7 +239,7 @@ export class ActivityLogRepository {
         const activities: ActivityLog[] = [];
 
         // Add group activities
-        groups.forEach((group: GroupData) => {
+        groups.forEach((group: any) => {
           activities.push({
             id: `group-${group.id}`,
             userId,

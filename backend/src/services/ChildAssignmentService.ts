@@ -57,14 +57,9 @@ export class ChildAssignmentService {
       const group = await this.prisma.group.findFirst({
         where: {
           id: groupId,
-          OR: [
-            { familyId: userFamily.familyId }, // User's family owns the group
-            {
-              familyMembers: {
-                some: { familyId: userFamily.familyId }, // User's family is a member
-              },
-            },
-          ],
+          familyMembers: {
+            some: { familyId: userFamily.familyId },
+          },
         },
       });
 
@@ -159,14 +154,9 @@ export class ChildAssignmentService {
       const group = await this.prisma.group.findFirst({
         where: {
           id: groupId,
-          OR: [
-            { familyId: userFamily.familyId }, // User's family owns the group
-            {
-              familyMembers: {
-                some: { familyId: userFamily.familyId }, // User's family is a member
-              },
-            },
-          ],
+          familyMembers: {
+            some: { familyId: userFamily.familyId },
+          },
         },
       });
 
@@ -251,14 +241,9 @@ export class ChildAssignmentService {
           const group = await tx.group.findFirst({
             where: {
               id: scheduleSlot.groupId,
-              OR: [
-                { familyId: userFamily.familyId }, // User's family owns the group
-                {
-                  familyMembers: {
-                    some: { familyId: userFamily.familyId }, // User's family is a member
-                  },
-                },
-              ],
+              familyMembers: {
+                some: { familyId: userFamily.familyId },
+              },
             },
           });
 

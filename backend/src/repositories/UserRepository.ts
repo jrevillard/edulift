@@ -62,17 +62,10 @@ export class UserRepository {
   }
 
   async findGroupMembers(groupId: string): Promise<User[]> {
-    // Get all users from families that have access to this group
+    // Get all users from families that have access to this group (including owner family)
     const group = await this.prisma.group.findUnique({
       where: { id: groupId },
       include: {
-        ownerFamily: {
-          include: {
-            members: {
-              include: { user: true },
-            },
-          },
-        },
         familyMembers: {
           include: {
             family: {
@@ -91,12 +84,7 @@ export class UserRepository {
 
     const users: User[] = [];
 
-    // Add owner family members
-    group.ownerFamily.members.forEach((member: { user: User }) => {
-      users.push(member.user);
-    });
-
-    // Add participating family members
+    // Add all family members (owner family is now included in familyMembers)
     group.familyMembers.forEach((familyMember: { family: { members: { user: User }[] } }) => {
       familyMember.family.members.forEach((member: { user: User }) => {
         users.push(member.user);
@@ -115,22 +103,16 @@ export class UserRepository {
 
     if (!userFamily) return [];
 
-    // Get all groups where the user's family has access
+    // Get all groups where the user's family has access (including owned groups)
     return this.prisma.group.findMany({
       where: {
-        OR: [
-          { familyId: userFamily.familyId }, // Groups owned by the family
-          {
-            familyMembers: {
-              some: { familyId: userFamily.familyId }, // Groups the family participates in
-            },
-          },
-        ],
+        familyMembers: {
+          some: { familyId: userFamily.familyId },
+        },
       },
       include: {
-        ownerFamily: true,
         _count: {
-          select: { 
+          select: {
             familyMembers: true,
             scheduleSlots: true,
           },

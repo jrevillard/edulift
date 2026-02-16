@@ -29,8 +29,8 @@ export const FamilyRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
 });
 
 // Group-specific role enum
-export const GroupRoleEnum = z.enum(['MEMBER', 'ADMIN']).openapi({
-  description: 'User role within group context',
+export const GroupRoleEnum = z.enum(['OWNER', 'ADMIN', 'MEMBER']).openapi({
+  description: 'User role within group context - OWNER is the group owning family',
   example: 'MEMBER',
 });
 

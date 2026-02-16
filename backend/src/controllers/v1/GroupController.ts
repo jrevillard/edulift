@@ -1221,7 +1221,7 @@ app.openapi(inviteFamilyRoute, async (c) => {
     // Build inviteData conditionally to handle exactOptionalPropertyTypes
     const serviceInviteData: {
       familyId: string;
-      role: 'ADMIN' | 'MEMBER';
+      role: 'OWNER' | 'ADMIN' | 'MEMBER';
       personalMessage?: string;
     } = {
       familyId: inviteData.familyId,

@@ -598,7 +598,7 @@ export class UnifiedInvitationService {
         },
       });
 
-      if (group.familyId !== adminMember.familyId && (!groupMembership || groupMembership.role !== 'ADMIN')) {
+      if (!groupMembership || (groupMembership.role !== 'OWNER' && groupMembership.role !== 'ADMIN')) {
         throw new Error('Only group administrators can perform this action');
       }
 
@@ -1050,18 +1050,15 @@ export class UnifiedInvitationService {
       }
 
       // Check if admin's family owns the group or is group admin
-      if (invitation.group.familyId !== adminMember.familyId) {
-        const groupMembership = await tx.groupFamilyMember.findFirst({
-          where: {
-            groupId: invitation.groupId,
-            familyId: adminMember.familyId,
-            role: 'ADMIN',
-          },
-        });
+      const groupMembership = await tx.groupFamilyMember.findFirst({
+        where: {
+          groupId: invitation.groupId,
+          familyId: adminMember.familyId,
+        },
+      });
 
-        if (!groupMembership) {
-          throw new Error('Only group administrators can cancel invitations');
-        }
+      if (!groupMembership || (groupMembership.role !== 'OWNER' && groupMembership.role !== 'ADMIN')) {
+        throw new Error('Only group administrators can cancel invitations');
       }
 
       await tx.groupInvitation.update({

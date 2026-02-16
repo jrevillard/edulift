@@ -12,7 +12,7 @@ export class AuthorizationService {
 
   /**
    * Check if a user can access a specific group
-   * User can access if their family owns the group OR is a member of the group
+   * User can access if their family is a member of the group (including owner with role='OWNER')
    */
   async canUserAccessGroup(userId: string, groupId: string): Promise<boolean> {
     try {
@@ -26,29 +26,15 @@ export class AuthorizationService {
         return false;
       }
 
-      // Check if group exists and user's family has access
-      const group = await this.prisma.group.findUnique({
-        where: { id: groupId },
-        include: {
-          familyMembers: {
-            where: {
-              familyId: userFamily.familyId,
-            },
-          },
+      // Check if user's family is a member of the group (owner included via role='OWNER')
+      const groupMember = await this.prisma.groupFamilyMember.findFirst({
+        where: {
+          groupId,
+          familyId: userFamily.familyId,
         },
       });
 
-      if (!group) {
-        return false;
-      }
-
-      // User can access if:
-      // 1. Their family owns the group, OR
-      // 2. Their family is a member of the group
-      const isOwnerFamily = group.familyId === userFamily.familyId;
-      const isMemberFamily = group.familyMembers.length > 0;
-
-      return isOwnerFamily || isMemberFamily;
+      return !!groupMember;
     } catch (error) {
       this.logger.error(`Error checking group access for user ${userId}, group ${groupId}:`, { error: error instanceof Error ? error.message : String(error) });
       return false;
@@ -114,17 +100,12 @@ export class AuthorizationService {
         return [];
       }
 
-      // Get all groups where the user's family has access
+      // Get all groups where the user's family is a member (including owned groups via role='OWNER')
       const accessibleGroups = await this.prisma.group.findMany({
         where: {
-          OR: [
-            { familyId: userFamily.familyId }, // Groups owned by the family
-            {
-              familyMembers: {
-                some: { familyId: userFamily.familyId }, // Groups the family participates in
-              },
-            },
-          ],
+          familyMembers: {
+            some: { familyId: userFamily.familyId },
+          },
         },
         select: { id: true },
       });

@@ -27,6 +27,10 @@ export type GroupAccessCheck = GroupAccessResult | GroupAccessError;
  * 1. User belongs to a family (via familyMember table)
  * 2. User's family is a member of the specified group (via groupFamilyMember table)
  *
+ * Note: After migration to normalized ownership (2025-02-15), this function
+ * works for ALL families including owner families, since owners are now stored
+ * in group_family_members with role='OWNER' instead of using group.familyId.
+ *
  * @param prisma - Prisma client instance
  * @param userId - ID of the user to verify
  * @param groupId - ID of the group to check access for
