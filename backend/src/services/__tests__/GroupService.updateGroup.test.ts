@@ -180,6 +180,10 @@ describe('GroupService.updateGroup', () => {
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
         inviteCode: mockUpdatedGroup.inviteCode,
+        ownerFamily: {
+          id: 'family123',
+          name: 'Test Family',
+        },
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN', // Changed from 'OWNER' to 'ADMIN'
@@ -220,6 +224,10 @@ describe('GroupService.updateGroup', () => {
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
         inviteCode: mockUpdatedGroup.inviteCode,
+        ownerFamily: {
+          id: 'family123',
+          name: 'Test Family',
+        },
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
@@ -261,6 +269,10 @@ describe('GroupService.updateGroup', () => {
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
         inviteCode: mockUpdatedGroup.inviteCode,
+        ownerFamily: {
+          id: 'family123',
+          name: 'Test Family',
+        },
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
@@ -295,6 +307,10 @@ describe('GroupService.updateGroup', () => {
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
         inviteCode: mockUpdatedGroup.inviteCode,
+        ownerFamily: {
+          id: 'family123',
+          name: 'Test Family',
+        },
         familyCount: mockUpdatedGroup._count.familyMembers, // Includes owner family
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
@@ -323,6 +339,10 @@ describe('GroupService.updateGroup', () => {
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
         inviteCode: mockUpdatedGroup.inviteCode,
+        ownerFamily: {
+          id: 'family123',
+          name: 'Test Family',
+        },
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',

@@ -303,16 +303,10 @@ export const GroupResponseSchema = z.object({
       example: 'ABC123XYZ',
       description: 'Group invitation code',
     }),
-  familyId: z.cuid()
-    .optional()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Owner family ID',
-    }),
   userRole: GroupRoleEnum.optional()
     .openapi({
       example: 'ADMIN',
-      description: "User's role in the group (OWNER, ADMIN, or MEMBER)",
+      description: "User's role in the group (ADMIN or MEMBER - OWNER is family-level only)",
     }),
   ownerFamily: z.object({
     id: z.cuid().openapi({

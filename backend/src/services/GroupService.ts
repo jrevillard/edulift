@@ -174,7 +174,7 @@ export class GroupService {
 
   /**
    * Calculate user's role in a specific group
-   * @param group - Group with ownerFamily and familyMembers
+   * @param group - Group with familyMembers (owner has role='OWNER')
    * @param userId - User ID to check role for
    * @returns User's role: 'ADMIN' or 'MEMBER' (users can never be 'OWNER' in groups)
    */
@@ -216,7 +216,7 @@ export class GroupService {
    * Enrich a raw Prisma group with user-specific context (userRole, counts, etc.)
    * This ensures consistent response format across all endpoints (REST principle).
    *
-   * @param group - Raw Prisma group with includes
+   * @param group - Prisma group with familyMembers (owner has role='OWNER')
    * @param userId - User ID for calculating userRole
    * @returns Enriched group object matching getUserGroups() format
    */
@@ -244,6 +244,10 @@ export class GroupService {
       createdAt: group.createdAt.toISOString(),
       updatedAt: group.updatedAt.toISOString(),
       userRole,
+      ownerFamily: ownerMembership?.family ? {
+        id: ownerMembership.family.id,
+        name: ownerMembership.family.name,
+      } : undefined,
       familyCount,
       scheduleCount: group._count?.scheduleSlots ?? 0,
     };
