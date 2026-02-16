@@ -132,7 +132,6 @@ describe('GroupService - Family-Based Architecture', () => {
         data: {
           name: 'Test Group',
           description: null,
-          familyId: TEST_IDS.FAMILY,
           familyMembers: {
             create: {
               familyId: TEST_IDS.FAMILY,
@@ -150,7 +149,6 @@ describe('GroupService - Family-Based Architecture', () => {
       expect(result.userRole).toBe('ADMIN');
       expect(result.familyCount).toBe(1);
       expect(result.scheduleCount).toBe(0);
-      expect(result.familyId).toBe(TEST_IDS.FAMILY);
     });
 
     it('should throw error when user is not family admin', async () => {
@@ -381,19 +379,19 @@ describe('GroupService - Family-Based Architecture', () => {
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         group: {
           id: TEST_IDS.GROUP,
-          familyMembers: [], // Family not a member yet
+          familyMembers: [
+            {
+              familyId: TEST_IDS.FAMILY,
+              role: 'OWNER',
+              addedBy: TEST_IDS.USER,
+              joinedAt: new Date('2024-01-01'),
+            }
+          ], // Family is already OWNER
         },
       });
 
-      // Mock owner family membership check
-      mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
-        familyId: TEST_IDS.FAMILY,
-        groupId: TEST_IDS.GROUP,
-        role: 'OWNER',
-      });
-
       await expect(groupService.joinGroupByInviteCode(inviteCode, userId)).rejects.toThrow(
-        'Your family owns this group',
+        'Your family is already a member of this group',
       );
     });
   });
@@ -439,16 +437,33 @@ describe('GroupService - Family-Based Architecture', () => {
 
       expect(mockPrisma.group.findMany).toHaveBeenCalledWith({
         where: {
-          OR: [
-            { familyId: TEST_IDS.FAMILY },
-            {
-              familyMembers: {
-                some: { familyId: TEST_IDS.FAMILY },
+          familyMembers: {
+            some: {
+              familyId: expect.any(String),
+            },
+          },
+        },
+        include: {
+          familyMembers: {
+            include: {
+              family: {
+                include: {
+                  members: {
+                    include: {
+                      user: true,
+                    },
+                  },
+                },
               },
             },
-          ],
+          },
+          _count: {
+            select: {
+              familyMembers: true,
+              scheduleSlots: true,
+            },
+          },
         },
-        include: expect.any(Object),
         orderBy: { createdAt: 'desc' },
       });
 
@@ -741,11 +756,14 @@ describe('GroupService - Family-Based Architecture', () => {
         });
 
       // Mock for hasGroupAdminPermissions group check
-      mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({
-        familyId: TEST_IDS.FAMILY,
-        groupId: TEST_IDS.GROUP,
-        role: 'OWNER',
-      });
+      mockPrisma.groupFamilyMember.findFirst
+        .mockResolvedValueOnce({
+          familyId: TEST_IDS.FAMILY,
+          groupId: TEST_IDS.GROUP,
+          role: 'OWNER',
+        })
+        // Mock no existing membership
+        .mockResolvedValueOnce(null);
 
       mockPrisma.group.findUnique
         .mockResolvedValueOnce({
@@ -786,9 +804,6 @@ describe('GroupService - Family-Based Architecture', () => {
         .mockResolvedValueOnce({
           name: 'Target Family',
         });
-
-      // Mock no existing membership
-      mockPrisma.groupFamilyMember.findFirst.mockResolvedValue(null);
       
       // Mock no existing invitation
       mockPrisma.groupInvitation.findFirst.mockResolvedValue(null);

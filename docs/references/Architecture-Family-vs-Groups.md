@@ -384,28 +384,33 @@ children (id, name, age, family_id, user_id) -- user_id for migration
 vehicles (id, name, capacity, family_id, user_id) -- user_id for migration
 ```
 
-### Group Tables (Family-Based)
+### Group Tables (Family-Based with Normalized Ownership)
 ```sql
--- Group scheduling and coordination (family-owned)
+-- Group scheduling and coordination
+-- Note: family_id field is DEPRECATED - ownership now tracked via group_family_members with role='OWNER'
 groups (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   invite_code TEXT UNIQUE NOT NULL,
-  family_id TEXT NOT NULL,  -- ✅ IMPLEMENTED: Group owner family
+  -- family_id is kept for backward compatibility but no longer used for ownership
+  family_id TEXT,  -- DEPRECATED: Use group_family_members with role='OWNER' instead
   created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  FOREIGN KEY (family_id) REFERENCES families(id) ON DELETE CASCADE
+  updated_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Family participation in groups (many-to-many)
+-- This table now includes the OWNER family with role='OWNER'
 group_family_members (
   family_id TEXT,
   group_id TEXT,
-  role TEXT DEFAULT 'MEMBER', -- ADMIN | MEMBER
+  role TEXT DEFAULT 'MEMBER', -- 'OWNER' | 'ADMIN' | 'MEMBER'
   added_by TEXT NOT NULL,      -- User who added the family
   joined_at TIMESTAMP DEFAULT NOW(),
   PRIMARY KEY (family_id, group_id)
 );
+
+-- KEY CHANGE: OWNER family is now in this table with role='OWNER'
+-- Previously, ownership was tracked via groups.family_id (now deprecated)
 
 -- Schedule time slots
 schedule_slots (
@@ -459,11 +464,12 @@ schedule_slot_children (
 ### ✅ Completed (Backend)
 - [x] Family system database schema
 - [x] Family service layer (create, join, member management)
-- [x] Family authentication and permissions  
+- [x] Family authentication and permissions
 - [x] Family API endpoints
 - [x] **Group-to-family migration completed**
-- [x] **Family-based group architecture implemented**
-- [x] **Simplified ADMIN/MEMBER role system**
+- [x] **Normalized group ownership using group_family_members with role='OWNER'**
+- [x] **Simplified ADMIN/MEMBER family role system**
+- [x] **OWNER/ADMIN/MEMBER group role system with permanent OWNER constraints**
 - [x] **Database migrations for production deployment**
 
 ### ✅ Completed (Frontend)
@@ -520,11 +526,30 @@ The systems are designed to be complementary, not competitive, enabling rich col
 
 ## 🎯 **Current Implementation Verification**
 
-✅ **Confirmed**: Groups are **fully owned by families** in the current implementation:
-- Database schema: `groups.family_id` field (NOT `admin_id`) 
-- Business logic: Only family admins can create groups for their family
+✅ **Confirmed**: Groups use **normalized ownership** via `group_family_members` with role='OWNER':
+- Database schema: `group_family_members` table includes OWNER family with role='OWNER'
+- Legacy `groups.family_id` field is **deprecated** but kept for backward compatibility
+- Business logic: OWNER family identified via membership with role='OWNER' (not groups.family_id)
+- **OWNER role is permanent**: Cannot leave, be removed, or have role changed
+- **Delete permission**: Only OWNER family admins can delete groups (both conditions required)
 - Group membership: Families join groups as units (not individual users)
 - Resource access: Family-owned children and vehicles are used in group scheduling
 - Permissions: Family admin privileges are respected in group contexts
 
-The migration to family-based group ownership is **complete and production-ready**, providing a more intuitive and secure foundation for collaborative transportation management.
+### OWNER Role Constraints (Critical)
+The OWNER role has special protections enforced at the service layer:
+- ⚠️ **Cannot leave group**: OWNER family membership cannot be removed
+- ⚠️ **Cannot be removed**: Other admins cannot remove OWNER family
+- ⚠️ **Cannot change role**: OWNER role cannot be demoted to ADMIN/MEMBER
+- ⚠️ **No transfer feature**: No ownership transfer functionality exists
+- ✅ **Delete group only**: OWNER family can only delete the entire group
+
+**Implementation:**
+```typescript
+// Service layer protection in GroupService
+if (currentMembership.role === 'OWNER') {
+  throw new AppError('Cannot remove group owner family', 400);
+}
+```
+
+The migration to normalized group ownership is **complete and production-ready**, providing a more intuitive and secure foundation for collaborative transportation management.

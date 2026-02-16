@@ -54,9 +54,17 @@ Groups use a family-based membership system where families (not individual users
 
 | Role | Description | How Assigned |
 |------|-------------|--------------|
-| **OWNER** | Family that created the group | Automatic when family creates group |
-| **ADMIN** | Family with administrative privileges | Promoted by OWNER |
+| **OWNER** | Family that created the group; **permanent role** with exclusive delete permission | Automatic when family creates group; **cannot be transferred, removed, or changed** |
+| **ADMIN** | Family with administrative privileges | Promoted by OWNER/ADMIN; **cannot promote to OWNER** |
 | **MEMBER** | Regular participating family | Default when family joins group |
+
+**IMPORTANT OWNER ROLE CONSTRAINTS:**
+- ⚠️ **OWNER is permanent**: No ownership transfer feature exists
+- ⚠️ **Cannot leave group**: OWNER family cannot be removed or leave
+- ⚠️ **Cannot change role**: OWNER family's role cannot be demoted
+- ⚠️ **Exclusive delete**: Only OWNER family (with family admin user) can delete group
+- ✅ **Multiple OWNERS possible**: System allows multiple OWNER families (not validated)
+- ✅ **Protected operations**: Removing/role-changing OWNER family is blocked at service layer
 
 ### Group Permissions Matrix
 
@@ -65,13 +73,14 @@ Groups use a family-based membership system where families (not individual users
 | **Group Management** |||||
 | `group.view` | ✅ | ✅ | ✅ | View group information |
 | `group.edit` | ✅ | ✅ | ❌ | Edit group name and settings |
-| `group.delete` | ✅ | ❌ | ❌ | Delete the entire group (OWNER only) |
+| `group.delete` | ✅ | ❌ | ❌ | Delete the entire group (OWNER only + requires family admin) |
 | `group.generateInviteCode` | ✅ | ✅ | ❌ | Generate new group invite codes |
 | **Family Management** |||||
 | `families.view` | ✅ | ✅ | ✅ | View participating families |
 | `families.invite` | ✅ | ✅ | ❌ | Invite new families to group |
-| `families.editRole` | ✅ | ✅ | ❌ | Change family roles in group |
-| `families.remove` | ✅ | ✅ | ❌ | Remove families from group |
+| `families.editRole` | ✅ | ✅ | ❌ | Change family roles in group (except OWNER) |
+| `families.remove` | ✅ | ✅ | ❌ | Remove families from group (except OWNER) |
+| `families.leave` | ❌ | ✅ | ✅ | Leave group (OWNER cannot leave) |
 | **Schedule Management** |||||
 | `schedule.view` | ✅ | ✅ | ✅ | View group schedules |
 | `schedule.create` | ✅ | ✅ | ❌ | Create new schedule slots |
@@ -135,10 +144,13 @@ While groups operate at the family level, individual users' permissions within g
 
 3. **Owner vs Admin Roles**
    - The family that created a group is the OWNER
-   - Both OWNER and ADMIN have nearly identical permissions
-   - **Key Difference**: Only the OWNER family can delete the group
-   - Both OWNER and ADMIN can promote/demote families to/from ADMIN role
-   - Owner families cannot leave their own group (must delete it instead)
+   - Both OWNER and ADMIN have nearly identical permissions **EXCEPT**:
+     - **Only OWNER family can delete the group** (requires user to be family admin)
+     - **OWNER family cannot leave, be removed, or have role changed**
+     - **ADMIN cannot be promoted to OWNER** (no ownership transfer feature)
+     - **Multiple OWNERS technically possible** (not validated by system)
+   - Both OWNER and ADMIN can invite families and promote/demote to/from ADMIN role
+   - Owner families **cannot leave** their own group (must delete it instead)
 
 #### Real-World Examples
 
@@ -164,7 +176,28 @@ All users (regardless of their family or group role) can:
 - ✅ View participating families and their members
 - ✅ Assign their own family's children to trips
 - ✅ Assign their own family's vehicles to trips
-- ✅ Leave the group (except if their family is the owner)
+- ✅ Leave the group **(except if their family is the OWNER - must delete group instead)**
+
+#### OWNER Role-Specific Constraints
+
+**OWNER Family Protections:**
+- ❌ **Cannot leave group**: OWNER family members cannot use "leave group" functionality
+- ❌ **Cannot be removed**: Other admins cannot remove OWNER family from group
+- ❌ **Cannot change role**: OWNER role cannot be demoted to ADMIN or MEMBER
+- ❌ **No transfer ownership**: No feature exists to transfer ownership to another family
+- ✅ **Delete group only**: OWNER family can only delete the entire group
+
+**Deleting a Group Requires:**
+1. User must be **ADMIN in their family** (family-level permission)
+2. User's family must be **OWNER in the group** (group-level permission)
+3. Both conditions must be true simultaneously
+
+**Example:**
+```
+Smith Family (OWNER) + John (Smith Family ADMIN) → Can delete group ✅
+Smith Family (OWNER) + Sarah (Smith Family MEMBER) → Cannot delete group ❌
+Jones Family (ADMIN) + Mike (Jones Family ADMIN) → Cannot delete group ❌
+```
 
 ### Resource Management Across Systems
 
@@ -202,6 +235,38 @@ async function canInviteFamilyMembers(userId: string, familyId: string): Promise
 async function canManageGroupSchedule(familyId: string, groupId: string): Promise<boolean> {
   const groupMembership = await getGroupFamilyMembership(familyId, groupId);
   return ['OWNER', 'ADMIN'].includes(groupMembership?.role || '');
+}
+
+// Example: Check if user can delete group (requires BOTH conditions)
+async function canDeleteGroup(userId: string, groupId: string): Promise<boolean> {
+  // Condition 1: User must be admin in their family
+  const userFamily = await getUserFamily(userId);
+  const userFamilyMember = await getFamilyMember(userId, userFamily.id);
+  if (userFamilyMember?.role !== 'ADMIN') {
+    return false;
+  }
+
+  // Condition 2: User's family must be OWNER in the group
+  const groupMembership = await getGroupFamilyMembership(userFamily.id, groupId);
+  return groupMembership?.role === 'OWNER';
+}
+
+// Example: Check if family can be removed from group (OWNER cannot be removed)
+async function canRemoveFamilyFromGroup(
+  targetFamilyId: string,
+  groupId: string
+): Promise<{ canRemove: boolean; reason?: string }> {
+  const groupMembership = await getGroupFamilyMembership(targetFamilyId, groupId);
+
+  if (!groupMembership) {
+    return { canRemove: false, reason: 'Family is not a member of this group' };
+  }
+
+  if (groupMembership.role === 'OWNER') {
+    return { canRemove: false, reason: 'Cannot remove group owner family' };
+  }
+
+  return { canRemove: true };
 }
 
 // Example: Check if family can assign another family's children
@@ -331,15 +396,21 @@ DELETE /api/v1/families/:id/children/:id    # Remove child (requires children.de
 
 ### Group API Endpoints
 ```
-POST   /api/v1/groups                       # Create group (requires family membership)
-PATCH  /api/v1/groups/:id                   # Edit group (requires group.edit)
-DELETE /api/v1/groups/:id                   # Delete group (requires group.delete)
-POST   /api/v1/groups/:id/invite            # Invite family (requires families.invite)
-PATCH  /api/v1/groups/:id/families/:id      # Edit family role (requires families.editRole)
-DELETE /api/v1/groups/:id/families/:id      # Remove family (requires families.remove)
-POST   /api/v1/groups/:id/schedule          # Create schedule (requires schedule.create)
-POST   /api/v1/groups/:id/children          # Assign child (requires children.assignOwn/Others)
+POST   /api/v1/groups                       # Create group (requires family admin)
+PATCH  /api/v1/groups/:id                   # Edit group (requires family admin + group OWNER/ADMIN)
+DELETE /api/v1/groups/:id                   # Delete group (requires family admin + group OWNER)
+POST   /api/v1/groups/:id/invite            # Invite family (requires family admin + group OWNER/ADMIN)
+PATCH  /api/v1/groups/:id/families/:id      # Edit family role (requires family admin + group OWNER/ADMIN, except OWNER role)
+DELETE /api/v1/groups/:id/families/:id      # Remove family (requires family admin + group OWNER/ADMIN, fails for OWNER)
+POST   /api/v1/groups/:id/schedule          # Create schedule (requires family admin + group OWNER/ADMIN)
+POST   /api/v1/groups/:id/children          # Assign child (requires family admin + group OWNER/ADMIN for others' children)
 ```
+
+**Important Notes:**
+- All group admin operations require user to be **ADMIN in their family**
+- DELETE group: Only OWNER family admins (both conditions required)
+- PATCH/DELETE families/:id: Cannot modify or remove OWNER family
+- OWNER role cannot be assigned to other families (no transfer ownership feature)
 
 ## Error Handling and User Experience
 
@@ -360,6 +431,10 @@ enum PermissionErrorCode {
 |------------|--------------|------------------|
 | `INSUFFICIENT_FAMILY_PERMISSIONS` | "You don't have permission to perform this action in your family." | "Contact your family administrator for assistance." |
 | `INSUFFICIENT_GROUP_PERMISSIONS` | "You don't have permission to manage this group feature." | "Contact the group owner or administrator." |
+| `CANNOT_MODIFY_OWNER_FAMILY` | "Cannot modify or remove the group owner family." | "Only the owner family can delete the group." |
+| `CANNOT_REMOVE_OWNER_FAMILY` | "Cannot remove the group owner family from the group." | "The owner family must delete the entire group instead." |
+| `CANNOT_CHANGE_OWNER_ROLE` | "Cannot change the role of the owner family." | "Owner role is permanent and cannot be transferred." |
+| `NOT_FAMILY_ADMIN` | "Only family administrators can perform this action." | "Contact your family administrator for assistance." |
 | `RESOURCE_NOT_OWNED` | "You can only manage your own family's resources." | "Ask the resource owner to make this change." |
 | `FAMILY_MEMBERSHIP_REQUIRED` | "You must be part of a family to access this feature." | "Create or join a family first." |
 | `LAST_FAMILY_ADMIN` | "Cannot remove the last administrator from the family." | "Promote another member to administrator first." |
@@ -384,6 +459,76 @@ enum PermissionErrorCode {
 - ✅ Group MEMBER can only assign own family resources
 - ✅ Family permissions override group permissions for own resources
 - ✅ Permission errors provide helpful user guidance
+
+## OWNER Role - Critical Constraints
+
+The OWNER role is the highest privilege level in a group but comes with important permanent constraints:
+
+### What OWNER Can Do
+- ✅ Delete the entire group (if user is also family admin)
+- ✅ Edit group name, description, and settings
+- ✅ Generate group invitation codes
+- ✅ Invite new families to the group
+- ✅ Promote families to ADMIN role
+- ✅ Demote ADMIN families to MEMBER role
+- ✅ Remove ADMIN and MEMBER families from group
+- ✅ Manage group schedules and assignments
+
+### What OWNER Cannot Do
+- ❌ **Leave the group**: OWNER family cannot use "leave group" functionality
+- ❌ **Be removed**: Other admins cannot remove OWNER family from group
+- ❌ **Change role**: OWNER role cannot be changed to ADMIN or MEMBER
+- ❌ **Transfer ownership**: No feature exists to transfer ownership to another family
+
+### Deleting a Group
+**Requirements (BOTH must be true):**
+1. User must be an **ADMIN in their family** (family-level permission)
+2. User's family must be the **OWNER of the group** (group-level permission)
+
+**Examples:**
+```
+✅ Smith Family (OWNER) + John (Smith Family ADMIN)
+   → John can delete the group
+
+❌ Smith Family (OWNER) + Sarah (Smith Family MEMBER)
+   → Sarah cannot delete the group (not family admin)
+
+❌ Jones Family (ADMIN) + Mike (Jones Family ADMIN)
+   → Mike cannot delete the group (family not OWNER)
+```
+
+### Multiple OWNERS
+- The system **does not validate** against multiple OWNER families
+- Multiple families with role='OWNER' is **technically possible**
+- Each OWNER family would have delete permissions (requires family admin user)
+- This is **not recommended** but not explicitly blocked
+- Future migrations may add validation to enforce single OWNER
+
+### Implementation Details
+**Database Schema (Normalized Ownership):**
+```sql
+group_family_members (
+  family_id TEXT,
+  group_id TEXT,
+  role TEXT, -- 'OWNER' | 'ADMIN' | 'MEMBER'
+  PRIMARY KEY (family_id, group_id)
+)
+```
+
+**Service Layer Protections:**
+```typescript
+// In GroupService.removeFamilyFromGroup()
+if (currentMembership.role === 'OWNER') {
+  throw new AppError('Cannot remove group owner family', 400);
+}
+
+// In GroupService.deleteGroup()
+const ownerFamilyId = group.familyMembers.find(fm => fm.role === 'OWNER')?.familyId;
+const isOwnerAdmin = await this.isFamilyAdmin(requesterId, ownerFamilyId);
+if (!isOwnerAdmin) {
+  throw new AppError('Only administrators of the owner family can delete the group', 403);
+}
+```
 
 ## Migration Notes
 

@@ -240,15 +240,10 @@ export class GroupService {
       id: group.id,
       name: group.name,
       description: group.description,
-      familyId: ownerMembership?.familyId, // Owner family ID from familyMembers
       inviteCode: group.inviteCode,
       createdAt: group.createdAt.toISOString(),
       updatedAt: group.updatedAt.toISOString(),
       userRole,
-      ownerFamily: ownerMembership?.family ? {
-        id: ownerMembership.family.id,
-        name: ownerMembership.family.name,
-      } : undefined,
       familyCount,
       scheduleCount: group._count?.scheduleSlots ?? 0,
     };

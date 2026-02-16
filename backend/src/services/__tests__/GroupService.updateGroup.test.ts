@@ -55,26 +55,41 @@ describe('GroupService.updateGroup', () => {
       id: 'group123',
       name: 'Original Group',
       description: 'Original description',
-      familyId: 'family123',
-      ownerId: 'owner123',
       createdAt: new Date(),
       updatedAt: new Date(),
-      familyMembers: [], // Required for calculateUserRoleInGroup
+      familyMembers: [
+        {
+          familyId: 'family123',
+          role: 'OWNER',
+          addedBy: 'creator',
+          joinedAt: new Date('2024-01-01'),
+          family: {
+            id: 'family123',
+            name: 'Test Family',
+          },
+        },
+      ],
     };
 
     const mockUpdatedGroup = {
       id: 'group123',
       name: 'Updated Group',
       description: 'Updated description',
-      familyId: 'family123',
       inviteCode: 'INVITE123',
       createdAt: new Date(),
       updatedAt: new Date(),
-      ownerFamily: {
-        id: 'family123',
-        name: 'Test Family',
-      },
-      familyMembers: [], // Required for calculateUserRoleInGroup
+      familyMembers: [
+        {
+          familyId: 'family123',
+          role: 'OWNER',
+          addedBy: 'creator',
+          joinedAt: new Date('2024-01-01'),
+          family: {
+            id: 'family123',
+            name: 'Test Family',
+          },
+        },
+      ],
       _count: {
         familyMembers: 1,
         scheduleSlots: 0,
@@ -127,11 +142,27 @@ describe('GroupService.updateGroup', () => {
       // Second call: fetch complete group after update
       expect(mockPrisma.group.findUnique).toHaveBeenNthCalledWith(2, {
         where: { id: 'group123' },
-        include: expect.objectContaining({
-          ownerFamily: expect.any(Object),
-          familyMembers: true,
-          _count: expect.any(Object),
-        }),
+        include: {
+          _count: {
+            select: {
+              familyMembers: true,
+              scheduleSlots: true,
+            },
+          },
+          familyMembers: {
+            include: {
+              family: {
+                include: {
+                  members: {
+                    include: {
+                      user: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       });
 
       expect(mockActivityLogRepo.createActivity).toHaveBeenCalledWith({
@@ -148,13 +179,11 @@ describe('GroupService.updateGroup', () => {
         id: mockUpdatedGroup.id,
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
-        familyId: mockUpdatedGroup.familyId,
         inviteCode: mockUpdatedGroup.inviteCode,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN', // Changed from 'OWNER' to 'ADMIN'
-        ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
+        familyCount: mockUpdatedGroup._count.familyMembers, // Includes owner family
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -190,13 +219,11 @@ describe('GroupService.updateGroup', () => {
         id: mockUpdatedGroup.id,
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
-        familyId: mockUpdatedGroup.familyId,
         inviteCode: mockUpdatedGroup.inviteCode,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
-        ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
+        familyCount: mockUpdatedGroup._count.familyMembers, // Includes owner family
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -233,13 +260,11 @@ describe('GroupService.updateGroup', () => {
         id: mockUpdatedGroup.id,
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
-        familyId: mockUpdatedGroup.familyId,
         inviteCode: mockUpdatedGroup.inviteCode,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
-        ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
+        familyCount: mockUpdatedGroup._count.familyMembers, // Includes owner family
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -265,14 +290,12 @@ describe('GroupService.updateGroup', () => {
       expect(result).toEqual({
         id: mockUpdatedGroup.id,
         name: mockUpdatedGroup.name,
-        familyId: mockUpdatedGroup.familyId,
         description: mockUpdatedGroup.description,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
         inviteCode: mockUpdatedGroup.inviteCode,
-        ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
+        familyCount: mockUpdatedGroup._count.familyMembers, // Includes owner family
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -299,13 +322,11 @@ describe('GroupService.updateGroup', () => {
         id: mockUpdatedGroup.id,
         name: mockUpdatedGroup.name,
         description: mockUpdatedGroup.description,
-        familyId: mockUpdatedGroup.familyId,
         inviteCode: mockUpdatedGroup.inviteCode,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userRole: 'ADMIN',
-        ownerFamily: mockUpdatedGroup.ownerFamily,
-        familyCount: mockUpdatedGroup._count.familyMembers + 1, // Owner family + members
+        familyCount: mockUpdatedGroup._count.familyMembers, // Includes owner family
         scheduleCount: mockUpdatedGroup._count.scheduleSlots,
       });
     });
@@ -325,8 +346,14 @@ describe('GroupService.updateGroup', () => {
     it('should throw error if user is MEMBER of owner family', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123',
-        familyMembers: [],
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       };
 
       mockPrisma.group.findUnique.mockResolvedValue(mockGroup);
@@ -349,8 +376,14 @@ describe('GroupService.updateGroup', () => {
     it('should throw error if user is not member of any family', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123',
-        familyMembers: [],
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       };
 
       mockPrisma.group.findUnique.mockResolvedValue(mockGroup);
@@ -368,11 +401,18 @@ describe('GroupService.updateGroup', () => {
     it('should throw error if user is MEMBER of group (not owner family)', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123', // Owner family
         familyMembers: [
+          {
+            familyId: 'family123', // Owner family
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
           {
             familyId: 'family456', // Member family
             role: 'MEMBER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
           },
         ],
       };
@@ -399,20 +439,31 @@ describe('GroupService.updateGroup', () => {
     it('should handle activity log errors gracefully', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123',
-        familyMembers: [], // Required for calculateUserRoleInGroup
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       };
 
       const mockCompleteGroup = {
         id: 'group123',
         name: 'Updated Name',
         description: null,
-        familyId: 'family123',
         inviteCode: 'INVITE123',
         createdAt: new Date(),
         updatedAt: new Date(),
-        ownerFamily: { id: 'family123', name: 'Test Family' },
-        familyMembers: [], // Required for calculateUserRoleInGroup
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
         _count: {
           familyMembers: 1,
           scheduleSlots: 0,
@@ -447,20 +498,31 @@ describe('GroupService.updateGroup', () => {
     it('should allow owner family admin (ADMIN role) to update group', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123',
-        familyMembers: [], // Required for calculateUserRoleInGroup
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       };
 
       const mockCompleteGroup = {
         id: 'group123',
         name: 'New Name',
         description: null,
-        familyId: 'family123',
         inviteCode: 'INVITE123',
         createdAt: new Date(),
         updatedAt: new Date(),
-        ownerFamily: { id: 'family123', name: 'Test Family' },
-        familyMembers: [], // Required for calculateUserRoleInGroup
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
         _count: {
           familyMembers: 1,
           scheduleSlots: 0,
@@ -491,11 +553,18 @@ describe('GroupService.updateGroup', () => {
     it('should allow group ADMIN (from member family) to update group', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123', // Owner family
         familyMembers: [
+          {
+            familyId: 'family123', // Owner family
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
           {
             familyId: 'family456', // Member family with ADMIN role
             role: 'ADMIN',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
           },
         ],
       };
@@ -504,19 +573,25 @@ describe('GroupService.updateGroup', () => {
         id: 'group123',
         name: 'New Name',
         description: null,
-        familyId: 'family123',
         inviteCode: 'INVITE123',
         createdAt: new Date(),
         updatedAt: new Date(),
-        ownerFamily: { id: 'family123', name: 'Test Family' },
         familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
           {
             familyId: 'family456',
             role: 'ADMIN',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
           },
         ],
         _count: {
-          familyMembers: 1,
+          familyMembers: 2,
           scheduleSlots: 0,
         },
       };
@@ -545,11 +620,18 @@ describe('GroupService.updateGroup', () => {
     it('should NOT allow group MEMBER (from member family) to update group', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123', // Owner family
         familyMembers: [
+          {
+            familyId: 'family123', // Owner family
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
           {
             familyId: 'family456', // Member family with MEMBER role
             role: 'MEMBER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
           },
         ],
       };
@@ -574,20 +656,31 @@ describe('GroupService.updateGroup', () => {
     it('should return correct userRole for owner family admin', async () => {
       const mockGroup = {
         id: 'group123',
-        familyId: 'family123',
-        familyMembers: [],
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       };
 
       const mockCompleteGroup = {
         id: 'group123',
         name: 'New Name',
         description: null,
-        familyId: 'family123',
         inviteCode: 'INVITE123',
         createdAt: new Date(),
         updatedAt: new Date(),
-        ownerFamily: { id: 'family123', name: 'Test Family' },
-        familyMembers: [],
+        familyMembers: [
+          {
+            familyId: 'family123',
+            role: 'OWNER',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
         _count: {
           familyMembers: 1,
           scheduleSlots: 0,
