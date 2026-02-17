@@ -66,22 +66,6 @@ export const ScheduleSlotVehicleParamsSchema = z.object({
   description: 'URL parameters for schedule slot vehicle-specific endpoints',
 });
 
-export const ScheduleSlotChildParamsSchema = z.object({
-  scheduleSlotId: z.cuid('Invalid schedule slot ID format')
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Unique schedule slot identifier (CUID format)',
-    }),
-  childId: z.cuid('Invalid child ID format')
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Unique child identifier (CUID format)',
-    }),
-}).openapi({
-  title: 'Schedule Slot Child Parameters',
-  description: 'URL parameters for schedule slot child-specific endpoints',
-});
-
 // ============================================================================
 // QUERY SCHEMAS
 // ============================================================================
@@ -203,23 +187,6 @@ export const PatchVehicleAssignmentSchema = z.object({
   title: 'Update Vehicle Assignment',
   description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional - only provided fields will be updated.',
 });
-
-export const AssignChildSchema = z.object({
-  childId: z.cuid('Invalid child ID format')
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Child identifier to assign',
-    }),
-  vehicleAssignmentId: z.cuid('Invalid vehicle assignment ID format')
-    .openapi({
-      example: 'cl123456789012345678901236',
-      description: 'Vehicle assignment identifier for the child',
-    }),
-}).openapi({
-  title: 'Assign Child to Schedule Slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot',
-});
-
 export const UpdateDriverSchema = z.object({
   driverId: z.cuid('Invalid driver ID format')
     .nullable()
@@ -470,14 +437,12 @@ export const ScheduleResponseSchema = z.object({
 registry.register('CreateScheduleSlotWithVehicleSchema', CreateScheduleSlotWithVehicleSchema);
 registry.register('AssignVehicleRequest', AssignVehicleSchema);
 registry.register('PatchVehicleAssignmentRequest', PatchVehicleAssignmentSchema);
-registry.register('AssignChildRequest', AssignChildSchema);
 registry.register('UpdateDriverRequest', UpdateDriverSchema);
 registry.register('VehicleIdRequest', VehicleIdSchema);
 registry.register('UpdateSeatOverrideRequest', UpdateSeatOverrideSchema);
 
 // Parameter schemas
 registry.register('ScheduleSlotParams', ScheduleSlotParamsSchema);
-registry.register('ScheduleSlotChildParams', ScheduleSlotChildParamsSchema);
 // GroupParams is registered in groups.ts
 registry.register('VehicleAssignmentParams', VehicleAssignmentParamsSchema);
 registry.register('ScheduleSlotVehicleParams', ScheduleSlotVehicleParamsSchema);
@@ -678,91 +643,6 @@ registerPath({
   },
 });
 
-// Assign child to schedule slot
-registerPath({
-  method: 'post',
-  path: '/schedule-slots/{scheduleSlotId}/children',
-  tags: ['Schedule Slots'],
-  summary: 'Assign child to schedule slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ScheduleSlotParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/AssignChildRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Child assigned successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.boolean(),
-            data: ScheduleSlotSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data or child already assigned',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Schedule slot, child, or vehicle assignment does not exist',
-    },
-  },
-});
-
-// Remove child from schedule slot
-registerPath({
-  method: 'delete',
-  path: '/schedule-slots/{scheduleSlotId}/children/{childId}',
-  tags: ['Schedule Slots'],
-  summary: 'Remove child from schedule slot',
-  description: 'Remove a child assignment from a schedule slot',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ScheduleSlotChildParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Child removed successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.boolean(),
-            data: z.object({
-              success: z.boolean(),
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid schedule slot or child ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Schedule slot or child assignment does not exist',
-    },
-  },
-});
 
 // Get available children for schedule slot
 registerPath({

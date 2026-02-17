@@ -22,13 +22,11 @@ import {
   CreateScheduleSlotWithVehicleSchema,
   AssignVehicleSchema,
   PatchVehicleAssignmentSchema,
-  AssignChildSchema,
   UpdateDriverSchema,
   VehicleIdSchema,
   UpdateSeatOverrideSchema,
   ScheduleSlotParamsSchema,
   GroupParamsSchema,
-  ScheduleSlotChildParamsSchema,
   ScheduleSlotVehicleParamsSchema,
   DateRangeQuerySchema,
   ScheduleSlotSchema,
@@ -531,54 +529,6 @@ const updateVehicleDriverRoute = createRoute({
   },
 });
 
-/**
- * DELETE /schedule-slots/:scheduleSlotId/children/:childId - Remove child from slot
- */
-const removeChildRoute = createRoute({
-  method: 'delete',
-  path: '/schedule-slots/{scheduleSlotId}/children/{childId}',
-  tags: ['Schedule Slots'],
-  summary: 'Remove child from schedule slot',
-  description: 'Remove a child assignment from a schedule slot',
-  security: [{ Bearer: [] }],
-  request: {
-    params: ScheduleSlotChildParamsSchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ScheduleSlotSchema),
-        },
-      },
-      description: 'Child removed successfully',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Schedule slot not found or child assignment does not exist',
-    },
-    403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Access denied - user does not have access to this group',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
 
 /**
  * GET /schedule-slots/:scheduleSlotId - Get schedule slot details
@@ -730,146 +680,6 @@ const getScheduleSlotConflictsRoute = createRoute({
   },
 });
 
-/**
- * POST /schedule-slots/:scheduleSlotId/children - Assign child to slot
- * @deprecated Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with addChildIds instead
- */
-const assignChildRoute = createRoute({
-  method: 'post',
-  path: '/schedule-slots/{scheduleSlotId}/children',
-  tags: ['Schedule Slots'],
-  summary: 'Assign child to schedule slot (DEPRECATED)',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot. **DEPRECATED**: Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with addChildIds instead for better REST semantics and batch operations.',
-  deprecated: true,
-  security: [{ Bearer: [] }],
-  request: {
-    params: ScheduleSlotParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: AssignChildSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(ScheduleSlotSchema),
-        },
-      },
-      description: 'Child assigned successfully',
-    },
-    400: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Bad request - Child ID missing',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Access denied - user does not have access to this group',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Schedule slot not found',
-    },
-    409: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Conflict - Child already assigned to this slot or vehicle is at full capacity',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
-
-/**
- * DELETE /schedule-slots/:scheduleSlotId/children/:childId/remove - Remove child from schedule slot
- * @deprecated Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with removeChildIds instead
- */
-const removeChildFromScheduleSlotRoute = createRoute({
-  method: 'delete',
-  path: '/schedule-slots/{scheduleSlotId}/children/{childId}/remove',
-  tags: ['Schedule Slots'],
-  summary: 'Remove child from schedule slot (DEPRECATED)',
-  description: 'Remove a child assignment from a schedule slot. **DEPRECATED**: Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with removeChildIds instead for better REST semantics and batch operations.',
-  deprecated: true,
-  security: [{ Bearer: [] }],
-  request: {
-    params: ScheduleSlotChildParamsSchema,
-  },
-  responses: {
-    200: {
-      content: {
-        'application/json': {
-          schema: createSuccessSchema(z.unknown()),
-        },
-      },
-      description: 'Child removed successfully',
-    },
-    401: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Access denied - user does not have access to this group',
-    },
-    404: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Schedule slot not found',
-    },
-    500: {
-      content: {
-        'application/json': {
-          schema: ErrorResponseSchema,
-        },
-      },
-      description: 'Internal server error',
-    },
-  },
-});
 
 /**
  * GET /schedule-slots/:scheduleSlotId/children/available - Get available children for slot
@@ -1416,56 +1226,6 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
   }
 });
 
-/**
- * DELETE /schedule-slots/:scheduleSlotId/children/:childId - Remove child from slot
- */
-app.openapi(removeChildRoute, async (c) => {
-  const userId = c.get('userId');
-  const { scheduleSlotId, childId } = c.req.valid('param');
-
-  try {
-    // Get the schedule slot first to obtain groupId for WebSocket emissions
-    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
-    if (!scheduleSlot) {
-      return c.json({
-        success: false,
-        error: 'Schedule slot not found',
-      }, 404);
-    }
-
-    // Verify user has access to the group
-    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
-    if (!accessError.hasAccess) {
-      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
-    }
-
-    const updatedSlot = await scheduleSlotServiceInstance.removeChildFromSlot(scheduleSlotId, childId);
-
-    // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(updatedSlot.groupId, scheduleSlotId, updatedSlot);
-    SocketEmitter.broadcastScheduleUpdate(updatedSlot.groupId);
-
-    return c.json({
-      success: true,
-      data: updatedSlot,
-    }, 200);
-  } catch (error) {
-    // Check if it's a Prisma "record not found" error
-    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2025') {
-      return c.json({
-        success: false,
-        error: 'Child assignment not found',
-      code: 'CHILD_NOT_FOUND' as const,
-      }, 404);
-    }
-
-    return c.json({
-      success: false,
-      error: 'Failed to remove child',
-      code: 'REMOVE_FAILED' as const,
-    }, 500);
-  }
-});
 
 /**
  * GET /schedule-slots/:scheduleSlotId - Get schedule slot details
@@ -1580,98 +1340,6 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
   }
 });
 
-/**
- * POST /schedule-slots/:scheduleSlotId/children - Assign child to slot
- */
-app.openapi(assignChildRoute, async (c) => {
-  const { scheduleSlotId } = c.req.valid('param');
-  const input = c.req.valid('json');
-  const userId = c.get('userId');
-
-  if (!input.childId) {
-    return c.json({
-      success: false,
-      error: 'Child ID is required',
-    }, 400);
-  }
-
-  // Get the schedule slot first to obtain groupId for WebSocket emissions
-  const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
-  if (!scheduleSlot) {
-    return c.json({
-      success: false,
-      error: 'Schedule slot not found',
-    }, 404);
-  }
-
-  // Verify user has access to the group
-  const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
-  if (!accessError.hasAccess) {
-    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
-  }
-
-  // Create the assignment
-  await childAssignmentServiceInstance.assignChildToScheduleSlot(
-    scheduleSlotId,
-    input.childId,
-    input.vehicleAssignmentId,
-    userId,
-  );
-
-  // ✅ Fetch the complete updated ScheduleSlot with all families' data
-  const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
-
-  // Edge case: ScheduleSlot might have been deleted during the update
-  if (!updatedSlot) {
-    return c.json({
-      success: false,
-      error: 'Schedule slot was deleted during update',
-    }, 404);
-  }
-
-  // Emit WebSocket event for real-time updates
-  SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
-  SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
-
-  return c.json({
-    success: true,
-    data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
-  }, 201) as any; // Type narrowing: Hono's strict typing doesn't match our union response type
-});
-
-/**
- * DELETE /schedule-slots/:scheduleSlotId/children/:childId/remove - Remove child from schedule slot
- */
-app.openapi(removeChildFromScheduleSlotRoute, async (c) => {
-  const { scheduleSlotId, childId } = c.req.valid('param');
-  const userId = c.get('userId');
-
-  // Get the schedule slot first to obtain groupId for access check
-  const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
-  if (!scheduleSlot) {
-    return c.json({
-      success: false,
-      error: 'Schedule slot not found',
-    }, 404);
-  }
-
-  // Verify user has access to the group
-  const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
-  if (!accessError.hasAccess) {
-    return c.json({ success: false, error: accessError.error }, accessError.statusCode);
-  }
-
-  const result = await childAssignmentServiceInstance.removeChildFromScheduleSlot(
-    scheduleSlotId,
-    childId,
-    userId,
-  );
-
-  return c.json({
-    success: true,
-    data: result,
-  }, 200);
-});
 
 /**
  * GET /schedule-slots/:scheduleSlotId/children/available - Get available children for slot
