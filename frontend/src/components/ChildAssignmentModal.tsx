@@ -118,9 +118,9 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     queryKey: ['children'],
     queryFn: async () => {
       try {
-        const { data } = await api.GET('/children');
+        const result = await api.GET('/api/v1/children', {});
         // openapi-fetch response: { data: { success: true, data: Child[] } }
-        return data?.data || [];
+        return result.data?.data || [];
       } catch (error) {
         console.error('Failed to fetch children:', error);
         // Return empty array on error to prevent undefined data
@@ -135,11 +135,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     queryKey: ['schedule-slot', currentScheduleSlotId],
     queryFn: async () => {
       try {
-        const { data } = await api.GET('/schedule-slots/{scheduleSlotId}', {
+        const result = await api.GET('/api/v1/schedule-slots/{scheduleSlotId}', {
           params: { path: { scheduleSlotId: currentScheduleSlotId! } }
         });
         // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
-        return data?.data;
+        return result.data?.data;
       } catch (error: unknown) {
         console.error('Failed to fetch schedule slot details:', error);
         // Don't retry if slot was deleted (404)
@@ -185,14 +185,14 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     setSlotWasDeleted(false); // Reset deleted state when modal opens
   }, [isOpen, scheduleSlot, preSelectedVehicleAssignmentId]);
 
-  // Assign child mutation
+  // Assign child mutation - MIGRATED to PATCH /vehicles endpoint
   const assignChildMutation = useMutation({
     mutationFn: async ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) => {
-      const { data } = await api.POST('/schedule-slots/{scheduleSlotId}/children', {
-        params: { path: { scheduleSlotId } },
-        body: { childId, vehicleAssignmentId }
+      const { data } = await api.PATCH('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+        params: { path: { scheduleSlotId, vehicleAssignmentId } },
+        body: { addChildIds: [childId] }
       });
-      // openapi-fetch response: { data: { success: true, data: ChildAssignment } }
+      // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
       return data?.data;
     },
     onSuccess: async () => {
@@ -237,13 +237,14 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     },
   });
 
-  // Remove child mutation
+  // Remove child mutation - MIGRATED to PATCH /vehicles endpoint
   const removeChildMutation = useMutation({
-    mutationFn: async ({ scheduleSlotId, childId }: { scheduleSlotId: string; childId: string }) => {
-      const { data } = await api.DELETE('/schedule-slots/{scheduleSlotId}/children/{childId}', {
-        params: { path: { scheduleSlotId, childId } }
+    mutationFn: async ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) => {
+      const { data } = await api.PATCH('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+        params: { path: { scheduleSlotId, vehicleAssignmentId } },
+        body: { removeChildIds: [childId] }
       });
-      // openapi-fetch response: { data: { success: true, data: { success: true, message: string } } }
+      // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
       return data?.data;
     },
     onSuccess: async (_, { scheduleSlotId }) => {
@@ -253,12 +254,12 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule', scheduleSlot.groupId] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot', currentScheduleSlotId] });
       queryClient.invalidateQueries({ queryKey: ['children'] }); // Refresh children list
-      
+
       // Manually refetch the schedule slot data to ensure modal updates immediately
       if (currentScheduleSlotId) {
         await refetchSlotData();
       }
-      
+
       if (socket) {
         socket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, { groupId: scheduleSlot.groupId, scheduleSlotId });
       }
@@ -283,11 +284,11 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     }
   };
 
-  const handleRemoveChild = async (childId: string) => {
-    if (!currentScheduleSlotId) return;
+  const handleRemoveChild = async (childId: string, vehicleAssignmentId: string | undefined) => {
+    if (!currentScheduleSlotId || !vehicleAssignmentId) return;
 
     try {
-      await removeChildMutation.mutateAsync({ scheduleSlotId: currentScheduleSlotId, childId });
+      await removeChildMutation.mutateAsync({ scheduleSlotId: currentScheduleSlotId, childId, vehicleAssignmentId });
     } catch (error) {
       console.error('Failed to remove child:', error);
     }
@@ -345,7 +346,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     // General mode: show total capacity for all vehicles
     // Calculate total capacity from all vehicle assignments
     totalCapacity = currentSlot?.vehicleAssignments?.reduce(
-      (sum: number, va) => sum + (va.vehicle?.capacity || 0), 0) || 0;
+      (sum, va) => sum + (va.vehicle?.capacity || 0), 0) || 0;
     currentOccupancy = currentSlot?.childAssignments?.length || 0;
   }
   
@@ -497,7 +498,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveChild(childId)}
+                        onClick={() => handleRemoveChild(childId, childAssignment.vehicleAssignmentId)}
                         disabled={removeChildMutation.isPending}
                         className="px-3 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-50"
                         data-testid={`remove-child-button-${childId}`}

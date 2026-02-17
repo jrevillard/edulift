@@ -49,10 +49,10 @@ export interface paths {
                          */
                         inviteCode?: string;
                         /**
-                         * @description PKCE code challenge for security (optional but recommended)
+                         * @description PKCE code challenge for security (required)
                          * @example aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG
                          */
-                        code_challenge?: string;
+                        code_challenge: string;
                     };
                 };
             };
@@ -82,8 +82,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -91,6 +91,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -104,8 +124,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -113,6 +133,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -126,8 +166,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -135,6 +175,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -148,8 +208,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -157,6 +217,54 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Email service temporarily unavailable - retryable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Error message
+                             * @example Email service temporarily unavailable. Please try again later.
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for email service failure
+                             * @example EMAIL_SERVICE_UNAVAILABLE
+                             * @enum {string}
+                             */
+                            code: "EMAIL_SERVICE_UNAVAILABLE";
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable: boolean;
                         };
                     };
                 };
@@ -287,8 +395,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -296,6 +404,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -309,8 +437,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -318,6 +446,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -331,8 +479,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -340,6 +488,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -410,8 +578,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -419,6 +587,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -432,8 +620,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -441,6 +629,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -454,8 +662,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -463,6 +671,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -520,8 +748,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -529,6 +757,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -542,8 +790,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -551,6 +799,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -643,8 +911,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -652,6 +920,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -665,8 +953,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -674,6 +962,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -687,8 +995,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -696,6 +1004,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -796,8 +1124,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -805,6 +1133,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -818,8 +1166,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -827,6 +1175,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -840,8 +1208,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -849,6 +1217,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -958,8 +1346,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -967,6 +1355,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -980,8 +1388,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -989,6 +1397,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1002,8 +1430,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1011,6 +1439,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1042,10 +1490,10 @@ export interface paths {
                 content: {
                     "application/json": {
                         /**
-                         * @description PKCE code challenge for secure account deletion confirmation email
+                         * @description PKCE code challenge for secure account deletion confirmation email (required)
                          * @example aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG
                          */
-                        code_challenge?: string;
+                        code_challenge: string;
                     };
                 };
             };
@@ -1074,8 +1522,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1083,6 +1531,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1096,8 +1564,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1105,6 +1573,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1118,8 +1606,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1127,6 +1615,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1140,8 +1648,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1149,6 +1657,54 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Email service temporarily unavailable - retryable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Error message
+                             * @example Email service temporarily unavailable. Please try again later.
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for email service failure
+                             * @example EMAIL_SERVICE_UNAVAILABLE
+                             * @enum {string}
+                             */
+                            code: "EMAIL_SERVICE_UNAVAILABLE";
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable: boolean;
                         };
                     };
                 };
@@ -1189,10 +1745,10 @@ export interface paths {
                          */
                         token: string;
                         /**
-                         * @description PKCE code verifier to validate the deletion token
+                         * @description PKCE code verifier to validate the deletion token (required)
                          * @example aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG
                          */
-                        code_verifier?: string;
+                        code_verifier: string;
                     };
                 };
             };
@@ -1222,8 +1778,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1231,6 +1787,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1244,8 +1820,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1253,6 +1829,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1266,8 +1862,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1275,6 +1871,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1288,8 +1904,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -1297,6 +1913,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1385,15 +2021,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1436,42 +2092,131 @@ export interface paths {
                     content: {
                         "application/json": {
                             success: boolean;
-                            /** @description Vehicle response data */
+                            /**
+                             * Family Response
+                             * @description Complete family information with optional related data
+                             */
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Vehicle unique identifier
+                                 * @description Unique family identifier (CUID format)
                                  * @example cl123456789012345678901234
                                  */
                                 id: string;
                                 /**
-                                 * @description Vehicle name
-                                 * @example Family Minivan
+                                 * @description Family display name
+                                 * @example Johnson Family
                                  */
                                 name: string;
                                 /**
-                                 * @description Vehicle seating capacity
-                                 * @example 7
-                                 */
-                                capacity: number;
-                                /**
-                                 * Format: cuid
-                                 * @description Family ID that owns the vehicle
-                                 * @example cl123456789012345678901234
-                                 */
-                                familyId: string;
-                                /**
                                  * Format: date-time
-                                 * @description Vehicle creation timestamp
-                                 * @example 2024-01-15T10:30:00Z
+                                 * @description When the family was created
+                                 * @example 2023-01-01T00:00:00.000Z
                                  */
                                 createdAt: string;
                                 /**
                                  * Format: date-time
-                                 * @description Vehicle last update timestamp
-                                 * @example 2024-01-15T10:30:00Z
+                                 * @description When the family was last updated
+                                 * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
+                                /** @description Family members (included in detailed responses) */
+                                members?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    /** Format: cuid */
+                                    userId: string;
+                                    /** Format: cuid */
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    /** Format: date-time */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
+                                        id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
+                                    };
+                                }[];
+                                /** @description Family vehicles (included in detailed responses) */
+                                vehicles?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children (included in detailed responses) */
+                                children?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
+                                }[];
                             };
                         };
                     };
@@ -1486,15 +2231,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1508,15 +2273,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1530,15 +2315,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1619,6 +2424,90 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Schedule slot not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
                 /** @description Internal server error */
                 500: {
                     headers: {
@@ -1629,15 +2518,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1732,15 +2641,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1754,15 +2683,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1794,8 +2743,131 @@ export interface paths {
                     content: {
                         "application/json": {
                             success: boolean;
+                            /**
+                             * Family Response
+                             * @description Complete family information with optional related data
+                             */
                             data: {
-                                message: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Unique family identifier (CUID format)
+                                 * @example cl123456789012345678901234
+                                 */
+                                id: string;
+                                /**
+                                 * @description Family display name
+                                 * @example Johnson Family
+                                 */
+                                name: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the family was created
+                                 * @example 2023-01-01T00:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the family was last updated
+                                 * @example 2023-01-15T10:30:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Family members (included in detailed responses) */
+                                members?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    /** Format: cuid */
+                                    userId: string;
+                                    /** Format: cuid */
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    /** Format: date-time */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
+                                        id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
+                                    };
+                                }[];
+                                /** @description Family vehicles (included in detailed responses) */
+                                vehicles?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children (included in detailed responses) */
+                                children?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
+                                }[];
                             };
                         };
                     };
@@ -1810,15 +2882,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1832,15 +2924,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1887,42 +2999,131 @@ export interface paths {
                     content: {
                         "application/json": {
                             success: boolean;
-                            /** @description Vehicle response data */
+                            /**
+                             * Family Response
+                             * @description Complete family information with optional related data
+                             */
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Vehicle unique identifier
+                                 * @description Unique family identifier (CUID format)
                                  * @example cl123456789012345678901234
                                  */
                                 id: string;
                                 /**
-                                 * @description Vehicle name
-                                 * @example Family Minivan
+                                 * @description Family display name
+                                 * @example Johnson Family
                                  */
                                 name: string;
                                 /**
-                                 * @description Vehicle seating capacity
-                                 * @example 7
-                                 */
-                                capacity: number;
-                                /**
-                                 * Format: cuid
-                                 * @description Family ID that owns the vehicle
-                                 * @example cl123456789012345678901234
-                                 */
-                                familyId: string;
-                                /**
                                  * Format: date-time
-                                 * @description Vehicle creation timestamp
-                                 * @example 2024-01-15T10:30:00Z
+                                 * @description When the family was created
+                                 * @example 2023-01-01T00:00:00.000Z
                                  */
                                 createdAt: string;
                                 /**
                                  * Format: date-time
-                                 * @description Vehicle last update timestamp
-                                 * @example 2024-01-15T10:30:00Z
+                                 * @description When the family was last updated
+                                 * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
+                                /** @description Family members (included in detailed responses) */
+                                members?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    /** Format: cuid */
+                                    userId: string;
+                                    /** Format: cuid */
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    /** Format: date-time */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
+                                        id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
+                                    };
+                                }[];
+                                /** @description Family vehicles (included in detailed responses) */
+                                vehicles?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children (included in detailed responses) */
+                                children?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
+                                }[];
                             };
                         };
                     };
@@ -1937,15 +3138,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1959,15 +3180,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -1981,15 +3222,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2113,15 +3374,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2135,15 +3416,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Vehicle not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example VEHICLE_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2250,15 +3551,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2370,15 +3691,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2392,15 +3733,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2414,15 +3775,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2534,15 +3915,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2556,15 +3957,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2678,15 +4099,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2700,15 +4141,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2722,15 +4183,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2744,15 +4225,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2783,8 +4284,131 @@ export interface paths {
                     content: {
                         "application/json": {
                             success: boolean;
+                            /**
+                             * Family Response
+                             * @description Complete family information with optional related data
+                             */
                             data: {
-                                message: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Unique family identifier (CUID format)
+                                 * @example cl123456789012345678901234
+                                 */
+                                id: string;
+                                /**
+                                 * @description Family display name
+                                 * @example Johnson Family
+                                 */
+                                name: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the family was created
+                                 * @example 2023-01-01T00:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the family was last updated
+                                 * @example 2023-01-15T10:30:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Family members (included in detailed responses) */
+                                members?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    /** Format: cuid */
+                                    userId: string;
+                                    /** Format: cuid */
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    /** Format: date-time */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
+                                        id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
+                                    };
+                                }[];
+                                /** @description Family vehicles (included in detailed responses) */
+                                vehicles?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children (included in detailed responses) */
+                                children?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
+                                }[];
                             };
                         };
                     };
@@ -2799,15 +4423,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2821,15 +4465,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2843,15 +4507,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2967,15 +4651,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -2989,137 +4693,34 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
-                        };
-                    };
-                };
-                /** @description Child not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Whether the request can be retried
+                             * @example true
                              */
-                            error: string;
+                            retryable?: boolean;
                             /**
-                             * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
                              */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Child not found
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/api/v1/children/{childId}/assignments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get child trip assignments
-         * @description Get all trip assignments for a specific child
-         */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Week number in YYYY-WWW format */
-                    week?: string;
-                };
-                header?: never;
-                path: {
-                    /** @description Unique child identifier (CUID format) */
-                    childId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of assignments */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success: boolean;
-                            data: {
-                                /**
-                                 * Format: cuid
-                                 * @description Unique assignment identifier (CUID format)
-                                 * @example cl123456789012345678901238
-                                 */
-                                id: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Child identifier
-                                 * @example cl123456789012345678901234
-                                 */
-                                childId: string;
-                                /**
-                                 * Format: date
-                                 * @description Date of the assigned trip
-                                 * @example 2023-04-15
-                                 */
-                                tripDate: string;
-                                /**
-                                 * @description Type of trip assignment
-                                 * @example PICKUP
-                                 * @enum {string}
-                                 */
-                                tripType: "PICKUP" | "DROPOFF";
-                                /**
-                                 * @description Assignment status
-                                 * @example ASSIGNED
-                                 * @enum {string}
-                                 */
-                                status: "ASSIGNED" | "COMPLETED" | "CANCELLED";
-                                /** @description Group information for the assignment */
-                                group?: {
-                                    /** Format: cuid */
-                                    id: string;
-                                    name: string;
-                                };
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
                             }[];
                         };
                     };
@@ -3134,15 +4735,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3156,26 +4777,40 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
             };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/children/{childId}/groups/{groupId}": {
@@ -3307,15 +4942,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3329,15 +4984,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3351,15 +5026,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3373,15 +5068,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3395,15 +5110,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3451,15 +5186,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3473,15 +5228,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3495,15 +5270,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3635,15 +5430,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3657,15 +5472,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Child not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example CHILD_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3858,8 +5693,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -3867,6 +5702,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3880,8 +5735,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -3889,6 +5744,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3902,8 +5777,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -3911,6 +5786,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -3924,8 +5819,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -3933,6 +5828,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4123,8 +6038,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4132,6 +6047,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4145,8 +6080,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4154,6 +6089,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4167,8 +6122,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4176,6 +6131,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4189,8 +6164,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4198,6 +6173,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4211,8 +6206,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4220,6 +6215,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4398,8 +6413,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4407,6 +6422,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4420,8 +6455,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4429,6 +6464,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4442,8 +6497,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4451,6 +6506,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4534,8 +6609,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4543,6 +6618,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4556,8 +6651,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4565,6 +6660,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4578,8 +6693,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4587,6 +6702,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4600,8 +6735,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4609,6 +6744,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4622,8 +6777,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4631,6 +6786,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4705,8 +6880,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4714,6 +6889,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4727,8 +6922,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4736,6 +6931,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4749,8 +6964,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4758,6 +6973,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4771,8 +7006,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4780,6 +7015,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4793,8 +7048,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4802,6 +7057,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -4980,8 +7255,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -4989,6 +7264,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5002,8 +7297,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5011,6 +7306,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5024,8 +7339,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5033,6 +7348,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5046,8 +7381,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5055,6 +7390,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5068,8 +7423,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5077,6 +7432,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5090,8 +7465,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5099,6 +7474,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5247,8 +7642,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5256,6 +7651,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5269,8 +7684,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5278,6 +7693,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5291,8 +7726,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5300,6 +7735,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5313,8 +7768,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5322,6 +7777,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5335,8 +7810,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5344,6 +7819,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5411,8 +7906,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5420,6 +7915,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5433,8 +7948,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5442,6 +7957,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5455,8 +7990,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5464,6 +7999,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5477,8 +8032,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5486,6 +8041,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5499,8 +8074,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5508,6 +8083,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5696,8 +8291,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5705,6 +8300,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5718,8 +8333,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5727,6 +8342,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5740,8 +8375,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5749,6 +8384,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5762,8 +8417,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5771,6 +8426,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5820,10 +8495,131 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * @description Success message
-                             * @example Operation completed successfully
+                             * Family Response
+                             * @description Complete family information with optional related data
                              */
-                            message: string;
+                            data: {
+                                /**
+                                 * Format: cuid
+                                 * @description Unique family identifier (CUID format)
+                                 * @example cl123456789012345678901234
+                                 */
+                                id: string;
+                                /**
+                                 * @description Family display name
+                                 * @example Johnson Family
+                                 */
+                                name: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the family was created
+                                 * @example 2023-01-01T00:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the family was last updated
+                                 * @example 2023-01-15T10:30:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Family members (included in detailed responses) */
+                                members?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    /** Format: cuid */
+                                    userId: string;
+                                    /** Format: cuid */
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    /** Format: date-time */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
+                                        id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
+                                    };
+                                }[];
+                                /** @description Family vehicles (included in detailed responses) */
+                                vehicles?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children (included in detailed responses) */
+                                children?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
+                                }[];
+                            };
                         };
                     };
                 };
@@ -5837,8 +8633,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5846,6 +8642,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5859,8 +8675,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5868,6 +8684,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5881,8 +8717,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5890,6 +8726,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5903,8 +8759,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5912,6 +8768,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5925,8 +8801,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -5934,6 +8810,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -5995,8 +8891,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -6004,6 +8900,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6017,8 +8933,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -6026,6 +8942,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6039,8 +8975,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -6048,6 +8984,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6061,8 +9017,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -6070,6 +9026,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6083,8 +9059,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -6092,6 +9068,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6175,17 +9171,11 @@ export interface paths {
                                  */
                                 inviteCode?: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Owner family ID
-                                 * @example cl123456789012345678901238
-                                 */
-                                familyId?: string;
-                                /**
-                                 * @description User's role in the group (ADMIN or MEMBER, never OWNER)
+                                 * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "ADMIN" | "MEMBER";
+                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -6246,17 +9236,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6267,17 +9278,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6288,17 +9320,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6309,17 +9362,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6398,17 +9472,11 @@ export interface paths {
                                  */
                                 inviteCode?: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Owner family ID
-                                 * @example cl123456789012345678901238
-                                 */
-                                familyId?: string;
-                                /**
-                                 * @description User's role in the group (ADMIN or MEMBER, never OWNER)
+                                 * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "ADMIN" | "MEMBER";
+                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -6469,17 +9537,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6490,17 +9579,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6511,17 +9621,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6532,17 +9663,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6553,17 +9705,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6626,17 +9799,11 @@ export interface paths {
                                  */
                                 inviteCode?: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Owner family ID
-                                 * @example cl123456789012345678901238
-                                 */
-                                familyId?: string;
-                                /**
-                                 * @description User's role in the group (ADMIN or MEMBER, never OWNER)
+                                 * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "ADMIN" | "MEMBER";
+                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -6697,17 +9864,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6718,17 +9906,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6867,17 +10076,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6888,17 +10118,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6909,17 +10160,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6930,17 +10202,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -6951,17 +10244,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7012,7 +10326,7 @@ export interface paths {
                          * @example ADMIN
                          * @enum {string}
                          */
-                        role: "ADMIN" | "MEMBER";
+                        role: "OWNER" | "ADMIN" | "MEMBER";
                     };
                 };
             };
@@ -7032,12 +10346,6 @@ export interface paths {
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Unique membership identifier (CUID format)
-                                 * @example cl123456789012345678901238
-                                 */
-                                id: string;
-                                /**
-                                 * Format: cuid
                                  * @description Group identifier
                                  * @example cl123456789012345678901234
                                  */
@@ -7053,7 +10361,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                role: "ADMIN" | "MEMBER";
+                                role: "OWNER" | "ADMIN" | "MEMBER";
                                 /**
                                  * Format: date-time
                                  * @description When the family joined the group (ISO 8601 format)
@@ -7103,17 +10411,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7124,17 +10453,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7145,17 +10495,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7166,17 +10537,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7187,17 +10579,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7243,7 +10656,7 @@ export interface paths {
                          * @example MEMBER
                          * @enum {string}
                          */
-                        role?: "ADMIN" | "MEMBER";
+                        role?: "OWNER" | "ADMIN" | "MEMBER";
                         /**
                          * @description Optional personal message for the invitation
                          * @example Welcome to our carpool group!
@@ -7286,7 +10699,7 @@ export interface paths {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "ADMIN" | "MEMBER";
+                                role: "OWNER" | "ADMIN" | "MEMBER";
                                 /**
                                  * @description Invitation status
                                  * @example PENDING
@@ -7349,17 +10762,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7370,17 +10804,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7391,17 +10846,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7412,17 +10888,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7433,17 +10930,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7454,17 +10972,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7578,17 +11117,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7599,17 +11159,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7620,17 +11201,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7641,17 +11243,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7662,17 +11285,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7721,10 +11365,87 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * @description Success message
-                             * @example Operation completed successfully
+                             * Group Response
+                             * @description Complete group information with user context
                              */
-                            message: string;
+                            data: {
+                                /**
+                                 * Format: cuid
+                                 * @description Unique group identifier (CUID format)
+                                 * @example cl123456789012345678901234
+                                 */
+                                id: string;
+                                /**
+                                 * @description Group display name
+                                 * @example Morning School Run
+                                 */
+                                name: string;
+                                /**
+                                 * @description Group description
+                                 * @example Carpool group for morning school transportation
+                                 */
+                                description?: string | null;
+                                /**
+                                 * @description Group invitation code
+                                 * @example ABC123XYZ
+                                 */
+                                inviteCode?: string;
+                                /**
+                                 * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
+                                 * @example ADMIN
+                                 * @enum {string}
+                                 */
+                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
+                                /** @description Owner family information */
+                                ownerFamily?: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Owner family ID
+                                     * @example cl123456789012345678901238
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Owner family name
+                                     * @example Smith Family
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total number of families in the group (including owner)
+                                 * @example 3
+                                 */
+                                familyCount?: number;
+                                /**
+                                 * @description Number of schedule slots configured for the group
+                                 * @example 5
+                                 */
+                                scheduleCount?: number;
+                                /**
+                                 * Format: date-time
+                                 * @description When the group was created
+                                 * @example 2023-01-01T00:00:00.000Z
+                                 */
+                                createdAt?: string;
+                                /**
+                                 * Format: date-time
+                                 * @description When the group was last updated
+                                 * @example 2023-01-15T10:30:00.000Z
+                                 */
+                                updatedAt?: string;
+                                /** @description Counts of related entities */
+                                _count?: {
+                                    /**
+                                     * @description Number of families in the group
+                                     * @example 3
+                                     */
+                                    families: number;
+                                    /**
+                                     * @description Number of children in the group
+                                     * @example 8
+                                     */
+                                    children: number;
+                                };
+                            };
                         };
                     };
                 };
@@ -7735,17 +11456,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7756,17 +11498,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7777,17 +11540,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7798,17 +11582,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7819,17 +11624,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7889,17 +11715,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7910,17 +11757,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7931,17 +11799,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7952,17 +11841,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -7973,17 +11883,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8057,17 +11988,11 @@ export interface paths {
                                  */
                                 inviteCode?: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Owner family ID
-                                 * @example cl123456789012345678901238
-                                 */
-                                familyId?: string;
-                                /**
-                                 * @description User's role in the group (ADMIN or MEMBER, never OWNER)
+                                 * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "ADMIN" | "MEMBER";
+                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -8128,17 +12053,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8149,17 +12095,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8170,17 +12137,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8191,17 +12179,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8212,17 +12221,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8278,17 +12308,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8299,17 +12350,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8320,17 +12392,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8341,17 +12434,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8362,17 +12476,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8422,10 +12557,10 @@ export interface paths {
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Config ID
+                                 * @description Config ID (null for empty default configs that are not persisted)
                                  * @example cl123456789012345678901234
                                  */
-                                id: string;
+                                id?: string | null;
                                 /**
                                  * Format: cuid
                                  * @description Group ID
@@ -8492,16 +12627,16 @@ export interface paths {
                                 };
                                 /**
                                  * Format: date-time
-                                 * @description Creation timestamp
+                                 * @description Creation timestamp (null for empty default configs that are not persisted)
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt: string;
+                                createdAt?: string | null;
                                 /**
                                  * Format: date-time
-                                 * @description Last update timestamp
+                                 * @description Last update timestamp (null for empty default configs that are not persisted)
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt: string;
+                                updatedAt?: string | null;
                             };
                         };
                     };
@@ -8513,17 +12648,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8534,17 +12690,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8555,17 +12732,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8576,17 +12774,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8597,17 +12816,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8701,10 +12941,10 @@ export interface paths {
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Config ID
+                                 * @description Config ID (null for empty default configs that are not persisted)
                                  * @example cl123456789012345678901234
                                  */
-                                id: string;
+                                id?: string | null;
                                 /**
                                  * Format: cuid
                                  * @description Group ID
@@ -8771,16 +13011,16 @@ export interface paths {
                                 };
                                 /**
                                  * Format: date-time
-                                 * @description Creation timestamp
+                                 * @description Creation timestamp (null for empty default configs that are not persisted)
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt: string;
+                                createdAt?: string | null;
                                 /**
                                  * Format: date-time
-                                 * @description Last update timestamp
+                                 * @description Last update timestamp (null for empty default configs that are not persisted)
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt: string;
+                                updatedAt?: string | null;
                             };
                         };
                     };
@@ -8792,17 +13032,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8813,17 +13074,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8834,17 +13116,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8855,17 +13158,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8876,17 +13200,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -8939,10 +13284,10 @@ export interface paths {
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Config ID
+                                 * @description Config ID (null for empty default configs that are not persisted)
                                  * @example cl123456789012345678901234
                                  */
-                                id: string;
+                                id?: string | null;
                                 /**
                                  * Format: cuid
                                  * @description Group ID
@@ -9009,16 +13354,16 @@ export interface paths {
                                 };
                                 /**
                                  * Format: date-time
-                                 * @description Creation timestamp
+                                 * @description Creation timestamp (null for empty default configs that are not persisted)
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt: string;
+                                createdAt?: string | null;
                                 /**
                                  * Format: date-time
-                                 * @description Last update timestamp
+                                 * @description Last update timestamp (null for empty default configs that are not persisted)
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt: string;
+                                updatedAt?: string | null;
                             };
                         };
                     };
@@ -9030,17 +13375,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9051,17 +13417,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9072,17 +13459,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9093,17 +13501,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9114,17 +13543,38 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            success: boolean;
+                            /** @enum {boolean} */
+                            success: false;
                             /**
-                             * @description Error message
-                             * @example Bad request
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example BAD_REQUEST
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9229,6 +13679,35 @@ export interface paths {
                              */
                             personalMessage?: string | null;
                             /**
+                             * @description Unique invitation code for joining the family
+                             * @example ABC123XYZ789
+                             */
+                            inviteCode: string;
+                            /**
+                             * Format: cuid
+                             * @description User ID of the inviter
+                             * @example cl123456789012345678901238
+                             */
+                            invitedBy: string;
+                            /**
+                             * Format: date-time
+                             * @description Invitation acceptance timestamp (null until accepted)
+                             * @example 2023-01-02T00:00:00.000Z
+                             */
+                            acceptedAt?: string | null;
+                            /**
+                             * Format: cuid
+                             * @description User ID who accepted the invitation (null until accepted)
+                             * @example cl123456789012345678901239
+                             */
+                            acceptedBy?: string | null;
+                            /**
+                             * Format: cuid
+                             * @description User ID who created the invitation
+                             * @example cl123456789012345678901238
+                             */
+                            createdBy: string;
+                            /**
                              * Format: date-time
                              * @description Invitation expiration timestamp
                              * @example 2023-01-08T00:00:00.000Z
@@ -9240,35 +13719,6 @@ export interface paths {
                              * @example 2023-01-01T00:00:00.000Z
                              */
                             createdAt: string;
-                            /**
-                             * Family
-                             * @description Family information (included in some responses)
-                             */
-                            family?: {
-                                /**
-                                 * Format: cuid
-                                 * @description Family identifier (CUID format)
-                                 * @example cl123456789012345678901234
-                                 */
-                                id: string;
-                                /**
-                                 * @description Family display name
-                                 * @example Johnson Family
-                                 */
-                                name: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Family creation timestamp
-                                 * @example 2023-01-01T00:00:00.000Z
-                                 */
-                                createdAt: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Family update timestamp
-                                 * @example 2023-01-01T00:00:00.000Z
-                                 */
-                                updatedAt: string;
-                            };
                         };
                     };
                 };
@@ -9282,15 +13732,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9304,15 +13774,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9326,15 +13816,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9348,15 +13858,77 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Email service temporarily unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9455,15 +14027,21 @@ export interface paths {
                              */
                             personalMessage?: string | null;
                             /**
-                             * @description Name of the user who sent the invitation
+                             * @description Name of the user who sent the invitation (only present if valid)
                              * @example John Doe
                              */
-                            inviterName: string | null;
+                            inviterName?: string;
                             /**
-                             * @description Whether the invited email already corresponds to an existing user account
+                             * @description Whether the invited email already corresponds to an existing user account (only present if valid)
                              * @example false
                              */
-                            existingUser: boolean;
+                            existingUser?: boolean;
+                            /**
+                             * @description Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED, INVALID_CODE)
+                             * @example EMAIL_MISMATCH
+                             * @enum {string}
+                             */
+                            errorCode?: "EMAIL_MISMATCH" | "ALREADY_MEMBER" | "EXPIRED" | "INVALID_CODE";
                         };
                     };
                 };
@@ -9477,15 +14055,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9499,15 +14097,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9587,15 +14205,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9609,15 +14247,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9675,7 +14333,7 @@ export interface paths {
                          * @example MEMBER
                          * @enum {string}
                          */
-                        role: "MEMBER" | "ADMIN";
+                        role: "OWNER" | "ADMIN" | "MEMBER";
                         /**
                          * @description Optional personal message for the invitation
                          * @example Welcome to our group!
@@ -9721,7 +14379,7 @@ export interface paths {
                              * @example MEMBER
                              * @enum {string}
                              */
-                            role: "MEMBER" | "ADMIN";
+                            role: "OWNER" | "ADMIN" | "MEMBER";
                             /**
                              * @description Invitation status
                              * @example PENDING
@@ -9733,6 +14391,35 @@ export interface paths {
                              * @example Welcome to our group!
                              */
                             personalMessage?: string | null;
+                            /**
+                             * @description Unique invitation code for joining the group
+                             * @example ABC123XYZ789
+                             */
+                            inviteCode: string;
+                            /**
+                             * Format: cuid
+                             * @description User ID of the inviter
+                             * @example cl123456789012345678901238
+                             */
+                            invitedBy: string;
+                            /**
+                             * Format: date-time
+                             * @description Invitation acceptance timestamp (null until accepted)
+                             * @example 2023-01-02T00:00:00.000Z
+                             */
+                            acceptedAt?: string | null;
+                            /**
+                             * Format: cuid
+                             * @description User ID who accepted the invitation (null until accepted)
+                             * @example cl123456789012345678901239
+                             */
+                            acceptedBy?: string | null;
+                            /**
+                             * Format: cuid
+                             * @description User ID who created the invitation
+                             * @example cl123456789012345678901238
+                             */
+                            createdBy: string;
                             /**
                              * Format: date-time
                              * @description Invitation expiration timestamp
@@ -9746,34 +14433,31 @@ export interface paths {
                              */
                             createdAt: string;
                             /**
-                             * Group
-                             * @description Group information (included in some responses)
+                             * Format: date-time
+                             * @description Invitation update timestamp
+                             * @example 2023-01-01T00:00:00.000Z
                              */
-                            group?: {
-                                /**
-                                 * Format: cuid
-                                 * @description Group identifier (CUID format)
-                                 * @example cl123456789012345678901235
-                                 */
-                                id: string;
-                                /**
-                                 * @description Group display name
-                                 * @example Carpool Group
-                                 */
-                                name: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Group creation timestamp
-                                 * @example 2023-01-01T00:00:00.000Z
-                                 */
-                                createdAt: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Group update timestamp
-                                 * @example 2023-01-01T00:00:00.000Z
-                                 */
-                                updatedAt: string;
-                            };
+                            updatedAt: string;
+                            /**
+                             * @description Group name
+                             * @example School Transport 2024-2025
+                             */
+                            groupName: string;
+                            /**
+                             * @description Name of user who created the invitation
+                             * @example John Smith
+                             */
+                            invitedByName: string;
+                            /**
+                             * @description Target family name (null if invited by email)
+                             * @example Johnson Family
+                             */
+                            targetFamilyName?: string | null;
+                            /**
+                             * @description Name of family that created the invitation
+                             * @example Smith Family
+                             */
+                            ownerFamilyName?: string | null;
                         };
                     };
                 };
@@ -9787,15 +14471,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9809,15 +14513,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9831,15 +14555,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9853,15 +14597,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9875,15 +14639,77 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Email service temporarily unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -9971,15 +14797,15 @@ export interface paths {
                              */
                             email?: string;
                             /**
-                             * @description Name of the user who sent the invitation
+                             * @description Name of the user who sent the invitation (only present if valid)
                              * @example John Doe
                              */
-                            inviterName: string | null;
+                            inviterName?: string;
                             /**
-                             * @description Whether the invited email already corresponds to an existing user account
+                             * @description Whether the invited email already corresponds to an existing user account (only present if valid)
                              * @example false
                              */
-                            existingUser: boolean;
+                            existingUser?: boolean;
                             /**
                              * @description Target family ID (present when a family is invited to join the group)
                              * @example cl123456789012345678901236
@@ -9990,6 +14816,12 @@ export interface paths {
                              * @example Smith Family
                              */
                             targetFamilyName?: string | null;
+                            /**
+                             * @description Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED, INVALID_CODE)
+                             * @example EMAIL_MISMATCH
+                             * @enum {string}
+                             */
+                            errorCode?: "EMAIL_MISMATCH" | "ALREADY_MEMBER" | "EXPIRED" | "INVALID_CODE";
                         };
                     };
                 };
@@ -10003,15 +14835,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10025,15 +14877,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10102,15 +14974,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10124,15 +15016,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10195,15 +15107,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10217,15 +15149,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10239,15 +15191,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10309,15 +15281,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10331,15 +15323,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10353,15 +15365,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Invitation not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example INVITATION_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10450,8 +15482,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10459,6 +15491,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10559,8 +15611,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10568,6 +15620,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10581,8 +15653,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10590,6 +15662,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10649,8 +15741,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10658,6 +15750,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10718,8 +15830,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10727,6 +15839,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10740,8 +15872,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10749,6 +15881,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10833,8 +15985,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10842,6 +15994,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10932,8 +16104,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10941,6 +16113,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -10954,8 +16146,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -10963,6 +16155,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11053,8 +16265,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -11062,6 +16274,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11075,8 +16307,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -11084,6 +16316,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11194,8 +16446,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -11203,6 +16455,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11216,8 +16488,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -11225,6 +16497,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11303,8 +16595,8 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Error message
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
@@ -11312,6 +16604,26 @@ export interface paths {
                              * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11462,15 +16774,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11484,15 +16816,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11629,15 +16981,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11651,15 +17023,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11753,15 +17145,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -11775,15 +17187,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12024,15 +17456,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12046,15 +17498,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12068,15 +17540,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Failed to retrieve dashboard data
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example DASHBOARD_ERROR
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12163,7 +17655,8 @@ export interface paths {
                                  */
                                 id: string;
                                 /**
-                                 * @description Schedule slot datetime (ISO string or Date object - services return Date objects)
+                                 * Format: date-time
+                                 * @description Schedule slot datetime (ISO 8601 UTC string)
                                  * @example 2023-12-15T08:00:00.000Z
                                  */
                                 datetime: string;
@@ -12187,21 +17680,40 @@ export interface paths {
                                 updatedAt: string;
                                 /** @description Vehicle assignments (included when requested) */
                                 vehicleAssignments?: {
-                                    id?: string;
-                                    vehicleId?: string;
-                                    scheduleSlotId?: string;
-                                    driverId?: string;
-                                    groupId?: string;
-                                    date?: string;
-                                    assignedSeats?: number;
-                                    seatOverride?: number;
-                                    /** Format: date-time */
-                                    createdAt?: string;
-                                    /** Format: date-time */
-                                    updatedAt?: string;
+                                    /**
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
+                                     */
+                                    vehicleId: string;
+                                    /**
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
+                                    /**
+                                     * Format: date-time
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    createdAt: string;
                                     /**
                                      * Base Vehicle
-                                     * @description Common vehicle fields matching Prisma database structure
+                                     * @description Vehicle details (included when requested)
                                      */
                                     vehicle?: {
                                         /**
@@ -12222,10 +17734,10 @@ export interface paths {
                                         capacity: number;
                                         /**
                                          * Format: cuid
-                                         * @description Family identifier that owns the vehicle
+                                         * @description Family identifier that owns the vehicle (required)
                                          * @example cl123456789012345678901234
                                          */
-                                        familyId?: string;
+                                        familyId: string;
                                         /**
                                          * Format: date-time
                                          * @description Vehicle creation timestamp
@@ -12239,20 +17751,86 @@ export interface paths {
                                          */
                                         updatedAt: string;
                                     };
+                                    /** @description Driver details (included when requested, null if no driver) */
                                     driver?: {
-                                        id?: string;
-                                        firstName?: string;
-                                        lastName?: string;
-                                        /** Format: email */
-                                        email?: string;
-                                    };
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
                                 }[];
                                 /** @description Child assignments (included when requested) */
                                 childAssignments?: {
                                     /**
-                                     * Format: cuid
-                                     * @description Child assignment identifier
-                                     * @example cl123456789012345678901240
+                                     * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                     * @example clslot123_child456
                                      */
                                     id: string;
                                     /**
@@ -12297,21 +17875,40 @@ export interface paths {
                                      * @description Vehicle assignment information (included when requested)
                                      */
                                     vehicleAssignment?: {
-                                        id?: string;
-                                        vehicleId?: string;
-                                        scheduleSlotId?: string;
-                                        driverId?: string;
-                                        groupId?: string;
-                                        date?: string;
-                                        assignedSeats?: number;
-                                        seatOverride?: number;
-                                        /** Format: date-time */
-                                        createdAt?: string;
-                                        /** Format: date-time */
-                                        updatedAt?: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
                                         /**
                                          * Base Vehicle
-                                         * @description Common vehicle fields matching Prisma database structure
+                                         * @description Vehicle details (included when requested)
                                          */
                                         vehicle?: {
                                             /**
@@ -12332,10 +17929,10 @@ export interface paths {
                                             capacity: number;
                                             /**
                                              * Format: cuid
-                                             * @description Family identifier that owns the vehicle
+                                             * @description Family identifier that owns the vehicle (required)
                                              * @example cl123456789012345678901234
                                              */
-                                            familyId?: string;
+                                            familyId: string;
                                             /**
                                              * Format: date-time
                                              * @description Vehicle creation timestamp
@@ -12349,13 +17946,80 @@ export interface paths {
                                              */
                                             updatedAt: string;
                                         };
+                                        /** @description Driver details (included when requested, null if no driver) */
                                         driver?: {
-                                            id?: string;
-                                            firstName?: string;
-                                            lastName?: string;
-                                            /** Format: email */
-                                            email?: string;
-                                        };
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
                                     };
                                 }[];
                                 /** @description Count information (included when requested) */
@@ -12385,15 +18049,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12407,15 +18091,77 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12429,15 +18175,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12460,7 +18226,7 @@ export interface paths {
         put?: never;
         /**
          * Assign vehicle to schedule slot
-         * @description Assign a vehicle to an existing schedule slot
+         * @description Assign a vehicle to an existing schedule slot, optionally with initial children. Returns complete ScheduleSlot with all assignments.
          */
         post: {
             parameters: {
@@ -12492,11 +18258,19 @@ export interface paths {
                          * @example 6
                          */
                         seatOverride?: number;
+                        /**
+                         * @description Optional list of child IDs to assign initially (can add more later with PATCH)
+                         * @example [
+                         *       "cl123456789012345678901238",
+                         *       "cl123456789012345678901239"
+                         *     ]
+                         */
+                        childIds?: string[];
                     };
                 };
             };
             responses: {
-                /** @description Vehicle assigned successfully */
+                /** @description Vehicle assigned successfully. Returns complete ScheduleSlot with all vehicleAssignments and childAssignments. */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -12505,68 +18279,396 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * Schedule Vehicle Assignment
-                             * @description Vehicle assignment for schedule slot (matches Prisma database schema)
+                             * Schedule Slot
+                             * @description Schedule slot information
                              */
                             data: {
-                                id?: string;
-                                vehicleId?: string;
-                                scheduleSlotId?: string;
-                                driverId?: string;
-                                groupId?: string;
-                                date?: string;
-                                assignedSeats?: number;
-                                seatOverride?: number;
-                                /** Format: date-time */
-                                createdAt?: string;
-                                /** Format: date-time */
-                                updatedAt?: string;
                                 /**
-                                 * Base Vehicle
-                                 * @description Common vehicle fields matching Prisma database structure
+                                 * Format: cuid
+                                 * @description Schedule slot identifier
+                                 * @example cl123456789012345678901234
                                  */
-                                vehicle?: {
+                                id: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot datetime (ISO 8601 UTC string)
+                                 * @example 2023-12-15T08:00:00.000Z
+                                 */
+                                datetime: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Group identifier
+                                 * @example cl123456789012345678901235
+                                 */
+                                groupId: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot creation timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot update timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Vehicle assignments (included when requested) */
+                                vehicleAssignments?: {
                                     /**
-                                     * Format: cuid
-                                     * @description Vehicle identifier (CUID format)
-                                     * @example cl123456789012345678901240
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
                                      */
                                     id: string;
                                     /**
-                                     * @description Vehicle name
-                                     * @example School Bus 1
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
                                      */
-                                    name: string;
+                                    vehicleId: string;
                                     /**
-                                     * @description Vehicle seat capacity
-                                     * @example 30
-                                     */
-                                    capacity: number;
-                                    /**
-                                     * Format: cuid
-                                     * @description Family identifier that owns the vehicle
+                                     * @description Schedule slot identifier
                                      * @example cl123456789012345678901234
                                      */
-                                    familyId?: string;
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
                                     /**
                                      * Format: date-time
-                                     * @description Vehicle creation timestamp
-                                     * @example 2023-01-01T00:00:00.000Z
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
                                      */
                                     createdAt: string;
                                     /**
-                                     * Format: date-time
-                                     * @description Vehicle update timestamp
-                                     * @example 2023-01-01T00:00:00.000Z
+                                     * Base Vehicle
+                                     * @description Vehicle details (included when requested)
                                      */
-                                    updatedAt: string;
-                                };
-                                driver?: {
-                                    id?: string;
-                                    firstName?: string;
-                                    lastName?: string;
-                                    /** Format: email */
-                                    email?: string;
+                                    vehicle?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Vehicle identifier (CUID format)
+                                         * @example cl123456789012345678901240
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle name
+                                         * @example School Bus 1
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Vehicle seat capacity
+                                         * @example 30
+                                         */
+                                        capacity: number;
+                                        /**
+                                         * Format: cuid
+                                         * @description Family identifier that owns the vehicle (required)
+                                         * @example cl123456789012345678901234
+                                         */
+                                        familyId: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle creation timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle update timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        updatedAt: string;
+                                    };
+                                    /** @description Driver details (included when requested, null if no driver) */
+                                    driver?: {
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
+                                }[];
+                                /** @description Child assignments (included when requested) */
+                                childAssignments?: {
+                                    /**
+                                     * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                     * @example clslot123_child456
+                                     */
+                                    id: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Child identifier
+                                     * @example cl123456789012345678901238
+                                     */
+                                    childId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    vehicleAssignmentId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Assignment timestamp
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    assignedAt: string;
+                                    /** @description Child information (included when requested) */
+                                    child?: {
+                                        /** Format: cuid */
+                                        id: string;
+                                        name: string;
+                                        age: number | null;
+                                        /** Format: cuid */
+                                        familyId: string;
+                                        /** Format: date-time */
+                                        createdAt: string;
+                                        /** Format: date-time */
+                                        updatedAt: string;
+                                    };
+                                    /**
+                                     * Schedule Vehicle Assignment
+                                     * @description Vehicle assignment information (included when requested)
+                                     */
+                                    vehicleAssignment?: {
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Base Vehicle
+                                         * @description Vehicle details (included when requested)
+                                         */
+                                        vehicle?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Vehicle identifier (CUID format)
+                                             * @example cl123456789012345678901240
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Vehicle name
+                                             * @example School Bus 1
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Vehicle seat capacity
+                                             * @example 30
+                                             */
+                                            capacity: number;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier that owns the vehicle (required)
+                                             * @example cl123456789012345678901234
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle creation timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle update timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                        /** @description Driver details (included when requested, null if no driver) */
+                                        driver?: {
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
+                                    };
+                                }[];
+                                /** @description Count information (included when requested) */
+                                _count?: {
+                                    /**
+                                     * @description Number of vehicle assignments
+                                     * @example 2
+                                     */
+                                    vehicleAssignments: number;
+                                    /**
+                                     * @description Number of child assignments
+                                     * @example 8
+                                     */
+                                    childAssignments: number;
                                 };
                             };
                         };
@@ -12582,15 +18684,77 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12604,15 +18768,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12626,15 +18810,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12667,7 +18871,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Vehicle removed successfully */
+                /** @description Vehicle removed successfully. Returns either a confirmation message (if slot was deleted) or the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -12677,7 +18881,396 @@ export interface paths {
                             success: boolean;
                             data: {
                                 message: string;
-                                slotDeleted: boolean;
+                                /** @enum {boolean} */
+                                slotDeleted: true;
+                            } | {
+                                /**
+                                 * Format: cuid
+                                 * @description Schedule slot identifier
+                                 * @example cl123456789012345678901234
+                                 */
+                                id: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot datetime (ISO 8601 UTC string)
+                                 * @example 2023-12-15T08:00:00.000Z
+                                 */
+                                datetime: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Group identifier
+                                 * @example cl123456789012345678901235
+                                 */
+                                groupId: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot creation timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot update timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Vehicle assignments (included when requested) */
+                                vehicleAssignments?: {
+                                    /**
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
+                                     */
+                                    vehicleId: string;
+                                    /**
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
+                                    /**
+                                     * Format: date-time
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Base Vehicle
+                                     * @description Vehicle details (included when requested)
+                                     */
+                                    vehicle?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Vehicle identifier (CUID format)
+                                         * @example cl123456789012345678901240
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle name
+                                         * @example School Bus 1
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Vehicle seat capacity
+                                         * @example 30
+                                         */
+                                        capacity: number;
+                                        /**
+                                         * Format: cuid
+                                         * @description Family identifier that owns the vehicle (required)
+                                         * @example cl123456789012345678901234
+                                         */
+                                        familyId: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle creation timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle update timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        updatedAt: string;
+                                    };
+                                    /** @description Driver details (included when requested, null if no driver) */
+                                    driver?: {
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
+                                }[];
+                                /** @description Child assignments (included when requested) */
+                                childAssignments?: {
+                                    /**
+                                     * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                     * @example clslot123_child456
+                                     */
+                                    id: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Child identifier
+                                     * @example cl123456789012345678901238
+                                     */
+                                    childId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    vehicleAssignmentId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Assignment timestamp
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    assignedAt: string;
+                                    /** @description Child information (included when requested) */
+                                    child?: {
+                                        /** Format: cuid */
+                                        id: string;
+                                        name: string;
+                                        age: number | null;
+                                        /** Format: cuid */
+                                        familyId: string;
+                                        /** Format: date-time */
+                                        createdAt: string;
+                                        /** Format: date-time */
+                                        updatedAt: string;
+                                    };
+                                    /**
+                                     * Schedule Vehicle Assignment
+                                     * @description Vehicle assignment information (included when requested)
+                                     */
+                                    vehicleAssignment?: {
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Base Vehicle
+                                         * @description Vehicle details (included when requested)
+                                         */
+                                        vehicle?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Vehicle identifier (CUID format)
+                                             * @example cl123456789012345678901240
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Vehicle name
+                                             * @example School Bus 1
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Vehicle seat capacity
+                                             * @example 30
+                                             */
+                                            capacity: number;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier that owns the vehicle (required)
+                                             * @example cl123456789012345678901234
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle creation timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle update timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                        /** @description Driver details (included when requested, null if no driver) */
+                                        driver?: {
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
+                                    };
+                                }[];
+                                /** @description Count information (included when requested) */
+                                _count?: {
+                                    /**
+                                     * @description Number of vehicle assignments
+                                     * @example 2
+                                     */
+                                    vehicleAssignments: number;
+                                    /**
+                                     * @description Number of child assignments
+                                     * @example 8
+                                     */
+                                    childAssignments: number;
+                                };
                             };
                         };
                     };
@@ -12692,15 +19285,77 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12714,15 +19369,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12736,15 +19411,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12753,6 +19448,26 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update vehicle assignment
+         * @description Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.
+         */
+        patch: operations["patchVehicleAssignment"];
         trace?: never;
     };
     "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
@@ -12770,7 +19485,7 @@ export interface paths {
         head?: never;
         /**
          * Update vehicle driver
-         * @description Update or remove driver for a vehicle assignment in a schedule slot
+         * @description Update or remove driver for a vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.
          */
         patch: {
             parameters: {
@@ -12806,75 +19521,403 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * Schedule Vehicle Assignment
-                             * @description Vehicle assignment for schedule slot (matches Prisma database schema)
+                             * Schedule Slot
+                             * @description Schedule slot information
                              */
                             data: {
-                                id?: string;
-                                vehicleId?: string;
-                                scheduleSlotId?: string;
-                                driverId?: string;
-                                groupId?: string;
-                                date?: string;
-                                assignedSeats?: number;
-                                seatOverride?: number;
-                                /** Format: date-time */
-                                createdAt?: string;
-                                /** Format: date-time */
-                                updatedAt?: string;
                                 /**
-                                 * Base Vehicle
-                                 * @description Common vehicle fields matching Prisma database structure
+                                 * Format: cuid
+                                 * @description Schedule slot identifier
+                                 * @example cl123456789012345678901234
                                  */
-                                vehicle?: {
+                                id: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot datetime (ISO 8601 UTC string)
+                                 * @example 2023-12-15T08:00:00.000Z
+                                 */
+                                datetime: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Group identifier
+                                 * @example cl123456789012345678901235
+                                 */
+                                groupId: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot creation timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot update timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Vehicle assignments (included when requested) */
+                                vehicleAssignments?: {
                                     /**
-                                     * Format: cuid
-                                     * @description Vehicle identifier (CUID format)
-                                     * @example cl123456789012345678901240
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
                                      */
                                     id: string;
                                     /**
-                                     * @description Vehicle name
-                                     * @example School Bus 1
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
                                      */
-                                    name: string;
+                                    vehicleId: string;
                                     /**
-                                     * @description Vehicle seat capacity
-                                     * @example 30
-                                     */
-                                    capacity: number;
-                                    /**
-                                     * Format: cuid
-                                     * @description Family identifier that owns the vehicle
+                                     * @description Schedule slot identifier
                                      * @example cl123456789012345678901234
                                      */
-                                    familyId?: string;
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
                                     /**
                                      * Format: date-time
-                                     * @description Vehicle creation timestamp
-                                     * @example 2023-01-01T00:00:00.000Z
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
                                      */
                                     createdAt: string;
                                     /**
-                                     * Format: date-time
-                                     * @description Vehicle update timestamp
-                                     * @example 2023-01-01T00:00:00.000Z
+                                     * Base Vehicle
+                                     * @description Vehicle details (included when requested)
                                      */
-                                    updatedAt: string;
-                                };
-                                driver?: {
-                                    id?: string;
-                                    firstName?: string;
-                                    lastName?: string;
-                                    /** Format: email */
-                                    email?: string;
+                                    vehicle?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Vehicle identifier (CUID format)
+                                         * @example cl123456789012345678901240
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle name
+                                         * @example School Bus 1
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Vehicle seat capacity
+                                         * @example 30
+                                         */
+                                        capacity: number;
+                                        /**
+                                         * Format: cuid
+                                         * @description Family identifier that owns the vehicle (required)
+                                         * @example cl123456789012345678901234
+                                         */
+                                        familyId: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle creation timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle update timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        updatedAt: string;
+                                    };
+                                    /** @description Driver details (included when requested, null if no driver) */
+                                    driver?: {
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
+                                }[];
+                                /** @description Child assignments (included when requested) */
+                                childAssignments?: {
+                                    /**
+                                     * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                     * @example clslot123_child456
+                                     */
+                                    id: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Child identifier
+                                     * @example cl123456789012345678901238
+                                     */
+                                    childId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    vehicleAssignmentId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Assignment timestamp
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    assignedAt: string;
+                                    /** @description Child information (included when requested) */
+                                    child?: {
+                                        /** Format: cuid */
+                                        id: string;
+                                        name: string;
+                                        age: number | null;
+                                        /** Format: cuid */
+                                        familyId: string;
+                                        /** Format: date-time */
+                                        createdAt: string;
+                                        /** Format: date-time */
+                                        updatedAt: string;
+                                    };
+                                    /**
+                                     * Schedule Vehicle Assignment
+                                     * @description Vehicle assignment information (included when requested)
+                                     */
+                                    vehicleAssignment?: {
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Base Vehicle
+                                         * @description Vehicle details (included when requested)
+                                         */
+                                        vehicle?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Vehicle identifier (CUID format)
+                                             * @example cl123456789012345678901240
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Vehicle name
+                                             * @example School Bus 1
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Vehicle seat capacity
+                                             * @example 30
+                                             */
+                                            capacity: number;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier that owns the vehicle (required)
+                                             * @example cl123456789012345678901234
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle creation timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle update timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                        /** @description Driver details (included when requested, null if no driver) */
+                                        driver?: {
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
+                                    };
+                                }[];
+                                /** @description Count information (included when requested) */
+                                _count?: {
+                                    /**
+                                     * @description Number of vehicle assignments
+                                     * @example 2
+                                     */
+                                    vehicleAssignments: number;
+                                    /**
+                                     * @description Number of child assignments
+                                     * @example 8
+                                     */
+                                    childAssignments: number;
                                 };
                             };
                         };
                     };
                 };
-                /** @description Schedule slot not found */
-                404: {
+                /** @description Access denied - user does not have access to this group */
+                403: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -12883,87 +19926,39 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
-                        };
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Whether the request can be retried
+                             * @example true
                              */
-                            error: string;
+                            retryable?: boolean;
                             /**
-                             * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
                              */
-                            code?: string;
-                        };
-                    };
-                };
-            };
-        };
-        trace?: never;
-    };
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Remove child from schedule slot
-         * @description Remove a child assignment from a schedule slot
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Unique schedule slot identifier (CUID format) */
-                    scheduleSlotId: string;
-                    /** @description Unique child identifier (CUID format) */
-                    childId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Child removed successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success: boolean;
-                            data: {
+                            validationErrors?: {
+                                field: string;
                                 message: string;
-                            };
+                                code: string;
+                            }[];
                         };
                     };
                 };
-                /** @description Schedule slot not found */
+                /** @description Schedule slot or vehicle assignment not found */
                 404: {
                     headers: {
                         [name: string]: unknown;
@@ -12973,15 +19968,77 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Conflict - Vehicle conflicts detected (same datetime in same group) */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -12995,23 +20052,40 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
             };
         };
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/api/v1/schedule-slots/{scheduleSlotId}": {
@@ -13057,7 +20131,8 @@ export interface paths {
                                  */
                                 id: string;
                                 /**
-                                 * @description Schedule slot datetime (ISO string or Date object - services return Date objects)
+                                 * Format: date-time
+                                 * @description Schedule slot datetime (ISO 8601 UTC string)
                                  * @example 2023-12-15T08:00:00.000Z
                                  */
                                 datetime: string;
@@ -13081,21 +20156,40 @@ export interface paths {
                                 updatedAt: string;
                                 /** @description Vehicle assignments (included when requested) */
                                 vehicleAssignments?: {
-                                    id?: string;
-                                    vehicleId?: string;
-                                    scheduleSlotId?: string;
-                                    driverId?: string;
-                                    groupId?: string;
-                                    date?: string;
-                                    assignedSeats?: number;
-                                    seatOverride?: number;
-                                    /** Format: date-time */
-                                    createdAt?: string;
-                                    /** Format: date-time */
-                                    updatedAt?: string;
+                                    /**
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
+                                     */
+                                    vehicleId: string;
+                                    /**
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
+                                    /**
+                                     * Format: date-time
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    createdAt: string;
                                     /**
                                      * Base Vehicle
-                                     * @description Common vehicle fields matching Prisma database structure
+                                     * @description Vehicle details (included when requested)
                                      */
                                     vehicle?: {
                                         /**
@@ -13116,10 +20210,10 @@ export interface paths {
                                         capacity: number;
                                         /**
                                          * Format: cuid
-                                         * @description Family identifier that owns the vehicle
+                                         * @description Family identifier that owns the vehicle (required)
                                          * @example cl123456789012345678901234
                                          */
-                                        familyId?: string;
+                                        familyId: string;
                                         /**
                                          * Format: date-time
                                          * @description Vehicle creation timestamp
@@ -13133,20 +20227,86 @@ export interface paths {
                                          */
                                         updatedAt: string;
                                     };
+                                    /** @description Driver details (included when requested, null if no driver) */
                                     driver?: {
-                                        id?: string;
-                                        firstName?: string;
-                                        lastName?: string;
-                                        /** Format: email */
-                                        email?: string;
-                                    };
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
                                 }[];
                                 /** @description Child assignments (included when requested) */
                                 childAssignments?: {
                                     /**
-                                     * Format: cuid
-                                     * @description Child assignment identifier
-                                     * @example cl123456789012345678901240
+                                     * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                     * @example clslot123_child456
                                      */
                                     id: string;
                                     /**
@@ -13191,21 +20351,40 @@ export interface paths {
                                      * @description Vehicle assignment information (included when requested)
                                      */
                                     vehicleAssignment?: {
-                                        id?: string;
-                                        vehicleId?: string;
-                                        scheduleSlotId?: string;
-                                        driverId?: string;
-                                        groupId?: string;
-                                        date?: string;
-                                        assignedSeats?: number;
-                                        seatOverride?: number;
-                                        /** Format: date-time */
-                                        createdAt?: string;
-                                        /** Format: date-time */
-                                        updatedAt?: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
                                         /**
                                          * Base Vehicle
-                                         * @description Common vehicle fields matching Prisma database structure
+                                         * @description Vehicle details (included when requested)
                                          */
                                         vehicle?: {
                                             /**
@@ -13226,10 +20405,10 @@ export interface paths {
                                             capacity: number;
                                             /**
                                              * Format: cuid
-                                             * @description Family identifier that owns the vehicle
+                                             * @description Family identifier that owns the vehicle (required)
                                              * @example cl123456789012345678901234
                                              */
-                                            familyId?: string;
+                                            familyId: string;
                                             /**
                                              * Format: date-time
                                              * @description Vehicle creation timestamp
@@ -13243,13 +20422,80 @@ export interface paths {
                                              */
                                             updatedAt: string;
                                         };
+                                        /** @description Driver details (included when requested, null if no driver) */
                                         driver?: {
-                                            id?: string;
-                                            firstName?: string;
-                                            lastName?: string;
-                                            /** Format: email */
-                                            email?: string;
-                                        };
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
                                     };
                                 }[];
                                 /** @description Count information (included when requested) */
@@ -13269,6 +20515,48 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
                 /** @description Schedule slot not found */
                 404: {
                     headers: {
@@ -13279,15 +20567,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -13301,15 +20609,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -13388,7 +20716,8 @@ export interface paths {
                                      */
                                     id: string;
                                     /**
-                                     * @description Schedule slot datetime (ISO string or Date object - services return Date objects)
+                                     * Format: date-time
+                                     * @description Schedule slot datetime (ISO 8601 UTC string)
                                      * @example 2023-12-15T08:00:00.000Z
                                      */
                                     datetime: string;
@@ -13412,21 +20741,40 @@ export interface paths {
                                     updatedAt: string;
                                     /** @description Vehicle assignments (included when requested) */
                                     vehicleAssignments?: {
-                                        id?: string;
-                                        vehicleId?: string;
-                                        scheduleSlotId?: string;
-                                        driverId?: string;
-                                        groupId?: string;
-                                        date?: string;
-                                        assignedSeats?: number;
-                                        seatOverride?: number;
-                                        /** Format: date-time */
-                                        createdAt?: string;
-                                        /** Format: date-time */
-                                        updatedAt?: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
                                         /**
                                          * Base Vehicle
-                                         * @description Common vehicle fields matching Prisma database structure
+                                         * @description Vehicle details (included when requested)
                                          */
                                         vehicle?: {
                                             /**
@@ -13447,10 +20795,10 @@ export interface paths {
                                             capacity: number;
                                             /**
                                              * Format: cuid
-                                             * @description Family identifier that owns the vehicle
+                                             * @description Family identifier that owns the vehicle (required)
                                              * @example cl123456789012345678901234
                                              */
-                                            familyId?: string;
+                                            familyId: string;
                                             /**
                                              * Format: date-time
                                              * @description Vehicle creation timestamp
@@ -13464,20 +20812,86 @@ export interface paths {
                                              */
                                             updatedAt: string;
                                         };
+                                        /** @description Driver details (included when requested, null if no driver) */
                                         driver?: {
-                                            id?: string;
-                                            firstName?: string;
-                                            lastName?: string;
-                                            /** Format: email */
-                                            email?: string;
-                                        };
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
                                     }[];
                                     /** @description Child assignments (included when requested) */
                                     childAssignments?: {
                                         /**
-                                         * Format: cuid
-                                         * @description Child assignment identifier
-                                         * @example cl123456789012345678901240
+                                         * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                         * @example clslot123_child456
                                          */
                                         id: string;
                                         /**
@@ -13522,21 +20936,40 @@ export interface paths {
                                          * @description Vehicle assignment information (included when requested)
                                          */
                                         vehicleAssignment?: {
-                                            id?: string;
-                                            vehicleId?: string;
-                                            scheduleSlotId?: string;
-                                            driverId?: string;
-                                            groupId?: string;
-                                            date?: string;
-                                            assignedSeats?: number;
-                                            seatOverride?: number;
-                                            /** Format: date-time */
-                                            createdAt?: string;
-                                            /** Format: date-time */
-                                            updatedAt?: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Vehicle identifier
+                                             * @example cl123456789012345678901237
+                                             */
+                                            vehicleId: string;
+                                            /**
+                                             * @description Schedule slot identifier
+                                             * @example cl123456789012345678901234
+                                             */
+                                            scheduleSlotId: string;
+                                            /**
+                                             * @description Driver identifier (null if no driver assigned)
+                                             * @example cl123456789012345678901239
+                                             */
+                                            driverId: string | null;
+                                            /**
+                                             * @description Seat capacity override (null if using vehicle default)
+                                             * @example 6
+                                             */
+                                            seatOverride: number | null;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the vehicle was assigned to this slot
+                                             * @example 2023-12-01T08:00:00.000Z
+                                             */
+                                            createdAt: string;
                                             /**
                                              * Base Vehicle
-                                             * @description Common vehicle fields matching Prisma database structure
+                                             * @description Vehicle details (included when requested)
                                              */
                                             vehicle?: {
                                                 /**
@@ -13557,10 +20990,10 @@ export interface paths {
                                                 capacity: number;
                                                 /**
                                                  * Format: cuid
-                                                 * @description Family identifier that owns the vehicle
+                                                 * @description Family identifier that owns the vehicle (required)
                                                  * @example cl123456789012345678901234
                                                  */
-                                                familyId?: string;
+                                                familyId: string;
                                                 /**
                                                  * Format: date-time
                                                  * @description Vehicle creation timestamp
@@ -13574,13 +21007,80 @@ export interface paths {
                                                  */
                                                 updatedAt: string;
                                             };
+                                            /** @description Driver details (included when requested, null if no driver) */
                                             driver?: {
-                                                id?: string;
-                                                firstName?: string;
-                                                lastName?: string;
-                                                /** Format: email */
-                                                email?: string;
-                                            };
+                                                /**
+                                                 * @description Driver user identifier
+                                                 * @example cl123456789012345678901239
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Driver name
+                                                 * @example John Doe
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * Format: email
+                                                 * @description Driver email
+                                                 * @example john.doe@example.com
+                                                 */
+                                                email: string;
+                                            } | null;
+                                            /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                            childAssignments?: {
+                                                /**
+                                                 * @description Child assignment identifier
+                                                 * @example clslot123_child456
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                childId: string;
+                                                /**
+                                                 * @description Vehicle assignment identifier
+                                                 * @example cl123456789012345678901236
+                                                 */
+                                                vehicleAssignmentId: string;
+                                                /** @description Child details (included when requested) */
+                                                child?: {
+                                                    /**
+                                                     * Format: cuid
+                                                     * @description Child identifier
+                                                     * @example cl123456789012345678901238
+                                                     */
+                                                    id: string;
+                                                    /**
+                                                     * @description Child name
+                                                     * @example Emma Johnson
+                                                     */
+                                                    name: string;
+                                                    /**
+                                                     * @description Child age (null if not specified)
+                                                     * @example 8
+                                                     */
+                                                    age: number | null;
+                                                    /**
+                                                     * Format: cuid
+                                                     * @description Family identifier
+                                                     * @example cl123456789012345678901233
+                                                     */
+                                                    familyId: string;
+                                                    /**
+                                                     * Format: date-time
+                                                     * @description When the child was created
+                                                     * @example 2023-01-01T00:00:00.000Z
+                                                     */
+                                                    createdAt: string;
+                                                    /**
+                                                     * Format: date-time
+                                                     * @description When the child was last updated
+                                                     * @example 2023-01-15T10:30:00.000Z
+                                                     */
+                                                    updatedAt: string;
+                                                };
+                                            }[];
                                         };
                                     }[];
                                     /** @description Count information (included when requested) */
@@ -13601,6 +21101,90 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Group not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
                 /** @description Internal server error */
                 500: {
                     headers: {
@@ -13611,15 +21195,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -13670,8 +21274,8 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Internal server error */
-                500: {
+                /** @description Access denied - user does not have access to this group */
+                403: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -13680,236 +21284,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/schedule-slots/{scheduleSlotId}/children": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Assign child to schedule slot
-         * @description Assign a child to a specific vehicle assignment in a schedule slot
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Unique schedule slot identifier (CUID format) */
-                    scheduleSlotId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": {
-                        /**
-                         * Format: cuid
-                         * @description Child identifier to assign
-                         * @example cl123456789012345678901238
-                         */
-                        childId: string;
-                        /**
-                         * Format: cuid
-                         * @description Vehicle assignment identifier for the child
-                         * @example cl123456789012345678901236
-                         */
-                        vehicleAssignmentId: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Child assigned successfully */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success: boolean;
                             /**
-                             * Child Assignment
-                             * @description Child assignment information for a schedule slot
+                             * @description Whether the request can be retried
+                             * @example true
                              */
-                            data: {
-                                /**
-                                 * Format: cuid
-                                 * @description Child assignment identifier
-                                 * @example cl123456789012345678901240
-                                 */
-                                id: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Schedule slot identifier
-                                 * @example cl123456789012345678901234
-                                 */
-                                scheduleSlotId: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Child identifier
-                                 * @example cl123456789012345678901238
-                                 */
-                                childId: string;
-                                /**
-                                 * Format: cuid
-                                 * @description Vehicle assignment identifier
-                                 * @example cl123456789012345678901236
-                                 */
-                                vehicleAssignmentId: string;
-                                /**
-                                 * Format: date-time
-                                 * @description Assignment timestamp
-                                 * @example 2023-12-01T08:00:00.000Z
-                                 */
-                                assignedAt: string;
-                                /** @description Child information (included when requested) */
-                                child?: {
-                                    /** Format: cuid */
-                                    id: string;
-                                    name: string;
-                                    age: number | null;
-                                    /** Format: cuid */
-                                    familyId: string;
-                                    /** Format: date-time */
-                                    createdAt: string;
-                                    /** Format: date-time */
-                                    updatedAt: string;
-                                };
-                                /**
-                                 * Schedule Vehicle Assignment
-                                 * @description Vehicle assignment information (included when requested)
-                                 */
-                                vehicleAssignment?: {
-                                    id?: string;
-                                    vehicleId?: string;
-                                    scheduleSlotId?: string;
-                                    driverId?: string;
-                                    groupId?: string;
-                                    date?: string;
-                                    assignedSeats?: number;
-                                    seatOverride?: number;
-                                    /** Format: date-time */
-                                    createdAt?: string;
-                                    /** Format: date-time */
-                                    updatedAt?: string;
-                                    /**
-                                     * Base Vehicle
-                                     * @description Common vehicle fields matching Prisma database structure
-                                     */
-                                    vehicle?: {
-                                        /**
-                                         * Format: cuid
-                                         * @description Vehicle identifier (CUID format)
-                                         * @example cl123456789012345678901240
-                                         */
-                                        id: string;
-                                        /**
-                                         * @description Vehicle name
-                                         * @example School Bus 1
-                                         */
-                                        name: string;
-                                        /**
-                                         * @description Vehicle seat capacity
-                                         * @example 30
-                                         */
-                                        capacity: number;
-                                        /**
-                                         * Format: cuid
-                                         * @description Family identifier that owns the vehicle
-                                         * @example cl123456789012345678901234
-                                         */
-                                        familyId?: string;
-                                        /**
-                                         * Format: date-time
-                                         * @description Vehicle creation timestamp
-                                         * @example 2023-01-01T00:00:00.000Z
-                                         */
-                                        createdAt: string;
-                                        /**
-                                         * Format: date-time
-                                         * @description Vehicle update timestamp
-                                         * @example 2023-01-01T00:00:00.000Z
-                                         */
-                                        updatedAt: string;
-                                    };
-                                    driver?: {
-                                        id?: string;
-                                        firstName?: string;
-                                        lastName?: string;
-                                        /** Format: email */
-                                        email?: string;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-                /** @description Bad request - Child ID missing */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
+                            retryable?: boolean;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
                              */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Unauthorized - Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Schedule slot not found
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
-                             */
-                            code?: string;
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -13923,15 +21326,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -13945,112 +21368,43 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
         put?: never;
         post?: never;
-        /**
-         * Remove child from schedule slot
-         * @description Remove a child assignment from a schedule slot (dedicated endpoint)
-         */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    /** @description Unique schedule slot identifier (CUID format) */
-                    scheduleSlotId: string;
-                    /** @description Unique child identifier (CUID format) */
-                    childId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Child removed successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success: boolean;
-                            data?: unknown;
-                        };
-                    };
-                };
-                /** @description Unauthorized - Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Schedule slot not found
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Schedule slot not found
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
-                             */
-                            code?: string;
-                        };
-                    };
-                };
-            };
-        };
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -14139,15 +21493,119 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Schedule slot not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -14161,15 +21619,35 @@ export interface paths {
                             /** @enum {boolean} */
                             success: false;
                             /**
-                             * @description Error message
-                             * @example Schedule slot not found
+                             * @description Human-readable error message
+                             * @example Validation failed
                              */
                             error: string;
                             /**
                              * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
+                             * @example ERROR_CODE
                              */
                             code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
                         };
                     };
                 };
@@ -14183,7 +21661,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/vehicle-assignments/{vehicleAssignmentId}/seat-override": {
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/seat-override": {
         parameters: {
             query?: never;
             header?: never;
@@ -14197,16 +21675,18 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update seat override
-         * @description Update seat capacity override for a vehicle assignment
+         * Update seat override for vehicle
+         * @description Update seat capacity override for a vehicle in a schedule slot
          */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description Unique vehicle assignment identifier (CUID format) */
-                    vehicleAssignmentId: string;
+                    /** @description Unique schedule slot identifier (CUID format) */
+                    scheduleSlotId: string;
+                    /** @description Unique vehicle identifier (CUID format) */
+                    vehicleId: string;
                 };
                 cookie?: never;
             };
@@ -14231,25 +21711,707 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * Schedule Vehicle Assignment
-                             * @description Vehicle assignment for schedule slot (matches Prisma database schema)
+                             * Schedule Slot
+                             * @description Schedule slot information
                              */
                             data: {
-                                id?: string;
-                                vehicleId?: string;
-                                scheduleSlotId?: string;
-                                driverId?: string;
-                                groupId?: string;
-                                date?: string;
-                                assignedSeats?: number;
-                                seatOverride?: number;
-                                /** Format: date-time */
-                                createdAt?: string;
-                                /** Format: date-time */
-                                updatedAt?: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Schedule slot identifier
+                                 * @example cl123456789012345678901234
+                                 */
+                                id: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot datetime (ISO 8601 UTC string)
+                                 * @example 2023-12-15T08:00:00.000Z
+                                 */
+                                datetime: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Group identifier
+                                 * @example cl123456789012345678901235
+                                 */
+                                groupId: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot creation timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                createdAt: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Schedule slot update timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                updatedAt: string;
+                                /** @description Vehicle assignments (included when requested) */
+                                vehicleAssignments?: {
+                                    /**
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
+                                     */
+                                    vehicleId: string;
+                                    /**
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
+                                    /**
+                                     * Format: date-time
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Base Vehicle
+                                     * @description Vehicle details (included when requested)
+                                     */
+                                    vehicle?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Vehicle identifier (CUID format)
+                                         * @example cl123456789012345678901240
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle name
+                                         * @example School Bus 1
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Vehicle seat capacity
+                                         * @example 30
+                                         */
+                                        capacity: number;
+                                        /**
+                                         * Format: cuid
+                                         * @description Family identifier that owns the vehicle (required)
+                                         * @example cl123456789012345678901234
+                                         */
+                                        familyId: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle creation timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle update timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        updatedAt: string;
+                                    };
+                                    /** @description Driver details (included when requested, null if no driver) */
+                                    driver?: {
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
+                                }[];
+                                /** @description Child assignments (included when requested) */
+                                childAssignments?: {
+                                    /**
+                                     * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                     * @example clslot123_child456
+                                     */
+                                    id: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Child identifier
+                                     * @example cl123456789012345678901238
+                                     */
+                                    childId: string;
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    vehicleAssignmentId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Assignment timestamp
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    assignedAt: string;
+                                    /** @description Child information (included when requested) */
+                                    child?: {
+                                        /** Format: cuid */
+                                        id: string;
+                                        name: string;
+                                        age: number | null;
+                                        /** Format: cuid */
+                                        familyId: string;
+                                        /** Format: date-time */
+                                        createdAt: string;
+                                        /** Format: date-time */
+                                        updatedAt: string;
+                                    };
+                                    /**
+                                     * Schedule Vehicle Assignment
+                                     * @description Vehicle assignment information (included when requested)
+                                     */
+                                    vehicleAssignment?: {
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle identifier
+                                         * @example cl123456789012345678901237
+                                         */
+                                        vehicleId: string;
+                                        /**
+                                         * @description Schedule slot identifier
+                                         * @example cl123456789012345678901234
+                                         */
+                                        scheduleSlotId: string;
+                                        /**
+                                         * @description Driver identifier (null if no driver assigned)
+                                         * @example cl123456789012345678901239
+                                         */
+                                        driverId: string | null;
+                                        /**
+                                         * @description Seat capacity override (null if using vehicle default)
+                                         * @example 6
+                                         */
+                                        seatOverride: number | null;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the vehicle was assigned to this slot
+                                         * @example 2023-12-01T08:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Base Vehicle
+                                         * @description Vehicle details (included when requested)
+                                         */
+                                        vehicle?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Vehicle identifier (CUID format)
+                                             * @example cl123456789012345678901240
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Vehicle name
+                                             * @example School Bus 1
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Vehicle seat capacity
+                                             * @example 30
+                                             */
+                                            capacity: number;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier that owns the vehicle (required)
+                                             * @example cl123456789012345678901234
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle creation timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description Vehicle update timestamp
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                        /** @description Driver details (included when requested, null if no driver) */
+                                        driver?: {
+                                            /**
+                                             * @description Driver user identifier
+                                             * @example cl123456789012345678901239
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Driver name
+                                             * @example John Doe
+                                             */
+                                            name: string;
+                                            /**
+                                             * Format: email
+                                             * @description Driver email
+                                             * @example john.doe@example.com
+                                             */
+                                            email: string;
+                                        } | null;
+                                        /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                        childAssignments?: {
+                                            /**
+                                             * @description Child assignment identifier
+                                             * @example clslot123_child456
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            childId: string;
+                                            /**
+                                             * @description Vehicle assignment identifier
+                                             * @example cl123456789012345678901236
+                                             */
+                                            vehicleAssignmentId: string;
+                                            /** @description Child details (included when requested) */
+                                            child?: {
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Child identifier
+                                                 * @example cl123456789012345678901238
+                                                 */
+                                                id: string;
+                                                /**
+                                                 * @description Child name
+                                                 * @example Emma Johnson
+                                                 */
+                                                name: string;
+                                                /**
+                                                 * @description Child age (null if not specified)
+                                                 * @example 8
+                                                 */
+                                                age: number | null;
+                                                /**
+                                                 * Format: cuid
+                                                 * @description Family identifier
+                                                 * @example cl123456789012345678901233
+                                                 */
+                                                familyId: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was created
+                                                 * @example 2023-01-01T00:00:00.000Z
+                                                 */
+                                                createdAt: string;
+                                                /**
+                                                 * Format: date-time
+                                                 * @description When the child was last updated
+                                                 * @example 2023-01-15T10:30:00.000Z
+                                                 */
+                                                updatedAt: string;
+                                            };
+                                        }[];
+                                    };
+                                }[];
+                                /** @description Count information (included when requested) */
+                                _count?: {
+                                    /**
+                                     * @description Number of vehicle assignments
+                                     * @example 2
+                                     */
+                                    vehicleAssignments: number;
+                                    /**
+                                     * @description Number of child assignments
+                                     * @example 8
+                                     */
+                                    childAssignments: number;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Access denied - user does not have access to this group */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Schedule slot or vehicle not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Conflict - Child already assigned to this slot or vehicle is at full capacity */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Internal server error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            success: false;
+                            /**
+                             * @description Human-readable error message
+                             * @example Validation failed
+                             */
+                            error: string;
+                            /**
+                             * @description Error code for programmatic handling
+                             * @example ERROR_CODE
+                             */
+                            code?: string;
+                            /**
+                             * @description Whether the request can be retried
+                             * @example true
+                             */
+                            retryable?: boolean;
+                            /**
+                             * @description Detailed validation errors (when applicable)
+                             * @example [
+                             *       {
+                             *         "field": "email",
+                             *         "message": "Invalid email format",
+                             *         "code": "invalid_string"
+                             *       }
+                             *     ]
+                             */
+                            validationErrors?: {
+                                field: string;
+                                message: string;
+                                code: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+}
+export type webhooks = Record<string, never>;
+export interface components {
+    schemas: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
+}
+export type $defs = Record<string, never>;
+export interface operations {
+    patchVehicleAssignment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scheduleSlotId: string;
+                vehicleAssignmentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    /**
+                     * Format: cuid
+                     * @description Optional new driver identifier to replace current driver
+                     * @example cl123456789012345678901239
+                     */
+                    driverId?: string;
+                    /**
+                     * @description Optional new seat capacity override for this assignment
+                     * @example 6
+                     */
+                    seatOverride?: number;
+                    /**
+                     * @description Optional list of child IDs to add to this vehicle assignment
+                     * @example [
+                     *       "cl123456789012345678901238",
+                     *       "cl123456789012345678901239"
+                     *     ]
+                     */
+                    addChildIds?: string[];
+                    /**
+                     * @description Optional list of child IDs to remove from this vehicle assignment
+                     * @example [
+                     *       "cl123456789012345678901240"
+                     *     ]
+                     */
+                    removeChildIds?: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Vehicle assignment updated successfully. Returns complete ScheduleSlot. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        /**
+                         * Schedule Slot
+                         * @description Schedule slot information
+                         */
+                        data: {
+                            /**
+                             * Format: cuid
+                             * @description Schedule slot identifier
+                             * @example cl123456789012345678901234
+                             */
+                            id: string;
+                            /**
+                             * Format: date-time
+                             * @description Schedule slot datetime (ISO 8601 UTC string)
+                             * @example 2023-12-15T08:00:00.000Z
+                             */
+                            datetime: string;
+                            /**
+                             * Format: cuid
+                             * @description Group identifier
+                             * @example cl123456789012345678901235
+                             */
+                            groupId: string;
+                            /**
+                             * Format: date-time
+                             * @description Schedule slot creation timestamp
+                             * @example 2023-12-01T08:00:00.000Z
+                             */
+                            createdAt: string;
+                            /**
+                             * Format: date-time
+                             * @description Schedule slot update timestamp
+                             * @example 2023-12-01T08:00:00.000Z
+                             */
+                            updatedAt: string;
+                            /** @description Vehicle assignments (included when requested) */
+                            vehicleAssignments?: {
+                                /**
+                                 * @description Vehicle assignment identifier
+                                 * @example cl123456789012345678901236
+                                 */
+                                id: string;
+                                /**
+                                 * @description Vehicle identifier
+                                 * @example cl123456789012345678901237
+                                 */
+                                vehicleId: string;
+                                /**
+                                 * @description Schedule slot identifier
+                                 * @example cl123456789012345678901234
+                                 */
+                                scheduleSlotId: string;
+                                /**
+                                 * @description Driver identifier (null if no driver assigned)
+                                 * @example cl123456789012345678901239
+                                 */
+                                driverId: string | null;
+                                /**
+                                 * @description Seat capacity override (null if using vehicle default)
+                                 * @example 6
+                                 */
+                                seatOverride: number | null;
+                                /**
+                                 * Format: date-time
+                                 * @description When the vehicle was assigned to this slot
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                createdAt: string;
                                 /**
                                  * Base Vehicle
-                                 * @description Common vehicle fields matching Prisma database structure
+                                 * @description Vehicle details (included when requested)
                                  */
                                 vehicle?: {
                                     /**
@@ -14270,10 +22432,10 @@ export interface paths {
                                     capacity: number;
                                     /**
                                      * Format: cuid
-                                     * @description Family identifier that owns the vehicle
+                                     * @description Family identifier that owns the vehicle (required)
                                      * @example cl123456789012345678901234
                                      */
-                                    familyId?: string;
+                                    familyId: string;
                                     /**
                                      * Format: date-time
                                      * @description Vehicle creation timestamp
@@ -14287,52 +22449,462 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 };
+                                /** @description Driver details (included when requested, null if no driver) */
                                 driver?: {
-                                    id?: string;
-                                    firstName?: string;
-                                    lastName?: string;
-                                    /** Format: email */
-                                    email?: string;
+                                    /**
+                                     * @description Driver user identifier
+                                     * @example cl123456789012345678901239
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Driver name
+                                     * @example John Doe
+                                     */
+                                    name: string;
+                                    /**
+                                     * Format: email
+                                     * @description Driver email
+                                     * @example john.doe@example.com
+                                     */
+                                    email: string;
+                                } | null;
+                                /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                childAssignments?: {
+                                    /**
+                                     * @description Child assignment identifier
+                                     * @example clslot123_child456
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child identifier
+                                     * @example cl123456789012345678901238
+                                     */
+                                    childId: string;
+                                    /**
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    vehicleAssignmentId: string;
+                                    /** @description Child details (included when requested) */
+                                    child?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child name
+                                         * @example Emma Johnson
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Child age (null if not specified)
+                                         * @example 8
+                                         */
+                                        age: number | null;
+                                        /**
+                                         * Format: cuid
+                                         * @description Family identifier
+                                         * @example cl123456789012345678901233
+                                         */
+                                        familyId: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the child was created
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description When the child was last updated
+                                         * @example 2023-01-15T10:30:00.000Z
+                                         */
+                                        updatedAt: string;
+                                    };
+                                }[];
+                            }[];
+                            /** @description Child assignments (included when requested) */
+                            childAssignments?: {
+                                /**
+                                 * @description Child assignment identifier (composite key: scheduleSlotId_childId)
+                                 * @example clslot123_child456
+                                 */
+                                id: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Schedule slot identifier
+                                 * @example cl123456789012345678901234
+                                 */
+                                scheduleSlotId: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Child identifier
+                                 * @example cl123456789012345678901238
+                                 */
+                                childId: string;
+                                /**
+                                 * Format: cuid
+                                 * @description Vehicle assignment identifier
+                                 * @example cl123456789012345678901236
+                                 */
+                                vehicleAssignmentId: string;
+                                /**
+                                 * Format: date-time
+                                 * @description Assignment timestamp
+                                 * @example 2023-12-01T08:00:00.000Z
+                                 */
+                                assignedAt: string;
+                                /** @description Child information (included when requested) */
+                                child?: {
+                                    /** Format: cuid */
+                                    id: string;
+                                    name: string;
+                                    age: number | null;
+                                    /** Format: cuid */
+                                    familyId: string;
+                                    /** Format: date-time */
+                                    createdAt: string;
+                                    /** Format: date-time */
+                                    updatedAt: string;
                                 };
+                                /**
+                                 * Schedule Vehicle Assignment
+                                 * @description Vehicle assignment information (included when requested)
+                                 */
+                                vehicleAssignment?: {
+                                    /**
+                                     * @description Vehicle assignment identifier
+                                     * @example cl123456789012345678901236
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle identifier
+                                     * @example cl123456789012345678901237
+                                     */
+                                    vehicleId: string;
+                                    /**
+                                     * @description Schedule slot identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    scheduleSlotId: string;
+                                    /**
+                                     * @description Driver identifier (null if no driver assigned)
+                                     * @example cl123456789012345678901239
+                                     */
+                                    driverId: string | null;
+                                    /**
+                                     * @description Seat capacity override (null if using vehicle default)
+                                     * @example 6
+                                     */
+                                    seatOverride: number | null;
+                                    /**
+                                     * Format: date-time
+                                     * @description When the vehicle was assigned to this slot
+                                     * @example 2023-12-01T08:00:00.000Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Base Vehicle
+                                     * @description Vehicle details (included when requested)
+                                     */
+                                    vehicle?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Vehicle identifier (CUID format)
+                                         * @example cl123456789012345678901240
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle name
+                                         * @example School Bus 1
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Vehicle seat capacity
+                                         * @example 30
+                                         */
+                                        capacity: number;
+                                        /**
+                                         * Format: cuid
+                                         * @description Family identifier that owns the vehicle (required)
+                                         * @example cl123456789012345678901234
+                                         */
+                                        familyId: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle creation timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        createdAt: string;
+                                        /**
+                                         * Format: date-time
+                                         * @description Vehicle update timestamp
+                                         * @example 2023-01-01T00:00:00.000Z
+                                         */
+                                        updatedAt: string;
+                                    };
+                                    /** @description Driver details (included when requested, null if no driver) */
+                                    driver?: {
+                                        /**
+                                         * @description Driver user identifier
+                                         * @example cl123456789012345678901239
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                        /**
+                                         * Format: email
+                                         * @description Driver email
+                                         * @example john.doe@example.com
+                                         */
+                                        email: string;
+                                    } | null;
+                                    /** @description All child assignments for this vehicle (cross-family carpooling support) */
+                                    childAssignments?: {
+                                        /**
+                                         * @description Child assignment identifier
+                                         * @example clslot123_child456
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child identifier
+                                         * @example cl123456789012345678901238
+                                         */
+                                        childId: string;
+                                        /**
+                                         * @description Vehicle assignment identifier
+                                         * @example cl123456789012345678901236
+                                         */
+                                        vehicleAssignmentId: string;
+                                        /** @description Child details (included when requested) */
+                                        child?: {
+                                            /**
+                                             * Format: cuid
+                                             * @description Child identifier
+                                             * @example cl123456789012345678901238
+                                             */
+                                            id: string;
+                                            /**
+                                             * @description Child name
+                                             * @example Emma Johnson
+                                             */
+                                            name: string;
+                                            /**
+                                             * @description Child age (null if not specified)
+                                             * @example 8
+                                             */
+                                            age: number | null;
+                                            /**
+                                             * Format: cuid
+                                             * @description Family identifier
+                                             * @example cl123456789012345678901233
+                                             */
+                                            familyId: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was created
+                                             * @example 2023-01-01T00:00:00.000Z
+                                             */
+                                            createdAt: string;
+                                            /**
+                                             * Format: date-time
+                                             * @description When the child was last updated
+                                             * @example 2023-01-15T10:30:00.000Z
+                                             */
+                                            updatedAt: string;
+                                        };
+                                    }[];
+                                };
+                            }[];
+                            /** @description Count information (included when requested) */
+                            _count?: {
+                                /**
+                                 * @description Number of vehicle assignments
+                                 * @example 2
+                                 */
+                                vehicleAssignments: number;
+                                /**
+                                 * @description Number of child assignments
+                                 * @example 8
+                                 */
+                                childAssignments: number;
                             };
                         };
                     };
                 };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
+            };
+            /** @description Bad request - Invalid input */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
                     };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Error message
-                             * @example Schedule slot not found
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example SLOT_NOT_FOUND
-                             */
-                            code?: string;
-                        };
+                };
+            };
+            /** @description Access denied */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Schedule slot or vehicle assignment not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
                     };
                 };
             };
         };
-        trace?: never;
     };
 }
-export type webhooks = Record<string, never>;
-export interface components {
-    schemas: never;
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
-}
-export type $defs = Record<string, never>;
-export type operations = Record<string, never>;

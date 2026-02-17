@@ -135,13 +135,13 @@ describe('ChildAssignmentModal Capacity Tests', () => {
     ];
 
     mockClient.GET.mockImplementation((path) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: allChildren },
           error: undefined
         });
       }
-      if (path === '/schedule-slots/{scheduleSlotId}') {
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: fullCapacitySlot },
           error: undefined
@@ -254,13 +254,13 @@ describe('ChildAssignmentModal Capacity Tests', () => {
     ];
 
     mockClient.GET.mockImplementation((path) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: allChildren },
           error: undefined
         });
       }
-      if (path === '/schedule-slots/{scheduleSlotId}') {
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: partialCapacitySlot },
           error: undefined
@@ -297,8 +297,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       data: { success: true },
       error: undefined
     });
-    mockClient.POST.mockImplementation((path) => {
-      if (path === '/schedule-slots/{scheduleSlotId}/children') {
+    mockClient.PATCH.mockImplementation((path) => {
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}') {
         return mockAssignChild();
       }
       return Promise.resolve({
@@ -335,12 +335,12 @@ describe('ChildAssignmentModal Capacity Tests', () => {
         userId: 'user-1',
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        groupMemberships: [{ 
-          groupId: 'group-1', 
-          childId: 'child-1', 
-          addedBy: 'user-1', 
-          addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
+        groupMemberships: [{
+          groupId: 'group-1',
+          childId: 'child-1',
+          addedBy: 'user-1',
+          addedAt: '2024-01-01T00:00:00Z',
+          group: { id: 'group-1', name: 'Test Group' }
         }]
       },
       {
@@ -350,24 +350,24 @@ describe('ChildAssignmentModal Capacity Tests', () => {
         userId: 'user-1',
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        groupMemberships: [{ 
-          groupId: 'group-1', 
-          childId: 'child-2', 
-          addedBy: 'user-1', 
-          addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
+        groupMemberships: [{
+          groupId: 'group-1',
+          childId: 'child-2',
+          addedBy: 'user-1',
+          addedAt: '2024-01-01T00:00:00Z',
+          group: { id: 'group-1', name: 'Test Group' }
         }]
       }
     ];
 
     mockClient.GET.mockImplementation((path) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: allChildren },
           error: undefined
         });
       }
-      if (path === '/schedule-slots/{scheduleSlotId}') {
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: vehicleSlot },
           error: undefined
@@ -379,26 +379,26 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       });
     });
 
-    renderModal({ 
+    renderModal({
       scheduleSlot: vehicleSlot,
       preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
     });
 
     await waitFor(() => {
       expect(screen.getByTestId('ChildAssignmentModal-Text-selectedVehicleName')).toHaveTextContent('Test Bus');
-      
+
       // Select and add a child
       const childSelect = screen.getByTestId('ChildAssignmentModal-Select-child');
       fireEvent.change(childSelect, { target: { value: 'child-2' } });
-      
+
       const addButton = screen.getByTestId('ChildAssignmentModal-Button-addChild');
       fireEvent.click(addButton);
     });
 
     await waitFor(() => {
-      expect(mockClient.POST).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
-        params: { path: { scheduleSlotId: 'slot-1' } },
-        body: { childId: 'child-2', vehicleAssignmentId: 'vehicle-assignment-1' }
+      expect(mockClient.PATCH).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+        params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
+        body: { addChildIds: ['child-2'] }
       });
     });
 

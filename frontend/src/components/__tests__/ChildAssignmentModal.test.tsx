@@ -73,13 +73,13 @@ describe('ChildAssignmentModal', () => {
   // Helper function to setup OpenAPI mocks for different scenarios
   const setupOpenAPIMocks = (overrides: MockOverrides = {}) => {
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: overrides.children || [], success: true },
           error: undefined
         });
       }
-      if (path === '/schedule-slots/{scheduleSlotId}') {
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: overrides.scheduleSlot || mockScheduleSlot, success: true },
           error: undefined
@@ -91,8 +91,13 @@ describe('ChildAssignmentModal', () => {
       });
     });
 
-    // Setup POST/PATCH mocks for mutations
+    // Setup POST/PATCH/DELETE mocks for mutations
     vi.mocked(mockApi.POST).mockResolvedValue({
+      data: { data: null, success: true },
+      error: undefined
+    });
+
+    vi.mocked(mockApi.PATCH).mockResolvedValue({
       data: { data: null, success: true },
       error: undefined
     });
@@ -466,20 +471,41 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('should handle remove child functionality', async () => {
-      const mockRemoveChild = vi.fn().mockResolvedValue({
-        data: { data: null, success: true },
-        error: undefined
-      });
-      vi.mocked(mockApi.DELETE).mockImplementation(mockRemoveChild);
+      // Update child assignments to include vehicleAssignmentId
+      const slotWithVehicleAssignments = {
+        ...mockScheduleSlotWithVehicles,
+        childAssignments: [
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: mockScheduleSlotWithVehicles.childAssignments[0].child
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: mockScheduleSlotWithVehicles.childAssignments[1].child
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-2',
+            child: mockScheduleSlotWithVehicles.childAssignments[2].child
+          }
+        ]
+      };
 
-      renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: slotWithVehicleAssignments
+      });
+
+      // Clear previous calls to get clean spy
+      vi.mocked(mockApi.PATCH).mockClear();
+
+      renderModal({ scheduleSlot: slotWithVehicleAssignments });
 
       await waitFor(() => {
         // Use specific child IDs for remove buttons instead of getAllByText
         const removeButton1 = screen.getByTestId('remove-child-button-child-1');
         const removeButton2 = screen.getByTestId('remove-child-button-child-2');
         const removeButton3 = screen.getByTestId('remove-child-button-child-3');
-        
+
         expect(removeButton1).toBeInTheDocument();
         expect(removeButton2).toBeInTheDocument();
         expect(removeButton3).toBeInTheDocument();
@@ -488,8 +514,9 @@ describe('ChildAssignmentModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockRemoveChild).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children/{childId}', {
-          params: { path: { scheduleSlotId: 'slot-1', childId: 'child-1' } }
+        expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
+          body: { removeChildIds: ['child-1'] }
         });
       });
     });
@@ -595,7 +622,7 @@ describe('ChildAssignmentModal', () => {
         data: { data: null, success: true },
         error: undefined
       });
-      vi.mocked(mockApi.POST).mockImplementation(mockAddChild);
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -614,11 +641,10 @@ describe('ChildAssignmentModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockAddChild).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
-          params: { path: { scheduleSlotId: 'slot-1' } },
+        expect(mockAddChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
           body: {
-            childId: 'child-4',
-            vehicleAssignmentId: 'vehicle-assignment-1'
+            addChildIds: ['child-4']
           }
         });
       });
@@ -658,7 +684,7 @@ describe('ChildAssignmentModal', () => {
         data: { data: null, success: true },
         error: undefined
       });
-      vi.mocked(mockApi.POST).mockImplementation(mockAddChild);
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -783,11 +809,11 @@ describe('ChildAssignmentModal', () => {
         data: { data: null, success: true },
         error: undefined
       });
-      vi.mocked(mockApi.POST).mockImplementation(mockAssignChild);
-      
-      renderModal({ 
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
+
+      renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId 
+        preSelectedVehicleAssignmentId: preSelectedVehicleId
       });
 
       await waitFor(() => {
@@ -806,11 +832,10 @@ describe('ChildAssignmentModal', () => {
 
       // Should call API with pre-selected vehicle
       await waitFor(() => {
-        expect(mockAssignChild).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
-          params: { path: { scheduleSlotId: 'slot-1' } },
+        expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: preSelectedVehicleId } },
           body: {
-            childId: 'child-4',
-            vehicleAssignmentId: preSelectedVehicleId
+            addChildIds: ['child-4']
           }
         });
       });
@@ -821,7 +846,7 @@ describe('ChildAssignmentModal', () => {
         data: { data: null, success: true },
         error: undefined
       });
-      vi.mocked(mockApi.POST).mockImplementation(mockAssignChild);
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -840,19 +865,17 @@ describe('ChildAssignmentModal', () => {
       });
 
       await waitFor(() => {
-        // Should pass vehicleAssignmentId, not vehicleId
-        expect(mockAssignChild).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
-          params: { path: { scheduleSlotId: 'slot-1' } },
+        // Should pass vehicleAssignmentId in path, not vehicleId
+        expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
           body: {
-            childId: 'child-4',
-            vehicleAssignmentId: 'vehicle-assignment-1'
+            addChildIds: ['child-4']
           }
         });
-        expect(mockAssignChild).not.toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
-          params: { path: { scheduleSlotId: 'slot-1' } },
+        expect(mockAssignChild).not.toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-1' } },
           body: {
-            childId: 'child-4',
-            vehicleAssignmentId: 'vehicle-1'
+            addChildIds: ['child-4']
           }
         });
       });
@@ -1068,7 +1091,13 @@ describe('ChildAssignmentModal', () => {
 
       vi.mocked(useQueryClient).mockReturnValue(mockQueryClient as unknown as ReturnType<typeof useQueryClient>);
 
-      renderModal({ 
+      const mockAddChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
+
+      renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
         preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
       });
@@ -1088,8 +1117,8 @@ describe('ChildAssignmentModal', () => {
 
       await waitFor(() => {
         // Should invalidate weekly schedule with group ID
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ 
-          queryKey: ['weekly-schedule', 'group-1'] 
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({
+          queryKey: ['weekly-schedule', 'group-1']
         });
       });
     });
@@ -1160,14 +1189,14 @@ describe('ChildAssignmentModal', () => {
         scheduleSlot: vehicleWithCapacity
       });
 
-      // Set up the specific POST mock for assignment after the general setup
+      // Set up the specific PATCH mock for assignment after the general setup
       const mockAssignChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
         error: undefined
       });
-      mockApi.POST.mockImplementation(mockAssignChild);
+      mockApi.PATCH.mockImplementation(mockAssignChild);
 
-      renderModal({ 
+      renderModal({
         scheduleSlot: vehicleWithCapacity,
         preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
       });
@@ -1189,11 +1218,10 @@ describe('ChildAssignmentModal', () => {
       fireEvent.click(addButton);
 
       await waitFor(() => {
-        expect(mockAssignChild).toHaveBeenCalledWith('/schedule-slots/{scheduleSlotId}/children', {
-          params: { path: { scheduleSlotId: 'slot-1' } },
+        expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
           body: {
-            childId: 'child-4',
-            vehicleAssignmentId: 'vehicle-assignment-1'
+            addChildIds: ['child-4']
           }
         });
       });
@@ -1210,13 +1238,13 @@ describe('ChildAssignmentModal', () => {
         data: { data: null, success: true },
         error: undefined
       });
-      vi.mocked(mockApi.POST).mockImplementation(mockAssignChild);
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
       setupOpenAPIMocks({
         children: mockAvailableChildren,
         scheduleSlot: mockScheduleSlotWithVehicles
       });
 
-      renderModal({ 
+      renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
         preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
       });
