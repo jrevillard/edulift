@@ -160,9 +160,48 @@ export const AssignVehicleSchema = z.object({
       example: 6,
       description: 'Optional seat capacity override for this assignment',
     }),
+  childIds: z.array(z.cuid('Invalid child ID format'))
+    .optional()
+    .openapi({
+      example: ['cl123456789012345678901238', 'cl123456789012345678901239'],
+      description: 'Optional list of child IDs to assign initially (can add more later with PATCH)',
+    }),
 }).openapi({
   title: 'Assign Vehicle to Schedule Slot',
-  description: 'Assign a vehicle to an existing schedule slot',
+  description: 'Assign a vehicle to an existing schedule slot, optionally with initial children',
+});
+
+export const PatchVehicleAssignmentSchema = z.object({
+  driverId: z.cuid('Invalid driver ID format')
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'Optional new driver identifier to replace current driver',
+    }),
+  seatOverride: z.number()
+    .int('Seat override must be an integer')
+    .min(0, 'Seat override cannot be negative')
+    .max(10, 'Seat override cannot exceed maximum capacity')
+    .optional()
+    .openapi({
+      example: 6,
+      description: 'Optional new seat capacity override for this assignment',
+    }),
+  addChildIds: z.array(z.cuid('Invalid child ID format'))
+    .optional()
+    .openapi({
+      example: ['cl123456789012345678901238', 'cl123456789012345678901239'],
+      description: 'Optional list of child IDs to add to this vehicle assignment',
+    }),
+  removeChildIds: z.array(z.cuid('Invalid child ID format'))
+    .optional()
+    .openapi({
+      example: ['cl123456789012345678901240'],
+      description: 'Optional list of child IDs to remove from this vehicle assignment',
+    }),
+}).openapi({
+  title: 'Update Vehicle Assignment',
+  description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional - only provided fields will be updated.',
 });
 
 export const AssignChildSchema = z.object({
@@ -430,6 +469,7 @@ export const ScheduleResponseSchema = z.object({
 // Request schemas
 registry.register('CreateScheduleSlotWithVehicleSchema', CreateScheduleSlotWithVehicleSchema);
 registry.register('AssignVehicleRequest', AssignVehicleSchema);
+registry.register('PatchVehicleAssignmentRequest', PatchVehicleAssignmentSchema);
 registry.register('AssignChildRequest', AssignChildSchema);
 registry.register('UpdateDriverRequest', UpdateDriverSchema);
 registry.register('VehicleIdRequest', VehicleIdSchema);

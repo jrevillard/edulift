@@ -7,7 +7,7 @@
  */
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ScheduleSlotVehicle as PrismaScheduleSlotVehicle } from '@prisma/client';
 import { ScheduleSlotService } from '../../services/ScheduleSlotService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
@@ -21,6 +21,7 @@ import type { ScheduleSlotWithDetails, AssignVehicleToSlotData } from '../../typ
 import {
   CreateScheduleSlotWithVehicleSchema,
   AssignVehicleSchema,
+  PatchVehicleAssignmentSchema,
   AssignChildSchema,
   UpdateDriverSchema,
   VehicleIdSchema,
@@ -31,7 +32,6 @@ import {
   ScheduleSlotVehicleParamsSchema,
   DateRangeQuerySchema,
   ScheduleSlotSchema,
-  ScheduleVehicleAssignmentSchema,
   AvailableChildSchema,
   ScheduleResponseSchema,
 } from '../../schemas/scheduleSlots';
@@ -270,7 +270,7 @@ const assignVehicleRoute = createRoute({
   path: '/schedule-slots/{scheduleSlotId}/vehicles',
   tags: ['Schedule Slots'],
   summary: 'Assign vehicle to schedule slot',
-  description: 'Assign a vehicle to an existing schedule slot',
+  description: 'Assign a vehicle to an existing schedule slot, optionally with initial children. Returns complete ScheduleSlot with all assignments.',
   security: [{ Bearer: [] }],
   request: {
     params: ScheduleSlotParamsSchema,
@@ -286,10 +286,10 @@ const assignVehicleRoute = createRoute({
     201: {
       content: {
         'application/json': {
-          schema: createSuccessSchema(ScheduleVehicleAssignmentSchema),
+          schema: createSuccessSchema(ScheduleSlotSchema),
         },
       },
-      description: 'Vehicle assigned successfully',
+      description: 'Vehicle assigned successfully. Returns complete ScheduleSlot with all vehicleAssignments and childAssignments.',
     },
     400: {
       content: {
@@ -388,6 +388,73 @@ const removeVehicleRoute = createRoute({
         },
       },
       description: 'Access denied - user does not have access to this group',
+    },
+    500: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Internal server error',
+    },
+  },
+});
+
+/**
+ * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId - Update vehicle assignment
+ */
+const patchVehicleAssignmentRoute = createRoute({
+  method: 'patch',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}',
+  tags: ['Schedule Slots'],
+  summary: 'Update vehicle assignment',
+  description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.',
+  security: [{ Bearer: [] }],
+  request: {
+    params: z.object({
+      scheduleSlotId: z.cuid(),
+      vehicleAssignmentId: z.cuid(),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: PatchVehicleAssignmentSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: createSuccessSchema(ScheduleSlotSchema),
+        },
+      },
+      description: 'Vehicle assignment updated successfully. Returns complete ScheduleSlot.',
+    },
+    400: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Bad request - Invalid input',
+    },
+    404: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Schedule slot or vehicle assignment not found',
+    },
+    403: {
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
+      description: 'Access denied',
     },
     500: {
       content: {
@@ -665,13 +732,15 @@ const getScheduleSlotConflictsRoute = createRoute({
 
 /**
  * POST /schedule-slots/:scheduleSlotId/children - Assign child to slot
+ * @deprecated Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with addChildIds instead
  */
 const assignChildRoute = createRoute({
   method: 'post',
   path: '/schedule-slots/{scheduleSlotId}/children',
   tags: ['Schedule Slots'],
-  summary: 'Assign child to schedule slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
+  summary: 'Assign child to schedule slot (DEPRECATED)',
+  description: 'Assign a child to a specific vehicle assignment in a schedule slot. **DEPRECATED**: Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with addChildIds instead for better REST semantics and batch operations.',
+  deprecated: true,
   security: [{ Bearer: [] }],
   request: {
     params: ScheduleSlotParamsSchema,
@@ -745,13 +814,15 @@ const assignChildRoute = createRoute({
 
 /**
  * DELETE /schedule-slots/:scheduleSlotId/children/:childId/remove - Remove child from schedule slot
+ * @deprecated Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with removeChildIds instead
  */
 const removeChildFromScheduleSlotRoute = createRoute({
   method: 'delete',
   path: '/schedule-slots/{scheduleSlotId}/children/{childId}/remove',
   tags: ['Schedule Slots'],
-  summary: 'Remove child from schedule slot',
-  description: 'Remove a child assignment from a schedule slot (dedicated endpoint)',
+  summary: 'Remove child from schedule slot (DEPRECATED)',
+  description: 'Remove a child assignment from a schedule slot. **DEPRECATED**: Use PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId with removeChildIds instead for better REST semantics and batch operations.',
+  deprecated: true,
   security: [{ Bearer: [] }],
   request: {
     params: ScheduleSlotChildParamsSchema,
@@ -1081,18 +1152,36 @@ app.openapi(assignVehicleRoute, async (c) => {
       assignmentData.seatOverride = input.seatOverride;
     }
 
-    const result = await scheduleSlotServiceInstance.assignVehicleToSlot(assignmentData);
+    const result = await scheduleSlotServiceInstance.assignVehicleToSlot(assignmentData) as PrismaScheduleSlotVehicle;
 
-    // Transform result to OpenAPI format
-    const transformedResult = transformVehicleAssignment(result);
+    // Assign children if provided (initial batch assignment)
+    if (input.childIds && input.childIds.length > 0) {
+      for (const childId of input.childIds) {
+        await childAssignmentServiceInstance.assignChildToScheduleSlot(
+          scheduleSlotId,
+          childId,
+          result.id,
+          userId,
+        );
+      }
+    }
+
+    // ✅ Fetch complete updated ScheduleSlot (returns full context)
+    const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+    if (!updatedSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot was deleted during update',
+      }, 404);
+    }
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({
       success: true,
-      data: transformedResult,
+      data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 201);
   } catch (error) {
     return c.json({
@@ -1175,6 +1264,98 @@ app.openapi(removeVehicleRoute, async (c) => {
 });
 
 /**
+ * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId - Update vehicle assignment
+ */
+app.openapi(patchVehicleAssignmentRoute, async (c) => {
+  const userId = c.get('userId');
+  const { scheduleSlotId, vehicleAssignmentId } = c.req.valid('param');
+  const input = c.req.valid('json');
+
+  try {
+    // Get schedule slot for access check and structure
+    const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+    if (!scheduleSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot not found',
+      }, 404);
+    }
+
+    // Verify user has access to the group
+    const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
+    if (!accessError.hasAccess) {
+      return c.json({ success: false, error: accessError.error }, accessError.statusCode);
+    }
+
+    // Verify vehicle assignment exists in this slot
+    const vehicleAssignment = scheduleSlot.vehicleAssignments?.find(va => va.id === vehicleAssignmentId);
+    if (!vehicleAssignment) {
+      return c.json({
+        success: false,
+        error: 'Vehicle assignment not found in this schedule slot',
+      }, 404);
+    }
+
+    // Update driver if provided
+    if (input.driverId !== undefined) {
+      await scheduleSlotServiceInstance.updateVehicleDriver(scheduleSlotId, vehicleAssignmentId, input.driverId);
+    }
+
+    // Update seat override if provided
+    if (input.seatOverride !== undefined) {
+      await scheduleSlotServiceInstance.updateSeatOverrideByVehicle(scheduleSlotId, vehicleAssignmentId, input.seatOverride);
+    }
+
+    // Add children if provided
+    if (input.addChildIds && input.addChildIds.length > 0) {
+      for (const childId of input.addChildIds) {
+        await childAssignmentServiceInstance.assignChildToScheduleSlot(
+          scheduleSlotId,
+          childId,
+          vehicleAssignmentId,
+          userId,
+        );
+      }
+    }
+
+    // Remove children if provided
+    if (input.removeChildIds && input.removeChildIds.length > 0) {
+      for (const childId of input.removeChildIds) {
+        await childAssignmentServiceInstance.removeChildFromScheduleSlot(
+          scheduleSlotId,
+          childId,
+          userId,
+        );
+      }
+    }
+
+    // Fetch complete updated ScheduleSlot
+    const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
+    if (!updatedSlot) {
+      return c.json({
+        success: false,
+        error: 'Schedule slot was deleted during update',
+      }, 404);
+    }
+
+    // Emit WebSocket event for real-time updates
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+
+    return c.json({
+      success: true,
+      data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
+    }, 200);
+  } catch (error) {
+    return c.json({
+      success: false,
+      error: 'Failed to update vehicle assignment',
+      code: 'UPDATE_FAILED' as const,
+    }, 500);
+  }
+});
+
+/**
  * PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleId/driver - Update vehicle driver
  */
 app.openapi(updateVehicleDriverRoute, async (c) => {
@@ -1225,7 +1406,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
     return c.json({
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
-    }, 200) as any; // Type narrowing: Hono's strict typing doesn't match our union response type
+    }, 200); // Type narrowing: Hono's strict typing doesn't match our union response type
   } catch (error) {
     return c.json({
       success: false,
@@ -1578,7 +1759,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
     return c.json({
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
-    }, 200) as any; // Type narrowing: Hono's strict typing doesn't match our union response type
+    }, 200); // Type narrowing: Hono's strict typing doesn't match our union response type
   } catch (error) {
     return c.json({
       success: false,
