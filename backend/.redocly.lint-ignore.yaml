@@ -89,16 +89,10 @@ docs/openapi/swagger.json:
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/operationId
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/operationId
-    - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/operationId
     - '#/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/operationId'
     - '#/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/operationId'
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1conflicts/get/operationId
-    - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/operationId
-    - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}~1remove/delete/operationId
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1available/get/operationId
     - >-
@@ -207,6 +201,10 @@ docs/openapi/swagger.json:
     - >-
       #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/acceptedBy/nullable
     - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/targetFamilyName/nullable
+    - >-
+      #/paths/~1api~1v1~1invitations~1group/post/responses/201/content/application~1json/schema/properties/ownerFamilyName/nullable
+    - >-
       #/paths/~1api~1v1~1invitations~1group~1{code}~1validate/get/responses/200/content/application~1json/schema/properties/targetFamilyId/nullable
     - >-
       #/paths/~1api~1v1~1invitations~1group~1{code}~1validate/get/responses/200/content/application~1json/schema/properties/targetFamilyName/nullable
@@ -215,57 +213,149 @@ docs/openapi/swagger.json:
     - >-
       #/paths/~1api~1v1~1fcm-tokens/post/responses/201/content/application~1json/schema/properties/data/properties/deviceId/nullable
     - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driver/nullable
+    - >-
       #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
       #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
       #/paths/~1api~1v1~1groups~1{groupId}~1schedule-slots/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driver/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/vehicleAssignments/items/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/vehicleAssignments/items/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/vehicleAssignments/items/properties/driver/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles/delete/responses/200/content/application~1json/schema/properties/data/anyOf/1/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driver/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleAssignmentId}/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/requestBody/content/application~1json/schema/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driver/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1driver/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driverId/nullable
     - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/seatOverride/nullable
     - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}/delete/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driver/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}/get/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/vehicleAssignments/items/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/vehicleAssignments/items/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/vehicleAssignments/items/properties/driver/nullable
     - >-
       #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
       #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
+    - >-
       #/paths/~1api~1v1~1groups~1{groupId}~1schedule/get/responses/200/content/application~1json/schema/properties/data/properties/scheduleSlots/items/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/responses/201/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driverId/nullable
     - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/seatOverride/nullable
     - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children/post/responses/201/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
-    - >-
-      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1children~1{childId}~1remove/delete/responses/200/content/application~1json/schema/properties/data/nullable
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/driver/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/vehicleAssignments/items/properties/childAssignments/items/properties/child/properties/age/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/child/properties/age/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driverId/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/seatOverride/nullable
+    - >-
+      #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/driver/nullable
     - >-
       #/paths/~1api~1v1~1schedule-slots~1{scheduleSlotId}~1vehicles~1{vehicleId}~1seat-override/patch/responses/200/content/application~1json/schema/properties/data/properties/childAssignments/items/properties/vehicleAssignment/properties/childAssignments/items/properties/child/properties/age/nullable
   operation-4xx-response:
