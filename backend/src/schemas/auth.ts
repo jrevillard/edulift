@@ -199,8 +199,7 @@ export const UserResponseSchema = z.object({
       example: 'John Doe',
       description: 'User display name',
     }),
-  timezone: z.string()
-    .nullable()
+  timezone: z.union([z.string(), z.null()])
     .openapi({
       example: 'America/New_York',
       description: 'User timezone (IANA format)',
@@ -292,7 +291,6 @@ export const AuthResponseSchema = z.object({
           description: 'Reason if invitation processing failed',
         }),
     })
-      .nullable()
       .optional()
       .openapi({
         description: 'Invitation processing result (if applicable)',

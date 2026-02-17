@@ -407,6 +407,7 @@ const patchVehicleAssignmentRoute = createRoute({
   tags: ['Schedule Slots'],
   summary: 'Update vehicle assignment',
   description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.',
+  operationId: 'patchVehicleAssignment',
   security: [{ Bearer: [] }],
   request: {
     params: z.object({

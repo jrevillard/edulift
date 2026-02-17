@@ -558,8 +558,17 @@
                               "description": "User display name"
                             },
                             "timezone": {
-                              "type": "string",
-                              "nullable": true,
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "nullable": true
+                                },
+                                {
+                                  "nullable": true
+                                }
+                              ],
                               "example": "America/New_York",
                               "description": "User timezone (IANA format)"
                             },
@@ -1369,8 +1378,17 @@
                           "description": "User display name"
                         },
                         "timezone": {
-                          "type": "string",
-                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "nullable": true
+                            },
+                            {
+                              "nullable": true
+                            }
+                          ],
                           "example": "America/New_York",
                           "description": "User timezone (IANA format)"
                         },
@@ -1690,8 +1708,17 @@
                           "description": "User display name"
                         },
                         "timezone": {
-                          "type": "string",
-                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "nullable": true
+                            },
+                            {
+                              "nullable": true
+                            }
+                          ],
                           "example": "America/New_York",
                           "description": "User timezone (IANA format)"
                         },
@@ -2004,8 +2031,17 @@
                           "description": "User display name"
                         },
                         "timezone": {
-                          "type": "string",
-                          "nullable": true,
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "nullable": true
+                            },
+                            {
+                              "nullable": true
+                            }
+                          ],
                           "example": "America/New_York",
                           "description": "User timezone (IANA format)"
                         },
@@ -27055,8 +27091,17 @@
                                           "type": "string"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
                                         },
                                         "familyId": {
                                           "type": "string",
@@ -27135,8 +27180,17 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "nullable": true
+                                      },
+                                      {
+                                        "nullable": true
+                                      }
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -27274,8 +27328,17 @@
                                               "type": "string"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
                                             },
                                             "familyId": {
                                               "type": "string",
@@ -27645,7 +27708,7 @@
           "Schedule Slots"
         ],
         "summary": "Assign vehicle to schedule slot",
-        "description": "Assign a vehicle to an existing schedule slot",
+        "description": "Assign a vehicle to an existing schedule slot, optionally with initial children. Returns complete ScheduleSlot with all assignments.",
         "security": [
           {
             "Bearer": []
@@ -27689,20 +27752,32 @@
                     "maximum": 10,
                     "example": 6,
                     "description": "Optional seat capacity override for this assignment"
+                  },
+                  "childIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "cuid"
+                    },
+                    "example": [
+                      "cl123456789012345678901238",
+                      "cl123456789012345678901239"
+                    ],
+                    "description": "Optional list of child IDs to assign initially (can add more later with PATCH)"
                   }
                 },
                 "required": [
                   "vehicleId"
                 ],
                 "title": "Assign Vehicle to Schedule Slot",
-                "description": "Assign a vehicle to an existing schedule slot"
+                "description": "Assign a vehicle to an existing schedule slot, optionally with initial children"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Vehicle assigned successfully",
+            "description": "Vehicle assigned successfully. Returns complete ScheduleSlot with all vehicleAssignments and childAssignments.",
             "content": {
               "application/json": {
                 "schema": {
@@ -27715,91 +27790,36 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string"
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Schedule slot identifier"
                         },
-                        "vehicleId": {
-                          "type": "string"
+                        "datetime": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-12-15T08:00:00.000Z",
+                          "description": "Schedule slot datetime (ISO 8601 UTC string)"
                         },
-                        "scheduleSlotId": {
-                          "type": "string"
-                        },
-                        "driverId": {
-                          "type": "string"
-                        },
-                        "seatOverride": {
-                          "type": "number"
+                        "groupId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901235",
+                          "description": "Group identifier"
                         },
                         "createdAt": {
                           "type": "string",
-                          "format": "date-time"
+                          "format": "date-time",
+                          "example": "2023-12-01T08:00:00.000Z",
+                          "description": "Schedule slot creation timestamp"
                         },
-                        "vehicle": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "cuid",
-                              "example": "cl123456789012345678901240",
-                              "description": "Vehicle identifier (CUID format)"
-                            },
-                            "name": {
-                              "type": "string",
-                              "example": "School Bus 1",
-                              "description": "Vehicle name"
-                            },
-                            "capacity": {
-                              "type": "integer",
-                              "minimum": 1,
-                              "maximum": 50,
-                              "example": 30,
-                              "description": "Vehicle seat capacity"
-                            },
-                            "familyId": {
-                              "type": "string",
-                              "format": "cuid",
-                              "example": "cl123456789012345678901234",
-                              "description": "Family identifier that owns the vehicle (required)"
-                            },
-                            "createdAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle creation timestamp"
-                            },
-                            "updatedAt": {
-                              "type": "string",
-                              "format": "date-time",
-                              "example": "2023-01-01T00:00:00.000Z",
-                              "description": "Vehicle update timestamp"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name",
-                            "capacity",
-                            "familyId",
-                            "createdAt",
-                            "updatedAt"
-                          ],
-                          "title": "Base Vehicle",
-                          "description": "Common vehicle fields matching Prisma database structure"
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-12-01T08:00:00.000Z",
+                          "description": "Schedule slot update timestamp"
                         },
-                        "driver": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "email": {
-                              "type": "string",
-                              "format": "email"
-                            }
-                          }
-                        },
-                        "childAssignments": {
+                        "vehicleAssignments": {
                           "type": "array",
                           "items": {
                             "type": "object",
@@ -27807,11 +27827,190 @@
                               "id": {
                                 "type": "string"
                               },
-                              "childId": {
+                              "vehicleId": {
                                 "type": "string"
                               },
-                              "vehicleAssignmentId": {
+                              "scheduleSlotId": {
                                 "type": "string"
+                              },
+                              "driverId": {
+                                "type": "string"
+                              },
+                              "seatOverride": {
+                                "type": "number"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "vehicle": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901240",
+                                    "description": "Vehicle identifier (CUID format)"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "example": "School Bus 1",
+                                    "description": "Vehicle name"
+                                  },
+                                  "capacity": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 50,
+                                    "example": 30,
+                                    "description": "Vehicle seat capacity"
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901234",
+                                    "description": "Family identifier that owns the vehicle (required)"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "example": "2023-01-01T00:00:00.000Z",
+                                    "description": "Vehicle creation timestamp"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "example": "2023-01-01T00:00:00.000Z",
+                                    "description": "Vehicle update timestamp"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "capacity",
+                                  "familyId",
+                                  "createdAt",
+                                  "updatedAt"
+                                ],
+                                "title": "Base Vehicle",
+                                "description": "Common vehicle fields matching Prisma database structure"
+                              },
+                              "driver": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email"
+                                  }
+                                }
+                              },
+                              "childAssignments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "childId": {
+                                      "type": "string"
+                                    },
+                                    "vehicleAssignmentId": {
+                                      "type": "string"
+                                    },
+                                    "child": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "age": {
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
+                                        },
+                                        "familyId": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "createdAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        "updatedAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "name",
+                                        "age",
+                                        "familyId",
+                                        "createdAt",
+                                        "updatedAt"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "description": "All child assignments for this vehicle (cross-family carpooling support)"
+                              }
+                            },
+                            "title": "Schedule Vehicle Assignment",
+                            "description": "Vehicle assignment for schedule slot (matches Prisma database schema)"
+                          },
+                          "description": "Vehicle assignments (included when requested)"
+                        },
+                        "childAssignments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "example": "clslot123_child456",
+                                "description": "Child assignment identifier (composite key: scheduleSlotId_childId)"
+                              },
+                              "scheduleSlotId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Schedule slot identifier"
+                              },
+                              "childId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901238",
+                                "description": "Child identifier"
+                              },
+                              "vehicleAssignmentId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901236",
+                                "description": "Vehicle assignment identifier"
+                              },
+                              "assignedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2023-12-01T08:00:00.000Z",
+                                "description": "Assignment timestamp"
                               },
                               "child": {
                                 "type": "object",
@@ -27824,8 +28023,17 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "nullable": true
+                                      },
+                                      {
+                                        "nullable": true
+                                      }
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -27847,15 +28055,207 @@
                                   "familyId",
                                   "createdAt",
                                   "updatedAt"
-                                ]
+                                ],
+                                "description": "Child information (included when requested)"
+                              },
+                              "vehicleAssignment": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "vehicleId": {
+                                    "type": "string"
+                                  },
+                                  "scheduleSlotId": {
+                                    "type": "string"
+                                  },
+                                  "driverId": {
+                                    "type": "string"
+                                  },
+                                  "seatOverride": {
+                                    "type": "number"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "vehicle": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "format": "cuid",
+                                        "example": "cl123456789012345678901240",
+                                        "description": "Vehicle identifier (CUID format)"
+                                      },
+                                      "name": {
+                                        "type": "string",
+                                        "example": "School Bus 1",
+                                        "description": "Vehicle name"
+                                      },
+                                      "capacity": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 50,
+                                        "example": 30,
+                                        "description": "Vehicle seat capacity"
+                                      },
+                                      "familyId": {
+                                        "type": "string",
+                                        "format": "cuid",
+                                        "example": "cl123456789012345678901234",
+                                        "description": "Family identifier that owns the vehicle (required)"
+                                      },
+                                      "createdAt": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2023-01-01T00:00:00.000Z",
+                                        "description": "Vehicle creation timestamp"
+                                      },
+                                      "updatedAt": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2023-01-01T00:00:00.000Z",
+                                        "description": "Vehicle update timestamp"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "name",
+                                      "capacity",
+                                      "familyId",
+                                      "createdAt",
+                                      "updatedAt"
+                                    ],
+                                    "title": "Base Vehicle",
+                                    "description": "Common vehicle fields matching Prisma database structure"
+                                  },
+                                  "driver": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                      }
+                                    }
+                                  },
+                                  "childAssignments": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "childId": {
+                                          "type": "string"
+                                        },
+                                        "vehicleAssignmentId": {
+                                          "type": "string"
+                                        },
+                                        "child": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            },
+                                            "age": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
+                                            },
+                                            "familyId": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "createdAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "name",
+                                            "age",
+                                            "familyId",
+                                            "createdAt",
+                                            "updatedAt"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "description": "All child assignments for this vehicle (cross-family carpooling support)"
+                                  }
+                                },
+                                "title": "Schedule Vehicle Assignment",
+                                "description": "Vehicle assignment information (included when requested)"
                               }
+                            },
+                            "required": [
+                              "id",
+                              "scheduleSlotId",
+                              "childId",
+                              "vehicleAssignmentId",
+                              "assignedAt"
+                            ],
+                            "title": "Child Assignment",
+                            "description": "Child assignment information for a schedule slot"
+                          },
+                          "description": "Child assignments (included when requested)"
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "vehicleAssignments": {
+                              "type": "number",
+                              "example": 2,
+                              "description": "Number of vehicle assignments"
+                            },
+                            "childAssignments": {
+                              "type": "number",
+                              "example": 8,
+                              "description": "Number of child assignments"
                             }
                           },
-                          "description": "All child assignments for this vehicle (cross-family carpooling support)"
+                          "required": [
+                            "vehicleAssignments",
+                            "childAssignments"
+                          ],
+                          "description": "Count information (included when requested)"
                         }
                       },
-                      "title": "Schedule Vehicle Assignment",
-                      "description": "Vehicle assignment for schedule slot (matches Prisma database schema)"
+                      "required": [
+                        "id",
+                        "datetime",
+                        "groupId",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "title": "Schedule Slot",
+                      "description": "Schedule slot information"
                     }
                   },
                   "required": [
@@ -28370,8 +28770,17 @@
                                               "type": "string"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
                                             },
                                             "familyId": {
                                               "type": "string",
@@ -28450,8 +28859,17 @@
                                         "type": "string"
                                       },
                                       "age": {
-                                        "type": "number",
-                                        "nullable": true
+                                        "anyOf": [
+                                          {
+                                            "type": "number"
+                                          },
+                                          {
+                                            "nullable": true
+                                          },
+                                          {
+                                            "nullable": true
+                                          }
+                                        ]
                                       },
                                       "familyId": {
                                         "type": "string",
@@ -28589,8 +29007,17 @@
                                                   "type": "string"
                                                 },
                                                 "age": {
-                                                  "type": "number",
-                                                  "nullable": true
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "number"
+                                                    },
+                                                    {
+                                                      "nullable": true
+                                                    },
+                                                    {
+                                                      "nullable": true
+                                                    }
+                                                  ]
                                                 },
                                                 "familyId": {
                                                   "type": "string",
@@ -28956,6 +29383,858 @@
         }
       }
     },
+    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}": {
+      "patch": {
+        "tags": [
+          "Schedule Slots"
+        ],
+        "summary": "Update vehicle assignment",
+        "description": "Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.",
+        "operationId": "patchVehicleAssignment",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid"
+            },
+            "required": true,
+            "name": "scheduleSlotId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "cuid"
+            },
+            "required": true,
+            "name": "vehicleAssignmentId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "driverId": {
+                    "type": "string",
+                    "format": "cuid",
+                    "example": "cl123456789012345678901239",
+                    "description": "Optional new driver identifier to replace current driver"
+                  },
+                  "seatOverride": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10,
+                    "example": 6,
+                    "description": "Optional new seat capacity override for this assignment"
+                  },
+                  "addChildIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "cuid"
+                    },
+                    "example": [
+                      "cl123456789012345678901238",
+                      "cl123456789012345678901239"
+                    ],
+                    "description": "Optional list of child IDs to add to this vehicle assignment"
+                  },
+                  "removeChildIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "cuid"
+                    },
+                    "example": [
+                      "cl123456789012345678901240"
+                    ],
+                    "description": "Optional list of child IDs to remove from this vehicle assignment"
+                  }
+                },
+                "title": "Update Vehicle Assignment",
+                "description": "Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional - only provided fields will be updated."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vehicle assignment updated successfully. Returns complete ScheduleSlot.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901234",
+                          "description": "Schedule slot identifier"
+                        },
+                        "datetime": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-12-15T08:00:00.000Z",
+                          "description": "Schedule slot datetime (ISO 8601 UTC string)"
+                        },
+                        "groupId": {
+                          "type": "string",
+                          "format": "cuid",
+                          "example": "cl123456789012345678901235",
+                          "description": "Group identifier"
+                        },
+                        "createdAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-12-01T08:00:00.000Z",
+                          "description": "Schedule slot creation timestamp"
+                        },
+                        "updatedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "example": "2023-12-01T08:00:00.000Z",
+                          "description": "Schedule slot update timestamp"
+                        },
+                        "vehicleAssignments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "vehicleId": {
+                                "type": "string"
+                              },
+                              "scheduleSlotId": {
+                                "type": "string"
+                              },
+                              "driverId": {
+                                "type": "string"
+                              },
+                              "seatOverride": {
+                                "type": "number"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time"
+                              },
+                              "vehicle": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901240",
+                                    "description": "Vehicle identifier (CUID format)"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "example": "School Bus 1",
+                                    "description": "Vehicle name"
+                                  },
+                                  "capacity": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 50,
+                                    "example": 30,
+                                    "description": "Vehicle seat capacity"
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901234",
+                                    "description": "Family identifier that owns the vehicle (required)"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "example": "2023-01-01T00:00:00.000Z",
+                                    "description": "Vehicle creation timestamp"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "example": "2023-01-01T00:00:00.000Z",
+                                    "description": "Vehicle update timestamp"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "capacity",
+                                  "familyId",
+                                  "createdAt",
+                                  "updatedAt"
+                                ],
+                                "title": "Base Vehicle",
+                                "description": "Common vehicle fields matching Prisma database structure"
+                              },
+                              "driver": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email"
+                                  }
+                                }
+                              },
+                              "childAssignments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "childId": {
+                                      "type": "string"
+                                    },
+                                    "vehicleAssignmentId": {
+                                      "type": "string"
+                                    },
+                                    "child": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "name": {
+                                          "type": "string"
+                                        },
+                                        "age": {
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
+                                        },
+                                        "familyId": {
+                                          "type": "string",
+                                          "format": "cuid"
+                                        },
+                                        "createdAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        "updatedAt": {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "name",
+                                        "age",
+                                        "familyId",
+                                        "createdAt",
+                                        "updatedAt"
+                                      ]
+                                    }
+                                  }
+                                },
+                                "description": "All child assignments for this vehicle (cross-family carpooling support)"
+                              }
+                            },
+                            "title": "Schedule Vehicle Assignment",
+                            "description": "Vehicle assignment for schedule slot (matches Prisma database schema)"
+                          },
+                          "description": "Vehicle assignments (included when requested)"
+                        },
+                        "childAssignments": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "example": "clslot123_child456",
+                                "description": "Child assignment identifier (composite key: scheduleSlotId_childId)"
+                              },
+                              "scheduleSlotId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Schedule slot identifier"
+                              },
+                              "childId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901238",
+                                "description": "Child identifier"
+                              },
+                              "vehicleAssignmentId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901236",
+                                "description": "Vehicle assignment identifier"
+                              },
+                              "assignedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2023-12-01T08:00:00.000Z",
+                                "description": "Assignment timestamp"
+                              },
+                              "child": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "age": {
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "nullable": true
+                                      },
+                                      {
+                                        "nullable": true
+                                      }
+                                    ]
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "format": "cuid"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "updatedAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "age",
+                                  "familyId",
+                                  "createdAt",
+                                  "updatedAt"
+                                ],
+                                "description": "Child information (included when requested)"
+                              },
+                              "vehicleAssignment": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "vehicleId": {
+                                    "type": "string"
+                                  },
+                                  "scheduleSlotId": {
+                                    "type": "string"
+                                  },
+                                  "driverId": {
+                                    "type": "string"
+                                  },
+                                  "seatOverride": {
+                                    "type": "number"
+                                  },
+                                  "createdAt": {
+                                    "type": "string",
+                                    "format": "date-time"
+                                  },
+                                  "vehicle": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string",
+                                        "format": "cuid",
+                                        "example": "cl123456789012345678901240",
+                                        "description": "Vehicle identifier (CUID format)"
+                                      },
+                                      "name": {
+                                        "type": "string",
+                                        "example": "School Bus 1",
+                                        "description": "Vehicle name"
+                                      },
+                                      "capacity": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "maximum": 50,
+                                        "example": 30,
+                                        "description": "Vehicle seat capacity"
+                                      },
+                                      "familyId": {
+                                        "type": "string",
+                                        "format": "cuid",
+                                        "example": "cl123456789012345678901234",
+                                        "description": "Family identifier that owns the vehicle (required)"
+                                      },
+                                      "createdAt": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2023-01-01T00:00:00.000Z",
+                                        "description": "Vehicle creation timestamp"
+                                      },
+                                      "updatedAt": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2023-01-01T00:00:00.000Z",
+                                        "description": "Vehicle update timestamp"
+                                      }
+                                    },
+                                    "required": [
+                                      "id",
+                                      "name",
+                                      "capacity",
+                                      "familyId",
+                                      "createdAt",
+                                      "updatedAt"
+                                    ],
+                                    "title": "Base Vehicle",
+                                    "description": "Common vehicle fields matching Prisma database structure"
+                                  },
+                                  "driver": {
+                                    "type": "object",
+                                    "properties": {
+                                      "id": {
+                                        "type": "string"
+                                      },
+                                      "name": {
+                                        "type": "string"
+                                      },
+                                      "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                      }
+                                    }
+                                  },
+                                  "childAssignments": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string"
+                                        },
+                                        "childId": {
+                                          "type": "string"
+                                        },
+                                        "vehicleAssignmentId": {
+                                          "type": "string"
+                                        },
+                                        "child": {
+                                          "type": "object",
+                                          "properties": {
+                                            "id": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "name": {
+                                              "type": "string"
+                                            },
+                                            "age": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
+                                            },
+                                            "familyId": {
+                                              "type": "string",
+                                              "format": "cuid"
+                                            },
+                                            "createdAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            },
+                                            "updatedAt": {
+                                              "type": "string",
+                                              "format": "date-time"
+                                            }
+                                          },
+                                          "required": [
+                                            "id",
+                                            "name",
+                                            "age",
+                                            "familyId",
+                                            "createdAt",
+                                            "updatedAt"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "description": "All child assignments for this vehicle (cross-family carpooling support)"
+                                  }
+                                },
+                                "title": "Schedule Vehicle Assignment",
+                                "description": "Vehicle assignment information (included when requested)"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "scheduleSlotId",
+                              "childId",
+                              "vehicleAssignmentId",
+                              "assignedAt"
+                            ],
+                            "title": "Child Assignment",
+                            "description": "Child assignment information for a schedule slot"
+                          },
+                          "description": "Child assignments (included when requested)"
+                        },
+                        "_count": {
+                          "type": "object",
+                          "properties": {
+                            "vehicleAssignments": {
+                              "type": "number",
+                              "example": 2,
+                              "description": "Number of vehicle assignments"
+                            },
+                            "childAssignments": {
+                              "type": "number",
+                              "example": 8,
+                              "description": "Number of child assignments"
+                            }
+                          },
+                          "required": [
+                            "vehicleAssignments",
+                            "childAssignments"
+                          ],
+                          "description": "Count information (included when requested)"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "datetime",
+                        "groupId",
+                        "createdAt",
+                        "updatedAt"
+                      ],
+                      "title": "Schedule Slot",
+                      "description": "Schedule slot information"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Schedule slot or vehicle assignment not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Validation failed",
+                      "description": "Human-readable error message"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "ERROR_CODE",
+                      "description": "Error code for programmatic handling"
+                    },
+                    "retryable": {
+                      "type": "boolean",
+                      "example": true,
+                      "description": "Whether the request can be retried"
+                    },
+                    "validationErrors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "field": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "field",
+                          "message",
+                          "code"
+                        ]
+                      },
+                      "example": [
+                        {
+                          "field": "email",
+                          "message": "Invalid email format",
+                          "code": "invalid_string"
+                        }
+                      ],
+                      "description": "Detailed validation errors (when applicable)"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error"
+                  ],
+                  "title": "Error Response",
+                  "description": "Standard error response format with optional code, retryable, and validation details"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
       "patch": {
         "tags": [
@@ -29001,9 +30280,18 @@
                 "type": "object",
                 "properties": {
                   "driverId": {
-                    "type": "string",
-                    "nullable": true,
-                    "format": "cuid",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "cuid"
+                      },
+                      {
+                        "nullable": true
+                      },
+                      {
+                        "nullable": true
+                      }
+                    ],
                     "example": "cl123456789012345678901239",
                     "description": "New driver identifier (null to remove driver)"
                   }
@@ -29176,8 +30464,17 @@
                                           "type": "string"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
                                         },
                                         "familyId": {
                                           "type": "string",
@@ -29256,8 +30553,17 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "nullable": true
+                                      },
+                                      {
+                                        "nullable": true
+                                      }
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -29395,8 +30701,17 @@
                                               "type": "string"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
                                             },
                                             "familyId": {
                                               "type": "string",
@@ -29760,718 +31075,6 @@
         }
       }
     },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}": {
-      "delete": {
-        "tags": [
-          "Schedule Slots"
-        ],
-        "summary": "Remove child from schedule slot",
-        "description": "Remove a child assignment from a schedule slot",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901234",
-              "description": "Unique schedule slot identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique schedule slot identifier (CUID format)",
-            "name": "scheduleSlotId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901238",
-              "description": "Unique child identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique child identifier (CUID format)",
-            "name": "childId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Child removed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Schedule slot identifier"
-                        },
-                        "datetime": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-15T08:00:00.000Z",
-                          "description": "Schedule slot datetime (ISO 8601 UTC string)"
-                        },
-                        "groupId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901235",
-                          "description": "Group identifier"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-01T08:00:00.000Z",
-                          "description": "Schedule slot creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-01T08:00:00.000Z",
-                          "description": "Schedule slot update timestamp"
-                        },
-                        "vehicleAssignments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "vehicleId": {
-                                "type": "string"
-                              },
-                              "scheduleSlotId": {
-                                "type": "string"
-                              },
-                              "driverId": {
-                                "type": "string"
-                              },
-                              "seatOverride": {
-                                "type": "number"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "vehicle": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901240",
-                                    "description": "Vehicle identifier (CUID format)"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "example": "School Bus 1",
-                                    "description": "Vehicle name"
-                                  },
-                                  "capacity": {
-                                    "type": "integer",
-                                    "minimum": 1,
-                                    "maximum": 50,
-                                    "example": 30,
-                                    "description": "Vehicle seat capacity"
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901234",
-                                    "description": "Family identifier that owns the vehicle (required)"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle creation timestamp"
-                                  },
-                                  "updatedAt": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle update timestamp"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "capacity",
-                                  "familyId",
-                                  "createdAt",
-                                  "updatedAt"
-                                ],
-                                "title": "Base Vehicle",
-                                "description": "Common vehicle fields matching Prisma database structure"
-                              },
-                              "driver": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string"
-                                  },
-                                  "email": {
-                                    "type": "string",
-                                    "format": "email"
-                                  }
-                                }
-                              },
-                              "childAssignments": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "type": "string"
-                                    },
-                                    "childId": {
-                                      "type": "string"
-                                    },
-                                    "vehicleAssignmentId": {
-                                      "type": "string"
-                                    },
-                                    "child": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        },
-                                        "age": {
-                                          "type": "number",
-                                          "nullable": true
-                                        },
-                                        "familyId": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "createdAt": {
-                                          "type": "string",
-                                          "format": "date-time"
-                                        },
-                                        "updatedAt": {
-                                          "type": "string",
-                                          "format": "date-time"
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "name",
-                                        "age",
-                                        "familyId",
-                                        "createdAt",
-                                        "updatedAt"
-                                      ]
-                                    }
-                                  }
-                                },
-                                "description": "All child assignments for this vehicle (cross-family carpooling support)"
-                              }
-                            },
-                            "title": "Schedule Vehicle Assignment",
-                            "description": "Vehicle assignment for schedule slot (matches Prisma database schema)"
-                          },
-                          "description": "Vehicle assignments (included when requested)"
-                        },
-                        "childAssignments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "example": "clslot123_child456",
-                                "description": "Child assignment identifier (composite key: scheduleSlotId_childId)"
-                              },
-                              "scheduleSlotId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901234",
-                                "description": "Schedule slot identifier"
-                              },
-                              "childId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Child identifier"
-                              },
-                              "vehicleAssignmentId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901236",
-                                "description": "Vehicle assignment identifier"
-                              },
-                              "assignedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-12-01T08:00:00.000Z",
-                                "description": "Assignment timestamp"
-                              },
-                              "child": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "name": {
-                                    "type": "string"
-                                  },
-                                  "age": {
-                                    "type": "number",
-                                    "nullable": true
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "updatedAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "age",
-                                  "familyId",
-                                  "createdAt",
-                                  "updatedAt"
-                                ],
-                                "description": "Child information (included when requested)"
-                              },
-                              "vehicleAssignment": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "vehicleId": {
-                                    "type": "string"
-                                  },
-                                  "scheduleSlotId": {
-                                    "type": "string"
-                                  },
-                                  "driverId": {
-                                    "type": "string"
-                                  },
-                                  "seatOverride": {
-                                    "type": "number"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "vehicle": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "format": "cuid",
-                                        "example": "cl123456789012345678901240",
-                                        "description": "Vehicle identifier (CUID format)"
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "example": "School Bus 1",
-                                        "description": "Vehicle name"
-                                      },
-                                      "capacity": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "maximum": 50,
-                                        "example": 30,
-                                        "description": "Vehicle seat capacity"
-                                      },
-                                      "familyId": {
-                                        "type": "string",
-                                        "format": "cuid",
-                                        "example": "cl123456789012345678901234",
-                                        "description": "Family identifier that owns the vehicle (required)"
-                                      },
-                                      "createdAt": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle creation timestamp"
-                                      },
-                                      "updatedAt": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle update timestamp"
-                                      }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "name",
-                                      "capacity",
-                                      "familyId",
-                                      "createdAt",
-                                      "updatedAt"
-                                    ],
-                                    "title": "Base Vehicle",
-                                    "description": "Common vehicle fields matching Prisma database structure"
-                                  },
-                                  "driver": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string"
-                                      },
-                                      "name": {
-                                        "type": "string"
-                                      },
-                                      "email": {
-                                        "type": "string",
-                                        "format": "email"
-                                      }
-                                    }
-                                  },
-                                  "childAssignments": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string"
-                                        },
-                                        "childId": {
-                                          "type": "string"
-                                        },
-                                        "vehicleAssignmentId": {
-                                          "type": "string"
-                                        },
-                                        "child": {
-                                          "type": "object",
-                                          "properties": {
-                                            "id": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            },
-                                            "name": {
-                                              "type": "string"
-                                            },
-                                            "age": {
-                                              "type": "number",
-                                              "nullable": true
-                                            },
-                                            "familyId": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            },
-                                            "createdAt": {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            "updatedAt": {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            }
-                                          },
-                                          "required": [
-                                            "id",
-                                            "name",
-                                            "age",
-                                            "familyId",
-                                            "createdAt",
-                                            "updatedAt"
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    "description": "All child assignments for this vehicle (cross-family carpooling support)"
-                                  }
-                                },
-                                "title": "Schedule Vehicle Assignment",
-                                "description": "Vehicle assignment information (included when requested)"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "scheduleSlotId",
-                              "childId",
-                              "vehicleAssignmentId",
-                              "assignedAt"
-                            ],
-                            "title": "Child Assignment",
-                            "description": "Child assignment information for a schedule slot"
-                          },
-                          "description": "Child assignments (included when requested)"
-                        },
-                        "_count": {
-                          "type": "object",
-                          "properties": {
-                            "vehicleAssignments": {
-                              "type": "number",
-                              "example": 2,
-                              "description": "Number of vehicle assignments"
-                            },
-                            "childAssignments": {
-                              "type": "number",
-                              "example": 8,
-                              "description": "Number of child assignments"
-                            }
-                          },
-                          "required": [
-                            "vehicleAssignments",
-                            "childAssignments"
-                          ],
-                          "description": "Count information (included when requested)"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "datetime",
-                        "groupId",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Schedule Slot",
-                      "description": "Schedule slot information"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Access denied - user does not have access to this group",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Schedule slot not found or child assignment does not exist",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/schedule-slots/{scheduleSlotId}": {
       "get": {
         "tags": [
@@ -30657,8 +31260,17 @@
                                           "type": "string"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
                                         },
                                         "familyId": {
                                           "type": "string",
@@ -30737,8 +31349,17 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "nullable": true
+                                      },
+                                      {
+                                        "nullable": true
+                                      }
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -30876,8 +31497,17 @@
                                               "type": "string"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
                                             },
                                             "familyId": {
                                               "type": "string",
@@ -31401,8 +32031,17 @@
                                                 "type": "string"
                                               },
                                               "age": {
-                                                "type": "number",
-                                                "nullable": true
+                                                "anyOf": [
+                                                  {
+                                                    "type": "number"
+                                                  },
+                                                  {
+                                                    "nullable": true
+                                                  },
+                                                  {
+                                                    "nullable": true
+                                                  }
+                                                ]
                                               },
                                               "familyId": {
                                                 "type": "string",
@@ -31481,8 +32120,17 @@
                                           "type": "string"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
                                         },
                                         "familyId": {
                                           "type": "string",
@@ -31620,8 +32268,17 @@
                                                     "type": "string"
                                                   },
                                                   "age": {
-                                                    "type": "number",
-                                                    "nullable": true
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "nullable": true
+                                                      },
+                                                      {
+                                                        "nullable": true
+                                                      }
+                                                    ]
                                                   },
                                                   "familyId": {
                                                     "type": "string",
@@ -31984,1281 +32641,6 @@
                     "success",
                     "data"
                   ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Access denied - user does not have access to this group",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Schedule slot not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children": {
-      "post": {
-        "tags": [
-          "Schedule Slots"
-        ],
-        "summary": "Assign child to schedule slot",
-        "description": "Assign a child to a specific vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901234",
-              "description": "Unique schedule slot identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique schedule slot identifier (CUID format)",
-            "name": "scheduleSlotId",
-            "in": "path"
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "childId": {
-                    "type": "string",
-                    "format": "cuid",
-                    "example": "cl123456789012345678901238",
-                    "description": "Child identifier to assign"
-                  },
-                  "vehicleAssignmentId": {
-                    "type": "string",
-                    "format": "cuid",
-                    "example": "cl123456789012345678901236",
-                    "description": "Vehicle assignment identifier for the child"
-                  }
-                },
-                "required": [
-                  "childId",
-                  "vehicleAssignmentId"
-                ],
-                "title": "Assign Child to Schedule Slot",
-                "description": "Assign a child to a specific vehicle assignment in a schedule slot"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Child assigned successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901234",
-                          "description": "Schedule slot identifier"
-                        },
-                        "datetime": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-15T08:00:00.000Z",
-                          "description": "Schedule slot datetime (ISO 8601 UTC string)"
-                        },
-                        "groupId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901235",
-                          "description": "Group identifier"
-                        },
-                        "createdAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-01T08:00:00.000Z",
-                          "description": "Schedule slot creation timestamp"
-                        },
-                        "updatedAt": {
-                          "type": "string",
-                          "format": "date-time",
-                          "example": "2023-12-01T08:00:00.000Z",
-                          "description": "Schedule slot update timestamp"
-                        },
-                        "vehicleAssignments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string"
-                              },
-                              "vehicleId": {
-                                "type": "string"
-                              },
-                              "scheduleSlotId": {
-                                "type": "string"
-                              },
-                              "driverId": {
-                                "type": "string"
-                              },
-                              "seatOverride": {
-                                "type": "number"
-                              },
-                              "createdAt": {
-                                "type": "string",
-                                "format": "date-time"
-                              },
-                              "vehicle": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901240",
-                                    "description": "Vehicle identifier (CUID format)"
-                                  },
-                                  "name": {
-                                    "type": "string",
-                                    "example": "School Bus 1",
-                                    "description": "Vehicle name"
-                                  },
-                                  "capacity": {
-                                    "type": "integer",
-                                    "minimum": 1,
-                                    "maximum": 50,
-                                    "example": 30,
-                                    "description": "Vehicle seat capacity"
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid",
-                                    "example": "cl123456789012345678901234",
-                                    "description": "Family identifier that owns the vehicle (required)"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle creation timestamp"
-                                  },
-                                  "updatedAt": {
-                                    "type": "string",
-                                    "format": "date-time",
-                                    "example": "2023-01-01T00:00:00.000Z",
-                                    "description": "Vehicle update timestamp"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "capacity",
-                                  "familyId",
-                                  "createdAt",
-                                  "updatedAt"
-                                ],
-                                "title": "Base Vehicle",
-                                "description": "Common vehicle fields matching Prisma database structure"
-                              },
-                              "driver": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "name": {
-                                    "type": "string"
-                                  },
-                                  "email": {
-                                    "type": "string",
-                                    "format": "email"
-                                  }
-                                }
-                              },
-                              "childAssignments": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "type": "string"
-                                    },
-                                    "childId": {
-                                      "type": "string"
-                                    },
-                                    "vehicleAssignmentId": {
-                                      "type": "string"
-                                    },
-                                    "child": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "name": {
-                                          "type": "string"
-                                        },
-                                        "age": {
-                                          "type": "number",
-                                          "nullable": true
-                                        },
-                                        "familyId": {
-                                          "type": "string",
-                                          "format": "cuid"
-                                        },
-                                        "createdAt": {
-                                          "type": "string",
-                                          "format": "date-time"
-                                        },
-                                        "updatedAt": {
-                                          "type": "string",
-                                          "format": "date-time"
-                                        }
-                                      },
-                                      "required": [
-                                        "id",
-                                        "name",
-                                        "age",
-                                        "familyId",
-                                        "createdAt",
-                                        "updatedAt"
-                                      ]
-                                    }
-                                  }
-                                },
-                                "description": "All child assignments for this vehicle (cross-family carpooling support)"
-                              }
-                            },
-                            "title": "Schedule Vehicle Assignment",
-                            "description": "Vehicle assignment for schedule slot (matches Prisma database schema)"
-                          },
-                          "description": "Vehicle assignments (included when requested)"
-                        },
-                        "childAssignments": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "id": {
-                                "type": "string",
-                                "example": "clslot123_child456",
-                                "description": "Child assignment identifier (composite key: scheduleSlotId_childId)"
-                              },
-                              "scheduleSlotId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901234",
-                                "description": "Schedule slot identifier"
-                              },
-                              "childId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901238",
-                                "description": "Child identifier"
-                              },
-                              "vehicleAssignmentId": {
-                                "type": "string",
-                                "format": "cuid",
-                                "example": "cl123456789012345678901236",
-                                "description": "Vehicle assignment identifier"
-                              },
-                              "assignedAt": {
-                                "type": "string",
-                                "format": "date-time",
-                                "example": "2023-12-01T08:00:00.000Z",
-                                "description": "Assignment timestamp"
-                              },
-                              "child": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "name": {
-                                    "type": "string"
-                                  },
-                                  "age": {
-                                    "type": "number",
-                                    "nullable": true
-                                  },
-                                  "familyId": {
-                                    "type": "string",
-                                    "format": "cuid"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "updatedAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  }
-                                },
-                                "required": [
-                                  "id",
-                                  "name",
-                                  "age",
-                                  "familyId",
-                                  "createdAt",
-                                  "updatedAt"
-                                ],
-                                "description": "Child information (included when requested)"
-                              },
-                              "vehicleAssignment": {
-                                "type": "object",
-                                "properties": {
-                                  "id": {
-                                    "type": "string"
-                                  },
-                                  "vehicleId": {
-                                    "type": "string"
-                                  },
-                                  "scheduleSlotId": {
-                                    "type": "string"
-                                  },
-                                  "driverId": {
-                                    "type": "string"
-                                  },
-                                  "seatOverride": {
-                                    "type": "number"
-                                  },
-                                  "createdAt": {
-                                    "type": "string",
-                                    "format": "date-time"
-                                  },
-                                  "vehicle": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string",
-                                        "format": "cuid",
-                                        "example": "cl123456789012345678901240",
-                                        "description": "Vehicle identifier (CUID format)"
-                                      },
-                                      "name": {
-                                        "type": "string",
-                                        "example": "School Bus 1",
-                                        "description": "Vehicle name"
-                                      },
-                                      "capacity": {
-                                        "type": "integer",
-                                        "minimum": 1,
-                                        "maximum": 50,
-                                        "example": 30,
-                                        "description": "Vehicle seat capacity"
-                                      },
-                                      "familyId": {
-                                        "type": "string",
-                                        "format": "cuid",
-                                        "example": "cl123456789012345678901234",
-                                        "description": "Family identifier that owns the vehicle (required)"
-                                      },
-                                      "createdAt": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle creation timestamp"
-                                      },
-                                      "updatedAt": {
-                                        "type": "string",
-                                        "format": "date-time",
-                                        "example": "2023-01-01T00:00:00.000Z",
-                                        "description": "Vehicle update timestamp"
-                                      }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "name",
-                                      "capacity",
-                                      "familyId",
-                                      "createdAt",
-                                      "updatedAt"
-                                    ],
-                                    "title": "Base Vehicle",
-                                    "description": "Common vehicle fields matching Prisma database structure"
-                                  },
-                                  "driver": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string"
-                                      },
-                                      "name": {
-                                        "type": "string"
-                                      },
-                                      "email": {
-                                        "type": "string",
-                                        "format": "email"
-                                      }
-                                    }
-                                  },
-                                  "childAssignments": {
-                                    "type": "array",
-                                    "items": {
-                                      "type": "object",
-                                      "properties": {
-                                        "id": {
-                                          "type": "string"
-                                        },
-                                        "childId": {
-                                          "type": "string"
-                                        },
-                                        "vehicleAssignmentId": {
-                                          "type": "string"
-                                        },
-                                        "child": {
-                                          "type": "object",
-                                          "properties": {
-                                            "id": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            },
-                                            "name": {
-                                              "type": "string"
-                                            },
-                                            "age": {
-                                              "type": "number",
-                                              "nullable": true
-                                            },
-                                            "familyId": {
-                                              "type": "string",
-                                              "format": "cuid"
-                                            },
-                                            "createdAt": {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            "updatedAt": {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            }
-                                          },
-                                          "required": [
-                                            "id",
-                                            "name",
-                                            "age",
-                                            "familyId",
-                                            "createdAt",
-                                            "updatedAt"
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    "description": "All child assignments for this vehicle (cross-family carpooling support)"
-                                  }
-                                },
-                                "title": "Schedule Vehicle Assignment",
-                                "description": "Vehicle assignment information (included when requested)"
-                              }
-                            },
-                            "required": [
-                              "id",
-                              "scheduleSlotId",
-                              "childId",
-                              "vehicleAssignmentId",
-                              "assignedAt"
-                            ],
-                            "title": "Child Assignment",
-                            "description": "Child assignment information for a schedule slot"
-                          },
-                          "description": "Child assignments (included when requested)"
-                        },
-                        "_count": {
-                          "type": "object",
-                          "properties": {
-                            "vehicleAssignments": {
-                              "type": "number",
-                              "example": 2,
-                              "description": "Number of vehicle assignments"
-                            },
-                            "childAssignments": {
-                              "type": "number",
-                              "example": 8,
-                              "description": "Number of child assignments"
-                            }
-                          },
-                          "required": [
-                            "vehicleAssignments",
-                            "childAssignments"
-                          ],
-                          "description": "Count information (included when requested)"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "datetime",
-                        "groupId",
-                        "createdAt",
-                        "updatedAt"
-                      ],
-                      "title": "Schedule Slot",
-                      "description": "Schedule slot information"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "data"
-                  ]
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Child ID missing",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Access denied - user does not have access to this group",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Schedule slot not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Conflict - Child already assigned to this slot or vehicle is at full capacity",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/{childId}/remove": {
-      "delete": {
-        "tags": [
-          "Schedule Slots"
-        ],
-        "summary": "Remove child from schedule slot",
-        "description": "Remove a child assignment from a schedule slot (dedicated endpoint)",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901234",
-              "description": "Unique schedule slot identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique schedule slot identifier (CUID format)",
-            "name": "scheduleSlotId",
-            "in": "path"
-          },
-          {
-            "schema": {
-              "type": "string",
-              "format": "cuid",
-              "example": "cl123456789012345678901238",
-              "description": "Unique child identifier (CUID format)"
-            },
-            "required": true,
-            "description": "Unique child identifier (CUID format)",
-            "name": "childId",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Child removed successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "nullable": true
-                    }
-                  },
-                  "required": [
-                    "success"
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "enum": [
-                        false
-                      ]
-                    },
-                    "error": {
-                      "type": "string",
-                      "example": "Validation failed",
-                      "description": "Human-readable error message"
-                    },
-                    "code": {
-                      "type": "string",
-                      "example": "ERROR_CODE",
-                      "description": "Error code for programmatic handling"
-                    },
-                    "retryable": {
-                      "type": "boolean",
-                      "example": true,
-                      "description": "Whether the request can be retried"
-                    },
-                    "validationErrors": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "field": {
-                            "type": "string"
-                          },
-                          "message": {
-                            "type": "string"
-                          },
-                          "code": {
-                            "type": "string"
-                          }
-                        },
-                        "required": [
-                          "field",
-                          "message",
-                          "code"
-                        ]
-                      },
-                      "example": [
-                        {
-                          "field": "email",
-                          "message": "Invalid email format",
-                          "code": "invalid_string"
-                        }
-                      ],
-                      "description": "Detailed validation errors (when applicable)"
-                    }
-                  },
-                  "required": [
-                    "success",
-                    "error"
-                  ],
-                  "title": "Error Response",
-                  "description": "Standard error response format with optional code, retryable, and validation details"
                 }
               }
             }
@@ -34070,8 +33452,17 @@
                                           "type": "string"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true
+                                          "anyOf": [
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "nullable": true
+                                            },
+                                            {
+                                              "nullable": true
+                                            }
+                                          ]
                                         },
                                         "familyId": {
                                           "type": "string",
@@ -34150,8 +33541,17 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "anyOf": [
+                                      {
+                                        "type": "number"
+                                      },
+                                      {
+                                        "nullable": true
+                                      },
+                                      {
+                                        "nullable": true
+                                      }
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -34289,8 +33689,17 @@
                                               "type": "string"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true
+                                              "anyOf": [
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "nullable": true
+                                                },
+                                                {
+                                                  "nullable": true
+                                                }
+                                              ]
                                             },
                                             "familyId": {
                                               "type": "string",

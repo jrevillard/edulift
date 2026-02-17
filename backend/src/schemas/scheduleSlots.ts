@@ -188,8 +188,7 @@ export const PatchVehicleAssignmentSchema = z.object({
   description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional - only provided fields will be updated.',
 });
 export const UpdateDriverSchema = z.object({
-  driverId: z.cuid('Invalid driver ID format')
-    .nullable()
+  driverId: z.union([z.cuid('Invalid driver ID format'), z.null()])
     .openapi({
       example: 'cl123456789012345678901239',
       description: 'New driver identifier (null to remove driver)',
@@ -251,7 +250,7 @@ export const ScheduleVehicleAssignmentSchema = z.object({
       child: z.object({
         id: z.cuid(),
         name: z.string(),
-        age: z.number().nullable(),
+        age: z.union([z.number(), z.null()]),
         familyId: z.cuid(),
         createdAt: z.iso.datetime(),
         updatedAt: z.iso.datetime(),
@@ -295,7 +294,7 @@ export const ChildAssignmentSchema = z.object({
   child: z.object({
     id: z.cuid(),
     name: z.string(),
-    age: z.number().nullable(),
+    age: z.union([z.number(), z.null()]),
     familyId: z.cuid(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
@@ -521,13 +520,13 @@ registerPath({
     },
   },
   responses: {
-    200: {
+    201: {
       description: 'Vehicle assigned successfully',
       content: {
         'application/json': {
           schema: z.object({
             success: z.boolean(),
-            data: ScheduleVehicleAssignmentSchema,
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -594,6 +593,54 @@ registerPath({
     },
     404: {
       description: 'Not found - Schedule slot or vehicle assignment does not exist',
+    },
+  },
+});
+
+// Update vehicle assignment (driver, seat capacity, children)
+registerPath({
+  method: 'patch',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}',
+  tags: ['Schedule Slots'],
+  summary: 'Update vehicle assignment',
+  description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      scheduleSlotId: z.cuid(),
+      vehicleAssignmentId: z.cuid(),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/PatchVehicleAssignmentRequest' },
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Vehicle assignment updated successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean(),
+            data: ScheduleSlotSchema,
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad request - Invalid input',
+    },
+    403: {
+      description: 'Access denied',
+    },
+    404: {
+      description: 'Schedule slot or vehicle assignment not found',
+    },
+    500: {
+      description: 'Internal server error',
     },
   },
 });

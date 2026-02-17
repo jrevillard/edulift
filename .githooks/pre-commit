@@ -14,14 +14,32 @@ STAGED_FILES=$(git diff --cached --name-only)
 BACKEND_CHANGED=false
 FRONTEND_CHANGED=false
 
-for file in $STAGED_FILES; do
-    if [[ $file == backend/* ]]; then
-        BACKEND_CHANGED=true
-    fi
-    if [[ $file == frontend/* ]]; then
-        FRONTEND_CHANGED=true
-    fi
-done
+# Detect if we're in a worktree or main repo
+# Track the actual directories where commands should run
+BACKEND_DIR=""
+FRONTEND_DIR=""
+
+if [ -f "package.json" ] && grep -q '"name": "backend"' package.json 2>/dev/null; then
+    # We're in backend directory (worktree or main repo)
+    BACKEND_CHANGED=true
+    BACKEND_DIR="$(pwd)"
+elif [ -f "package.json" ] && grep -q '"name": "frontend"' package.json 2>/dev/null; then
+    # We're in frontend directory (worktree or main repo)
+    FRONTEND_CHANGED=true
+    FRONTEND_DIR="$(pwd)"
+else
+    # We're in main repo root or worktree root, check paths
+    for file in $STAGED_FILES; do
+        if [[ $file == backend/* ]]; then
+            BACKEND_CHANGED=true
+            BACKEND_DIR="backend"
+        fi
+        if [[ $file == frontend/* ]]; then
+            FRONTEND_CHANGED=true
+            FRONTEND_DIR="frontend"
+        fi
+    done
+fi
 
 # Function to print colored output
 print_success() {
@@ -41,8 +59,10 @@ if [ "$BACKEND_CHANGED" = true ]; then
     echo ""
     print_info "Backend files modified. Running backend checks..."
 
-    # Navigate to backend directory
-    cd /workspace/backend
+    # Change to backend directory if needed
+    if [ -n "$BACKEND_DIR" ]; then
+        cd "$BACKEND_DIR"
+    fi
 
     # Check if API files have changed
     API_FILES_CHANGED=$(git diff --cached --name-only | grep -E "(src/routes/|src/schemas/|src/controllers/)" | wc -l)
@@ -62,14 +82,26 @@ if [ "$BACKEND_CHANGED" = true ]; then
                 print_info "OpenAPI specification already up to date"
             fi
 
-            # Validate OpenAPI specification
-            if npx @redocly/cli lint docs/openapi/swagger.json 2>/dev/null; then
-                print_success "OpenAPI validation passed"
-            else
-                print_error "OpenAPI validation failed"
-                echo "Please fix the OpenAPI issues before committing."
+            # Validate OpenAPI specification (fail on warnings too)
+            LINT_OUTPUT=$(npx @redocly/cli lint docs/openapi/swagger.json --config .redocly.yaml 2>&1)
+            LINT_EXIT_CODE=$?
+
+            if [ $LINT_EXIT_CODE -ne 0 ]; then
+                print_error "OpenAPI validation failed with errors"
+                echo "$LINT_OUTPUT"
+                echo "Please fix the OpenAPI errors before committing."
                 exit 1
             fi
+
+            # Check for warnings in output
+            if echo "$LINT_OUTPUT" | grep -qi "warning\|warnings found"; then
+                print_error "OpenAPI validation found warnings"
+                echo "$LINT_OUTPUT"
+                echo "Please fix the OpenAPI warnings before committing."
+                exit 1
+            fi
+
+            print_success "OpenAPI validation passed (no errors or warnings)"
         else
             print_error "OpenAPI generation failed"
             echo "Please fix the generation errors before committing."
@@ -109,7 +141,6 @@ if [ "$BACKEND_CHANGED" = true ]; then
         exit 1
     fi
 
-    cd ..
 fi
 
 # Frontend checks
@@ -117,8 +148,10 @@ if [ "$FRONTEND_CHANGED" = true ]; then
     echo ""
     print_info "Frontend files modified. Running frontend checks..."
 
-    # Navigate to frontend directory
-    cd /workspace/frontend
+    # Change to frontend directory if needed
+    if [ -n "$FRONTEND_DIR" ]; then
+        cd "$FRONTEND_DIR"
+    fi
 
     # TypeScript type checking
     echo "🔎 Running TypeScript type checking..."
@@ -152,7 +185,6 @@ if [ "$FRONTEND_CHANGED" = true ]; then
         exit 1
     fi
 
-    cd ..
 fi
 
 # If no code files were changed
