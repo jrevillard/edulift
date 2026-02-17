@@ -81,31 +81,78 @@ export interface ScheduleSlotWithDetails {
   datetime: Date;
   vehicleAssignments: Array<{
     id: string;
+    vehicleId: string;
+    scheduleSlotId: string;
+    driverId: string | null;
+    seatOverride: number | null;
+    createdAt: string;
     vehicle: {
       id: string;
       name: string;
       capacity: number;
-      familyId?: string;
-      createdAt?: string;
-      updatedAt?: string;
+      familyId: string;
+      createdAt: string;
+      updatedAt: string;
     };
     driver?: {
       id: string;
       name: string;
-    } | undefined;
-    seatOverride?: number;
+      email: string;
+    } | null;
+    childAssignments?: Array<{
+      id: string;
+      childId: string;
+      vehicleAssignmentId: string;
+      child?: {
+        id: string;
+        name: string;
+        age: number | null;
+        familyId: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }>;
   }>;
   childAssignments: Array<{
+    id: string;
+    scheduleSlotId: string;
+    childId: string;
     vehicleAssignmentId: string;
-    child: {
+    assignedAt: string;
+    child?: {
       id: string;
       name: string;
+      age: number | null;
+      familyId: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+    vehicleAssignment?: {
+      id: string;
+      vehicleId: string;
+      scheduleSlotId: string;
+      driverId: string | null;
+      seatOverride: number | null;
+      createdAt: string;
+      vehicle: {
+        id: string;
+        name: string;
+        capacity: number;
+        familyId: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+      driver?: {
+        id: string;
+        name: string;
+        email: string;
+      } | null;
     };
   }>;
   totalCapacity: number;
   availableSeats: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SocketEvents {

@@ -188,7 +188,8 @@ export const PatchVehicleAssignmentSchema = z.object({
   description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional - only provided fields will be updated.',
 });
 export const UpdateDriverSchema = z.object({
-  driverId: z.union([z.cuid('Invalid driver ID format'), z.null()])
+  driverId: z.cuid('Invalid driver ID format')
+    .nullable()
     .openapi({
       example: 'cl123456789012345678901239',
       description: 'New driver identifier (null to remove driver)',
@@ -230,32 +231,118 @@ export const UpdateSeatOverrideSchema = z.object({
 
 // Vehicle Assignment Schema that matches actual database structure
 export const ScheduleVehicleAssignmentSchema = z.object({
-  id: z.string().optional(),
-  vehicleId: z.string().optional(),
-  scheduleSlotId: z.string().optional(),
-  driverId: z.string().optional(),
-  seatOverride: z.number().optional(),
-  createdAt: z.iso.datetime().optional(),
-  vehicle: BaseVehicleSchema.optional(),
+  id: z.string()
+    .openapi({
+      example: 'cl123456789012345678901236',
+      description: 'Vehicle assignment identifier',
+    }),
+  vehicleId: z.string()
+    .openapi({
+      example: 'cl123456789012345678901237',
+      description: 'Vehicle identifier',
+    }),
+  scheduleSlotId: z.string()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Schedule slot identifier',
+    }),
+  driverId: z.string()
+    .nullable()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'Driver identifier (null if no driver assigned)',
+    }),
+  seatOverride: z.number()
+    .nullable()
+    .openapi({
+      example: 6,
+      description: 'Seat capacity override (null if using vehicle default)',
+    }),
+  createdAt: z.iso.datetime()
+    .openapi({
+      example: '2023-12-01T08:00:00.000Z',
+      description: 'When the vehicle was assigned to this slot',
+    }),
+  vehicle: BaseVehicleSchema.optional()
+    .openapi({
+      description: 'Vehicle details (included when requested)',
+    }),
   driver: z.object({
-    id: z.string().optional(),
-    name: z.string().optional(),
-    email: z.string().email('Invalid email format').optional(),
-  }).optional(),
+    id: z.string()
+      .openapi({
+        example: 'cl123456789012345678901239',
+        description: 'Driver user identifier',
+      }),
+    name: z.string()
+      .openapi({
+        example: 'John Doe',
+        description: 'Driver name',
+      }),
+    email: z.string()
+      .email('Invalid email format')
+      .openapi({
+        example: 'john.doe@example.com',
+        description: 'Driver email',
+      }),
+  }).nullable()
+    .optional()
+    .openapi({
+      description: 'Driver details (included when requested, null if no driver)',
+    }),
   childAssignments: z.array(
     z.object({
-      id: z.string().optional(),
-      childId: z.string().optional(),
-      vehicleAssignmentId: z.string().optional(),
+      id: z.string()
+        .openapi({
+          example: 'clslot123_child456',
+          description: 'Child assignment identifier',
+        }),
+      childId: z.string()
+        .openapi({
+          example: 'cl123456789012345678901238',
+          description: 'Child identifier',
+        }),
+      vehicleAssignmentId: z.string()
+        .openapi({
+          example: 'cl123456789012345678901236',
+          description: 'Vehicle assignment identifier',
+        }),
       child: z.object({
-        id: z.cuid(),
-        name: z.string(),
-        age: z.union([z.number(), z.null()]),
-        familyId: z.cuid(),
-        createdAt: z.iso.datetime(),
-        updatedAt: z.iso.datetime(),
-      }).optional(),
-    })
+        id: z.cuid()
+          .openapi({
+            example: 'cl123456789012345678901238',
+            description: 'Child identifier',
+          }),
+        name: z.string()
+          .openapi({
+            example: 'Emma Johnson',
+            description: 'Child name',
+          }),
+        age: z.number()
+          .nullable()
+          .openapi({
+            example: 8,
+            description: 'Child age (null if not specified)',
+          }),
+        familyId: z.cuid()
+          .openapi({
+            example: 'cl123456789012345678901233',
+            description: 'Family identifier',
+          }),
+        createdAt: z.iso.datetime()
+          .openapi({
+            example: '2023-01-01T00:00:00.000Z',
+            description: 'When the child was created',
+          }),
+        updatedAt: z.iso.datetime()
+          .openapi({
+            example: '2023-01-15T10:30:00.000Z',
+            description: 'When the child was last updated',
+          }),
+      }).optional()
+        .openapi({
+          description: 'Child details (included when requested)',
+        }),
+    }),
   ).optional()
   .openapi({
     description: 'All child assignments for this vehicle (cross-family carpooling support)',
@@ -294,7 +381,7 @@ export const ChildAssignmentSchema = z.object({
   child: z.object({
     id: z.cuid(),
     name: z.string(),
-    age: z.union([z.number(), z.null()]),
+    age: z.number().nullable(),
     familyId: z.cuid(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),

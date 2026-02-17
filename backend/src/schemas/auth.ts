@@ -199,7 +199,8 @@ export const UserResponseSchema = z.object({
       example: 'John Doe',
       description: 'User display name',
     }),
-  timezone: z.union([z.string(), z.null()])
+  timezone: z.string()
+    .nullable()
     .openapi({
       example: 'America/New_York',
       description: 'User timezone (IANA format)',
