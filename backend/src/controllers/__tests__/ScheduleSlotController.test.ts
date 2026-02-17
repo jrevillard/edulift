@@ -70,12 +70,8 @@ describe('ScheduleSlotController Test Suite', () => {
       vehicleId: TEST_IDS.VEHICLE,
       scheduleSlotId: TEST_IDS.SLOT,
       driverId: TEST_IDS.USER,
-      groupId: TEST_IDS.GROUP,
-      date: '2024-01-01',
-      assignedSeats: 0,
       seatOverride: 0,
       createdAt: '2024-01-01T00:00:00.000Z',
-      updatedAt: '2024-01-01T00:00:00.000Z',
       vehicle: {
         id: TEST_IDS.VEHICLE,
         name: 'Unknown Vehicle',
@@ -87,6 +83,7 @@ describe('ScheduleSlotController Test Suite', () => {
       driver: {
         id: TEST_IDS.USER,
         name: 'John Doe',
+        email: 'john@example.com',
       },
     }],
     childAssignments: [],
@@ -442,8 +439,10 @@ describe('ScheduleSlotController Test Suite', () => {
           {
             id: 'remaining-vehicle-assignment',
             vehicleId: 'remaining-vehicle-id',
+            scheduleSlotId: TEST_IDS.SLOT,
             driverId: null,
             seatOverride: null,
+            createdAt: '2024-01-01T00:00:00.000Z',
             vehicle: {
               id: 'remaining-vehicle-id',
               name: 'Remaining Bus',
@@ -767,6 +766,11 @@ describe('ScheduleSlotController Test Suite', () => {
         vehicleAssignments: [
           {
             id: TEST_IDS.VEHICLE_ASSIGNMENT,
+            vehicleId: TEST_IDS.VEHICLE,
+            scheduleSlotId: TEST_IDS.SLOT,
+            driverId: TEST_IDS.USER,
+            seatOverride: 0,
+            createdAt: '2024-01-01T00:00:00.000Z',
             vehicle: {
               id: TEST_IDS.VEHICLE,
               name: 'Test Vehicle',
@@ -778,8 +782,9 @@ describe('ScheduleSlotController Test Suite', () => {
             driver: {
               id: TEST_IDS.USER,
               name: 'Test Driver',
+              email: 'driver@test.com',
             },
-            seatOverride: 0,
+            childAssignments: [],
           },
         ],
         childAssignments: [
@@ -937,6 +942,11 @@ describe('ScheduleSlotController Test Suite', () => {
         vehicleAssignments: [
           {
             id: validVehicleAssignmentId,
+            vehicleId: TEST_IDS.VEHICLE,
+            scheduleSlotId: TEST_IDS.SLOT,
+            driverId: TEST_IDS.USER,
+            seatOverride: 5, // Updated seat override
+            createdAt: '2024-01-01T00:00:00.000Z',
             vehicle: {
               id: TEST_IDS.VEHICLE,
               name: 'Bus 1',
@@ -950,7 +960,6 @@ describe('ScheduleSlotController Test Suite', () => {
               name: 'John Doe',
               email: 'john@example.com',
             },
-            seatOverride: 5, // Updated seat override
             childAssignments: [],
           },
         ],

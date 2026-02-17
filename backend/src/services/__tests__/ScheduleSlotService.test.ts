@@ -428,8 +428,8 @@ describe('ScheduleSlotService', () => {
       expect(childrenInVehicle1).toHaveLength(2); // Alice and Charlie
       expect(childrenInVehicle2).toHaveLength(1); // Bob
       
-      expect(childrenInVehicle1.map(c => c.child.name)).toEqual(['Alice', 'Charlie']);
-      expect(childrenInVehicle2.map(c => c.child.name)).toEqual(['Bob']);
+      expect(childrenInVehicle1.filter(c => c.child).map(c => c.child!.name)).toEqual(['Alice', 'Charlie']);
+      expect(childrenInVehicle2.filter(c => c.child).map(c => c.child!.name)).toEqual(['Bob']);
     });
 
     it('should return null for non-existent slot', async () => {
