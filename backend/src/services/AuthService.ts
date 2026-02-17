@@ -253,7 +253,7 @@ export class AuthService {
 
     // SECURITY: Verify JWT userId matches deletion token userId - prevents cross-user account deletion
     if (requestingUserId && magicLink.userId !== requestingUserId) {
-      logger.warn(`🚨 SECURITY: Cross-user account deletion attempt blocked`, {
+      logger.warn('🚨 SECURITY: Cross-user account deletion attempt blocked', {
         tokenUserId: magicLink.userId,
         requestingUserId,
         timestamp: new Date().toISOString(),

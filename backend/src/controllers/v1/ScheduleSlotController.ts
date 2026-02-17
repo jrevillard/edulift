@@ -869,7 +869,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
       input.vehicleId,
       userId,
       input.driverId,
-      input.seatOverride
+      input.seatOverride,
     ) as ScheduleSlotWithDetails | null;
 
     // Transform slot to OpenAPI format

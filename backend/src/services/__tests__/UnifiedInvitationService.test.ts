@@ -691,7 +691,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 // Return null for target family (not already a member)
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family-123',
                     role: 'OWNER',
                   });
@@ -784,7 +784,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family-123',
                     role: 'OWNER',
                   });
@@ -856,7 +856,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family-123',
                     role: 'OWNER',
                   });
@@ -940,7 +940,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family-123',
                     role: 'OWNER',
                   });
@@ -1031,7 +1031,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
                 // Return null for target family (not already a member)
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family-123',
                     role: 'OWNER',
                   });

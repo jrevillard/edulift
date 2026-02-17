@@ -715,7 +715,7 @@ app.openapi(subscribeTopicRoute, async (c) => {
     loggerInstance.info('Topic subscription completed:', {
       userId,
       topic,
-      token: token.substring(0, 10) + '...',
+      token: `${token.substring(0, 10)  }...`,
       subscribed,
     });
 
@@ -769,7 +769,7 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
     loggerInstance.info('Topic unsubscription completed:', {
       userId,
       topic,
-      token: token.substring(0, 10) + '...',
+      token: `${token.substring(0, 10)  }...`,
       unsubscribed: !subscribed,
     });
 

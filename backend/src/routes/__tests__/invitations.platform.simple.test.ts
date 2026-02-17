@@ -60,7 +60,7 @@ describe('Platform Parameter Fix Verification', () => {
 
     // Verify controller import and delegation
     expect(routesFile).toContain('import invitationController');
-    expect(routesFile).toContain("app.route('/', invitationController)");
+    expect(routesFile).toContain('app.route(\'/\', invitationController)');
 
     // Verify the old Express patterns are gone
     expect(routesFile).not.toContain('from \'express\'');

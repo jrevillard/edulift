@@ -1214,7 +1214,7 @@ app.openapi(inviteFamilyRoute, async (c) => {
     groupId,
     familyId: inviteData.familyId,
     role: inviteData.role,
-    userEmail: user?.email
+    userEmail: user?.email,
   });
 
   try {
@@ -1249,7 +1249,7 @@ app.openapi(inviteFamilyRoute, async (c) => {
       userId,
       groupId,
       familyId: inviteData.familyId,
-      invitationId: invitation.id
+      invitationId: invitation.id,
     });
     return c.json({
       success: true,
@@ -1260,7 +1260,7 @@ app.openapi(inviteFamilyRoute, async (c) => {
       error: error instanceof Error ? error.message : String(error),
       userId,
       groupId,
-      familyId: inviteData.familyId
+      familyId: inviteData.familyId,
     });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'INVITE_FAILED');
     return c.json({
@@ -1284,7 +1284,7 @@ app.openapi(searchFamiliesRoute, async (c) => {
     userId,
     groupId,
     searchTerm: `${searchTerm.substring(0, 20)}...`,
-    userEmail: user?.email
+    userEmail: user?.email,
   });
 
   try {
@@ -1297,7 +1297,7 @@ app.openapi(searchFamiliesRoute, async (c) => {
     loggerInstance.info('searchFamiliesForInvitation: success', {
       userId,
       groupId,
-      count: families.length
+      count: families.length,
     });
     return c.json({
       success: true,
@@ -1308,7 +1308,7 @@ app.openapi(searchFamiliesRoute, async (c) => {
       error: error instanceof Error ? error.message : String(error),
       userId,
       groupId,
-      searchTerm: `${searchTerm.substring(0, 20)}...`
+      searchTerm: `${searchTerm.substring(0, 20)}...`,
     });
 
     // Map error messages to expected error codes

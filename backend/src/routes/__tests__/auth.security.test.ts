@@ -146,7 +146,7 @@ describe('Auth Routes - Security Tests', () => {
       expect(result).toEqual(
         expect.objectContaining({
           error: expect.any(String),
-        })
+        }),
       );
     });
 
@@ -154,7 +154,7 @@ describe('Auth Routes - Security Tests', () => {
       const response = await authRoutes.request('/profile', {
         method: 'GET',
         headers: {
-          'Authorization': 'Bearer invalid-jwt-token',
+          Authorization: 'Bearer invalid-jwt-token',
           'Content-Type': 'application/json',
         },
       });
@@ -169,7 +169,7 @@ describe('Auth Routes - Security Tests', () => {
       const response = await authRoutes.request('/profile', {
         method: 'GET',
         headers: {
-          'Authorization': 'InvalidFormat token',
+          Authorization: 'InvalidFormat token',
           'Content-Type': 'application/json',
         },
       });

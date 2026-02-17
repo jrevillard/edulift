@@ -4,7 +4,7 @@
  * Mock complet pour PushNotificationService utilisable dans les tests
  */
 
-import { FcmTokenData } from '../types/PushNotificationInterface'
+import { FcmTokenData } from '../types/PushNotificationInterface';
 
 export interface PushNotificationServiceMock {
   saveToken: jest.MockedFunction<(tokenData: FcmTokenData) => Promise<any>>
@@ -32,7 +32,7 @@ export const mockPushNotificationService: PushNotificationServiceMock = {
   isAvailable: jest.fn(),
   sendToTopic: jest.fn(),
   sendToDevice: jest.fn(),
-}
+};
 
 // Configure default return values
 mockPushNotificationService.saveToken.mockResolvedValue({
@@ -43,16 +43,16 @@ mockPushNotificationService.saveToken.mockResolvedValue({
   fcmPlatform: 'android',
   isActive: true,
   lastUsed: new Date(),
-})
+});
 
-mockPushNotificationService.validateToken.mockResolvedValue(true)
-mockPushNotificationService.subscribeToTopic.mockResolvedValue(true)
-mockPushNotificationService.unsubscribeFromTopic.mockResolvedValue(true)
+mockPushNotificationService.validateToken.mockResolvedValue(true);
+mockPushNotificationService.subscribeToTopic.mockResolvedValue(true);
+mockPushNotificationService.unsubscribeFromTopic.mockResolvedValue(true);
 mockPushNotificationService.sendToTokens.mockResolvedValue({
   successCount: 1,
   failureCount: 0,
   invalidTokens: [],
-})
-mockPushNotificationService.isAvailable.mockReturnValue(true)
+});
+mockPushNotificationService.isAvailable.mockReturnValue(true);
 
-export default mockPushNotificationService
+export default mockPushNotificationService;

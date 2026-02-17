@@ -111,7 +111,7 @@ describe('GroupController - POST /groups/:groupId/invite', () => {
         role: 'MEMBER',
         personalMessage: 'Welcome to our group!',
       },
-      mockUserId
+      mockUserId,
     );
   });
 

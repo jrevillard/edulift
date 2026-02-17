@@ -28,7 +28,7 @@ export const handleZodError = (error: ZodError, c: Context): Response => {
     'VALIDATION_ERROR',
     errorMessage,
     400,
-    { issues: error.issues }
+    { issues: error.issues },
   );
 
   return c.json(createErrorResponse(serviceError), 400);

@@ -130,7 +130,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
     },
   });
 };
@@ -257,7 +257,7 @@ describe('VehicleController Test Suite', () => {
           capacity: 4,
           familyId: TEST_IDS.FAMILY,
         },
-        mockUserId
+        mockUserId,
       );
     });
 
@@ -566,7 +566,7 @@ describe('VehicleController Test Suite', () => {
       expect(mockVehicleService.updateVehicle).toHaveBeenCalledWith(
         vehicleId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -599,7 +599,7 @@ describe('VehicleController Test Suite', () => {
       expect(mockVehicleService.updateVehicle).toHaveBeenCalledWith(
         vehicleId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -628,7 +628,7 @@ describe('VehicleController Test Suite', () => {
       expect(mockVehicleService.updateVehicle).toHaveBeenCalledWith(
         vehicleId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -777,7 +777,7 @@ describe('VehicleController Test Suite', () => {
       const vehicleId = TEST_IDS.VEHICLE;
 
       const mockSchedule = {
-        vehicleId: vehicleId,
+        vehicleId,
         vehicleName: 'Test Vehicle',
         schedule: [],
       };
@@ -790,7 +790,7 @@ describe('VehicleController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse.success).toBe(true);
       expect(jsonResponse.data).toMatchObject({
-        vehicleId: vehicleId,
+        vehicleId,
         vehicleName: 'Test Vehicle',
         schedule: [],
       });
@@ -803,7 +803,7 @@ describe('VehicleController Test Suite', () => {
       const week = '2025-W42';
 
       const mockSchedule = {
-        vehicleId: vehicleId,
+        vehicleId,
         vehicleName: 'Test Vehicle',
         schedule: [],
       };

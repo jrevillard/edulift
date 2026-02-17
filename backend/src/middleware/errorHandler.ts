@@ -33,7 +33,7 @@ export class AppError extends Error {
       error: this.message,
       statusCode: this.statusCode,
       name: this.name,
-      ...(process.env.NODE_ENV === 'development' && { stack: this.stack })
+      ...(process.env.NODE_ENV === 'development' && { stack: this.stack }),
     };
   }
 }

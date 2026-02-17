@@ -128,7 +128,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
     },
   });
 };
@@ -563,7 +563,7 @@ describe('ChildController Test Suite', () => {
       expect(mockChildService.updateChild).toHaveBeenCalledWith(
         childId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -596,7 +596,7 @@ describe('ChildController Test Suite', () => {
       expect(mockChildService.updateChild).toHaveBeenCalledWith(
         childId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -625,7 +625,7 @@ describe('ChildController Test Suite', () => {
       expect(mockChildService.updateChild).toHaveBeenCalledWith(
         childId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -719,7 +719,7 @@ describe('ChildController Test Suite', () => {
       expect(mockChildService.updateChild).toHaveBeenCalledWith(
         childId,
         mockUserId,
-        updateData
+        updateData,
       );
     });
 
@@ -882,8 +882,8 @@ describe('ChildController Test Suite', () => {
 
       const mockMembership = {
         id: TEST_IDS.USER,
-        childId: childId,
-        groupId: groupId,
+        childId,
+        groupId,
         addedBy: mockUserId,
         addedAt: new Date('2025-12-13T00:00:00.000Z').toISOString(),
         child: {
@@ -906,8 +906,8 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse.success).toBe(true);
       expect(jsonResponse.data).toMatchObject({
-        childId: childId,
-        groupId: groupId,
+        childId,
+        groupId,
       });
 
       expect(mockChildAssignmentService.addChildToGroup).toHaveBeenCalledWith(childId, groupId, mockUserId);
@@ -1132,7 +1132,7 @@ describe('ChildController Test Suite', () => {
       const mockMemberships = [
         {
           id: TEST_IDS.USER,
-          childId: childId,
+          childId,
           groupId: TEST_IDS.GROUP,
           addedAt: new Date('2025-12-13T00:00:00.000Z').toISOString(),
           group: {
@@ -1142,7 +1142,7 @@ describe('ChildController Test Suite', () => {
         },
         {
           id: TEST_IDS.USER_2,
-          childId: childId,
+          childId,
           groupId: TEST_IDS.GROUP_2,
           addedAt: new Date('2025-12-13T00:00:00.000Z').toISOString(),
           group: {

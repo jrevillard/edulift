@@ -158,7 +158,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/family', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(familyInviteData),
@@ -193,7 +193,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/family', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(familyInviteData),
@@ -228,7 +228,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/family', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -276,7 +276,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/group', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(groupInviteData),
@@ -312,7 +312,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/group', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(groupInviteData),
@@ -344,7 +344,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/family', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -361,7 +361,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       const response = await app.request('/invitations/family', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${authToken}`,
+          Authorization: `Bearer ${authToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

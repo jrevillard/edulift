@@ -22,7 +22,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
     },
   });
 };

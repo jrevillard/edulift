@@ -27,7 +27,7 @@ import { createErrorResponse, getErrorForLogging, ErrorCodes } from './utils/err
 import {
   globalRateLimiter,
   authEndpointRateLimiter,
-  adminRateLimiter
+  adminRateLimiter,
 } from './utils/rateLimiter';
 import { prisma } from './database';
 
@@ -59,7 +59,7 @@ const app = new OpenAPIHono({
           error: 'Validation failed',
           details: result.error.issues,
         },
-        400
+        400,
       );
     }
     // Return undefined to continue processing when validation succeeds
@@ -389,7 +389,7 @@ app.notFound((c) => {
 });
 
 // Start server
-console.log(`🚀 EduLift API Server - State-of-the-Art Implementation`);
+console.log('🚀 EduLift API Server - State-of-the-Art Implementation');
 console.log(`📍 Environment: ${env}`);
 console.log(`🌐 Server: http://${host}:${port}`);
 console.log(`📚 API Documentation: http://${host}:${port}/docs`);

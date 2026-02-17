@@ -2,7 +2,7 @@ import { describe, it, expect } from '@jest/globals';
 import {
   createErrorResponse,
   createServiceError,
-  normalizeError
+  normalizeError,
 } from '../errorHandler';
 
 describe('errorHandler Integration', () => {
@@ -23,7 +23,7 @@ describe('errorHandler Integration', () => {
       expect(response).toEqual({
         success: false,
         error: 'Custom error object',
-        code: 'CUSTOM_ERROR'
+        code: 'CUSTOM_ERROR',
       });
     });
 
@@ -34,7 +34,7 @@ describe('errorHandler Integration', () => {
       expect(response).toEqual({
         success: false,
         error: 'Invalid input',
-        code: 'VALIDATION_ERROR'
+        code: 'VALIDATION_ERROR',
       });
     });
 
@@ -45,7 +45,7 @@ describe('errorHandler Integration', () => {
       expect(response).toEqual({
         success: false,
         error: 'Database connection failed',
-        code: 'INTERNAL_ERROR'
+        code: 'INTERNAL_ERROR',
       });
     });
 
@@ -57,7 +57,7 @@ describe('errorHandler Integration', () => {
         success: false,
         error: 'Simple error message',
         code: 'INTERNAL_ERROR',
-        details: error
+        details: error,
       });
     });
 
@@ -68,7 +68,7 @@ describe('errorHandler Integration', () => {
       expect(response).toEqual({
         success: false,
         error: 'String error message',
-        code: 'INTERNAL_ERROR'
+        code: 'INTERNAL_ERROR',
       });
     });
 
@@ -79,7 +79,7 @@ describe('errorHandler Integration', () => {
         success: false,
         error: 'Unknown error occurred',
         code: 'INTERNAL_ERROR',
-        details: { errorType: 'null_undefined' }
+        details: { errorType: 'null_undefined' },
       });
     });
 

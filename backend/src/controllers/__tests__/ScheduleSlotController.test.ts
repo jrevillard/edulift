@@ -43,7 +43,7 @@ const makeAuthenticatedRequest = async (app: Hono<any>, url: string, options: Re
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
     },
   };
 
@@ -275,7 +275,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: false,
         error: 'Failed to create schedule slot',
-        code: 'CREATE_FAILED'
+        code: 'CREATE_FAILED',
       });
     });
 
@@ -298,7 +298,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: false,
         error: 'Failed to create schedule slot',
-        code: 'CREATE_FAILED'
+        code: 'CREATE_FAILED',
       });
     });
   });
@@ -681,7 +681,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(mockScheduleSlotService.getSchedule).toHaveBeenCalledWith(
         TEST_IDS.GROUP,
         '2024-01-01T00:00:00.000Z',
-        '2024-01-07T23:59:59.999Z'
+        '2024-01-07T23:59:59.999Z',
       );
     });
 
@@ -1035,7 +1035,7 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse).toEqual({
         success: false,
         error: 'Failed to update seat override',
-        code: 'UPDATE_FAILED'
+        code: 'UPDATE_FAILED',
       });
     });
   });
@@ -1053,7 +1053,7 @@ describe('ScheduleSlotController Test Suite', () => {
     });
 
     it('should handle missing required parameters', async () => {
-      const response = await makeAuthenticatedRequest(app, `/schedule-slots//vehicles`, {
+      const response = await makeAuthenticatedRequest(app, '/schedule-slots//vehicles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

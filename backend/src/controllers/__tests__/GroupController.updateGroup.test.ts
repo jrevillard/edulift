@@ -29,7 +29,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       ...options,
       headers: {
         ...options.headers,
-        'Authorization': 'Bearer valid-token',
+        Authorization: 'Bearer valid-token',
       },
     });
   };
@@ -96,7 +96,7 @@ describe('GroupController.updateGroup Test Suite', () => {
         return c.json({
           success: false,
           error: 'Access token required',
-          code: 'UNAUTHORIZED'
+          code: 'UNAUTHORIZED',
         } as const, 401);
       }
       c.set('userId', mockUserId);
@@ -263,7 +263,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       expect(result).toEqual({
         success: false,
         error: 'Access token required',
-        code: 'UNAUTHORIZED'
+        code: 'UNAUTHORIZED',
       });
     });
 
@@ -335,7 +335,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       expect(result).toEqual({
         success: false,
         error: 'Group not found',
-        code: 'UPDATE_FAILED'
+        code: 'UPDATE_FAILED',
       });
     });
 
@@ -357,7 +357,7 @@ describe('GroupController.updateGroup Test Suite', () => {
       expect(result).toEqual({
         success: false,
         error: 'Only administrators of the owner family can update group settings',
-        code: 'UPDATE_FAILED'
+        code: 'UPDATE_FAILED',
       });
     });
   });

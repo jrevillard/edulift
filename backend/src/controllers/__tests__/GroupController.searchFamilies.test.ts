@@ -21,7 +21,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
       'Content-Type': 'application/json',
     },
   });
@@ -101,7 +101,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         return c.json({
           success: false,
           error: 'Access token required',
-          code: 'UNAUTHORIZED'
+          code: 'UNAUTHORIZED',
         } as const, 401);
       }
       c.set('userId', mockUserId);
@@ -131,7 +131,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'Smith' }),
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -142,7 +142,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
       expect(mockGroupService.searchFamiliesForInvitation).toHaveBeenCalledWith(
         'Smith',
         mockUserId,
-        mockGroupId
+        mockGroupId,
       );
     });
 
@@ -155,7 +155,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'NonExistentFamily' }),
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -174,7 +174,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'Smi' }),
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -194,7 +194,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -212,7 +212,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: '' }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -234,7 +234,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'Smith' }),
-        }
+        },
       );
 
       expect(response.status).toBe(403);
@@ -257,7 +257,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'Smith' }),
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -278,7 +278,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'Smith' }),
-        }
+        },
       );
 
       expect(response.status).toBe(500);
@@ -301,7 +301,7 @@ describe('GroupController.searchFamiliesForInvitation Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ searchTerm: 'Smith' }),
-        }
+        },
       );
 
       expect(response.status).toBe(200);

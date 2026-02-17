@@ -228,7 +228,7 @@ describe('AuthorizationService', () => {
       expect(results).toEqual({
         [TEST_IDS.GROUP]: true,
         [TEST_IDS.GROUP_2]: true,
-        'cltestunauthorized1234567890': false,
+        cltestunauthorized1234567890: false,
       });
     });
   });

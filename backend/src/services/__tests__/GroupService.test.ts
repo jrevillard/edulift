@@ -380,7 +380,7 @@ describe('GroupService - Family-Based Architecture', () => {
               role: 'OWNER',
               addedBy: TEST_IDS.USER,
               joinedAt: new Date('2024-01-01'),
-            }
+            },
           ], // Family is already OWNER
         },
       });
@@ -410,7 +410,7 @@ describe('GroupService - Family-Based Architecture', () => {
           createdAt: mockDate,
           updatedAt: mockDate,
           familyMembers: [
-            { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER, joinedAt: mockDate }
+            { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER, joinedAt: mockDate },
           ],
           _count: { familyMembers: 1, scheduleSlots: 2 },
         },
@@ -422,7 +422,7 @@ describe('GroupService - Family-Based Architecture', () => {
           updatedAt: mockDate,
           familyMembers: [
             { familyId: TEST_IDS.FAMILY_2, role: 'OWNER', addedBy: 'owner', joinedAt: mockDate },
-            { familyId: TEST_IDS.FAMILY, role: 'MEMBER', addedBy: TEST_IDS.USER, joinedAt: mockDate }
+            { familyId: TEST_IDS.FAMILY, role: 'MEMBER', addedBy: TEST_IDS.USER, joinedAt: mockDate },
           ],
           _count: { familyMembers: 2, scheduleSlots: 1 },
         },
@@ -494,7 +494,7 @@ describe('GroupService - Family-Based Architecture', () => {
         id: TEST_IDS.GROUP,
         familyMembers: [
           { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER },
-          { familyId: TEST_IDS.FAMILY_2, role: 'MEMBER', addedBy: TEST_IDS.USER }
+          { familyId: TEST_IDS.FAMILY_2, role: 'MEMBER', addedBy: TEST_IDS.USER },
         ],
       });
 
@@ -563,7 +563,7 @@ describe('GroupService - Family-Based Architecture', () => {
           return Promise.resolve({
             id: TEST_IDS.GROUP,
             familyMembers: [
-              { familyId: TEST_IDS.FAMILY, role: 'OWNER' }
+              { familyId: TEST_IDS.FAMILY, role: 'OWNER' },
             ],
           });
         } else {
@@ -764,7 +764,7 @@ describe('GroupService - Family-Based Architecture', () => {
         .mockResolvedValueOnce({
           id: TEST_IDS.GROUP,
           familyMembers: [
-            { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER }
+            { familyId: TEST_IDS.FAMILY, role: 'OWNER', addedBy: TEST_IDS.USER },
           ],
         })
         // Mock for main logic in inviteFamilyToGroup

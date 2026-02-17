@@ -494,7 +494,7 @@ app.openapi(getAvailableVehiclesRoute, async (c): Promise<any> => {
     loggerInstance.info('getAvailableVehicles: available vehicles', {
       groupId,
       timeSlotId,
-      count: availableVehicles.length
+      count: availableVehicles.length,
     });
 
     return c.json({
@@ -629,7 +629,7 @@ app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
     loggerInstance.info('getVehicleSchedule: schedule retrieved', {
       userId,
       vehicleId,
-      week
+      week,
     });
 
     return c.json({

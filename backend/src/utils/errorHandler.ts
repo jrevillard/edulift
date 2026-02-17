@@ -99,7 +99,7 @@ export function createServiceError(
   code: string,
   message: string,
   statusCode?: number,
-  details?: any
+  details?: any,
 ): ServiceError {
   return {
     code,

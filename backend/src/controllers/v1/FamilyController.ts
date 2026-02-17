@@ -102,13 +102,13 @@ export function createFamilyControllerRoutes(dependencies: {
     prismaInstance,
     loggerInstance,
     undefined,
-    emailServiceInstance
+    emailServiceInstance,
   );
 
   // Initialize familyAuthService with dependencies
   const familyAuthServiceInstance = dependencies.familyAuthService ?? new FamilyAuthService(
     prismaInstance,
-    cacheServiceInstance
+    cacheServiceInstance,
   );
 
   // Create app

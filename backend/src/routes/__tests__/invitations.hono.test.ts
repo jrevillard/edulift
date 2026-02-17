@@ -30,7 +30,7 @@ describe('Invitations OpenAPI Hono Router', () => {
       );
 
       // Verify controller mount pattern
-      expect(routesFile).toContain("app.route('/', invitationController)");
+      expect(routesFile).toContain('app.route(\'/\', invitationController)');
     });
 
     it('should have health check endpoint', () => {
@@ -40,7 +40,7 @@ describe('Invitations OpenAPI Hono Router', () => {
       );
 
       // Verify health check endpoint
-      expect(routesFile).toContain("app.get('/health'");
+      expect(routesFile).toContain('app.get(\'/health\'');
     });
   });
 

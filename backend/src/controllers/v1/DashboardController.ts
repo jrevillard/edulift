@@ -524,7 +524,7 @@ app.openapi(getTodayScheduleRoute, async (c) => {
 
     loggerInstance.info('getTodaySchedule: schedule retrieved', {
       userId,
-      count: upcomingTrips.length
+      count: upcomingTrips.length,
     });
 
     return c.json({
@@ -573,7 +573,7 @@ app.openapi(getRecentActivityRoute, async (c) => {
 
     loggerInstance.info('getRecentActivity: activity retrieved', {
       userId,
-      count: formattedActivities.length
+      count: formattedActivities.length,
     });
 
     return c.json({
@@ -640,7 +640,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
             vas.children?.map((child: any) => ({
               id: child.childId,
               name: child.childName,
-            })) || []
+            })) || [],
           ) || [],
           vehicle: transport.vehicleAssignmentSummaries?.[0] ? {
             id: transport.vehicleAssignmentSummaries[0].vehicleId,
@@ -668,13 +668,13 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
     // Calculate total trips from daily schedules
     transformedData.weeklyStats.totalTrips = transformedData.dailySchedules.reduce(
       (sum, day) => sum + day.summary.totalTrips,
-      0
+      0,
     );
 
     loggerInstance.info('getWeeklyDashboard: weekly data retrieved', {
       userId,
       weekStart: transformedData.weekStart,
-      totalTrips: transformedData.weeklyStats.totalTrips
+      totalTrips: transformedData.weeklyStats.totalTrips,
     });
 
     return c.json({

@@ -23,7 +23,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
     },
   });
 };
@@ -105,7 +105,7 @@ describe('DashboardController Test Suite', () => {
       expect(response.status).toBe(200);
       expect(data).toEqual({
         success: true,
-        data: mockStats
+        data: mockStats,
       });
       expect(mockDashboardService.calculateUserStats).toHaveBeenCalledWith(mockUserId);
     });
@@ -120,7 +120,7 @@ describe('DashboardController Test Suite', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to retrieve dashboard statistics',
-        code: 'STATS_RETRIEVAL_FAILED'
+        code: 'STATS_RETRIEVAL_FAILED',
       });
     });
 
@@ -166,7 +166,7 @@ describe('DashboardController Test Suite', () => {
       expect(response.status).toBe(200);
       expect(data).toEqual({
         success: true,
-        data: { upcomingTrips: mockTodayTrips }
+        data: { upcomingTrips: mockTodayTrips },
       });
       expect(mockDashboardService.getTodayTripsForUser).toHaveBeenCalledWith(mockUserId);
     });
@@ -180,7 +180,7 @@ describe('DashboardController Test Suite', () => {
       expect(response.status).toBe(200);
       expect(data).toEqual({
         success: true,
-        data: { upcomingTrips: [] }
+        data: { upcomingTrips: [] },
       });
     });
 
@@ -194,7 +194,7 @@ describe('DashboardController Test Suite', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to retrieve today\'s schedule',
-        code: 'SCHEDULE_RETRIEVAL_FAILED'
+        code: 'SCHEDULE_RETRIEVAL_FAILED',
       });
     });
   });
@@ -279,7 +279,7 @@ describe('DashboardController Test Suite', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to retrieve recent activity',
-        code: 'ACTIVITY_RETRIEVAL_FAILED'
+        code: 'ACTIVITY_RETRIEVAL_FAILED',
       });
     });
   });
@@ -399,7 +399,7 @@ describe('DashboardController Test Suite', () => {
       expect(data).toEqual({
         success: false,
         error: 'User has no family',
-        code: 'WEEKLY_DASHBOARD_FAILED'
+        code: 'WEEKLY_DASHBOARD_FAILED',
       });
     });
 
@@ -413,7 +413,7 @@ describe('DashboardController Test Suite', () => {
       expect(data).toEqual({
         success: false,
         error: 'Failed to retrieve weekly dashboard',
-        code: 'WEEKLY_DASHBOARD_FAILED'
+        code: 'WEEKLY_DASHBOARD_FAILED',
       });
     });
   });

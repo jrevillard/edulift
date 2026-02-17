@@ -148,7 +148,7 @@ describe('ChildAssignmentService - Cross-family carpooling', () => {
         'slot-id',
         'child-id',
         'vehicle-assignment-id',
-        'user-id'
+        'user-id',
       );
 
       // Verify the structure includes childAssignments

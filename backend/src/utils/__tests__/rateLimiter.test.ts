@@ -6,7 +6,7 @@ import { describe, it, expect } from '@jest/globals';
 import {
   globalRateLimiter,
   authEndpointRateLimiter,
-  adminRateLimiter
+  adminRateLimiter,
 } from '../rateLimiter';
 
 
@@ -37,7 +37,7 @@ describe('Rate Limit Response Format', () => {
     const rateLimitError = {
       code: ErrorCodes.RATE_LIMIT_EXCEEDED,
       message: 'Too many requests, please try again later',
-      statusCode: 429
+      statusCode: 429,
     };
 
     const response = createErrorResponse(rateLimitError);
@@ -45,7 +45,7 @@ describe('Rate Limit Response Format', () => {
     expect(response).toEqual({
       success: false,
       error: 'Too many requests, please try again later',
-      code: 'RATE_LIMIT_EXCEEDED'
+      code: 'RATE_LIMIT_EXCEEDED',
     });
   });
 
@@ -55,7 +55,7 @@ describe('Rate Limit Response Format', () => {
       success: false,
       error: 'Too many requests, please try again later',
       code: 'RATE_LIMIT_EXCEEDED',
-      details: { retryAfter }
+      details: { retryAfter },
     };
 
     // Test that our error response format can include retry information
@@ -77,7 +77,7 @@ describe('Rate Limiting Integration', () => {
     const limiters = [
       globalRateLimiter,
       authEndpointRateLimiter,
-      adminRateLimiter
+      adminRateLimiter,
     ];
 
     // All limiters should be different functions

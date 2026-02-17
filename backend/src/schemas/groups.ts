@@ -306,7 +306,7 @@ export const GroupResponseSchema = z.object({
   userRole: GroupRoleEnum.optional()
     .openapi({
       example: 'ADMIN',
-      description: "User's role in the group (ADMIN or MEMBER - OWNER is family-level only)",
+      description: 'User\'s role in the group (ADMIN or MEMBER - OWNER is family-level only)',
     }),
   ownerFamily: z.object({
     id: z.cuid().openapi({
@@ -730,7 +730,7 @@ export const GroupScheduleConfigSuccessResponseSchema = z.object({
  */
 export const ScheduleHoursSchema = z.record(
   z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
-  z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)'))
+  z.array(z.string().regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, 'Invalid time format (HH:MM)')),
 ).openapi({
   example: {
     MONDAY: ['07:00', '07:30', '08:00', '15:00', '15:30', '16:00'],

@@ -35,7 +35,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
       'Content-Type': 'application/json',
     },
   });
@@ -139,7 +139,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             role: 'MEMBER',
             personalMessage: 'Welcome to our group!',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -157,7 +157,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
           role: GroupRole.MEMBER,
           personalMessage: 'Welcome to our group!',
         },
-        mockUserId
+        mockUserId,
       );
     });
 
@@ -189,7 +189,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             email: 'user@example.com',
             role: 'ADMIN',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -228,7 +228,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -248,7 +248,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -267,7 +267,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             groupId: mockGroupId,
             targetFamilyId: mockFamilyId,
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -289,7 +289,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             groupId: mockGroupId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -313,7 +313,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(403);
@@ -337,7 +337,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -361,7 +361,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -385,7 +385,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(409);
@@ -409,7 +409,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(409);
@@ -432,7 +432,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             targetFamilyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(500);
@@ -453,7 +453,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             email: 'not-an-email',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -473,7 +473,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             email: '',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -490,7 +490,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
             email: '   ',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -567,7 +567,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         error: 'Invalid invitation code',
       });
 
-      const response = await app.request(`/group/INVALIDCODE/validate`, {
+      const response = await app.request('/group/INVALIDCODE/validate', {
         method: 'GET',
       });
 
@@ -636,7 +636,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInviteCode}/accept`,
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -646,7 +646,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
       expect(json.message).toBe('Group invitation accepted successfully');
       expect(mockInvitationService.acceptGroupInvitation).toHaveBeenCalledWith(
         mockInviteCode,
-        mockUserId
+        mockUserId,
       );
     });
   });
@@ -660,10 +660,10 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(
         app,
-        `/group/INVALIDCODE/accept`,
+        '/group/INVALIDCODE/accept',
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -684,7 +684,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInviteCode}/accept`,
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -706,7 +706,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInviteCode}/accept`,
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -727,7 +727,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInviteCode}/accept`,
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -744,7 +744,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInviteCode}/accept`,
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(500);
@@ -759,10 +759,10 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
     it('should return 404 for empty invite code', async () => {
       const response = await makeAuthenticatedRequest(
         app,
-        `/group//accept`,
+        '/group//accept',
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -776,10 +776,10 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(
         app,
-        `/group/INV@LID$/accept`,
+        '/group/INV@LID$/accept',
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -800,7 +800,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${longCode}/accept`,
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -816,10 +816,10 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(
         app,
-        `/group/   /accept`,
+        '/group/   /accept',
         {
           method: 'POST',
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -841,7 +841,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -850,7 +850,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
       expect(json.message).toBe('Group invitation cancelled successfully');
       expect(mockInvitationService.cancelGroupInvitation).toHaveBeenCalledWith(
         mockInvitationId,
-        mockUserId
+        mockUserId,
       );
     });
   });
@@ -865,7 +865,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(403);
@@ -884,7 +884,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -902,7 +902,7 @@ describe('InvitationController - Group Endpoints Test Suite', () => {
         `/group/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(500);

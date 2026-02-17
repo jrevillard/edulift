@@ -232,7 +232,7 @@ export class GroupService {
 
     // Find owner family from membership with role='OWNER'
     const ownerMembership = group.familyMembers?.find(
-      (fm: unknown) => fm.role === 'OWNER'
+      (fm: unknown) => fm.role === 'OWNER',
     );
 
     // Return enriched format matching getUserGroups() response

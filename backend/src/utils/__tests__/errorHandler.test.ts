@@ -6,7 +6,7 @@ import {
   getErrorMessage,
   getErrorForLogging,
   createErrorResponse,
-  ErrorCodes
+  ErrorCodes,
 } from '../errorHandler';
 
 describe('errorHandler', () => {
@@ -284,7 +284,7 @@ describe('errorHandler', () => {
         success: false,
         error: 'Test message',
         code: 'TEST_ERROR',
-        details: { field: 'test' }
+        details: { field: 'test' },
       });
     });
 
@@ -295,7 +295,7 @@ describe('errorHandler', () => {
       expect(response).toEqual({
         success: false,
         error: 'Regular error',
-        code: ErrorCodes.INTERNAL_ERROR
+        code: ErrorCodes.INTERNAL_ERROR,
       });
     });
 
@@ -307,7 +307,7 @@ describe('errorHandler', () => {
       expect(response).toEqual({
         success: false,
         error: 'Custom error object',
-        code: 'CUSTOM_ERROR'
+        code: 'CUSTOM_ERROR',
       });
     });
   });

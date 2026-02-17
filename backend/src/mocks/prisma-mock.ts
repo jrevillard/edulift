@@ -25,7 +25,7 @@ export const createPrismaMock = (): MockPrismaClient => {
     findUniqueOrThrow: jest.fn(),
     createMany: jest.fn(),
     upsert: jest.fn(),
-  })
+  });
 
   // Create mock for all Prisma models
   const models = [
@@ -33,21 +33,21 @@ export const createPrismaMock = (): MockPrismaClient => {
     'child', 'vehicle', 'scheduleSlot', 'scheduleSlotChild',
     'scheduleSlotVehicle', 'fcmToken', 'invitation', 'notification',
     'notificationPreference', 'route', 'routeStop', 'trip',
-    'tripPassenger', 'tripLog', 'userPreference', 'groupSetting'
-  ]
+    'tripPassenger', 'tripLog', 'userPreference', 'groupSetting',
+  ];
 
-  const mockPrisma: MockPrismaClient = {}
+  const mockPrisma: MockPrismaClient = {};
 
   models.forEach(model => {
-    mockPrisma[model] = createMockModel(model)
-  })
+    mockPrisma[model] = createMockModel(model);
+  });
 
   // Add $connect, $disconnect, $transaction methods
-  mockPrisma.$connect = jest.fn()
-  mockPrisma.$disconnect = jest.fn()
-  mockPrisma.$transaction = jest.fn()
+  mockPrisma.$connect = jest.fn();
+  mockPrisma.$disconnect = jest.fn();
+  mockPrisma.$transaction = jest.fn();
 
-  return mockPrisma
-}
+  return mockPrisma;
+};
 
-export default createPrismaMock
+export default createPrismaMock;

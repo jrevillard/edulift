@@ -509,14 +509,14 @@ export function createInvitationControllerRoutes(dependencies: {
       const invitation = await invitationServiceInstance.createFamilyInvitation(
         input.familyId,
         invitationData,
-        userId
+        userId,
       );
 
       loggerInstance.info('createFamilyInvitation: family invitation created', {
         userId,
         invitationId: invitation.id,
         familyId: input.familyId,
-        email: input.email
+        email: input.email,
       });
 
       // Transform Prisma response to match schema
@@ -672,7 +672,7 @@ export function createInvitationControllerRoutes(dependencies: {
       const invitation = await invitationServiceInstance.createGroupInvitation(
         input.groupId,
         invitationData,
-        userId
+        userId,
       );
 
       if (!invitation) {
@@ -688,7 +688,7 @@ export function createInvitationControllerRoutes(dependencies: {
         invitationId: invitation.id,
         groupId: input.groupId,
         targetFamilyId: input.targetFamilyId,
-        email: input.email
+        email: input.email,
       });
 
       // Transform Prisma response to match schema
@@ -859,7 +859,7 @@ export function createInvitationControllerRoutes(dependencies: {
       loggerInstance.info('cancelFamilyInvitation: family invitation cancelled', { userId, invitationId });
 
       return c.json({
-        message: 'Family invitation cancelled successfully'
+        message: 'Family invitation cancelled successfully',
       }, 200);
 
     } catch (error) {
@@ -905,7 +905,7 @@ export function createInvitationControllerRoutes(dependencies: {
       loggerInstance.info('cancelGroupInvitation: group invitation cancelled', { userId, invitationId });
 
       return c.json({
-        message: 'Group invitation cancelled successfully'
+        message: 'Group invitation cancelled successfully',
       }, 200);
 
     } catch (error) {

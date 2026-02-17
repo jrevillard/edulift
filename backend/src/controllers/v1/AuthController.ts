@@ -82,13 +82,13 @@ export function createAuthControllerRoutes(dependencies: {
     userRepositoryInstance,
     secureTokenRepositoryInstance,
     emailServiceInstance,
-    prismaInstance
+    prismaInstance,
   );
   const unifiedInvitationLoggerInstance = createLogger('UnifiedInvitationService');
   const unifiedInvitationServiceInstance = dependencies.unifiedInvitationService ?? new UnifiedInvitationService(
     prismaInstance,
     unifiedInvitationLoggerInstance,
-    emailServiceInstance
+    emailServiceInstance,
   );
 
   // Create app
@@ -706,7 +706,7 @@ app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
     if (!result && process.env.NODE_ENV !== 'test') {
       loggerInstance.error('AuthService.requestMagicLink returned undefined', {
         email: input.email,
-        input: { ...input, email: '[REDACTED]' }
+        input: { ...input, email: '[REDACTED]' },
       });
       return c.json({
         success: false,
@@ -1201,7 +1201,7 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
     const result = await authServiceInstance.confirmAccountDeletion(
       token,
       code_verifier,
-      userId  // ← Pass JWT userId to prevent cross-user account deletion
+      userId,  // ← Pass JWT userId to prevent cross-user account deletion
     );
 
     loggerInstance.info('confirmAccountDeletion: Account deleted successfully via email confirmation', {

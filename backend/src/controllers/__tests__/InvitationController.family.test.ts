@@ -35,7 +35,7 @@ const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestI
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': 'Bearer valid-token',
+      Authorization: 'Bearer valid-token',
       'Content-Type': 'application/json',
     },
   });
@@ -138,7 +138,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             role: 'MEMBER',
             personalMessage: 'Welcome to our family!',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -156,7 +156,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
           role: FamilyRole.MEMBER,
           personalMessage: 'Welcome to our family!',
         },
-        mockUserId
+        mockUserId,
       );
     });
 
@@ -188,7 +188,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'ADMIN',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -226,7 +226,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -239,7 +239,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
           email: 'invited@example.com',
           role: FamilyRole.MEMBER,
         },
-        mockUserId
+        mockUserId,
       );
     });
   });
@@ -255,7 +255,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -274,7 +274,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             familyId: mockFamilyId,
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -293,7 +293,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             familyId: mockFamilyId,
             email: 'invited@example.com',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -316,7 +316,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(403);
@@ -340,7 +340,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(409);
@@ -364,7 +364,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(409);
@@ -387,7 +387,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'invited@example.com',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(500);
@@ -408,7 +408,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: 'not-an-email',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -428,7 +428,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: '',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -445,7 +445,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
             email: '   ',
             role: 'MEMBER',
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -529,7 +529,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         error: 'Invalid invitation code',
       });
 
-      const response = await app.request(`/family/INVALIDCODE/validate`, {
+      const response = await app.request('/family/INVALIDCODE/validate', {
         method: 'GET',
       });
 
@@ -615,7 +615,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
           body: JSON.stringify({
             leaveCurrentFamily: false,
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -626,7 +626,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
       expect(mockInvitationService.acceptFamilyInvitation).toHaveBeenCalledWith(
         mockInviteCode,
         mockUserId,
-        { leaveCurrentFamily: false }
+        { leaveCurrentFamily: false },
       );
     });
 
@@ -643,7 +643,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
           body: JSON.stringify({
             leaveCurrentFamily: true,
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -653,7 +653,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
       expect(mockInvitationService.acceptFamilyInvitation).toHaveBeenCalledWith(
         mockInviteCode,
         mockUserId,
-        { leaveCurrentFamily: true }
+        { leaveCurrentFamily: true },
       );
     });
 
@@ -668,7 +668,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -686,11 +686,11 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(
         app,
-        `/family/INVALIDCODE/accept`,
+        '/family/INVALIDCODE/accept',
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -712,7 +712,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -733,7 +733,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -754,7 +754,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -777,7 +777,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
           body: JSON.stringify({
             leaveCurrentFamily: true,
           }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -795,7 +795,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(500);
@@ -810,11 +810,11 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
     it('should return 404 for empty invite code', async () => {
       const response = await makeAuthenticatedRequest(
         app,
-        `/family//accept`,
+        '/family//accept',
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -828,11 +828,11 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(
         app,
-        `/family/INV@LID$/accept`,
+        '/family/INV@LID$/accept',
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -854,7 +854,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -870,11 +870,11 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
 
       const response = await makeAuthenticatedRequest(
         app,
-        `/family/   /accept`,
+        '/family/   /accept',
         {
           method: 'POST',
           body: JSON.stringify({}),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -889,7 +889,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ leaveCurrentFamily: 'yes' }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -905,7 +905,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         {
           method: 'POST',
           body: JSON.stringify({ leaveCurrentFamily: null }),
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -927,7 +927,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         `/family/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(200);
@@ -936,7 +936,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
       expect(json.message).toBe('Family invitation cancelled successfully');
       expect(mockInvitationService.cancelFamilyInvitation).toHaveBeenCalledWith(
         mockInvitationId,
-        mockUserId
+        mockUserId,
       );
     });
   });
@@ -951,7 +951,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         `/family/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(403);
@@ -970,7 +970,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         `/family/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -988,7 +988,7 @@ describe('InvitationController - Family Endpoints Test Suite', () => {
         `/family/${mockInvitationId}`,
         {
           method: 'DELETE',
-        }
+        },
       );
 
       expect(response.status).toBe(500);

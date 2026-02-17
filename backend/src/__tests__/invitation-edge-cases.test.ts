@@ -379,7 +379,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family',
                     role: 'OWNER',
                   });
@@ -433,7 +433,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family') {
                   return Promise.resolve({
-                    groupId: groupId,
+                    groupId,
                     familyId: 'admin-family',
                     role: 'OWNER',
                   });
