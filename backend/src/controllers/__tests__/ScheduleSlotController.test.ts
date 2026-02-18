@@ -98,7 +98,8 @@ describe('ScheduleSlotController Test Suite', () => {
 
     // Mock Prisma queries for access control
     // @ts-ignore - Mocking Prisma for testing
-    const { PrismaClient: MockedPrisma } = require('@prisma/client');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const MockedPrisma = require('@prisma/client').PrismaClient;
     const mockPrisma = new MockedPrisma() as any;
     mockPrisma.familyMember.findFirst = jest.fn() as any;
     mockPrisma.familyMember.findFirst.mockResolvedValue({
