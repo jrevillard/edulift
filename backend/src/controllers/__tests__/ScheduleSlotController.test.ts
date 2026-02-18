@@ -64,7 +64,7 @@ describe('ScheduleSlotController Test Suite', () => {
   const mockScheduleSlot = {
     id: TEST_IDS.SLOT,
     groupId: TEST_IDS.GROUP,
-    datetime: new Date('2024-01-08T08:00:00.000Z'),
+    datetime: '2024-01-08T08:00:00.000Z',
     vehicleAssignments: [{
       id: 'cltestvlassignment1234567890',
       vehicleId: TEST_IDS.VEHICLE,
@@ -83,8 +83,8 @@ describe('ScheduleSlotController Test Suite', () => {
       driver: {
         id: TEST_IDS.USER,
         name: 'John Doe',
-        email: 'john@example.com',
       },
+      childAssignments: [],
     }],
     childAssignments: [],
     totalCapacity: 30,
@@ -306,7 +306,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
@@ -342,7 +342,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlotWithVehicle = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [
           {
             id: 'cltestvlassignment1234567890',
@@ -470,7 +470,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
@@ -482,7 +482,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockResult = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [
           {
             id: 'remaining-vehicle-assignment',
@@ -542,7 +542,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
@@ -602,7 +602,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockSlotWithDetails = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [{
           id: 'cltestvlassignment1234567890',
           vehicleId: TEST_IDS.VEHICLE,
@@ -673,9 +673,14 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockSlotWithDetails = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [{
           id: 'cltestvlassignment1234567890',
+          vehicleId: TEST_IDS.VEHICLE,
+          scheduleSlotId: TEST_IDS.SLOT,
+          driverId: TEST_IDS.USER,
+          seatOverride: 0,
+          createdAt: '2024-01-01T00:00:00.000Z',
           vehicle: {
             id: TEST_IDS.VEHICLE,
             name: 'Bus 1',
@@ -688,6 +693,7 @@ describe('ScheduleSlotController Test Suite', () => {
             id: TEST_IDS.USER,
             name: 'John Doe',
           },
+          childAssignments: [],
         }],
         childAssignments: [],
         totalCapacity: 30,
@@ -810,7 +816,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlotWithChild = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [
           {
             id: TEST_IDS.VEHICLE_ASSIGNMENT,
@@ -933,7 +939,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [
           {
             id: TEST_IDS.VEHICLE_ASSIGNMENT,
@@ -1038,7 +1044,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [
           {
             id: validVehicleAssignmentId,
@@ -1122,7 +1128,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
-        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,

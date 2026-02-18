@@ -27167,13 +27167,12 @@
                                     "type": "string",
                                     "format": "email",
                                     "example": "john.doe@example.com",
-                                    "description": "Driver email"
+                                    "description": "Driver email (when included)"
                                   }
                                 },
                                 "required": [
                                   "id",
-                                  "name",
-                                  "email"
+                                  "name"
                                 ],
                                 "description": "Driver details (included when requested, null if no driver)"
                               },
@@ -27455,13 +27454,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },
@@ -28119,13 +28117,12 @@
                                     "type": "string",
                                     "format": "email",
                                     "example": "john.doe@example.com",
-                                    "description": "Driver email"
+                                    "description": "Driver email (when included)"
                                   }
                                 },
                                 "required": [
                                   "id",
-                                  "name",
-                                  "email"
+                                  "name"
                                 ],
                                 "description": "Driver details (included when requested, null if no driver)"
                               },
@@ -28407,13 +28404,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },
@@ -29064,13 +29060,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },
@@ -29352,13 +29347,12 @@
                                             "type": "string",
                                             "format": "email",
                                             "example": "john.doe@example.com",
-                                            "description": "Driver email"
+                                            "description": "Driver email (when included)"
                                           }
                                         },
                                         "required": [
                                           "id",
-                                          "name",
-                                          "email"
+                                          "name"
                                         ],
                                         "description": "Driver details (included when requested, null if no driver)"
                                       },
@@ -30027,13 +30021,12 @@
                                     "type": "string",
                                     "format": "email",
                                     "example": "john.doe@example.com",
-                                    "description": "Driver email"
+                                    "description": "Driver email (when included)"
                                   }
                                 },
                                 "required": [
                                   "id",
-                                  "name",
-                                  "email"
+                                  "name"
                                 ],
                                 "description": "Driver details (included when requested, null if no driver)"
                               },
@@ -30315,13 +30308,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },
@@ -30969,13 +30961,12 @@
                                     "type": "string",
                                     "format": "email",
                                     "example": "john.doe@example.com",
-                                    "description": "Driver email"
+                                    "description": "Driver email (when included)"
                                   }
                                 },
                                 "required": [
                                   "id",
-                                  "name",
-                                  "email"
+                                  "name"
                                 ],
                                 "description": "Driver details (included when requested, null if no driver)"
                               },
@@ -31257,13 +31248,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },
@@ -31874,13 +31864,12 @@
                                     "type": "string",
                                     "format": "email",
                                     "example": "john.doe@example.com",
-                                    "description": "Driver email"
+                                    "description": "Driver email (when included)"
                                   }
                                 },
                                 "required": [
                                   "id",
-                                  "name",
-                                  "email"
+                                  "name"
                                 ],
                                 "description": "Driver details (included when requested, null if no driver)"
                               },
@@ -32162,13 +32151,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },
@@ -32754,13 +32742,12 @@
                                           "type": "string",
                                           "format": "email",
                                           "example": "john.doe@example.com",
-                                          "description": "Driver email"
+                                          "description": "Driver email (when included)"
                                         }
                                       },
                                       "required": [
                                         "id",
-                                        "name",
-                                        "email"
+                                        "name"
                                       ],
                                       "description": "Driver details (included when requested, null if no driver)"
                                     },
@@ -33042,13 +33029,12 @@
                                               "type": "string",
                                               "format": "email",
                                               "example": "john.doe@example.com",
-                                              "description": "Driver email"
+                                              "description": "Driver email (when included)"
                                             }
                                           },
                                           "required": [
                                             "id",
-                                            "name",
-                                            "email"
+                                            "name"
                                           ],
                                           "description": "Driver details (included when requested, null if no driver)"
                                         },
@@ -34284,13 +34270,12 @@
                                     "type": "string",
                                     "format": "email",
                                     "example": "john.doe@example.com",
-                                    "description": "Driver email"
+                                    "description": "Driver email (when included)"
                                   }
                                 },
                                 "required": [
                                   "id",
-                                  "name",
-                                  "email"
+                                  "name"
                                 ],
                                 "description": "Driver details (included when requested, null if no driver)"
                               },
@@ -34572,13 +34557,12 @@
                                         "type": "string",
                                         "format": "email",
                                         "example": "john.doe@example.com",
-                                        "description": "Driver email"
+                                        "description": "Driver email (when included)"
                                       }
                                     },
                                     "required": [
                                       "id",
-                                      "name",
-                                      "email"
+                                      "name"
                                     ],
                                     "description": "Driver details (included when requested, null if no driver)"
                                   },

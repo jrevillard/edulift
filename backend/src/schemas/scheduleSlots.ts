@@ -280,9 +280,10 @@ export const ScheduleVehicleAssignmentSchema = z.object({
       }),
     email: z.string()
       .email('Invalid email format')
+      .optional()
       .openapi({
         example: 'john.doe@example.com',
-        description: 'Driver email',
+        description: 'Driver email (when included)',
       }),
   }).nullable()
     .optional()

@@ -78,7 +78,7 @@ export interface WeeklySchedule {
 export interface ScheduleSlotWithDetails {
   id: string;
   groupId: string;
-  datetime: Date;
+  datetime: string; // ISO string returned by service
   vehicleAssignments: Array<{
     id: string;
     vehicleId: string;
@@ -94,16 +94,17 @@ export interface ScheduleSlotWithDetails {
       createdAt: string;
       updatedAt: string;
     };
-    driver?: {
+    driver: {
       id: string;
       name: string;
-      email: string;
     } | null;
-    childAssignments?: Array<{
+    childAssignments: Array<{
       id: string;
+      scheduleSlotId: string;
       childId: string;
       vehicleAssignmentId: string;
-      child?: {
+      assignedAt: string;
+      child: {
         id: string;
         name: string;
         age: number | null;
@@ -119,34 +120,13 @@ export interface ScheduleSlotWithDetails {
     childId: string;
     vehicleAssignmentId: string;
     assignedAt: string;
-    child?: {
+    child: {
       id: string;
       name: string;
       age: number | null;
       familyId: string;
       createdAt: string;
       updatedAt: string;
-    };
-    vehicleAssignment?: {
-      id: string;
-      vehicleId: string;
-      scheduleSlotId: string;
-      driverId: string | null;
-      seatOverride: number | null;
-      createdAt: string;
-      vehicle: {
-        id: string;
-        name: string;
-        capacity: number;
-        familyId: string;
-        createdAt: string;
-        updatedAt: string;
-      };
-      driver?: {
-        id: string;
-        name: string;
-        email: string;
-      } | null;
     };
   }>;
   totalCapacity: number;
