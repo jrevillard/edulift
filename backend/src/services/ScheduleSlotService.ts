@@ -302,7 +302,23 @@ export class ScheduleSlotService {
           id: va.driver.id,
           name: va.driver.name,
         } : null,
-        childAssignments: [],
+        childAssignments: slot.childAssignments
+          .filter((assignment: unknown) => assignment.vehicleAssignmentId === va.id)
+          .map((assignment: unknown) => ({
+            id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+            scheduleSlotId: assignment.scheduleSlotId,
+            childId: assignment.childId,
+            vehicleAssignmentId: assignment.vehicleAssignmentId,
+            assignedAt: assignment.assignedAt.toISOString(),
+            child: {
+              id: assignment.child.id,
+              name: assignment.child.name,
+              age: assignment.child.age,
+              familyId: assignment.child.familyId,
+              createdAt: assignment.child.createdAt.toISOString(),
+              updatedAt: assignment.child.updatedAt.toISOString(),
+            },
+          })),
       })),
       childAssignments: (() => {
         const validAssignments = slot.childAssignments.filter((assignment: unknown) => assignment.vehicleAssignmentId);
@@ -424,7 +440,23 @@ export class ScheduleSlotService {
             id: va.driver.id,
             name: va.driver.name,
           } : null,
-          childAssignments: [],
+          childAssignments: validAssignments
+            .filter((assignment: unknown) => assignment.vehicleAssignmentId === va.id)
+            .map((assignment: unknown) => ({
+              id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+              scheduleSlotId: assignment.scheduleSlotId,
+              childId: assignment.childId,
+              vehicleAssignmentId: assignment.vehicleAssignmentId,
+              assignedAt: assignment.assignedAt.toISOString(),
+              child: {
+                id: assignment.child.id,
+                name: assignment.child.name,
+                age: assignment.child.age,
+                familyId: assignment.child.familyId,
+                createdAt: assignment.child.createdAt.toISOString(),
+                updatedAt: assignment.child.updatedAt.toISOString(),
+              },
+            })),
         })),
         childAssignments: validAssignments.map((assignment: unknown) => ({
           id: `${assignment.scheduleSlotId}_${assignment.childId}`,
