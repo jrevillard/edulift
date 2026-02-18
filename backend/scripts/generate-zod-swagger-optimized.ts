@@ -311,6 +311,36 @@ async function generateOpenAPISpec(): Promise<void> {
 
     fixNullableWithoutType(docs);
 
+    // Convert OpenAPI 3.0 nullable syntax to OpenAPI 3.1 syntax
+    // The library @asteasolutions/zod-to-openapi still generates "nullable": true
+    // even with OpenAPI 3.1.0, so we convert it to type array syntax.
+    let convertedCount = 0;
+    const convertNullableToOpenAPI31 = (obj: Record<string, unknown>): void => {
+      if (obj && typeof obj === 'object') {
+        if (Array.isArray(obj)) {
+          obj.forEach(convertNullableToOpenAPI31);
+        } else {
+          // Convert { type: "string", nullable: true } to { type: ["string", "null"] }
+          if (obj.nullable === true && obj.type && !Array.isArray(obj.type)) {
+            const originalType = obj.type as string | string[];
+            if (typeof originalType === 'string') {
+              obj.type = [originalType, 'null'];
+              delete obj.nullable;
+              convertedCount++;
+            }
+          }
+          for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+              convertNullableToOpenAPI31(obj[key] as Record<string, unknown>);
+            }
+          }
+        }
+      }
+    };
+
+    convertNullableToOpenAPI31(docs);
+    console.log(`🔄 Converted ${convertedCount} nullable fields to OpenAPI 3.1 syntax`);
+
     // Write generated spec to file
     const outputPath = path.join(__dirname, '../docs/openapi/swagger.json');
     fs.writeFileSync(outputPath, JSON.stringify(docs, null, 2));

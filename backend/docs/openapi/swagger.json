@@ -558,8 +558,10 @@
                               "description": "User display name"
                             },
                             "timezone": {
-                              "type": "string",
-                              "nullable": true,
+                              "type": [
+                                "string",
+                                "null"
+                              ],
                               "example": "America/New_York",
                               "description": "User timezone (IANA format)"
                             },
@@ -606,8 +608,10 @@
                           "type": "string"
                         },
                         "invitationResult": {
-                          "type": "object",
-                          "nullable": true,
+                          "type": [
+                            "object",
+                            "null"
+                          ],
                           "properties": {
                             "processed": {
                               "type": "boolean"
@@ -1369,8 +1373,10 @@
                           "description": "User display name"
                         },
                         "timezone": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "America/New_York",
                           "description": "User timezone (IANA format)"
                         },
@@ -1690,8 +1696,10 @@
                           "description": "User display name"
                         },
                         "timezone": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "America/New_York",
                           "description": "User timezone (IANA format)"
                         },
@@ -2004,8 +2012,10 @@
                           "description": "User display name"
                         },
                         "timezone": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "America/New_York",
                           "description": "User timezone (IANA format)"
                         },
@@ -3217,8 +3227,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -3693,8 +3705,10 @@
                             "description": "Number of available seats remaining"
                           },
                           "driverName": {
-                            "type": "string",
-                            "nullable": true,
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "example": "John Doe",
                             "description": "Name of the assigned driver (if any)"
                           }
@@ -4393,8 +4407,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -4839,8 +4855,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -5402,8 +5420,10 @@
                           "description": "When the child record was last updated"
                         },
                         "age": {
-                          "type": "number",
-                          "nullable": true,
+                          "type": [
+                            "number",
+                            "null"
+                          ],
                           "example": 8,
                           "description": "Child age (null if not specified)"
                         },
@@ -5742,8 +5762,10 @@
                             "description": "When the child record was last updated"
                           },
                           "age": {
-                            "type": "number",
-                            "nullable": true,
+                            "type": [
+                              "number",
+                              "null"
+                            ],
                             "example": 8,
                             "description": "Child age (null if not specified)"
                           },
@@ -5959,8 +5981,10 @@
                           "description": "When the child record was last updated"
                         },
                         "age": {
-                          "type": "number",
-                          "nullable": true,
+                          "type": [
+                            "number",
+                            "null"
+                          ],
                           "example": 8,
                           "description": "Child age (null if not specified)"
                         },
@@ -6269,8 +6293,10 @@
                           "description": "When the child record was last updated"
                         },
                         "age": {
-                          "type": "number",
-                          "nullable": true,
+                          "type": [
+                            "number",
+                            "null"
+                          ],
                           "example": 8,
                           "description": "Child age (null if not specified)"
                         },
@@ -6717,8 +6743,10 @@
                           "description": "When the child record was last updated"
                         },
                         "age": {
-                          "type": "number",
-                          "nullable": true,
+                          "type": [
+                            "number",
+                            "null"
+                          ],
                           "example": 8,
                           "description": "Child age (null if not specified)"
                         },
@@ -7274,8 +7302,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -7625,8 +7655,10 @@
                               "description": "When the child was last updated"
                             },
                             "age": {
-                              "type": "number",
-                              "nullable": true,
+                              "type": [
+                                "number",
+                                "null"
+                              ],
                               "example": 8,
                               "description": "Child age (null if not specified)"
                             }
@@ -8405,8 +8437,10 @@
                                 "description": "When the child was last updated"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (null if not specified)"
                               }
@@ -8818,8 +8852,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -9343,8 +9379,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -9915,8 +9953,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -11061,8 +11101,10 @@
                     "description": "Role for the invited member (defaults to MEMBER)"
                   },
                   "personalMessage": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "maxLength": 500,
                     "example": "Welcome to our family!",
                     "description": "Optional personal message for the invitation"
@@ -11129,8 +11171,10 @@
                           "description": "Invitation status"
                         },
                         "personalMessage": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "Welcome to our family!",
                           "description": "Personal invitation message"
                         },
@@ -11723,8 +11767,10 @@
                             "description": "Invitation status"
                           },
                           "personalMessage": {
-                            "type": "string",
-                            "nullable": true,
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "example": "Welcome to our family!",
                             "description": "Personal invitation message"
                           },
@@ -12795,8 +12841,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -13324,8 +13372,10 @@
                                 "description": "Child full name"
                               },
                               "age": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 8,
                                 "description": "Child age (nullable)"
                               }
@@ -14170,8 +14220,10 @@
                           "description": "Group display name"
                         },
                         "description": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "Carpool group for morning school transportation",
                           "description": "Group description"
                         },
@@ -14609,8 +14661,10 @@
                           "description": "Group display name"
                         },
                         "description": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "Carpool group for morning school transportation",
                           "description": "Group description"
                         },
@@ -15097,8 +15151,10 @@
                             "description": "Group display name"
                           },
                           "description": {
-                            "type": "string",
-                            "nullable": true,
+                            "type": [
+                              "string",
+                              "null"
+                            ],
                             "example": "Carpool group for morning school transportation",
                             "description": "Group description"
                           },
@@ -16417,8 +16473,10 @@
                     "description": "Role for the invited family (defaults to MEMBER)"
                   },
                   "personalMessage": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "maxLength": 500,
                     "example": "Welcome to our carpool group!",
                     "description": "Optional personal message for the invitation"
@@ -16485,8 +16543,10 @@
                           "description": "Invitation status"
                         },
                         "personalMessage": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "Welcome to our carpool group!",
                           "description": "Personal invitation message"
                         },
@@ -17540,8 +17600,10 @@
                           "description": "Group display name"
                         },
                         "description": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "Carpool group for morning school transportation",
                           "description": "Group description"
                         },
@@ -18066,8 +18128,10 @@
                           "description": "Group display name"
                         },
                         "description": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "Carpool group for morning school transportation",
                           "description": "Group description"
                         },
@@ -19355,8 +19419,10 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
                           "description": "Config ID (null for empty default configs that are not persisted)"
@@ -19468,15 +19534,19 @@
                           "description": "Group information"
                         },
                         "createdAt": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
                           "description": "Creation timestamp (null for empty default configs that are not persisted)"
                         },
                         "updatedAt": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
                           "description": "Last update timestamp (null for empty default configs that are not persisted)"
@@ -19984,8 +20054,10 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
                           "description": "Config ID (null for empty default configs that are not persisted)"
@@ -20097,15 +20169,19 @@
                           "description": "Group information"
                         },
                         "createdAt": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
                           "description": "Creation timestamp (null for empty default configs that are not persisted)"
                         },
                         "updatedAt": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
                           "description": "Last update timestamp (null for empty default configs that are not persisted)"
@@ -20516,8 +20592,10 @@
                       "type": "object",
                       "properties": {
                         "id": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
                           "description": "Config ID (null for empty default configs that are not persisted)"
@@ -20629,15 +20707,19 @@
                           "description": "Group information"
                         },
                         "createdAt": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
                           "description": "Creation timestamp (null for empty default configs that are not persisted)"
                         },
                         "updatedAt": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
                           "description": "Last update timestamp (null for empty default configs that are not persisted)"
@@ -21085,8 +21167,10 @@
                       "description": "Family identifier"
                     },
                     "email": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "email",
                       "example": "john.smith@example.com",
                       "description": "Invited email address"
@@ -21112,8 +21196,10 @@
                       "example": "PENDING"
                     },
                     "personalMessage": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "Welcome to our family!",
                       "description": "Personal message from inviter"
                     },
@@ -21129,15 +21215,19 @@
                       "description": "User ID of the inviter"
                     },
                     "acceptedAt": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "date-time",
                       "example": "2023-01-02T00:00:00.000Z",
                       "description": "Invitation acceptance timestamp (null until accepted)"
                     },
                     "acceptedBy": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "cuid",
                       "example": "cl123456789012345678901239",
                       "description": "User ID who accepted the invitation (null until accepted)"
@@ -21622,8 +21712,10 @@
                       "example": "MEMBER"
                     },
                     "personalMessage": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "Welcome to our family!",
                       "description": "Personal message from inviter (if valid)"
                     },
@@ -22098,15 +22190,19 @@
                       "description": "Group identifier"
                     },
                     "targetFamilyId": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "cuid",
                       "example": "cl123456789012345678901236",
                       "description": "Target family identifier"
                     },
                     "email": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "email",
                       "example": "john.smith@example.com",
                       "description": "Invited email address"
@@ -22133,8 +22229,10 @@
                       "example": "PENDING"
                     },
                     "personalMessage": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "Welcome to our group!",
                       "description": "Personal message from inviter"
                     },
@@ -22150,15 +22248,19 @@
                       "description": "User ID of the inviter"
                     },
                     "acceptedAt": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "date-time",
                       "example": "2023-01-02T00:00:00.000Z",
                       "description": "Invitation acceptance timestamp (null until accepted)"
                     },
                     "acceptedBy": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "format": "cuid",
                       "example": "cl123456789012345678901239",
                       "description": "User ID who accepted the invitation (null until accepted)"
@@ -22198,14 +22300,18 @@
                       "description": "Name of user who created the invitation"
                     },
                     "targetFamilyName": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "Johnson Family",
                       "description": "Target family name (null if invited by email)"
                     },
                     "ownerFamilyName": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "Smith Family",
                       "description": "Name of family that created the invitation"
                     }
@@ -22743,14 +22849,18 @@
                       "description": "Whether the invited email already corresponds to an existing user account (only present if valid)"
                     },
                     "targetFamilyId": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "cl123456789012345678901236",
                       "description": "Target family ID (present when a family is invited to join the group)"
                     },
                     "targetFamilyName": {
-                      "type": "string",
-                      "nullable": true,
+                      "type": [
+                        "string",
+                        "null"
+                      ],
                       "example": "Smith Family",
                       "description": "Name of the invited family"
                     },
@@ -23710,8 +23820,10 @@
                           "description": "Platform type"
                         },
                         "deviceId": {
-                          "type": "string",
-                          "nullable": true,
+                          "type": [
+                            "string",
+                            "null"
+                          ],
                           "example": "device_12345",
                           "description": "Device identifier"
                         },
@@ -23939,8 +24051,10 @@
                                 "description": "Platform type"
                               },
                               "deviceId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "device_12345",
                                 "description": "Device identifier"
                               },
@@ -26961,14 +27075,18 @@
                                 "description": "Schedule slot identifier"
                               },
                               "driverId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "cl123456789012345678901239",
                                 "description": "Driver identifier (null if no driver assigned)"
                               },
                               "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 6,
                                 "description": "Seat capacity override (null if using vehicle default)"
                               },
@@ -27030,8 +27148,10 @@
                                 "description": "Vehicle details (included when requested)"
                               },
                               "driver": {
-                                "type": "object",
-                                "nullable": true,
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
                                 "properties": {
                                   "id": {
                                     "type": "string",
@@ -27092,8 +27212,10 @@
                                           "description": "Child name"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 8,
                                           "description": "Child age (null if not specified)"
                                         },
@@ -27194,8 +27316,10 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -27239,14 +27363,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -27308,8 +27436,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -27370,8 +27500,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },
@@ -27895,14 +28027,18 @@
                                 "description": "Schedule slot identifier"
                               },
                               "driverId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "cl123456789012345678901239",
                                 "description": "Driver identifier (null if no driver assigned)"
                               },
                               "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 6,
                                 "description": "Seat capacity override (null if using vehicle default)"
                               },
@@ -27964,8 +28100,10 @@
                                 "description": "Vehicle details (included when requested)"
                               },
                               "driver": {
-                                "type": "object",
-                                "nullable": true,
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
                                 "properties": {
                                   "id": {
                                     "type": "string",
@@ -28026,8 +28164,10 @@
                                           "description": "Child name"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 8,
                                           "description": "Child age (null if not specified)"
                                         },
@@ -28128,8 +28268,10 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -28173,14 +28315,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -28242,8 +28388,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -28304,8 +28452,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },
@@ -28822,14 +28972,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -28891,8 +29045,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -28953,8 +29109,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },
@@ -29055,8 +29213,10 @@
                                         "type": "string"
                                       },
                                       "age": {
-                                        "type": "number",
-                                        "nullable": true
+                                        "type": [
+                                          "number",
+                                          "null"
+                                        ]
                                       },
                                       "familyId": {
                                         "type": "string",
@@ -29100,14 +29260,18 @@
                                         "description": "Schedule slot identifier"
                                       },
                                       "driverId": {
-                                        "type": "string",
-                                        "nullable": true,
+                                        "type": [
+                                          "string",
+                                          "null"
+                                        ],
                                         "example": "cl123456789012345678901239",
                                         "description": "Driver identifier (null if no driver assigned)"
                                       },
                                       "seatOverride": {
-                                        "type": "number",
-                                        "nullable": true,
+                                        "type": [
+                                          "number",
+                                          "null"
+                                        ],
                                         "example": 6,
                                         "description": "Seat capacity override (null if using vehicle default)"
                                       },
@@ -29169,8 +29333,10 @@
                                         "description": "Vehicle details (included when requested)"
                                       },
                                       "driver": {
-                                        "type": "object",
-                                        "nullable": true,
+                                        "type": [
+                                          "object",
+                                          "null"
+                                        ],
                                         "properties": {
                                           "id": {
                                             "type": "string",
@@ -29231,8 +29397,10 @@
                                                   "description": "Child name"
                                                 },
                                                 "age": {
-                                                  "type": "number",
-                                                  "nullable": true,
+                                                  "type": [
+                                                    "number",
+                                                    "null"
+                                                  ],
                                                   "example": 8,
                                                   "description": "Child age (null if not specified)"
                                                 },
@@ -29767,14 +29935,18 @@
                                 "description": "Schedule slot identifier"
                               },
                               "driverId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "cl123456789012345678901239",
                                 "description": "Driver identifier (null if no driver assigned)"
                               },
                               "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 6,
                                 "description": "Seat capacity override (null if using vehicle default)"
                               },
@@ -29836,8 +30008,10 @@
                                 "description": "Vehicle details (included when requested)"
                               },
                               "driver": {
-                                "type": "object",
-                                "nullable": true,
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
                                 "properties": {
                                   "id": {
                                     "type": "string",
@@ -29898,8 +30072,10 @@
                                           "description": "Child name"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 8,
                                           "description": "Child age (null if not specified)"
                                         },
@@ -30000,8 +30176,10 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -30045,14 +30223,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -30114,8 +30296,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -30176,8 +30360,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },
@@ -30608,8 +30794,10 @@
                 "type": "object",
                 "properties": {
                   "driverId": {
-                    "type": "string",
-                    "nullable": true,
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "format": "cuid",
                     "example": "cl123456789012345678901239",
                     "description": "New driver identifier (null to remove driver)"
@@ -30689,14 +30877,18 @@
                                 "description": "Schedule slot identifier"
                               },
                               "driverId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "cl123456789012345678901239",
                                 "description": "Driver identifier (null if no driver assigned)"
                               },
                               "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 6,
                                 "description": "Seat capacity override (null if using vehicle default)"
                               },
@@ -30758,8 +30950,10 @@
                                 "description": "Vehicle details (included when requested)"
                               },
                               "driver": {
-                                "type": "object",
-                                "nullable": true,
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
                                 "properties": {
                                   "id": {
                                     "type": "string",
@@ -30820,8 +31014,10 @@
                                           "description": "Child name"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 8,
                                           "description": "Child age (null if not specified)"
                                         },
@@ -30922,8 +31118,10 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -30967,14 +31165,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -31036,8 +31238,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -31098,8 +31302,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },
@@ -31576,14 +31782,18 @@
                                 "description": "Schedule slot identifier"
                               },
                               "driverId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "cl123456789012345678901239",
                                 "description": "Driver identifier (null if no driver assigned)"
                               },
                               "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 6,
                                 "description": "Seat capacity override (null if using vehicle default)"
                               },
@@ -31645,8 +31855,10 @@
                                 "description": "Vehicle details (included when requested)"
                               },
                               "driver": {
-                                "type": "object",
-                                "nullable": true,
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
                                 "properties": {
                                   "id": {
                                     "type": "string",
@@ -31707,8 +31919,10 @@
                                           "description": "Child name"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 8,
                                           "description": "Child age (null if not specified)"
                                         },
@@ -31809,8 +32023,10 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -31854,14 +32070,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -31923,8 +32143,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -31985,8 +32207,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },
@@ -32438,14 +32662,18 @@
                                       "description": "Schedule slot identifier"
                                     },
                                     "driverId": {
-                                      "type": "string",
-                                      "nullable": true,
+                                      "type": [
+                                        "string",
+                                        "null"
+                                      ],
                                       "example": "cl123456789012345678901239",
                                       "description": "Driver identifier (null if no driver assigned)"
                                     },
                                     "seatOverride": {
-                                      "type": "number",
-                                      "nullable": true,
+                                      "type": [
+                                        "number",
+                                        "null"
+                                      ],
                                       "example": 6,
                                       "description": "Seat capacity override (null if using vehicle default)"
                                     },
@@ -32507,8 +32735,10 @@
                                       "description": "Vehicle details (included when requested)"
                                     },
                                     "driver": {
-                                      "type": "object",
-                                      "nullable": true,
+                                      "type": [
+                                        "object",
+                                        "null"
+                                      ],
                                       "properties": {
                                         "id": {
                                           "type": "string",
@@ -32569,8 +32799,10 @@
                                                 "description": "Child name"
                                               },
                                               "age": {
-                                                "type": "number",
-                                                "nullable": true,
+                                                "type": [
+                                                  "number",
+                                                  "null"
+                                                ],
                                                 "example": 8,
                                                 "description": "Child age (null if not specified)"
                                               },
@@ -32671,8 +32903,10 @@
                                           "type": "string"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ]
                                         },
                                         "familyId": {
                                           "type": "string",
@@ -32716,14 +32950,18 @@
                                           "description": "Schedule slot identifier"
                                         },
                                         "driverId": {
-                                          "type": "string",
-                                          "nullable": true,
+                                          "type": [
+                                            "string",
+                                            "null"
+                                          ],
                                           "example": "cl123456789012345678901239",
                                           "description": "Driver identifier (null if no driver assigned)"
                                         },
                                         "seatOverride": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 6,
                                           "description": "Seat capacity override (null if using vehicle default)"
                                         },
@@ -32785,8 +33023,10 @@
                                           "description": "Vehicle details (included when requested)"
                                         },
                                         "driver": {
-                                          "type": "object",
-                                          "nullable": true,
+                                          "type": [
+                                            "object",
+                                            "null"
+                                          ],
                                           "properties": {
                                             "id": {
                                               "type": "string",
@@ -32847,8 +33087,10 @@
                                                     "description": "Child name"
                                                   },
                                                   "age": {
-                                                    "type": "number",
-                                                    "nullable": true,
+                                                    "type": [
+                                                      "number",
+                                                      "null"
+                                                    ],
                                                     "example": 8,
                                                     "description": "Child age (null if not specified)"
                                                   },
@@ -33950,14 +34192,18 @@
                                 "description": "Schedule slot identifier"
                               },
                               "driverId": {
-                                "type": "string",
-                                "nullable": true,
+                                "type": [
+                                  "string",
+                                  "null"
+                                ],
                                 "example": "cl123456789012345678901239",
                                 "description": "Driver identifier (null if no driver assigned)"
                               },
                               "seatOverride": {
-                                "type": "number",
-                                "nullable": true,
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
                                 "example": 6,
                                 "description": "Seat capacity override (null if using vehicle default)"
                               },
@@ -34019,8 +34265,10 @@
                                 "description": "Vehicle details (included when requested)"
                               },
                               "driver": {
-                                "type": "object",
-                                "nullable": true,
+                                "type": [
+                                  "object",
+                                  "null"
+                                ],
                                 "properties": {
                                   "id": {
                                     "type": "string",
@@ -34081,8 +34329,10 @@
                                           "description": "Child name"
                                         },
                                         "age": {
-                                          "type": "number",
-                                          "nullable": true,
+                                          "type": [
+                                            "number",
+                                            "null"
+                                          ],
                                           "example": 8,
                                           "description": "Child age (null if not specified)"
                                         },
@@ -34183,8 +34433,10 @@
                                     "type": "string"
                                   },
                                   "age": {
-                                    "type": "number",
-                                    "nullable": true
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ]
                                   },
                                   "familyId": {
                                     "type": "string",
@@ -34228,14 +34480,18 @@
                                     "description": "Schedule slot identifier"
                                   },
                                   "driverId": {
-                                    "type": "string",
-                                    "nullable": true,
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ],
                                     "example": "cl123456789012345678901239",
                                     "description": "Driver identifier (null if no driver assigned)"
                                   },
                                   "seatOverride": {
-                                    "type": "number",
-                                    "nullable": true,
+                                    "type": [
+                                      "number",
+                                      "null"
+                                    ],
                                     "example": 6,
                                     "description": "Seat capacity override (null if using vehicle default)"
                                   },
@@ -34297,8 +34553,10 @@
                                     "description": "Vehicle details (included when requested)"
                                   },
                                   "driver": {
-                                    "type": "object",
-                                    "nullable": true,
+                                    "type": [
+                                      "object",
+                                      "null"
+                                    ],
                                     "properties": {
                                       "id": {
                                         "type": "string",
@@ -34359,8 +34617,10 @@
                                               "description": "Child name"
                                             },
                                             "age": {
-                                              "type": "number",
-                                              "nullable": true,
+                                              "type": [
+                                                "number",
+                                                "null"
+                                              ],
                                               "example": 8,
                                               "description": "Child age (null if not specified)"
                                             },

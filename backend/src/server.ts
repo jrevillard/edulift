@@ -304,6 +304,36 @@ async function handleCLI() {
         ...openApiSpec.components,
       },
     };
+
+    // Convert OpenAPI 3.0 nullable syntax to OpenAPI 3.1 syntax
+    // The library generates "nullable": true but OpenAPI 3.1 uses type arrays
+    let convertedCount = 0;
+    const convertNullableToOpenAPI31 = (obj: any): void => {
+      if (obj && typeof obj === 'object') {
+        if (Array.isArray(obj)) {
+          obj.forEach(convertNullableToOpenAPI31);
+        } else {
+          // Convert { type: "string", nullable: true } to { type: ["string", "null"] }
+          if (obj.nullable === true && obj.type && !Array.isArray(obj.type)) {
+            const originalType = obj.type as string;
+            if (typeof originalType === 'string') {
+              obj.type = [originalType, 'null'];
+              delete obj.nullable;
+              convertedCount++;
+            }
+          }
+          for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+              convertNullableToOpenAPI31(obj[key]);
+            }
+          }
+        }
+      }
+    };
+
+    convertNullableToOpenAPI31(fullSpec);
+    console.log(`🔄 Converted ${convertedCount} nullable fields to OpenAPI 3.1 syntax`);
+
     const outputPath = join(docsDir, 'swagger.json');
     writeFileSync(outputPath, JSON.stringify(fullSpec, null, 2));
 
