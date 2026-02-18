@@ -285,6 +285,11 @@ export class ScheduleSlotService {
       datetime: slot.datetime,
       vehicleAssignments: slot.vehicleAssignments.map((va: unknown) => ({
         id: va.id,
+        vehicleId: va.vehicleId,
+        scheduleSlotId: va.scheduleSlotId,
+        driverId: va.driverId,
+        seatOverride: va.seatOverride,
+        createdAt: va.createdAt.toISOString(),
         vehicle: {
           id: va.vehicle.id,
           name: va.vehicle.name,
@@ -296,8 +301,8 @@ export class ScheduleSlotService {
         driver: va.driver ? {
           id: va.driver.id,
           name: va.driver.name,
-        } : undefined,
-        seatOverride: va.seatOverride,
+        } : null,
+        childAssignments: [],
       })),
       childAssignments: (() => {
         const validAssignments = slot.childAssignments.filter((assignment: unknown) => assignment.vehicleAssignmentId);
@@ -402,6 +407,11 @@ export class ScheduleSlotService {
         datetime: slot.datetime.toISOString(),
         vehicleAssignments: slot.vehicleAssignments.map((va: unknown) => ({
           id: va.id,
+          vehicleId: va.vehicleId,
+          scheduleSlotId: va.scheduleSlotId,
+          driverId: va.driverId,
+          seatOverride: va.seatOverride,
+          createdAt: va.createdAt.toISOString(),
           vehicle: {
             id: va.vehicle.id,
             name: va.vehicle.name,
@@ -413,8 +423,8 @@ export class ScheduleSlotService {
           driver: va.driver ? {
             id: va.driver.id,
             name: va.driver.name,
-          } : undefined,
-          seatOverride: va.seatOverride,
+          } : null,
+          childAssignments: [],
         })),
         childAssignments: validAssignments.map((assignment: unknown) => ({
           id: `${assignment.scheduleSlotId}_${assignment.childId}`,
