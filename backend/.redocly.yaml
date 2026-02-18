@@ -25,9 +25,8 @@ rules:
   # We're using OpenAPI 3.1.0 which supports nullable: true syntax
   # Zod's .nullable() generates: {"type": "string", "nullable": true}
   # This is VALID OpenAPI 3.1 syntax despite Redocly complaints
-  # Disable strict struct/spec validation for nullable properties
+  # Disable strict struct validation for nullable properties
   struct: off
-  spec: off
 
   # Disable example validation for Zod compatibility
   no-invalid-schema-examples: off

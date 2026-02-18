@@ -302,6 +302,7 @@ describe('ScheduleSlotController Test Suite', () => {
 
   describe('POST /schedule-slots/:scheduleSlotId/vehicles', () => {
     it('should assign vehicle to slot successfully', async () => {
+      // Initial schedule slot (before vehicle assignment)
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
@@ -334,9 +335,49 @@ describe('ScheduleSlotController Test Suite', () => {
           name: 'John Doe',
           email: 'driver@example.com',
         },
+        childAssignments: [],
       };
 
-      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+      // Updated schedule slot (after vehicle assignment)
+      const mockScheduleSlotWithVehicle = {
+        id: TEST_IDS.SLOT,
+        groupId: TEST_IDS.GROUP,
+        datetime: new Date('2024-01-01T09:00:00.000Z'),
+        vehicleAssignments: [
+          {
+            id: 'cltestvlassignment1234567890',
+            vehicleId: TEST_IDS.VEHICLE,
+            scheduleSlotId: TEST_IDS.SLOT,
+            driverId: TEST_IDS.USER,
+            seatOverride: 0,
+            createdAt: '2024-01-01T00:00:00.000Z',
+            vehicle: {
+              id: TEST_IDS.VEHICLE,
+              name: 'Unknown Vehicle',
+              capacity: 30,
+              familyId: TEST_IDS.FAMILY,
+              createdAt: '2024-01-01T00:00:00.000Z',
+              updatedAt: '2024-01-01T00:00:00.000Z',
+            },
+            driver: {
+              id: TEST_IDS.USER,
+              name: 'John Doe',
+              email: 'driver@example.com',
+            },
+            childAssignments: [],
+          },
+        ],
+        childAssignments: [],
+        totalCapacity: 30,
+        availableSeats: 30,
+        createdAt: '2024-01-01T00:HH:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      // Mock first call (before assignment) and second call (after assignment)
+      mockScheduleSlotService.getScheduleSlotDetails
+        .mockResolvedValueOnce(mockScheduleSlot)
+        .mockResolvedValueOnce(mockScheduleSlotWithVehicle);
       mockScheduleSlotService.assignVehicleToSlot.mockResolvedValue(mockAssignment);
 
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
@@ -350,17 +391,24 @@ describe('ScheduleSlotController Test Suite', () => {
 
       expect(response.status).toBe(201);
       const jsonResponse = await responseJson(response);
+      // Expects complete ScheduleSlot structure (not just VehicleAssignment)
       expect(jsonResponse).toEqual({
         success: true,
         data: expect.objectContaining({
-          id: 'cltestvlassignment1234567890',
-          vehicle: expect.objectContaining({
-            id: TEST_IDS.VEHICLE,
-            capacity: 30,
-          }),
-          driver: expect.objectContaining({
-            id: TEST_IDS.USER,
-          }),
+          id: TEST_IDS.SLOT, // ScheduleSlot ID (not VehicleAssignment ID)
+          groupId: TEST_IDS.GROUP,
+          vehicleAssignments: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'cltestvlassignment1234567890',
+              vehicle: expect.objectContaining({
+                id: TEST_IDS.VEHICLE,
+                capacity: 30,
+              }),
+              driver: expect.objectContaining({
+                id: TEST_IDS.USER,
+              }),
+            }),
+          ]),
         }),
       });
 
@@ -371,11 +419,11 @@ describe('ScheduleSlotController Test Suite', () => {
         seatOverride: undefined,
       });
 
-      // Verify WebSocket emissions
+      // Verify WebSocket emissions - now broadcasts complete ScheduleSlot
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).toHaveBeenCalledWith(
         TEST_IDS.GROUP,
         TEST_IDS.SLOT,
-        mockAssignment,
+        mockScheduleSlotWithVehicle,
       );
       expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith(TEST_IDS.GROUP);
     });
@@ -709,8 +757,8 @@ describe('ScheduleSlotController Test Suite', () => {
     });
   });
 
-  describe('POST /schedule-slots/:scheduleSlotId/children', () => {
-    it('should assign child to slot successfully', async () => {
+  describe('PATCH /schedule-slots/:scheduleSlotId/vehicles/:vehicleAssignmentId', () => {
+    it('should assign child to vehicle successfully', async () => {
       const mockAssignment = {
         id: `${TEST_IDS.SLOT}_${TEST_IDS.CHILD}`, // Composite ID for child assignment
         scheduleSlotId: TEST_IDS.SLOT,
@@ -758,7 +806,7 @@ describe('ScheduleSlotController Test Suite', () => {
         },
       };
 
-      // ✅ Updated: Complete ScheduleSlot with child assignment included
+      // Complete ScheduleSlot with child assignment included
       const mockScheduleSlotWithChild = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
@@ -810,21 +858,30 @@ describe('ScheduleSlotController Test Suite', () => {
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlotWithChild);
-      mockChildAssignmentService.assignChildToScheduleSlot.mockResolvedValue(mockAssignment);
-
-      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/children`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          childId: TEST_IDS.CHILD,
-          vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
-        }),
+      // Mock initial call (returns slot without new child)
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValueOnce({
+        ...mockScheduleSlotWithChild,
+        childAssignments: [], // Initially empty
       });
+      mockChildAssignmentService.assignChildToScheduleSlot.mockResolvedValue(mockAssignment);
+      // Mock second call (returns slot with new child)
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValueOnce(mockScheduleSlotWithChild);
 
-      expect(response.status).toBe(201);
+      const response = await makeAuthenticatedRequest(
+        app,
+        `/schedule-slots/${TEST_IDS.SLOT}/vehicles/${TEST_IDS.VEHICLE_ASSIGNMENT}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            addChildIds: [TEST_IDS.CHILD],
+          }),
+        },
+      );
+
+      expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      // ✅ Updated: Now expects ScheduleSlot structure instead of ChildAssignment
+      // Expects ScheduleSlot structure
       expect(jsonResponse).toEqual({
         success: true,
         data: expect.objectContaining({
@@ -863,7 +920,7 @@ describe('ScheduleSlotController Test Suite', () => {
         mockUserId,
       );
 
-      // Verify WebSocket emissions - now broadcasts complete ScheduleSlot
+      // Verify WebSocket emissions - broadcasts complete ScheduleSlot
       expect(mockSocketEmitter.broadcastScheduleSlotUpdate).toHaveBeenCalledWith(
         TEST_IDS.GROUP,
         TEST_IDS.SLOT,
@@ -872,31 +929,74 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(mockSocketEmitter.broadcastScheduleUpdate).toHaveBeenCalledWith(TEST_IDS.GROUP);
     });
 
-    it('should throw error if childId is missing', async () => {
-      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/children`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT }), // childId missing
-      });
+    it('should handle empty addChildIds array', async () => {
+      const mockScheduleSlot = {
+        id: TEST_IDS.SLOT,
+        groupId: TEST_IDS.GROUP,
+        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        vehicleAssignments: [
+          {
+            id: TEST_IDS.VEHICLE_ASSIGNMENT,
+            vehicleId: TEST_IDS.VEHICLE,
+            scheduleSlotId: TEST_IDS.SLOT,
+            driverId: TEST_IDS.USER,
+            seatOverride: 0,
+            createdAt: '2024-01-01T00:00:00.000Z',
+            vehicle: {
+              id: TEST_IDS.VEHICLE,
+              name: 'Test Vehicle',
+              capacity: 30,
+              familyId: TEST_IDS.FAMILY,
+              createdAt: '2024-01-01T00:00:00.000Z',
+              updatedAt: '2024-01-01T00:00:00.000Z',
+            },
+            driver: {
+              id: TEST_IDS.USER,
+              name: 'Test Driver',
+              email: 'driver@test.com',
+            },
+            childAssignments: [],
+          },
+        ],
+        childAssignments: [],
+        totalCapacity: 30,
+        availableSeats: 30,
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
 
-      expect(response.status).toBe(400);
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+
+      const response = await makeAuthenticatedRequest(
+        app,
+        `/schedule-slots/${TEST_IDS.SLOT}/vehicles/${TEST_IDS.VEHICLE_ASSIGNMENT}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ addChildIds: [] }), // empty array
+        },
+      );
+
+      // Empty array is valid, but no children are added - should still return 200
+      expect(response.status).toBe(200);
       const jsonResponse = await responseJson(response);
-      expect(jsonResponse.success).toBe(false);
-      expect(jsonResponse.error).toBeDefined();
-      // Zod validation errors contain error details
-      expect(jsonResponse.error).toHaveProperty('message');
-      expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
+      expect(jsonResponse.success).toBe(true);
+
+      // Verify child assignment service was NOT called
+      expect(mockChildAssignmentService.assignChildToScheduleSlot).not.toHaveBeenCalled();
     });
 
     it('should handle authentication required error', async () => {
-      const response = await app.request(`/schedule-slots/${TEST_IDS.SLOT}/children`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          childId: TEST_IDS.CHILD,
-          vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
-        }),
-      });
+      const response = await app.request(
+        `/schedule-slots/${TEST_IDS.SLOT}/vehicles/${TEST_IDS.VEHICLE_ASSIGNMENT}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            addChildIds: [TEST_IDS.CHILD],
+          }),
+        },
+      );
 
       expect(response.status).toBe(401);
       const jsonResponse = await responseJson(response);
