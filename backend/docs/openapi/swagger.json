@@ -26987,7 +26987,10 @@
                     "description": "Vehicle identifier for assignment"
                   },
                   "driverId": {
-                    "type": "string",
+                    "type": [
+                      "string",
+                      "null"
+                    ],
                     "format": "cuid",
                     "example": "cl123456789012345678901239",
                     "description": "Optional driver identifier"

@@ -104,6 +104,7 @@ export const CreateScheduleSlotWithVehicleSchema = z.object({
       description: 'Vehicle identifier for assignment',
     }),
   driverId: z.cuid('Invalid driver ID format')
+    .nullable()
     .optional()
     .openapi({
       example: 'cl123456789012345678901239',

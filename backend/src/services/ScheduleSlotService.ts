@@ -126,7 +126,7 @@ export class ScheduleSlotService {
     slotData: CreateScheduleSlotData,
     vehicleId: string,
     userId: string,
-    driverId?: string,
+    driverId?: string | null,
     seatOverride?: number,
   ) {
     const datetime = new Date(slotData.datetime);
