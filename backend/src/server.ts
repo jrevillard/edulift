@@ -341,8 +341,13 @@ async function handleCLI() {
     convertNullableToOpenAPI31(fullSpec);
     console.log(`🔄 Converted ${convertedCount} nullable fields to OpenAPI 3.1 syntax`);
 
+    // Verify conversion worked
+    const searchForNullable = JSON.stringify(fullSpec, null, 2);
+    const nullableCount = (searchForNullable.match(/"nullable": true/g) || []).length;
+    console.log(`⚠️  Old nullable syntax remaining: ${nullableCount}`);
+
     const outputPath = join(docsDir, 'swagger.json');
-    writeFileSync(outputPath, JSON.stringify(fullSpec, null, 2));
+    writeFileSync(outputPath, searchForNullable);
 
     console.log('✅ OpenAPI documentation generated!');
     console.log(`📄 Saved to: ${outputPath}`);

@@ -84,15 +84,14 @@ function transformVehicleAssignment(assignment: any): any {
     id: assignment.id,
     vehicleId: assignment.vehicleId,
     scheduleSlotId: assignment.scheduleSlotId,
-    driverId: assignment.driverId,
+    driverId: assignment.driverId,  // Preserve null from Prisma
     seatOverride: assignment.seatOverride,
     createdAt: assignment.createdAt ? dateToISOString(assignment.createdAt) : assignment.createdAt,
     vehicle: assignment.vehicle,
     driver: assignment.driver ? {
       id: assignment.driver.id,
       name: assignment.driver.name,
-      email: assignment.driver.email,
-    } : undefined,
+    } : null,  // ✅ FIX: null instead of undefined to match OpenAPI schema
   };
 }
 
