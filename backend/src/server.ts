@@ -12,6 +12,10 @@
  * - Modern ES modules with TSX
  */
 
+// Increase MaxListeners BEFORE any imports to avoid EventEmitter warnings
+// Hono's OpenAPI generation adds multiple listeners, causing warnings
+process.setMaxListeners(50);
+
 import 'dotenv/config';
 
 // Import console override FIRST to ensure ALL console calls respect LOG_LEVEL
@@ -282,6 +286,9 @@ async function handleCLI() {
 
   if (args.includes('--generate-openapi')) {
     console.log('🚀 Generating State-of-the-Art OpenAPI...');
+
+    // Increase MaxListeners to avoid EventEmitter warnings during OpenAPI generation
+    process.setMaxListeners(20);
 
     // Write to file
     const { writeFileSync, mkdirSync, existsSync } = await import('fs');
