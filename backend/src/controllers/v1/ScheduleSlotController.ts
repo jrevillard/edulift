@@ -352,7 +352,7 @@ const removeVehicleRoute = createRoute({
               // Case 1: Schedule slot was deleted (last vehicle removed)
               z.object({
                 message: z.string(),
-                slotDeleted: z.literal(true),
+                slotDeleted: z.boolean(),
               }),
               // Case 2: Schedule slot still exists with remaining vehicles
               ScheduleSlotSchema,

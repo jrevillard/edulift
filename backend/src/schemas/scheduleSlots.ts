@@ -664,7 +664,7 @@ registerPath({
               ScheduleSlotSchema, // When slot still exists with other vehicles
               z.object({
                 message: z.string(),
-                slotDeleted: z.literal(true),
+                slotDeleted: z.boolean(),
               }), // When slot was deleted (last vehicle)
             ]),
           }),

@@ -28906,10 +28906,7 @@
                               "type": "string"
                             },
                             "slotDeleted": {
-                              "type": "boolean",
-                              "enum": [
-                                true
-                              ]
+                              "type": "boolean"
                             }
                           },
                           "required": [
