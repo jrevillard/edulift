@@ -157,6 +157,17 @@ jobs:
             echo "✅ OpenAPI specification is up to date"
             rm docs/openapi/swagger.json.committed
           fi
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+          JWT_ACCESS_SECRET: test_jwt_secret_key_for_ci
+          EMAIL_HOST: localhost
+          EMAIL_PORT: 587
+          EMAIL_USER: test@example.com
+          EMAIL_PASSWORD: test_password
+          EMAIL_FROM: test@example.com
+          FRONTEND_URL: http://localhost:3000
 
       - name: Run backend tests (with tsx runtime)
         run: |
