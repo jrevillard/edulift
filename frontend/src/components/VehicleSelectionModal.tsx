@@ -368,7 +368,14 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                             {hasSeatOverride(vehicleAssignment) && vehicleAssignment.vehicle && (
                               <span className="text-gray-500"> (original: {vehicleAssignment.vehicle?.capacity})</span>
                             )}
-                            {vehicleAssignment.driver && ` • Driver: ${vehicleAssignment.driver.firstName} ${vehicleAssignment.driver.lastName}`.trim()}
+                            {vehicleAssignment.driver && (
+                              <>
+                                {' • Driver: '}
+                                {'firstName' in vehicleAssignment.driver ? vehicleAssignment.driver.firstName : 'name' in vehicleAssignment.driver ? vehicleAssignment.driver.name : 'Unknown'}
+                                {' '}
+                                {'lastName' in vehicleAssignment.driver ? vehicleAssignment.driver.lastName : ''}
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>

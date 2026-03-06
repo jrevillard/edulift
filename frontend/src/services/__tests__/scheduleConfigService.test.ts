@@ -65,47 +65,6 @@ describe('ScheduleConfigService', () => {
     });
   });
 
-  describe('getGroupTimeSlots', () => {
-    it('should fetch time slots for specific weekday', async () => {
-      const mockTimeSlots = {
-        groupId: 'group-1',
-        weekday: 'MONDAY',
-        timeSlots: ['07:00', '07:30', '08:00']
-      };
-
-      vi.mocked(api.GET).mockResolvedValue({
-        data: { success: true, data: mockTimeSlots },
-        error: undefined,
-        response: new Response()
-      });
-
-      const result = await scheduleConfigService.getGroupTimeSlots('group-1', 'MONDAY');
-
-      expect(api.GET).toHaveBeenCalledWith(
-        '/api/v1/groups/{groupId}/schedule-config/time-slots',
-        {
-          params: {
-            path: { groupId: 'group-1' },
-            query: { weekday: 'MONDAY' }
-          }
-        }
-      );
-      expect(result).toEqual({
-        groupId: mockTimeSlots.groupId,
-        weekday: mockTimeSlots.weekday,
-        timeSlots: mockTimeSlots.timeSlots
-      });
-    });
-
-    it('should handle API errors when fetching time slots', async () => {
-      const error = new Error('Invalid weekday');
-      vi.mocked(api.GET).mockRejectedValue(error);
-
-      await expect(scheduleConfigService.getGroupTimeSlots('group-1', 'INVALID_DAY'))
-        .rejects.toThrow('Invalid weekday');
-    });
-  });
-
   describe('updateGroupScheduleConfig', () => {
     it('should update group schedule configuration', async () => {
       const scheduleHours: ScheduleHours = {
@@ -239,33 +198,6 @@ describe('ScheduleConfigService', () => {
       expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
         params: { path: { groupId: 'group-1' } }
       });
-    });
-  });
-
-  describe('getDefaultScheduleHours', () => {
-    it('should fetch default schedule hours', async () => {
-      const mockDefaultHours = {
-        scheduleHours: {
-          'MONDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
-        },
-        isDefault: true
-      };
-
-      vi.mocked(api.GET).mockResolvedValue({
-        data: { success: true, data: mockDefaultHours },
-        error: undefined,
-        response: new Response()
-      });
-
-      const result = await scheduleConfigService.getDefaultScheduleHours();
-
-      expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/schedule-config/default');
-      expect(result).toEqual(mockDefaultHours);
-      expect(result.isDefault).toBe(true);
     });
   });
 

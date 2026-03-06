@@ -19,11 +19,14 @@
  * - Users can be in one family but multiple groups
  */
 
-// Export family types for resource management (children, vehicles ownership)
-export * from './family';
-
 // Export API-generated types (User, Child, Vehicle, GroupScheduleConfig, etc.)
 export * from './api';
+
+// Import User type for use in Group interface
+import type { User } from './api';
+
+// Export family types for resource management (children, vehicles ownership)
+export * from './family';
 
 // Group types for scheduling coordination system
 export interface Group {

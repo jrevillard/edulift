@@ -9,10 +9,8 @@ export type FamilyPermissions = paths['/api/v1/families/{familyId}/permissions']
 export type Child = NonNullable<BaseFamily['children']>[0];
 export type Vehicle = NonNullable<BaseFamily['vehicles']>[0];
 
-// Ensure backward compatibility by making inviteCode required (not optional/null)
-export type Family = Omit<BaseFamily, 'inviteCode'> & {
-  inviteCode: string; // Always required for backward compatibility
-};
+// Use BaseFamily directly since inviteCode is no longer returned by the API
+export type Family = BaseFamily;
 
 // Request types from components schemas
 export type CreateFamilyRequest = components['schemas']['CreateFamilyRequest'];
@@ -64,12 +62,8 @@ class FamilyApiService {
         throw new Error('Failed to create family');
       }
 
-      // Ensure backward compatibility by providing default inviteCode if null/undefined
       const familyData = response.data;
-      return {
-        ...familyData,
-        inviteCode: familyData.inviteCode || '',
-      };
+      return familyData;
     } catch (error) {
       console.error('🚨 FamilyApiService: Error creating family:', error);
       throw error;
@@ -114,12 +108,8 @@ class FamilyApiService {
         throw new Error('Failed to join family');
       }
 
-      // Ensure backward compatibility by providing default inviteCode if null/undefined
       const familyData = response.data;
-      return {
-        ...familyData,
-        inviteCode: familyData.inviteCode || '',
-      };
+      return familyData;
     } catch (error) {
       // Network or other errors
       if (error instanceof Error) {
@@ -164,11 +154,7 @@ class FamilyApiService {
         console.log('📝 FamilyApiService: No current family found');
       }
 
-      // Ensure backward compatibility by providing default inviteCode if null/undefined
-      return familyData ? {
-        ...familyData,
-        inviteCode: familyData.inviteCode || '',
-      } : null;
+      return familyData as Family | null;
     } catch (error) {
       // Check if it's a 404 error object
       if (typeof error === 'object' && error !== null && (error as { status?: number }).status === 404) {
@@ -299,12 +285,8 @@ class FamilyApiService {
       throw new Error('Failed to update family name');
     }
 
-    // Ensure backward compatibility by providing default inviteCode if null/undefined
     const familyData = response.data;
-    return {
-      ...familyData,
-      inviteCode: familyData.inviteCode || '',
-    };
+    return familyData as Family;
   }
 
   // Permissions
@@ -486,8 +468,7 @@ class FamilyApiService {
     }
 
     // API returns: { id, name, capacity, familyId, createdAt, updatedAt }
-    // OpenAPI Vehicle type expects: { id, name, capacity, familyId, createdAt, updatedAt }
-    return response.data;
+    return response.data as Vehicle;
   }
 }
 

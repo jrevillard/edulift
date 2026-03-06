@@ -220,7 +220,7 @@ const DashboardPage: React.FC = () => {
                 <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 animate-pulse" />
               </div>
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground font-medium">
-                Your transport dashboard • {formatDatetimeInTimezone(new Date(), 'EEEE, MMMM d', user?.timezone)}
+                Your transport dashboard • {formatDatetimeInTimezone(new Date(), 'EEEE, MMMM d', user?.timezone || undefined)}
               </p>
             </div>
           </div>

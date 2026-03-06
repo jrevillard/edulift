@@ -254,7 +254,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
     } }, error: undefined });
 
     vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
-      if (path.includes('/schedule-slots/') && path.includes('/api/v1/vehicles')) {
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}/vehicles') {
         assignSpy(path, options);
         return Promise.resolve({ data: { data: {
           id: 'assignment-1',

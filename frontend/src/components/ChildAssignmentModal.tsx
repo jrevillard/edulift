@@ -366,7 +366,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                 <div>
                   <div className="flex items-center space-x-2">
                     <span data-testid="ChildAssignmentModal-Text-singleVehicleName">{currentSlot.vehicleAssignments[0].vehicle ? getVehicleName(currentSlot.vehicleAssignments[0].vehicle) : 'Unknown Vehicle'}</span>
-                    <span className="text-sm text-gray-500">- {getWeekdayInTimezone(scheduleSlot.datetime, user?.timezone)} at {getTimeInTimezone(scheduleSlot.datetime, user?.timezone)}</span>
+                    <span className="text-sm text-gray-500">- {getWeekdayInTimezone(scheduleSlot.datetime, user?.timezone || undefined)} at {getTimeInTimezone(scheduleSlot.datetime, user?.timezone || undefined)}</span>
                   </div>
                   {currentSlot.vehicleAssignments[0].driver && (
                     <div className="text-sm font-normal text-gray-600" data-testid="ChildAssignmentModal-Text-singleVehicleDriver">
@@ -378,7 +378,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
             ) : (
               <>
                 <span className="text-blue-600">👥</span>
-                <span data-testid="ChildAssignmentModal-Text-manageChildrenTitle">Manage Children - {getWeekdayInTimezone(scheduleSlot.datetime, user?.timezone)} at {getTimeInTimezone(scheduleSlot.datetime, user?.timezone)}</span>
+                <span data-testid="ChildAssignmentModal-Text-manageChildrenTitle">Manage Children - {getWeekdayInTimezone(scheduleSlot.datetime, user?.timezone || undefined)} at {getTimeInTimezone(scheduleSlot.datetime, user?.timezone || undefined)}</span>
               </>
             )}
           </h2>

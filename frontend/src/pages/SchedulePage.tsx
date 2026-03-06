@@ -1261,8 +1261,8 @@ const SchedulePage: React.FC = () => {
         scheduleSlotId={selectedScheduleSlot?.id || ''}
         existingScheduleSlot={selectedScheduleSlot || undefined}
         groupId={selectedGroup}
-        day={selectedScheduleSlot ? getWeekdayInTimezone(selectedScheduleSlot.datetime, user?.timezone).toUpperCase() : ''}
-        time={selectedScheduleSlot ? getTimeInTimezone(selectedScheduleSlot.datetime, user?.timezone) : ''}
+        day={selectedScheduleSlot ? getWeekdayInTimezone(selectedScheduleSlot.datetime, user?.timezone || undefined).toUpperCase() : ''}
+        time={selectedScheduleSlot ? getTimeInTimezone(selectedScheduleSlot.datetime, user?.timezone || undefined) : ''}
         week={currentWeek}
       />
 

@@ -199,13 +199,14 @@ export class GroupApiService {
   // Cancel group invitation
   async cancelGroupInvitation(invitationId: string) {
     try {
-      const { data } = await api.DELETE('/api/v1/invitations/group/{invitationId}', {
+      const { error } = await api.DELETE('/api/v1/invitations/group/{invitationId}', {
         params: { path: { invitationId } }
       });
 
-      if (!data?.success) {
+      if (error) {
         throw new Error('Failed to cancel group invitation');
       }
+
       return { success: true };
     } catch (error: unknown) {
       console.error('Error canceling group invitation:', error);

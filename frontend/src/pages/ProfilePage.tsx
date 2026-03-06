@@ -211,7 +211,7 @@ const ProfilePage: React.FC = () => {
           <div className="space-y-2">
             <Label htmlFor="timezone">Timezone</Label>
             <TimezoneSelector
-              currentTimezone={user.timezone}
+              currentTimezone={user.timezone || undefined}
               onTimezoneChange={() => {
                 // Timezone is updated via authService, no additional action needed
                 // The updateUser() call in TimezoneSelector will refresh the user state

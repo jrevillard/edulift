@@ -9,17 +9,6 @@ export interface ScheduleHours {
 // Re-export GroupScheduleConfig from generated types for convenience
 export type { GroupScheduleConfig };
 
-export interface GroupTimeSlots {
-  groupId: string;
-  weekday: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
-  timeSlots: string[];
-}
-
-export interface DefaultScheduleHours {
-  scheduleHours: ScheduleHours;
-  isDefault: true;
-}
-
 class ScheduleConfigService {
   /**
    * Get schedule configuration for a group
@@ -29,28 +18,18 @@ class ScheduleConfigService {
       params: { path: { groupId } }
     });
 
-    if (error || !data?.success || !data?.data) {
-      throw new Error(error || 'Failed to get group schedule config');
+    if (error) {
+      throw new Error(typeof error === 'string' ? error : 'Failed to get group schedule config');
     }
-    return data.data;
+
+    if (!data) {
+      throw new Error('Failed to get group schedule config');
+    }
+
+    // Extract the actual data from the response wrapper
+    return (data as any).data as unknown as GroupScheduleConfig;
   }
 
-  /**
-   * Get time slots for a specific group and weekday
-   */
-  async getGroupTimeSlots(groupId: string, weekday: GroupTimeSlots['weekday']): Promise<GroupTimeSlots> {
-    const { data, error } = await api.GET('/api/v1/groups/{groupId}/schedule-config/time-slots', {
-      params: {
-        path: { groupId },
-        query: { weekday }
-      }
-    });
-
-    if (error || !data?.success || !data?.data) {
-      throw new Error(error || 'Failed to get group time slots');
-    }
-    return data.data;
-  }
 
   /**
    * Update schedule configuration for a group
@@ -61,10 +40,16 @@ class ScheduleConfigService {
       body: { scheduleHours }
     });
 
-    if (error || !data?.success || !data?.data) {
-      throw new Error(error || 'Failed to update group schedule config');
+    if (error) {
+      throw new Error(typeof error === 'string' ? error : 'Failed to update group schedule config');
     }
-    return data.data;
+
+    if (!data) {
+      throw new Error('Failed to update group schedule config');
+    }
+
+    // Extract the actual data from the response wrapper
+    return (data as any).data as unknown as GroupScheduleConfig;
   }
 
   /**
@@ -75,23 +60,18 @@ class ScheduleConfigService {
       params: { path: { groupId } }
     });
 
-    if (error || !data?.success || !data?.data) {
-      throw new Error(error || 'Failed to reset group schedule config');
+    if (error) {
+      throw new Error(typeof error === 'string' ? error : 'Failed to reset group schedule config');
     }
-    return data.data;
+
+    if (!data) {
+      throw new Error('Failed to reset group schedule config');
+    }
+
+    // Extract the actual data from the response wrapper
+    return (data as any).data as unknown as GroupScheduleConfig;
   }
 
-  /**
-   * Get default schedule hours
-   */
-  async getDefaultScheduleHours(): Promise<DefaultScheduleHours> {
-    const { data, error } = await api.GET('/api/v1/groups/schedule-config/default');
-
-    if (error || !data?.success || !data?.data) {
-      throw new Error(error || 'Failed to get default schedule hours');
-    }
-    return data.data;
-  }
 }
 
 export const scheduleConfigService = new ScheduleConfigService();
