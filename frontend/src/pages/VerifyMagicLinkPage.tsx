@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
@@ -36,6 +36,7 @@ const VerifyMagicLinkPage: React.FC = () => {
     error: null,
     hasAttempted: false,
   });
+  const hasAttemptedRef = useRef(false);
   const [invitationState, setInvitationState] = useState<{
     showProposal: boolean;
     pendingInvitation: PendingInvitation | null;
@@ -80,12 +81,13 @@ const VerifyMagicLinkPage: React.FC = () => {
     }
 
     // Prevent re-attempting verification after an error
-    if (verificationState.hasAttempted) {
+    if (hasAttemptedRef.current) {
       return;
     }
 
     try {
       setVerificationState({ isVerifying: true, error: null, hasAttempted: true });
+      hasAttemptedRef.current = true;
       const result = await verifyMagicLink(token, inviteCode || undefined);
 
       // Check if invitation was processed automatically by backend
@@ -127,8 +129,9 @@ const VerifyMagicLinkPage: React.FC = () => {
         error: error instanceof Error ? error.message : 'Verification failed',
         hasAttempted: true,
       });
+      hasAttemptedRef.current = true;
     }
-  }, [token, inviteCode, verifyMagicLink, isAuthenticated, verificationState.hasAttempted, navigate]);
+  }, [token, inviteCode, verifyMagicLink, isAuthenticated, navigate]);
 
   useEffect(() => {
     // Only proceed if auth context is not loading

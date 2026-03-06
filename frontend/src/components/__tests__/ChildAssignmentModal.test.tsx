@@ -3,9 +3,9 @@ import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/reac
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import ChildAssignmentModal from '../ChildAssignmentModal';
-import { apiService } from '../../services/apiService';
-import { createMockApiService } from '../../test/test-utils';
-import type { Child, ScheduleSlot } from '../../services/apiService';
+import { api } from '../../services/api';
+import { createMockOpenAPIClient } from '../../test/test-utils';
+import type { Child, ScheduleSlot } from '../../types/api';
 
 // Mock the contexts
 vi.mock('../../contexts/AuthContext', () => ({
@@ -20,9 +20,9 @@ vi.mock('../../contexts/SocketContext', () => ({
   }))
 }));
 
-// Mock the API service
-vi.mock('../../services/apiService');
-const mockApiService = apiService as unknown;
+// Mock the OpenAPI client
+vi.mock('../../services/api');
+const mockApi = api as unknown;
 
 // Mock useQueryClient
 vi.mock('@tanstack/react-query', async () => {
@@ -58,10 +58,55 @@ describe('ChildAssignmentModal', () => {
     });
     vi.clearAllMocks();
     
-    // Apply comprehensive API service mocks
-    const comprehensiveMocks = createMockApiService();
-    Object.assign(mockApiService, comprehensiveMocks);
+    // Apply comprehensive OpenAPI client mocks
+    const comprehensiveMocks = createMockOpenAPIClient();
+    Object.assign(mockApi, comprehensiveMocks);
   });
+
+  // Type for mock overrides
+  type MockOverrides = {
+    children?: unknown[];
+    scheduleSlot?: unknown;
+    [key: string]: unknown;
+  };
+
+  // Helper function to setup OpenAPI mocks for different scenarios
+  const setupOpenAPIMocks = (overrides: MockOverrides = {}) => {
+    vi.mocked(mockApi.GET).mockImplementation((path: string) => {
+      if (path === '/api/v1/children') {
+        return Promise.resolve({
+          data: { data: overrides.children || [], success: true },
+          error: undefined
+        });
+      }
+      if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
+        return Promise.resolve({
+          data: { data: overrides.scheduleSlot || mockScheduleSlot, success: true },
+          error: undefined
+        });
+      }
+      return Promise.resolve({
+        data: { data: null, success: false },
+        error: { message: 'Not implemented in test mock' }
+      });
+    });
+
+    // Setup POST/PATCH/DELETE mocks for mutations
+    vi.mocked(mockApi.POST).mockResolvedValue({
+      data: { data: null, success: true },
+      error: undefined
+    });
+
+    vi.mocked(mockApi.PATCH).mockResolvedValue({
+      data: { data: null, success: true },
+      error: undefined
+    });
+
+    vi.mocked(mockApi.DELETE).mockResolvedValue({
+      data: { data: null, success: true },
+      error: undefined
+    });
+  };
 
   const renderModal = (props = {}) => {
     const defaultProps = {
@@ -79,32 +124,32 @@ describe('ChildAssignmentModal', () => {
   };
 
   it('renders with correct title when open', () => {
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlot);
+    setupOpenAPIMocks({ scheduleSlot: mockScheduleSlot });
     renderModal();
     expect(screen.getByTestId('ChildAssignmentModal-Title-modalTitle')).toBeInTheDocument();
     expect(screen.getByTestId('ChildAssignmentModal-Container-modal')).toBeInTheDocument();
   });
 
   it('renders close button', () => {
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlot);
+    setupOpenAPIMocks({ scheduleSlot: mockScheduleSlot });
     renderModal();
     expect(screen.getByTestId('ChildAssignmentModal-Button-closeModal')).toBeInTheDocument();
   });
 
   it('renders close button at bottom', () => {
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlot);
+    setupOpenAPIMocks({ scheduleSlot: mockScheduleSlot });
     renderModal();
     expect(screen.getByTestId('ChildAssignmentModal-Button-close')).toBeInTheDocument();
   });
 
   it('does not render when isOpen is false', () => {
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlot);
+    setupOpenAPIMocks({ scheduleSlot: mockScheduleSlot });
     renderModal({ isOpen: false });
     expect(screen.queryByTestId('ChildAssignmentModal-Container-modal')).not.toBeInTheDocument();
   });
 
   it('shows loading state initially', () => {
-    vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlot);
+    setupOpenAPIMocks({ scheduleSlot: mockScheduleSlot });
     renderModal();
     expect(screen.getByTestId('ChildAssignmentModal-Container-loadingChildren')).toBeInTheDocument();
   });
@@ -184,8 +229,10 @@ describe('ChildAssignmentModal', () => {
 
     beforeEach(() => {
       // Mock API responses for vehicle-specific tests
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlotWithVehicles);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
     });
 
     it('should display vehicle name for single vehicle', async () => {
@@ -194,7 +241,10 @@ describe('ChildAssignmentModal', () => {
         vehicleAssignments: [mockScheduleSlotWithVehicles.vehicleAssignments[0]]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(singleVehicleSlot);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: singleVehicleSlot
+      });
       renderModal({ scheduleSlot: singleVehicleSlot });
 
       await waitFor(() => {
@@ -250,10 +300,10 @@ describe('ChildAssignmentModal', () => {
         }
       ];
 
-      vi.mocked(apiService.getChildren).mockResolvedValue([
-        ...mockAvailableChildren,
-        ...childrenNotInGroup
-      ]);
+      setupOpenAPIMocks({
+        children: [...mockAvailableChildren, ...childrenNotInGroup],
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -293,7 +343,10 @@ describe('ChildAssignmentModal', () => {
         }     // Already assigned
       ];
 
-      vi.mocked(apiService.getChildren).mockResolvedValue(allChildren);
+      setupOpenAPIMocks({
+        children: allChildren,
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -338,7 +391,10 @@ describe('ChildAssignmentModal', () => {
         childAssignments: [] // No children assigned to any vehicle
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(slotWithEmptyVehicle);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: slotWithEmptyVehicle
+      });
 
       renderModal({ scheduleSlot: slotWithEmptyVehicle });
 
@@ -353,14 +409,59 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('should show capacity warning when at full capacity', async () => {
+      // Create a slot where all vehicle capacity is used
       const fullCapacitySlot = {
         ...mockScheduleSlotWithVehicles,
-        totalCapacity: 3, // Same as number of assigned children
-        availableSeats: 0,
-        childAssignments: mockScheduleSlotWithVehicles.childAssignments
+        // Reduce vehicle capacities to match current assignments (3 children assigned)
+        vehicleAssignments: [
+          {
+            ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
+            vehicle: {
+              ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle,
+              capacity: 2 // Bus #1 with capacity 2
+            }
+          },
+          {
+            ...mockScheduleSlotWithVehicles.vehicleAssignments[1],
+            vehicle: {
+              ...mockScheduleSlotWithVehicles.vehicleAssignments[1].vehicle,
+              capacity: 1 // Van #1 with capacity 1
+            }
+          }
+        ],
+        // Assign 2 children to Bus #1 and 1 child to Van #1 (total capacity = 3)
+        childAssignments: [
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: {
+              id: 'child-1',
+              name: 'Alice',
+              parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' }
+            }
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: {
+              id: 'child-2',
+              name: 'Bob',
+              parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' }
+            }
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-2',
+            child: {
+              id: 'child-3',
+              name: 'Charlie',
+              parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' }
+            }
+          }
+        ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(fullCapacitySlot);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren, // child-4 and child-5 are still available
+        scheduleSlot: fullCapacitySlot
+      });
 
       renderModal({ scheduleSlot: fullCapacitySlot });
 
@@ -370,17 +471,41 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('should handle remove child functionality', async () => {
-      const mockRemoveChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.removeChildFromScheduleSlot).mockImplementation(mockRemoveChild);
+      // Update child assignments to include vehicleAssignmentId
+      const slotWithVehicleAssignments = {
+        ...mockScheduleSlotWithVehicles,
+        childAssignments: [
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: mockScheduleSlotWithVehicles.childAssignments[0].child
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-1',
+            child: mockScheduleSlotWithVehicles.childAssignments[1].child
+          },
+          {
+            vehicleAssignmentId: 'vehicle-assignment-2',
+            child: mockScheduleSlotWithVehicles.childAssignments[2].child
+          }
+        ]
+      };
 
-      renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: slotWithVehicleAssignments
+      });
+
+      // Clear previous calls to get clean spy
+      vi.mocked(mockApi.PATCH).mockClear();
+
+      renderModal({ scheduleSlot: slotWithVehicleAssignments });
 
       await waitFor(() => {
         // Use specific child IDs for remove buttons instead of getAllByText
         const removeButton1 = screen.getByTestId('remove-child-button-child-1');
         const removeButton2 = screen.getByTestId('remove-child-button-child-2');
         const removeButton3 = screen.getByTestId('remove-child-button-child-3');
-        
+
         expect(removeButton1).toBeInTheDocument();
         expect(removeButton2).toBeInTheDocument();
         expect(removeButton3).toBeInTheDocument();
@@ -389,7 +514,10 @@ describe('ChildAssignmentModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockRemoveChild).toHaveBeenCalledWith('slot-1', 'child-1');
+        expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
+          body: { removeChildIds: ['child-1'] }
+        });
       });
     });
 
@@ -425,7 +553,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
       
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(slotWithVehicleAssignments);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: slotWithVehicleAssignments
+      });
       
       renderModal({ scheduleSlot: slotWithVehicleAssignments });
 
@@ -465,7 +596,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(fullVehicleSlot);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: fullVehicleSlot
+      });
       
       renderModal({ scheduleSlot: fullVehicleSlot });
 
@@ -484,8 +618,11 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('should handle add child to specific vehicle functionality', async () => {
-      const mockAddChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAddChild);
+      const mockAddChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -504,7 +641,12 @@ describe('ChildAssignmentModal', () => {
       });
 
       await waitFor(() => {
-        expect(mockAddChild).toHaveBeenCalledWith('slot-1', 'child-4', 'vehicle-assignment-1');
+        expect(mockAddChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
+          body: {
+            addChildIds: ['child-4']
+          }
+        });
       });
     });
 
@@ -538,8 +680,11 @@ describe('ChildAssignmentModal', () => {
       // Mock useQueryClient hook
       vi.mocked(useQueryClient).mockReturnValue(mockQueryClient as unknown as ReturnType<typeof useQueryClient>);
 
-      const mockAddChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAddChild);
+      const mockAddChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -606,8 +751,10 @@ describe('ChildAssignmentModal', () => {
     ];
 
     beforeEach(() => {
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlotWithVehicles);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
     });
 
     it('pre-selects vehicle when preSelectedVehicleAssignmentId is provided', async () => {
@@ -658,12 +805,15 @@ describe('ChildAssignmentModal', () => {
 
     it('assigns child to pre-selected vehicle when submitted', async () => {
       const preSelectedVehicleId = 'vehicle-assignment-1';
-      const mockAssignChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
-      
-      renderModal({ 
+      const mockAssignChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
+
+      renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId 
+        preSelectedVehicleAssignmentId: preSelectedVehicleId
       });
 
       await waitFor(() => {
@@ -682,13 +832,21 @@ describe('ChildAssignmentModal', () => {
 
       // Should call API with pre-selected vehicle
       await waitFor(() => {
-        expect(mockAssignChild).toHaveBeenCalledWith('slot-1', 'child-4', preSelectedVehicleId);
+        expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: preSelectedVehicleId } },
+          body: {
+            addChildIds: ['child-4']
+          }
+        });
       });
     });
 
     it('uses vehicleAssignmentId not vehicleId for child assignment', async () => {
-      const mockAssignChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
+      const mockAssignChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
 
@@ -707,9 +865,19 @@ describe('ChildAssignmentModal', () => {
       });
 
       await waitFor(() => {
-        // Should pass vehicleAssignmentId, not vehicleId
-        expect(mockAssignChild).toHaveBeenCalledWith('slot-1', 'child-4', 'vehicle-assignment-1');
-        expect(mockAssignChild).not.toHaveBeenCalledWith('slot-1', 'child-4', 'vehicle-1');
+        // Should pass vehicleAssignmentId in path, not vehicleId
+        expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
+          body: {
+            addChildIds: ['child-4']
+          }
+        });
+        expect(mockAssignChild).not.toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-1' } },
+          body: {
+            addChildIds: ['child-4']
+          }
+        });
       });
     });
 
@@ -733,8 +901,10 @@ describe('ChildAssignmentModal', () => {
     it('handles invalid preSelectedVehicleAssignmentId gracefully', async () => {
       const invalidVehicleId = 'non-existent-vehicle';
       
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlotWithVehicles);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
       
       renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
@@ -780,8 +950,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(multiVehicleSlot);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: multiVehicleSlot
+      });
       
       renderModal({ 
         scheduleSlot: multiVehicleSlot
@@ -844,8 +1016,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(multiVehicleSlot);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: multiVehicleSlot
+      });
       
       renderModal({ 
         scheduleSlot: multiVehicleSlot,
@@ -917,7 +1091,13 @@ describe('ChildAssignmentModal', () => {
 
       vi.mocked(useQueryClient).mockReturnValue(mockQueryClient as unknown as ReturnType<typeof useQueryClient>);
 
-      renderModal({ 
+      const mockAddChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
+
+      renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
         preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
       });
@@ -937,8 +1117,8 @@ describe('ChildAssignmentModal', () => {
 
       await waitFor(() => {
         // Should invalidate weekly schedule with group ID
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ 
-          queryKey: ['weekly-schedule', 'group-1'] 
+        expect(mockInvalidateQueries).toHaveBeenCalledWith({
+          queryKey: ['weekly-schedule', 'group-1']
         });
       });
     });
@@ -960,7 +1140,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(fullVehicleSlot);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: fullVehicleSlot
+      });
 
       renderModal({ 
         scheduleSlot: fullVehicleSlot,
@@ -984,9 +1167,6 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('enables add button after successful child assignment when capacity remains', async () => {
-      const mockAssignChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
-
       // Vehicle with capacity 3, one child already assigned
       const vehicleWithCapacity = {
         ...mockScheduleSlotWithVehicles,
@@ -1004,11 +1184,19 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: vehicleWithCapacity
+      });
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(vehicleWithCapacity);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      // Set up the specific PATCH mock for assignment after the general setup
+      const mockAssignChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      mockApi.PATCH.mockImplementation(mockAssignChild);
 
-      renderModal({ 
+      renderModal({
         scheduleSlot: vehicleWithCapacity,
         preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
       });
@@ -1030,7 +1218,12 @@ describe('ChildAssignmentModal', () => {
       fireEvent.click(addButton);
 
       await waitFor(() => {
-        expect(mockAssignChild).toHaveBeenCalledWith('slot-1', 'child-4', 'vehicle-assignment-1');
+        expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
+          params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
+          body: {
+            addChildIds: ['child-4']
+          }
+        });
       });
 
       // After successful assignment, button should still be usable if capacity allows
@@ -1041,12 +1234,17 @@ describe('ChildAssignmentModal', () => {
     });
 
     it('preserves vehicle selection in vehicle-specific mode after child assignment', async () => {
-      const mockAssignChild = vi.fn().mockResolvedValue({});
-      vi.mocked(apiService.assignChildToScheduleSlot).mockImplementation(mockAssignChild);
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlotWithVehicles);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      const mockAssignChild = vi.fn().mockResolvedValue({
+        data: { data: null, success: true },
+        error: undefined
+      });
+      vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
 
-      renderModal({ 
+      renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
         preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
       });
@@ -1091,8 +1289,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(fullCapacitySlot);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: fullCapacitySlot
+      });
       
       renderModal({ 
         scheduleSlot: fullCapacitySlot,
@@ -1115,8 +1315,10 @@ describe('ChildAssignmentModal', () => {
       }
     });
     it('updates selected vehicle when preSelectedVehicleAssignmentId changes', async () => {
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(mockScheduleSlotWithVehicles);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: mockScheduleSlotWithVehicles
+      });
       
       const { rerender } = renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
@@ -1156,8 +1358,10 @@ describe('ChildAssignmentModal', () => {
         ]
       };
 
-      vi.mocked(apiService.getScheduleSlotDetails).mockResolvedValue(noCapacitySlot);
-      vi.mocked(apiService.getChildren).mockResolvedValue(mockAvailableChildren);
+      setupOpenAPIMocks({
+        children: mockAvailableChildren,
+        scheduleSlot: noCapacitySlot
+      });
       
       renderModal({ 
         scheduleSlot: noCapacitySlot,

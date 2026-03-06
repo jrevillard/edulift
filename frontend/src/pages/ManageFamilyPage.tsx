@@ -35,7 +35,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { InvitationManagement } from '@/components/InvitationManagement';
-import type { FamilyMember, FamilyInvitation } from '../types/family';
+import type { FamilyMember, FamilyInvitation } from '../services/familyApiService';
 
 const ManageFamilyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -289,7 +289,7 @@ const ManageFamilyPage: React.FC = () => {
     }
   };
 
-  const memberToRemove = currentFamily?.members.find(m => m.id === showRemoveMemberDialog);
+  const memberToRemove = currentFamily.members?.find(m => m.id === showRemoveMemberDialog);
 
   return (
     <div className="space-y-6 p-6" data-testid="ManageFamilyPage-Container-main">
@@ -404,9 +404,9 @@ const ManageFamilyPage: React.FC = () => {
             <div className="space-y-2">
               <Label>Family Stats</Label>
               <div className="text-sm text-muted-foreground space-y-1" data-testid="ManageFamilyPage-Container-familyStats">
-                <p data-testid="ManageFamilyPage-Text-familyMembersCount">{currentFamily.members.length} member{currentFamily.members.length !== 1 ? 's' : ''}</p>
-                <p data-testid="ManageFamilyPage-Text-familyChildrenCount">{currentFamily.children.length} child{currentFamily.children.length !== 1 ? 'ren' : ''}</p>
-                <p data-testid="ManageFamilyPage-Text-familyVehiclesCount">{currentFamily.vehicles.length} vehicle{currentFamily.vehicles.length !== 1 ? 's' : ''}</p>
+                <p data-testid="ManageFamilyPage-Text-familyMembersCount">{currentFamily.members?.length || 0} member{(currentFamily.members?.length || 0) !== 1 ? 's' : ''}</p>
+                <p data-testid="ManageFamilyPage-Text-familyChildrenCount">{currentFamily.children?.length || 0} child{(currentFamily.children?.length || 0) !== 1 ? 'ren' : ''}</p>
+                <p data-testid="ManageFamilyPage-Text-familyVehiclesCount">{currentFamily.vehicles?.length || 0} vehicle{(currentFamily.vehicles?.length || 0) !== 1 ? 's' : ''}</p>
               </div>
             </div>
           </CardContent>
@@ -426,8 +426,24 @@ const ManageFamilyPage: React.FC = () => {
           <CardContent data-testid="ManageFamilyPage-Container-familyMembersSection">
             <div data-testid="ManageFamilyPage-List-familyMembers">
               <InvitationManagement
-                members={currentFamily.members}
-                pendingInvitations={pendingInvitations}
+                members={currentFamily.members?.map(member => ({
+                  id: member.id,
+                  role: member.role,
+                  user: {
+                    id: member.user?.id || '',
+                    name: member.user?.name || 'Unknown',
+                    email: member.user?.email || 'No email'
+                  }
+                })) || []}
+                pendingInvitations={pendingInvitations.map(invitation => ({
+                  id: invitation.id,
+                  email: invitation.email,
+                  role: invitation.role,
+                  personalMessage: invitation.personalMessage || undefined,
+                  status: invitation.status === 'DECLINED' ? 'CANCELLED' as const : invitation.status,
+                  expiresAt: invitation.expiresAt,
+                  createdAt: invitation.createdAt,
+                }))}
                 loadingInvitations={loadingInvitations}
                 isAdmin={isAdmin}
                 entityType="family"
@@ -437,11 +453,11 @@ const ManageFamilyPage: React.FC = () => {
                 ]}
                 onInviteMember={handleInviteMember}
                 onCancelInvitation={handleCancelInvitation}
-                renderMember={(member) => (
+                renderMember={(member: any) => (
                   <div
                     key={`member-${member.id}`}
                     className="flex items-center justify-between p-3 rounded-lg border"
-                    data-testid={`ManageFamilyPage-Card-familyMember-${member.user.email}`}
+                    data-testid={`ManageFamilyPage-Card-familyMember-${member.user?.email}`}
                   >
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -522,12 +538,12 @@ const ManageFamilyPage: React.FC = () => {
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                <span data-testid="ManageFamilyPage-Heading-childrenCountTitle">Children ({currentFamily.children.length})</span>
+                <span data-testid="ManageFamilyPage-Heading-childrenCountTitle">Children ({currentFamily.children?.length || 0})</span>
               </div>
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => navigate('/children')}
+                onClick={() => navigate('/api/v1/children')}
                 data-testid="ManageFamilyPage-Button-manageChildren"
               >
                 Manage
@@ -535,12 +551,16 @@ const ManageFamilyPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {currentFamily.children.length > 0 ? (
+            {currentFamily.children && currentFamily.children.length > 0 ? (
               <div className="space-y-2">
                 {currentFamily.children.map((child) => (
                   <div key={child.id} className="flex items-center justify-between p-2 rounded border" data-testid={`ManageFamilyPage-Container-child-${child.id}`}>
                     <span className="font-medium" data-testid={`ManageFamilyPage-Text-childName-${child.id}`}>{child.name}</span>
-                    <span className="text-sm text-muted-foreground" data-testid={`ManageFamilyPage-Text-childAge-${child.id}`}>Age {child.age}</span>
+                    {child.age !== undefined && (
+                      <span className="text-sm text-muted-foreground" data-testid={`ManageFamilyPage-Text-childAge-${child.id}`}>
+                        {child.age} years old
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
@@ -558,12 +578,12 @@ const ManageFamilyPage: React.FC = () => {
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
                 </svg>
-                <span data-testid="ManageFamilyPage-Heading-vehiclesCountTitle">Vehicles ({currentFamily.vehicles.length})</span>
+                <span data-testid="ManageFamilyPage-Heading-vehiclesCountTitle">Vehicles ({currentFamily.vehicles?.length || 0})</span>
               </div>
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => navigate('/vehicles')}
+                onClick={() => navigate('/api/v1/vehicles')}
                 data-testid="ManageFamilyPage-Button-manageVehicles"
               >
                 Manage
@@ -571,7 +591,7 @@ const ManageFamilyPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {currentFamily.vehicles.length > 0 ? (
+            {currentFamily.vehicles && currentFamily.vehicles.length > 0 ? (
               <div className="space-y-2">
                 {currentFamily.vehicles.map((vehicle) => (
                   <div key={vehicle.id} className="flex items-center justify-between p-2 rounded border" data-testid={`ManageFamilyPage-Container-vehicle-${vehicle.id}`}>
@@ -661,7 +681,7 @@ const ManageFamilyPage: React.FC = () => {
           <DialogHeader>
             <DialogTitle data-testid="ManageFamilyPage-Heading-removeMemberDialogTitle">Remove Member</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove {memberToRemove?.user.name} from this family?
+              Are you sure you want to remove {memberToRemove?.user?.name || 'this member'} from this family?
               They will lose access to all family resources and need to be re-invited to rejoin.
             </DialogDescription>
           </DialogHeader>

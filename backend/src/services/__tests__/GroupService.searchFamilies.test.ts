@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { GroupService } from '../GroupService';
 import { UnifiedInvitationService } from '../UnifiedInvitationService';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 describe('GroupService - searchFamiliesForInvitation', () => {
   let groupService: GroupService;
@@ -53,12 +54,18 @@ describe('GroupService - searchFamiliesForInvitation', () => {
         });
       });
 
-      // Mock group - requester's family is owner
+      // Mock group - requester's family is admin (new schema)
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: 'requester-family',
         name: 'Test Group',
-        familyMembers: [], // Include relation for hasGroupAdminPermissions
+        familyMembers: [
+          {
+            familyId: 'requester-family',
+            role: 'ADMIN',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       });
 
       // Mock groupFamilyMember for fallback check
@@ -73,7 +80,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
       // Mock families search result
       mockPrisma.family.findMany.mockResolvedValue([
         {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           name: 'Test Family 1',
           members: [{ user: { name: 'Admin 1', email: 'admin1@test.com' } }],
           _count: { members: 5 },
@@ -90,7 +97,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
       mockUnifiedInvitationService.getGroupInvitations.mockResolvedValue([
         {
           id: 'inv-1',
-          targetFamilyId: 'family-1',
+          targetFamilyId: TEST_IDS.FAMILY,
           status: 'PENDING',
           expiresAt: new Date(Date.now() + 86400000), // Not expired
         },
@@ -99,7 +106,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
       const result = await groupService.searchFamiliesForInvitation(searchTerm, requesterId, groupId);
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('family-1');
+      expect(result[0].id).toBe(TEST_IDS.FAMILY);
       expect(result[0].canInvite).toBe(false); // Has pending invitation
       expect(result[1].id).toBe('family-2');
       expect(result[1].canInvite).toBe(true); // No pending invitation
@@ -108,7 +115,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
     it('should set canInvite=true for families with EXPIRED invitations', async () => {
       mockPrisma.family.findMany.mockResolvedValue([
         {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           name: 'Test Family 1',
           members: [{ user: { name: 'Admin 1', email: 'admin1@test.com' } }],
           _count: { members: 5 },
@@ -119,7 +126,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
       mockUnifiedInvitationService.getGroupInvitations.mockResolvedValue([
         {
           id: 'inv-1',
-          targetFamilyId: 'family-1',
+          targetFamilyId: TEST_IDS.FAMILY,
           status: 'EXPIRED',
           expiresAt: new Date(Date.now() - 86400000), // Expired yesterday
         },
@@ -134,7 +141,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
     it('should set canInvite=true for families with REJECTED invitations', async () => {
       mockPrisma.family.findMany.mockResolvedValue([
         {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           name: 'Test Family 1',
           members: [{ user: { name: 'Admin 1', email: 'admin1@test.com' } }],
           _count: { members: 5 },
@@ -145,7 +152,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
       mockUnifiedInvitationService.getGroupInvitations.mockResolvedValue([
         {
           id: 'inv-1',
-          targetFamilyId: 'family-1',
+          targetFamilyId: TEST_IDS.FAMILY,
           status: 'REJECTED',
           expiresAt: new Date(Date.now() + 86400000),
         },
@@ -160,7 +167,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
     it('should set canInvite=true when no invitations exist', async () => {
       mockPrisma.family.findMany.mockResolvedValue([
         {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           name: 'Test Family 1',
           members: [{ user: { name: 'Admin 1', email: 'admin1@test.com' } }],
           _count: { members: 5 },
@@ -178,14 +185,14 @@ describe('GroupService - searchFamiliesForInvitation', () => {
 
     it('should handle multiple families with mixed invitation statuses', async () => {
       mockPrisma.family.findMany.mockResolvedValue([
-        { id: 'family-1', name: 'Family 1', members: [{ user: { name: 'A1', email: 'a1@test.com' } }], _count: { members: 3 } },
+        { id: TEST_IDS.FAMILY, name: 'Family 1', members: [{ user: { name: 'A1', email: 'a1@test.com' } }], _count: { members: 3 } },
         { id: 'family-2', name: 'Family 2', members: [{ user: { name: 'A2', email: 'a2@test.com' } }], _count: { members: 4 } },
         { id: 'family-3', name: 'Family 3', members: [{ user: { name: 'A3', email: 'a3@test.com' } }], _count: { members: 2 } },
         { id: 'family-4', name: 'Family 4', members: [{ user: { name: 'A4', email: 'a4@test.com' } }], _count: { members: 5 } },
       ]);
 
       mockUnifiedInvitationService.getGroupInvitations.mockResolvedValue([
-        { id: 'inv-1', targetFamilyId: 'family-1', status: 'PENDING', expiresAt: new Date(Date.now() + 86400000) },
+        { id: 'inv-1', targetFamilyId: TEST_IDS.FAMILY, status: 'PENDING', expiresAt: new Date(Date.now() + 86400000) },
         { id: 'inv-2', targetFamilyId: 'family-2', status: 'EXPIRED', expiresAt: new Date(Date.now() - 86400000) },
         { id: 'inv-3', targetFamilyId: 'family-3', status: 'REJECTED', expiresAt: new Date(Date.now() + 86400000) },
         // family-4 has no invitation
@@ -194,7 +201,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
       const result = await groupService.searchFamiliesForInvitation(searchTerm, requesterId, groupId);
 
       expect(result).toHaveLength(4);
-      expect(result.find(f => f.id === 'family-1')?.canInvite).toBe(false); // PENDING
+      expect(result.find(f => f.id === TEST_IDS.FAMILY)?.canInvite).toBe(false); // PENDING
       expect(result.find(f => f.id === 'family-2')?.canInvite).toBe(true);  // EXPIRED
       expect(result.find(f => f.id === 'family-3')?.canInvite).toBe(true);  // REJECTED
       expect(result.find(f => f.id === 'family-4')?.canInvite).toBe(true);  // No invitation
@@ -214,8 +221,15 @@ describe('GroupService - searchFamiliesForInvitation', () => {
 
       mockPrisma.group.findUnique.mockResolvedValue({
         id: groupId,
-        familyId: 'requester-family',
-        familyMembers: [],
+        name: 'Test Group',
+        familyMembers: [
+          {
+            familyId: 'requester-family',
+            role: 'ADMIN',
+            addedBy: 'creator',
+            joinedAt: new Date('2024-01-01'),
+          },
+        ],
       });
 
       mockPrisma.groupFamilyMember.findFirst.mockResolvedValue({

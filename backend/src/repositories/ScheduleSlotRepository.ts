@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, ScheduleSlot } from '@prisma/client';
 import { CreateScheduleSlotData } from '../types';
 import { getWeekBoundaries, getDateFromISOWeek } from '../utils/isoWeekUtils';
 
@@ -12,13 +12,17 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields
             driver: { select: { id: true, name: true } },
           },
         },
         childAssignments: {
-          include: {
-            child: { select: { id: true, name: true } },
+          select: {
+            scheduleSlotId: true,
+            childId: true,
+            vehicleAssignmentId: true,
+            assignedAt: true,
+            child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
           },
         },
       },
@@ -33,14 +37,17 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields (id, name, capacity, familyId, createdAt, updatedAt)
             driver: { select: { id: true, name: true } },
           },
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
-            child: { select: { id: true, name: true } },
+            assignedAt: true,
+            child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
           },
         },
       },
@@ -54,18 +61,25 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields
             driver: { select: { id: true, name: true } },
           },
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
-            child: { 
-              select: { 
-                id: true, 
+            assignedAt: true,
+            child: {
+              select: {
+                id: true,
                 name: true,
-              }, 
+                age: true,
+                familyId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
             },
           },
         },
@@ -85,13 +99,17 @@ export class ScheduleSlotRepository {
         group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
-            vehicle: { select: { id: true, name: true, capacity: true } },
+            vehicle: true, // Return ALL vehicle fields
             driver: { select: { id: true, name: true } },
           },
         },
         childAssignments: {
-          include: {
-            child: { select: { id: true, name: true } },
+          select: {
+            scheduleSlotId: true,
+            childId: true,
+            vehicleAssignmentId: true,
+            assignedAt: true,
+            child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
           },
         },
       },
@@ -169,9 +187,7 @@ export class ScheduleSlotRepository {
             seatOverride: seatOverride || null,
           },
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -191,8 +207,13 @@ export class ScheduleSlotRepository {
   async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string): Promise<unknown> {
     // Use transaction to ensure atomicity
     return await this.prisma.$transaction(async (tx) => {
+      // ✅ FIX: Count vehicles BEFORE deletion to avoid race condition
+      const vehicleCount = await tx.scheduleSlotVehicle.count({
+        where: { scheduleSlotId },
+      });
+
       // Remove the vehicle assignment
-      const result = await tx.scheduleSlotVehicle.delete({
+      await tx.scheduleSlotVehicle.delete({
         where: {
           scheduleSlotId_vehicleId: {
             scheduleSlotId,
@@ -201,47 +222,187 @@ export class ScheduleSlotRepository {
         },
       });
 
-      // Check remaining vehicle assignments after removal
-      const remainingVehicleCount = await tx.scheduleSlotVehicle.count({ 
-        where: { scheduleSlotId }, 
-      });
-
       // Business rule: ScheduleSlot must have at least one vehicle
       // If last vehicle is removed, delete the entire ScheduleSlot
-      let slotDeleted = false;
-      if (remainingVehicleCount === 0) {
+      if (vehicleCount === 1) {
         await tx.scheduleSlot.delete({
           where: { id: scheduleSlotId },
         });
-        slotDeleted = true;
+        // Return null to indicate slot was deleted
+        return null;
       }
 
-      return { vehicleAssignment: result, slotDeleted };
+      // ✅ Return updated ScheduleSlot with all remaining vehicles and childAssignments
+      const updatedSlot = await tx.scheduleSlot.findUnique({
+        where: { id: scheduleSlotId },
+        include: {
+          vehicleAssignments: {
+            include: {
+              vehicle: {
+                select: {
+                  id: true,
+                  name: true,
+                  capacity: true,
+                  familyId: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+              driver: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              childAssignments: {
+                include: {
+                  child: {
+                    select: {
+                      id: true,
+                      name: true,
+                      age: true,
+                      familyId: true,
+                      createdAt: true,
+                      updatedAt: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          childAssignments: true,
+        },
+      });
+
+      return updatedSlot;
     });
   }
 
   async updateVehicleDriver(scheduleSlotId: string, vehicleId: string, driverId: string | null): Promise<unknown> {
-    return this.prisma.scheduleSlotVehicle.update({
-      where: {
-        scheduleSlotId_vehicleId: {
-          scheduleSlotId,
-          vehicleId,
-        },
+    // ✅ Use SERIALIZABLE transaction to prevent race conditions
+    return await this.prisma.$transaction(
+      async (tx) => {
+        return await tx.scheduleSlotVehicle.update({
+          where: {
+            scheduleSlotId_vehicleId: {
+              scheduleSlotId,
+              vehicleId,
+            },
+          },
+          data: { driverId },
+          include: {
+            vehicle: {
+              select: {
+                id: true,
+                name: true,
+                capacity: true,
+                familyId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+            driver: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            childAssignments: {
+              include: {
+                child: {
+                  select: {
+                    id: true,
+                    name: true,
+                    age: true,
+                    familyId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        });
       },
-      data: { driverId },
-    });
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 10000,
+      },
+    );
   }
 
 
-  async removeChildFromSlot(scheduleSlotId: string, childId: string): Promise<unknown> {
-    return this.prisma.scheduleSlotChild.delete({
-      where: {
-        scheduleSlotId_childId: {
-          scheduleSlotId,
-          childId,
+  async removeChildFromSlot(scheduleSlotId: string, childId: string): Promise<ScheduleSlot> {
+    // Use transaction to ensure atomicity
+    return await this.prisma.$transaction(
+      async (tx) => {
+        // Delete the child assignment
+        await tx.scheduleSlotChild.delete({
+          where: {
+            scheduleSlotId_childId: {
+              scheduleSlotId,
+              childId,
+            },
+          },
+        });
+
+        // Return updated ScheduleSlot with all remaining vehicles and childAssignments
+        const updatedSlot = await tx.scheduleSlot.findUnique({
+        where: { id: scheduleSlotId },
+        include: {
+          vehicleAssignments: {
+            include: {
+              vehicle: {
+                select: {
+                  id: true,
+                  name: true,
+                  capacity: true,
+                  familyId: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
+              driver: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                },
+              },
+              childAssignments: {
+                include: {
+                  child: {
+                    select: {
+                      id: true,
+                      name: true,
+                      age: true,
+                      familyId: true,
+                      createdAt: true,
+                      updatedAt: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          childAssignments: true,
         },
-      },
-    });
+      });
+
+      if (!updatedSlot) {
+        throw new Error('Schedule slot not found after child removal');
+      }
+
+      return updatedSlot;
+    },
+    {
+      // ✅ SERIALIZABLE = Maximum isolation - prevents race conditions
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      timeout: 10000,
+    },
+  );
   }
 
   /**
@@ -262,9 +423,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -272,9 +431,12 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
-              select: { id: true, name: true, familyId: true },
+              select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
           },
         },
@@ -328,9 +490,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -338,9 +498,12 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
-              select: { id: true, name: true, familyId: true },
+              select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
           },
         },
@@ -390,9 +553,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -400,9 +561,12 @@ export class ScheduleSlotRepository {
         },
         childAssignments: {
           select: {
+            scheduleSlotId: true,
+            childId: true,
             vehicleAssignmentId: true,
+            assignedAt: true,
             child: {
-              select: { id: true, name: true, familyId: true },
+              select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true },
             },
           },
         },
@@ -533,9 +697,7 @@ export class ScheduleSlotRepository {
       include: {
         vehicleAssignments: {
           include: {
-            vehicle: {
-              select: { id: true, name: true, capacity: true },
-            },
+            vehicle: true, // Return ALL vehicle fields (including timestamps)
             driver: {
               select: { id: true, name: true },
             },
@@ -561,13 +723,92 @@ export class ScheduleSlotRepository {
       data: { seatOverride: seatOverride || null },
       include: {
         vehicle: {
-          select: { id: true, name: true, capacity: true },
+          select: {
+            id: true,
+            name: true,
+            capacity: true,
+            familyId: true,
+            createdAt: true,
+            updatedAt: true,
+          },
         },
         driver: {
-          select: { id: true, name: true },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        childAssignments: {
+          include: {
+            child: {
+              select: {
+                id: true,
+                name: true,
+                age: true,
+                familyId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+          },
         },
       },
     });
+  }
+
+  async updateSeatOverrideByVehicle(scheduleSlotId: string, vehicleId: string, seatOverride?: number): Promise<unknown> {
+    // ✅ Use SERIALIZABLE transaction to prevent race conditions
+    return await this.prisma.$transaction(
+      async (tx) => {
+        return await tx.scheduleSlotVehicle.update({
+          where: {
+            scheduleSlotId_vehicleId: {
+              scheduleSlotId,
+              vehicleId,
+            },
+          },
+          data: { seatOverride: seatOverride || null },
+          include: {
+            vehicle: {
+              select: {
+                id: true,
+                name: true,
+                capacity: true,
+                familyId: true,
+                createdAt: true,
+                updatedAt: true,
+              },
+            },
+            driver: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            childAssignments: {
+              include: {
+                child: {
+                  select: {
+                    id: true,
+                    name: true,
+                    age: true,
+                    familyId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      },
+      {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        timeout: 10000,
+      },
+    );
   }
 
   async findVehicleAssignmentById(vehicleAssignmentId: string): Promise<unknown> {

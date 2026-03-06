@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import { BaseFamilySchema, BaseGroupSchema, BaseUserSchema, FamilyRoleEnum, GroupRoleEnum } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -26,14 +27,21 @@ export const InvitationStatusEnum = z.enum(['PENDING', 'ACCEPTED', 'EXPIRED', 'C
   example: 'PENDING',
 });
 
-export const FamilyRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  description: 'Role of a user within a family',
-  example: 'ADMIN',
-});
-
-export const GroupRoleEnum = z.enum(['ADMIN', 'MEMBER']).openapi({
-  description: 'Role of a user within a group',
-  example: 'ADMIN',
+// Error response schema
+const ErrorResponseSchema = z.object({
+  success: z.literal(false),
+  error: z.string().openapi({
+    example: 'Invitation not found',
+    description: 'Error message',
+  }),
+  code: z.string().optional().openapi({
+    example: 'INVITATION_NOT_FOUND',
+    description: 'Error code for programmatic handling',
+  }),
+  retryable: z.boolean().optional().openapi({
+    example: true,
+    description: 'Whether the request can be retried',
+  }),
 });
 
 // ============================================================================
@@ -156,57 +164,31 @@ export const InvitationIdParamsSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-export const UserSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'User identifier',
-    }),
-  email: z.email()
-    .openapi({
-      example: 'john.smith@example.com',
-      description: 'User email address',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'John Smith',
-      description: 'User display name',
-    }),
+export const UserSchema = BaseUserSchema.extend({
+  name: z.string().openapi({
+    example: 'John Smith',
+    description: 'User display name',
+  }),
+}).omit({
+  firstName: true,
+  lastName: true,
+  phoneNumber: true,
+  createdAt: true,
+  updatedAt: true,
 }).openapi({
   title: 'User',
-  description: 'User information',
+  description: 'User information in invitation context',
 });
 
-export const FamilySchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Family identifier',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Johnson Family',
-      description: 'Family name',
-    }),
-}).openapi({
+// Re-export base schemas for invitation context
+export const FamilySchema = BaseFamilySchema.extend({}).openapi({
   title: 'Family',
-  description: 'Family information',
+  description: 'Family information in invitation context',
 });
 
-export const GroupSchema = z.object({
-  id: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901235',
-      description: 'Group identifier',
-    }),
-  name: z.string()
-    .openapi({
-      example: 'Carpool Group',
-      description: 'Group name',
-    }),
-}).openapi({
+export const GroupSchema = BaseGroupSchema.extend({}).openapi({
   title: 'Group',
-  description: 'Group information',
+  description: 'Group information in invitation context',
 });
 
 export const FamilyInvitationResponseSchema = z.object({
@@ -220,7 +202,7 @@ export const FamilyInvitationResponseSchema = z.object({
       example: 'cl123456789012345678901234',
       description: 'Family identifier',
     }),
-  email: z.email()
+  email: z.string().email().nullable()
     .openapi({
       example: 'john.smith@example.com',
       description: 'Invited email address',
@@ -237,6 +219,35 @@ export const FamilyInvitationResponseSchema = z.object({
     example: 'Welcome to our family!',
     description: 'Personal message from inviter',
   }),
+  inviteCode: z.string()
+    .openapi({
+      example: 'ABC123XYZ789',
+      description: 'Unique invitation code for joining the family',
+    }),
+  invitedBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID of the inviter',
+    }),
+  acceptedAt: z.iso.datetime()
+    .nullable()
+    .optional()
+    .openapi({
+      example: '2023-01-02T00:00:00.000Z',
+      description: 'Invitation acceptance timestamp (null until accepted)',
+    }),
+  acceptedBy: z.cuid()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'User ID who accepted the invitation (null until accepted)',
+    }),
+  createdBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID who created the invitation',
+    }),
   expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
@@ -246,10 +257,6 @@ export const FamilyInvitationResponseSchema = z.object({
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
-    }),
-  family: FamilySchema.optional()
-    .openapi({
-      description: 'Family information (included in some responses)',
     }),
 }).openapi({
   title: 'Family Invitation Response',
@@ -293,6 +300,35 @@ export const GroupInvitationResponseSchema = z.object({
     example: 'Welcome to our group!',
     description: 'Personal message from inviter',
   }),
+  inviteCode: z.string()
+    .openapi({
+      example: 'ABC123XYZ789',
+      description: 'Unique invitation code for joining the group',
+    }),
+  invitedBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID of the inviter',
+    }),
+  acceptedAt: z.iso.datetime()
+    .nullable()
+    .optional()
+    .openapi({
+      example: '2023-01-02T00:00:00.000Z',
+      description: 'Invitation acceptance timestamp (null until accepted)',
+    }),
+  acceptedBy: z.cuid()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901239',
+      description: 'User ID who accepted the invitation (null until accepted)',
+    }),
+  createdBy: z.cuid()
+    .openapi({
+      example: 'cl123456789012345678901238',
+      description: 'User ID who created the invitation',
+    }),
   expiresAt: z.iso.datetime()
     .openapi({
       example: '2023-01-08T00:00:00.000Z',
@@ -303,32 +339,56 @@ export const GroupInvitationResponseSchema = z.object({
       example: '2023-01-01T00:00:00.000Z',
       description: 'Invitation creation timestamp',
     }),
-  group: GroupSchema.optional()
+  updatedAt: z.iso.datetime()
     .openapi({
-      description: 'Group information (included in some responses)',
+      example: '2023-01-01T00:00:00.000Z',
+      description: 'Invitation update timestamp',
+    }),
+  // Enriched fields for better UX (mobile team request 2025-02-12)
+  groupName: z.string()
+    .openapi({
+      example: 'School Transport 2024-2025',
+      description: 'Group name',
+    }),
+  invitedByName: z.string()
+    .openapi({
+      example: 'John Smith',
+      description: 'Name of user who created the invitation',
+    }),
+  targetFamilyName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'Johnson Family',
+      description: 'Target family name (null if invited by email)',
+    }),
+  ownerFamilyName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'Smith Family',
+      description: 'Name of family that created the invitation',
     }),
 }).openapi({
   title: 'Group Invitation Response',
   description: 'Group invitation information',
 });
 
-export const InvitationValidationSchema = z.object({
+// Family-specific validation response
+export const FamilyInvitationValidationSchema = z.object({
   valid: z.boolean()
     .openapi({
       example: true,
-      description: 'Whether the invitation code is valid',
+      description: 'Whether the family invitation code is valid',
     }),
-  type: InvitationTypeEnum.openapi({
-    example: 'FAMILY',
-    description: 'Type of invitation (if valid)',
-  }),
-  family: FamilySchema.optional()
+  type: z.literal('FAMILY')
     .openapi({
-      description: 'Family information (if family invitation and valid)',
+      description: 'Type of invitation - always FAMILY for this endpoint',
     }),
-  group: GroupSchema.optional()
+  family: BaseFamilySchema
+    .optional()
     .openapi({
-      description: 'Group information (if group invitation and valid)',
+      description: 'Family information (if valid)',
     }),
   email: z.email()
     .optional()
@@ -336,11 +396,10 @@ export const InvitationValidationSchema = z.object({
       example: 'john.smith@example.com',
       description: 'Email address the invitation was sent to (if valid)',
     }),
-  role: z.string()
-    .optional()
+  role: FamilyRoleEnum.optional()
     .openapi({
       example: 'MEMBER',
-      description: 'Role in the invitation (if valid)',
+      description: 'Role in the family invitation (if valid)',
     }),
   personalMessage: z.string()
     .nullable()
@@ -349,33 +408,88 @@ export const InvitationValidationSchema = z.object({
       example: 'Welcome to our family!',
       description: 'Personal message from inviter (if valid)',
     }),
-  expiresAt: z.iso.datetime()
+  inviterName: z.string()
     .optional()
     .openapi({
-      example: '2023-01-08T00:00:00.000Z',
-      description: 'Invitation expiration timestamp (if valid)',
+      example: 'John Doe',
+      description: 'Name of the user who sent the invitation (only present if valid)',
     }),
-  error: z.string()
+  existingUser: z.boolean()
     .optional()
     .openapi({
-      example: 'Invitation expired',
-      description: 'Error message if invitation is invalid',
+      example: false,
+      description: 'Whether the invited email already corresponds to an existing user account (only present if valid)',
+    }),
+  errorCode: z.enum(['EMAIL_MISMATCH', 'ALREADY_MEMBER', 'EXPIRED', 'INVALID_CODE'])
+    .optional()
+    .openapi({
+      example: 'EMAIL_MISMATCH',
+      description: 'Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED, INVALID_CODE)',
     }),
 }).openapi({
-  title: 'Invitation Validation Response',
-  description: 'Invitation validation result',
+  title: 'Family Invitation Validation Response',
+  description: 'Family invitation validation result',
+  required: ['valid', 'type'],
 });
 
-export const UserInvitationsSchema = z.object({
-  family: z.array(FamilyInvitationResponseSchema).openapi({
-    description: 'Family invitations for the user',
-  }),
-  group: z.array(GroupInvitationResponseSchema).openapi({
-    description: 'Group invitations for the user',
-  }),
+// Group-specific validation response
+export const GroupInvitationValidationSchema = z.object({
+  valid: z.boolean()
+    .openapi({
+      example: true,
+      description: 'Whether the group invitation code is valid',
+    }),
+  type: z.literal('GROUP')
+    .openapi({
+      description: 'Type of invitation - always GROUP for this endpoint',
+    }),
+  group: BaseGroupSchema
+    .optional()
+    .openapi({
+      description: 'Group information (if valid)',
+    }),
+  email: z.email()
+    .optional()
+    .openapi({
+      example: 'john.smith@example.com',
+      description: 'Email address the invitation was sent to (if valid)',
+    }),
+  inviterName: z.string()
+    .optional()
+    .openapi({
+      example: 'John Doe',
+      description: 'Name of the user who sent the invitation (only present if valid)',
+    }),
+  existingUser: z.boolean()
+    .optional()
+    .openapi({
+      example: false,
+      description: 'Whether the invited email already corresponds to an existing user account (only present if valid)',
+    }),
+  targetFamilyId: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'cl123456789012345678901236',
+      description: 'Target family ID (present when a family is invited to join the group)',
+    }),
+  targetFamilyName: z.string()
+    .nullable()
+    .optional()
+    .openapi({
+      example: 'Smith Family',
+      description: 'Name of the invited family',
+    }),
+  errorCode: z.enum(['EMAIL_MISMATCH', 'ALREADY_MEMBER', 'EXPIRED', 'INVALID_CODE'])
+    .optional()
+    .openapi({
+      example: 'EMAIL_MISMATCH',
+      description: 'Error code when invitation is invalid (EMAIL_MISMATCH, ALREADY_MEMBER, EXPIRED, INVALID_CODE)',
+    }),
 }).openapi({
-  title: 'User Invitations',
-  description: 'All invitations for a user',
+  title: 'Group Invitation Validation Response',
+  description: 'Group invitation validation result',
+  required: ['valid', 'type'],
 });
 
 export const AcceptInvitationResponseSchema = z.object({
@@ -423,47 +537,6 @@ registry.register('AcceptFamilyInvitationRequest', AcceptFamilyInvitationSchema)
 // API PATHS REGISTRATION
 // ============================================================================
 
-// Public validation endpoint (no auth required)
-registerPath({
-  method: 'get',
-  path: '/invitations/validate/{code}',
-  tags: ['Invitations'],
-  summary: 'Validate invitation code (public)',
-  description: 'Validate an invitation code without authentication. Checks both family and group invitations.',
-  request: {
-    params: InvitationCodeParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Invitation validation result',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              ...InvitationValidationSchema.shape,
-            }),
-          }),
-        },
-      },
-    },
-    404: {
-      description: 'Invitation not found or invalid',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(false),
-            error: z.string(),
-          }),
-        },
-      },
-    },
-    500: {
-      description: 'Internal server error',
-    },
-  },
-});
-
 // Family invitation endpoints
 registerPath({
   method: 'post',
@@ -486,10 +559,7 @@ registerPath({
       description: 'Family invitation created successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: FamilyInvitationResponseSchema,
-          }),
+          schema: FamilyInvitationResponseSchema,
         },
       },
     },
@@ -501,6 +571,14 @@ registerPath({
     },
     403: {
       description: 'Forbidden - Only family administrators can send invitations',
+    },
+    503: {
+      description: 'Email service temporarily unavailable - retryable',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
     },
     500: {
       description: 'Internal server error',
@@ -522,10 +600,7 @@ registerPath({
       description: 'Family invitation validation result',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: InvitationValidationSchema,
-          }),
+          schema: FamilyInvitationValidationSchema,
         },
       },
     },
@@ -563,10 +638,7 @@ registerPath({
       description: 'Family invitation accepted successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: AcceptInvitationResponseSchema,
-          }),
+          schema: AcceptInvitationResponseSchema,
         },
       },
     },
@@ -604,10 +676,7 @@ registerPath({
       description: 'Group invitation created successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: GroupInvitationResponseSchema,
-          }),
+          schema: GroupInvitationResponseSchema,
         },
       },
     },
@@ -625,6 +694,14 @@ registerPath({
     },
     409: {
       description: 'Conflict - Family already a member or already has pending invitation',
+    },
+    503: {
+      description: 'Email service temporarily unavailable - retryable',
+      content: {
+        'application/json': {
+          schema: ErrorResponseSchema,
+        },
+      },
     },
     500: {
       description: 'Internal server error',
@@ -646,10 +723,7 @@ registerPath({
       description: 'Group invitation validation result',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: InvitationValidationSchema,
-          }),
+          schema: GroupInvitationValidationSchema,
         },
       },
     },
@@ -680,44 +754,12 @@ registerPath({
       description: 'Group invitation accepted successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: AcceptInvitationResponseSchema,
-          }),
+          schema: AcceptInvitationResponseSchema,
         },
       },
     },
     400: {
       description: 'Bad request - Invalid invitation code or cannot accept',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    500: {
-      description: 'Internal server error',
-    },
-  },
-});
-
-// User invitations endpoint
-registerPath({
-  method: 'get',
-  path: '/invitations/user',
-  tags: ['Invitations'],
-  summary: 'Get user invitations',
-  description: 'Retrieve all pending invitations for the authenticated user',
-  security: [{ BearerAuth: [] }],
-  responses: {
-    200: {
-      description: 'User invitations retrieved successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: UserInvitationsSchema,
-          }),
-        },
-      },
     },
     401: {
       description: 'Unauthorized - Authentication required',
@@ -744,10 +786,7 @@ registerPath({
       description: 'Family invitation cancelled successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            message: z.string(),
-          }),
+          schema: CancelInvitationResponseSchema,
         },
       },
     },
@@ -784,10 +823,7 @@ registerPath({
       description: 'Group invitation cancelled successfully',
       content: {
         'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            message: z.string(),
-          }),
+          schema: CancelInvitationResponseSchema,
         },
       },
     },

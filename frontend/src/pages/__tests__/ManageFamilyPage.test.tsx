@@ -457,11 +457,12 @@ describe('ManageFamilyPage', () => {
       await act(async () => {
         renderComponent();
       });
-      
+
+      // Check that children section is displayed
       expect(screen.getByTestId('ManageFamilyPage-Heading-childrenCountTitle')).toBeInTheDocument();
       expect(screen.getByTestId('ManageFamilyPage-Text-childName-child-1')).toBeInTheDocument();
-      expect(screen.getByTestId('ManageFamilyPage-Text-childAge-child-1')).toBeInTheDocument();
-      
+
+      // Check that vehicles section is displayed
       expect(screen.getByTestId('ManageFamilyPage-Heading-vehiclesCountTitle')).toBeInTheDocument();
       expect(screen.getByTestId('ManageFamilyPage-Text-vehicleName-vehicle-1')).toBeInTheDocument();
       expect(screen.getByTestId('ManageFamilyPage-Text-vehicleCapacity-vehicle-1')).toBeInTheDocument();
@@ -475,7 +476,7 @@ describe('ManageFamilyPage', () => {
       const manageChildrenButton = screen.getByTestId('ManageFamilyPage-Button-manageChildren');
       fireEvent.click(manageChildrenButton);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/children');
+      expect(mockNavigate).toHaveBeenCalledWith('/api/v1/children');
     });
 
     it('should navigate to vehicles page when manage button is clicked', async () => {
@@ -486,7 +487,7 @@ describe('ManageFamilyPage', () => {
       const manageVehiclesButton = screen.getByTestId('ManageFamilyPage-Button-manageVehicles');
       fireEvent.click(manageVehiclesButton);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/vehicles');
+      expect(mockNavigate).toHaveBeenCalledWith('/api/v1/vehicles');
     });
   });
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useQuery } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,11 @@ import { EmptyState } from '@/components/ui/empty-states';
 import { GroupMembershipWarning } from '../components/GroupMembershipWarning';
 import { PageLayout, LoadingState } from '@/components/ui/page-layout';
 import { formatDatetimeInTimezone } from '../utils/timezoneUtils';
-import type { WeeklyDashboardResponse } from '../types/dashboard';
+import type { WeeklyDashboardResponse } from '@/types/api';
+import type { paths } from '@/generated/api/types';
+
+// Type for recent activity items - extracted from API
+type ActivityItem = paths['/api/v1/dashboard/recent-activity']['get']['responses'][200]['content']['application/json']['data']['activities'][number];
 import {
   Users,
   Car,
@@ -63,42 +67,47 @@ interface TransformedTrip {
   group: TripGroup;
 }
 
-// Helper function to transform new WeeklyDashboardResponse format to legacy TodayTrip format
-const transformWeeklyDashboardToTrips = (weeklyDashboard: WeeklyDashboardResponse | undefined) => {
-  if (!weeklyDashboard?.data?.days) return [];
+// Helper function to transform WeeklyDashboardResponse format to TransformedTrip format
+const transformWeeklyDashboardToTrips = (
+  weeklyDashboard: WeeklyDashboardResponse | undefined
+): TransformedTrip[] => {
+  if (!weeklyDashboard?.data?.dailySchedules) return [];
 
   const trips: TransformedTrip[] = [];
 
-  weeklyDashboard.data.days.forEach(day => {
-    day.transports.forEach(transport => {
-      transport.vehicleAssignmentSummaries.forEach(vehicle => {
-        // Create a trip object compatible with existing component
-        // Using the REAL API structure from backend (children at vehicle level per VehicleAssignmentSummary)
-        trips.push({
-          id: `${day.date}-${transport.time}-${vehicle.vehicleId}`,
-          time: transport.time,
-          datetime: `${day.date}T${transport.time}:00Z`,
-          groupId: transport.groupId,
-          groupName: transport.groupName,
-          scheduleSlotId: transport.scheduleSlotId,
-          date: day.date,
-          vehicle: {
-            id: vehicle.vehicleId,
-            name: vehicle.vehicleName,
-            capacity: vehicle.vehicleCapacity
-          },
-          driver: vehicle.driver, // Present according to API spec (optional)
-          children: vehicle.children?.map(child => ({
-            id: child.childId,
-            name: child.childName,
-            familyId: child.childFamilyId,
-            isFamilyChild: child.isFamilyChild
-          })) || [], // Children ARE at vehicle level in the API!
-          group: {
-            id: transport.groupId || 'unknown-group',
-            name: transport.groupName || 'Unknown Group'
-          }
-        });
+  weeklyDashboard.data.dailySchedules.forEach((daySchedule) => {
+    daySchedule.trips.forEach((trip) => {
+      trips.push({
+        id: trip.id,
+        time: trip.time,
+        datetime: trip.datetime,
+        groupId: trip.group?.id || 'unknown-group',
+        groupName: trip.group?.name || 'Unknown Group',
+        scheduleSlotId: trip.id,
+        date: trip.date || daySchedule.date,
+        vehicle: trip.vehicle ? {
+          id: trip.vehicle.id || 'unknown-vehicle',
+          name: trip.vehicle.name || 'Unknown Vehicle',
+          capacity: trip.vehicle.capacity || 0
+        } : {
+          id: 'unknown-vehicle',
+          name: 'No Vehicle',
+          capacity: 0
+        },
+        driver: trip.driver ? {
+          id: trip.driver.id || 'unknown-driver',
+          name: trip.driver.name
+        } : undefined,
+        children: trip.children?.map((child) => ({
+          id: child.id,
+          name: child.name,
+          familyId: '', // Not available in the new response structure
+          isFamilyChild: false // Cannot determine without familyId in response
+        })) || [],
+        group: {
+          id: trip.group?.id || 'unknown-group',
+          name: trip.group?.name || 'Unknown Group'
+        }
       });
     });
   });
@@ -113,17 +122,25 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
 
   // Fetch real children data
-  const { data: children = [] } = useQuery({
+  const { data: childrenData = { data: [] } } = useQuery({
     queryKey: ['children'],
-    queryFn: () => apiService.getChildren(),
+    queryFn: async () => {
+      const result = await api.GET('/api/v1/children', {});
+      return result.data;
+    },
     enabled: !!user
   });
 
+  const children = childrenData?.data || [];
+
 
   // Fetch this week's trips with shorter cache for real-time updates
-  const { data: weeklyDashboard, isLoading: scheduleLoading, error: scheduleError } = useQuery({
+  const { data: weeklyDashboardData, isLoading: scheduleLoading, error: scheduleError } = useQuery({
     queryKey: ['weekly-dashboard', user?.id],
-    queryFn: () => apiService.getDashboardWeeklySchedule(),
+    queryFn: async () => {
+      const result = await api.GET('/api/v1/dashboard/weekly', {});
+      return result.data;
+    },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes for weekly data
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -131,9 +148,12 @@ const DashboardPage: React.FC = () => {
   });
 
   // Fetch recent activity with medium cache duration (family-based)
-  const { data: recentActivity, isLoading: activityLoading } = useQuery({
+  const { data: recentActivityData, isLoading: activityLoading } = useQuery({
     queryKey: ['recent-activity', currentFamily?.id],
-    queryFn: () => apiService.getRecentActivity(),
+    queryFn: async () => {
+      const result = await api.GET('/api/v1/dashboard/recent-activity', {});
+      return result.data;
+    },
     enabled: !!user && !!currentFamily,
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter for more frequent updates)
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -141,6 +161,9 @@ const DashboardPage: React.FC = () => {
   });
 
   const isDataLoading = scheduleLoading || activityLoading;
+
+  const weeklyDashboard = weeklyDashboardData;
+  const recentActivity = recentActivityData?.data?.activities || [];
 
   // Transform weekly dashboard data to legacy format for compatibility
   const upcomingTrips = transformWeeklyDashboardToTrips(weeklyDashboard);
@@ -152,21 +175,21 @@ const DashboardPage: React.FC = () => {
       variant: 'default' as const, 
       icon: Users,
       description: 'Connect with other families',
-      onClick: () => navigate('/groups')
+      onClick: () => navigate('/api/v1/groups')
     },
     { 
       label: 'Add Child', 
       variant: 'secondary' as const, 
       icon: UserPlus,
       description: 'Register for transport',
-      onClick: () => navigate('/children')
+      onClick: () => navigate('/api/v1/children')
     },
     { 
       label: 'Add Vehicle', 
       variant: 'outline' as const, 
       icon: Car,
       description: 'Offer rides to others',
-      onClick: () => navigate('/vehicles')
+      onClick: () => navigate('/api/v1/vehicles')
     },
   ];
 
@@ -197,7 +220,7 @@ const DashboardPage: React.FC = () => {
                 <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500 animate-pulse" />
               </div>
               <p className="text-sm sm:text-base lg:text-lg text-muted-foreground font-medium">
-                Your transport dashboard • {formatDatetimeInTimezone(new Date(), 'EEEE, MMMM d', user?.timezone)}
+                Your transport dashboard • {formatDatetimeInTimezone(new Date(), 'EEEE, MMMM d', user?.timezone || undefined)}
               </p>
             </div>
           </div>
@@ -218,15 +241,15 @@ const DashboardPage: React.FC = () => {
                         {currentFamily.name}
                       </CardTitle>
                       <p className="text-sm text-blue-600 dark:text-blue-400">
-                        {currentFamily.members.length} member{currentFamily.members.length !== 1 ? 's' : ''}
-                        {currentFamily.children.length > 0 && (
+                        {(currentFamily.members || []).length} member{(currentFamily.members || []).length !== 1 ? 's' : ''}
+                        {(currentFamily.children || []).length > 0 && (
                           <span data-testid="DashboardPage-Text-childrenCount">
-                            {` • ${currentFamily.children.length} child${currentFamily.children.length !== 1 ? 'ren' : ''}`}
+                            {` • ${(currentFamily.children || []).length} child${(currentFamily.children || []).length !== 1 ? 'ren' : ''}`}
                           </span>
                         )}
-                        {currentFamily.vehicles.length > 0 && (
+                        {(currentFamily.vehicles || []).length > 0 && (
                           <span data-testid="DashboardPage-Text-vehiclesCount">
-                            {` • ${currentFamily.vehicles.length} vehicle${currentFamily.vehicles.length !== 1 ? 's' : ''}`}
+                            {` • ${(currentFamily.vehicles || []).length} vehicle${(currentFamily.vehicles || []).length !== 1 ? 's' : ''}`}
                           </span>
                         )}
                       </p>
@@ -261,7 +284,7 @@ const DashboardPage: React.FC = () => {
         />
 
         {/* Empty state for families with no children or vehicles */}
-        {currentFamily && currentFamily.children.length === 0 && currentFamily.vehicles.length === 0 && (
+        {currentFamily && (currentFamily.children || []).length === 0 && (currentFamily.vehicles || []).length === 0 && (
           <EmptyState
             icon={Users}
             title="Welcome to your family!"
@@ -325,9 +348,9 @@ const DashboardPage: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {recentActivity?.activities?.length ? (
+                {recentActivity?.length ? (
                   <div className="space-y-4">
-                    {recentActivity.activities.map((activity, index) => (
+                    {recentActivity.map((activity: ActivityItem, index: number) => (
                       <div key={activity.id} className="group">
                         <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200">
                           <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
@@ -337,12 +360,12 @@ const DashboardPage: React.FC = () => {
                             }
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate" data-testid={`DashboardPage-Text-activityAction-${activity.id}`}>{activity.action}</p>
-                            <p className="text-xs text-muted-foreground font-medium mt-1" data-testid={`DashboardPage-Text-activityTime-${activity.id}`}>{activity.time}</p>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate" data-testid={`DashboardPage-Text-activityAction-${activity.id}`}>{activity.description}</p>
+                            <p className="text-xs text-muted-foreground font-medium mt-1" data-testid={`DashboardPage-Text-activityTime-${activity.id}`}>{activity.timestamp}</p>
                           </div>
                           <div className="h-2 w-2 rounded-full bg-primary/30 group-hover:bg-primary/50 transition-colors" />
                         </div>
-                        {index < recentActivity.activities.length - 1 && (
+                        {index < recentActivity.length - 1 && (
                           <Separator className="my-2 ml-16" />
                         )}
                       </div>

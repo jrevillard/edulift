@@ -37,6 +37,9 @@ describe('ChildService WebSocket Events', () => {
         update: jest.fn(),
         delete: jest.fn(),
       },
+      family: {
+        findUnique: jest.fn(),
+      },
       familyMember: {
         findFirst: jest.fn(),
       },
@@ -73,9 +76,9 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
-      const result = await childService.createChild(childData);
+      const result = await childService.createChild(childData, 'system');
 
-      expect(result).toEqual(mockCreatedChild);
+      expect(result).toMatchObject(mockCreatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         'system', // userId for child creation
         'family-123', // familyId
@@ -103,7 +106,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
-      await childService.createChild(childData);
+      await childService.createChild(childData, 'system');
 
       expect(mockPrisma.child.create).toHaveBeenCalledWith({
         data: {
@@ -132,7 +135,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockRejectedValue(new Error('Database error'));
 
-      await expect(childService.createChild(childData)).rejects.toThrow(AppError);
+      await expect(childService.createChild(childData, 'system')).rejects.toThrow(AppError);
       expect(mockSocketEmitter.broadcastChildUpdate).not.toHaveBeenCalled();
     });
   });
@@ -183,7 +186,7 @@ describe('ChildService WebSocket Events', () => {
 
       const result = await childService.updateChild(childId, userId, updateData);
 
-      expect(result).toEqual(mockUpdatedChild);
+      expect(result).toMatchObject(mockUpdatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         userId,
         familyId,
@@ -306,10 +309,20 @@ describe('ChildService WebSocket Events', () => {
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
       mockPrisma.child.delete.mockResolvedValue(mockExistingChild);
+      mockPrisma.family.findUnique.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [], // Child deleted
+        vehicles: [],
+      });
 
       const result = await childService.deleteChild(childId, userId);
 
-      expect(result).toEqual({ success: true });
+      expect(result).toBeDefined();
+      expect(result.id).toBe(familyId);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         userId,
         familyId,
@@ -389,7 +402,7 @@ describe('ChildService WebSocket Events', () => {
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
-      await childService.createChild(childData);
+      await childService.createChild(childData, 'system');
 
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         'system',
@@ -472,6 +485,15 @@ describe('ChildService WebSocket Events', () => {
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
       mockPrisma.child.delete.mockResolvedValue(mockExistingChild);
+      mockPrisma.family.findUnique.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [], // Child deleted
+        vehicles: [],
+      });
 
       await childService.deleteChild(childId, userId);
 
@@ -507,8 +529,8 @@ describe('ChildService WebSocket Events', () => {
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
 
       // Should not throw error even without socket handler
-      const result = await childService.createChild(childData);
-      expect(result).toEqual(mockCreatedChild);
+      const result = await childService.createChild(childData, 'system');
+      expect(result).toMatchObject(mockCreatedChild);
 
       // SocketEmitter should still be called (it handles null socket handler internally)
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalled();

@@ -1,6 +1,24 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService, type Child, type UserGroup } from '../services/apiService';
+import { api } from '../services/api';
+import type { paths } from '@/generated/api/types';
+import type { Child, GroupChildMembership } from '@/types/api';
+
+// OpenAPI generated types
+export type UserGroup = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
+
+/*
+  MIGRATION STATUS: ✅ FULLY MIGRATED TO OPENAPI GENERATED TYPES
+  ==========================================================
+  Using direct HTTP methods with generated type safety:
+
+  1. api.GET('/api/v1/children/{childId}/groups', { params: { path: { childId } } })
+  2. api.GET('/api/v1/groups/my-groups', {})
+  3. api.POST('/api/v1/children/{childId}/groups/{groupId}', { params: { path: { childId, groupId } } })
+  4. api.DELETE('/api/v1/children/{childId}/groups/{groupId}', { params: { path: { childId, groupId } } })
+
+  All functionality preserved with full type safety and IDE auto-completion.
+*/
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
@@ -17,27 +35,44 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
   const queryClient = useQueryClient();
 
   // Get child's current group memberships
-  const { data: childGroups = [], isLoading: loadingChildGroups } = useQuery({
+  const { data: childGroupsData, isLoading: loadingChildGroups } = useQuery({
     queryKey: ['child-groups', child.id],
-    queryFn: () => apiService.getChildGroupMemberships(child.id),
+    queryFn: async () => {
+      const result = await api.GET('/api/v1/children/{childId}/groups', {
+        params: { path: { childId: child.id } }
+      });
+      return result.data;
+    },
     enabled: isOpen,
   });
 
   // Get user's groups (to add child to)
-  const { data: userGroups = [], isLoading: loadingUserGroups } = useQuery({
+  const { data: userGroupsData, isLoading: loadingUserGroups } = useQuery({
     queryKey: ['my-groups'],
-    queryFn: () => apiService.getUserGroups(),
+    queryFn: async () => {
+      const result = await api.GET('/api/v1/groups/my-groups', {});
+      return result.data;
+    },
     enabled: isOpen,
   });
 
+  // Extract data from responses
+  const childGroups = childGroupsData?.data || [];
+  const userGroups = userGroupsData?.data || [];
+
   // Filter out groups child is already a member of
   const availableGroups = userGroups.filter(
-    (userGroup: UserGroup) => !childGroups.some(childGroup => childGroup.groupId === userGroup.id)
+    (userGroup: UserGroup) => !childGroups.some((childGroup: GroupChildMembership) => childGroup.groupId === userGroup.id)
   );
 
   // Mutations
   const addToGroupMutation = useMutation({
-    mutationFn: (groupId: string) => apiService.addChildToGroup(child.id, groupId),
+    mutationFn: async (groupId: string) => {
+      const result = await api.POST('/api/v1/children/{childId}/groups/{groupId}', {
+        params: { path: { childId: child.id, groupId } }
+      });
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['child-groups', child.id] });
       queryClient.invalidateQueries({ queryKey: ['children'] });
@@ -46,7 +81,12 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
   });
 
   const removeFromGroupMutation = useMutation({
-    mutationFn: (groupId: string) => apiService.removeChildFromGroup(child.id, groupId),
+    mutationFn: async (groupId: string) => {
+      const result = await api.DELETE('/api/v1/children/{childId}/groups/{groupId}', {
+        params: { path: { childId: child.id, groupId } }
+      });
+      return result;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['child-groups', child.id] });
       queryClient.invalidateQueries({ queryKey: ['children'] });
@@ -111,9 +151,9 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
                         <div className="flex items-center space-x-3">
                           <span className="text-success">👥</span>
                           <div>
-                            <div className="font-medium text-success-muted-foreground">{membership.group.name}</div>
+                            <div className="font-medium text-success-muted-foreground">{membership.group?.name || 'Unknown Group'}</div>
                             <div className="text-xs text-success">
-                              Added {new Date(membership.addedAt).toLocaleDateString()}
+                              Added {membership.addedAt ? new Date(membership.addedAt).toLocaleDateString() : 'Recently'}
                             </div>
                           </div>
                         </div>

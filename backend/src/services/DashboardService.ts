@@ -372,15 +372,7 @@ export class DashboardService {
             lte: weekEnd,
           },
           OR: [
-            // User's family owns the group - simplified check
-            {
-              group: {
-                ownerFamily: {
-                  id: userFamily.id,
-                },
-              },
-            },
-            // User's family is a member of the group - simplified check
+            // User's family is a member of the group (including owner family)
             {
               group: {
                 familyMembers: {
@@ -398,7 +390,7 @@ export class DashboardService {
                 },
               },
             },
-            // User's family children are assigned to this slot - simplified check
+            // User's family children are assigned to this slot
             {
               childAssignments: {
                 some: {
@@ -445,15 +437,7 @@ export class DashboardService {
             lte: todayEnd,
           },
           OR: [
-            // User's family owns the group - simplified check
-            {
-              group: {
-                ownerFamily: {
-                  id: userFamily.id,
-                },
-              },
-            },
-            // User's family is a member of the group - simplified check
+            // User's family is a member of the group (including owner family)
             {
               group: {
                 familyMembers: {
@@ -471,7 +455,7 @@ export class DashboardService {
                 },
               },
             },
-            // User's family children are assigned to this slot - simplified check
+            // User's family children are assigned to this slot
             {
               childAssignments: {
                 some: {
@@ -640,24 +624,13 @@ export class DashboardService {
    * Per specification lines 104-112: include all groups family belongs to
    */
   private async getGroupIdsForFamily(familyId: string): Promise<string[]> {
-    // Get all groups (owned + member) in parallel for better performance
-    const [ownedGroups, memberGroups] = await Promise.all([
-      // Groups owned by user's family
-      this.prisma.group.findMany({
-        where: { familyId },
-        select: { id: true },
-      }),
-      // Groups where user's family is a member
-      this.prisma.groupFamilyMember.findMany({
-        where: { familyId },
-        select: { groupId: true },
-      }),
-    ]);
+    // Get all groups where user's family is a member (including owned groups)
+    const memberGroups = await this.prisma.groupFamilyMember.findMany({
+      where: { familyId },
+      select: { groupId: true },
+    });
 
-    return [
-      ...ownedGroups.map(g => g.id),
-      ...memberGroups.map(gm => gm.groupId),
-    ];
+    return memberGroups.map(gm => gm.groupId);
   }
 
   /**

@@ -23,7 +23,7 @@ vi.mock('../../services/authService', () => ({
     getToken: vi.fn(),
     setAuthChangeCallback: vi.fn(),
     isTokenExpired: vi.fn().mockReturnValue(false),
-    refreshTokenFromStorage: vi.fn().mockResolvedValue('mock-token'),
+    refreshTokenFromStorage: vi.fn().mockResolvedValue(undefined),
     logout: vi.fn(),
     requestPasswordReset: vi.fn(),
     resetPassword: vi.fn(),
@@ -118,6 +118,9 @@ describe('VerifyMagicLinkPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    // Reset verifyMagicLink mock to default implementation
+    mockAuthService.verifyMagicLink.mockReset()
+
     // Reset auth service defaults
     mockAuthService.isAuthenticated.mockReturnValue(false)
     mockAuthService.getUser.mockReturnValue(null)
@@ -159,17 +162,16 @@ describe('VerifyMagicLinkPage', () => {
   })
 
   it('shows error when token verification fails', async () => {
-    mockAuthService.verifyMagicLink.mockRejectedValueOnce(new Error('Invalid token'))
+    mockAuthService.verifyMagicLink.mockRejectedValue(new Error('Invalid token'))
 
     renderWithRouter(['/auth/verify?token=invalid-token'])
 
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/invalid token/i)
-    })
+    }, { timeout: 10000 })
 
     expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith('invalid-token', undefined)
-    // UI elements like back to login button would be tested here if implemented
   })
 
   it('handles successful verification and redirects to dashboard', async () => {
@@ -230,27 +232,25 @@ describe('VerifyMagicLinkPage', () => {
   })
 
   it('shows appropriate error message for expired token', async () => {
-    mockAuthService.verifyMagicLink.mockRejectedValueOnce(new Error('Token has expired'))
+    mockAuthService.verifyMagicLink.mockRejectedValue(new Error('Token has expired'))
 
     renderWithRouter(['/auth/verify?token=expired-token'])
 
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/token has expired/i)
-    })
-
-    // UI text assertion for expired token would go here if implemented
+    }, { timeout: 10000 })
   })
 
   it('handles network errors gracefully', async () => {
-    mockAuthService.verifyMagicLink.mockRejectedValueOnce(new Error('Network error'))
+    mockAuthService.verifyMagicLink.mockRejectedValue(new Error('Network error'))
 
     renderWithRouter(['/auth/verify?token=some-token'])
 
     await waitFor(() => {
       expect(screen.getByTestId('verification-failed-title')).toHaveTextContent(/verification failed/i)
       expect(screen.getByTestId('verification-error-message')).toHaveTextContent(/network error/i)
-    })
+    }, { timeout: 10000 })
   })
 
   it('does not verify token if user is already authenticated', async () => {

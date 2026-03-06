@@ -78,31 +78,61 @@ export interface WeeklySchedule {
 export interface ScheduleSlotWithDetails {
   id: string;
   groupId: string;
-  datetime: Date;
+  datetime: string; // ISO string returned by service
   vehicleAssignments: Array<{
     id: string;
+    vehicleId: string;
+    scheduleSlotId: string;
+    driverId: string | null;
+    seatOverride: number | null;
+    createdAt: string;
     vehicle: {
       id: string;
       name: string;
       capacity: number;
+      familyId: string;
+      createdAt: string;
+      updatedAt: string;
     };
-    driver?: {
+    driver: {
       id: string;
       name: string;
-    } | undefined;
-    seatOverride?: number;
+    } | null;
+    childAssignments: Array<{
+      id: string;
+      scheduleSlotId: string;
+      childId: string;
+      vehicleAssignmentId: string;
+      assignedAt: string;
+      child: {
+        id: string;
+        name: string;
+        age: number | null;
+        familyId: string;
+        createdAt: string;
+        updatedAt: string;
+      };
+    }>;
   }>;
   childAssignments: Array<{
+    id: string;
+    scheduleSlotId: string;
+    childId: string;
     vehicleAssignmentId: string;
+    assignedAt: string;
     child: {
       id: string;
       name: string;
+      age: number | null;
+      familyId: string;
+      createdAt: string;
+      updatedAt: string;
     };
   }>;
   totalCapacity: number;
   availableSeats: number;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SocketEvents {

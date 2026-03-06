@@ -1,16 +1,13 @@
 import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
 import type { ApiResponse } from '@/types';
+import type { User } from '@/types/api';  // Import directly from api.ts to avoid ambiguity
 import { secureStorage } from '@/utils/secureStorage';
 
 import { API_BASE_URL } from '@/config/runtime';
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  timezone?: string; // User's preferred timezone (e.g., "America/New_York", "Asia/Tokyo")
-}
+// Re-export User type for convenience
+export type { User };
 
 export interface AuthResponse {
   user: User;
@@ -261,7 +258,7 @@ class AuthService {
     try {
       // Import PKCE utilities
       const { getPKCEVerifier, clearPKCEData, hasPKCEData } = await import('../utils/pkceUtils');
-      
+
       // Check if we have PKCE data
       if (!(await hasPKCEData())) {
         throw new Error('This magic link must be opened in the same browser/app where it was requested. Please return to your original browser/app and click the link again, or request a new magic link.');
@@ -273,11 +270,17 @@ class AuthService {
         throw new Error('Authentication security data not found. Please open this link in the same browser/app where you requested it, or request a new magic link.');
       }
 
-      const url = `${API_BASE_URL}/auth/verify${inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : ''}`;
-      const response = await axios.post<ApiResponse<AuthResponse>>(url, {
+      // Send everything in the body (clean REST design)
+      const requestBody = {
         token,
-        code_verifier: codeVerifier // Add PKCE verifier
-      });
+        code_verifier: codeVerifier, // Add PKCE verifier
+        ...(inviteCode && { inviteCode }) // Add inviteCode to body only if provided
+      };
+
+      const response = await axios.post<ApiResponse<AuthResponse>>(
+        `${API_BASE_URL}/auth/verify`,
+        requestBody
+      );
 
       if (!response.data.success || !response.data.data) {
         throw new Error(response.data.error || 'Failed to verify magic link');
@@ -610,7 +613,7 @@ class AuthService {
 
     try {
       const response = await axios.patch<ApiResponse<User>>(
-        `${API_BASE_URL}/auth/timezone`,
+        `${API_BASE_URL}/auth/profile/timezone`,
         { timezone },
         {
           headers: { Authorization: `Bearer ${this.token}` }

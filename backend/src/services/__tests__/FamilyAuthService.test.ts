@@ -1,6 +1,7 @@
 import { FamilyAuthService } from '../FamilyAuthService';
 import { FamilyError, FamilyRole } from '../../types/family';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma
 const mockPrisma = {
@@ -33,7 +34,7 @@ describe('FamilyAuthService', () => {
   });
 
   describe('getUserPermissions', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
 
     it('should return admin permissions for ADMIN role', async () => {
       // Mock user is ADMIN
@@ -109,7 +110,7 @@ describe('FamilyAuthService', () => {
   });
 
   describe('canAccessChild', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const childId = 'child-456';
 
     it('should return true if child belongs to user family', async () => {
@@ -156,7 +157,7 @@ describe('FamilyAuthService', () => {
   });
 
   describe('canModifyChild', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const childId = 'child-456';
 
     it('should return true if user is ADMIN and can access child', async () => {
@@ -224,7 +225,7 @@ describe('FamilyAuthService', () => {
   });
 
   describe('canAccessVehicle', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const vehicleId = 'vehicle-456';
 
     it('should return true if vehicle belongs to user family', async () => {
@@ -254,7 +255,7 @@ describe('FamilyAuthService', () => {
   });
 
   describe('canModifyVehicle', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
     const vehicleId = 'vehicle-456';
 
     it('should return true if user is ADMIN and can access vehicle', async () => {
@@ -295,7 +296,7 @@ describe('FamilyAuthService', () => {
   });
 
   describe('requireFamilyRole', () => {
-    const userId = 'user-123';
+    const userId = TEST_IDS.USER;
 
     it('should not throw if user has required role', async () => {
       mockPrisma.familyMember.findFirst.mockResolvedValue({

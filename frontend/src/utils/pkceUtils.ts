@@ -5,6 +5,7 @@
 
 import pkceChallenge from 'pkce-challenge';
 import { secureStorage } from './secureStorage';
+import { E2E_TEST_OVERRIDE_IV, E2E_TEST_OVERRIDE_IV_BASE64, verifyE2EConstants } from '../constants/e2e';
 
 /**
  * PKCE key pair structure
@@ -15,6 +16,16 @@ export interface PKCEPair {
 }
 
 /**
+ * E2E Test PKCE data structure for testing magic link flow
+ */
+export interface E2EPKCEData {
+  code_verifier: string;
+  code_challenge: string;
+  email: string;
+  timestamp: number;
+}
+
+/**
  * Storage keys for PKCE data in secure storage
  */
 const STORAGE_KEYS = {
@@ -22,6 +33,35 @@ const STORAGE_KEYS = {
   CODE_CHALLENGE: 'pkce_code_challenge',
   EMAIL: 'pkce_email', // Store email to validate against
 } as const;
+
+/**
+ * Global interface for E2E test data storage
+ */
+declare global {
+  interface Window {
+    __E2E_PKCE_DATA__?: E2EPKCEData;
+  }
+}
+
+// Re-export E2E constants for backwards compatibility
+export { E2E_TEST_OVERRIDE_IV, E2E_TEST_OVERRIDE_IV_BASE64 };
+
+// Verify E2E constants are correct (development/test only)
+// This ensures E2E_TEST_OVERRIDE_IV_BASE64 matches btoa(E2E_TEST_OVERRIDE_IV)
+// NOTE: This verification only runs in dev/test when `btoa()` is available
+// In unit tests, `btoa` might not be defined, so we wrap it in try/catch
+if (import.meta.env.MODE !== 'production') {
+  try {
+    if (typeof btoa === 'function') {
+      verifyE2EConstants();
+    } else {
+      console.warn('⚠️ btoa() not available - skipping E2E constants verification (likely unit tests)');
+    }
+  } catch (error) {
+    console.error('Fatal: E2E constants verification failed:', error);
+    throw error;
+  }
+}
 
 /**
  * Generate a new PKCE challenge/verifier pair
@@ -75,6 +115,17 @@ export async function storePKCEPair(pair: PKCEPair, email: string): Promise<void
     await secureStorage.setItem(STORAGE_KEYS.CODE_VERIFIER, pair.code_verifier);
     await secureStorage.setItem(STORAGE_KEYS.CODE_CHALLENGE, pair.code_challenge);
     await secureStorage.setItem(STORAGE_KEYS.EMAIL, normalizedEmail);
+
+    // E2E TEST SUPPORT: Store plaintext values for E2E testing
+    // CRITICAL: ONLY expose in test environment, NEVER in production
+    if (import.meta.env.VITE_E2E_TEST === 'true' && typeof window !== 'undefined') {
+      window.__E2E_PKCE_DATA__ = {
+        code_verifier: pair.code_verifier,
+        code_challenge: pair.code_challenge,
+        email: normalizedEmail,
+        timestamp: Date.now()
+      };
+    }
 
     console.log('🔐 PKCE pair stored successfully in secure storage');
   } catch (error) {
@@ -148,6 +199,29 @@ export async function getPKCEEmail(): Promise<string | null> {
  * Should be called after successful authentication or on error
  */
 export async function clearPKCEData(): Promise<void> {
+  // SECURITY: Validate build environment BEFORE honoring test mode
+  // This prevents accidental E2E test mode activation in production builds
+  if (import.meta.env.VITE_E2E_TEST === 'true' && import.meta.env.MODE === 'production') {
+    console.error('🚨 SECURITY ALERT: VITE_E2E_TEST is set in production build!');
+    console.error('Build environment:', import.meta.env.MODE);
+    console.error('VITE_E2E_TEST:', import.meta.env.VITE_E2E_TEST);
+    throw new Error('E2E test mode is not allowed in production builds');
+  }
+
+  // Only honor test mode in non-production builds
+  const isE2ETestBuild = import.meta.env.VITE_E2E_TEST === 'true' &&
+                        import.meta.env.MODE !== 'production';
+
+  const isE2ETestMode = isE2ETestBuild &&
+                       typeof window !== 'undefined' &&
+                       ((window as any).__E2E_TEST_MODE__ === true ||
+                        localStorage.getItem('__E2E_TEST_MODE__') === 'true');
+
+  if (isE2ETestMode) {
+    console.log('🧪 [E2E TEST] clearPKCEData() called - SKIPPING to preserve PKCE data');
+    return;
+  }
+
   try {
     secureStorage.removeItem(STORAGE_KEYS.CODE_VERIFIER);
     secureStorage.removeItem(STORAGE_KEYS.CODE_CHALLENGE);
@@ -168,6 +242,18 @@ export async function hasPKCEData(): Promise<boolean> {
     const verifier = await secureStorage.getItem(STORAGE_KEYS.CODE_VERIFIER);
     const challenge = await secureStorage.getItem(STORAGE_KEYS.CODE_CHALLENGE);
     const email = await secureStorage.getItem(STORAGE_KEYS.EMAIL);
+
+    // Debug logging for E2E tests
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 [hasPKCEData] Checking PKCE data:', {
+        hasVerifier: !!verifier,
+        hasChallenge: !!challenge,
+        hasEmail: !!email,
+        e2eTestMode: typeof window !== 'undefined' &&
+                     ((window as any).__E2E_TEST_MODE__ === true ||
+                      localStorage.getItem('__E2E_TEST_MODE__') === 'true')
+      });
+    }
 
     return !!(verifier && challenge && email);
   } catch (error) {
@@ -192,8 +278,79 @@ export async function generateAndStorePKCEPair(email: string, length: number = 4
 }
 
 /**
+ * Restore PKCE data from a plain object (for E2E testing)
+ * This bypasses encryption and directly restores the data to secure storage
+ * WARNING: This method should ONLY be used in E2E tests, never in production code
+ *
+ * @param pkceData - Object containing code_verifier, code_challenge, and email
+ * @throws Error if restoration fails
+ */
+export async function restorePKCEData(pkceData: Record<string, string>): Promise<void> {
+  // SECURITY: This function should ONLY be used in E2E tests
+  // CRITICAL: Multiple layers of protection to prevent production usage
+
+  // Layer 1: Build-time check - block production
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('restorePKCEData is forbidden in production - this is E2E test only');
+  }
+
+  // Layer 2: Must be in test environment (not just "not production")
+  if (process.env.NODE_ENV !== 'test') {
+    throw new Error('restorePKCEData is only allowed in test environment');
+  }
+
+  // Layer 3: Verify E2E test mode flags are present
+  const isE2EMode = typeof window !== 'undefined' &&
+                    ((window as any).__E2E_TEST_MODE__ === true ||
+                     localStorage.getItem('__E2E_TEST_MODE__') === 'true');
+
+  if (!isE2EMode) {
+    throw new Error('restorePKCEData requires E2E test mode - flags not found');
+  }
+
+  try {
+    if (!pkceData.code_verifier || !pkceData.code_challenge || !pkceData.email) {
+      throw new Error('Invalid PKCE data - missing verifier, challenge, or email');
+    }
+
+    // Directly store in localStorage with the secure_ prefix to match secureStorage format
+    // We store as PLAINTEXT (not encrypted) for E2E testing only
+    const storageData = {
+      encrypted: btoa(pkceData.code_verifier), // Simple base64 encoding (not encryption)
+      iv: btoa(E2E_TEST_OVERRIDE_IV), // Special IV to indicate this is test data
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(`secure_${STORAGE_KEYS.CODE_VERIFIER}`, JSON.stringify(storageData));
+
+    // Store challenge (same approach)
+    const challengeData = {
+      encrypted: btoa(pkceData.code_challenge),
+      iv: btoa(E2E_TEST_OVERRIDE_IV),
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(`secure_${STORAGE_KEYS.CODE_CHALLENGE}`, JSON.stringify(challengeData));
+
+    // Store email
+    const emailData = {
+      encrypted: btoa(pkceData.email),
+      iv: btoa(E2E_TEST_OVERRIDE_IV),
+      timestamp: Date.now()
+    };
+
+    localStorage.setItem(`secure_${STORAGE_KEYS.EMAIL}`, JSON.stringify(emailData));
+
+    console.log('🔐 PKCE data restored for E2E testing (plaintext with test IV)');
+  } catch (error) {
+    console.error('Failed to restore PKCE data:', error);
+    throw new Error(`Failed to restore PKCE data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+/**
  * Validate that browser supports required Web Crypto API features for PKCE
- * 
+ *
  * @returns boolean - True if browser supports PKCE requirements
  */
 export function isPKCESupported(): boolean {

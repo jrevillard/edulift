@@ -2,8 +2,7 @@
 import { PrismaClient, GroupRole } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
-import { EmailService } from './EmailService';
-import { MockEmailService } from './MockEmailService';
+import { EmailServiceFactory } from './EmailServiceFactory';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { UnifiedInvitationService } from './UnifiedInvitationService';
 import {
@@ -45,32 +44,37 @@ export class GroupService {
   private emailService: EmailServiceInterface;
   private unifiedInvitationService: UnifiedInvitationService;
   private logger = createLogger('group');
-  
+
+  // Consistent include pattern for fetching complete Group objects
+  private static readonly GROUP_INCLUDE = {
+    familyMembers: {
+      include: {
+        family: {
+          include: {
+            members: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+      },
+    },
+    _count: {
+      select: {
+        familyMembers: true,
+        scheduleSlots: true,
+      },
+    },
+  };
+
   // Constants
 
   constructor(private prisma: PrismaClient, emailService?: EmailServiceInterface) {
     this.activityLogRepo = new ActivityLogRepository(prisma);
-    
-    // Use provided email service or create appropriate one based on environment
-    if (emailService) {
-      this.emailService = emailService;
-    } else {
-      const hasEmailCredentials = !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
-      
-      if (process.env.NODE_ENV === 'production' && hasEmailCredentials) {
-        this.emailService = new EmailService({
-          host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-          port: parseInt(process.env.EMAIL_PORT || '587'),
-          secure: false,
-          auth: {
-            user: process.env.EMAIL_USER!,
-            pass: process.env.EMAIL_PASSWORD!,
-          },
-        });
-      } else {
-        this.emailService = new MockEmailService();
-      }
-    }
+
+    // Use provided email service or use EmailServiceFactory for consistent configuration
+    this.emailService = emailService ?? EmailServiceFactory.getInstance();
 
     // Initialize UnifiedInvitationService
     this.unifiedInvitationService = new UnifiedInvitationService(
@@ -161,26 +165,23 @@ export class GroupService {
     if (!group) return false;
 
     // Rule: Family ADMIN = Group ADMIN (only if family has ADMIN GroupRole)
-    // Owner family admins always have permissions
-    if (group.familyId === userFamily.familyId) {
-      return true;
-    }
-
-    // For member families, check if they have ADMIN GroupRole
+    // Owner family admins always have permissions (role='OWNER')
     const familyMembership = group.familyMembers.find(fm => fm.familyId === userFamily.familyId);
-    return familyMembership?.role === 'ADMIN';
+
+    // Owner or Admin families have admin permissions
+    return familyMembership?.role === 'OWNER' || familyMembership?.role === 'ADMIN';
   }
 
   /**
    * Calculate user's role in a specific group
-   * @param group - Group with ownerFamily and familyMembers
+   * @param group - Group with familyMembers (owner has role='OWNER')
    * @param userId - User ID to check role for
-   * @returns User's role: 'OWNER', 'ADMIN', or 'MEMBER'
+   * @returns User's role: 'ADMIN' or 'MEMBER' (users can never be 'OWNER' in groups)
    */
   private async calculateUserRoleInGroup(
     group: any, // Prisma group with familyMembers included
     userId: string,
-  ): Promise<'OWNER' | 'ADMIN' | 'MEMBER'> {
+  ): Promise<'ADMIN' | 'MEMBER'> {
     // Get user's family to determine role
     const userFamily = await this.prisma.familyMember.findFirst({
       where: { userId },
@@ -191,22 +192,23 @@ export class GroupService {
       throw new AppError('User has no family', 400);
     }
 
-    // Calculate userRole using same logic as getUserGroups()
-    let userRole: 'OWNER' | 'ADMIN' | 'MEMBER' = 'MEMBER';
+    // Calculate userRole using family membership in the group
+    let userRole: 'ADMIN' | 'MEMBER' = 'MEMBER';
 
-    if (group.familyId === userFamily.familyId) {
-      // Owner family: family ADMIN → group ADMIN/OWNER
-      userRole = userFamily.role === 'ADMIN' ? 'ADMIN' : 'MEMBER';
-    } else {
-      // Member family: use GroupRole from GroupFamilyMember
-      const familyMembership = group.familyMembers?.find(
-        (fm: unknown) => fm.familyId === userFamily.familyId,
-      );
-      if (familyMembership) {
-        userRole = familyMembership.role;
+    // Find this family's membership in the group (including OWNER role)
+    const familyMembership = group.familyMembers?.find(
+      (fm: unknown) => fm.familyId === userFamily.familyId,
+    );
+
+    if (familyMembership) {
+      // Owner or Admin families get ADMIN if user is family admin
+      if (familyMembership.role === 'OWNER' || familyMembership.role === 'ADMIN') {
+        userRole = userFamily.role === 'ADMIN' ? 'ADMIN' : 'MEMBER';
       }
+      // For MEMBER role families, users are always members
     }
 
+    // Note: userRole never returns 'OWNER' - only ADMIN or MEMBER
     return userRole;
   }
 
@@ -214,39 +216,37 @@ export class GroupService {
    * Enrich a raw Prisma group with user-specific context (userRole, counts, etc.)
    * This ensures consistent response format across all endpoints (REST principle).
    *
-   * @param group - Raw Prisma group with includes
+   * @param group - Prisma group with familyMembers (owner has role='OWNER')
    * @param userId - User ID for calculating userRole
    * @returns Enriched group object matching getUserGroups() format
    */
   private async enrichGroupWithUserContext(
-    group: any, // Prisma group with ownerFamily and familyMembers includes
+    group: any, // Prisma group with familyMembers includes
     userId: string,
   ) {
     // Calculate userRole using shared logic
     const userRole = await this.calculateUserRoleInGroup(group, userId);
 
-    // Family count is the number of distinct families participating in the group
-    // This includes the owner family plus any member families
-    let familyCount = group._count?.familyMembers ?? 0;
-    
-    // Always add 1 for owner family since they're not counted in familyMembers
-    if (group.ownerFamily) {
-      familyCount += 1;
-    }
+    // All families are now in familyMembers (including owner with role='OWNER')
+    const familyCount = group._count?.familyMembers ?? 0;
+
+    // Find owner family from membership with role='OWNER'
+    const ownerMembership = group.familyMembers?.find(
+      (fm: unknown) => fm.role === 'OWNER',
+    );
 
     // Return enriched format matching getUserGroups() response
     return {
       id: group.id,
       name: group.name,
       description: group.description,
-      familyId: group.familyId,
       inviteCode: group.inviteCode,
       createdAt: group.createdAt.toISOString(),
       updatedAt: group.updatedAt.toISOString(),
       userRole,
-      ownerFamily: group.ownerFamily ? {
-        id: group.ownerFamily.id,
-        name: group.ownerFamily.name,
+      ownerFamily: ownerMembership?.family ? {
+        id: ownerMembership.family.id,
+        name: ownerMembership.family.name,
       } : undefined,
       familyCount,
       scheduleCount: group._count?.scheduleSlots ?? 0,
@@ -269,20 +269,29 @@ export class GroupService {
         data: {
           name: data.name,
           description: data.description ?? null,
-          familyId: data.familyId,
           inviteCode,
+          // Create owner membership in group_family_members
+          familyMembers: {
+            create: {
+              familyId: data.familyId,
+              role: 'OWNER',
+              addedBy: data.createdBy,
+            },
+          },
         },
         include: {
-          ownerFamily: {
+          familyMembers: {
             include: {
-              members: {
+              family: {
                 include: {
-                  user: true,
+                  members: {
+                    where: { role: 'ADMIN' },
+                    include: { user: true },
+                  },
                 },
               },
             },
           },
-          familyMembers: true, // Include for enrichment
           _count: {
             select: {
               familyMembers: true,
@@ -377,8 +386,9 @@ export class GroupService {
         throw new AppError('Your family is already a member of this group', 400);
       }
 
-      // Check if this is the owner family
-      if (group.familyId === userFamily.familyId) {
+      // Check if this is the owner family (look for role='OWNER')
+      const ownerMembership = group.familyMembers.find(fm => fm.role === 'OWNER');
+      if (ownerMembership?.familyId === userFamily.familyId) {
         throw new AppError('Your family owns this group', 400);
       }
 
@@ -405,15 +415,6 @@ export class GroupService {
       const completeGroup = await this.prisma.group.findUnique({
         where: { id: group.id },
         include: {
-          ownerFamily: {
-            include: {
-              members: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
           familyMembers: {
             include: {
               family: {
@@ -476,25 +477,11 @@ export class GroupService {
       // Get all groups where the user's family is a member or owner
       const groups = await this.prisma.group.findMany({
         where: {
-          OR: [
-            { familyId: userFamily.familyId }, // Groups owned by the family
-            {
-              familyMembers: {
-                some: { familyId: userFamily.familyId }, // Groups the family participates in
-              },
-            },
-          ],
+          familyMembers: {
+            some: { familyId: userFamily.familyId },
+          },
         },
         include: {
-          ownerFamily: {
-            include: {
-              members: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
           familyMembers: {
             include: {
               family: {
@@ -509,7 +496,7 @@ export class GroupService {
             },
           },
           _count: {
-            select: { 
+            select: {
               familyMembers: true,
               scheduleSlots: true,
             },
@@ -552,14 +539,6 @@ export class GroupService {
       const group = await this.prisma.group.findUnique({
         where: { id: groupId },
         include: {
-          ownerFamily: {
-            include: {
-              members: {
-                where: { role: 'ADMIN' },
-                include: { user: true },
-              },
-            },
-          },
           familyMembers: {
             include: {
               family: {
@@ -600,45 +579,30 @@ export class GroupService {
         throw new AppError('Group not found', 404);
       }
 
-      // Check if requester's family has access
-      const hasAccess = group.familyId === userFamily.familyId ||
-                       group.familyMembers.some(fm => fm.familyId === userFamily.familyId);
+      // Check if requester's family has access (now includes owner via role='OWNER')
+      const hasAccess = group.familyMembers.some(fm => fm.familyId === userFamily.familyId);
 
       if (!hasAccess) {
         throw new AppError('Access denied', 403);
       }
 
       const families = [];
-      
-      // Add owner family
-      const ownerFamilyAdmins = group.ownerFamily.members.map(member => ({
-        name: member.user.name,
-        email: member.user.email,
-      }));
-      
-      families.push({
-        id: group.ownerFamily.id,
-        name: group.ownerFamily.name,
-        role: 'OWNER',
-        isMyFamily: group.ownerFamily.id === userFamily.familyId,
-        canManage: false, // Cannot manage owner family
-        admins: ownerFamilyAdmins,
-      });
 
-      // Add member families  
+      // Add all families from familyMembers (owner is now included with role='OWNER')
       for (const familyMember of group.familyMembers) {
         const familyAdmins = familyMember.family.members.map(member => ({
           name: member.user.name,
           email: member.user.email,
         }));
         const isMyFamily = familyMember.family.id === userFamily.familyId;
-        
+        const isOwner = familyMember.role === 'OWNER';
+
         families.push({
           id: familyMember.family.id,
           name: familyMember.family.name,
-          role: familyMember.role,
+          role: familyMember.role as 'OWNER' | 'ADMIN' | 'MEMBER',
           isMyFamily,
-          canManage: !isMyFamily && requesterIsAdmin, // Can manage other families only if requester is admin
+          canManage: !isOwner && !isMyFamily && requesterIsAdmin, // Cannot manage owner family or self
           admins: familyAdmins,
         });
       }
@@ -651,11 +615,11 @@ export class GroupService {
             email: member.user.email,
           }));
           const isMyFamily = invitation.targetFamily.id === userFamily.familyId;
-          
+
           families.push({
             id: invitation.targetFamily.id,
             name: invitation.targetFamily.name,
-            role: invitation.role, // The invited role (MEMBER or ADMIN)
+            role: invitation.role as 'ADMIN' | 'MEMBER', // The invited role (MEMBER or ADMIN)
             status: invitation.status, // Invitation status (PENDING, ACCEPTED, etc.)
             isMyFamily,
             canManage: !isMyFamily && requesterIsAdmin, // Can manage invitations only if requester is admin
@@ -686,16 +650,22 @@ export class GroupService {
         throw new AppError('Only group administrators can update roles', 403);
       }
 
-      const group = await this.prisma.group.findUnique({
-        where: { id: groupId },
+      // Get the current membership to check if it's the owner
+      const currentMembership = await this.prisma.groupFamilyMember.findUnique({
+        where: {
+          familyId_groupId: {
+            familyId: targetFamilyId,
+            groupId,
+          },
+        },
       });
 
-      if (!group) {
-        throw new AppError('Group not found', 404);
+      if (!currentMembership) {
+        throw new AppError('Family is not a member of this group', 404);
       }
 
       // Cannot change role of owner family
-      if (group.familyId === targetFamilyId) {
+      if (currentMembership.role === 'OWNER') {
         throw new AppError('Cannot change role of group owner family', 400);
       }
 
@@ -722,7 +692,22 @@ export class GroupService {
         entityId: groupId,
       });
 
-      return updatedMembership;
+      // Convert Date objects to ISO strings for JSON serialization
+      // Return in schema order: groupId, familyId, role, joinedAt, addedBy, family
+      // Note: GroupFamilyMember uses composite key (familyId+groupId), not separate id field
+      return {
+        groupId: updatedMembership.groupId,
+        familyId: updatedMembership.familyId,
+        role: updatedMembership.role,
+        joinedAt: updatedMembership.joinedAt.toISOString(),
+        addedBy: updatedMembership.addedBy,
+        family: {
+          id: updatedMembership.family.id,
+          name: updatedMembership.family.name,
+          createdAt: updatedMembership.family.createdAt.toISOString(),
+          updatedAt: updatedMembership.family.updatedAt.toISOString(),
+        },
+      };
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -740,16 +725,22 @@ export class GroupService {
         throw new AppError('Only group administrators can remove families', 403);
       }
 
-      const group = await this.prisma.group.findUnique({
-        where: { id: groupId },
+      // Get the current membership to check if it's the owner
+      const currentMembership = await this.prisma.groupFamilyMember.findUnique({
+        where: {
+          familyId_groupId: {
+            familyId: targetFamilyId,
+            groupId,
+          },
+        },
       });
 
-      if (!group) {
-        throw new AppError('Group not found', 404);
+      if (!currentMembership) {
+        throw new AppError('Family is not a member of this group', 404);
       }
 
       // Cannot remove owner family
-      if (group.familyId === targetFamilyId) {
+      if (currentMembership.role === 'OWNER') {
         throw new AppError('Cannot remove group owner family', 400);
       }
 
@@ -773,6 +764,16 @@ export class GroupService {
         },
       });
 
+      // Fetch the complete updated Group with all includes
+      const updatedGroup = await this.prisma.group.findUnique({
+        where: { id: groupId },
+        include: GroupService.GROUP_INCLUDE,
+      });
+
+      if (!updatedGroup) {
+        throw new AppError('Group not found after removing family', 500);
+      }
+
       // Log the activity
       await this.activityLogRepo.createActivity({
         userId: requesterId,
@@ -782,7 +783,8 @@ export class GroupService {
         entityId: groupId,
       });
 
-      return { success: true };
+      // Return enriched Group with userRole (RESTful consistency)
+      return await this.enrichGroupWithUserContext(updatedGroup, requesterId);
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -806,9 +808,11 @@ export class GroupService {
         throw new AppError('Group not found', 404);
       }
 
-      // Check if user has ADMIN or OWNER role in the group
+      // Check if user has ADMIN role in the group
+      // Note: OWNER is not a user role - it's a display role for the owning family in getGroupFamilies()
+      // Users can only be ADMIN or MEMBER (see calculateUserRoleInGroup documentation)
       const userRole = await this.calculateUserRoleInGroup(group, requesterId);
-      if (userRole !== 'OWNER' && userRole !== 'ADMIN') {
+      if (userRole !== 'ADMIN') {
         throw new AppError('Only group owners and administrators can update group settings', 403);
       }
 
@@ -834,24 +838,7 @@ export class GroupService {
       // Fetch the complete group with all relations for enrichment
       const updatedGroup = await this.prisma.group.findUnique({
         where: { id: groupId },
-        include: {
-          ownerFamily: {
-            include: {
-              members: {
-                include: {
-                  user: true,
-                },
-              },
-            },
-          },
-          familyMembers: true,
-          _count: {
-            select: {
-              familyMembers: true,
-              scheduleSlots: true,
-            },
-          },
-        },
+        include: GroupService.GROUP_INCLUDE,
       });
 
       if (!updatedGroup) {
@@ -880,16 +867,23 @@ export class GroupService {
 
   async deleteGroup(groupId: string, requesterId: string) {
     try {
-      // Only owner family admins can delete a group
+      // Find the group with owner membership
       const group = await this.prisma.group.findUnique({
         where: { id: groupId },
+        include: {
+          familyMembers: {
+            where: { role: 'OWNER' },
+          },
+        },
       });
 
-      if (!group) {
+      if (!group || group.familyMembers.length === 0) {
         throw new AppError('Group not found', 404);
       }
 
-      const isOwnerAdmin = await this.isFamilyAdmin(requesterId, group.familyId);
+      // Get the owner family ID from the membership with role='OWNER'
+      const ownerFamilyId = group.familyMembers[0].familyId;
+      const isOwnerAdmin = await this.isFamilyAdmin(requesterId, ownerFamilyId);
       if (!isOwnerAdmin) {
         throw new AppError('Only administrators of the owner family can delete the group', 403);
       }
@@ -931,16 +925,22 @@ export class GroupService {
         throw new AppError('User not part of a family', 400);
       }
 
-      const group = await this.prisma.group.findUnique({
-        where: { id: groupId },
+      // Get the family's membership in the group
+      const familyMembership = await this.prisma.groupFamilyMember.findUnique({
+        where: {
+          familyId_groupId: {
+            familyId: userFamily.familyId,
+            groupId,
+          },
+        },
       });
 
-      if (!group) {
-        throw new AppError('Group not found', 404);
+      if (!familyMembership) {
+        throw new AppError('Your family is not a member of this group', 404);
       }
 
       // Owner family cannot leave their own group
-      if (group.familyId === userFamily.familyId) {
+      if (familyMembership.role === 'OWNER') {
         throw new AppError('Owner family cannot leave their own group', 400);
       }
 
@@ -986,20 +986,20 @@ export class GroupService {
 
   async searchFamiliesForInvitation(searchTerm: string, requesterId: string, groupId: string): Promise<FamilySearchResult[]> {
     try {
-      // Vérifier permissions admin groupe (refactorised)
+      // Check group admin permissions (refactorised)
       await this.validateGroupAdminPermissions(requesterId, groupId);
 
-      // Obtenir famille du demandeur
+      // Get requester's family
       const requesterFamily = await this.prisma.familyMember.findFirst({
         where: { userId: requesterId },
         select: { familyId: true },
       });
 
-      // Rechercher familles
+      // Search for families
       const whereClause: any = {
         name: { contains: searchTerm, mode: 'insensitive' },
         groupMembers: {
-          none: { groupId }, // Exclure familles déjà membres
+          none: { groupId }, // Exclude families already members
         },
       };
       

@@ -4,6 +4,7 @@ import { ChildService } from '../ChildService';
 import { VehicleService } from '../VehicleService';
 import { ScheduleSlotService } from '../ScheduleSlotService';
 import { ActivityLogRepository } from '../../repositories/ActivityLogRepository';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock all dependencies
 jest.mock('../GroupService');
@@ -92,18 +93,18 @@ describe('DashboardService', () => {
   describe('calculateUserStats', () => {
     it('should calculate dashboard statistics correctly', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const mockGroups = [
-        { id: 'group-1', name: 'Group 1' },
-        { id: 'group-2', name: 'Group 2' },
+        { id: TEST_IDS.GROUP, name: 'Group 1' },
+        { id: TEST_IDS.GROUP_2, name: 'Group 2' },
       ];
       const mockChildren = [
-        { id: 'child-1', name: 'Emma', userId },
-        { id: 'child-2', name: 'Lucas', userId },
-        { id: 'child-3', name: 'Sophia', userId },
+        { id: TEST_IDS.CHILD, name: 'Emma', userId },
+        { id: TEST_IDS.CHILD_2, name: 'Lucas', userId },
+        { id: TEST_IDS.CHILD_3, name: 'Sophia', userId },
       ];
       const mockVehicles = [
-        { id: 'vehicle-1', name: 'Honda Civic', userId },
+        { id: TEST_IDS.VEHICLE, name: 'Honda Civic', userId },
       ];
 
       mockGroupServiceInstance.getUserGroups.mockResolvedValue(mockGroups as any);
@@ -135,7 +136,7 @@ describe('DashboardService', () => {
 
     it('should handle empty data gracefully', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
 
       mockGroupServiceInstance.getUserGroups.mockResolvedValue([]);
       mockChildServiceInstance.getChildrenByUser.mockResolvedValue([]);
@@ -162,7 +163,7 @@ describe('DashboardService', () => {
 
     it('should throw error when service calls fail', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const errorMessage = 'Database error';
 
       mockGroupServiceInstance.getUserGroups.mockRejectedValue(new Error(errorMessage));
@@ -175,35 +176,35 @@ describe('DashboardService', () => {
   describe('getTodayTripsForUser', () => {
     it('should transform schedule slots to today trips format', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const testDatetime = new Date('2024-01-15T08:00:00Z');
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
-          groupId: 'group-1',
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
           day: 'MONDAY',
           time: '08:00',
           datetime: testDatetime,
           week: '2024-03',
           vehicleAssignments: [
             {
-              id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-              driver: { id: 'user-123', name: 'John Doe' },
+              id: 'cltestassign1234567890123',
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
           ],
           childAssignments: [
             {
-              vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              vehicleAssignmentId: 'cltestassign1234567890123',
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
       ];
 
@@ -215,36 +216,36 @@ describe('DashboardService', () => {
       // Assert
       expect(result).toHaveLength(1);
       expect(result[0]).toEqual({
-        id: 'slot-1',
+        id: TEST_IDS.SLOT,
         time: '08:00',
         datetime: testDatetime.toISOString(),
         date: 'Today',
-        children: [{ id: 'child-1', name: 'Emma' }],
-        vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-        driver: { id: 'user-123', name: 'John Doe' },
-        group: { id: 'group-1', name: 'Maple Street Families' },
+        children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
+        vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+        driver: { id: TEST_IDS.USER, name: 'John Doe' },
+        group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
       });
     });
 
     it('should handle afternoon trips correctly', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const testDatetime = new Date('2024-01-15T15:30:00Z');
       const mockScheduleSlots = [
         {
-          id: 'slot-2',
+          id: TEST_IDS.SLOT_2,
           time: '15:30',
           datetime: testDatetime,
           vehicleAssignments: [
             {
-              id: 'assignment-2',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-              driver: { id: 'user-456', name: 'Jane Smith' },
+              id: 'cltestassign21234567890123',
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              driver: { id: TEST_IDS.USER_2, name: 'Jane Smith' },
               childAssignments: [],
             },
           ],
           childAssignments: [],
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
         },
       ];
 
@@ -261,7 +262,7 @@ describe('DashboardService', () => {
 
     it('should return empty array when no today trips', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
 
       jest.spyOn(dashboardService as any, 'getTodayScheduleSlotsForUser').mockResolvedValue([]);
 
@@ -274,11 +275,11 @@ describe('DashboardService', () => {
 
     it('should handle null group gracefully', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const testDatetime = new Date('2024-01-15T08:00:00Z');
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
+          id: TEST_IDS.SLOT,
           groupId: null,
           day: 'MONDAY',
           time: '08:00',
@@ -286,20 +287,20 @@ describe('DashboardService', () => {
           week: '2024-03',
           vehicleAssignments: [
             {
-              id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-              driver: { id: 'user-123', name: 'John Doe' },
+              id: 'cltestassign1234567890123',
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
           ],
           childAssignments: [
             {
-              vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              vehicleAssignmentId: 'cltestassign1234567890123',
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
           group: null,
@@ -321,35 +322,35 @@ describe('DashboardService', () => {
 
     it('should handle empty group name gracefully', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const testDatetime = new Date('2024-01-15T08:00:00Z');
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
-          groupId: 'group-1',
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
           day: 'MONDAY',
           time: '08:00',
           datetime: testDatetime,
           week: '2024-03',
           vehicleAssignments: [
             {
-              id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-              driver: { id: 'user-123', name: 'John Doe' },
+              id: 'cltestassign1234567890123',
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
           ],
           childAssignments: [
             {
-              vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              vehicleAssignmentId: 'cltestassign1234567890123',
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
-          group: { id: 'group-1', name: '' },
+          group: { id: TEST_IDS.GROUP, name: '' },
         },
       ];
 
@@ -360,7 +361,7 @@ describe('DashboardService', () => {
 
       // Assert
       expect(result).toHaveLength(1);
-      expect(result[0].group).toEqual({ id: 'group-1', name: '' });
+      expect(result[0].group).toEqual({ id: TEST_IDS.GROUP, name: '' });
       expect(result[0].date).toBe('Today');
       expect(result[0].time).toBe('08:00');
       expect(result[0].datetime).toBe(testDatetime.toISOString());
@@ -368,11 +369,11 @@ describe('DashboardService', () => {
 
     it('should handle missing group ID but with group name', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const testDatetime = new Date('2024-01-15T08:00:00Z');
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
+          id: TEST_IDS.SLOT,
           groupId: null,
           day: 'MONDAY',
           time: '08:00',
@@ -380,20 +381,20 @@ describe('DashboardService', () => {
           week: '2024-03',
           vehicleAssignments: [
             {
-              id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-              driver: { id: 'user-123', name: 'John Doe' },
+              id: 'cltestassign1234567890123',
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
           ],
           childAssignments: [
             {
-              vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              vehicleAssignmentId: 'cltestassign1234567890123',
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
           group: { id: null, name: 'School District' },
@@ -415,11 +416,11 @@ describe('DashboardService', () => {
 
     it('should preserve group identification fields in trip data', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const testDatetime = new Date('2024-01-15T08:00:00Z');
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
+          id: TEST_IDS.SLOT,
           groupId: 'group-123',
           day: 'MONDAY',
           time: '08:00',
@@ -427,20 +428,20 @@ describe('DashboardService', () => {
           week: '2024-03',
           vehicleAssignments: [
             {
-              id: 'assignment-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4 },
-              driver: { id: 'user-123', name: 'John Doe' },
+              id: 'cltestassign1234567890123',
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
-                  child: { id: 'child-1', name: 'Emma' },
+                  child: { id: TEST_IDS.CHILD, name: 'Emma' },
                 },
               ],
             },
           ],
           childAssignments: [
             {
-              vehicleAssignmentId: 'assignment-1',
-              child: { id: 'child-1', name: 'Emma' },
+              vehicleAssignmentId: 'cltestassign1234567890123',
+              child: { id: TEST_IDS.CHILD, name: 'Emma' },
             },
           ],
           group: { id: 'group-123', name: 'Oak Avenue Families' },
@@ -465,13 +466,13 @@ describe('DashboardService', () => {
   describe('getRecentActivityForUser', () => {
     it('should return formatted recent activity', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const mockActivities = [
         {
           id: 'activity-1',
           actionDescription: 'Joined group "Maple Street Families"',
           entityType: 'group',
-          entityId: 'group-1',
+          entityId: TEST_IDS.GROUP,
           entityName: 'Maple Street Families',
           createdAt: new Date('2024-01-15T10:00:00Z'),
         },
@@ -479,7 +480,7 @@ describe('DashboardService', () => {
           id: 'activity-2',
           actionDescription: 'Added vehicle Honda Civic',
           entityType: 'vehicle',
-          entityId: 'vehicle-1',
+          entityId: TEST_IDS.VEHICLE,
           entityName: 'Honda Civic',
           createdAt: new Date('2024-01-14T09:00:00Z'),
         },
@@ -502,7 +503,7 @@ describe('DashboardService', () => {
         time: '2 hours ago',
         timestamp: new Date('2024-01-15T10:00:00Z'),
         type: 'group',
-        entityId: 'group-1',
+        entityId: TEST_IDS.GROUP,
         entityName: 'Maple Street Families',
       });
 
@@ -511,7 +512,7 @@ describe('DashboardService', () => {
 
     it('should return empty array when no recent activity', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
 
       mockActivityLogRepositoryInstance.getRecentActivityForUser.mockResolvedValue([]);
 
@@ -573,34 +574,34 @@ describe('DashboardService', () => {
   describe('getWeeklyDashboard', () => {
     it('should return weekly dashboard with new group identification fields', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const startDate = new Date('2024-01-15T00:00:00Z');
 
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
+          id: TEST_IDS.SLOT,
           datetime: new Date('2024-01-15T08:00:00Z'),
-          group: { id: 'group-1', name: 'Maple Street Families' },
+          group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4, familyId: 'family-1' },
-              driver: { id: 'user-123', name: 'John Doe' },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
-                { child: { id: 'child-1', name: 'Emma', familyId: 'family-1' } },
+                { child: { id: TEST_IDS.CHILD, name: 'Emma', familyId: TEST_IDS.FAMILY } },
               ],
             },
           ],
         },
         {
-          id: 'slot-2',
+          id: TEST_IDS.SLOT_2,
           datetime: new Date('2024-01-16T15:30:00Z'),
           group: { id: 'group-2', name: 'Oak Avenue Families' },
           vehicleAssignments: [
             {
               id: 'va-2',
               vehicle: { id: 'vehicle-2', name: 'Toyota Sienna', capacity: 6, familyId: 'family-2' },
-              driver: { id: 'user-456', name: 'Jane Smith' },
+              driver: { id: TEST_IDS.USER_2, name: 'Jane Smith' },
               childAssignments: [],
             },
           ],
@@ -608,7 +609,7 @@ describe('DashboardService', () => {
       ];
 
       // Mock all private methods that use Prisma
-      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: TEST_IDS.FAMILY, name: 'Doe Family' });
       jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
       jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
 
@@ -625,12 +626,12 @@ describe('DashboardService', () => {
       expect(mondayTransports).toHaveLength(1);
       expect(mondayTransports[0]).toMatchObject({
         time: '08:00',
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         groupName: 'Maple Street Families',
-        scheduleSlotId: 'slot-1',
         totalChildrenAssigned: 1,
         totalCapacity: 4,
       });
+      expect(mondayTransports[0].scheduleSlotId).toBe(TEST_IDS.SLOT);
 
       // Check Tuesday has the second slot
       const tuesdayTransports = result.data?.days.find(d => d.date === '2024-01-16')?.transports || [];
@@ -639,27 +640,27 @@ describe('DashboardService', () => {
         time: '15:30',
         groupId: 'group-2',
         groupName: 'Oak Avenue Families',
-        scheduleSlotId: 'slot-2',
         totalChildrenAssigned: 0,
         totalCapacity: 6,
       });
+      expect(tuesdayTransports[0].scheduleSlotId).toBe(TEST_IDS.SLOT_2);
     });
 
     it('should handle null group in weekly dashboard', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const startDate = new Date('2024-01-15T00:00:00Z');
 
       const mockScheduleSlots = [
         {
-          id: 'slot-1',
+          id: TEST_IDS.SLOT,
           datetime: new Date('2024-01-15T08:00:00Z'),
           group: null,
           vehicleAssignments: [
             {
               id: 'va-1',
-              vehicle: { id: 'vehicle-1', name: 'Honda Civic', capacity: 4, familyId: 'family-1' },
-              driver: { id: 'user-123', name: 'John Doe' },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
+              driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [],
             },
           ],
@@ -667,7 +668,7 @@ describe('DashboardService', () => {
       ];
 
       // Mock all private methods that use Prisma
-      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: 'family-1', name: 'Doe Family' });
+      jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue({ id: TEST_IDS.FAMILY, name: 'Doe Family' });
       jest.spyOn(dashboardService as any, 'getGroupIdsForFamily').mockResolvedValue([]);
       jest.spyOn(dashboardService as any, 'getWeeklyScheduleSlotsOptimized').mockResolvedValue(mockScheduleSlots as any);
 
@@ -681,13 +682,13 @@ describe('DashboardService', () => {
         time: '08:00',
         groupId: '',
         groupName: 'Unknown Group',
-        scheduleSlotId: 'slot-1',
       });
+      expect(mondayTransports[0].scheduleSlotId).toBe(TEST_IDS.SLOT);
     });
 
     it('should return error when user has no family', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
 
       // Mock all private methods that use Prisma for null family case
       jest.spyOn(dashboardService as any, 'getUserFamily').mockResolvedValue(null);
@@ -704,7 +705,7 @@ describe('DashboardService', () => {
 
     it('should handle service errors gracefully', async () => {
       // Arrange
-      const userId = 'user-123';
+      const userId = TEST_IDS.USER;
       const errorMessage = 'Database connection failed';
 
       jest.spyOn(dashboardService as any, 'getUserFamily').mockRejectedValue(new Error(errorMessage));

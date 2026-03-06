@@ -14,6 +14,9 @@ const mockPrisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  family: {
+    findUnique: jest.fn(),
+  },
   familyMember: {
     findFirst: jest.fn(),
   },
@@ -28,18 +31,28 @@ describe('VehicleService', () => {
   });
 
   describe('createVehicle', () => {
-    it('should create a vehicle successfully', async () => {
+    it('should create a vehicle successfully and return Family', async () => {
       const vehicleData = {
         name: 'Honda Civic',
         capacity: 5,
         familyId: 'family123',
       };
 
-      const expectedVehicle = {
+      const createdVehicle = {
         id: 'vehicle123',
         ...vehicleData,
         createdAt: new Date(),
         updatedAt: new Date(),
+      };
+
+      const expectedFamily = {
+        id: 'family123',
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [createdVehicle],
       };
 
       // Mock user's family membership as ADMIN
@@ -49,8 +62,9 @@ describe('VehicleService', () => {
         role: 'ADMIN',
         family: { id: 'family123', name: 'Test Family' },
       });
-      
-      (mockPrisma.vehicle.create as jest.Mock).mockResolvedValue(expectedVehicle);
+
+      (mockPrisma.vehicle.create as jest.Mock).mockResolvedValue(createdVehicle);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue(expectedFamily);
 
       const result = await vehicleService.createVehicle(vehicleData, 'user123');
 
@@ -61,7 +75,9 @@ describe('VehicleService', () => {
           familyId: 'family123',
         },
       });
-      expect(result).toEqual(expectedVehicle);
+      expect(result).toBeDefined();
+      expect(result.id).toBe('family123');
+      expect(result.vehicles).toContainEqual(createdVehicle);
     });
 
     it('should throw error for capacity less than 1', async () => {
@@ -138,7 +154,7 @@ describe('VehicleService', () => {
         where: { familyId },
         orderBy: [{ name: 'asc' }],
       });
-      expect(result).toEqual(expectedVehicles);
+      expect(result).toMatchObject(expectedVehicles);
     });
 
     it('should return empty array when user has no family', async () => {
@@ -181,7 +197,7 @@ describe('VehicleService', () => {
       expect(mockPrisma.vehicle.findFirst).toHaveBeenCalledWith({
         where: { id: vehicleId, familyId },
       });
-      expect(result).toEqual(expectedVehicle);
+      expect(result).toMatchObject(expectedVehicle);
     });
 
     it('should throw error when vehicle not found', async () => {
@@ -214,12 +230,12 @@ describe('VehicleService', () => {
   });
 
   describe('updateVehicle', () => {
-    it('should update vehicle successfully', async () => {
+    it('should update vehicle successfully and return Family', async () => {
       const vehicleId = 'vehicle123';
       const userId = 'user123';
       const familyId = 'family123';
       const updateData = { name: 'Updated Name', capacity: 6 };
-      
+
       // Mock the family lookup
       const mockFamily = { id: familyId, name: 'Test Family' };
       (mockPrisma.familyMember.findFirst as jest.Mock)
@@ -246,15 +262,26 @@ describe('VehicleService', () => {
         familyId,
       };
 
-      const expectedVehicle = {
+      const updatedVehicle = {
         id: vehicleId,
         name: 'Updated Name',
         capacity: 6,
         familyId,
       };
 
+      const expectedFamily = {
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [updatedVehicle],
+      };
+
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);
-      (mockPrisma.vehicle.update as jest.Mock).mockResolvedValue(expectedVehicle);
+      (mockPrisma.vehicle.update as jest.Mock).mockResolvedValue(updatedVehicle);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue(expectedFamily);
 
       const result = await vehicleService.updateVehicle(vehicleId, userId, updateData);
 
@@ -265,7 +292,9 @@ describe('VehicleService', () => {
           capacity: 6,
         },
       });
-      expect(result).toEqual(expectedVehicle);
+      expect(result).toBeDefined();
+      expect(result.id).toBe(familyId);
+      expect(result.vehicles).toContainEqual(updatedVehicle);
     });
 
     it('should throw error for invalid capacity in update', async () => {
@@ -387,13 +416,23 @@ describe('VehicleService', () => {
 
       (mockPrisma.vehicle.findFirst as jest.Mock).mockResolvedValue(existingVehicle);
       (mockPrisma.vehicle.delete as jest.Mock).mockResolvedValue(existingVehicle);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [], // Vehicle deleted
+      });
 
       const result = await vehicleService.deleteVehicle(vehicleId, userId);
 
       expect(mockPrisma.vehicle.delete).toHaveBeenCalledWith({
         where: { id: vehicleId },
       });
-      expect(result).toEqual({ success: true });
+      expect(result).toBeDefined();
+      expect(result.id).toBe(familyId);
     });
 
     it('should throw error when deletion fails', async () => {

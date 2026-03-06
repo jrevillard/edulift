@@ -3,7 +3,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Settings } from 'lucide-react';
-import type { UserGroup } from '../services/apiService';
+import type { paths } from '@/generated/api/types';
+
+// Use generated type from OpenAPI (single item from the array)
+export type UserGroup = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
 
 interface GroupCardProps {
   group: UserGroup;
@@ -34,7 +37,7 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, onSelect, onManage }) => {
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground" data-testid="GroupCard-Text-groupOwner">
-          Owner: {group.ownerFamily.name}
+          Owner: {group.ownerFamily?.name || 'Unknown'}
         </p>
         
         <div className="flex gap-2">

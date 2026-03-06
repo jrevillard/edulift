@@ -57,14 +57,9 @@ export class ChildAssignmentService {
       const group = await this.prisma.group.findFirst({
         where: {
           id: groupId,
-          OR: [
-            { familyId: userFamily.familyId }, // User's family owns the group
-            {
-              familyMembers: {
-                some: { familyId: userFamily.familyId }, // User's family is a member
-              },
-            },
-          ],
+          familyMembers: {
+            some: { familyId: userFamily.familyId },
+          },
         },
       });
 
@@ -110,7 +105,13 @@ export class ChildAssignmentService {
         metadata: { groupId, groupName: childGroupMember.group.name },
       });
 
-      return childGroupMember;
+      // Transform the response to match schema expectations (convert Date to ISO string)
+      const transformedMembership = {
+        ...childGroupMember,
+        addedAt: childGroupMember.addedAt ? childGroupMember.addedAt.toISOString() : new Date().toISOString(),
+      };
+
+      return transformedMembership;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -122,7 +123,7 @@ export class ChildAssignmentService {
 
   async removeChildFromGroup(childId: string, groupId: string, userId: string) {
     try {
-      // Verify child ownership through family membership
+      // 1. Verify child ownership through family membership
       const child = await this.prisma.child.findUnique({
         where: { id: childId },
         include: {
@@ -140,7 +141,30 @@ export class ChildAssignmentService {
         throw new AppError('Child not found or permission denied', 404);
       }
 
-      // Remove child from group
+      // 2. Verify user's family has group access (same check as addChildToGroup)
+      const userFamily = await this.prisma.familyMember.findFirst({
+        where: { userId },
+        select: { familyId: true },
+      });
+
+      if (!userFamily) {
+        throw new AppError('User must be part of a family', 403);
+      }
+
+      const group = await this.prisma.group.findFirst({
+        where: {
+          id: groupId,
+          familyMembers: {
+            some: { familyId: userFamily.familyId },
+          },
+        },
+      });
+
+      if (!group) {
+        throw new AppError('User\'s family must have access to group', 403);
+      }
+
+      // 3. Remove child from group
       await this.prisma.groupChildMember.delete({
         where: {
           childId_groupId: {
@@ -217,14 +241,9 @@ export class ChildAssignmentService {
           const group = await tx.group.findFirst({
             where: {
               id: scheduleSlot.groupId,
-              OR: [
-                { familyId: userFamily.familyId }, // User's family owns the group
-                {
-                  familyMembers: {
-                    some: { familyId: userFamily.familyId }, // User's family is a member
-                  },
-                },
-              ],
+              familyMembers: {
+                some: { familyId: userFamily.familyId },
+              },
             },
           });
 
@@ -281,10 +300,51 @@ export class ChildAssignmentService {
               vehicleAssignmentId,
             },
             include: {
-              child: true,
+              child: {
+                select: {
+                  id: true,
+                  name: true,
+                  age: true,
+                  familyId: true,
+                  createdAt: true,
+                  updatedAt: true,
+                },
+              },
               scheduleSlot: true,
               vehicleAssignment: {
-                include: { vehicle: true },
+                include: {
+                  vehicle: {
+                    select: {
+                      id: true,
+                      name: true,
+                      capacity: true,
+                      familyId: true,
+                      createdAt: true,
+                      updatedAt: true,
+                    },
+                  },
+                  driver: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                    },
+                  },
+                  childAssignments: {
+                    include: {
+                      child: {
+                        select: {
+                          id: true,
+                          name: true,
+                          age: true,
+                          familyId: true,
+                          createdAt: true,
+                          updatedAt: true,
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           });
@@ -437,7 +497,13 @@ export class ChildAssignmentService {
         },
       });
 
-      return memberships;
+      // Transform the response to match schema expectations (convert Date to ISO string)
+      const transformedMemberships = memberships.map(membership => ({
+        ...membership,
+        addedAt: membership.addedAt ? membership.addedAt.toISOString() : new Date().toISOString(),
+      }));
+
+      return transformedMemberships;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;

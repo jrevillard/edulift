@@ -22,13 +22,13 @@ class PinoAppLogger implements Logger {
   constructor(context?: string) {
     this.context = context || 'main';
 
-    // Configuration du niveau de log (indépendant de NODE_ENV)
+    // Configure log level (independent of NODE_ENV)
     const validLevels = ['error', 'warn', 'info', 'debug'];
     const logLevel = validLevels.includes(process.env.LOG_LEVEL?.toLowerCase() || '')
       ? process.env.LOG_LEVEL?.toLowerCase() || 'info'
       : 'info';
 
-    // Configuration du format (basé sur LOG_PRETTY si disponible, sinon NODE_ENV)
+    // Configure format (based on LOG_PRETTY if available, otherwise NODE_ENV)
     const isPretty = process.env.LOG_PRETTY === 'true' || process.env.NODE_ENV !== 'production';
 
     const config: pino.LoggerOptions = {
@@ -42,7 +42,7 @@ class PinoAppLogger implements Logger {
       },
     };
 
-    // Utiliser un format lisible si LOG_PRETTY=true ou NODE_ENV != production
+    // Use readable format if LOG_PRETTY=true or NODE_ENV != production
     if (isPretty) {
       config.transport = {
         target: 'pino-pretty',

@@ -90,13 +90,16 @@ export class SchedulingService {
       return {
         id: slot.id,
         groupId: slot.groupId,
-        datetime: slot.datetime,
+        datetime: slot.datetime.toISOString(),
         vehicleAssignments: slot.vehicleAssignments.map((va: unknown) => ({
           id: va.id,
           vehicle: {
             id: va.vehicle.id,
             name: va.vehicle.name,
             capacity: va.vehicle.capacity,
+            familyId: va.vehicle.familyId,
+            createdAt: va.vehicle.createdAt.toISOString(),
+            updatedAt: va.vehicle.updatedAt.toISOString(),
           },
           driver: va.driver ? {
             id: va.driver.id,
@@ -105,10 +108,15 @@ export class SchedulingService {
           seatOverride: va.seatOverride,
         })),
         childAssignments: slot.childAssignments.map((assignment: unknown) => ({
+          id: `${assignment.scheduleSlotId}_${assignment.childId}`,
           vehicleAssignmentId: assignment.vehicleAssignmentId,
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
+            age: assignment.child.age,
+            familyId: assignment.child.familyId,
+            createdAt: assignment.child.createdAt.toISOString(),
+            updatedAt: assignment.child.updatedAt.toISOString(),
           },
         })),
         totalCapacity,

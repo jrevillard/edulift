@@ -478,7 +478,7 @@ describe('UnifiedFamilyInvitationPage', () => {
 
       // Verify the contract: attemptMobileAppOpen is called with correct parameters
       expect(mockAttemptMobileAppOpen).toHaveBeenCalledWith(
-        '/families/join',                  // correct path
+        '/api/v1/families/join',                  // correct path
         { code: 'FAM123' },               // correct parsed parameters
         expect.objectContaining({          // mobile detection info
           isMobile: true,

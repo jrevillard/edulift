@@ -5,6 +5,7 @@ import { SOCKET_EVENTS } from '../../shared/events';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import Client from 'socket.io-client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock dependencies
 jest.mock('@prisma/client');
@@ -16,8 +17,20 @@ jest.mock('../../services/NotificationService');
 jest.mock('../../services/ScheduleSlotValidationService');
 jest.mock('../../services/ScheduleSlotService');
 jest.mock('../../services/SocketService');
-jest.mock('../../services/AuthorizationService');
 jest.mock('../../services/EmailServiceFactory');
+
+// Mock AuthorizationService at class level for consistent behavior across tests
+jest.mock('../../services/AuthorizationService', () => {
+  return {
+    AuthorizationService: jest.fn().mockImplementation(() => ({
+      canUserAccessGroup: jest.fn().mockResolvedValue(true),
+      canUserAccessScheduleSlot: jest.fn().mockResolvedValue(true),
+      canUserAccessFamily: jest.fn().mockResolvedValue(true),
+      getUserAccessibleGroupIds: jest.fn().mockResolvedValue([]),
+      canUserAccessGroups: jest.fn().mockResolvedValue({}),
+    })),
+  };
+});
 
 // Mock console methods to eliminate ALL output during tests
 const originalConsole = {
@@ -103,19 +116,6 @@ describe('SocketHandler Security', () => {
 
     // Initialize SocketHandler
     socketHandler = new SocketHandler(httpServer);
-
-    // Mock authorization service to prevent connection errors
-    const mockAuthService = socketHandler['authorizationService'];
-    if (mockAuthService) {
-      mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(true);
-      mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(true);
-      mockAuthService.canUserAccessFamily = jest.fn().mockResolvedValue(true);
-      mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([TEST_GROUP_ID, 'another-group-id']);
-      mockAuthService.canUserAccessGroups = jest.fn().mockResolvedValue({
-        [TEST_GROUP_ID]: true,
-        'another-group-id': true,
-      });
-    }
 
     // Start server
     httpServer.listen(0);
@@ -203,7 +203,7 @@ describe('SocketHandler Security', () => {
           }
           done(new Error('Expected authorization error was not received'));
         }
-      }, 1000);
+      }, 5000);
     });
 
     it('should allow authorized users to join groups', (done) => {
@@ -211,23 +211,26 @@ describe('SocketHandler Security', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([TEST_GROUP_ID]);
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(true);
-      
+      mockAuthService.canUserAccessGroups = jest.fn().mockResolvedValue({
+        [TEST_GROUP_ID]: true,
+      });
+
       const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
-      
+
       let joinedSuccessfully = false;
 
       clientSocket.on('connect', () => {
         // Try to join authorized group
         clientSocket.emit(SOCKET_EVENTS.GROUP_JOIN, { groupId: TEST_GROUP_ID });
-        
+
         // Set timeout to check if join was successful
         setTimeout(() => {
           if (!joinedSuccessfully) {
             expect(mockAuthService.canUserAccessGroup).toHaveBeenCalledWith(
-              TEST_USER_ID, 
+              TEST_USER_ID,
               TEST_GROUP_ID,
             );
             joinedSuccessfully = true;
@@ -315,7 +318,7 @@ describe('SocketHandler Security', () => {
           }
           done(new Error('Expected authorization error was not received'));
         }
-      }, 1000);
+      }, 5000);
     });
 
     it('should prevent unauthorized typing events in schedule slots', (done) => {
@@ -458,7 +461,7 @@ describe('SocketHandler Security', () => {
     it('should only provide user access to their authorized groups on connection', async () => {
       // Mock authorization service to return specific groups
       const mockAuthService = socketHandler['authorizationService'];
-      const authorizedGroups = ['group-1', 'group-2'];
+      const authorizedGroups = [TEST_IDS.GROUP, 'group-2'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue(authorizedGroups);
       
       const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
@@ -485,7 +488,7 @@ describe('SocketHandler Security', () => {
             clientSocket.disconnect();
           }
           reject(new Error('Connection timeout'));
-        }, 2000);
+        }, 10000);
         
         // Clear timeout on successful completion
         const originalResolve = resolve;

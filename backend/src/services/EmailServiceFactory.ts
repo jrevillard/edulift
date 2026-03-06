@@ -31,11 +31,22 @@ export class EmailServiceFactory {
       const emailConfig: any = {
         host: process.env.EMAIL_HOST!,
         port: parseInt(process.env.EMAIL_PORT!),
-        auth: {
+      };
+
+      // MailHog/Mailpit don't support SMTP authentication
+      // Detect them by host name or encryption setting
+      const isMailHog = process.env.EMAIL_HOST?.includes('mailhog') ||
+                       process.env.EMAIL_HOST?.includes('mailpit') ||
+                       emailEncryption.toUpperCase() === 'NONE';
+
+      if (!isMailHog) {
+        emailConfig.auth = {
           user: process.env.EMAIL_USER!,
           pass: process.env.EMAIL_PASSWORD!,
-        },
-      };
+        };
+      } else {
+        logger.info('EmailServiceFactory: Detected MailHog/Mailpit (no SMTP auth required)');
+      }
 
       // Configure encryption based on EMAIL_ENCRYPTION setting
       switch (emailEncryption.toUpperCase()) {

@@ -102,7 +102,7 @@ export const TestNotificationSchema = z.object({
 
 // Parameter Schemas
 export const FcmTokenParamsSchema = z.object({
-  token: z.string()
+  tokenId: z.string()
     .min(1, 'FCM token is required')
     .openapi({
       example: 'fcm_token_string_here',
@@ -245,49 +245,55 @@ export const FcmTokenStatsResponseSchema = z.object({
   description: 'Response for FCM token statistics',
 });
 
-// Success Response Wrappers
+// Success Response Schemas - Hono Direct Format (no wrappers)
 export const SaveTokenSuccessSchema = z.object({
-  success: z.literal(true)
-    .openapi({ example: true }),
-  data: z.object({
-    id: z.string()
-      .openapi({
-        example: 'fcm_123456789012345678901234',
-        description: 'FCM token unique identifier',
-      }),
-    fcmPlatform: z.enum(['android', 'ios', 'web'])
-      .openapi({
-        example: 'android',
-        description: 'Platform type',
-      }),
-    isActive: z.boolean()
-      .openapi({
-        example: true,
-        description: 'Whether the token is active',
-      }),
-    createdAt: z.iso.datetime()
-      .openapi({
-        example: '2024-01-15T10:30:00Z',
-        description: 'Token creation timestamp',
-      }),
-  }),
+  id: z.string()
+    .openapi({
+      example: 'fcm_123456789012345678901234',
+      description: 'FCM token unique identifier',
+    }),
+  fcmPlatform: z.enum(['android', 'ios', 'web'])
+    .openapi({
+      example: 'android',
+      description: 'Platform type',
+    }),
+  isActive: z.boolean()
+    .openapi({
+      example: true,
+      description: 'Whether the token is active',
+    }),
+  createdAt: z.iso.datetime()
+    .openapi({
+      example: '2024-01-15T10:30:00Z',
+      description: 'Token creation timestamp',
+    }),
+  userId: z.string()
+    .openapi({
+      example: 'user_123456789012345678901234',
+      description: 'User ID who owns the token',
+    }),
+  token: z.string()
+    .optional()
+    .openapi({
+      example: 'fcm_token_string_here',
+      description: 'FCM token (optional for security)',
+    }),
 }).openapi({
   title: 'Save Token Success Response',
-  description: 'Success response for saving FCM token',
+  description: 'Direct response for saving FCM token - Hono format (no wrapper)',
 });
 
 export const GetTokensSuccessSchema = z.object({
-  success: z.literal(true)
-    .openapi({ example: true }),
-  data: FcmTokenResponseSchema.array(),
+  tokens: z.array(FcmTokenResponseSchema)
+    .openapi({
+      description: 'Array of FCM tokens belonging to the user',
+    }),
 }).openapi({
   title: 'Get FCM Tokens Success Response',
-  description: 'Success response for retrieving user FCM tokens',
+  description: 'Direct response for retrieving user FCM tokens - Hono format (no wrapper)',
 });
 
 export const DeleteTokenSuccessSchema = z.object({
-  success: z.literal(true)
-    .openapi({ example: true }),
   message: z.string()
     .openapi({
       example: 'FCM token deleted successfully',
@@ -295,43 +301,27 @@ export const DeleteTokenSuccessSchema = z.object({
     }),
 }).openapi({
   title: 'Delete Token Success Response',
-  description: 'Success response for deleting FCM token',
+  description: 'Direct response for deleting FCM token - Hono format (no wrapper)',
 });
 
-export const ValidateTokenSuccessSchema = z.object({
-  success: z.literal(true)
-    .openapi({ example: true }),
-  data: FcmTokenValidationResponseSchema,
-}).openapi({
+export const ValidateTokenSuccessSchema = FcmTokenValidationResponseSchema.openapi({
   title: 'Validate Token Success Response',
-  description: 'Success response for validating FCM token',
+  description: 'Direct response for validating FCM token - Hono format (no wrapper)',
 });
 
-export const TopicSubscriptionSuccessSchema = z.object({
-  success: z.boolean()
-    .openapi({ example: true }),
-  data: TopicSubscriptionResponseSchema,
-}).openapi({
+export const TopicSubscriptionSuccessSchema = TopicSubscriptionResponseSchema.openapi({
   title: 'Topic Subscription Success Response',
-  description: 'Success response for topic subscription operations',
+  description: 'Direct response for topic subscription operations - Hono format (no wrapper)',
 });
 
-export const TestNotificationSuccessSchema = z.object({
-  success: z.literal(true)
-    .openapi({ example: true }),
-  data: TestNotificationResponseSchema,
-}).openapi({
+export const TestNotificationSuccessSchema = TestNotificationResponseSchema.openapi({
   title: 'Test Notification Success Response',
-  description: 'Success response for sending test notification',
+  description: 'Direct response for sending test notification - Hono format (no wrapper)',
 });
 
-export const FcmTokenStatsSuccessSchema = z.object({
-  success: z.literal(true)
-    .openapi({ example: true }),
-  data: FcmTokenStatsResponseSchema,
-}).openapi({
+export const FcmTokenStatsSuccessSchema = FcmTokenStatsResponseSchema.openapi({
   title: 'FCM Token Statistics Success Response',
-  description: 'Success response for FCM token statistics',
+  description: 'Direct response for FCM token statistics - Hono format (no wrapper)',
 });
 
-// Register all schemas with OpenAPI registry
+// All schemas are defined inline - no registry registration needed for Hono

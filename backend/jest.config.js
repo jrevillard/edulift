@@ -3,7 +3,7 @@ export default {
   testEnvironment: 'node',
   extensionsToTreatAsEsm: ['.ts'],
   roots: ['<rootDir>/src'],
-  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   transform: {
     '^.+\\.ts$': ['ts-jest', {
@@ -34,5 +34,7 @@ export default {
   testTimeout: 10000,
   // Force exit after tests complete - necessary for Socket.IO tests
   // The worker exit warning is expected and benign
-  forceExit: true
+  forceExit: true,
+  // Increase process max listeners to prevent warnings
+  setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts', '<rootDir>/src/test-max-listeners.ts']
 };

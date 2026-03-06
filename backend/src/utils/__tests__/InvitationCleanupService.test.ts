@@ -1,4 +1,5 @@
 import { InvitationCleanupService } from '../InvitationCleanupService';
+import { TEST_IDS } from '../testHelpers';
 
 describe('InvitationCleanupService', () => {
   let prisma: any;
@@ -38,12 +39,12 @@ describe('InvitationCleanupService', () => {
         .mockResolvedValueOnce(mockExpiredResult)
         .mockResolvedValueOnce(mockOldCancelledResult);
 
-      const result = await cleanupService.cleanupFamilyInvitations('family-1');
+      const result = await cleanupService.cleanupFamilyInvitations(TEST_IDS.FAMILY);
 
       expect(result).toEqual({ expired: 3, oldCancelled: 2 });
       expect(prisma.familyInvitation.deleteMany).toHaveBeenCalledTimes(2);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cleaned up 3 expired and 2 old cancelled family invitations for family family-1',
+        `Cleaned up 3 expired and 2 old cancelled family invitations for family ${TEST_IDS.FAMILY}`,
       );
     });
 
@@ -51,11 +52,11 @@ describe('InvitationCleanupService', () => {
       const error = new Error('Database error');
       (prisma.familyInvitation.deleteMany as jest.Mock).mockRejectedValue(error);
 
-      const result = await cleanupService.cleanupFamilyInvitations('family-1');
+      const result = await cleanupService.cleanupFamilyInvitations(TEST_IDS.FAMILY);
 
       expect(result).toEqual({ expired: 0, oldCancelled: 0 });
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to cleanup family invitations for family family-1:',
+        `Failed to cleanup family invitations for family ${TEST_IDS.FAMILY}:`,
         error,
       );
     });
@@ -64,7 +65,7 @@ describe('InvitationCleanupService', () => {
       (prisma.familyInvitation.deleteMany as jest.Mock)
         .mockResolvedValue({ count: 0 });
 
-      await cleanupService.cleanupFamilyInvitations('family-1');
+      await cleanupService.cleanupFamilyInvitations(TEST_IDS.FAMILY);
 
       expect(mockLogger.info).not.toHaveBeenCalled();
     });
@@ -79,12 +80,12 @@ describe('InvitationCleanupService', () => {
         .mockResolvedValueOnce(mockExpiredResult)
         .mockResolvedValueOnce(mockOldCancelledResult);
 
-      const result = await cleanupService.cleanupGroupInvitations('group-1');
+      const result = await cleanupService.cleanupGroupInvitations(TEST_IDS.GROUP);
 
       expect(result).toEqual({ expired: 1, oldCancelled: 4 });
       expect(prisma.groupInvitation.deleteMany).toHaveBeenCalledTimes(2);
       expect(mockLogger.info).toHaveBeenCalledWith(
-        'Cleaned up 1 expired and 4 old cancelled group invitations for group group-1',
+        `Cleaned up 1 expired and 4 old cancelled group invitations for group ${TEST_IDS.GROUP}`,
       );
     });
 
@@ -92,11 +93,11 @@ describe('InvitationCleanupService', () => {
       const error = new Error('Database error');
       (prisma.groupInvitation.deleteMany as jest.Mock).mockRejectedValue(error);
 
-      const result = await cleanupService.cleanupGroupInvitations('group-1');
+      const result = await cleanupService.cleanupGroupInvitations(TEST_IDS.GROUP);
 
       expect(result).toEqual({ expired: 0, oldCancelled: 0 });
       expect(mockLogger.error).toHaveBeenCalledWith(
-        'Failed to cleanup group invitations for group group-1:',
+        `Failed to cleanup group invitations for group ${TEST_IDS.GROUP}:`,
         error,
       );
     });
@@ -184,12 +185,12 @@ describe('InvitationCleanupService', () => {
       (prisma.familyInvitation.findFirst as jest.Mock).mockResolvedValue(mockInvitation);
       (prisma.familyInvitation.delete as jest.Mock).mockResolvedValue(mockInvitation);
 
-      const result = await cleanupService.cleanupOldInvitation('family', 'family-1', 'test@example.com');
+      const result = await cleanupService.cleanupOldInvitation('family', TEST_IDS.FAMILY, 'test@example.com');
 
       expect(result).toBe(true);
       expect(prisma.familyInvitation.findFirst).toHaveBeenCalledWith({
         where: { 
-          familyId: 'family-1', 
+          familyId: TEST_IDS.FAMILY, 
           email: 'test@example.com',
           status: { in: ['CANCELLED', 'EXPIRED'] },
         },
@@ -212,12 +213,12 @@ describe('InvitationCleanupService', () => {
       (prisma.groupInvitation.findFirst as jest.Mock).mockResolvedValue(mockInvitation);
       (prisma.groupInvitation.delete as jest.Mock).mockResolvedValue(mockInvitation);
 
-      const result = await cleanupService.cleanupOldInvitation('group', 'group-1', 'test@example.com');
+      const result = await cleanupService.cleanupOldInvitation('group', TEST_IDS.GROUP, 'test@example.com');
 
       expect(result).toBe(true);
       expect(prisma.groupInvitation.findFirst).toHaveBeenCalledWith({
         where: { 
-          groupId: 'group-1', 
+          groupId: TEST_IDS.GROUP, 
           email: 'test@example.com',
           status: { in: ['CANCELLED', 'EXPIRED'] },
         },
@@ -240,7 +241,7 @@ describe('InvitationCleanupService', () => {
       (prisma.familyInvitation.findFirst as jest.Mock).mockResolvedValue(mockInvitation);
       (prisma.familyInvitation.delete as jest.Mock).mockResolvedValue(mockInvitation);
 
-      const result = await cleanupService.cleanupOldInvitation('family', 'family-1', 'test@example.com');
+      const result = await cleanupService.cleanupOldInvitation('family', TEST_IDS.FAMILY, 'test@example.com');
 
       expect(result).toBe(true);
       expect(prisma.familyInvitation.delete).toHaveBeenCalledWith({
@@ -254,7 +255,7 @@ describe('InvitationCleanupService', () => {
     it('should return false when no invitation exists', async () => {
       (prisma.familyInvitation.findFirst as jest.Mock).mockResolvedValue(null);
 
-      const result = await cleanupService.cleanupOldInvitation('family', 'family-1', 'test@example.com');
+      const result = await cleanupService.cleanupOldInvitation('family', TEST_IDS.FAMILY, 'test@example.com');
 
       expect(result).toBe(false);
       expect(prisma.familyInvitation.delete).not.toHaveBeenCalled();
@@ -264,7 +265,7 @@ describe('InvitationCleanupService', () => {
       const error = new Error('Database error');
       (prisma.familyInvitation.findFirst as jest.Mock).mockRejectedValue(error);
 
-      const result = await cleanupService.cleanupOldInvitation('family', 'family-1', 'test@example.com');
+      const result = await cleanupService.cleanupOldInvitation('family', TEST_IDS.FAMILY, 'test@example.com');
 
       expect(result).toBe(false);
       expect(mockLogger.error).toHaveBeenCalledWith(

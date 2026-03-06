@@ -3,6 +3,7 @@ import { ScheduleSlotRepository } from '../ScheduleSlotRepository';
 import { PrismaClient } from '@prisma/client';
 import { CreateScheduleSlotData } from '../../types';
 import * as isoWeekUtils from '../../utils/isoWeekUtils';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma Client
 const mockPrisma = {
@@ -37,11 +38,11 @@ describe('ScheduleSlotRepository', () => {
 
   const mockScheduleSlot = {
     id: 'slot-1',
-    groupId: 'group-1',
+    groupId: TEST_IDS.GROUP,
     datetime: new Date('2024-01-08T08:00:00.000Z'), // Monday of week 2024-01 at 08:00 UTC
     createdAt: new Date(),
     updatedAt: new Date(),
-    group: { id: 'group-1', name: 'Test Group' },
+    group: { id: TEST_IDS.GROUP, name: 'Test Group' },
     vehicleAssignments: [],
     childAssignments: [],
   };
@@ -54,7 +55,7 @@ describe('ScheduleSlotRepository', () => {
   describe('create', () => {
     it('should create a schedule slot successfully', async () => {
       const slotData: CreateScheduleSlotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2024-01-08T08:00:00.000Z',
       };
 
@@ -68,13 +69,17 @@ describe('ScheduleSlotRepository', () => {
           group: { select: { id: true, name: true } },
           vehicleAssignments: {
             include: {
-              vehicle: { select: { id: true, name: true, capacity: true } },
+              vehicle: true, // Return ALL vehicle fields
               driver: { select: { id: true, name: true } },
             },
           },
           childAssignments: {
-            include: {
-              child: { select: { id: true, name: true } },
+            select: {
+              scheduleSlotId: true,
+              childId: true,
+              vehicleAssignmentId: true,
+              assignedAt: true,
+              child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
             },
           },
         },
@@ -111,12 +116,12 @@ describe('ScheduleSlotRepository', () => {
 
   describe('assignVehicleToSlot', () => {
     it('should assign vehicle to slot successfully', async () => {
-      const mockVehicle = { id: 'vehicle-1', name: 'Bus 1', capacity: 20, userId: 'user-1' };
+      const mockVehicle = { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20, userId: TEST_IDS.USER };
       const mockDriver = { id: 'driver-1', name: 'John Doe' };
       const mockAssignment = {
         id: 'assignment-1',
         scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: 'driver-1',
         vehicle: mockVehicle,
         driver: mockDriver,
@@ -144,7 +149,7 @@ describe('ScheduleSlotRepository', () => {
         return await callback(mockTransaction);
       });
 
-      const result = await repository.assignVehicleToSlot('slot-1', 'vehicle-1', 'driver-1');
+      const result = await repository.assignVehicleToSlot('slot-1', TEST_IDS.VEHICLE, 'driver-1');
 
       expect(result).toEqual(mockAssignment);
       expect(mockTransaction.scheduleSlot.findUnique).toHaveBeenCalledWith({
@@ -152,7 +157,7 @@ describe('ScheduleSlotRepository', () => {
         include: { group: true },
       });
       expect(mockTransaction.vehicle.findUnique).toHaveBeenCalledWith({
-        where: { id: 'vehicle-1' },
+        where: { id: TEST_IDS.VEHICLE },
         select: { id: true, name: true, capacity: true, familyId: true },
       });
     });
@@ -169,7 +174,7 @@ describe('ScheduleSlotRepository', () => {
       });
 
       await expect(
-        repository.assignVehicleToSlot('non-existent', 'vehicle-1'),
+        repository.assignVehicleToSlot('non-existent', TEST_IDS.VEHICLE),
       ).rejects.toThrow('Schedule slot not found');
     });
 
@@ -193,7 +198,7 @@ describe('ScheduleSlotRepository', () => {
     });
 
     it('should throw error if vehicle already assigned', async () => {
-      const mockVehicle = { id: 'vehicle-1', name: 'Bus 1', capacity: 20, userId: 'user-1' };
+      const mockVehicle = { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20, userId: TEST_IDS.USER };
       const existingAssignment = { id: 'existing-assignment' };
 
       const mockTransaction = {
@@ -213,19 +218,76 @@ describe('ScheduleSlotRepository', () => {
       });
 
       await expect(
-        repository.assignVehicleToSlot('slot-1', 'vehicle-1'),
+        repository.assignVehicleToSlot('slot-1', TEST_IDS.VEHICLE),
       ).rejects.toThrow('Vehicle is already assigned to this schedule slot');
     });
   });
 
-  describe('removeVehicleFromSlot', () => {
-    it('should remove vehicle and keep slot when other vehicles exist', async () => {
-      const mockResult = { id: 'assignment-1' };
+  describe('removeVehicleFromSlot - Cross-family carpooling', () => {
+    it('should return ScheduleSlot with remaining vehicles including childAssignments when not last vehicle', async () => {
+      const mockDeletionResult = { id: 'assignment-1' };
+      const mockUpdatedSlot = {
+        id: 'slot-1',
+        groupId: TEST_IDS.GROUP,
+        datetime: new Date('2024-01-08T08:00:00.000Z'),
+        vehicleAssignments: [
+          {
+            id: 'remaining-vehicle-id',
+            vehicleId: 'remaining-vehicle-id',
+            driverId: 'driver-id',
+            vehicle: {
+              id: 'remaining-vehicle-id',
+              name: 'Remaining Vehicle',
+              capacity: 6,
+              familyId: 'family-id',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
+              updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+            },
+            driver: {
+              id: 'driver-id',
+              name: 'Driver',
+              email: 'driver@test.com',
+            },
+            childAssignments: [
+              {
+                id: 'ca1',
+                childId: 'child1-id',
+                vehicleAssignmentId: 'remaining-vehicle-id',
+                child: {
+                  id: 'child1-id',
+                  name: 'Child 1',
+                  age: 8,
+                  familyId: 'family1-id',
+                  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+                  updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+                },
+              },
+              {
+                id: 'ca2',
+                childId: 'child2-id',
+                vehicleAssignmentId: 'remaining-vehicle-id',
+                child: {
+                  id: 'child2-id',
+                  name: 'Child 2',
+                  age: 9,
+                  familyId: 'family2-id',
+                  createdAt: new Date('2024-01-01T00:00:00.000Z'),
+                  updatedAt: new Date('2024-01-01T00:00:00.000Z'),
+                },
+              },
+            ],
+          },
+        ],
+        childAssignments: [],
+      };
 
       const mockTransaction = {
         scheduleSlotVehicle: {
-          delete: jest.fn().mockResolvedValue(mockResult),
-          count: jest.fn().mockResolvedValue(1), // Other vehicles still exist
+          count: jest.fn().mockResolvedValue(2), // BEFORE deletion: 2 vehicles
+          delete: jest.fn().mockResolvedValue(mockDeletionResult),
+        },
+        scheduleSlot: {
+          findUnique: jest.fn().mockResolvedValue(mockUpdatedSlot),
         },
       };
 
@@ -233,30 +295,55 @@ describe('ScheduleSlotRepository', () => {
         return await callback(mockTransaction);
       });
 
-      const result = await repository.removeVehicleFromSlot('slot-1', 'vehicle-1');
+      const result = await repository.removeVehicleFromSlot('slot-1', TEST_IDS.VEHICLE);
 
-      expect(result.vehicleAssignment).toEqual(mockResult);
-      expect(result.slotDeleted).toBe(false);
+      // Verify the structure includes childAssignments
+      expect(result).toBeTruthy();
+      expect((result as any).vehicleAssignments).toBeDefined();
+      expect((result as any).vehicleAssignments).toHaveLength(1);
+      expect((result as any).vehicleAssignments[0].childAssignments).toBeDefined();
+      expect((result as any).vehicleAssignments[0].childAssignments).toHaveLength(2);
+
+      // Verify count was called BEFORE deletion (for race condition fix)
+      expect(mockTransaction.scheduleSlotVehicle.count).toHaveBeenCalledWith({
+        where: { scheduleSlotId: 'slot-1' },
+      });
+      expect(mockTransaction.scheduleSlotVehicle.count).toHaveBeenCalledTimes(1);
+
+      // Verify delete was called
       expect(mockTransaction.scheduleSlotVehicle.delete).toHaveBeenCalledWith({
         where: {
           scheduleSlotId_vehicleId: {
             scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
+            vehicleId: TEST_IDS.VEHICLE,
           },
         },
       });
+
+      // Verify findUnique was called to get updated slot with childAssignments
+      expect(mockTransaction.scheduleSlot.findUnique).toHaveBeenCalledWith({
+        where: { id: 'slot-1' },
+        include: expect.objectContaining({
+          vehicleAssignments: expect.objectContaining({
+            include: expect.objectContaining({
+              childAssignments: expect.any(Object),
+            }),
+          }),
+        }),
+      });
     });
 
-    it('should remove vehicle and delete slot when it was the last vehicle', async () => {
-      const mockResult = { id: 'assignment-1' };
+    it('should return null when last vehicle is removed (slot deleted)', async () => {
+      const mockDeletionResult = { id: 'assignment-1' };
 
       const mockTransaction = {
         scheduleSlotVehicle: {
-          delete: jest.fn().mockResolvedValue(mockResult),
-          count: jest.fn().mockResolvedValue(0), // No vehicles left
+          count: jest.fn().mockResolvedValue(1), // BEFORE deletion: 1 vehicle = last
+          delete: jest.fn().mockResolvedValue(mockDeletionResult),
         },
         scheduleSlot: {
-          delete: jest.fn().mockResolvedValue({}),
+          delete: jest.fn().mockResolvedValue({ id: 'slot-1' }),
+          findUnique: jest.fn(), // Will not be called
         },
       };
 
@@ -264,34 +351,53 @@ describe('ScheduleSlotRepository', () => {
         return await callback(mockTransaction);
       });
 
-      const result = await repository.removeVehicleFromSlot('slot-1', 'vehicle-1');
+      const result = await repository.removeVehicleFromSlot('slot-1', TEST_IDS.VEHICLE);
 
-      expect(result.vehicleAssignment).toEqual(mockResult);
-      expect(result.slotDeleted).toBe(true);
+      // Verify null is returned when slot is deleted
+      expect(result).toBeNull();
+
+      // Verify count was called BEFORE deletion
+      expect(mockTransaction.scheduleSlotVehicle.count).toHaveBeenCalledWith({
+        where: { scheduleSlotId: 'slot-1' },
+      });
+
+      // Verify slot was deleted
       expect(mockTransaction.scheduleSlot.delete).toHaveBeenCalledWith({
         where: { id: 'slot-1' },
       });
+
+      // Verify findUnique was NOT called (slot deleted, nothing to return)
+      expect(mockTransaction.scheduleSlot.findUnique).not.toHaveBeenCalled();
     });
   });
 
 
   describe('removeChildFromSlot', () => {
     it('should remove child from slot successfully', async () => {
-      const mockResult = { scheduleSlotId: 'slot-1', childId: 'child-1' };
+      const mockSlot = {
+        ...mockScheduleSlot,
+        vehicleAssignments: [],
+        childAssignments: [],
+      };
 
-      mockPrisma.scheduleSlotChild.delete.mockResolvedValue(mockResult);
+      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        return await callback(mockPrisma);
+      });
 
-      const result = await repository.removeChildFromSlot('slot-1', 'child-1');
+      mockPrisma.scheduleSlotChild.delete.mockResolvedValue({});
+      mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlot);
+
+      const result = await repository.removeChildFromSlot('slot-1', TEST_IDS.CHILD);
 
       expect(mockPrisma.scheduleSlotChild.delete).toHaveBeenCalledWith({
         where: {
           scheduleSlotId_childId: {
             scheduleSlotId: 'slot-1',
-            childId: 'child-1',
+            childId: TEST_IDS.CHILD,
           },
         },
       });
-      expect(result).toEqual(mockResult);
+      expect(result).toEqual(mockSlot);
     });
   });
 
@@ -303,11 +409,11 @@ describe('ScheduleSlotRepository', () => {
 
       const weekStart = new Date('2024-01-08T00:00:00.000Z'); // Monday of week 2024-01
       const weekEnd = new Date('2024-01-14T23:59:59.999Z'); // Sunday of week 2024-01
-      const result = await repository.getWeeklyScheduleByDateRange('group-1', weekStart, weekEnd);
+      const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
 
       expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
         where: {
-          groupId: 'group-1',
+          groupId: TEST_IDS.GROUP,
           datetime: {
             gte: weekStart,
             lte: weekEnd,
@@ -327,12 +433,12 @@ describe('ScheduleSlotRepository', () => {
       mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockScheduleSlot);
 
       const datetime = new Date('2024-01-08T08:00:00.000Z');
-      const result = await repository.findByGroupAndDateTime('group-1', datetime);
+      const result = await repository.findByGroupAndDateTime(TEST_IDS.GROUP, datetime);
 
       expect(mockPrisma.scheduleSlot.findUnique).toHaveBeenCalledWith({
         where: {
           groupId_datetime: {
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime,
           },
         },
@@ -351,9 +457,9 @@ describe('ScheduleSlotRepository', () => {
             {
               id: 'vehicle-assignment-1',
               scheduleSlotId: 'slot-1',
-              vehicleId: 'vehicle-1',
+              vehicleId: TEST_IDS.VEHICLE,
               driverId: 'driver-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 8 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8 },
               driver: { id: 'driver-1', name: 'John Driver' },
             },
             {
@@ -368,7 +474,7 @@ describe('ScheduleSlotRepository', () => {
           childAssignments: [
             {
               vehicleAssignmentId: 'vehicle-assignment-1',
-              child: { id: 'child-1', name: 'Alice', familyId: 'family-1' },
+              child: { id: TEST_IDS.CHILD, name: 'Alice', familyId: TEST_IDS.FAMILY },
             },
             {
               vehicleAssignmentId: 'vehicle-assignment-1', 
@@ -392,14 +498,17 @@ describe('ScheduleSlotRepository', () => {
             group: { select: { id: true, name: true } },
             vehicleAssignments: {
               include: {
-                vehicle: { select: { id: true, name: true, capacity: true } },
+                vehicle: true, // Return ALL vehicle fields (including timestamps)
                 driver: { select: { id: true, name: true } },
               },
             },
             childAssignments: {
               select: {
+                scheduleSlotId: true,
+                childId: true,
                 vehicleAssignmentId: true,
-                child: { select: { id: true, name: true } },
+                assignedAt: true,
+                child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
               },
             },
           },
@@ -409,7 +518,7 @@ describe('ScheduleSlotRepository', () => {
         expect(result!.childAssignments).toHaveLength(3);
         expect(result!.childAssignments[0]).toEqual({
           vehicleAssignmentId: 'vehicle-assignment-1',
-          child: { id: 'child-1', name: 'Alice', familyId: 'family-1' },
+          child: { id: TEST_IDS.CHILD, name: 'Alice', familyId: TEST_IDS.FAMILY },
         });
         expect(result!.childAssignments[1]).toEqual({
           vehicleAssignmentId: 'vehicle-assignment-1',
@@ -439,9 +548,9 @@ describe('ScheduleSlotRepository', () => {
             {
               id: 'vehicle-assignment-1',
               scheduleSlotId: 'slot-1',
-              vehicleId: 'vehicle-1',
+              vehicleId: TEST_IDS.VEHICLE,
               driverId: 'driver-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 8 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8 },
               driver: { id: 'driver-1', name: 'John Driver' },
             },
           ],
@@ -466,9 +575,9 @@ describe('ScheduleSlotRepository', () => {
             {
               id: 'vehicle-assignment-1',
               scheduleSlotId: 'slot-1',
-              vehicleId: 'vehicle-1',
+              vehicleId: TEST_IDS.VEHICLE,
               driverId: 'driver-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 8 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8 },
               driver: { id: 'driver-1', name: 'John Driver' },
             },
           ],
@@ -476,9 +585,9 @@ describe('ScheduleSlotRepository', () => {
             {
               vehicleAssignmentId: 'vehicle-assignment-1',
               child: { 
-                id: 'child-1', 
+                id: TEST_IDS.CHILD, 
                 name: 'Alice', 
-                familyId: 'family-1',
+                familyId: TEST_IDS.FAMILY,
                 parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice.parent@example.com' },
               },
             },
@@ -505,18 +614,25 @@ describe('ScheduleSlotRepository', () => {
             group: { select: { id: true, name: true } },
             vehicleAssignments: {
               include: {
-                vehicle: { select: { id: true, name: true, capacity: true } },
+                vehicle: true, // Return ALL vehicle fields (including timestamps)
                 driver: { select: { id: true, name: true } },
               },
             },
             childAssignments: {
               select: {
+                scheduleSlotId: true,
+                childId: true,
                 vehicleAssignmentId: true,
-                child: { 
-                  select: { 
-                    id: true, 
+                assignedAt: true,
+                child: {
+                  select: {
+                    id: true,
                     name: true,
-                  }, 
+                    age: true,
+                    familyId: true,
+                    createdAt: true,
+                    updatedAt: true,
+                  },
                 },
               },
             },
@@ -528,7 +644,7 @@ describe('ScheduleSlotRepository', () => {
         expect(result!.childAssignments[0]).toMatchObject({
           vehicleAssignmentId: 'vehicle-assignment-1',
           child: {
-            id: 'child-1',
+            id: TEST_IDS.CHILD,
             name: 'Alice',
             parent: { name: 'Alice Parent' },
           },
@@ -541,52 +657,64 @@ describe('ScheduleSlotRepository', () => {
         const mockWeeklySlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-08T08:00:00.000Z'),
             vehicleAssignments: [
               {
                 id: 'vehicle-assignment-1',
-                vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 8 },
+                vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
                 driver: { id: 'driver-1', name: 'John Driver' },
               },
             ],
             childAssignments: [
               {
+                scheduleSlotId: 'slot-1',
+                childId: TEST_IDS.CHILD,
                 vehicleAssignmentId: 'vehicle-assignment-1',
-                child: { id: 'child-1', name: 'Alice', familyId: 'family-1' },
+                assignedAt: new Date('2024-01-08T08:00:00.000Z'),
+                child: { id: TEST_IDS.CHILD, name: 'Alice', age: 8, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
               {
+                scheduleSlotId: 'slot-1',
+                childId: 'child-2',
                 vehicleAssignmentId: 'vehicle-assignment-1',
-                child: { id: 'child-2', name: 'Bob', familyId: 'family-2' },
+                assignedAt: new Date('2024-01-08T08:00:00.000Z'),
+                child: { id: 'child-2', name: 'Bob', age: 9, familyId: 'family-2', createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
             ],
           },
           {
             id: 'slot-2',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             day: 'TUESDAY',
             time: '08:00',
             week: '2024-01',
             vehicleAssignments: [
               {
                 id: 'vehicle-assignment-2',
-                vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4 },
+                vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
                 driver: { id: 'driver-2', name: 'Jane Driver' },
               },
               {
                 id: 'vehicle-assignment-3',
-                vehicle: { id: 'vehicle-3', name: 'Car #1', capacity: 2 },
+                vehicle: { id: 'vehicle-3', name: 'Car #1', capacity: 2, familyId: TEST_IDS.FAMILY, createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
                 driver: null,
               },
             ],
             childAssignments: [
               {
+                scheduleSlotId: 'slot-2',
+                childId: 'child-3',
                 vehicleAssignmentId: 'vehicle-assignment-2',
-                child: { id: 'child-3', name: 'Charlie', familyId: 'family-3' },
+                assignedAt: new Date('2024-01-09T08:00:00.000Z'),
+                child: { id: 'child-3', name: 'Charlie', age: 7, familyId: 'family-3', createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
               {
+                scheduleSlotId: 'slot-2',
+                childId: 'child-4',
                 vehicleAssignmentId: 'vehicle-assignment-3',
-                child: { id: 'child-4', name: 'David', familyId: 'family-4' },
+                assignedAt: new Date('2024-01-09T08:00:00.000Z'),
+                child: { id: 'child-4', name: 'David', age: 6, familyId: 'family-4', createdAt: '2024-01-01T00:00:00.000Z', updatedAt: '2024-01-01T00:00:00.000Z' },
               },
             ],
           },
@@ -596,24 +724,27 @@ describe('ScheduleSlotRepository', () => {
 
         const weekStart = new Date('2024-01-08T00:00:00.000Z'); 
         const weekEnd = new Date('2024-01-14T23:59:59.999Z');
-        const result = await repository.getWeeklyScheduleByDateRange('group-1', weekStart, weekEnd);
+        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
 
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
           where: { 
-            groupId: 'group-1', 
+            groupId: TEST_IDS.GROUP, 
             datetime: { gte: expect.any(Date), lte: expect.any(Date) }, 
           },
           include: {
             vehicleAssignments: {
               include: {
-                vehicle: { select: { id: true, name: true, capacity: true } },
+                vehicle: true, // Return ALL vehicle fields (including timestamps)
                 driver: { select: { id: true, name: true } },
               },
             },
             childAssignments: {
               select: {
+                scheduleSlotId: true,
+                childId: true,
                 vehicleAssignmentId: true,
-                child: { select: { id: true, name: true, familyId: true } },
+                assignedAt: true,
+                child: { select: { id: true, name: true, age: true, familyId: true, createdAt: true, updatedAt: true } },
               },
             },
           },
@@ -638,12 +769,12 @@ describe('ScheduleSlotRepository', () => {
         const mockMixedSlots = [
           {
             id: 'slot-mixed',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-10T15:00:00.000Z'),
             vehicleAssignments: [
               {
                 id: 'vehicle-assignment-4',
-                vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 8 },
+                vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 8 },
                 driver: { id: 'driver-1', name: 'John Driver' },
               },
               {
@@ -662,7 +793,7 @@ describe('ScheduleSlotRepository', () => {
 
         const weekStart = new Date('2024-01-08T00:00:00.000Z'); 
         const weekEnd = new Date('2024-01-14T23:59:59.999Z');
-        const result = await repository.getWeeklyScheduleByDateRange('group-1', weekStart, weekEnd);
+        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
 
         expect(result).toHaveLength(1);
         expect(result[0].vehicleAssignments).toHaveLength(2);
@@ -679,16 +810,16 @@ describe('ScheduleSlotRepository', () => {
             {
               id: 'vehicle-assignment-1',
               scheduleSlotId: 'slot-1',
-              vehicleId: 'vehicle-1',
+              vehicleId: TEST_IDS.VEHICLE,
               driverId: 'driver-1',
-              vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 3 }, // Small capacity for testing
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus #1', capacity: 3 }, // Small capacity for testing
               driver: { id: 'driver-1', name: 'John Driver' },
             },
           ],
           childAssignments: [
             {
               vehicleAssignmentId: 'vehicle-assignment-1',
-              child: { id: 'child-1', name: 'Alice', familyId: 'family-1' },
+              child: { id: TEST_IDS.CHILD, name: 'Alice', familyId: TEST_IDS.FAMILY },
             },
             {
               vehicleAssignmentId: 'vehicle-assignment-1',
@@ -729,14 +860,14 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-01T05:00:00.000Z'), // Monday 2024-01-01 14:00 JST - INCLUDED
             vehicleAssignments: [],
             childAssignments: [],
           },
           {
             id: 'slot-2',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-07T10:00:00.000Z'), // Sunday 2024-01-07 19:00 JST - INCLUDED
             vehicleAssignments: [],
             childAssignments: [],
@@ -745,12 +876,12 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findMany.mockResolvedValue(mockSlots);
 
-        const result = await repository.getScheduleByWeek('group-1', 2024, 1, 'Asia/Tokyo');
+        const result = await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 1, 'Asia/Tokyo');
 
         // Verify correct week boundaries were used
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
           where: {
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: {
               gte: new Date('2023-12-31T15:00:00.000Z'), // Monday 2024-01-01 00:00 JST
               lte: new Date('2024-01-07T14:59:59.999Z'),  // Sunday 2024-01-07 23:59:59.999 JST
@@ -768,7 +899,7 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-inside',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-01T05:00:00.000Z'), // Monday 14:00 JST - INCLUDED
             vehicleAssignments: [],
             childAssignments: [],
@@ -779,7 +910,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findMany.mockResolvedValue(mockSlots);
 
-        await repository.getScheduleByWeek('group-1', 2024, 1, 'Asia/Tokyo');
+        await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 1, 'Asia/Tokyo');
 
         const call = mockPrisma.scheduleSlot.findMany.mock.calls[0][0];
         const boundaries = call.where.datetime;
@@ -800,7 +931,7 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-01T10:00:00.000Z'), // Monday 02:00 PST - INCLUDED
             vehicleAssignments: [],
             childAssignments: [],
@@ -809,11 +940,11 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findMany.mockResolvedValue(mockSlots);
 
-        await repository.getScheduleByWeek('group-1', 2024, 1, 'America/Los_Angeles');
+        await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 1, 'America/Los_Angeles');
 
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
           where: {
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: {
               gte: new Date('2024-01-01T08:00:00.000Z'), // Monday 00:00 PST
               lte: new Date('2024-01-08T07:59:59.999Z'),  // Sunday 23:59:59.999 PST
@@ -832,7 +963,7 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-01T10:00:00.000Z'), // Monday 11:00 CET - INCLUDED
             vehicleAssignments: [],
             childAssignments: [],
@@ -841,11 +972,11 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findMany.mockResolvedValue(mockSlots);
 
-        await repository.getScheduleByWeek('group-1', 2024, 1, 'Europe/Paris');
+        await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 1, 'Europe/Paris');
 
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
           where: {
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: {
               gte: new Date('2023-12-31T23:00:00.000Z'), // Monday 00:00 CET
               lte: new Date('2024-01-07T22:59:59.999Z'),  // Sunday 23:59:59.999 CET
@@ -864,7 +995,7 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-03-11T10:00:00.000Z'), // Monday 06:00 EDT - INCLUDED
             vehicleAssignments: [],
             childAssignments: [],
@@ -873,7 +1004,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findMany.mockResolvedValue(mockSlots);
 
-        await repository.getScheduleByWeek('group-1', 2024, 11, 'America/New_York');
+        await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 11, 'America/New_York');
 
         const call = mockPrisma.scheduleSlot.findMany.mock.calls[0][0];
         const boundaries = call.where.datetime;
@@ -894,7 +1025,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
-        await repository.getScheduleByWeek('group-1', 2024, 10, 'Europe/London');
+        await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 10, 'Europe/London');
 
         expect(getDateFromISOWeekSpy).toHaveBeenCalledWith(2024, 10, 'Europe/London');
         expect(getWeekBoundariesSpy).toHaveBeenCalled();
@@ -909,7 +1040,7 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-03T10:00:00.000Z'),
             vehicleAssignments: [],
             childAssignments: [],
@@ -920,12 +1051,12 @@ describe('ScheduleSlotRepository', () => {
 
         // Reference datetime in Week 1 of 2024
         const referenceDate = new Date('2024-01-03T10:00:00.000Z');
-        const result = await repository.getScheduleByWeekFromDate('group-1', referenceDate, 'Asia/Tokyo');
+        const result = await repository.getScheduleByWeekFromDate(TEST_IDS.GROUP, referenceDate, 'Asia/Tokyo');
 
         // Should calculate boundaries for the week containing Jan 3, 2024
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
           where: {
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: {
               gte: expect.any(Date),
               lte: expect.any(Date),
@@ -944,7 +1075,7 @@ describe('ScheduleSlotRepository', () => {
         mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
         const referenceDate = new Date('2024-03-15T10:00:00.000Z');
-        await repository.getScheduleByWeekFromDate('group-1', referenceDate, 'America/Chicago');
+        await repository.getScheduleByWeekFromDate(TEST_IDS.GROUP, referenceDate, 'America/Chicago');
 
         expect(getWeekBoundariesSpy).toHaveBeenCalledWith(referenceDate, 'America/Chicago');
 
@@ -955,7 +1086,7 @@ describe('ScheduleSlotRepository', () => {
         mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
         const isoString = '2024-01-03T10:00:00.000Z';
-        await repository.getScheduleByWeekFromDate('group-1', isoString, 'Europe/Berlin');
+        await repository.getScheduleByWeekFromDate(TEST_IDS.GROUP, isoString, 'Europe/Berlin');
 
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalled();
       });
@@ -965,7 +1096,7 @@ describe('ScheduleSlotRepository', () => {
         mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
         const dstDate = new Date('2024-03-10T10:00:00.000Z'); // DST transition in America/New_York
-        await repository.getScheduleByWeekFromDate('group-1', dstDate, 'America/New_York');
+        await repository.getScheduleByWeekFromDate(TEST_IDS.GROUP, dstDate, 'America/New_York');
 
         const call = mockPrisma.scheduleSlot.findMany.mock.calls[0][0];
         const boundaries = call.where.datetime;
@@ -981,7 +1112,7 @@ describe('ScheduleSlotRepository', () => {
         const mockSlots = [
           {
             id: 'slot-1',
-            groupId: 'group-1',
+            groupId: TEST_IDS.GROUP,
             datetime: new Date('2024-01-08T08:00:00.000Z'),
             vehicleAssignments: [],
             childAssignments: [],
@@ -992,7 +1123,7 @@ describe('ScheduleSlotRepository', () => {
 
         const weekStart = new Date('2024-01-08T00:00:00.000Z');
         const weekEnd = new Date('2024-01-14T23:59:59.999Z');
-        const result = await repository.getWeeklyScheduleByDateRange('group-1', weekStart, weekEnd);
+        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
 
         expect(result).toEqual(mockSlots);
       });
@@ -1000,14 +1131,14 @@ describe('ScheduleSlotRepository', () => {
       it('new methods should include same relations as deprecated method', async () => {
         mockPrisma.scheduleSlot.findMany.mockResolvedValue([]);
 
-        await repository.getScheduleByWeek('group-1', 2024, 1, 'UTC');
+        await repository.getScheduleByWeek(TEST_IDS.GROUP, 2024, 1, 'UTC');
 
         const newMethodCall = mockPrisma.scheduleSlot.findMany.mock.calls[0][0];
 
         mockPrisma.scheduleSlot.findMany.mockClear();
 
         await repository.getWeeklyScheduleByDateRange(
-          'group-1',
+          TEST_IDS.GROUP,
           new Date('2024-01-01'),
           new Date('2024-01-07'),
         );

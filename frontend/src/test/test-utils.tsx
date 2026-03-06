@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { type ReactElement } from 'react'
 import { render, type RenderOptions } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -68,7 +69,7 @@ export const mockUser = {
   id: 'user-1',
   email: 'test@example.com',
   name: 'Test User',
-  timezone: 'UTC',
+  timezone: 'UTC' as string | null, // Explicitly typed to match User type from OpenAPI
 }
 
 // Mock group data for testing
@@ -93,7 +94,7 @@ export const mockGroup = {
 export const mockChild = {
   id: 'child-1',
   name: 'Test Child',
-  age: 10,
+  age: 10 as number | null, // Explicitly typed to match Child type from OpenAPI
   familyId: 'family-1',
   userId: 'user-1',
   createdAt: '2024-01-01T00:00:00Z',
@@ -122,7 +123,75 @@ export const mockFamily = {
   vehicles: []
 }
 
-// Comprehensive API service mock factory
+// Comprehensive OpenAPI client mock factory
+export const createMockOpenAPIClient = () => {
+  const mockClient = {
+    GET: vi.fn(),
+    POST: vi.fn(),
+    PUT: vi.fn(),
+    PATCH: vi.fn(),
+    DELETE: vi.fn(),
+    use: vi.fn(),
+  };
+
+  // Setup default mock implementations
+  mockClient.GET.mockImplementation((path: string) => {
+    switch (path) {
+      case '/api/v1/children':
+        return Promise.resolve({
+          data: { data: [mockChild], success: true },
+          error: undefined
+        });
+      case '/api/v1/vehicles':
+        return Promise.resolve({
+          data: { data: [mockVehicle], success: true },
+          error: undefined
+        });
+      case '/api/v1/schedule-slots/{scheduleSlotId}':
+        return Promise.resolve({
+          data: {
+            data: {
+              id: 'slot-1',
+              groupId: 'group-1',
+              day: 'MONDAY',
+              time: '08:00',
+              week: '2024-01',
+              childAssignments: [],
+              vehicleAssignments: [],
+              totalCapacity: 0,
+              availableSeats: 0
+            },
+            success: true
+          },
+          error: undefined
+        });
+      default:
+        return Promise.resolve({
+          data: { data: null, success: false },
+          error: { message: 'Not implemented in test mock' }
+        });
+    }
+  });
+
+  mockClient.POST.mockResolvedValue({
+    data: { data: null, success: true },
+    error: undefined
+  });
+
+  mockClient.PUT.mockResolvedValue({
+    data: { data: null, success: true },
+    error: undefined
+  });
+
+  mockClient.DELETE.mockResolvedValue({
+    data: { data: null, success: true },
+    error: undefined
+  });
+
+  return mockClient;
+};
+
+// Comprehensive API service mock factory (legacy for backward compatibility)
 export const createMockApiService = () => ({
   // Children API
   getChildren: vi.fn().mockResolvedValue([mockChild]),

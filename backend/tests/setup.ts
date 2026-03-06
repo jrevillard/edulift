@@ -9,7 +9,7 @@ const basePrisma = mainPrisma;
 // Extend Prisma with dashboard service functionality
 export const prisma = createDashboardExtension(basePrisma);
 
-// Configuration de la base de données de test
+// Test database configuration
 beforeAll(async () => {
   // Use the existing database connection
   try {
@@ -21,14 +21,14 @@ beforeAll(async () => {
   }
 }, 30000); // 30 second timeout for setup
 
-// Nettoyage après les tests
+// Cleanup after tests
 afterAll(async () => {
   await prisma.$disconnect();
 });
 
-// Utilitaires pour créer des données de test réalistes
+// Utilities to create realistic test data
 export const createTestData = async () => {
-  // Créer un utilisateur de test
+  // Create a test user
   const user = await prisma.user.create({
     data: {
       email: 'test-user@example.com',
@@ -37,14 +37,14 @@ export const createTestData = async () => {
     },
   });
 
-  // Créer une famille
+  // Create a family
   const family = await prisma.family.create({
     data: {
       name: 'Test Family',
     },
   });
 
-  // Associer l'utilisateur à la famille
+  // Associate user with the family
   await prisma.familyMember.create({
     data: {
       familyId: family.id,
@@ -54,7 +54,7 @@ export const createTestData = async () => {
     },
   });
 
-  // Créer un groupe
+  // Create a group
   const group = await prisma.group.create({
     data: {
       name: 'Test Group',
@@ -63,7 +63,7 @@ export const createTestData = async () => {
     },
   });
 
-  // Ajouter la famille comme membre du groupe
+  // Add family as group member
   await prisma.groupFamilyMember.create({
     data: {
       familyId: family.id,
@@ -74,7 +74,7 @@ export const createTestData = async () => {
     },
   });
 
-  // Créer un véhicule
+  // Create a vehicle
   const vehicle = await prisma.vehicle.create({
     data: {
       name: 'Test Vehicle',
@@ -83,7 +83,7 @@ export const createTestData = async () => {
     },
   });
 
-  // Créer un enfant
+  // Create a child
   const child = await prisma.child.create({
     data: {
       name: 'Test Child',
@@ -91,7 +91,7 @@ export const createTestData = async () => {
     },
   });
 
-  // Créer des slots de test avec différents scénarios
+  // Create test slots with different scenarios
   const today = new Date();
   const slot1 = await prisma.scheduleSlot.create({
     data: {
@@ -100,7 +100,7 @@ export const createTestData = async () => {
     },
   });
 
-  // Ajouter véhicule et enfant au slot
+  // Add vehicle and child to the slot
   await prisma.scheduleSlotVehicle.create({
     data: {
       scheduleSlotId: slot1.id,
@@ -129,9 +129,9 @@ export const createTestData = async () => {
   };
 };
 
-// Nettoyage rapide entre les tests
+// Quick cleanup between tests
 afterEach(async () => {
-  // Nettoyer les tables créées pendant le test
+  // Clean up tables created during the test
   const tables = [
     'scheduleSlotChild',
     'scheduleSlotVehicle',
@@ -148,7 +148,7 @@ afterEach(async () => {
       try {
         await (prisma as any)[table].deleteMany({});
       } catch {
-        // Ignorer les erreurs de nettoyage
+        // Ignore cleanup errors
       }
     }
   },

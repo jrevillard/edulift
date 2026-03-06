@@ -219,7 +219,7 @@ describe('AuthService 401 Redirect', () => {
   });
 
   it('should save redirect location on 401 from API endpoints', async () => {
-    mockLocation.pathname = '/children';
+    mockLocation.pathname = '/api/v1/children';
     mockLocation.search = '?filter=active';
     mockLocation.href = 'http://localhost:3000/children?filter=active';
 
@@ -234,7 +234,7 @@ describe('AuthService 401 Redirect', () => {
 
     await responseErrorInterceptor(error);
 
-    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/children?filter=active');
+    expect(sessionStorageMock.setItem).toHaveBeenCalledWith('redirectAfterLogin', '/api/v1/children?filter=active');
   });
 
   it('should save redirect for onboarding pages', async () => {

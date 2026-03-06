@@ -62,11 +62,11 @@ vi.mock('../../contexts/FamilyContext', () => ({
   FamilyProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-// Mock apiService
-vi.mock('../../services/apiService', () => ({
-  apiService: {
-    getChildren: vi.fn().mockResolvedValue([]),
-    getDashboardStats: vi.fn().mockResolvedValue({
+// Mock api
+vi.mock('../../services/api', () => ({
+  api: {
+    getChildren: vi.fn().mockResolvedValue({ data: { data: [] } }),
+    getDashboardStats: vi.fn().mockResolvedValue({ data: { data: {
       groups: 2,
       children: 3,
       vehicles: 1,
@@ -77,9 +77,9 @@ vi.mock('../../services/apiService', () => ({
         vehicles: { value: '+1', direction: 'up' },
         trips: { value: '+25%', direction: 'up' },
       },
-    }),
-    getTodaySchedule: vi.fn().mockResolvedValue({ upcomingTrips: [] }),
-    getRecentActivity: vi.fn().mockResolvedValue({ activities: [] }),
+    } } }),
+    getTodaySchedule: vi.fn().mockResolvedValue({ data: { data: { upcomingTrips: [] } } }),
+    getRecentActivity: vi.fn().mockResolvedValue({ data: { data: { activities: [] } } }),
   },
 }));
 
@@ -114,7 +114,7 @@ describe('DashboardPage Quick Actions', () => {
     const joinGroupButton = screen.getByTestId('DashboardPage-Button-quickAction-join-a-group');
     fireEvent.click(joinGroupButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/groups');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/groups');
   });
 
   it('should navigate to children page when Add Child is clicked', async () => {
@@ -125,7 +125,7 @@ describe('DashboardPage Quick Actions', () => {
     const addChildButton = screen.getByTestId('DashboardPage-Button-quickAction-add-child');
     fireEvent.click(addChildButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/children');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/children');
   });
 
   it('should navigate to vehicles page when Add Vehicle is clicked', async () => {
@@ -136,7 +136,7 @@ describe('DashboardPage Quick Actions', () => {
     const addVehicleButton = screen.getByTestId('DashboardPage-Button-quickAction-add-vehicle');
     fireEvent.click(addVehicleButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/vehicles');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/vehicles');
   });
 
   it('should apply proper semantic design system classes', async () => {

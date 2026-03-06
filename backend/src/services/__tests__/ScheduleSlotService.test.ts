@@ -4,6 +4,7 @@ import { NotificationService } from '../NotificationService';
 import { ScheduleSlotValidationService } from '../ScheduleSlotValidationService';
 import { CreateScheduleSlotData, AssignVehicleToSlotData } from '../../types';
 import { PrismaClient } from '@prisma/client';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock dependencies
 jest.mock('../../repositories/ScheduleSlotRepository');
@@ -19,11 +20,11 @@ describe('ScheduleSlotService', () => {
   let mockPrisma: jest.Mocked<PrismaClient>;
 
   const mockScheduleSlot = {
-    id: 'slot-1',
-    groupId: 'group-1',
+    id: TEST_IDS.SLOT,
+    groupId: TEST_IDS.GROUP,
     datetime: new Date('2050-01-08T08:00:00.000Z'), // Use future date to avoid "Cannot create trips in the past" error
     group: {
-      id: 'group-1',
+      id: TEST_IDS.GROUP,
       name: 'Group 1',
     },
     vehicleAssignments: [],
@@ -86,13 +87,13 @@ describe('ScheduleSlotService', () => {
   describe('createScheduleSlotWithVehicle', () => {
     it('should create a schedule slot with vehicle successfully', async () => {
       const slotData: CreateScheduleSlotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2050-01-08T08:00:00.000Z',
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: 'user-1',
+        id: TEST_IDS.USER,
         email: 'test@test.com',
         name: 'Test User',
         timezone: 'Europe/Paris',
@@ -102,19 +103,19 @@ describe('ScheduleSlotService', () => {
 
       mockRepository.create.mockResolvedValue(mockScheduleSlot);
       mockRepository.assignVehicleToSlot.mockResolvedValue({
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: null,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
         driver: {
-          id: 'driver-1',
+          id: TEST_IDS.DRIVER,
           name: 'John Doe',
         },
       });
@@ -122,28 +123,28 @@ describe('ScheduleSlotService', () => {
 
       const result = await scheduleSlotService.createScheduleSlotWithVehicle(
         slotData,
-        'vehicle-1',
-        'user-1', // Pass userId instead of timezone
-        'driver-1',
+        TEST_IDS.VEHICLE,
+        TEST_IDS.USER, // Pass userId instead of timezone
+        TEST_IDS.DRIVER,
       );
 
       expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: 'user-1' },
+        where: { id: TEST_IDS.USER },
         select: { timezone: true },
       });
       expect(mockValidationService.validateScheduleTime).toHaveBeenCalledWith(
-        'group-1',
+        TEST_IDS.GROUP,
         new Date('2050-01-08T08:00:00.000Z'),
         'Europe/Paris', // Timezone from user DB
       );
       expect(mockRepository.create).toHaveBeenCalledWith(slotData);
       expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(
-        'slot-1',
-        'vehicle-1',
-        'driver-1',
+        TEST_IDS.SLOT,
+        TEST_IDS.VEHICLE,
+        TEST_IDS.DRIVER,
         undefined,
       );
-      expect(mockRepository.findById).toHaveBeenCalledWith('slot-1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(TEST_IDS.SLOT);
       expect(result).toEqual(mockScheduleSlot);
     });
   });
@@ -151,25 +152,25 @@ describe('ScheduleSlotService', () => {
   describe('assignVehicleToSlot', () => {
     it('should assign vehicle to slot successfully', async () => {
       const assignmentData: AssignVehicleToSlotData = {
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
       };
 
       const mockVehicleAssignment = {
-        id: 'assignment-1',
+        id: 'cltestassign1234567890123',
         createdAt: new Date(),
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: null,
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
         driver: {
-          id: 'driver-1',
+          id: TEST_IDS.DRIVER,
           name: 'John Doe',
         },
       };
@@ -183,22 +184,22 @@ describe('ScheduleSlotService', () => {
       const result = await scheduleSlotService.assignVehicleToSlot(assignmentData);
 
       expect(mockValidationService.validateVehicleAssignment).toHaveBeenCalledWith(
-        'vehicle-1',
-        'slot-1',
+        TEST_IDS.VEHICLE,
+        TEST_IDS.SLOT,
       );
       expect(mockValidationService.validateDriverAvailability).toHaveBeenCalledWith(
-        'driver-1',
-        'slot-1',
+        TEST_IDS.DRIVER,
+        TEST_IDS.SLOT,
       );
       expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(
-        'slot-1',
-        'vehicle-1',
-        'driver-1',
+        TEST_IDS.SLOT,
+        TEST_IDS.VEHICLE,
+        TEST_IDS.DRIVER,
         undefined,
       );
-      expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith('slot-1');
+      expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith(TEST_IDS.SLOT);
       expect(mockNotificationService.notifyScheduleSlotChange).toHaveBeenCalledWith(
-        'slot-1',
+        TEST_IDS.SLOT,
         'VEHICLE_ASSIGNED',
       );
       expect(result).toEqual(mockVehicleAssignment);
@@ -206,8 +207,8 @@ describe('ScheduleSlotService', () => {
 
     it('should handle validation errors', async () => {
       const assignmentData: AssignVehicleToSlotData = {
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -224,10 +225,10 @@ describe('ScheduleSlotService', () => {
     it('should remove vehicle and keep slot when other vehicles exist', async () => {
       const mockResult = {
         vehicleAssignment: { 
-          id: 'assignment-1',
+          id: 'cltestassign1234567890123',
           createdAt: new Date(),
-          scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
+          scheduleSlotId: TEST_IDS.SLOT,
+          vehicleId: TEST_IDS.VEHICLE,
           driverId: null,
         seatOverride: null,
         },
@@ -238,12 +239,12 @@ describe('ScheduleSlotService', () => {
       mockRepository.removeVehicleFromSlot.mockResolvedValue(mockResult);
       mockValidationService.validateSlotIntegrity.mockResolvedValue(true);
 
-      const result = await scheduleSlotService.removeVehicleFromSlot('slot-1', 'vehicle-1');
+      const result = await scheduleSlotService.removeVehicleFromSlot(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
 
-      expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1');
-      expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith('slot-1');
+      expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
+      expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith(TEST_IDS.SLOT);
       expect(mockNotificationService.notifyScheduleSlotChange).toHaveBeenCalledWith(
-        'slot-1',
+        TEST_IDS.SLOT,
         'VEHICLE_REMOVED',
       );
       expect(result).toEqual(mockResult);
@@ -252,10 +253,10 @@ describe('ScheduleSlotService', () => {
     it('should remove vehicle and delete slot when it was the last vehicle', async () => {
       const mockResult = {
         vehicleAssignment: { 
-          id: 'assignment-1',
+          id: 'cltestassign1234567890123',
           createdAt: new Date(),
-          scheduleSlotId: 'slot-1',
-          vehicleId: 'vehicle-1',
+          scheduleSlotId: TEST_IDS.SLOT,
+          vehicleId: TEST_IDS.VEHICLE,
           driverId: null,
         seatOverride: null,
         },
@@ -265,9 +266,9 @@ describe('ScheduleSlotService', () => {
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
       mockRepository.removeVehicleFromSlot.mockResolvedValue(mockResult);
 
-      const result = await scheduleSlotService.removeVehicleFromSlot('slot-1', 'vehicle-1');
+      const result = await scheduleSlotService.removeVehicleFromSlot(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
 
-      expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1');
+      expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
       // Should not validate slot integrity when slot is deleted
       expect(mockValidationService.validateSlotIntegrity).not.toHaveBeenCalled();
       expect(result).toEqual(mockResult);
@@ -280,38 +281,38 @@ describe('ScheduleSlotService', () => {
         ...mockScheduleSlot,
         vehicleAssignments: [
           {
-            id: 'assignment-1',
+            id: 'cltestassign1234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
-            driverId: 'driver-1' as string | null,
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE,
+            driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
-            vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 20 },
-            driver: { id: 'driver-1', name: 'John Doe' },
+            vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
+            driver: { id: TEST_IDS.DRIVER, name: 'John Doe' },
           },
         ],
         childAssignments: [
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-1',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }, 
+            child: { id: TEST_IDS.CHILD, name: 'Alice', age: 8, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() }, 
           },
         ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithDetails);
 
-      const result = await scheduleSlotService.getScheduleSlotDetails('slot-1');
+      const result = await scheduleSlotService.getScheduleSlotDetails(TEST_IDS.SLOT);
 
-      expect(mockRepository.findById).toHaveBeenCalledWith('slot-1');
+      expect(mockRepository.findById).toHaveBeenCalledWith(TEST_IDS.SLOT);
       expect(result).toBeDefined();
       expect(result!.totalCapacity).toBe(20);
       expect(result!.availableSeats).toBe(19); // 20 - 1 child
       expect(result!.vehicleAssignments).toHaveLength(1);
       expect(result!.childAssignments).toHaveLength(1);
-      expect(result!.childAssignments[0].vehicleAssignmentId).toBe('assignment-1');
+      expect(result!.childAssignments[0].vehicleAssignmentId).toBe('cltestassign1234567890123');
     });
 
     it('should return all valid child assignments with vehicleAssignmentId', async () => {
@@ -319,44 +320,44 @@ describe('ScheduleSlotService', () => {
         ...mockScheduleSlot,
         vehicleAssignments: [
           {
-            id: 'assignment-1',
+            id: 'cltestassign1234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
-            driverId: 'driver-1' as string | null,
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE,
+            driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
-            vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 20 },
-            driver: { id: 'driver-1', name: 'John Doe' },
+            vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
+            driver: { id: TEST_IDS.DRIVER, name: 'John Doe' },
           },
         ],
         childAssignments: [
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-1',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }, 
+            child: { id: TEST_IDS.CHILD, name: 'Alice', age: 8, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() }, 
           },
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-2',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD_2,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-2', name: 'Bob', familyId: 'family-2' }, 
+            child: { id: TEST_IDS.CHILD_2, name: 'Bob', age: 10, familyId: TEST_IDS.FAMILY_2, createdAt: new Date(), updatedAt: new Date() }, 
           },
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-3',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD_3,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-3', name: 'Charlie', userId: 'parent-3' }, 
+            child: { id: TEST_IDS.CHILD_3, name: 'Charlie', age: 12, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() }, 
           },
         ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithValidAssignments);
 
-      const result = await scheduleSlotService.getScheduleSlotDetails('slot-1');
+      const result = await scheduleSlotService.getScheduleSlotDetails(TEST_IDS.SLOT);
 
       expect(result).toBeDefined();
       expect(result!.childAssignments).toHaveLength(3); // All valid assignments
@@ -368,67 +369,67 @@ describe('ScheduleSlotService', () => {
         ...mockScheduleSlot,
         vehicleAssignments: [
           {
-            id: 'assignment-1',
+            id: 'cltestassign1234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
-            driverId: 'driver-1' as string | null,
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE,
+            driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
-            vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 10 },
-            driver: { id: 'driver-1', name: 'John Doe' },
+            vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 10, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
+            driver: { id: TEST_IDS.DRIVER, name: 'John Doe' },
           },
           {
-            id: 'assignment-2',
+            id: 'cltestassign21234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-2',
-            driverId: 'driver-2',
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE_2,
+            driverId: 'cltestdriver212345678901234',
         seatOverride: null,
-            vehicle: { id: 'vehicle-2', name: 'Bus 2', capacity: 15 },
-            driver: { id: 'driver-2', name: 'Jane Smith' },
+            vehicle: { id: TEST_IDS.VEHICLE_2, name: 'Bus 2', capacity: 15, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
+            driver: { id: 'cltestdriver212345678901234', name: 'Jane Smith' },
           },
         ],
         childAssignments: [
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-1',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' }, 
+            child: { id: TEST_IDS.CHILD, name: 'Alice', age: 8, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() }, 
           },
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-2',
-            vehicleAssignmentId: 'assignment-2',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD_2,
+            vehicleAssignmentId: 'cltestassign21234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-2', name: 'Bob', familyId: 'family-2' }, 
+            child: { id: TEST_IDS.CHILD_2, name: 'Bob', age: 10, familyId: TEST_IDS.FAMILY_2, createdAt: new Date(), updatedAt: new Date() }, 
           },
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-3',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD_3,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-3', name: 'Charlie', userId: 'parent-3' }, 
+            child: { id: TEST_IDS.CHILD_3, name: 'Charlie', age: 12, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() }, 
           },
         ],
       };
 
       mockRepository.findById.mockResolvedValue(mockSlotWithMultipleVehicles);
 
-      const result = await scheduleSlotService.getScheduleSlotDetails('slot-1');
+      const result = await scheduleSlotService.getScheduleSlotDetails(TEST_IDS.SLOT);
 
       expect(result).toBeDefined();
       expect(result!.childAssignments).toHaveLength(3);
       
       // Check vehicle assignment IDs are properly included
-      const childrenInVehicle1 = result!.childAssignments.filter(ca => ca.vehicleAssignmentId === 'assignment-1');
-      const childrenInVehicle2 = result!.childAssignments.filter(ca => ca.vehicleAssignmentId === 'assignment-2');
+      const childrenInVehicle1 = result!.childAssignments.filter(ca => ca.vehicleAssignmentId === 'cltestassign1234567890123');
+      const childrenInVehicle2 = result!.childAssignments.filter(ca => ca.vehicleAssignmentId === 'cltestassign21234567890123');
       
       expect(childrenInVehicle1).toHaveLength(2); // Alice and Charlie
       expect(childrenInVehicle2).toHaveLength(1); // Bob
       
-      expect(childrenInVehicle1.map(c => c.child.name)).toEqual(['Alice', 'Charlie']);
-      expect(childrenInVehicle2.map(c => c.child.name)).toEqual(['Bob']);
+      expect(childrenInVehicle1.filter(c => c.child).map(c => c.child!.name)).toEqual(['Alice', 'Charlie']);
+      expect(childrenInVehicle2.filter(c => c.child).map(c => c.child!.name)).toEqual(['Bob']);
     });
 
     it('should return null for non-existent slot', async () => {
@@ -446,7 +447,7 @@ describe('ScheduleSlotService', () => {
 
       // Mock group lookup for timezone
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: 'group-1',
+        id: TEST_IDS.GROUP,
         timezone: 'Europe/Paris',
       });
 
@@ -455,12 +456,12 @@ describe('ScheduleSlotService', () => {
 
       const startDate = '2024-01-01T00:00:00.000Z';
       const endDate = '2024-01-07T23:59:59.999Z';
-      const result = await scheduleSlotService.getSchedule('group-1', startDate, endDate);
+      const result = await scheduleSlotService.getSchedule(TEST_IDS.GROUP, startDate, endDate);
 
-      expect(mockRepository.getWeeklyScheduleByDateRange).toHaveBeenCalledWith('group-1', expect.any(Date), expect.any(Date));
+      expect(mockRepository.getWeeklyScheduleByDateRange).toHaveBeenCalledWith(TEST_IDS.GROUP, expect.any(Date), expect.any(Date));
       expect(result.startDate).toBe(startDate);
       expect(result.endDate).toBe(endDate);
-      expect(result.groupId).toBe('group-1');
+      expect(result.groupId).toBe(TEST_IDS.GROUP);
       expect(result.scheduleSlots).toHaveLength(1);
     });
 
@@ -469,41 +470,41 @@ describe('ScheduleSlotService', () => {
         ...mockScheduleSlot,
         vehicleAssignments: [
           {
-            id: 'assignment-1',
+            id: 'cltestassign1234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
-            driverId: 'driver-1' as string | null,
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE,
+            driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
-            vehicle: { id: 'vehicle-1', name: 'Bus 1', capacity: 20 },
-            driver: { id: 'driver-1', name: 'John Doe' },
+            vehicle: { id: TEST_IDS.VEHICLE, name: 'Bus 1', capacity: 20, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
+            driver: { id: TEST_IDS.DRIVER, name: 'John Doe' },
           },
         ],
         childAssignments: [
           {
-            scheduleSlotId: 'slot-1',
-            childId: 'child-1',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
-            child: { id: 'child-1', name: 'Alice', familyId: 'family-1' },
+            child: { id: TEST_IDS.CHILD, name: 'Alice', age: 8, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
           },
         ],
       };
 
       // Mock group lookup for timezone
       (mockPrisma.group.findUnique as jest.Mock).mockResolvedValue({
-        id: 'group-1',
+        id: TEST_IDS.GROUP,
         timezone: 'Europe/Paris',
       });
 
       mockRepository.getWeeklyScheduleByDateRange.mockResolvedValue([mockSlotWithAssignments]);
       mockRepository.findById.mockResolvedValue(mockSlotWithAssignments);
 
-      const result = await scheduleSlotService.getSchedule('group-1', '2024-01-01T00:00:00.000Z', '2024-01-07T23:59:59.999Z');
+      const result = await scheduleSlotService.getSchedule(TEST_IDS.GROUP, '2024-01-01T00:00:00.000Z', '2024-01-07T23:59:59.999Z');
 
       expect(result.scheduleSlots).toHaveLength(1);
       expect(result.scheduleSlots[0].childAssignments).toHaveLength(1);
-      expect(result.scheduleSlots[0].childAssignments[0].vehicleAssignmentId).toBe('assignment-1');
+      expect(result.scheduleSlots[0].childAssignments[0].vehicleAssignmentId).toBe('cltestassign1234567890123');
       expect(result.scheduleSlots[0].childAssignments[0].child.name).toBe('Alice');
     });
   });
@@ -514,14 +515,14 @@ describe('ScheduleSlotService', () => {
         ...mockScheduleSlot,
         vehicleAssignments: [
           { 
-            id: 'assignment-1',
+            id: 'cltestassign1234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE,
             driverId: null,
         seatOverride: null,
             vehicle: { 
-              id: 'vehicle-1',
+              id: TEST_IDS.VEHICLE,
               name: 'Bus 1',
               capacity: 2, 
             },
@@ -530,36 +531,36 @@ describe('ScheduleSlotService', () => {
         ],
         childAssignments: [
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-1',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
             child: { 
-              id: 'child-1',
+              id: TEST_IDS.CHILD,
               name: 'Child 1',
-              familyId: 'family-1',
+              familyId: TEST_IDS.FAMILY,
             }, 
           },
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-2',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD_2,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
             child: { 
-              id: 'child-2',
+              id: TEST_IDS.CHILD_2,
               name: 'Child 2',
-              familyId: 'family-2',
+              familyId: TEST_IDS.FAMILY_2,
             }, 
           },
           { 
-            scheduleSlotId: 'slot-1',
-            childId: 'child-3',
-            vehicleAssignmentId: 'assignment-1',
+            scheduleSlotId: TEST_IDS.SLOT,
+            childId: TEST_IDS.CHILD_3,
+            vehicleAssignmentId: 'cltestassign1234567890123',
             assignedAt: new Date(),
             child: { 
-              id: 'child-3',
+              id: TEST_IDS.CHILD_3,
               name: 'Child 3',
-              userId: 'parent-3',
+              userId: TEST_IDS.USER_3,
             }, 
           }, // More children than capacity
         ],
@@ -567,7 +568,7 @@ describe('ScheduleSlotService', () => {
 
       mockRepository.findById.mockResolvedValue(mockSlotWithConflict);
 
-      const conflicts = await scheduleSlotService.validateSlotConflicts('slot-1');
+      const conflicts = await scheduleSlotService.validateSlotConflicts(TEST_IDS.SLOT);
 
       expect(conflicts).toContain('CAPACITY_EXCEEDED');
     });
@@ -577,19 +578,19 @@ describe('ScheduleSlotService', () => {
         ...mockScheduleSlot,
         vehicleAssignments: [
           { 
-            id: 'assignment-1',
+            id: 'cltestassign1234567890123',
             createdAt: new Date(),
-            scheduleSlotId: 'slot-1',
-            vehicleId: 'vehicle-1',
-            driverId: 'driver-1' as string | null,
+            scheduleSlotId: TEST_IDS.SLOT,
+            vehicleId: TEST_IDS.VEHICLE,
+            driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
             vehicle: { 
-              id: 'vehicle-1',
+              id: TEST_IDS.VEHICLE,
               name: 'Bus 1',
               capacity: 30, 
             },
             driver: { 
-              id: 'driver-1',
+              id: TEST_IDS.DRIVER,
               name: 'John Doe',
             },
           },
@@ -598,21 +599,21 @@ describe('ScheduleSlotService', () => {
 
       const conflictingSlots = [
         { 
-          id: 'slot-1',
-          groupId: 'group-1',
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2050-01-08T08:00:00.000Z'),
           createdAt: new Date(),
           updatedAt: new Date(),
           vehicleAssignments: [
             {
-              id: 'assignment-1',
+              id: 'cltestassign1234567890123',
               createdAt: new Date(),
-              scheduleSlotId: 'slot-1',
-              vehicleId: 'vehicle-1',
-              driverId: 'driver-1' as string | null,
+              scheduleSlotId: TEST_IDS.SLOT,
+              vehicleId: TEST_IDS.VEHICLE,
+              driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
               vehicle: { 
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Bus 1',
               },
             },
@@ -620,21 +621,21 @@ describe('ScheduleSlotService', () => {
           childAssignments: [],
         },
         { 
-          id: 'slot-2',
-          groupId: 'group-1',
+          id: TEST_IDS.SLOT_2,
+          groupId: TEST_IDS.GROUP,
           datetime: new Date('2050-01-08T08:00:00.000Z'),
           createdAt: new Date(),
           updatedAt: new Date(),
           vehicleAssignments: [
             {
-              id: 'assignment-2',
+              id: 'cltestassign21234567890123',
               createdAt: new Date(),
-              scheduleSlotId: 'slot-2',
-              vehicleId: 'vehicle-2',
-              driverId: 'driver-1' as string | null,
+              scheduleSlotId: TEST_IDS.SLOT_2,
+              vehicleId: TEST_IDS.VEHICLE_2,
+              driverId: TEST_IDS.DRIVER as string | null,
         seatOverride: null,
               vehicle: { 
-                id: 'vehicle-2',
+                id: TEST_IDS.VEHICLE_2,
                 name: 'Bus 2',
               },
             },
@@ -646,7 +647,7 @@ describe('ScheduleSlotService', () => {
       mockRepository.findById.mockResolvedValue(mockSlotWithDriver);
       mockRepository.findConflictingSlotsForParentByDateTime.mockResolvedValue(conflictingSlots);
 
-      const conflicts = await scheduleSlotService.validateSlotConflicts('slot-1');
+      const conflicts = await scheduleSlotService.validateSlotConflicts(TEST_IDS.SLOT);
 
       expect(conflicts).toContain('DRIVER_DOUBLE_BOOKING');
     });
@@ -655,14 +656,14 @@ describe('ScheduleSlotService', () => {
   describe('updateSeatOverride', () => {
     it('should update seat override successfully', async () => {
       const mockVehicleAssignment = {
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: null,
         seatOverride: 15,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
@@ -670,7 +671,7 @@ describe('ScheduleSlotService', () => {
       };
 
       const updateData = {
-        vehicleAssignmentId: 'assignment-1',
+        vehicleAssignmentId: 'cltestassign1234567890123',
         seatOverride: 15,
       };
 
@@ -681,21 +682,21 @@ describe('ScheduleSlotService', () => {
       const result = await scheduleSlotService.updateSeatOverride(updateData);
 
       expect(mockValidationService.validateSeatOverride).toHaveBeenCalledWith(15);
-      expect(mockRepository.updateSeatOverride).toHaveBeenCalledWith('assignment-1', 15);
-      expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith('slot-1');
+      expect(mockRepository.updateSeatOverride).toHaveBeenCalledWith('cltestassign1234567890123', 15);
+      expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith(TEST_IDS.SLOT);
       expect(result).toEqual(mockVehicleAssignment);
     });
 
     it('should clear seat override when undefined is passed', async () => {
       const mockVehicleAssignment = {
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: null,
         seatOverride: null,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
@@ -703,7 +704,7 @@ describe('ScheduleSlotService', () => {
       };
 
       const updateData: { vehicleAssignmentId: string, seatOverride?: number } = {
-        vehicleAssignmentId: 'assignment-1',
+        vehicleAssignmentId: 'cltestassign1234567890123',
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -713,20 +714,20 @@ describe('ScheduleSlotService', () => {
       const result = await scheduleSlotService.updateSeatOverride(updateData);
 
       expect(mockValidationService.validateSeatOverride).not.toHaveBeenCalled();
-      expect(mockRepository.updateSeatOverride).toHaveBeenCalledWith('assignment-1', undefined);
+      expect(mockRepository.updateSeatOverride).toHaveBeenCalledWith('cltestassign1234567890123', undefined);
       expect(result).toEqual(mockVehicleAssignment);
     });
 
     it('should not validate seat override if undefined', async () => {
       const mockVehicleAssignment = {
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: null,
         seatOverride: null,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
@@ -734,7 +735,7 @@ describe('ScheduleSlotService', () => {
       };
 
       const updateData = {
-        vehicleAssignmentId: 'assignment-1',
+        vehicleAssignmentId: 'cltestassign1234567890123',
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
@@ -748,14 +749,14 @@ describe('ScheduleSlotService', () => {
 
     it('should send notification when seat override is updated', async () => {
       const mockVehicleAssignment = {
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
         driverId: null,
         seatOverride: 15,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
@@ -763,7 +764,7 @@ describe('ScheduleSlotService', () => {
       };
 
       const updateData = {
-        vehicleAssignmentId: 'assignment-1',
+        vehicleAssignmentId: 'cltestassign1234567890123',
         seatOverride: 15,
       };
 
@@ -773,33 +774,33 @@ describe('ScheduleSlotService', () => {
 
       await scheduleSlotService.updateSeatOverride(updateData);
 
-      expect(mockNotificationService.notifyScheduleSlotChange).toHaveBeenCalledWith('slot-1', 'SEAT_OVERRIDE_UPDATED');
+      expect(mockNotificationService.notifyScheduleSlotChange).toHaveBeenCalledWith(TEST_IDS.SLOT, 'SEAT_OVERRIDE_UPDATED');
     });
   });
 
   describe('assignVehicleToSlot with seat override', () => {
     it('should pass seat override to repository when assigning vehicle', async () => {
       const assignmentData: AssignVehicleToSlotData = {
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: 15,
       };
 
       const mockResult = { 
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: 15,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
         driver: {
-          id: 'driver-1',
+          id: TEST_IDS.DRIVER,
           name: 'John Doe',
         },
       };
@@ -813,31 +814,31 @@ describe('ScheduleSlotService', () => {
       const result = await scheduleSlotService.assignVehicleToSlot(assignmentData);
 
       expect(mockValidationService.validateSeatOverride).toHaveBeenCalledWith(15);
-      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1', 'driver-1', 15);
+      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE, TEST_IDS.DRIVER, 15);
       expect(result).toEqual(mockResult);
     });
 
     it('should not validate seat override if not provided', async () => {
       const assignmentData: AssignVehicleToSlotData = {
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
       };
 
       const mockResult = { 
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: null,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
         driver: {
-          id: 'driver-1',
+          id: TEST_IDS.DRIVER,
           name: 'John Doe',
         },
       };
@@ -851,88 +852,88 @@ describe('ScheduleSlotService', () => {
       await scheduleSlotService.assignVehicleToSlot(assignmentData);
 
       expect(mockValidationService.validateSeatOverride).not.toHaveBeenCalled();
-      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1', 'driver-1', undefined);
+      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE, TEST_IDS.DRIVER, undefined);
     });
   });
 
   describe('createScheduleSlotWithVehicle with seat override', () => {
     it('should pass seat override to assignVehicleToSlot when creating slot', async () => {
       const slotData: CreateScheduleSlotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2050-01-08T08:00:00.000Z',
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: 'user-1',
+        id: TEST_IDS.USER,
         timezone: 'Europe/Paris',
       });
 
       mockRepository.create.mockResolvedValue(mockScheduleSlot);
       mockRepository.assignVehicleToSlot.mockResolvedValue({
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: 15,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
         driver: {
-          id: 'driver-1',
+          id: TEST_IDS.DRIVER,
           name: 'John Doe',
         },
       });
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
       mockValidationService.validateScheduleTime.mockResolvedValue(undefined);
 
-      await scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1', 15);
+      await scheduleSlotService.createScheduleSlotWithVehicle(slotData, TEST_IDS.VEHICLE, TEST_IDS.USER, TEST_IDS.DRIVER, 15);
 
-      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith('slot-1', 'vehicle-1', 'driver-1', 15);
+      expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE, TEST_IDS.DRIVER, 15);
     });
   });
 
   describe('validateScheduleTime integration', () => {
     it('should call validateScheduleTime when creating a schedule slot', async () => {
       const slotData: CreateScheduleSlotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2050-01-13T07:30:00.000Z', // Monday, 07:30 UTC
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: 'user-1',
+        id: TEST_IDS.USER,
         timezone: 'UTC',
       });
 
       mockRepository.create.mockResolvedValue(mockScheduleSlot);
       mockRepository.assignVehicleToSlot.mockResolvedValue({
-        id: 'assignment-1',
-        scheduleSlotId: 'slot-1',
-        vehicleId: 'vehicle-1',
-        driverId: 'driver-1',
+        id: 'cltestassign1234567890123',
+        scheduleSlotId: TEST_IDS.SLOT,
+        vehicleId: TEST_IDS.VEHICLE,
+        driverId: TEST_IDS.DRIVER,
         seatOverride: null,
         createdAt: new Date(),
         vehicle: {
-          id: 'vehicle-1',
+          id: TEST_IDS.VEHICLE,
           name: 'Bus 1',
           capacity: 30,
         },
         driver: {
-          id: 'driver-1',
+          id: TEST_IDS.DRIVER,
           name: 'John Doe',
         },
       });
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
       mockValidationService.validateScheduleTime.mockResolvedValue(undefined);
 
-      await scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1');
+      await scheduleSlotService.createScheduleSlotWithVehicle(slotData, TEST_IDS.VEHICLE, TEST_IDS.USER, TEST_IDS.DRIVER);
 
       expect(mockValidationService.validateScheduleTime).toHaveBeenCalledWith(
-        'group-1',
+        TEST_IDS.GROUP,
         new Date('2050-01-13T07:30:00.000Z'),
         'UTC',
       );
@@ -941,13 +942,13 @@ describe('ScheduleSlotService', () => {
 
     it('should reject slot creation when time is not configured', async () => {
       const slotData: CreateScheduleSlotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2050-01-13T05:30:00.000Z', // Invalid time
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: 'user-1',
+        id: TEST_IDS.USER,
         timezone: 'Europe/Paris',
       });
 
@@ -956,11 +957,11 @@ describe('ScheduleSlotService', () => {
       );
 
       await expect(
-        scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1'),
+        scheduleSlotService.createScheduleSlotWithVehicle(slotData, TEST_IDS.VEHICLE, TEST_IDS.USER, TEST_IDS.DRIVER),
       ).rejects.toThrow('Time 05:30 is not configured for MONDAY in this group');
 
       expect(mockValidationService.validateScheduleTime).toHaveBeenCalledWith(
-        'group-1',
+        TEST_IDS.GROUP,
         new Date('2050-01-13T05:30:00.000Z'),
         'Europe/Paris',
       );
@@ -969,13 +970,13 @@ describe('ScheduleSlotService', () => {
 
     it('should reject slot creation when group has no schedule config', async () => {
       const slotData: CreateScheduleSlotData = {
-        groupId: 'group-1',
+        groupId: TEST_IDS.GROUP,
         datetime: '2050-01-13T07:30:00.000Z',
       };
 
       // Mock user lookup
       (mockPrisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: 'user-1',
+        id: TEST_IDS.USER,
         timezone: 'Europe/Paris',
       });
 
@@ -984,7 +985,7 @@ describe('ScheduleSlotService', () => {
       );
 
       await expect(
-        scheduleSlotService.createScheduleSlotWithVehicle(slotData, 'vehicle-1', 'user-1', 'driver-1'),
+        scheduleSlotService.createScheduleSlotWithVehicle(slotData, TEST_IDS.VEHICLE, TEST_IDS.USER, TEST_IDS.DRIVER),
       ).rejects.toThrow('Group has no schedule configuration');
 
       expect(mockRepository.create).not.toHaveBeenCalled();

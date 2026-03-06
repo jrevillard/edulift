@@ -135,7 +135,7 @@ describe('AuthService 401 Redirect - Simple Test', () => {
     const testPaths = [
       { path: '/schedule', search: '?test=1', expected: '/schedule?test=1', shouldStore: true },
       { path: '/dashboard', search: '', expected: '/dashboard', shouldStore: true },
-      { path: '/groups', search: '?id=123', expected: '/groups?id=123', shouldStore: true },
+      { path: '/api/v1/groups', search: '?id=123', expected: '/api/v1/groups?id=123', shouldStore: true },
       { path: '/', search: '', expected: '/', shouldStore: false },
       { path: '/login', search: '', expected: '/login', shouldStore: false },
     ];

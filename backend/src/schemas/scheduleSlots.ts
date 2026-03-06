@@ -7,7 +7,8 @@
 
 import { z } from 'zod';
 import { extendZodWithOpenApi } from '@asteasolutions/zod-to-openapi';
-import { registry, registerPath } from '../config/openapi';
+import { registry, registerPath } from '../config/registry';
+import { BaseVehicleSchema } from './_common';
 
 // Extend Zod with OpenAPI capabilities
 extendZodWithOpenApi(z);
@@ -65,22 +66,6 @@ export const ScheduleSlotVehicleParamsSchema = z.object({
   description: 'URL parameters for schedule slot vehicle-specific endpoints',
 });
 
-export const ScheduleSlotChildParamsSchema = z.object({
-  scheduleSlotId: z.cuid('Invalid schedule slot ID format')
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Unique schedule slot identifier (CUID format)',
-    }),
-  childId: z.cuid('Invalid child ID format')
-    .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Unique child identifier (CUID format)',
-    }),
-}).openapi({
-  title: 'Schedule Slot Child Parameters',
-  description: 'URL parameters for schedule slot child-specific endpoints',
-});
-
 // ============================================================================
 // QUERY SCHEMAS
 // ============================================================================
@@ -119,6 +104,7 @@ export const CreateScheduleSlotWithVehicleSchema = z.object({
       description: 'Vehicle identifier for assignment',
     }),
   driverId: z.cuid('Invalid driver ID format')
+    .nullable()
     .optional()
     .openapi({
       example: 'cl123456789012345678901239',
@@ -159,27 +145,49 @@ export const AssignVehicleSchema = z.object({
       example: 6,
       description: 'Optional seat capacity override for this assignment',
     }),
+  childIds: z.array(z.cuid('Invalid child ID format'))
+    .optional()
+    .openapi({
+      example: ['cl123456789012345678901238', 'cl123456789012345678901239'],
+      description: 'Optional list of child IDs to assign initially (can add more later with PATCH)',
+    }),
 }).openapi({
   title: 'Assign Vehicle to Schedule Slot',
-  description: 'Assign a vehicle to an existing schedule slot',
+  description: 'Assign a vehicle to an existing schedule slot, optionally with initial children',
 });
 
-export const AssignChildSchema = z.object({
-  childId: z.cuid('Invalid child ID format')
+export const PatchVehicleAssignmentSchema = z.object({
+  driverId: z.cuid('Invalid driver ID format')
+    .optional()
     .openapi({
-      example: 'cl123456789012345678901238',
-      description: 'Child identifier to assign',
+      example: 'cl123456789012345678901239',
+      description: 'Optional new driver identifier to replace current driver',
     }),
-  vehicleAssignmentId: z.cuid('Invalid vehicle assignment ID format')
+  seatOverride: z.number()
+    .int('Seat override must be an integer')
+    .min(0, 'Seat override cannot be negative')
+    .max(10, 'Seat override cannot exceed maximum capacity')
+    .optional()
     .openapi({
-      example: 'cl123456789012345678901236',
-      description: 'Vehicle assignment identifier for the child',
+      example: 6,
+      description: 'Optional new seat capacity override for this assignment',
+    }),
+  addChildIds: z.array(z.cuid('Invalid child ID format'))
+    .optional()
+    .openapi({
+      example: ['cl123456789012345678901238', 'cl123456789012345678901239'],
+      description: 'Optional list of child IDs to add to this vehicle assignment',
+    }),
+  removeChildIds: z.array(z.cuid('Invalid child ID format'))
+    .optional()
+    .openapi({
+      example: ['cl123456789012345678901240'],
+      description: 'Optional list of child IDs to remove from this vehicle assignment',
     }),
 }).openapi({
-  title: 'Assign Child to Schedule Slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot',
+  title: 'Update Vehicle Assignment',
+  description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional - only provided fields will be updated.',
 });
-
 export const UpdateDriverSchema = z.object({
   driverId: z.cuid('Invalid driver ID format')
     .nullable()
@@ -222,74 +230,135 @@ export const UpdateSeatOverrideSchema = z.object({
 // RESPONSE SCHEMAS
 // ============================================================================
 
-export const VehicleAssignmentSchema = z.object({
-  id: z.cuid()
+// Vehicle Assignment Schema that matches actual database structure
+export const ScheduleVehicleAssignmentSchema = z.object({
+  id: z.string()
     .openapi({
       example: 'cl123456789012345678901236',
       description: 'Vehicle assignment identifier',
     }),
-  scheduleSlotId: z.cuid()
-    .openapi({
-      example: 'cl123456789012345678901234',
-      description: 'Schedule slot identifier',
-    }),
-  vehicleId: z.cuid()
+  vehicleId: z.string()
     .openapi({
       example: 'cl123456789012345678901237',
       description: 'Vehicle identifier',
     }),
-  driverId: z.cuid()
+  scheduleSlotId: z.string()
+    .openapi({
+      example: 'cl123456789012345678901234',
+      description: 'Schedule slot identifier',
+    }),
+  driverId: z.string()
     .nullable()
     .openapi({
       example: 'cl123456789012345678901239',
-      description: 'Driver identifier (null if not assigned)',
+      description: 'Driver identifier (null if no driver assigned)',
     }),
   seatOverride: z.number()
     .nullable()
     .openapi({
       example: 6,
-      description: 'Seat capacity override (null if using default)',
+      description: 'Seat capacity override (null if using vehicle default)',
     }),
-  vehicle: z.object({
-    id: z.cuid(),
-    make: z.string(),
-    model: z.string(),
-    licensePlate: z.string(),
-    capacity: z.number(),
-    familyId: z.cuid(),
-  }).optional()
+  createdAt: z.iso.datetime()
     .openapi({
-      description: 'Vehicle information (included when requested)',
+      example: '2023-12-01T08:00:00.000Z',
+      description: 'When the vehicle was assigned to this slot',
+    }),
+  vehicle: BaseVehicleSchema.optional()
+    .openapi({
+      description: 'Vehicle details (included when requested)',
     }),
   driver: z.object({
-    id: z.cuid(),
-    firstName: z.string(),
-    lastName: z.string(),
-    email: z.email(),
-  }).nullable().optional()
-    .openapi({
-      description: 'Driver information (included when requested)',
-    }),
-  _count: z.object({
-    childAssignments: z.number()
+    id: z.string()
       .openapi({
-        example: 3,
-        description: 'Number of children assigned to this vehicle',
+        example: 'cl123456789012345678901239',
+        description: 'Driver user identifier',
       }),
-  }).optional()
+    name: z.string()
+      .openapi({
+        example: 'John Doe',
+        description: 'Driver name',
+      }),
+    email: z.string()
+      .email('Invalid email format')
+      .optional()
+      .openapi({
+        example: 'john.doe@example.com',
+        description: 'Driver email (when included)',
+      }),
+  }).nullable()
+    .optional()
     .openapi({
-      description: 'Count information (included when requested)',
+      description: 'Driver details (included when requested, null if no driver)',
     }),
+  childAssignments: z.array(
+    z.object({
+      id: z.string()
+        .openapi({
+          example: 'clslot123_child456',
+          description: 'Child assignment identifier',
+        }),
+      childId: z.string()
+        .openapi({
+          example: 'cl123456789012345678901238',
+          description: 'Child identifier',
+        }),
+      vehicleAssignmentId: z.string()
+        .openapi({
+          example: 'cl123456789012345678901236',
+          description: 'Vehicle assignment identifier',
+        }),
+      child: z.object({
+        id: z.cuid()
+          .openapi({
+            example: 'cl123456789012345678901238',
+            description: 'Child identifier',
+          }),
+        name: z.string()
+          .openapi({
+            example: 'Emma Johnson',
+            description: 'Child name',
+          }),
+        age: z.number()
+          .nullable()
+          .openapi({
+            example: 8,
+            description: 'Child age (null if not specified)',
+          }),
+        familyId: z.cuid()
+          .openapi({
+            example: 'cl123456789012345678901233',
+            description: 'Family identifier',
+          }),
+        createdAt: z.iso.datetime()
+          .openapi({
+            example: '2023-01-01T00:00:00.000Z',
+            description: 'When the child was created',
+          }),
+        updatedAt: z.iso.datetime()
+          .openapi({
+            example: '2023-01-15T10:30:00.000Z',
+            description: 'When the child was last updated',
+          }),
+      }).optional()
+        .openapi({
+          description: 'Child details (included when requested)',
+        }),
+    }),
+  ).optional()
+  .openapi({
+    description: 'All child assignments for this vehicle (cross-family carpooling support)',
+  }),
 }).openapi({
-  title: 'Vehicle Assignment',
-  description: 'Vehicle assignment information for a schedule slot',
+  title: 'Schedule Vehicle Assignment',
+  description: 'Vehicle assignment for schedule slot (matches Prisma database schema)',
 });
 
 export const ChildAssignmentSchema = z.object({
-  id: z.cuid()
+  id: z.string()
     .openapi({
-      example: 'cl123456789012345678901240',
-      description: 'Child assignment identifier',
+      example: 'clslot123_child456',
+      description: 'Child assignment identifier (composite key: scheduleSlotId_childId)',
     }),
   scheduleSlotId: z.cuid()
     .openapi({
@@ -313,15 +382,16 @@ export const ChildAssignmentSchema = z.object({
     }),
   child: z.object({
     id: z.cuid(),
-    firstName: z.string(),
-    lastName: z.string(),
-    dateOfBirth: z.iso.datetime(),
+    name: z.string(),
+    age: z.number().nullable(),
     familyId: z.cuid(),
+    createdAt: z.iso.datetime(),
+    updatedAt: z.iso.datetime(),
   }).optional()
     .openapi({
       description: 'Child information (included when requested)',
     }),
-  vehicleAssignment: VehicleAssignmentSchema.optional()
+  vehicleAssignment: ScheduleVehicleAssignmentSchema.optional()
     .openapi({
       description: 'Vehicle assignment information (included when requested)',
     }),
@@ -339,7 +409,7 @@ export const ScheduleSlotSchema = z.object({
   datetime: z.iso.datetime()
     .openapi({
       example: '2023-12-15T08:00:00.000Z',
-      description: 'Schedule slot datetime',
+      description: 'Schedule slot datetime (ISO 8601 UTC string)',
     }),
   groupId: z.cuid()
     .openapi({
@@ -356,7 +426,7 @@ export const ScheduleSlotSchema = z.object({
       example: '2023-12-01T08:00:00.000Z',
       description: 'Schedule slot update timestamp',
     }),
-  vehicleAssignments: z.array(VehicleAssignmentSchema).optional()
+  vehicleAssignments: z.array(ScheduleVehicleAssignmentSchema).optional()
     .openapi({
       description: 'Vehicle assignments (included when requested)',
     }),
@@ -426,79 +496,25 @@ export const AvailableChildSchema = z.object({
   description: 'Available child for schedule slot assignment',
 });
 
-export const ScheduleSlotConflictSchema = z.object({
-  type: z.enum(['VEHICLE_OVERBOOKING', 'DRIVER_DOUBLE_BOOKING', 'CHILD_DOUBLE_BOOKING'])
-    .openapi({
-      example: 'VEHICLE_OVERBOOKING',
-      description: 'Type of conflict',
-    }),
-  description: z.string()
-    .openapi({
-      example: 'Vehicle exceeds capacity with current assignments',
-      description: 'Conflict description',
-    }),
-  severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
-    .openapi({
-      example: 'MEDIUM',
-      description: 'Conflict severity level',
-    }),
-  details: z.object({
-    vehicleId: z.string().nullable().optional().openapi({
-      example: 'cl123456789012345678901237',
-      description: 'Vehicle ID involved in conflict',
-    }),
-    currentAssignments: z.number().int().openapi({
-      example: 6,
-      description: 'Current number of assignments',
-    }),
-    vehicleCapacity: z.number().int().openapi({
-      example: 5,
-      description: 'Maximum vehicle capacity',
-    }),
-    overbookedBy: z.number().int().openapi({
-      example: 1,
-      description: 'Number of overbooked slots',
-    }),
-  })
-    .optional()
-    .openapi({
-      example: {
-        vehicleId: 'cl123456789012345678901237',
-        currentAssignments: 6,
-        vehicleCapacity: 5,
-        overbookedBy: 1,
-      },
-      description: 'Additional conflict details',
-    }),
-}).openapi({
-  title: 'Schedule Slot Conflict',
-  description: 'Schedule slot conflict information',
-});
 
 export const ScheduleResponseSchema = z.object({
+  groupId: z.cuid().openapi({
+    description: 'Group identifier',
+  }),
+  startDate: z.string().openapi({
+    example: '2023-12-01T00:00:00.000Z',
+    description: 'Start date of the schedule range',
+  }),
+  endDate: z.string().openapi({
+    example: '2023-12-31T23:59:59.999Z',
+    description: 'End date of the schedule range',
+  }),
   scheduleSlots: z.array(ScheduleSlotSchema).openapi({
     description: 'Schedule slots within the date range',
   }),
-  totalCount: z.number().openapi({
-    example: 15,
-    description: 'Total number of schedule slots',
-  }),
-  dateRange: z.object({
-    startDate: z.iso.datetime().openapi({
-      example: '2023-12-01T00:00:00.000Z',
-      description: 'Start date of the schedule range',
-    }),
-    endDate: z.iso.datetime().openapi({
-      example: '2023-12-31T23:59:59.999Z',
-      description: 'End date of the schedule range',
-    }),
-  }).optional()
-    .openapi({
-      description: 'Date range applied to the schedule (if specified)',
-    }),
 }).openapi({
   title: 'Schedule Response',
-  description: 'Group schedule information',
+  description: 'Group schedule information with date range and slots',
 });
 
 // ============================================================================
@@ -506,18 +522,29 @@ export const ScheduleResponseSchema = z.object({
 // ============================================================================
 
 // Request schemas
-registry.register('CreateScheduleSlotWithVehicleRequest', CreateScheduleSlotWithVehicleSchema);
+registry.register('CreateScheduleSlotWithVehicleSchema', CreateScheduleSlotWithVehicleSchema);
 registry.register('AssignVehicleRequest', AssignVehicleSchema);
-registry.register('AssignChildRequest', AssignChildSchema);
+registry.register('PatchVehicleAssignmentRequest', PatchVehicleAssignmentSchema);
 registry.register('UpdateDriverRequest', UpdateDriverSchema);
 registry.register('VehicleIdRequest', VehicleIdSchema);
 registry.register('UpdateSeatOverrideRequest', UpdateSeatOverrideSchema);
 
 // Parameter schemas
+registry.register('ScheduleSlotParams', ScheduleSlotParamsSchema);
+// GroupParams is registered in groups.ts
+registry.register('VehicleAssignmentParams', VehicleAssignmentParamsSchema);
+registry.register('ScheduleSlotVehicleParams', ScheduleSlotVehicleParamsSchema);
 
 // Query schemas
+registry.register('DateRangeQuery', DateRangeQuerySchema);
 
 // Response schemas
+registry.register('ScheduleVehicleAssignment', ScheduleVehicleAssignmentSchema);
+registry.register('ChildAssignment', ChildAssignmentSchema);
+registry.register('ScheduleSlot', ScheduleSlotSchema);
+registry.register('AvailableChild', AvailableChildSchema);
+registry.register('ScheduleResponse', ScheduleResponseSchema);
+// VehicleAssignmentSchema is registered in _common.ts
 
 // ============================================================================
 // REGISTRY - API PATHS REGISTRATION
@@ -542,7 +569,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: ScheduleSlotSchema,
           }),
         },
@@ -582,13 +609,13 @@ registerPath({
     },
   },
   responses: {
-    200: {
+    201: {
       description: 'Vehicle assigned successfully',
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
-            data: VehicleAssignmentSchema,
+            success: z.boolean(),
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -614,7 +641,7 @@ registerPath({
   path: '/schedule-slots/{scheduleSlotId}/vehicles',
   tags: ['Schedule Slots'],
   summary: 'Remove vehicle from schedule slot',
-  description: 'Remove a vehicle assignment from a schedule slot',
+  description: 'Remove a vehicle assignment from a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families. If this was the last vehicle, the ScheduleSlot is deleted and a message is returned.',
   security: [{ BearerAuth: [] }],
   request: {
     params: ScheduleSlotParamsSchema,
@@ -632,11 +659,14 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              success: z.literal(true),
-              message: z.string(),
-            }),
+            success: z.boolean(),
+            data: z.union([
+              ScheduleSlotSchema, // When slot still exists with other vehicles
+              z.object({
+                message: z.string(),
+                slotDeleted: z.boolean(),
+              }), // When slot was deleted (last vehicle)
+            ]),
           }),
         },
       },
@@ -656,13 +686,61 @@ registerPath({
   },
 });
 
+// Update vehicle assignment (driver, seat capacity, children)
+registerPath({
+  method: 'patch',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}',
+  tags: ['Schedule Slots'],
+  summary: 'Update vehicle assignment',
+  description: 'Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.',
+  security: [{ BearerAuth: [] }],
+  request: {
+    params: z.object({
+      scheduleSlotId: z.cuid(),
+      vehicleAssignmentId: z.cuid(),
+    }),
+    body: {
+      content: {
+        'application/json': {
+          schema: { $ref: '#/components/schemas/PatchVehicleAssignmentRequest' },
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: 'Vehicle assignment updated successfully',
+      content: {
+        'application/json': {
+          schema: z.object({
+            success: z.boolean(),
+            data: ScheduleSlotSchema,
+          }),
+        },
+      },
+    },
+    400: {
+      description: 'Bad request - Invalid input',
+    },
+    403: {
+      description: 'Access denied',
+    },
+    404: {
+      description: 'Schedule slot or vehicle assignment not found',
+    },
+    500: {
+      description: 'Internal server error',
+    },
+  },
+});
+
 // Update vehicle driver assignment
 registerPath({
   method: 'patch',
   path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver',
   tags: ['Schedule Slots'],
   summary: 'Update vehicle driver assignment',
-  description: 'Update or remove driver for a vehicle assignment in a schedule slot',
+  description: 'Update or remove driver for a vehicle assignment in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ BearerAuth: [] }],
   request: {
     params: ScheduleSlotVehicleParamsSchema,
@@ -680,8 +758,8 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
-            data: VehicleAssignmentSchema,
+            success: z.boolean(),
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -701,91 +779,6 @@ registerPath({
   },
 });
 
-// Assign child to schedule slot
-registerPath({
-  method: 'post',
-  path: '/schedule-slots/{scheduleSlotId}/children',
-  tags: ['Schedule Slots'],
-  summary: 'Assign child to schedule slot',
-  description: 'Assign a child to a specific vehicle assignment in a schedule slot',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ScheduleSlotParamsSchema,
-    body: {
-      content: {
-        'application/json': {
-          schema: { $ref: '#/components/schemas/AssignChildRequest' },
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: 'Child assigned successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: ChildAssignmentSchema,
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid input data or child already assigned',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Schedule slot, child, or vehicle assignment does not exist',
-    },
-  },
-});
-
-// Remove child from schedule slot
-registerPath({
-  method: 'delete',
-  path: '/schedule-slots/{scheduleSlotId}/children/{childId}',
-  tags: ['Schedule Slots'],
-  summary: 'Remove child from schedule slot',
-  description: 'Remove a child assignment from a schedule slot',
-  security: [{ BearerAuth: [] }],
-  request: {
-    params: ScheduleSlotChildParamsSchema,
-  },
-  responses: {
-    200: {
-      description: 'Child removed successfully',
-      content: {
-        'application/json': {
-          schema: z.object({
-            success: z.literal(true),
-            data: z.object({
-              success: z.literal(true),
-              message: z.string(),
-            }),
-          }),
-        },
-      },
-    },
-    400: {
-      description: 'Bad request - Invalid schedule slot or child ID',
-    },
-    401: {
-      description: 'Unauthorized - Authentication required',
-    },
-    403: {
-      description: 'Forbidden - Insufficient permissions',
-    },
-    404: {
-      description: 'Not found - Schedule slot or child assignment does not exist',
-    },
-  },
-});
 
 // Get available children for schedule slot
 registerPath({
@@ -804,7 +797,7 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
+            success: z.boolean(),
             data: z.array(AvailableChildSchema),
           }),
         },
@@ -842,8 +835,8 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
-            data: z.array(ScheduleSlotConflictSchema),
+            success: z.boolean(),
+            data: z.array(z.string()),
           }),
         },
       },
@@ -863,16 +856,16 @@ registerPath({
   },
 });
 
-// Update seat override for vehicle assignment
+// Update seat override for vehicle in schedule slot
 registerPath({
   method: 'patch',
-  path: '/schedule-slots/vehicle-assignments/{vehicleAssignmentId}/seat-override',
+  path: '/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/seat-override',
   tags: ['Schedule Slots'],
-  summary: 'Update seat override for vehicle assignment',
-  description: 'Update seat capacity override for a vehicle assignment',
+  summary: 'Update seat override for vehicle',
+  description: 'Update seat capacity override for a vehicle in a schedule slot. Returns the complete updated ScheduleSlot with all vehicleAssignments and childAssignments from all families.',
   security: [{ BearerAuth: [] }],
   request: {
-    params: VehicleAssignmentParamsSchema,
+    params: ScheduleSlotVehicleParamsSchema,
     body: {
       content: {
         'application/json': {
@@ -887,8 +880,8 @@ registerPath({
       content: {
         'application/json': {
           schema: z.object({
-            success: z.literal(true),
-            data: VehicleAssignmentSchema,
+            success: z.boolean(),
+            data: ScheduleSlotSchema,
           }),
         },
       },
@@ -903,7 +896,7 @@ registerPath({
       description: 'Forbidden - Insufficient permissions',
     },
     404: {
-      description: 'Not found - Vehicle assignment does not exist',
+      description: 'Not found - Schedule slot or vehicle does not exist',
     },
   },
 });

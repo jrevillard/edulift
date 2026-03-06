@@ -573,7 +573,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
 
       // Verify the contract: attemptMobileAppOpen is called with correct parameters
       expect(mockAttemptMobileAppOpen).toHaveBeenCalledWith(
-        '/groups/join',                    // correct path
+        '/api/v1/groups/join',                    // correct path
         { code: 'GRP123' },               // correct parsed parameters
         expect.objectContaining({          // mobile detection info
           isMobile: true,

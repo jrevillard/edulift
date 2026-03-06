@@ -39,7 +39,7 @@ function getRuntimeConfig(): RuntimeConfig {
 
   // Fallback to build-time env vars (local development)
   return {
-    VITE_API_URL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1',
+    VITE_API_URL: import.meta.env.VITE_API_URL || 'http://localhost:3001',
     VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001',
     VITE_SOCKET_FORCE_POLLING: import.meta.env.VITE_SOCKET_FORCE_POLLING || 'false',
     VITE_APP_STORE_URL: import.meta.env.VITE_APP_STORE_URL || 'https://apps.apple.com/app/edulift',

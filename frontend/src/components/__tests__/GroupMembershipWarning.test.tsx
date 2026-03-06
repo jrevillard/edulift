@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import { GroupMembershipWarning } from '../GroupMembershipWarning';
-import type { Child } from '../../services/apiService';
+import type { Child } from '../../services/api';
 
 // Mock useNavigate
 const mockNavigate = vi.fn();
@@ -158,7 +158,7 @@ describe('GroupMembershipWarning', () => {
     );
 
     fireEvent.click(screen.getByTestId('action-button'));
-    expect(mockNavigate).toHaveBeenCalledWith('/children');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/children');
   });
 
   it('does not show action button for children-page variant since users are already there', () => {

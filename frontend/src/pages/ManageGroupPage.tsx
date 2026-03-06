@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
+// import { apiService } from '../services/apiService'; // REMOVED: Migration to OpenAPI complete
 import { scheduleConfigService } from '../services/scheduleConfigService';
 import { GroupScheduleConfigModal } from '../components/GroupScheduleConfigModal';
 // import { useSocket } from '../contexts/SocketContext';
@@ -51,7 +52,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { FamilySearchInvitation } from '@/components/FamilySearchInvitation';
 // import { InvitationManagement } from '@/components/InvitationManagement';
-import type { GroupFamily } from '../services/apiService';
+import { transformGroupFamily, type GroupFamily } from './OpenAPIFamilyTransform';
+// import { useFamily } from '../contexts/FamilyContext'; // Temporarily commented - not currently used
 
 // Helper function to format admin display text
 const formatAdminDisplay = (admins: GroupFamily['admins']) => {
@@ -94,6 +96,7 @@ const ManageGroupPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  // const { currentFamily: userFamily } = useFamily(); // Get user's family information
   // const { isConnected } = useSocket();
 
   // State for modals and editing
@@ -125,21 +128,43 @@ const ManageGroupPage: React.FC = () => {
   // Real-time updates are now handled centrally in SocketContext
   // No need for duplicate event listeners here
 
-  // Fetch group families
-  const { data: families = [], isLoading: familiesLoading, error: familiesError } = useQuery({
+  // Get group info from user groups query (already cached from GroupsPage)
+  const { data: userGroupsData = [] } = useQuery({
+    queryKey: ['user-groups'],
+    // MIGRATED: Use OpenAPI client to get user groups
+    queryFn: async () => {
+      const { data: response, error } = await api.GET('/api/v1/groups/my-groups', {});
+      if (error || !response?.success || !response?.data) {
+        throw new Error('Failed to fetch user groups');
+      }
+      return response.data;
+    },
+  });
+
+  const userGroups = userGroupsData || [];
+
+  const currentGroup = userGroups.find((group: typeof userGroups[0]) => group.id === groupId);
+  const isAdmin = currentGroup?.userRole === 'ADMIN';
+
+  // MIGRATED: Fetch group families with OpenAPI
+  const { data: familiesData, isLoading: familiesLoading, error: familiesError } = useQuery({
     queryKey: ['group-families', groupId || ''],
-    queryFn: () => groupId ? apiService.getGroupFamilies(groupId) : Promise.resolve([]),
+    queryFn: async () => {
+      if (!groupId) return Promise.resolve(undefined);
+      const { data: response, error } = await api.GET('/api/v1/groups/{groupId}/families', {
+        params: { path: { groupId } }
+      });
+      if (error || !response?.success || !response?.data) {
+        throw new Error('Failed to fetch group families');
+      }
+      return response.data;
+    },
     enabled: !!groupId,
   });
 
-  // Get group info from user groups query (already cached from GroupsPage)
-  const { data: userGroups = [] } = useQuery({
-    queryKey: ['user-groups'],
-    queryFn: () => apiService.getUserGroups(),
-  });
-
-  const currentGroup = userGroups.find(group => group.id === groupId);
-  const isAdmin = currentGroup?.userRole === 'ADMIN';
+  const families = familiesData?.map((family: GroupFamily) =>
+    transformGroupFamily(family)
+  ).filter(Boolean) || [];
 
   // Fetch schedule configuration
   const { data: scheduleConfig } = useQuery({
@@ -204,80 +229,142 @@ const ManageGroupPage: React.FC = () => {
   //   }
   // };
 
-  const handleCancelInvitation = async (invitationId: string) => {
-    if (!groupId) return;
-    
-    try {
-      await apiService.cancelGroupInvitation(groupId, invitationId);
-      setSuccessMessage('Invitation canceled successfully');
-      setErrorMessage('');
-      // await refreshPendingInvitations(); // Refresh invitations list
-      queryClient.invalidateQueries({ queryKey: ['group-families', groupId] }); // Refresh families list to remove PENDING family
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to cancel invitation');
-    }
-  };
+  // handleCancelInvitation removed - this endpoint doesn't return pending invitations
 
   // Mutations
 
   const updateFamilyRoleMutation = useMutation({
-    mutationFn: ({ familyId, role }: { familyId: string; role: 'ADMIN' | 'MEMBER' }) =>
-      groupId ? apiService.updateFamilyRole(groupId, familyId, role) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to update family role
+    mutationFn: async ({ familyId, role }: { familyId: string; role: 'ADMIN' | 'MEMBER' }) => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      const { data: response, error } = await api.PATCH('/api/v1/groups/{groupId}/families/{familyId}/role', {
+        params: {
+          path: { groupId, familyId }
+        },
+        body: { role }
+      });
+      if (error || !response?.success) {
+        throw new Error('Failed to update family role');
+      }
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-families', groupId] });
       setSuccessMessage('Family role updated successfully');
       setErrorMessage('');
     },
-    onError: () => {
-      setErrorMessage('Failed to update family role');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to update family role');
       setSuccessMessage('');
     },
   });
 
   const removeFamilyMutation = useMutation({
-    mutationFn: (familyId: string) => groupId ? apiService.removeFamilyFromGroup(groupId, familyId) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to remove family from group
+    mutationFn: async (familyId: string) => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      const { data: response, error } = await api.DELETE('/api/v1/groups/{groupId}/families/{familyId}', {
+        params: {
+          path: { groupId, familyId }
+        }
+      });
+      if (error || !response?.success) {
+        throw new Error('Failed to remove family');
+      }
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['group-families', groupId] });
       setSuccessMessage('Family removed successfully');
       setErrorMessage('');
     },
-    onError: () => {
-      setErrorMessage('Failed to remove family');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to remove family');
       setSuccessMessage('');
     },
   });
 
   const deleteGroupMutation = useMutation({
-    mutationFn: () => groupId ? apiService.deleteGroup(groupId) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to delete group
+    mutationFn: async () => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      const { data: response, error } = await api.DELETE('/api/v1/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        }
+      });
+      if (error || !response?.success) {
+        throw new Error('Failed to delete group');
+      }
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group deleted successfully');
       setErrorMessage('');
-      navigate('/groups');
+      navigate('/api/v1/groups');
     },
-    onError: () => {
-      setErrorMessage('Failed to delete group');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to delete group');
       setSuccessMessage('');
     },
   });
 
   const leaveGroupMutation = useMutation({
-    mutationFn: () => groupId ? apiService.leaveGroup(groupId) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to leave group
+    mutationFn: async () => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      const { data: response, error } = await api.POST('/api/v1/groups/{groupId}/leave', {
+        params: {
+          path: { groupId }
+        }
+      });
+      if (error || !response?.success) {
+        throw new Error('Failed to leave group');
+      }
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Left group successfully');
       setErrorMessage('');
-      navigate('/groups');
+      navigate('/api/v1/groups');
     },
-    onError: () => {
-      setErrorMessage('Failed to leave group');
+    onError: (error: Error) => {
+      setErrorMessage(error.message || 'Failed to leave group');
       setSuccessMessage('');
     },
   });
 
   const updateGroupMutation = useMutation({
-    mutationFn: (updateData: { name?: string; description?: string }) =>
-      groupId ? apiService.updateGroup(groupId, updateData) : Promise.reject('No group ID'),
+    // MIGRATED: Use OpenAPI client to update group
+    mutationFn: async (updateData: { name?: string; description?: string }) => {
+      if (!groupId) return Promise.reject('No group ID');
+
+      // Only include fields that are being updated
+      type GroupUpdateBody = {
+        name?: string;
+        description?: string;
+      };
+      const body: GroupUpdateBody = {};
+      if (updateData.name !== undefined) body.name = updateData.name;
+      if (updateData.description !== undefined) body.description = updateData.description;
+
+      const { data: response, error } = await api.PATCH('/api/v1/groups/{groupId}', {
+        params: {
+          path: { groupId }
+        },
+        body
+      });
+      if (error || !response?.success) {
+        throw new Error('Failed to update group');
+      }
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group updated successfully');
@@ -293,7 +380,7 @@ const ManageGroupPage: React.FC = () => {
 
   // Early return check after all hooks
   if (!groupId) {
-    navigate('/groups');
+    navigate('/api/v1/groups');
     return null;
   }
 
@@ -385,7 +472,7 @@ const ManageGroupPage: React.FC = () => {
     );
   }
 
-  const familyToRemove = families.find(f => f.id === showRemoveFamilyDialog);
+  const familyToRemove = families.find((f: typeof families[0]) => f.id === showRemoveFamilyDialog);
 
   return (
     <div className="space-y-6 p-6" data-testid="ManageGroupPage-Container-main">
@@ -394,7 +481,7 @@ const ManageGroupPage: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/groups')}
+          onClick={() => navigate('/api/v1/groups')}
           className="gap-2"
           data-testid="ManageGroupPage-Button-backToGroups"
         >
@@ -475,7 +562,7 @@ const ManageGroupPage: React.FC = () => {
             <div className="space-y-2">
               <Label data-testid="ManageGroupPage-Label-ownerFamily">Owner Family</Label>
               <p className="text-sm text-muted-foreground" data-testid="ManageGroupPage-Text-ownerFamilyName">
-                {currentGroup.ownerFamily.name}
+                {currentGroup.ownerFamily?.name || 'Unknown'}
               </p>
             </div>
 
@@ -508,7 +595,7 @@ const ManageGroupPage: React.FC = () => {
                     <div className="space-y-1">
                       <p>Total time slots: {Object.values(scheduleConfig.scheduleHours).reduce((total, slots) => total + (slots?.length || 0), 0)}</p>
                       <p>Active weekdays: {Object.values(scheduleConfig.scheduleHours).filter(slots => slots && slots.length > 0).length}</p>
-                      {scheduleConfig.isDefault && (
+                      {(scheduleConfig as any)?.isDefault && (
                         <Badge variant="secondary" className="mt-2">Using Default Configuration</Badge>
                       )}
                     </div>
@@ -565,9 +652,9 @@ const ManageGroupPage: React.FC = () => {
                 <p className="text-sm text-muted-foreground">No families in this group yet.</p>
               ) : (
                 <div className="space-y-3">
-                  {families.map(family => {
-                    // Use status field for pending check, with fallback for backward compatibility
-                    const isPending = family.status === 'PENDING' || family.role === 'PENDING';
+                  {families.map((family: typeof families[0]) => {
+                    // This endpoint only returns active families, not pending invitations
+                    const isPending = false; // No pending families in this response
 
                     return (
                     <div
@@ -641,11 +728,7 @@ const ManageGroupPage: React.FC = () => {
                           {family.isMyFamily && (
                             <p className="text-xs text-blue-600 font-medium">Your family</p>
                           )}
-                          {isPending && family.expiresAt && (
-                            <p className="text-xs text-orange-600" data-testid={`GroupFamily-Text-expires-${family.id}`}>
-                              Expires: {new Date(family.expiresAt).toLocaleString()}
-                            </p>
-                          )}
+                          {/* Pending invitation logic removed - this endpoint only returns active families */}
                         </div>
                       </div>
                       
@@ -672,16 +755,7 @@ const ManageGroupPage: React.FC = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                {isPending && family.invitationId && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleCancelInvitation(family.invitationId!)}
-                                    className="text-red-600 focus:text-red-600"
-                                    data-testid={`GroupFamily-Button-cancelInvitation-${family.id}`}
-                                  >
-                                    <UserMinus className="h-4 w-4 mr-2" />
-                                    Cancel Invitation
-                                  </DropdownMenuItem>
-                                )}
+                                {/* Pending invitation logic removed - this endpoint only returns active families */}
                                 {!isPending && family.role === 'MEMBER' && (
                                   <DropdownMenuItem
                                     onClick={() =>

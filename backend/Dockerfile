@@ -28,8 +28,9 @@ RUN chown -R node:node /app/src
 # Generate Prisma client
 RUN npx prisma generate
 
-# Create uploads and docs directories
+# Create uploads directory and copy OpenAPI docs
 RUN mkdir -p uploads docs/openapi && chown node:node uploads docs/openapi
+COPY docs/openapi/swagger.json ./docs/openapi/
 
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh

@@ -1,45 +1,30 @@
 /**
- * Database Configuration - Singleton PrismaClient
+ * Database Configuration for Hono Integration
  *
- * This module provides a singleton instance of PrismaClient to prevent
- * multiple database connections and EventEmitter memory leaks.
- *
- * @author EduLift Team
+ * Provides the Prisma client instance for use throughout the application.
+ * This file maintains backward compatibility with existing imports.
  */
 
 import { PrismaClient } from '@prisma/client';
-import { createLogger } from '../utils/logger';
 
-const logger = createLogger('database');
-
-// Declare global to prevent multiple instances in development
-declare global {
-   
-  var __prisma: PrismaClient | undefined;
-}
-
-/**
- * Singleton PrismaClient instance
- * Reuses existing instance in development to prevent hot reload issues
- */
-export const prisma = global.__prisma || new PrismaClient({
-  log: process.env.LOG_LEVEL === 'debug'
-    ? ['query', 'info', 'warn', 'error']
-    : ['warn', 'error'],
+// Global Prisma instance
+export const prisma = new PrismaClient({
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
-// Store in global for development hot reload
-if (process.env.NODE_ENV !== 'production') {
-  global.__prisma = prisma;
-}
-
-logger.debug('Prisma client singleton initialized');
-
-/**
- * Disconnect from database
- * Called by the main server during graceful shutdown
- */
-export const disconnectDatabase = async (): Promise<void> => {
-  logger.info('Disconnecting from database');
+// Graceful shutdown
+process.on('beforeExit', async () => {
   await prisma.$disconnect();
-};
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+export default prisma;

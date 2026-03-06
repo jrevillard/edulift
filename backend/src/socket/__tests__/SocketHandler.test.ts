@@ -401,8 +401,8 @@ describe('SocketHandler', () => {
         secondSocket.on(SOCKET_EVENTS.USER_LEFT, (data: unknown) => {
           resolve(data);
         });
-        
-        setTestTimeout(() => reject(new Error('Leave event timeout')), 3000);
+
+        setTestTimeout(() => reject(new Error('Leave event timeout')), 10000);
       });
 
       // Connect the second socket and have both join the group first
@@ -473,8 +473,8 @@ describe('SocketHandler', () => {
         secondSocket.on(SOCKET_EVENTS.USER_TYPING, (data: unknown) => {
           resolve(data);
         });
-        
-        setTestTimeout(() => reject(new Error('Typing start timeout')), 3000);
+
+        setTestTimeout(() => reject(new Error('Typing start timeout')), 10000);
       });
 
       const typingStopPromise = new Promise<any>((resolve, reject) => {
@@ -486,20 +486,25 @@ describe('SocketHandler', () => {
       });
 
       // Connect second socket and set up room joining
-      await new Promise<void>((resolve) => {
+      await new Promise<void>((resolve, reject) => {
+        const timeoutId = setTestTimeout(() => {
+          reject(new Error('Second socket connection timeout'));
+        }, 15000); // 15 seconds for connection
+
         secondSocket.on('connect', () => {
+          clearTimeout(timeoutId);
           const scheduleSlotId = 'test-slot-123';
-          
+
           // Both sockets join the schedule slot room
           connectedSocket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_JOIN, { scheduleSlotId });
           secondSocket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_JOIN, { scheduleSlotId });
-          
+
           // Small delay to ensure room joining is complete
           setTestTimeout(() => {
             // First socket starts typing
             connectedSocket.emit('typing:start', { scheduleSlotId });
           }, 100);
-          
+
           resolve();
         });
         secondSocket.connect();

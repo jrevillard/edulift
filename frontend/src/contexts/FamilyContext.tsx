@@ -15,18 +15,59 @@
  * - Coordinate with scheduling groups for resource sharing
  */
 
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type {
   Family,
-  FamilyContextState,
-  FamilyRole,
-  FamilyInvitation
-} from '../types/family';
-import {
-  createFamilyError,
-  FAMILY_ERROR_CODES
-} from '../types/family';
+  FamilyInvitation,
+  FamilyPermissions,
+  CreateFamilyRequest,
+  JoinFamilyRequest,
+  CreateFamilyInvitationRequest,
+  UpdateMemberRoleRequest
+} from '../services/familyApiService';
+
+// Define types needed for FamilyContext locally
+export type FamilyRole = "ADMIN" | "MEMBER";
+
+export interface FamilyContextState {
+  currentFamily: Family | null;
+  userPermissions: FamilyPermissions | null;
+  requiresFamily: boolean;      // User needs to create/join a family
+  isCheckingFamily: boolean;    // Currently checking family status
+  isLoading: boolean;
+  error: string | null;
+}
+
+// Error types
+export interface FamilyError extends Error {
+  code: string;
+  statusCode: number;
+}
+
+export const FAMILY_ERROR_CODES = {
+  INVALID_FAMILY_NAME: 'INVALID_FAMILY_NAME',
+  INVALID_INVITE_CODE: 'INVALID_INVITE_CODE',
+  USER_ALREADY_IN_FAMILY: 'USER_ALREADY_IN_FAMILY',
+  FAMILY_FULL: 'FAMILY_FULL',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  LAST_ADMIN: 'LAST_ADMIN',
+  MEMBER_NOT_FOUND: 'MEMBER_NOT_FOUND',
+  CANNOT_REMOVE_SELF: 'CANNOT_REMOVE_SELF',
+} as const;
+
+export function createFamilyError(
+  code: string,
+  message: string,
+  statusCode: number = 400
+): FamilyError {
+  const error = new Error(message) as FamilyError;
+  error.code = code;
+  error.statusCode = statusCode;
+  return error;
+}
+
 import { familyApiService } from '../services/familyApiService';
 import { authService } from '../services/authService';
 import { useAuth } from './AuthContext';
@@ -217,7 +258,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const family = await familyApiService.createFamily({ name });
+      const family = await familyApiService.createFamily({ name } as CreateFamilyRequest);
       const permissions = await familyApiService.getUserPermissions(family.id);
 
       setState(prev => ({
@@ -244,7 +285,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const family = await familyApiService.joinFamily({ inviteCode });
+      const family = await familyApiService.joinFamily({ inviteCode } as JoinFamilyRequest);
       const permissions = await familyApiService.getUserPermissions(family.id);
 
       setState(prev => ({
@@ -356,10 +397,11 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
     try {
       await familyApiService.inviteMember(state.currentFamily.id, {
+        familyId: state.currentFamily.id,
         email,
         role: role as FamilyRole,
         personalMessage
-      });
+      } as CreateFamilyInvitationRequest);
 
       // Refresh family to get updated invitations
       await refreshFamily();
@@ -387,7 +429,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      await familyApiService.updateMemberRole(state.currentFamily.id, memberId, { role: role as FamilyRole });
+      await familyApiService.updateMemberRole(memberId, { role: role as FamilyRole } as UpdateMemberRoleRequest);
 
       // Refresh family to get updated member roles
       await refreshFamily();

@@ -199,7 +199,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
         expect(result.role).toBe(FamilyRole.MEMBER);
         expect(result.email).toBeUndefined();
         expect(result.personalMessage).toBeUndefined();
-        expect(result.existingUser).toBeUndefined();
+        expect(result.existingUser).toBe(false); // Default to false when no email
       });
 
       it('should handle validation with corrupted invitation data', async () => {
@@ -221,7 +221,7 @@ describe('Invitation Edge Cases and Security Tests', () => {
       it('should handle extremely long invite codes', async () => {
         // TRUTH: Handle malformed or malicious input
         const longCode = 'A'.repeat(10000); // Extremely long code
-        
+
         mockPrisma.familyInvitation.findFirst.mockResolvedValue(null);
 
         const result = await invitationService.validateFamilyInvitation(longCode);
@@ -358,7 +358,14 @@ describe('Invitation Edge Cases and Security Tests', () => {
               findUnique: jest.fn().mockResolvedValue({
                 id: groupId,
                 name: 'Test Group',
-                familyId: 'admin-family',
+                familyMembers: [
+                  {
+                    familyId: 'admin-family',
+                    role: 'OWNER',
+                    addedBy: 'creator',
+                    joinedAt: new Date('2024-01-01'),
+                  },
+                ],
               }),
             },
             familyMember: {
@@ -369,7 +376,16 @@ describe('Invitation Edge Cases and Security Tests', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null),
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                if (where.familyId === 'admin-family') {
+                  return Promise.resolve({
+                    groupId,
+                    familyId: 'admin-family',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             family: {
               findUnique: jest.fn().mockResolvedValue(null), // Family not found
@@ -396,7 +412,14 @@ describe('Invitation Edge Cases and Security Tests', () => {
               findUnique: jest.fn().mockResolvedValue({
                 id: groupId,
                 name: 'Test Group',
-                familyId: 'admin-family',
+                familyMembers: [
+                  {
+                    familyId: 'admin-family',
+                    role: 'OWNER',
+                    addedBy: 'creator',
+                    joinedAt: new Date('2024-01-01'),
+                  },
+                ],
               }),
             },
             familyMember: {
@@ -407,7 +430,16 @@ describe('Invitation Edge Cases and Security Tests', () => {
               }),
             },
             groupFamilyMember: {
-              findFirst: jest.fn().mockResolvedValue(null),
+              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+                if (where.familyId === 'admin-family') {
+                  return Promise.resolve({
+                    groupId,
+                    familyId: 'admin-family',
+                    role: 'OWNER',
+                  });
+                }
+                return Promise.resolve(null);
+              }),
             },
             groupInvitation: {
               create: jest.fn(),

@@ -1,6 +1,7 @@
 import { SchedulingService } from '../SchedulingService';
 import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock dependencies
 const mockScheduleSlotRepository = {
@@ -31,8 +32,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
   describe('Vehicle Conflict Detection', () => {
     it('should detect conflict when parent\'s family vehicle is already assigned', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -43,7 +44,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               driverId: 'other-driver',
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Family Car',
                 capacity: 5,
               },
@@ -54,12 +55,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
       ];
 
       const mockVehicleWithFamily = {
-        id: 'vehicle-1',
+        id: TEST_IDS.VEHICLE,
         name: 'Family Car',
         family: {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           members: [
-            { userId: 'user-1', role: 'ADMIN' },
+            { userId: TEST_IDS.USER, role: 'ADMIN' },
           ],
         },
       };
@@ -73,7 +74,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
       // Assert
       expect(mockPrisma.vehicle.findUnique).toHaveBeenCalledWith({
-        where: { id: 'vehicle-1' },
+        where: { id: TEST_IDS.VEHICLE },
         include: {
           family: {
             include: {
@@ -90,8 +91,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should not detect conflict when vehicle belongs to different family', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -102,7 +103,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               driverId: 'other-driver',
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Other Family Car',
                 capacity: 5,
               },
@@ -113,7 +114,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
       ];
 
       const mockVehicleWithFamily = {
-        id: 'vehicle-1',
+        id: TEST_IDS.VEHICLE,
         name: 'Other Family Car',
         family: {
           id: 'family-2',
@@ -133,8 +134,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should detect conflict when parent is driving', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -143,9 +144,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           datetime: new Date('2025-06-23T08:00:00.000Z'),
           vehicleAssignments: [
             {
-              driverId: 'user-1', // Same as parentId
+              driverId: TEST_IDS.USER, // Same as parentId
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Any Car',
                 capacity: 5,
               },
@@ -169,8 +170,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
   describe('Child Conflict Detection', () => {
     it('should detect conflict when parent\'s family child is already assigned', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -181,7 +182,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           childAssignments: [
             {
               child: {
-                id: 'child-1',
+                id: TEST_IDS.CHILD,
                 name: 'Alice',
               },
             },
@@ -190,12 +191,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
       ];
 
       const mockChildWithFamily = {
-        id: 'child-1',
+        id: TEST_IDS.CHILD,
         name: 'Alice',
         family: {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           members: [
-            { userId: 'user-1', role: 'PARENT' },
+            { userId: TEST_IDS.USER, role: 'PARENT' },
           ],
         },
       };
@@ -209,7 +210,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
       // Assert
       expect(mockPrisma.child.findUnique).toHaveBeenCalledWith({
-        where: { id: 'child-1' },
+        where: { id: TEST_IDS.CHILD },
         include: {
           family: {
             include: {
@@ -226,8 +227,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should not detect conflict when child belongs to different family', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -238,7 +239,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           childAssignments: [
             {
               child: {
-                id: 'child-1',
+                id: TEST_IDS.CHILD,
                 name: 'Bob',
               },
             },
@@ -247,7 +248,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
       ];
 
       const mockChildWithFamily = {
-        id: 'child-1',
+        id: TEST_IDS.CHILD,
         name: 'Bob',
         family: {
           id: 'family-2',
@@ -267,8 +268,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should detect multiple conflicts from same family', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -279,7 +280,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               driverId: 'other-driver',
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Family Car',
                 capacity: 5,
               },
@@ -288,7 +289,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           childAssignments: [
             {
               child: {
-                id: 'child-1',
+                id: TEST_IDS.CHILD,
                 name: 'Alice',
               },
             },
@@ -303,23 +304,23 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
       ];
 
       const mockVehicleWithFamily = {
-        id: 'vehicle-1',
+        id: TEST_IDS.VEHICLE,
         name: 'Family Car',
         family: {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           members: [
-            { userId: 'user-1', role: 'ADMIN' },
+            { userId: TEST_IDS.USER, role: 'ADMIN' },
           ],
         },
       };
 
       const mockChildWithFamily1 = {
-        id: 'child-1',
+        id: TEST_IDS.CHILD,
         name: 'Alice',
         family: {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           members: [
-            { userId: 'user-1', role: 'PARENT' },
+            { userId: TEST_IDS.USER, role: 'PARENT' },
           ],
         },
       };
@@ -328,9 +329,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
         id: 'child-2',
         name: 'Bob',
         family: {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           members: [
-            { userId: 'user-1', role: 'PARENT' },
+            { userId: TEST_IDS.USER, role: 'PARENT' },
           ],
         },
       };
@@ -355,8 +356,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
   describe('Multiple Time Slots Conflicts', () => {
     it('should detect conflicts across multiple time slots', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -367,7 +368,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           childAssignments: [
             {
               child: {
-                id: 'child-1',
+                id: TEST_IDS.CHILD,
                 name: 'Alice',
               },
             },
@@ -380,9 +381,9 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           week: '2025-25',
           vehicleAssignments: [
             {
-              driverId: 'user-1', // Parent is driving
+              driverId: TEST_IDS.USER, // Parent is driving
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'School Bus',
                 capacity: 20,
               },
@@ -393,12 +394,12 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
       ];
 
       const mockChildWithFamily = {
-        id: 'child-1',
+        id: TEST_IDS.CHILD,
         name: 'Alice',
         family: {
-          id: 'family-1',
+          id: TEST_IDS.FAMILY,
           members: [
-            { userId: 'user-1', role: 'PARENT' },
+            { userId: TEST_IDS.USER, role: 'PARENT' },
           ],
         },
       };
@@ -420,8 +421,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
   describe('No Conflicts', () => {
     it('should return empty array when no conflicts exist', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       // Setup mocks - no conflicting slots
@@ -435,8 +436,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should return empty array when parent has no family relationships', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -447,7 +448,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               driverId: 'other-driver',
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Other Car',
                 capacity: 5,
               },
@@ -456,7 +457,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           childAssignments: [
             {
               child: {
-                id: 'child-1',
+                id: TEST_IDS.CHILD,
                 name: 'Other Child',
               },
             },
@@ -479,8 +480,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
 
   describe('Error Handling', () => {
     it('should handle database errors gracefully', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       // Setup mocks - database error
@@ -493,8 +494,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should handle missing vehicle data gracefully', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -505,7 +506,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
             {
               driverId: 'other-driver',
               vehicle: {
-                id: 'vehicle-1',
+                id: TEST_IDS.VEHICLE,
                 name: 'Missing Vehicle',
                 capacity: 5,
               },
@@ -527,8 +528,8 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
     });
 
     it('should handle missing child data gracefully', async () => {
-      const parentId = 'user-1';
-      const groupId = 'group-1';
+      const parentId = TEST_IDS.USER;
+      const groupId = TEST_IDS.GROUP;
       const datetime = new Date('2025-06-23T08:00:00.000Z'); // Monday of week 2025-25
 
       const mockConflictingSlots = [
@@ -539,7 +540,7 @@ describe('SchedulingService - Family Based Conflict Detection', () => {
           childAssignments: [
             {
               child: {
-                id: 'child-1',
+                id: TEST_IDS.CHILD,
                 name: 'Missing Child',
               },
             },

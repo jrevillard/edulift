@@ -275,7 +275,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
               <Info className="h-4 w-4" />
               Configure time slots for each weekday
             </div>
-            {currentConfig?.isDefault && (
+            {(currentConfig as any)?.isDefault && (
               <Badge variant="secondary" className="w-fit" data-testid="GroupScheduleConfigModal-Badge-defaultConfig">Using Default Configuration</Badge>
             )}
           </div>

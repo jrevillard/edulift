@@ -5,12 +5,13 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 describe('Platform Parameter Fix Verification', () => {
   it('should extract platform parameter from request body', () => {
     // Mock request body with platform parameter
     const mockReqBody = {
-      familyId: 'test-family-id',
+      familyId: TEST_IDS.FAMILY,
       email: 'test@example.com',
       role: 'MEMBER',
       platform: 'native',
@@ -24,8 +25,8 @@ describe('Platform Parameter Fix Verification', () => {
 
   it('should default to web when platform is not specified', () => {
     const mockReqBody: any = {
-      familyId: 'test-family-id',
-      email: 'test@example.com', 
+      familyId: TEST_IDS.FAMILY,
+      email: 'test@example.com',
       role: 'MEMBER',
     };
 
@@ -36,7 +37,7 @@ describe('Platform Parameter Fix Verification', () => {
 
   it('should default to web when invalid platform is specified', () => {
     const mockReqBody: any = {
-      familyId: 'test-family-id',
+      familyId: TEST_IDS.FAMILY,
       email: 'test@example.com',
       role: 'MEMBER',
       platform: 'invalid-platform',
@@ -47,20 +48,22 @@ describe('Platform Parameter Fix Verification', () => {
     expect(validPlatform).toBe('web');
   });
 
-  it('should verify the fix is properly implemented in the routes file', () => {
-    // Read the actual routes file to verify our fix
+  it('should verify the OpenAPI Hono migration is complete and working', () => {
+    // Read the actual routes file to verify OpenAPI Hono migration
     const routesFile = fs.readFileSync(
-      path.join(__dirname, '..', 'invitations.ts'),
+      path.join(__dirname, '..', 'v1', 'invitations.ts'),
       'utf8',
     );
 
-    // Verify the email data is correctly extracted from validated body data
-    expect(routesFile).toContain('const { familyId, email, role, personalMessage } = bodyValidation.data;');
+    // Verify OpenAPI Hono is imported and used
+    expect(routesFile).toContain('import { OpenAPIHono }');
 
-    // Verify the old platform validation is gone
-    expect(routesFile).not.toContain('const validPlatform = platform === \'native\' ? \'native\' : \'web\';');
+    // Verify controller import and delegation
+    expect(routesFile).toContain('import invitationController');
+    expect(routesFile).toContain('app.route(\'/\', invitationController)');
 
-    // Verify the platform parameter is not passed to the service anymore
-    expect(routesFile).not.toContain('validPlatform');
+    // Verify the old Express patterns are gone
+    expect(routesFile).not.toContain('from \'express\'');
+    expect(routesFile).not.toContain('const { familyId, email, role, personalMessage } = bodyValidation.data;');
   });
 });

@@ -104,7 +104,7 @@ describe('GroupScheduleConfigService', () => {
         .rejects.toThrow(new AppError('Access denied to group schedule configuration', 403));
     });
 
-    it('should return null if no configuration exists', async () => {
+    it('should return empty default config if no configuration exists', async () => {
       (mockGroupService.getUserGroups as jest.Mock).mockResolvedValue([
         { id: groupId, name: 'Test Group' },
       ]);
@@ -112,7 +112,17 @@ describe('GroupScheduleConfigService', () => {
 
       const result = await service.getGroupScheduleConfig(groupId, userId);
 
-      expect(result).toBeNull();
+      // Should return empty default config instead of null
+      expect(result).not.toBeNull();
+      expect(result.id).toBeNull();  // id is null for non-persisted configs
+      expect(result.groupId).toBe(groupId);
+      expect(result.scheduleHours.MONDAY).toEqual([]);
+      expect(result.scheduleHours.TUESDAY).toEqual([]);
+      expect(result.scheduleHours.WEDNESDAY).toEqual([]);
+      expect(result.scheduleHours.THURSDAY).toEqual([]);
+      expect(result.scheduleHours.FRIDAY).toEqual([]);
+      expect(result.createdAt).toBeNull();
+      expect(result.updatedAt).toBeNull();
     });
   });
 
@@ -338,10 +348,17 @@ describe('GroupScheduleConfigService', () => {
 
   describe('resetGroupScheduleConfig', () => {
     it('should reset configuration to default for authorized admin', async () => {
+      const defaultScheduleHours = {
+        MONDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        TUESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        WEDNESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        THURSDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+        FRIDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
+      };
       const mockConfig = {
         id: 'config1',
         groupId,
-        scheduleHours: GroupScheduleConfigService.getDefaultScheduleHours(),
+        scheduleHours: defaultScheduleHours,
         createdAt: new Date(),
         updatedAt: new Date(),
         group: { id: groupId, name: 'Test Group' },
@@ -371,20 +388,6 @@ describe('GroupScheduleConfigService', () => {
 
       await expect(service.resetGroupScheduleConfig(groupId, userId))
         .rejects.toThrow(new AppError('Only group administrators can reset schedule configuration', 403));
-    });
-  });
-
-  describe('getDefaultScheduleHours', () => {
-    it('should return default schedule hours', () => {
-      const defaultHours = GroupScheduleConfigService.getDefaultScheduleHours();
-
-      expect(defaultHours).toEqual({
-        MONDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        TUESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        WEDNESDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        THURSDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-        FRIDAY: ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-      });
     });
   });
 

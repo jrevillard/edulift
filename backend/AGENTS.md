@@ -83,6 +83,10 @@ prisma/
    - Use existing middleware patterns
    - Implement role-based access control
    - Validate permissions in services
+   - **CRITICAL: Understand OWNER role constraints** (see docs/references/Group-Roles-and-Permissions-Guide.md)
+     - OWNER family cannot leave, be removed, or have role changed
+     - Only OWNER family admins can delete groups (both conditions required)
+     - Always check both: user's family role (ADMIN/MEMBER) + family's group role (OWNER/ADMIN/MEMBER)
 
 ## 🌍 Timezone Handling
 
@@ -315,6 +319,61 @@ console.debug(`[BaseEmailService] Using URL from ${urlSource}: ${validBaseUrl}`)
 - Update tests when modifying existing functionality
 - Test deep link functionality in all environments before deployment
 - Verify mobile app association with custom protocols
+- **CRITICAL: When implementing group features, always validate OWNER role constraints**
+  - Use `hasGroupAdminPermissions()` to check both permission levels
+  - Protect OWNER family from removal, role changes, and leaving
+  - Return clear error messages when OWNER constraints are violated
+  - Test group operations with OWNER, ADMIN, and MEMBER families
+
+## 🔐 Access Control and Permissions
+
+EduLift implements a two-level permission system that you MUST understand when working with group features:
+
+### Two-Level Permission Model
+
+**For a user to perform administrative actions in a group, BOTH conditions must be true:**
+1. User must be **ADMIN in their family** (family-level permission)
+2. User's family must have **OWNER or ADMIN role in the group** (group-level permission)
+
+### Group Roles and Constraints
+
+**OWNER Role (Permanent):**
+- ⚠️ **Cannot leave group**: OWNER family membership cannot be removed
+- ⚠️ **Cannot be removed**: Other admins cannot remove OWNER family
+- ⚠️ **Cannot change role**: OWNER role cannot be demoted
+- ⚠️ **No transfer feature**: Ownership cannot be transferred to another family
+- ✅ **Delete group only**: Only OWNER family admins can delete groups
+
+**ADMIN Role:**
+- Can invite families, manage schedules, promote other admins
+- Cannot delete group or modify/remove OWNER family
+
+**MEMBER Role:**
+- View-only access with ability to assign own family resources
+
+### Implementation Examples
+
+```typescript
+// ✅ CORRECT: Check both permission levels
+const hasAdminPermissions = await this.hasGroupAdminPermissions(userId, groupId);
+
+// ✅ CORRECT: Protect OWNER family from removal
+if (currentMembership.role === 'OWNER') {
+  throw new AppError('Cannot remove group owner family', 400);
+}
+
+// ❌ WRONG: Only checking group role (ignores family admin requirement)
+const groupMembership = await getGroupMembership(userId, groupId);
+if (groupMembership?.role === 'ADMIN') {
+  // This is insufficient! User must also be family admin.
+}
+```
+
+### Documentation
+
+- **Complete Guide**: `docs/references/Group-Roles-and-Permissions-Guide.md`
+- **Access Control System**: `docs/references/Access-Control-and-Permissions.md`
+- **Architecture**: `docs/references/Architecture-Family-vs-Groups.md`
 
 Always use context7 when I need code generation, setup or configuration steps, or
 library/API documentation. This means you should automatically use the Context7 MCP

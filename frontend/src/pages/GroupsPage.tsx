@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { apiService } from '../services/apiService';
+import { api } from '../services/api';
+import type { UserGroup } from '../components/GroupCard';
+import type { paths } from '../generated/api/types';
+
+// Type for the API response from /groups/my-groups
+type GroupsResponse = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'];
 // import { useSocket } from '../contexts/SocketContext';
 import GroupCard from '../components/GroupCard';
 import CreateGroupModal from '../components/CreateGroupModal';
@@ -11,7 +16,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingState, ErrorState, EmptyGroups } from '@/components/ui/empty-states';
 import { PageLayout, PageHeader, ModernButton } from '@/components/ui/page-layout';
 import { Plus, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
-import { isApiError } from '../types/errors';
 
 const GroupsPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -25,13 +29,25 @@ const GroupsPage: React.FC = () => {
   // Real-time group updates are now handled centrally in SocketContext
   // No need for duplicate event listeners here
 
-  const { data: groups = [], isLoading, error } = useQuery({
+  const { data: groupsData = { data: [] }, isLoading, error } = useQuery({
     queryKey: ['user-groups'],
-    queryFn: () => apiService.getUserGroups(),
+    queryFn: async () => {
+      const result = await api.GET('/api/v1/groups/my-groups', {});
+      return result.data;
+    },
   });
 
+  const groups = (groupsData?.data || []).map((group: GroupsResponse[0]) => ({
+    ...group,
+    familyCount: group.familyCount || 0,
+    description: group.description || null,
+  })) as UserGroup[];
+
   const createGroupMutation = useMutation({
-    mutationFn: (name: string) => apiService.createGroup(name),
+    mutationFn: async (name: string) => {
+      const result = await api.POST('/api/v1/groups', { body: { name } });
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group created successfully!');
@@ -40,14 +56,17 @@ const GroupsPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       console.error('Error creating group:', error);
-      
+
       // Handle specific permission errors
-      if (isApiError(error) && error.response?.status === 403) {
+      if (error && typeof error === 'object' && 'status' in error && error.status === 403) {
         setErrorMessage('You do not have permission to create groups. Only family admins can create groups.');
-      } else if (isApiError(error) && error.response?.status === 401) {
+      } else if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
         setErrorMessage('You must be logged in to create groups.');
       } else {
-        setErrorMessage(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to create group. Please try again.' : 'Failed to create group. Please try again.');
+        const errorMessage = error && typeof error === 'object' && 'message' in error
+          ? String(error.message)
+          : 'Failed to create group. Please try again.';
+        setErrorMessage(errorMessage);
       }
       setSuccessMessage('');
       setTimeout(() => setErrorMessage(''), 8000);
@@ -55,7 +74,10 @@ const GroupsPage: React.FC = () => {
   });
 
   const joinGroupMutation = useMutation({
-    mutationFn: (inviteCode: string) => apiService.joinGroup(inviteCode),
+    mutationFn: async (inviteCode: string) => {
+      const result = await api.POST('/api/v1/groups/join', { body: { inviteCode } });
+      return result.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Successfully joined group!');
@@ -64,16 +86,19 @@ const GroupsPage: React.FC = () => {
     },
     onError: (error: unknown) => {
       console.error('Error joining group:', error);
-      
+
       // Handle specific errors
-      if (isApiError(error) && error.response?.status === 403) {
+      if (error && typeof error === 'object' && 'status' in error && error.status === 403) {
         setErrorMessage('You do not have permission to join this group.');
-      } else if (isApiError(error) && error.response?.status === 401) {
+      } else if (error && typeof error === 'object' && 'status' in error && error.status === 401) {
         setErrorMessage('You must be logged in to join groups.');
-      } else if (isApiError(error) && error.response?.status === 404) {
+      } else if (error && typeof error === 'object' && 'status' in error && error.status === 404) {
         setErrorMessage('Invalid invite code. Please check the code and try again.');
       } else {
-        setErrorMessage(isApiError(error) ? error.response?.data?.error || error.message || 'Failed to join group. Please try again.' : 'Failed to join group. Please try again.');
+        const errorMessage = error && typeof error === 'object' && 'message' in error
+          ? String(error.message)
+          : 'Failed to join group. Please try again.';
+        setErrorMessage(errorMessage);
       }
       setSuccessMessage('');
       setTimeout(() => setErrorMessage(''), 8000);

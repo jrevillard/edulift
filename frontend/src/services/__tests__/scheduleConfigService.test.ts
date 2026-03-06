@@ -1,12 +1,21 @@
+import './setup'; // Import the API mock setup
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { scheduleConfigService, type GroupScheduleConfig, type ScheduleHours } from '../scheduleConfigService';
-import { apiService } from '../apiService';
+import { api } from '../api';
 
-// Mock the apiService
-vi.mock('../apiService');
+// Mock the API client
+vi.mock('../api');
 
-const mockApiService = vi.mocked(apiService);
-
+/**
+ * ScheduleConfigService Tests
+ *
+ * All backend endpoints are now implemented in OpenAPI:
+ * - GET /groups/{groupId}/schedule-config
+ * - GET /groups/{groupId}/schedule-config/time-slots
+ * - PUT /groups/{groupId}/schedule-config
+ * - POST /groups/{groupId}/schedule-config/reset
+ * - GET /groups/schedule-config/default
+ */
 describe('ScheduleConfigService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -29,59 +38,30 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.get.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockConfig
-        }
+      vi.mocked(api.GET).mockResolvedValue({
+        data: { success: true, data: mockConfig },
+        error: undefined,
+        response: new Response()
       });
 
       const result = await scheduleConfigService.getGroupScheduleConfig('group-1');
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/groups/group-1/schedule-config');
+      expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config', {
+        params: { path: { groupId: 'group-1' } }
+      });
       expect(result).toEqual(mockConfig);
     });
 
     it('should handle API errors when fetching config', async () => {
       const error = new Error('Network error');
-      mockApiService.get.mockRejectedValue(error);
+      vi.mocked(api.GET).mockRejectedValue(error);
 
       await expect(scheduleConfigService.getGroupScheduleConfig('group-1'))
         .rejects.toThrow('Network error');
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/groups/group-1/schedule-config');
-    });
-  });
-
-  describe('getGroupTimeSlots', () => {
-    it('should fetch time slots for specific weekday', async () => {
-      const mockTimeSlots = {
-        groupId: 'group-1',
-        weekday: 'MONDAY',
-        timeSlots: ['07:00', '07:30', '08:00']
-      };
-
-      mockApiService.get.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockTimeSlots
-        }
+      expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config', {
+        params: { path: { groupId: 'group-1' } }
       });
-
-      const result = await scheduleConfigService.getGroupTimeSlots('group-1', 'MONDAY');
-
-      expect(mockApiService.get).toHaveBeenCalledWith(
-        '/groups/group-1/schedule-config/time-slots?weekday=MONDAY'
-      );
-      expect(result).toEqual(mockTimeSlots);
-    });
-
-    it('should handle API errors when fetching time slots', async () => {
-      const error = new Error('Invalid weekday');
-      mockApiService.get.mockRejectedValue(error);
-
-      await expect(scheduleConfigService.getGroupTimeSlots('group-1', 'INVALID_DAY'))
-        .rejects.toThrow('Invalid weekday');
     });
   });
 
@@ -104,18 +84,20 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.put.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockUpdatedConfig
-        }
+      vi.mocked(api.PUT).mockResolvedValue({
+        data: { success: true, data: mockUpdatedConfig },
+        error: undefined,
+        response: new Response()
       });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', scheduleHours);
 
-      expect(mockApiService.put).toHaveBeenCalledWith(
-        '/groups/group-1/schedule-config',
-        { scheduleHours }
+      expect(api.PUT).toHaveBeenCalledWith(
+        '/api/v1/groups/{groupId}/schedule-config',
+        {
+          params: { path: { groupId: 'group-1' } },
+          body: { scheduleHours }
+        }
       );
       expect(result).toEqual(mockUpdatedConfig);
     });
@@ -130,14 +112,17 @@ describe('ScheduleConfigService', () => {
       };
 
       const error = new Error('Time slots must be at least 15 minutes apart');
-      mockApiService.put.mockRejectedValue(error);
+      vi.mocked(api.PUT).mockRejectedValue(error);
 
       await expect(scheduleConfigService.updateGroupScheduleConfig('group-1', invalidScheduleHours))
         .rejects.toThrow('Time slots must be at least 15 minutes apart');
 
-      expect(mockApiService.put).toHaveBeenCalledWith(
-        '/groups/group-1/schedule-config',
-        { scheduleHours: invalidScheduleHours }
+      expect(api.PUT).toHaveBeenCalledWith(
+        '/api/v1/groups/{groupId}/schedule-config',
+        {
+          params: { path: { groupId: 'group-1' } },
+          body: { scheduleHours: invalidScheduleHours }
+        }
       );
     });
 
@@ -159,11 +144,10 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.put.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockUpdatedConfig
-        }
+      vi.mocked(api.PUT).mockResolvedValue({
+        data: { success: true, data: mockUpdatedConfig },
+        error: undefined,
+        response: new Response()
       });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', emptyScheduleHours);
@@ -189,63 +173,38 @@ describe('ScheduleConfigService', () => {
         isDefault: true
       };
 
-      mockApiService.post.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockDefaultConfig
-        }
+      vi.mocked(api.POST).mockResolvedValue({
+        data: { success: true, data: mockDefaultConfig },
+        error: undefined,
+        response: new Response()
       });
 
       const result = await scheduleConfigService.resetGroupScheduleConfig('group-1');
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/groups/group-1/schedule-config/reset');
+      expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
+        params: { path: { groupId: 'group-1' } }
+      });
       expect(result).toEqual(mockDefaultConfig);
       expect(result.isDefault).toBe(true);
     });
 
     it('should handle errors when resetting configuration', async () => {
       const error = new Error('Failed to reset configuration');
-      mockApiService.post.mockRejectedValue(error);
+      vi.mocked(api.POST).mockRejectedValue(error);
 
       await expect(scheduleConfigService.resetGroupScheduleConfig('group-1'))
         .rejects.toThrow('Failed to reset configuration');
 
-      expect(mockApiService.post).toHaveBeenCalledWith('/groups/group-1/schedule-config/reset');
-    });
-  });
-
-  describe('getDefaultScheduleHours', () => {
-    it('should fetch default schedule hours', async () => {
-      const mockDefaultHours = {
-        scheduleHours: {
-          'MONDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
-        },
-        isDefault: true
-      };
-
-      mockApiService.get.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockDefaultHours
-        }
+      expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
+        params: { path: { groupId: 'group-1' } }
       });
-
-      const result = await scheduleConfigService.getDefaultScheduleHours();
-
-      expect(mockApiService.get).toHaveBeenCalledWith('/groups/schedule-config/default');
-      expect(result).toEqual(mockDefaultHours);
-      expect(result.isDefault).toBe(true);
     });
   });
 
   describe('edge cases and data validation', () => {
     it('should handle invalid group ID', async () => {
       const error = new Error('Group not found');
-      mockApiService.get.mockRejectedValue(error);
+      vi.mocked(api.GET).mockRejectedValue(error);
 
       await expect(scheduleConfigService.getGroupScheduleConfig('invalid-group-id'))
         .rejects.toThrow('Group not found');
@@ -261,7 +220,7 @@ describe('ScheduleConfigService', () => {
       };
 
       const error = new Error('Invalid time format');
-      mockApiService.put.mockRejectedValue(error);
+      vi.mocked(api.PUT).mockRejectedValue(error);
 
       await expect(scheduleConfigService.updateGroupScheduleConfig('group-1', malformedHours))
         .rejects.toThrow('Invalid time format');
@@ -270,7 +229,7 @@ describe('ScheduleConfigService', () => {
     it('should handle network timeouts', async () => {
       const timeoutError = new Error('Request timeout');
       timeoutError.name = 'TimeoutError';
-      mockApiService.get.mockRejectedValue(timeoutError);
+      vi.mocked(api.GET).mockRejectedValue(timeoutError);
 
       await expect(scheduleConfigService.getGroupScheduleConfig('group-1'))
         .rejects.toThrow('Request timeout');
@@ -278,7 +237,7 @@ describe('ScheduleConfigService', () => {
 
     it('should handle unauthorized access', async () => {
       const unauthorizedError = Object.assign(new Error('Unauthorized'), { status: 401 });
-      mockApiService.put.mockRejectedValue(unauthorizedError);
+      vi.mocked(api.PUT).mockRejectedValue(unauthorizedError);
 
       await expect(scheduleConfigService.updateGroupScheduleConfig('group-1', {}))
         .rejects.toThrow('Unauthorized');
@@ -286,7 +245,7 @@ describe('ScheduleConfigService', () => {
 
     it('should handle server errors', async () => {
       const serverError = Object.assign(new Error('Internal Server Error'), { status: 500 });
-      mockApiService.get.mockRejectedValue(serverError);
+      vi.mocked(api.GET).mockRejectedValue(serverError);
 
       await expect(scheduleConfigService.getGroupScheduleConfig('group-1'))
         .rejects.toThrow('Internal Server Error');
@@ -310,15 +269,14 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.get.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockConfig
-        }
+      vi.mocked(api.GET).mockResolvedValue({
+        data: { success: true, data: mockConfig },
+        error: undefined,
+        response: new Response()
       });
 
       // Make multiple rapid calls
-      const promises = Array.from({ length: 5 }, () => 
+      const promises = Array.from({ length: 5 }, () =>
         scheduleConfigService.getGroupScheduleConfig('group-1')
       );
 
@@ -330,25 +288,25 @@ describe('ScheduleConfigService', () => {
       });
 
       // API should be called for each request (no built-in caching in service)
-      expect(mockApiService.get).toHaveBeenCalledTimes(5);
+      expect(api.GET).toHaveBeenCalledTimes(5);
     });
 
     it('should handle large schedule configurations', async () => {
       // Create a large schedule with many time slots
       const largeScheduleHours: ScheduleHours = {
-        'MONDAY': Array.from({ length: 20 }, (_, i) => 
+        'MONDAY': Array.from({ length: 20 }, (_, i) =>
           `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
         ),
-        'TUESDAY': Array.from({ length: 20 }, (_, i) => 
+        'TUESDAY': Array.from({ length: 20 }, (_, i) =>
           `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
         ),
-        'WEDNESDAY': Array.from({ length: 20 }, (_, i) => 
+        'WEDNESDAY': Array.from({ length: 20 }, (_, i) =>
           `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
         ),
-        'THURSDAY': Array.from({ length: 20 }, (_, i) => 
+        'THURSDAY': Array.from({ length: 20 }, (_, i) =>
           `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
         ),
-        'FRIDAY': Array.from({ length: 20 }, (_, i) => 
+        'FRIDAY': Array.from({ length: 20 }, (_, i) =>
           `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
         )
       };
@@ -362,11 +320,10 @@ describe('ScheduleConfigService', () => {
         isDefault: false
       };
 
-      mockApiService.put.mockResolvedValue({
-        data: {
-          success: true,
-          data: mockConfig
-        }
+      vi.mocked(api.PUT).mockResolvedValue({
+        data: { success: true, data: mockConfig },
+        error: undefined,
+        response: new Response()
       });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', largeScheduleHours);

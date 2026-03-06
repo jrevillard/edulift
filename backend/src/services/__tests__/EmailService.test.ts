@@ -35,6 +35,9 @@ describe('EmailService', () => {
 
   describe('sendMagicLink', () => {
     it('should call _send with the correct parameters for a magic link', async () => {
+      // Configure sendMail mock to return success before calling sendMagicLink
+      mockSendMail.mockResolvedValueOnce({ messageId: 'test-magic-link-123' });
+
       const _sendSpy = jest.spyOn(emailService as any, '_send');
       const email = 'test@example.com';
       const token = 'magic-token-123';
@@ -52,6 +55,9 @@ describe('EmailService', () => {
     });
 
     it('should use the magicLinkUrl when provided', async () => {
+        // Configure sendMail mock to return success before calling sendMagicLink
+        mockSendMail.mockResolvedValueOnce({ messageId: 'test-custom-link-456' });
+
         const _sendSpy = jest.spyOn(emailService as any, '_send');
         const email = 'test@example.com';
         const token = 'magic-token-123';
@@ -81,7 +87,7 @@ describe('EmailService', () => {
       await (emailService as any)._send(to, subject, html);
 
       expect(mockSendMail).toHaveBeenCalledWith({
-        from: config.auth.user,
+        from: config.auth!.user,
         to,
         subject,
         html,
@@ -93,7 +99,10 @@ describe('EmailService', () => {
     it('should throw an error if sending fails', async () => {
         mockSendMail.mockRejectedValueOnce(new Error('SMTP Error'));
 
-        await expect((emailService as any)._send('a@b.com', 's', 'h')).rejects.toThrow('Failed to send email');
+        const error = await (emailService as any)._send('a@b.com', 's', 'h').catch((e: Error) => e);
+        expect(error.message).toBe('Email service temporarily unavailable');
+        expect(error.code).toBe('EMAIL_SERVICE_UNAVAILABLE');
+        expect(error.retryable).toBe(true);
     });
   });
 

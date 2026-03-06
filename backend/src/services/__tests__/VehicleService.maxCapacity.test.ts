@@ -1,6 +1,7 @@
 import { VehicleService } from '../VehicleService';
 import { PrismaClient } from '@prisma/client';
 import { VEHICLE_CONSTRAINTS } from '../../constants/vehicle';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock PrismaClient
 jest.mock('@prisma/client', () => {
@@ -9,6 +10,9 @@ jest.mock('@prisma/client', () => {
       create: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
+    },
+    family: {
+      findUnique: jest.fn(),
     },
     familyMember: {
       findFirst: jest.fn(),
@@ -37,18 +41,29 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Small Bus',
         capacity: 10,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
       };
-      const userId = 'user-1';
+      const userId = TEST_IDS.USER;
 
-      const mockCreatedVehicle = { 
-        ...vehicleData, 
-        id: 'vehicle-1',
+      const mockCreatedVehicle = {
+        ...vehicleData,
+        id: TEST_IDS.VEHICLE,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      
+
+      const mockFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [mockCreatedVehicle],
+      };
+
       mockPrisma.vehicle.create.mockResolvedValue(mockCreatedVehicle);
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
       mockPrisma.activityLog.create.mockResolvedValue({});
 
       const result = await vehicleService.createVehicle(vehicleData, userId);
@@ -56,16 +71,18 @@ describe('VehicleService - Max Capacity Tests', () => {
       expect(mockPrisma.vehicle.create).toHaveBeenCalledWith({
         data: vehicleData,
       });
-      expect(result).toEqual(mockCreatedVehicle);
+      expect(result).toBeDefined();
+      expect(result.id).toBe(TEST_IDS.FAMILY);
+      expect(result.vehicles).toContainEqual(mockCreatedVehicle);
     });
 
     it('should reject creating vehicle with 11 seats', async () => {
       const vehicleData = {
         name: 'Too Big Bus',
         capacity: 11,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
       };
-      const userId = 'user-1';
+      const userId = TEST_IDS.USER;
 
       await expect(vehicleService.createVehicle(vehicleData, userId)).rejects.toThrow(
         `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
@@ -77,9 +94,9 @@ describe('VehicleService - Max Capacity Tests', () => {
       const vehicleData = {
         name: 'Old Big Bus',
         capacity: 50,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
       };
-      const userId = 'user-1';
+      const userId = TEST_IDS.USER;
 
       await expect(vehicleService.createVehicle(vehicleData, userId)).rejects.toThrow(
         `Vehicle capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
@@ -92,32 +109,42 @@ describe('VehicleService - Max Capacity Tests', () => {
     beforeEach(() => {
       // Mock getUserFamily to return a family
       mockPrisma.familyMember.findFirst.mockResolvedValue({
-        userId: 'user-1',
-        familyId: 'family-1',
+        userId: TEST_IDS.USER,
+        familyId: TEST_IDS.FAMILY,
         role: 'ADMIN',
-        family: { id: 'family-1', name: 'Test Family' },
+        family: { id: TEST_IDS.FAMILY, name: 'Test Family' },
       });
     });
 
     it('should allow updating vehicle to exactly 10 seats', async () => {
-      const vehicleId = 'vehicle-1';
-      const userId = 'user-1';
+      const vehicleId = TEST_IDS.VEHICLE;
+      const userId = TEST_IDS.USER;
       const updateData = { capacity: 10 };
-      const existingVehicle = { 
-        id: vehicleId, 
-        name: 'Bus', 
+      const existingVehicle = {
+        id: vehicleId,
+        name: 'Bus',
         capacity: 8,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      const mockUpdatedVehicle = { 
+      const mockUpdatedVehicle = {
         ...existingVehicle,
         ...updateData,
+      };
+      const mockFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [],
+        vehicles: [mockUpdatedVehicle],
       };
 
       mockPrisma.vehicle.findFirst.mockResolvedValue(existingVehicle);
       mockPrisma.vehicle.update.mockResolvedValue(mockUpdatedVehicle);
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
       mockPrisma.activityLog.create.mockResolvedValue({});
 
       const result = await vehicleService.updateVehicle(vehicleId, userId, updateData);
@@ -126,18 +153,20 @@ describe('VehicleService - Max Capacity Tests', () => {
         where: { id: vehicleId },
         data: updateData,
       });
-      expect(result).toEqual(mockUpdatedVehicle);
+      expect(result).toBeDefined();
+      expect(result.id).toBe(TEST_IDS.FAMILY);
+      expect(result.vehicles).toContainEqual(mockUpdatedVehicle);
     });
 
     it('should reject updating vehicle to 11 seats', async () => {
-      const vehicleId = 'vehicle-1';
-      const userId = 'user-1';
+      const vehicleId = TEST_IDS.VEHICLE;
+      const userId = TEST_IDS.USER;
       const updateData = { capacity: 11 };
       const existingVehicle = { 
         id: vehicleId, 
         name: 'Bus', 
         capacity: 8,
-        familyId: 'family-1',
+        familyId: TEST_IDS.FAMILY,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

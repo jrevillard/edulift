@@ -1,4 +1,5 @@
 import { ActivityLogRepository } from '../ActivityLogRepository';
+import { TEST_IDS } from '../../utils/testHelpers';
 
 // Mock Prisma with necessary models for ActivityLogRepository
 const mockPrisma = {
@@ -45,7 +46,7 @@ describe('ActivityLogRepository', () => {
         actionType: 'GROUP_JOIN',
         actionDescription: 'Joined group "Maple Street Families"',
         entityType: 'group',
-        entityId: 'group-1',
+        entityId: TEST_IDS.GROUP,
         entityName: 'Maple Street Families',
       };
 
@@ -89,7 +90,7 @@ describe('ActivityLogRepository', () => {
         actionType: 'VEHICLE_ADD',
         actionDescription: 'Added vehicle Honda Civic',
         entityType: 'vehicle',
-        entityId: 'vehicle-1',
+        entityId: TEST_IDS.VEHICLE,
         entityName: 'Honda Civic',
         metadata: { capacity: 4, color: 'blue' },
       };
@@ -182,7 +183,7 @@ describe('ActivityLogRepository', () => {
           actionType: 'GROUP_JOIN',
           actionDescription: 'Joined group "Maple Street Families"',
           entityType: 'group',
-          entityId: 'group-1',
+          entityId: TEST_IDS.GROUP,
           entityName: 'Maple Street Families',
           metadata: null,
           createdAt: new Date('2023-01-01'),
@@ -193,7 +194,7 @@ describe('ActivityLogRepository', () => {
           actionType: 'VEHICLE_ADD',
           actionDescription: 'Added vehicle Honda Civic',
           entityType: 'vehicle',
-          entityId: 'vehicle-1',
+          entityId: TEST_IDS.VEHICLE,
           entityName: 'Honda Civic',
           metadata: null,
           createdAt: new Date('2023-01-02'),
@@ -228,7 +229,7 @@ describe('ActivityLogRepository', () => {
           actionType: 'GROUP_JOIN',
           actionDescription: 'Joined group "Maple Street Families"',
           entityType: 'group',
-          entityId: 'group-1',
+          entityId: TEST_IDS.GROUP,
           entityName: 'Maple Street Families',
           metadata: null,
           createdAt: new Date('2023-01-01'),
@@ -262,7 +263,7 @@ describe('ActivityLogRepository', () => {
           actionType: 'CHILD_ADD',
           actionDescription: 'Added child "Emma"',
           entityType: 'child',
-          entityId: 'child-1',
+          entityId: TEST_IDS.CHILD,
           entityName: 'Emma',
           metadata: { age: 7 },
           createdAt: new Date('2023-01-01'),

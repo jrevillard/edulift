@@ -22,11 +22,11 @@ export interface FamilyInvitationValidation {
   valid: boolean;
   familyId?: string;
   familyName?: string;
-  inviterName?: string | null;
+  inviterName?: string;
   role?: FamilyRole;
   personalMessage?: string;
   error?: string;
-  errorCode?: string;
+  errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED' | 'INVALID_CODE';
   email?: string;
   existingUser?: boolean;
   userCurrentFamily?: {
@@ -59,10 +59,13 @@ export interface GroupInvitationValidation {
   valid: boolean;
   groupId?: string;
   groupName?: string;
+  targetFamilyId?: string;  // Present when a family is invited to a group
+  targetFamilyName?: string;  // Name of the invited family
   requiresAuth?: boolean;
   error?: string;
-  errorCode?: string;
+  errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED' | 'INVALID_CODE';
   email?: string;
+  inviterName?: string;
   existingUser?: boolean;
 }
 
@@ -241,11 +244,19 @@ export class UnifiedInvitationService {
       });
 
       if (!invitation) {
-        return { valid: false, error: 'Invalid invitation code', errorCode: 'INVALID_CODE' };
+        return {
+          valid: false,
+          error: 'Invalid invitation code',
+          errorCode: 'INVALID_CODE',
+        };
       }
 
       if (invitation.expiresAt < new Date()) {
-        return { valid: false, error: 'Invitation has expired' };
+        return {
+          valid: false,
+          error: 'Invitation has expired',
+          errorCode: 'EXPIRED',
+        };
       }
 
       const result: any = {
@@ -253,7 +264,9 @@ export class UnifiedInvitationService {
         familyId: invitation.familyId,
         familyName: invitation.family.name,
         role: invitation.role,
-        inviterName: invitation.createdByUser?.name || null,
+        inviterName: invitation.createdByUser?.name || 'Unknown',
+        existingUser: false,  // Default to false if no email
+        email: undefined,     // Default to undefined if not present
       };
 
       if (invitation.personalMessage) {
@@ -272,12 +285,14 @@ export class UnifiedInvitationService {
             },
           },
         });
-        
+
         if (currentUser && currentUser.email !== invitation.email) {
-          return { 
-            valid: false, 
+          return {
+            valid: false,
             error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
             errorCode: 'EMAIL_MISMATCH',
+            inviterName: invitation.createdByUser?.name || 'Unknown',
+            existingUser: true,
           };
         }
       }
@@ -296,7 +311,7 @@ export class UnifiedInvitationService {
           },
         });
         result.existingUser = !!existingUser;
-        
+
         // If user exists, check if they already belong to a family
         if (existingUser && existingUser.familyMemberships && existingUser.familyMemberships.length > 0) {
           const currentFamilyMembership = existingUser.familyMemberships[0];
@@ -583,7 +598,7 @@ export class UnifiedInvitationService {
         },
       });
 
-      if (group.familyId !== adminMember.familyId && (!groupMembership || groupMembership.role !== 'ADMIN')) {
+      if (!groupMembership || (groupMembership.role !== 'OWNER' && groupMembership.role !== 'ADMIN')) {
         throw new Error('Only group administrators can perform this action');
       }
 
@@ -696,13 +711,27 @@ export class UnifiedInvitationService {
       } else{
         //error if no target family or email provided
         throw new Error('Either targetFamilyId or email must be provided for group invitations');
-      } 
-      return invitation;
+      }
+
+      // Enrich invitation with additional fields for better UX
+      // These fields are already available in the transaction context
+      return {
+        ...invitation,
+        groupName: group.name,
+        invitedByName: adminMember.user.name || adminMember.user.email,
+        targetFamilyName: targetFamily?.name || null,
+        ownerFamilyName: adminMember.family?.name || null,
+      } as typeof invitation & {
+        groupName: string;
+        invitedByName: string;
+        targetFamilyName: string | null;
+        ownerFamilyName: string | null;
+      };
     });
   }
 
   async validateGroupInvitation(inviteCode: string, currentUserId?: string): Promise<GroupInvitationValidation> {
-    
+
     const invitation = await this.prisma.groupInvitation.findFirst({
       where: {
         inviteCode,
@@ -711,23 +740,39 @@ export class UnifiedInvitationService {
       include: {
         group: true,
         invitedByUser: true,  // Include inviter information
+        targetFamily: true,    // Include target family if this is a family invitation
       },
     });
 
     if (!invitation) {
-      return { valid: false, error: 'Invalid invitation code', errorCode: 'INVALID_CODE' };
+      return {
+        valid: false,
+        error: 'Invalid invitation code',
+        errorCode: 'INVALID_CODE',
+      };
     }
 
     if (invitation.expiresAt < new Date()) {
-      return { valid: false, error: 'Invitation has expired' };
+      return {
+        valid: false,
+        error: 'Invitation has expired',
+        errorCode: 'EXPIRED',
+      };
     }
 
     const result: any = {
       valid: true,
       groupId: invitation.group.id,
       groupName: invitation.group.name,
-      inviterName: invitation.invitedByUser?.name || null,
+      inviterName: invitation.invitedByUser?.name || 'Unknown',
+      existingUser: false,  // Default to false if no email
     };
+
+    // If this is a family invitation (targetFamilyId exists), include family info
+    if (invitation.targetFamilyId && invitation.targetFamily) {
+      result.targetFamilyId = invitation.targetFamilyId;
+      result.targetFamilyName = invitation.targetFamily.name;
+    }
 
     // SECURITY CHECK: If there's a current authenticated user and the invitation has an email
     if (currentUserId && invitation.email) {
@@ -740,6 +785,8 @@ export class UnifiedInvitationService {
           valid: false,
           error: 'This invitation was sent to a different email address. Please log in with the correct account or sign up.',
           errorCode: 'EMAIL_MISMATCH',
+          inviterName: invitation.invitedByUser?.name || 'Unknown',
+          existingUser: true,
         };
       }
     }
@@ -782,6 +829,14 @@ export class UnifiedInvitationService {
 
       if (!user) {
         return { success: false, error: 'User not found' };
+      }
+
+      // SECURITY: If invitation has an email, verify it matches the user's email
+      if (invitation.email && user.email !== invitation.email) {
+        return {
+          success: false,
+          error: 'This invitation was sent to a different email address',
+        };
       }
 
       const familyMember = await tx.familyMember.findFirst({
@@ -995,18 +1050,15 @@ export class UnifiedInvitationService {
       }
 
       // Check if admin's family owns the group or is group admin
-      if (invitation.group.familyId !== adminMember.familyId) {
-        const groupMembership = await tx.groupFamilyMember.findFirst({
-          where: {
-            groupId: invitation.groupId,
-            familyId: adminMember.familyId,
-            role: 'ADMIN',
-          },
-        });
+      const groupMembership = await tx.groupFamilyMember.findFirst({
+        where: {
+          groupId: invitation.groupId,
+          familyId: adminMember.familyId,
+        },
+      });
 
-        if (!groupMembership) {
-          throw new Error('Only group administrators can cancel invitations');
-        }
+      if (!groupMembership || (groupMembership.role !== 'OWNER' && groupMembership.role !== 'ADMIN')) {
+        throw new Error('Only group administrators can cancel invitations');
       }
 
       await tx.groupInvitation.update({
