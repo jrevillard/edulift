@@ -35,7 +35,7 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createDashboardControllerRoutes(dependencies: {
+export const createDashboardControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   dashboardService?: DashboardService;
@@ -692,7 +692,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
 });
 
   return app;
-}
+};
 
 // Export type for test usage
 export type { DashboardVariables };

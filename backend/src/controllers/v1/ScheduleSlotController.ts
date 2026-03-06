@@ -143,7 +143,7 @@ function transformChildAssignment(assignment: any): any {
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createScheduleSlotControllerRoutes(dependencies: {
+export const createScheduleSlotControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   scheduleSlotService?: ScheduleSlotService;
@@ -1438,7 +1438,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
 });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createScheduleSlotControllerRoutes();

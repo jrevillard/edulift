@@ -36,7 +36,7 @@ export type GroupAccessCheck = GroupAccessResult | GroupAccessError;
  * @param groupId - ID of the group to check access for
  * @returns GroupAccessResult if user has access, GroupAccessError otherwise
  */
-export async function verifyGroupAccess(
+export const verifyGroupAccess = async function(
   prisma: PrismaClient,
   userId: string,
   groupId: string,
@@ -75,7 +75,7 @@ export async function verifyGroupAccess(
     hasAccess: true,
     familyId: userFamilyMember.familyId,
   };
-}
+};
 
 /**
  * Helper for Hono controllers that checks group access and returns early if denied.
@@ -101,13 +101,13 @@ export async function verifyGroupAccess(
  * @param groupId - ID of the group to check access for
  * @returns GroupAccessCheck - check hasAccess property to determine if access is granted
  */
-export async function verifyGroupAccessOrThrow(
+export const verifyGroupAccessOrThrow = async function(
   prisma: PrismaClient,
   userId: string,
   groupId: string,
 ): Promise<GroupAccessCheck> {
   return verifyGroupAccess(prisma, userId, groupId);
-}
+};
 
 /**
  * Result of vehicle ownership verification
@@ -141,7 +141,7 @@ export type VehicleAccessCheck = VehicleAccessResult | VehicleAccessError;
  * @param vehicleId - ID of vehicle to check ownership for
  * @returns VehicleAccessResult if user's family owns vehicle, VehicleAccessError otherwise
  */
-export async function verifyVehicleOwnership(
+export const verifyVehicleOwnership = async function(
   prisma: PrismaClient,
   userId: string,
   vehicleId: string,
@@ -178,4 +178,4 @@ export async function verifyVehicleOwnership(
     hasAccess: true,
     familyId: userFamily.familyId,
   };
-}
+};

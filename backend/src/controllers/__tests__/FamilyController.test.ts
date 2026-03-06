@@ -72,7 +72,7 @@ const parseZodError = (error: any): string => {
           }
           return issue.message;
         }
-      } catch (parseError) {
+      } catch {
         return error.message;
       }
     }

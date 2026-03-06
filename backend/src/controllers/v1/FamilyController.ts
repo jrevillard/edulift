@@ -82,7 +82,7 @@ const createMockCacheService = () => ({
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createFamilyControllerRoutes(dependencies: {
+export const createFamilyControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   emailService?: any;
@@ -1270,7 +1270,7 @@ app.openapi(leaveFamilyRoute, async (c) => {
 });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createFamilyControllerRoutes();

@@ -9,25 +9,6 @@ import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ScheduleSlotService');
 
-// Type definitions for Prisma queries with includes/selects
-type VehicleAssignmentWithDetails = Prisma.ScheduleSlotVehicleGetPayload<{
-  include: {
-    vehicle: true;
-    driver: true;
-    childAssignments: {
-      include: {
-        child: true;
-      };
-    };
-  };
-}>;
-
-type ChildAssignmentWithDetails = Prisma.ScheduleSlotChildGetPayload<{
-  include: {
-    child: true;
-  };
-}>;
-
 type ScheduleSlotFromRepo = Prisma.ScheduleSlotGetPayload<{
   include: {
     group: {

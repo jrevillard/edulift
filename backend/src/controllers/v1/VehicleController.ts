@@ -51,7 +51,7 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createVehicleControllerRoutes(dependencies: {
+export const createVehicleControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   vehicleService?: VehicleService;
@@ -648,7 +648,7 @@ app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
 });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createVehicleControllerRoutes();

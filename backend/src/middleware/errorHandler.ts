@@ -41,37 +41,37 @@ export class AppError extends Error {
 /**
  * Create a standard validation error
  */
-export function createValidationError(message: string): AppError {
+export const createValidationError = function(message: string): AppError {
   return new AppError(message, 400);
-}
+};
 
 /**
  * Create a standard not found error
  */
-export function createNotFoundError(resource: string): AppError {
+export const createNotFoundError = function(resource: string): AppError {
   return new AppError(`${resource} not found`, 404);
-}
+};
 
 /**
  * Create a standard unauthorized error
  */
-export function createUnauthorizedError(message: string = 'Unauthorized'): AppError {
+export const createUnauthorizedError = function(message: string = 'Unauthorized'): AppError {
   return new AppError(message, 401);
-}
+};
 
 /**
  * Create a standard forbidden error
  */
-export function createForbiddenError(message: string = 'Forbidden'): AppError {
+export const createForbiddenError = function(message: string = 'Forbidden'): AppError {
   return new AppError(message, 403);
-}
+};
 
 /**
  * Create a standard server error
  */
-export function createServerError(message: string = 'Internal server error'): AppError {
+export const createServerError = function(message: string = 'Internal server error'): AppError {
   return new AppError(message, 500);
-}
+};
 
 /**
  * Extract error information safely from unknown error type
@@ -83,7 +83,7 @@ export interface ErrorInfo {
   code?: string;
 }
 
-export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERROR'): ErrorInfo {
+export const getErrorInfo = function(error: unknown, defaultCode: string = 'UNKNOWN_ERROR'): ErrorInfo {
   // Handle AppError instances (MOST IMPORTANT - must come first)
   if (error instanceof AppError) {
     return {
@@ -142,4 +142,4 @@ export function getErrorInfo(error: unknown, defaultCode: string = 'UNKNOWN_ERRO
     message: 'Unknown error',
     code: defaultCode,
   };
-}
+};

@@ -95,7 +95,7 @@ const ERROR_CODE_STATUS_MAP: Record<string, number> = {
 /**
  * Creates a standardized service error object
  */
-export function createServiceError(
+export const createServiceError = function(
   code: string,
   message: string,
   statusCode?: number,
@@ -108,12 +108,12 @@ export function createServiceError(
     details,
     isServiceError: true,
   };
-}
+};
 
 /**
  * Type guard to check if an object is a ServiceError
  */
-export function isServiceError(error: any): error is ServiceError {
+export const isServiceError = function(error: any): error is ServiceError {
   return Boolean(error && typeof error === 'object' && error.isServiceError === true);
 }
 
@@ -130,7 +130,7 @@ export function isServiceError(error: any): error is ServiceError {
  * @param error - The error to normalize
  * @returns NormalizedError object with consistent structure
  */
-export function normalizeError(error: unknown): NormalizedError {
+export const normalizeError = function(error: unknown): NormalizedError {
   // Handle our custom ServiceError objects
   if (isServiceError(error)) {
     return {
@@ -267,20 +267,20 @@ export function normalizeError(error: unknown): NormalizedError {
     details: { errorType: typeof error, value: error },
     originalError: error,
   };
-}
+};
 
 /**
  * Extracts just the error message for logging purposes
  * This is a drop-in replacement for the problematic pattern
  */
-export function getErrorMessage(error: unknown): string {
+export const getErrorMessage = function(error: unknown): string {
   return normalizeError(error).message;
-}
+};
 
 /**
  * Extracts both message and code for detailed logging
  */
-export function getErrorForLogging(error: unknown): {
+export const getErrorForLogging = function(error: unknown): {
   message: string;
   code: string;
   statusCode: number;
@@ -306,12 +306,12 @@ export function getErrorForLogging(error: unknown): {
   }
 
   return result;
-}
+};
 
 /**
  * Creates an appropriate HTTP error response body
  */
-export function createErrorResponse(error: unknown): {
+export const createErrorResponse = function(error: unknown): {
   success: false;
   error: string;
   code?: string;

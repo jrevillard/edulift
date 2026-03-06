@@ -62,7 +62,7 @@ const createSuccessSchema = <T extends z.ZodType>(schema: T) => {
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createAuthControllerRoutes(dependencies: {
+export const createAuthControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   emailService?: any;
@@ -1267,7 +1267,7 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
 });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createAuthControllerRoutes();

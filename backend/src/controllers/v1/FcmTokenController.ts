@@ -64,7 +64,7 @@ const DeleteResponseSchema = z.object({
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createFcmTokenControllerRoutes(dependencies: {
+export const createFcmTokenControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
 } = {}): OpenAPIHono<{ Variables: FcmTokenVariables }> {
@@ -909,7 +909,7 @@ app.openapi(getStatsRoute, async (c) => {
 });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createFcmTokenControllerRoutes();

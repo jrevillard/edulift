@@ -44,7 +44,7 @@ type InvitationVariables = {
  * For production: call without params (uses real services)
  * For tests: inject mocked services
  */
-export function createInvitationControllerRoutes(dependencies: {
+export const createInvitationControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   emailService?: any;
@@ -937,7 +937,7 @@ export function createInvitationControllerRoutes(dependencies: {
   });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createInvitationControllerRoutes();

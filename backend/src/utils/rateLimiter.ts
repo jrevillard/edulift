@@ -23,7 +23,7 @@ const logger = createLogger('rate-limiter');
 /**
  * Helper function to extract client IP address from request
  */
-function getClientIP(c: Context): string {
+const getClientIP = function(c: Context): string {
   // Try various headers in order of preference
   return (
     c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -32,26 +32,26 @@ function getClientIP(c: Context): string {
     c.req.header('x-client-ip') ||
     'unknown'
   );
-}
+};
 
 /**
  * Helper function to check if user is authenticated
  */
-function isUserAuthenticated(c: Context): boolean {
+const isUserAuthenticated = function(c: Context): boolean {
   return !!c.get('userId');
-}
+};
 
 /**
  * Helper function to get authenticated user ID
  */
-function getAuthenticatedUserId(c: Context): string {
+const getAuthenticatedUserId = function(c: Context): string {
   return c.get('userId') || 'anonymous';
-}
+};
 
 /**
  * Creates a rate limit exceeded response using our standard error format
  */
-function createRateLimitResponse(c: Context, retryAfter?: number) {
+const createRateLimitResponse = function(c: Context, retryAfter?: number) {
   logger.warn('Rate limit exceeded', {
     ip: getClientIP(c),
     userAgent: c.req.header('user-agent'),
@@ -74,7 +74,7 @@ function createRateLimitResponse(c: Context, retryAfter?: number) {
   }
 
   return c.json(response, 429);
-}
+};
 
 /**
  * Rate limiter for anonymous clients (IP-based)
@@ -85,11 +85,17 @@ export const anonymousRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 100, // 100 requests per minute
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: (c) => `anonymous:${getClientIP(c)}`,
+  keyGenerator: function(c) {
+    return `anonymous:${getClientIP(c)}`;
+  },
   // Custom handler to integrate with our error system
-  handler: (c, retryAfter) => createRateLimitResponse(c, Number(retryAfter)),
+  handler: function(c, retryAfter) {
+    return createRateLimitResponse(c, Number(retryAfter));
+  },
   // Skip if user is authenticated (will use higher limits)
-  skip: (c) => isUserAuthenticated(c),
+  skip: function(c) {
+    return isUserAuthenticated(c);
+  },
 });
 
 /**
@@ -101,10 +107,12 @@ export const authenticatedRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 300, // 300 requests per minute
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: (c) => `user:${getAuthenticatedUserId(c)}`,
-  handler: (c, retryAfter) => createRateLimitResponse(c, Number(retryAfter)),
+  keyGenerator: function(c) { return `user:${getAuthenticatedUserId(c)}`; },
+  handler: function(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
   // Skip if user is not authenticated (will use anonymous limits)
-  skip: (c) => !isUserAuthenticated(c),
+  skip: function(c) {
+    return !isUserAuthenticated(c);
+  },
 });
 
 /**
@@ -117,8 +125,8 @@ export const authEndpointRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 20, // 20 requests per minute
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: (c) => `auth:${getClientIP(c)}`,
-  handler: (c, retryAfter) => {
+  keyGenerator: function(c) { return `auth:${getClientIP(c)}`; },
+  handler: function(c, retryAfter) {
     logger.warn('Auth endpoint rate limit exceeded', {
       ip: getClientIP(c),
       userAgent: c.req.header('user-agent'),
@@ -152,18 +160,18 @@ export const globalRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: isUserAuthenticated => isUserAuthenticated ? 300 : 100, // Dynamic limit based on auth
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: (c) => {
+  keyGenerator: function(c) {
     const userId = getAuthenticatedUserId(c);
     return isUserAuthenticated(c) ? `user:${userId}` : `anonymous:${getClientIP(c)}`;
   },
-  handler: (c, retryAfter) => createRateLimitResponse(c, Number(retryAfter)),
+  handler: function(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
 });
 
 /**
  * Middleware factory to create a conditional rate limiter
  * that applies different limits based on the route pattern
  */
-export function createConditionalRateLimiter(options: {
+export const createConditionalRateLimiter = function(options: {
   anonymousLimit?: number;
   authenticatedLimit?: number;
   windowMs?: number;
@@ -180,20 +188,20 @@ export function createConditionalRateLimiter(options: {
     windowMs,
     limit: isUserAuthenticated => isUserAuthenticated ? authenticatedLimit : anonymousLimit,
     standardHeaders: 'draft-6',
-    keyGenerator: (c) => {
+    keyGenerator: function(c) {
       const userId = getAuthenticatedUserId(c);
       return isUserAuthenticated(c) ? `user:${userId}` : `anonymous:${getClientIP(c)}`;
     },
-    handler: (c, retryAfter) => createRateLimitResponse(c, Number(retryAfter)),
+    handler: function(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
     // Only apply to specified path patterns if provided
-    skip: (c) => {
+    skip: function(c) {
       if (pathPatterns.length === 0) return false; // Apply to all routes if no patterns specified
 
       const path = c.req.path;
       return !pathPatterns.some(pattern => path.includes(pattern));
     },
   });
-}
+};
 
 /**
  * Admin API rate limiter (more restrictive)
@@ -203,8 +211,8 @@ export const adminRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 50, // 50 requests per minute
   standardHeaders: 'draft-6',
-  keyGenerator: (c) => `admin:${getAuthenticatedUserId(c)}`,
-  handler: (c, retryAfter) => {
+  keyGenerator: function(c) { return `admin:${getAuthenticatedUserId(c)}`; },
+  handler: function(c, retryAfter) {
     logger.warn('Admin endpoint rate limit exceeded', {
       userId: getAuthenticatedUserId(c),
       ip: getClientIP(c),
@@ -228,5 +236,7 @@ export const adminRateLimiter = rateLimiter({
     return c.json(response, 429);
   },
   // Only apply if user is authenticated
-  skip: (c) => !isUserAuthenticated(c),
+  skip: function(c) {
+    return !isUserAuthenticated(c);
+  },
 });

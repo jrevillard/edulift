@@ -36,7 +36,7 @@ type ChildVariables = {
 // FACTORY FUNCTION
 // ============================================================================
 
-export function createChildControllerRoutes(dependencies: {
+export const createChildControllerRoutes = function(dependencies: {
   prisma?: PrismaClient;
   logger?: any;
   childService?: ChildService;
@@ -887,7 +887,7 @@ const getChildGroupsRoute = createRoute({
     });
 
   return app;
-}
+};
 
 // Default export for backward compatibility (uses real services)
 export default createChildControllerRoutes();

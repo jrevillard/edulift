@@ -87,9 +87,9 @@ class SchemaRegistry {
 export const registry = new SchemaRegistry();
 
 // Export the registerPath function for backward compatibility
-export function registerPath(path: OpenAPIPath): void {
+export const registerPath = function(path: OpenAPIPath): void {
   registry.registerPath(path);
-}
+};
 
 // Export the class for potential testing or alternative instances
 export { SchemaRegistry };
