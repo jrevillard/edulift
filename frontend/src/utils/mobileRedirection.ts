@@ -11,8 +11,8 @@ const CUSTOM_SCHEME = 'edulift';
  */
 type SupportedPath =
   | '/auth/verify'
-  | '/families/join'
-  | '/groups/join'
+  | '/api/v1/families/join'
+  | '/api/v1/groups/join'
   | '/dashboard';
 
 /**
@@ -291,8 +291,8 @@ interface RouteMapping {
  */
 const ROUTE_MAPPING: RouteMapping = {
   '/auth/verify': '/auth/verify',
-  '/families/join': '/families/join',
-  '/groups/join': '/groups/join',
+  '/api/v1/families/join': '/api/v1/families/join',
+  '/api/v1/groups/join': '/api/v1/groups/join',
   '/dashboard': '/dashboard'
 };
 

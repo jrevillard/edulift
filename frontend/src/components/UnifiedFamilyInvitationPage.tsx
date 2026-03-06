@@ -82,7 +82,7 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
         const params = parseSearchParams(searchParams);
 
         attemptMobileAppOpen(
-            '/families/join',
+            '/api/v1/families/join',
             params,
             mobileDetection,
             {

@@ -112,7 +112,7 @@ describe('ProtectedRoute 401 Redirect - Simple Test', () => {
     });
 
     it('should log redirect messages for different protected routes', () => {
-      const testRoutes = ['/dashboard', '/groups', '/children', '/vehicles'];
+      const testRoutes = ['/dashboard', '/api/v1/groups', '/api/v1/children', '/api/v1/vehicles'];
       
       testRoutes.forEach(route => {
         consoleLogSpy.mockClear();

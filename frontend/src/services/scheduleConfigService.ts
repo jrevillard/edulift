@@ -25,7 +25,7 @@ class ScheduleConfigService {
    * Get schedule configuration for a group
    */
   async getGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
-    const { data, error } = await api.GET('/groups/{groupId}/schedule-config', {
+    const { data, error } = await api.GET('/api/v1/groups/{groupId}/schedule-config', {
       params: { path: { groupId } }
     });
 
@@ -39,7 +39,7 @@ class ScheduleConfigService {
    * Get time slots for a specific group and weekday
    */
   async getGroupTimeSlots(groupId: string, weekday: GroupTimeSlots['weekday']): Promise<GroupTimeSlots> {
-    const { data, error } = await api.GET('/groups/{groupId}/schedule-config/time-slots', {
+    const { data, error } = await api.GET('/api/v1/groups/{groupId}/schedule-config/time-slots', {
       params: {
         path: { groupId },
         query: { weekday }
@@ -56,7 +56,7 @@ class ScheduleConfigService {
    * Update schedule configuration for a group
    */
   async updateGroupScheduleConfig(groupId: string, scheduleHours: ScheduleHours): Promise<GroupScheduleConfig> {
-    const { data, error } = await api.PUT('/groups/{groupId}/schedule-config', {
+    const { data, error } = await api.PUT('/api/v1/groups/{groupId}/schedule-config', {
       params: { path: { groupId } },
       body: { scheduleHours }
     });
@@ -71,7 +71,7 @@ class ScheduleConfigService {
    * Reset schedule configuration to default
    */
   async resetGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
-    const { data, error } = await api.POST('/groups/{groupId}/schedule-config/reset', {
+    const { data, error } = await api.POST('/api/v1/groups/{groupId}/schedule-config/reset', {
       params: { path: { groupId } }
     });
 
@@ -85,7 +85,7 @@ class ScheduleConfigService {
    * Get default schedule hours
    */
   async getDefaultScheduleHours(): Promise<DefaultScheduleHours> {
-    const { data, error } = await api.GET('/groups/schedule-config/default');
+    const { data, error } = await api.GET('/api/v1/groups/schedule-config/default');
 
     if (error || !data?.success || !data?.data) {
       throw new Error(error || 'Failed to get default schedule hours');

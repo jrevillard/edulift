@@ -54,7 +54,7 @@ describe('ChildrenPage - Layout and Spacing', () => {
     });
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: [], success: true },
           error: undefined
@@ -84,7 +84,7 @@ describe('ChildrenPage - Layout and Spacing', () => {
     ];
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: childrenWithoutGroups, success: true },
           error: undefined
@@ -149,7 +149,7 @@ describe('ChildrenPage - Layout and Spacing', () => {
     ];
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: childrenWithGroups, success: true },
           error: undefined
@@ -220,7 +220,7 @@ describe('ChildrenPage - Layout and Spacing', () => {
     ];
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: mockChildren, success: true },
           error: undefined

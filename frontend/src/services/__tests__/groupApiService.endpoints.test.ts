@@ -45,7 +45,7 @@ describe('GroupApiService - Restored Endpoints', () => {
 
       // Assert
       expect(mockedApi.POST).toHaveBeenCalledWith(
-        '/groups/{groupId}/search-families',
+        '/api/v1/groups/{groupId}/search-families',
         {
           params: { path: { groupId } },
           body: { searchTerm }
@@ -136,7 +136,7 @@ describe('GroupApiService - Restored Endpoints', () => {
 
       // Assert
       expect(mockedApi.POST).toHaveBeenCalledWith(
-        '/groups/{groupId}/invite',
+        '/api/v1/groups/{groupId}/invite',
         {
           params: { path: { groupId } },
           body: { familyId, role, personalMessage }
@@ -161,7 +161,7 @@ describe('GroupApiService - Restored Endpoints', () => {
 
       // Assert
       expect(mockedApi.POST).toHaveBeenCalledWith(
-        '/groups/{groupId}/invite',
+        '/api/v1/groups/{groupId}/invite',
         {
           params: { path: { groupId } },
           body: { familyId, role: 'MEMBER', personalMessage: undefined }
@@ -185,7 +185,7 @@ describe('GroupApiService - Restored Endpoints', () => {
 
       // Assert
       expect(mockedApi.POST).toHaveBeenCalledWith(
-        '/groups/{groupId}/invite',
+        '/api/v1/groups/{groupId}/invite',
         {
           params: { path: { groupId } },
           body: { familyId, role: 'ADMIN', personalMessage: undefined }

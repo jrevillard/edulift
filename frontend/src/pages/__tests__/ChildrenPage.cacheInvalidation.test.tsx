@@ -93,7 +93,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Override specific mocks for this test
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: [testChild], success: true },
           error: undefined
@@ -155,7 +155,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: 'child-1' } },
         body: {
           name: 'Updated Name',
@@ -202,7 +202,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.POST).toHaveBeenCalledWith('/children', {
+      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/children', {
         body: { name: 'New Child', age: 6 }
       });
     });
@@ -233,7 +233,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.DELETE).toHaveBeenCalledWith('/children/{childId}', {
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: 'child-1' } }
       });
     });

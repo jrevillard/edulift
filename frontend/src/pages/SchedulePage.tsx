@@ -142,7 +142,7 @@ const SchedulePage: React.FC = () => {
   const groupsQuery = useQuery({
     queryKey: ['user-groups'],
     queryFn: async () => {
-      const { data: response, error } = await api.GET('/groups/my-groups', {});
+      const { data: response, error } = await api.GET('/api/v1/groups/my-groups', {});
       if (error || !response?.success) {
         throw new Error('Failed to fetch groups');
       }
@@ -162,7 +162,7 @@ const SchedulePage: React.FC = () => {
     queryKey: ['weekly-schedule', selectedGroup, currentWeek],
     queryFn: async () => {
       console.log(`🔍 DEBUG: Fetching schedule for group ${selectedGroup}, week ${currentWeek}`);
-      const { data: response, error } = await api.GET('/groups/{groupId}/schedule', {
+      const { data: response, error } = await api.GET('/api/v1/groups/{groupId}/schedule', {
         params: {
           path: {
             groupId: selectedGroup
@@ -322,7 +322,7 @@ const SchedulePage: React.FC = () => {
   const { data: vehiclesData = { data: [] } } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const { data: response, error } = await api.GET('/vehicles', {});
+      const { data: response, error } = await api.GET('/api/v1/vehicles', {});
       if (error || !response?.success || !response?.data) {
         throw new Error('Failed to fetch vehicles');
       }
@@ -373,7 +373,7 @@ const SchedulePage: React.FC = () => {
 
       const utcDateTime = localDateTime.utc().toISOString();
 
-      const { data: result, error } = await api.POST('/groups/{groupId}/schedule-slots', {
+      const { data: result, error } = await api.POST('/api/v1/groups/{groupId}/schedule-slots', {
         params: {
           path: {
             groupId: selectedGroup
@@ -564,7 +564,7 @@ const SchedulePage: React.FC = () => {
         }
 
         // TODO: Assign vehicle to existing schedule slot - need to find correct OpenAPI endpoint
-        // await api.POST('/schedule-slots/{id}/vehicles', {
+        // await api.POST('/api/v1/schedule-slots/{id}/vehicles', {
         //   params: { path: { id: scheduleSlot.id } },
         //   body: { vehicleId, driverId: user!.id }
         // });
@@ -955,7 +955,7 @@ const SchedulePage: React.FC = () => {
           description="You need to join or create a transport group to view schedules. Groups help you coordinate school transport with other families."
           action={{
             label: "Go to Groups Page",
-            onClick: () => window.location.href = '/groups'
+            onClick: () => window.location.href = '/api/v1/groups'
           }}
           data-testid="SchedulePage-EmptyState-noGroups"
         />

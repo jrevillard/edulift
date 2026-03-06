@@ -137,17 +137,17 @@ export const createMockOpenAPIClient = () => {
   // Setup default mock implementations
   mockClient.GET.mockImplementation((path: string) => {
     switch (path) {
-      case '/children':
+      case '/api/v1/children':
         return Promise.resolve({
           data: { data: [mockChild], success: true },
           error: undefined
         });
-      case '/vehicles':
+      case '/api/v1/vehicles':
         return Promise.resolve({
           data: { data: [mockVehicle], success: true },
           error: undefined
         });
-      case '/schedule-slots/{scheduleSlotId}':
+      case '/api/v1/schedule-slots/{scheduleSlotId}':
         return Promise.resolve({
           data: {
             data: {

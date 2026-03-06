@@ -82,7 +82,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     });
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
-      if (path === '/children') {
+      if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: mockChildren, success: true },
           error: undefined
@@ -168,7 +168,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
 
     // Verify API call
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: 'child-1' } },
         body: {
           name: 'Alice Updated',
@@ -387,7 +387,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     expect(mockRefreshFamily).toHaveBeenCalled();
 
     // Step 6: Verify API was called with correct data
-    expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+    expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
       params: { path: { childId: 'child-1' } },
       body: {
         name: 'Alice Updated',

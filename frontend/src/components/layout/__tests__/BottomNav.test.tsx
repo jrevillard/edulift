@@ -173,7 +173,7 @@ describe('BottomNav', () => {
     });
 
     it('should not highlight any navigation tab when on other routes', () => {
-      renderBottomNav('/groups');
+      renderBottomNav('/api/v1/groups');
 
       const homeTab = screen.getByTestId('BottomNav-Button-home');
       const familyTab = screen.getByTestId('BottomNav-Button-family');

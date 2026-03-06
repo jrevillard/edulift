@@ -17,7 +17,7 @@ import type { WeeklyDashboardResponse } from '@/types/api';
 import type { paths } from '@/generated/api/types';
 
 // Type for recent activity items - extracted from API
-type ActivityItem = paths['/dashboard/recent-activity']['get']['responses'][200]['content']['application/json']['data']['activities'][number];
+type ActivityItem = paths['/api/v1/dashboard/recent-activity']['get']['responses'][200]['content']['application/json']['data']['activities'][number];
 import {
   Users,
   Car,
@@ -125,7 +125,7 @@ const DashboardPage: React.FC = () => {
   const { data: childrenData = { data: [] } } = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
-      const result = await api.GET('/children', {});
+      const result = await api.GET('/api/v1/children', {});
       return result.data;
     },
     enabled: !!user
@@ -138,7 +138,7 @@ const DashboardPage: React.FC = () => {
   const { data: weeklyDashboardData, isLoading: scheduleLoading, error: scheduleError } = useQuery({
     queryKey: ['weekly-dashboard', user?.id],
     queryFn: async () => {
-      const result = await api.GET('/dashboard/weekly', {});
+      const result = await api.GET('/api/v1/dashboard/weekly', {});
       return result.data;
     },
     enabled: !!user,
@@ -151,7 +151,7 @@ const DashboardPage: React.FC = () => {
   const { data: recentActivityData, isLoading: activityLoading } = useQuery({
     queryKey: ['recent-activity', currentFamily?.id],
     queryFn: async () => {
-      const result = await api.GET('/dashboard/recent-activity', {});
+      const result = await api.GET('/api/v1/dashboard/recent-activity', {});
       return result.data;
     },
     enabled: !!user && !!currentFamily,
@@ -175,21 +175,21 @@ const DashboardPage: React.FC = () => {
       variant: 'default' as const, 
       icon: Users,
       description: 'Connect with other families',
-      onClick: () => navigate('/groups')
+      onClick: () => navigate('/api/v1/groups')
     },
     { 
       label: 'Add Child', 
       variant: 'secondary' as const, 
       icon: UserPlus,
       description: 'Register for transport',
-      onClick: () => navigate('/children')
+      onClick: () => navigate('/api/v1/children')
     },
     { 
       label: 'Add Vehicle', 
       variant: 'outline' as const, 
       icon: Car,
       description: 'Offer rides to others',
-      onClick: () => navigate('/vehicles')
+      onClick: () => navigate('/api/v1/vehicles')
     },
   ];
 

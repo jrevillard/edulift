@@ -543,7 +543,7 @@ const ManageFamilyPage: React.FC = () => {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => navigate('/children')}
+                onClick={() => navigate('/api/v1/children')}
                 data-testid="ManageFamilyPage-Button-manageChildren"
               >
                 Manage
@@ -583,7 +583,7 @@ const ManageFamilyPage: React.FC = () => {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => navigate('/vehicles')}
+                onClick={() => navigate('/api/v1/vehicles')}
                 data-testid="ManageFamilyPage-Button-manageVehicles"
               >
                 Manage

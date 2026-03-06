@@ -114,7 +114,7 @@ describe('DashboardPage Quick Actions', () => {
     const joinGroupButton = screen.getByTestId('DashboardPage-Button-quickAction-join-a-group');
     fireEvent.click(joinGroupButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/groups');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/groups');
   });
 
   it('should navigate to children page when Add Child is clicked', async () => {
@@ -125,7 +125,7 @@ describe('DashboardPage Quick Actions', () => {
     const addChildButton = screen.getByTestId('DashboardPage-Button-quickAction-add-child');
     fireEvent.click(addChildButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/children');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/children');
   });
 
   it('should navigate to vehicles page when Add Vehicle is clicked', async () => {
@@ -136,7 +136,7 @@ describe('DashboardPage Quick Actions', () => {
     const addVehicleButton = screen.getByTestId('DashboardPage-Button-quickAction-add-vehicle');
     fireEvent.click(addVehicleButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/vehicles');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/vehicles');
   });
 
   it('should apply proper semantic design system classes', async () => {

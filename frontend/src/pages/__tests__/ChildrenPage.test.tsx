@@ -219,7 +219,7 @@ describe('ChildrenPage', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(mockApi.POST).toHaveBeenCalledWith('/children', {
+      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/children', {
         body: { name: 'Test Child', age: 10 }
       })
     })
@@ -254,7 +254,7 @@ describe('ChildrenPage', () => {
     await user.click(submitButton)
 
     await waitFor(() => {
-      expect(mockApi.POST).toHaveBeenCalledWith('/children', {
+      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/children', {
         body: { name: 'Test Child', age: undefined }
       })
     })
@@ -349,7 +349,7 @@ describe('ChildrenPage', () => {
     await user.click(updateButton)
 
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/children/{childId}', {
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: mockChild.id } },
         body: { name: 'Updated Child', age: mockChild.age }
       })
@@ -393,7 +393,7 @@ describe('ChildrenPage', () => {
     await user.click(confirmButton)
 
     await waitFor(() => {
-      expect(mockApi.DELETE).toHaveBeenCalledWith('/children/{childId}', {
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: mockChild.id } }
       })
     })

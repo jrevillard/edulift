@@ -6,7 +6,7 @@ import type { UserGroup } from '../components/GroupCard';
 import type { paths } from '../generated/api/types';
 
 // Type for the API response from /groups/my-groups
-type GroupsResponse = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'];
+type GroupsResponse = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'];
 // import { useSocket } from '../contexts/SocketContext';
 import GroupCard from '../components/GroupCard';
 import CreateGroupModal from '../components/CreateGroupModal';
@@ -32,7 +32,7 @@ const GroupsPage: React.FC = () => {
   const { data: groupsData = { data: [] }, isLoading, error } = useQuery({
     queryKey: ['user-groups'],
     queryFn: async () => {
-      const result = await api.GET('/groups/my-groups', {});
+      const result = await api.GET('/api/v1/groups/my-groups', {});
       return result.data;
     },
   });
@@ -45,7 +45,7 @@ const GroupsPage: React.FC = () => {
 
   const createGroupMutation = useMutation({
     mutationFn: async (name: string) => {
-      const result = await api.POST('/groups', { body: { name } });
+      const result = await api.POST('/api/v1/groups', { body: { name } });
       return result.data;
     },
     onSuccess: () => {
@@ -75,7 +75,7 @@ const GroupsPage: React.FC = () => {
 
   const joinGroupMutation = useMutation({
     mutationFn: async (inviteCode: string) => {
-      const result = await api.POST('/groups/join', { body: { inviteCode } });
+      const result = await api.POST('/api/v1/groups/join', { body: { inviteCode } });
       return result.data;
     },
     onSuccess: () => {

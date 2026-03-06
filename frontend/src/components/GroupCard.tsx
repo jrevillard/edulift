@@ -6,7 +6,7 @@ import { Users, Settings } from 'lucide-react';
 import type { paths } from '@/generated/api/types';
 
 // Use generated type from OpenAPI (single item from the array)
-export type UserGroup = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
+export type UserGroup = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
 
 interface GroupCardProps {
   group: UserGroup;

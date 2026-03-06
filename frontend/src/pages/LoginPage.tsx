@@ -138,10 +138,10 @@ const LoginPage: React.FC = () => {
         const redirectUrl = new URL(decodedRedirectTo, window.location.origin);
         console.log('🔍 DEBUG: Parsed URL pathname:', redirectUrl.pathname);
         console.log('🔍 DEBUG: Parsed URL search params:', redirectUrl.search);
-        if (redirectUrl.pathname === '/families/join') {
+        if (redirectUrl.pathname === '/api/v1/families/join') {
           inviteCode = redirectUrl.searchParams.get('code') || undefined;
           console.log('🔍 DEBUG: Extracted invite code from /families/join:', inviteCode);
-        } else if (redirectUrl.pathname === '/groups/join') {
+        } else if (redirectUrl.pathname === '/api/v1/groups/join') {
           inviteCode = redirectUrl.searchParams.get('code') || undefined;
           console.log('🔍 DEBUG: Extracted invite code from /groups/join:', inviteCode);
         }
@@ -149,7 +149,7 @@ const LoginPage: React.FC = () => {
         console.log('🔍 DEBUG: URL parsing failed, trying regex patterns...');
         // If redirectTo is not a valid URL, it might be a relative path - try both original and decoded
         const urlToCheck = decodedRedirectTo || redirectTo;
-        if (urlToCheck.includes('/families/join?code=') || urlToCheck.includes('/groups/join?code=')) {
+        if (urlToCheck.includes('/api/v1/families/join?code=') || urlToCheck.includes('/api/v1/groups/join?code=')) {
           const codeMatch = urlToCheck.match(/code=([^&]+)/);
           if (codeMatch) {
             inviteCode = codeMatch[1];

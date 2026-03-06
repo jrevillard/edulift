@@ -133,7 +133,7 @@ const ManageGroupPage: React.FC = () => {
     queryKey: ['user-groups'],
     // MIGRATED: Use OpenAPI client to get user groups
     queryFn: async () => {
-      const { data: response, error } = await api.GET('/groups/my-groups', {});
+      const { data: response, error } = await api.GET('/api/v1/groups/my-groups', {});
       if (error || !response?.success || !response?.data) {
         throw new Error('Failed to fetch user groups');
       }
@@ -151,7 +151,7 @@ const ManageGroupPage: React.FC = () => {
     queryKey: ['group-families', groupId || ''],
     queryFn: async () => {
       if (!groupId) return Promise.resolve(undefined);
-      const { data: response, error } = await api.GET('/groups/{groupId}/families', {
+      const { data: response, error } = await api.GET('/api/v1/groups/{groupId}/families', {
         params: { path: { groupId } }
       });
       if (error || !response?.success || !response?.data) {
@@ -238,7 +238,7 @@ const ManageGroupPage: React.FC = () => {
     mutationFn: async ({ familyId, role }: { familyId: string; role: 'ADMIN' | 'MEMBER' }) => {
       if (!groupId) return Promise.reject('No group ID');
 
-      const { data: response, error } = await api.PATCH('/groups/{groupId}/families/{familyId}/role', {
+      const { data: response, error } = await api.PATCH('/api/v1/groups/{groupId}/families/{familyId}/role', {
         params: {
           path: { groupId, familyId }
         },
@@ -265,7 +265,7 @@ const ManageGroupPage: React.FC = () => {
     mutationFn: async (familyId: string) => {
       if (!groupId) return Promise.reject('No group ID');
 
-      const { data: response, error } = await api.DELETE('/groups/{groupId}/families/{familyId}', {
+      const { data: response, error } = await api.DELETE('/api/v1/groups/{groupId}/families/{familyId}', {
         params: {
           path: { groupId, familyId }
         }
@@ -291,7 +291,7 @@ const ManageGroupPage: React.FC = () => {
     mutationFn: async () => {
       if (!groupId) return Promise.reject('No group ID');
 
-      const { data: response, error } = await api.DELETE('/groups/{groupId}', {
+      const { data: response, error } = await api.DELETE('/api/v1/groups/{groupId}', {
         params: {
           path: { groupId }
         }
@@ -305,7 +305,7 @@ const ManageGroupPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group deleted successfully');
       setErrorMessage('');
-      navigate('/groups');
+      navigate('/api/v1/groups');
     },
     onError: (error: Error) => {
       setErrorMessage(error.message || 'Failed to delete group');
@@ -318,7 +318,7 @@ const ManageGroupPage: React.FC = () => {
     mutationFn: async () => {
       if (!groupId) return Promise.reject('No group ID');
 
-      const { data: response, error } = await api.POST('/groups/{groupId}/leave', {
+      const { data: response, error } = await api.POST('/api/v1/groups/{groupId}/leave', {
         params: {
           path: { groupId }
         }
@@ -332,7 +332,7 @@ const ManageGroupPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Left group successfully');
       setErrorMessage('');
-      navigate('/groups');
+      navigate('/api/v1/groups');
     },
     onError: (error: Error) => {
       setErrorMessage(error.message || 'Failed to leave group');
@@ -354,7 +354,7 @@ const ManageGroupPage: React.FC = () => {
       if (updateData.name !== undefined) body.name = updateData.name;
       if (updateData.description !== undefined) body.description = updateData.description;
 
-      const { data: response, error } = await api.PATCH('/groups/{groupId}', {
+      const { data: response, error } = await api.PATCH('/api/v1/groups/{groupId}', {
         params: {
           path: { groupId }
         },
@@ -380,7 +380,7 @@ const ManageGroupPage: React.FC = () => {
 
   // Early return check after all hooks
   if (!groupId) {
-    navigate('/groups');
+    navigate('/api/v1/groups');
     return null;
   }
 
@@ -481,7 +481,7 @@ const ManageGroupPage: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/groups')}
+          onClick={() => navigate('/api/v1/groups')}
           className="gap-2"
           data-testid="ManageGroupPage-Button-backToGroups"
         >

@@ -46,7 +46,7 @@ describe('ScheduleConfigService', () => {
 
       const result = await scheduleConfigService.getGroupScheduleConfig('group-1');
 
-      expect(api.GET).toHaveBeenCalledWith('/groups/{groupId}/schedule-config', {
+      expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config', {
         params: { path: { groupId: 'group-1' } }
       });
       expect(result).toEqual(mockConfig);
@@ -59,7 +59,7 @@ describe('ScheduleConfigService', () => {
       await expect(scheduleConfigService.getGroupScheduleConfig('group-1'))
         .rejects.toThrow('Network error');
 
-      expect(api.GET).toHaveBeenCalledWith('/groups/{groupId}/schedule-config', {
+      expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config', {
         params: { path: { groupId: 'group-1' } }
       });
     });
@@ -82,7 +82,7 @@ describe('ScheduleConfigService', () => {
       const result = await scheduleConfigService.getGroupTimeSlots('group-1', 'MONDAY');
 
       expect(api.GET).toHaveBeenCalledWith(
-        '/groups/{groupId}/schedule-config/time-slots',
+        '/api/v1/groups/{groupId}/schedule-config/time-slots',
         {
           params: {
             path: { groupId: 'group-1' },
@@ -134,7 +134,7 @@ describe('ScheduleConfigService', () => {
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', scheduleHours);
 
       expect(api.PUT).toHaveBeenCalledWith(
-        '/groups/{groupId}/schedule-config',
+        '/api/v1/groups/{groupId}/schedule-config',
         {
           params: { path: { groupId: 'group-1' } },
           body: { scheduleHours }
@@ -159,7 +159,7 @@ describe('ScheduleConfigService', () => {
         .rejects.toThrow('Time slots must be at least 15 minutes apart');
 
       expect(api.PUT).toHaveBeenCalledWith(
-        '/groups/{groupId}/schedule-config',
+        '/api/v1/groups/{groupId}/schedule-config',
         {
           params: { path: { groupId: 'group-1' } },
           body: { scheduleHours: invalidScheduleHours }
@@ -222,7 +222,7 @@ describe('ScheduleConfigService', () => {
 
       const result = await scheduleConfigService.resetGroupScheduleConfig('group-1');
 
-      expect(api.POST).toHaveBeenCalledWith('/groups/{groupId}/schedule-config/reset', {
+      expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
         params: { path: { groupId: 'group-1' } }
       });
       expect(result).toEqual(mockDefaultConfig);
@@ -236,7 +236,7 @@ describe('ScheduleConfigService', () => {
       await expect(scheduleConfigService.resetGroupScheduleConfig('group-1'))
         .rejects.toThrow('Failed to reset configuration');
 
-      expect(api.POST).toHaveBeenCalledWith('/groups/{groupId}/schedule-config/reset', {
+      expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
         params: { path: { groupId: 'group-1' } }
       });
     });
@@ -263,7 +263,7 @@ describe('ScheduleConfigService', () => {
 
       const result = await scheduleConfigService.getDefaultScheduleHours();
 
-      expect(api.GET).toHaveBeenCalledWith('/groups/schedule-config/default');
+      expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/schedule-config/default');
       expect(result).toEqual(mockDefaultHours);
       expect(result.isDefault).toBe(true);
     });

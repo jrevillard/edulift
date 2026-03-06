@@ -89,7 +89,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     // Mock the new OpenAPI API calls
     vi.mocked(api.GET).mockImplementation((path: string) => {
-      if (path === '/vehicles') {
+      if (path === '/api/v1/vehicles') {
         return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
       }
       if (path.startsWith('/schedule-slots/')) {
@@ -178,7 +178,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
   it('should pass seat override when creating new schedule slot with vehicle', async () => {
     const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
     vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
-      if (path.includes('/groups/') && path.includes('/schedule-slots')) {
+      if (path.includes('/api/v1/groups/') && path.includes('/schedule-slots')) {
         createSpy(path, options);
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
       }
@@ -223,7 +223,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
-        '/groups/{groupId}/schedule-slots',
+        '/api/v1/groups/{groupId}/schedule-slots',
         expect.objectContaining({
           params: { path: { groupId: 'group-1' } },
           body: {
@@ -254,7 +254,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
     } }, error: undefined });
 
     vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
-      if (path.includes('/schedule-slots/') && path.includes('/vehicles')) {
+      if (path.includes('/schedule-slots/') && path.includes('/api/v1/vehicles')) {
         assignSpy(path, options);
         return Promise.resolve({ data: { data: {
           id: 'assignment-1',
@@ -308,7 +308,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(assignSpy).toHaveBeenCalledWith(
-        '/schedule-slots/{scheduleSlotId}/vehicles',
+        '/api/v1/schedule-slots/{scheduleSlotId}/vehicles',
         expect.objectContaining({
           params: { path: { scheduleSlotId: 'existing-slot-1' } },
           body: {
@@ -324,7 +324,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
   it('should not pass seat override when field is empty', async () => {
     const createSpy = vi.fn().mockResolvedValue({ data: { data: mockScheduleSlot }, error: undefined });
     vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
-      if (path.includes('/groups/') && path.includes('/schedule-slots')) {
+      if (path.includes('/api/v1/groups/') && path.includes('/schedule-slots')) {
         createSpy(path, options);
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
       }
@@ -369,7 +369,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
 
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
-        '/groups/{groupId}/schedule-slots',
+        '/api/v1/groups/{groupId}/schedule-slots',
         expect.objectContaining({
           params: { path: { groupId: 'group-1' } },
           body: {
@@ -409,7 +409,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
     };
 
     vi.mocked(api.GET).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
-      if (path === '/vehicles') {
+      if (path === '/api/v1/vehicles') {
         return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
       }
       if (path.includes('/schedule-slots/') && options?.params?.path?.scheduleSlotId === 'slot-1') {

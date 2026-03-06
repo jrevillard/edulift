@@ -129,7 +129,7 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API was called
-    expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', {
+    expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', {
       body: { name: 'New Vehicle', capacity: 6 }
     });
   });
@@ -167,7 +167,7 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API was called
-    expect(mockApi.PATCH).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+    expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
       params: { path: { vehicleId: 'vehicle-1' } },
       body: {
         name: 'Honda CR-V Updated',
@@ -205,7 +205,7 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API was called
-    expect(mockApi.DELETE).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+    expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
       params: { path: { vehicleId: 'vehicle-1' } }
     });
   });
@@ -323,7 +323,7 @@ describe('VehiclesPage - RefreshFamily Integration', () => {
     });
 
     // Verify API called with correct data
-    expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', {
+    expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', {
       body: { name: 'Test Vehicle', capacity: 7 }
     });
   });

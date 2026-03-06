@@ -476,7 +476,7 @@ describe('ManageFamilyPage', () => {
       const manageChildrenButton = screen.getByTestId('ManageFamilyPage-Button-manageChildren');
       fireEvent.click(manageChildrenButton);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/children');
+      expect(mockNavigate).toHaveBeenCalledWith('/api/v1/children');
     });
 
     it('should navigate to vehicles page when manage button is clicked', async () => {
@@ -487,7 +487,7 @@ describe('ManageFamilyPage', () => {
       const manageVehiclesButton = screen.getByTestId('ManageFamilyPage-Button-manageVehicles');
       fireEvent.click(manageVehiclesButton);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/vehicles');
+      expect(mockNavigate).toHaveBeenCalledWith('/api/v1/vehicles');
     });
   });
 

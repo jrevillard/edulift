@@ -31,7 +31,7 @@ const VehiclesPage: React.FC = () => {
   const vehiclesQuery = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const result = await api.GET('/vehicles', {});
+      const result = await api.GET('/api/v1/vehicles', {});
       return result.data?.data || []; // Type: Vehicle[]
     },
   });
@@ -39,7 +39,7 @@ const VehiclesPage: React.FC = () => {
   const { data: vehicles, shouldShowLoading, shouldShowError, shouldShowEmpty } = usePageState(vehiclesQuery);
 
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; capacity: number }) => api.POST('/vehicles', { body: data }),
+    mutationFn: (data: { name: string; capacity: number }) => api.POST('/api/v1/vehicles', { body: data }),
     retry: false, // Disable automatic retries to prevent duplicates
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
@@ -72,7 +72,7 @@ const VehiclesPage: React.FC = () => {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: { name?: string; capacity?: number } }) =>
-      api.PATCH('/vehicles/{vehicleId}', { params: { path: { vehicleId: id } }, body: data }),
+      api.PATCH('/api/v1/vehicles/{vehicleId}', { params: { path: { vehicleId: id } }, body: data }),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
@@ -103,7 +103,7 @@ const VehiclesPage: React.FC = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.DELETE('/vehicles/{vehicleId}', { params: { path: { vehicleId: id } } }),
+    mutationFn: (id: string) => api.DELETE('/api/v1/vehicles/{vehicleId}', { params: { path: { vehicleId: id } } }),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['vehicles'] });
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots

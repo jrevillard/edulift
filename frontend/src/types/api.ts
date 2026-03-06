@@ -284,7 +284,7 @@ export type UpdateVehicleRequest = components['schemas']['UpdateVehicleRequest']
  * Weekly Dashboard Response - Extracted from /dashboard/weekly endpoint
  * Response format for the weekly dashboard data
  */
-export type WeeklyDashboardResponse = paths['/dashboard/weekly']['get']['responses'][200]['content']['application/json'];
+export type WeeklyDashboardResponse = paths['/api/v1/dashboard/weekly']['get']['responses'][200]['content']['application/json'];
 
 // Re-export for convenience
 export type {

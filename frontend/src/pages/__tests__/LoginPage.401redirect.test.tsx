@@ -193,10 +193,10 @@ describe('LoginPage 401 Redirect Handling', () => {
     const testPaths = [
       '/schedule',
       '/dashboard',
-      '/groups',
-      '/children',
-      '/vehicles',
-      '/groups/123/manage',
+      '/api/v1/groups',
+      '/api/v1/children',
+      '/api/v1/vehicles',
+      '/api/v1/groups/123/manage',
       '/schedule?group=abc&week=2024-01',
     ];
 

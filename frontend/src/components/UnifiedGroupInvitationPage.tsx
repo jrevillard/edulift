@@ -91,7 +91,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
         const params = parseSearchParams(searchParams);
 
         attemptMobileAppOpen(
-          '/groups/join',
+          '/api/v1/groups/join',
           params,
           mobileDetection,
           {

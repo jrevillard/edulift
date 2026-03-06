@@ -129,7 +129,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   const { data: vehiclesData = { data: [] } } = useQuery({
     queryKey: ['vehicles'],
     queryFn: async () => {
-      const result = await api.GET('/vehicles', {});
+      const result = await api.GET('/api/v1/vehicles', {});
       return result.data;
     },
   });
@@ -140,7 +140,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   const { data: freshSlotData, isLoading: isFreshSlotLoading, error: freshSlotError } = useQuery({
     queryKey: ['schedule-slot', currentScheduleSlotId],
     queryFn: async () => {
-      const result = await api.GET('/schedule-slots/{scheduleSlotId}', {
+      const result = await api.GET('/api/v1/schedule-slots/{scheduleSlotId}', {
         params: { path: { scheduleSlotId: currentScheduleSlotId! } }
       });
       return result.data?.data;
@@ -181,7 +181,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   // Create schedule slot with vehicle mutation
   const createScheduleSlotWithVehicleMutation = useMutation({
     mutationFn: ({ vehicleId, seatOverride }: { vehicleId: string; seatOverride?: number }) =>
-      api.POST('/groups/{groupId}/schedule-slots', {
+      api.POST('/api/v1/groups/{groupId}/schedule-slots', {
         params: { path: { groupId } },
         body: {
           datetime: `${week}T${time}:00`,
@@ -208,7 +208,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   // Assign vehicle mutation
   const assignVehicleMutation = useMutation({
     mutationFn: ({ scheduleSlotId, vehicleId, seatOverride }: { scheduleSlotId: string; vehicleId: string; seatOverride?: number }) =>
-      api.POST('/schedule-slots/{scheduleSlotId}/vehicles', {
+      api.POST('/api/v1/schedule-slots/{scheduleSlotId}/vehicles', {
         params: { path: { scheduleSlotId } },
         body: {
           vehicleId,
@@ -232,7 +232,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   // Remove vehicle mutation
   const removeVehicleMutation = useMutation({
     mutationFn: ({ scheduleSlotId, vehicleId }: { scheduleSlotId: string; vehicleId: string }) =>
-      api.DELETE('/schedule-slots/{scheduleSlotId}/vehicles', {
+      api.DELETE('/api/v1/schedule-slots/{scheduleSlotId}/vehicles', {
         params: { path: { scheduleSlotId } },
         body: { vehicleId }
       }),

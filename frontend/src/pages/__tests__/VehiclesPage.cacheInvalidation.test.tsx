@@ -127,7 +127,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
         params: { path: { vehicleId: 'vehicle-1' } },
         body: { name: 'Updated Bus', capacity: 8 }
       });
@@ -173,7 +173,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', {
+      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', {
         body: { name: 'New Van', capacity: 6 }
       });
     });
@@ -206,7 +206,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.DELETE).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
         params: { path: { vehicleId: 'vehicle-1' } }
       });
     });

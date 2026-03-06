@@ -17625,7 +17625,7 @@ export interface paths {
                          * @description Optional driver identifier
                          * @example cl123456789012345678901239
                          */
-                        driverId?: string;
+                        driverId?: string | null;
                         /**
                          * @description Optional seat capacity override for this assignment
                          * @example 6
@@ -17765,10 +17765,10 @@ export interface paths {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {
@@ -17960,10 +17960,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -18400,10 +18400,10 @@ export interface paths {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {
@@ -18595,10 +18595,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -18881,8 +18881,7 @@ export interface paths {
                             success: boolean;
                             data: {
                                 message: string;
-                                /** @enum {boolean} */
-                                slotDeleted: true;
+                                slotDeleted: boolean;
                             } | {
                                 /**
                                  * Format: cuid
@@ -19001,10 +19000,10 @@ export interface paths {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {
@@ -19196,10 +19195,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -19642,10 +19641,10 @@ export interface paths {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {
@@ -19837,10 +19836,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -20241,10 +20240,10 @@ export interface paths {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {
@@ -20436,10 +20435,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -20826,10 +20825,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -21021,10 +21020,10 @@ export interface paths {
                                                 name: string;
                                                 /**
                                                  * Format: email
-                                                 * @description Driver email
+                                                 * @description Driver email (when included)
                                                  * @example john.doe@example.com
                                                  */
-                                                email: string;
+                                                email?: string;
                                             } | null;
                                             /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                             childAssignments?: {
@@ -21832,10 +21831,10 @@ export interface paths {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {
@@ -22027,10 +22026,10 @@ export interface paths {
                                             name: string;
                                             /**
                                              * Format: email
-                                             * @description Driver email
+                                             * @description Driver email (when included)
                                              * @example john.doe@example.com
                                              */
-                                            email: string;
+                                            email?: string;
                                         } | null;
                                         /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                         childAssignments?: {
@@ -22463,10 +22462,10 @@ export interface operations {
                                     name: string;
                                     /**
                                      * Format: email
-                                     * @description Driver email
+                                     * @description Driver email (when included)
                                      * @example john.doe@example.com
                                      */
-                                    email: string;
+                                    email?: string;
                                 } | null;
                                 /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                 childAssignments?: {
@@ -22658,10 +22657,10 @@ export interface operations {
                                         name: string;
                                         /**
                                          * Format: email
-                                         * @description Driver email
+                                         * @description Driver email (when included)
                                          * @example john.doe@example.com
                                          */
-                                        email: string;
+                                        email?: string;
                                     } | null;
                                     /** @description All child assignments for this vehicle (cross-family carpooling support) */
                                     childAssignments?: {

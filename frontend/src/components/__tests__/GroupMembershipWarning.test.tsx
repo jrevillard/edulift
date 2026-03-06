@@ -158,7 +158,7 @@ describe('GroupMembershipWarning', () => {
     );
 
     fireEvent.click(screen.getByTestId('action-button'));
-    expect(mockNavigate).toHaveBeenCalledWith('/children');
+    expect(mockNavigate).toHaveBeenCalledWith('/api/v1/children');
   });
 
   it('does not show action button for children-page variant since users are already there', () => {

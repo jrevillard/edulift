@@ -6,7 +6,7 @@
  *
  * Usage:
  *   import { api } from '@/services/api';
- *   await api.GET('/children', {});  // Full type safety, auto-completion
+ *   await api.GET('/api/v1/children', {});  // Full type safety, auto-completion
  */
 
 import createClient from 'openapi-fetch';

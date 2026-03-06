@@ -68,7 +68,7 @@ class UnifiedInvitationService {
    */
   async validateFamilyInvitation(inviteCode: string): Promise<FamilyInvitationValidation> {
     try {
-      const { data, error } = await api.GET('/invitations/family/{code}/validate', {
+      const { data, error } = await api.GET('/api/v1/invitations/family/{code}/validate', {
         params: {
           path: {
             code: inviteCode,
@@ -119,7 +119,7 @@ class UnifiedInvitationService {
    */
   async validateGroupInvitation(inviteCode: string): Promise<GroupInvitationValidation> {
     try {
-      const { data, error } = await api.GET('/invitations/group/{code}/validate', {
+      const { data, error } = await api.GET('/api/v1/invitations/group/{code}/validate', {
         params: {
           path: {
             code: inviteCode,
@@ -170,7 +170,7 @@ class UnifiedInvitationService {
     options?: { leaveCurrentFamily?: boolean }
   ): Promise<AcceptFamilyResult> {
     try {
-      const { data, error } = await api.POST('/invitations/family/{code}/accept', {
+      const { data, error } = await api.POST('/api/v1/invitations/family/{code}/accept', {
         params: {
           path: {
             code: inviteCode,
@@ -202,7 +202,7 @@ class UnifiedInvitationService {
    */
   async acceptGroupInvitation(inviteCode: string): Promise<AcceptGroupResult> {
     try {
-      const { data, error } = await api.POST('/invitations/group/{code}/accept', {
+      const { data, error } = await api.POST('/api/v1/invitations/group/{code}/accept', {
         params: {
           path: {
             code: inviteCode,
@@ -235,7 +235,7 @@ class UnifiedInvitationService {
     createdBy: string;
   }) {
     try {
-      const { data: responseData, error } = await api.POST('/invitations/family', {
+      const { data: responseData, error } = await api.POST('/api/v1/invitations/family', {
         body: {
           familyId: data.familyId,
           email: data.email!,
@@ -267,7 +267,7 @@ class UnifiedInvitationService {
     createdBy: string;
   }) {
     try {
-      const { data: responseData, error } = await api.POST('/invitations/group', {
+      const { data: responseData, error } = await api.POST('/api/v1/invitations/group', {
         body: {
           groupId: data.groupId,
           targetFamilyId: data.targetFamilyId,

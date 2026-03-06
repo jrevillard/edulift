@@ -45,7 +45,7 @@ describe('GroupApiService - Pending Invitations', () => {
         'joinGroupWithFamily: Using join group endpoint as no family-specific join endpoint found'
       );
       expect(mockedApi.POST).toHaveBeenCalledWith(
-        '/groups/join',
+        '/api/v1/groups/join',
         { body: { inviteCode } }
       );
       expect(result).toEqual(mockResponseData);
@@ -65,7 +65,7 @@ describe('GroupApiService - Pending Invitations', () => {
       ).rejects.toThrow('Authentication required');
 
       expect(mockedApi.POST).toHaveBeenCalledWith(
-        '/groups/join',
+        '/api/v1/groups/join',
         { body: { inviteCode } }
       );
     });

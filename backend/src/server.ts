@@ -212,7 +212,7 @@ Error responses include validation details:
   },
   servers: [
     {
-      url: env === 'production' ? 'https://api.edulift.com/api/v1' : `http://localhost:${port}/api/v1`,
+      url: env === 'production' ? 'https://api.edulift.com' : `http://localhost:${port}`,
       description: env === 'production' ? 'Production server' : 'Development server',
     },
   ],

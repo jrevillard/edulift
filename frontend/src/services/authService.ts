@@ -6,6 +6,9 @@ import { secureStorage } from '@/utils/secureStorage';
 
 import { API_BASE_URL } from '@/config/runtime';
 
+// Re-export User type for convenience
+export type { User };
+
 export interface AuthResponse {
   user: User;
   token: string;

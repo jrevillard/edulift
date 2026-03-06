@@ -3,12 +3,12 @@ import type { paths } from '@/generated/api/types';
 import type { FamilySearchResult } from '@/types/api';
 
 // OpenAPI generated types
-export type UserGroup = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
-export type GroupFamily = paths['/groups/{groupId}/families']['get']['responses'][200]['content']['application/json']['data'][0];
+export type UserGroup = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
+export type GroupFamily = paths['/api/v1/groups/{groupId}/families']['get']['responses'][200]['content']['application/json']['data'][0];
 
 // Type de réponse pour la validation d'invitation (sans auth)
 // Basé sur le nouvel endpoint GET /invitations/group/{code}/validate
-export type GroupValidationResponse = paths['/invitations/group/{code}/validate']['get']['responses'][200]['content']['application/json'];
+export type GroupValidationResponse = paths['/api/v1/invitations/group/{code}/validate']['get']['responses'][200]['content']['application/json'];
 
 // Type de réponse pour la validation d'invitation (avec auth)
 // Note: Le même endpoint est utilisé pour les deux cas (auth est optionnel)
@@ -23,7 +23,7 @@ export class GroupApiService {
   // Uses new GET /invitations/group/{code}/validate endpoint
   async validateGroupInviteCode(inviteCode: string): Promise<GroupValidationResponse> {
     try {
-      const { data } = await api.GET('/invitations/group/{code}/validate', {
+      const { data } = await api.GET('/api/v1/invitations/group/{code}/validate', {
         params: { path: { code: inviteCode } }
       });
 
@@ -60,7 +60,7 @@ export class GroupApiService {
   // Join group by invite code
   async joinGroupByInviteCode(inviteCode: string) {
     try {
-      const { data } = await api.POST('/groups/join', {
+      const { data } = await api.POST('/api/v1/groups/join', {
         body: { inviteCode }
       });
 
@@ -77,7 +77,7 @@ export class GroupApiService {
   // Family search and invitation
   async searchFamiliesForInvitation(groupId: string, searchTerm: string): Promise<FamilySearchResult[]> {
     try {
-      const { data } = await api.POST('/groups/{groupId}/search-families', {
+      const { data } = await api.POST('/api/v1/groups/{groupId}/search-families', {
         params: { path: { groupId } },
         body: { searchTerm }
       });
@@ -95,7 +95,7 @@ export class GroupApiService {
   // Invite family to group
   async inviteFamilyToGroup(groupId: string, familyId: string, role: 'MEMBER' | 'ADMIN', personalMessage?: string) {
     try {
-      const { data } = await api.POST('/groups/{groupId}/invite', {
+      const { data } = await api.POST('/api/v1/groups/{groupId}/invite', {
         params: { path: { groupId } },
         body: { familyId, role, personalMessage }
       });
@@ -124,7 +124,7 @@ export class GroupApiService {
   // Group management
   async getUserGroups(): Promise<UserGroup[]> {
     try {
-      const { data } = await api.GET('/groups/my-groups');
+      const { data } = await api.GET('/api/v1/groups/my-groups');
 
       if (!data?.success) {
         throw new Error('Failed to get user groups');
@@ -149,7 +149,7 @@ export class GroupApiService {
 
   async createGroup(name: string) {
     try {
-      const { data } = await api.POST('/groups', {
+      const { data } = await api.POST('/api/v1/groups', {
         body: { name }
       });
 
@@ -165,7 +165,7 @@ export class GroupApiService {
 
   async deleteGroup(groupId: string) {
     try {
-      const { data } = await api.DELETE('/groups/{groupId}', {
+      const { data } = await api.DELETE('/api/v1/groups/{groupId}', {
         params: { path: { groupId } }
       });
 
@@ -182,7 +182,7 @@ export class GroupApiService {
   // Group families (family-based group management)
   async getGroupFamilies(groupId: string): Promise<GroupFamily[]> {
     try {
-      const { data } = await api.GET('/groups/{groupId}/families', {
+      const { data } = await api.GET('/api/v1/groups/{groupId}/families', {
         params: { path: { groupId } }
       });
 
@@ -199,7 +199,7 @@ export class GroupApiService {
   // Cancel group invitation
   async cancelGroupInvitation(invitationId: string) {
     try {
-      const { data } = await api.DELETE('/invitations/group/{invitationId}', {
+      const { data } = await api.DELETE('/api/v1/invitations/group/{invitationId}', {
         params: { path: { invitationId } }
       });
 

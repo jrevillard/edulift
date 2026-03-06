@@ -34,7 +34,7 @@ const ChildrenPage: React.FC = () => {
   const childrenQuery = useQuery({
     queryKey: ['children'],
     queryFn: async () => {
-      const result = await api.GET('/children', {});
+      const result = await api.GET('/api/v1/children', {});
       const apiChildren = result.data?.data || [];
 
       // Convert API response format to match expected types
@@ -62,7 +62,7 @@ const ChildrenPage: React.FC = () => {
   const { data: groupsData = { data: [] } } = useQuery({
     queryKey: ['user-groups'],
     queryFn: async () => {
-      const result = await api.GET('/groups/my-groups', {});
+      const result = await api.GET('/api/v1/groups/my-groups', {});
       return result.data;
     },
   });
@@ -72,7 +72,7 @@ const ChildrenPage: React.FC = () => {
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; age?: number; groupIds: string[] }) => {
       // First create the child
-      const createResult = await api.POST('/children', {
+      const createResult = await api.POST('/api/v1/children', {
         body: { name: data.name, age: data.age }
       });
       const child = createResult.data?.data;
@@ -85,7 +85,7 @@ const ChildrenPage: React.FC = () => {
       if (data.groupIds.length > 0) {
         await Promise.all(
           data.groupIds.map(groupId =>
-            api.POST('/children/{childId}/groups/{groupId}', {
+            api.POST('/api/v1/children/{childId}/groups/{groupId}', {
               params: { path: { childId: child.id, groupId } }
             })
           )
@@ -128,7 +128,7 @@ const ChildrenPage: React.FC = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name?: string; age?: number } }) => {
-      const result = await api.PATCH('/children/{childId}', {
+      const result = await api.PATCH('/api/v1/children/{childId}', {
         params: { path: { childId: id } },
         body: data
       });
@@ -172,7 +172,7 @@ const ChildrenPage: React.FC = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.DELETE('/children/{childId}', {
+      await api.DELETE('/api/v1/children/{childId}', {
         params: { path: { childId: id } }
       });
     },

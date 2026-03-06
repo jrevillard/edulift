@@ -8,7 +8,7 @@
 import type { paths } from '@/generated/api/types';
 
 // OpenAPI generated types
-export type GroupFamily = paths['/groups/{groupId}/families']['get']['responses'][200]['content']['application/json']['data'][0];
+export type GroupFamily = paths['/api/v1/groups/{groupId}/families']['get']['responses'][200]['content']['application/json']['data'][0];
 
 /**
  * Transform OpenAPI response to match expected GroupFamily interface

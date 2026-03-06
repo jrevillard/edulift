@@ -129,7 +129,7 @@ describe('ProtectedRoute 401 Redirect', () => {
     });
 
     it('should redirect to login from different protected routes', () => {
-      const testRoutes = ['/dashboard', '/groups', '/children', '/vehicles', '/schedule'];
+      const testRoutes = ['/dashboard', '/api/v1/groups', '/api/v1/children', '/api/v1/vehicles', '/schedule'];
       
       testRoutes.forEach(route => {
         consoleLogSpy.mockClear();

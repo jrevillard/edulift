@@ -2,10 +2,10 @@ import { api } from './api';
 import type { paths, components } from '../generated/api/types';
 
 // Extract types from OpenAPI generated types for backward compatibility
-type BaseFamily = paths['/families/current']['get']['responses']['200']['content']['application/json']['data'];
+type BaseFamily = paths['/api/v1/families/current']['get']['responses']['200']['content']['application/json']['data'];
 export type FamilyMember = NonNullable<BaseFamily['members']>[0];
-export type FamilyInvitation = paths['/families/{familyId}/invite']['post']['responses']['201']['content']['application/json']['data'];
-export type FamilyPermissions = paths['/families/{familyId}/permissions']['get']['responses']['200']['content']['application/json']['data'];
+export type FamilyInvitation = paths['/api/v1/families/{familyId}/invite']['post']['responses']['201']['content']['application/json']['data'];
+export type FamilyPermissions = paths['/api/v1/families/{familyId}/permissions']['get']['responses']['200']['content']['application/json']['data'];
 export type Child = NonNullable<BaseFamily['children']>[0];
 export type Vehicle = NonNullable<BaseFamily['vehicles']>[0];
 
@@ -51,7 +51,7 @@ class FamilyApiService {
   async createFamily(data: CreateFamilyRequest): Promise<Family> {
     try {
       console.log('🔍 FamilyApiService: Creating family with data:', data);
-      const { data: response, error } = await api.POST('/families', {
+      const { data: response, error } = await api.POST('/api/v1/families', {
         body: data,
       });
 
@@ -78,7 +78,7 @@ class FamilyApiService {
 
   async joinFamily(data: JoinFamilyRequest): Promise<Family> {
     try {
-      const { data: response, error } = await api.POST('/families/join', {
+      const { data: response, error } = await api.POST('/api/v1/families/join', {
         body: data,
       });
 
@@ -133,7 +133,7 @@ class FamilyApiService {
   async getCurrentFamily(): Promise<Family | null> {
     try {
       console.log('🔍 FamilyApiService: Fetching current family...');
-      const { data: response, error } = await api.GET('/families/current');
+      const { data: response, error } = await api.GET('/api/v1/families/current');
 
       if (error) {
         // Handle 404 as "no family" case
@@ -205,7 +205,7 @@ class FamilyApiService {
   }
 
   async leaveFamily(familyId: string): Promise<void> {
-    const { data: response, error } = await api.POST('/families/{familyId}/leave', {
+    const { data: response, error } = await api.POST('/api/v1/families/{familyId}/leave', {
       params: {
         path: { familyId },
       },
@@ -230,7 +230,7 @@ class FamilyApiService {
   }
 
   async inviteMember(familyId: string, data: InviteMemberRequest): Promise<FamilyInvitation> {
-    const { data: response, error } = await api.POST('/families/{familyId}/invite', {
+    const { data: response, error } = await api.POST('/api/v1/families/{familyId}/invite', {
       params: {
         path: { familyId },
       },
@@ -249,7 +249,7 @@ class FamilyApiService {
   }
 
   async updateMemberRole(memberId: string, data: UpdateMemberRoleRequest): Promise<void> {
-    const { data: response, error } = await api.PUT('/families/members/{memberId}/role', {
+    const { data: response, error } = await api.PUT('/api/v1/families/members/{memberId}/role', {
       params: {
         path: { memberId },
       },
@@ -266,7 +266,7 @@ class FamilyApiService {
   }
 
   async removeMember(familyId: string, memberId: string): Promise<void> {
-    const { data: response, error } = await api.DELETE('/families/{familyId}/members/{memberId}', {
+    const { data: response, error } = await api.DELETE('/api/v1/families/{familyId}/members/{memberId}', {
       params: {
         path: { familyId, memberId },
       },
@@ -287,7 +287,7 @@ class FamilyApiService {
   }
 
   async updateFamilyName(name: string): Promise<Family> {
-    const { data: response, error } = await api.PUT('/families/name', {
+    const { data: response, error } = await api.PUT('/api/v1/families/name', {
       body: { name },
     });
 
@@ -309,7 +309,7 @@ class FamilyApiService {
 
   // Permissions
   async getUserPermissions(familyId: string): Promise<FamilyPermissions> {
-    const { data: response, error } = await api.GET('/families/{familyId}/permissions', {
+    const { data: response, error } = await api.GET('/api/v1/families/{familyId}/permissions', {
       params: {
         path: { familyId },
       },
@@ -328,7 +328,7 @@ class FamilyApiService {
 
   // Invitations
   async getInvitations(familyId: string): Promise<FamilyInvitation[]> {
-    const { data: response, error } = await api.GET('/families/{familyId}/invitations', {
+    const { data: response, error } = await api.GET('/api/v1/families/{familyId}/invitations', {
       params: {
         path: { familyId },
       },
@@ -346,7 +346,7 @@ class FamilyApiService {
   }
 
   async cancelInvitation(familyId: string, invitationId: string): Promise<void> {
-    const { data: response, error } = await api.DELETE('/families/{familyId}/invitations/{invitationId}', {
+    const { data: response, error } = await api.DELETE('/api/v1/families/{familyId}/invitations/{invitationId}', {
       params: {
         path: { familyId, invitationId },
       },
@@ -376,7 +376,7 @@ class FamilyApiService {
     }
 
     try {
-      const { data, error } = await api.GET('/invitations/family/{code}/validate', {
+      const { data, error } = await api.GET('/api/v1/invitations/family/{code}/validate', {
         params: { path: { code: inviteCode } }
       });
 
@@ -417,7 +417,7 @@ class FamilyApiService {
     // NOTE: This endpoint is not available in the generated OpenAPI client
     // Should be GET /families/{familyId}/children
     // Workaround: Use the general /children endpoint which returns user's family children
-    const { data: response, error } = await api.GET('/children');
+    const { data: response, error } = await api.GET('/api/v1/children');
 
     if (error) {
       throw new Error(typeof error === 'string' ? error : 'Failed to fetch family children');
@@ -434,7 +434,7 @@ class FamilyApiService {
 
   async addFamilyChild(childData: { name: string; age?: number }): Promise<Child> {
     // NOTE: This uses the general /children endpoint as family-specific endpoint is not available
-    const { data: response, error } = await api.POST('/children', {
+    const { data: response, error } = await api.POST('/api/v1/children', {
       body: childData,
     });
 
@@ -456,7 +456,7 @@ class FamilyApiService {
     // NOTE: This endpoint is not available in the generated OpenAPI client
     // Should be GET /families/{familyId}/vehicles
     // Workaround: Use the general /vehicles endpoint which returns user's family vehicles
-    const { data: response, error } = await api.GET('/vehicles');
+    const { data: response, error } = await api.GET('/api/v1/vehicles');
 
     if (error) {
       throw new Error(typeof error === 'string' ? error : 'Failed to fetch family vehicles');
@@ -473,7 +473,7 @@ class FamilyApiService {
 
   async addFamilyVehicle(vehicleData: { name: string; capacity: number }): Promise<Vehicle> {
     // NOTE: This uses the general /vehicles endpoint as family-specific endpoint is not available
-    const { data: response, error } = await api.POST('/vehicles', {
+    const { data: response, error } = await api.POST('/api/v1/vehicles', {
       body: vehicleData,
     });
 

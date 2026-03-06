@@ -117,37 +117,37 @@ const createMockClient = () => {
 
     switch (path) {
       // Groups endpoints
-      case '/groups':
+      case '/api/v1/groups':
         return Promise.resolve({
           data: { data: [mockGroup], success: true, pagination: { page: 1, limit: 10, total: 1, totalPages: 1 } },
           error: undefined
         });
-      case '/groups/my-groups':
+      case '/api/v1/groups/my-groups':
         return Promise.resolve({
           data: { data: [mockGroup], success: true, pagination: { page: 1, limit: 10, total: 1, totalPages: 1 } },
           error: undefined
         });
-      case '/groups/{groupId}':
+      case '/api/v1/groups/{groupId}':
         return Promise.resolve({
           data: { data: mockGroup, success: true },
           error: undefined
         });
-      case '/groups/{groupId}/families':
+      case '/api/v1/groups/{groupId}/families':
         return Promise.resolve({
           data: { data: mockGroupFamilies, success: true },
           error: undefined
         });
-      case '/groups/{groupId}/invitations':
+      case '/api/v1/groups/{groupId}/invitations':
         return Promise.resolve({
           data: { data: [], success: true },
           error: undefined
         });
-      case '/groups/{groupId}/schedule-slots':
+      case '/api/v1/groups/{groupId}/schedule-slots':
         return Promise.resolve({
           data: { data: [], success: true },
           error: undefined
         });
-      case '/groups/{groupId}/schedule-config':
+      case '/api/v1/groups/{groupId}/schedule-config':
         return Promise.resolve({
           data: {
             data: {
@@ -168,7 +168,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/groups/{groupId}/schedule-config/time-slots':
+      case '/api/v1/groups/{groupId}/schedule-config/time-slots':
         return Promise.resolve({
           data: {
             data: {
@@ -180,7 +180,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/groups/schedule-config/default':
+      case '/api/v1/groups/schedule-config/default':
         return Promise.resolve({
           data: {
             data: {
@@ -199,22 +199,22 @@ const createMockClient = () => {
         });
 
       // Family endpoints
-      case '/families/current':
+      case '/api/v1/families/current':
         return Promise.resolve({
           data: { data: mockFamily, success: true },
           error: undefined
         });
-      case '/families':
+      case '/api/v1/families':
         return Promise.resolve({
           data: { data: [mockFamily], success: true },
           error: undefined
         });
-      case '/families/{familyId}':
+      case '/api/v1/families/{familyId}':
         return Promise.resolve({
           data: { data: mockFamily, success: true },
           error: undefined
         });
-      case '/families/{familyId}/permissions':
+      case '/api/v1/families/{familyId}/permissions':
         return Promise.resolve({
           data: {
             data: {
@@ -228,53 +228,53 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/families/{familyId}/children':
+      case '/api/v1/families/{familyId}/children':
         return Promise.resolve({
           data: { data: [mockChild], success: true },
           error: undefined
         });
-      case '/families/{familyId}/vehicles':
+      case '/api/v1/families/{familyId}/vehicles':
         return Promise.resolve({
           data: { data: [mockVehicle], success: true },
           error: undefined
         });
-      case '/families/{familyId}/members':
+      case '/api/v1/families/{familyId}/members':
         return Promise.resolve({
           data: { data: mockFamily.members, success: true },
           error: undefined
         });
-      case '/families/{familyId}/invitations':
+      case '/api/v1/families/{familyId}/invitations':
         return Promise.resolve({
           data: { data: [], success: true },
           error: undefined
         });
 
       // Children endpoints
-      case '/children':
+      case '/api/v1/children':
         return Promise.resolve({
           data: { data: [mockChild], success: true },
           error: undefined
         });
-      case '/children/{childId}':
+      case '/api/v1/children/{childId}':
         return Promise.resolve({
           data: { data: mockChild, success: true },
           error: undefined
         });
 
       // Vehicles endpoints
-      case '/vehicles':
+      case '/api/v1/vehicles':
         return Promise.resolve({
           data: { data: [mockVehicle], success: true },
           error: undefined
         });
-      case '/vehicles/{vehicleId}':
+      case '/api/v1/vehicles/{vehicleId}':
         return Promise.resolve({
           data: { data: mockVehicle, success: true },
           error: undefined
         });
 
       // Schedule endpoints
-      case '/schedule-slots/{scheduleSlotId}':
+      case '/api/v1/schedule-slots/{scheduleSlotId}':
         return Promise.resolve({
           data: {
             data: {
@@ -294,7 +294,7 @@ const createMockClient = () => {
         });
 
       // Dashboard endpoints
-      case '/dashboard/stats':
+      case '/api/v1/dashboard/stats':
         return Promise.resolve({
           data: {
             data: {
@@ -313,7 +313,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/dashboard/weekly':
+      case '/api/v1/dashboard/weekly':
         return Promise.resolve({
           data: {
             data: {
@@ -349,7 +349,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/dashboard/weekly-schedule':
+      case '/api/v1/dashboard/weekly-schedule':
         return Promise.resolve({
           data: {
             data: {
@@ -364,7 +364,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/dashboard/today-schedule':
+      case '/api/v1/dashboard/today-schedule':
         return Promise.resolve({
           data: {
             data: {
@@ -375,7 +375,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/dashboard/recent-activity':
+      case '/api/v1/dashboard/recent-activity':
         return Promise.resolve({
           data: {
             data: {
@@ -404,7 +404,7 @@ const createMockClient = () => {
 
   mockClient.POST.mockImplementation((path: string) => {
     switch (path) {
-      case '/groups/{groupId}/schedule-config/reset':
+      case '/api/v1/groups/{groupId}/schedule-config/reset':
         return Promise.resolve({
           data: {
             data: {
@@ -425,37 +425,37 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/groups/{groupId}/invite-family':
+      case '/api/v1/groups/{groupId}/invite-family':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/groups/{groupId}/leave':
+      case '/api/v1/groups/{groupId}/leave':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/families/{familyId}/invite':
+      case '/api/v1/families/{familyId}/invite':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/children':
+      case '/api/v1/children':
         return Promise.resolve({
           data: { data: mockChild, success: true },
           error: undefined
         });
-      case '/vehicles':
+      case '/api/v1/vehicles':
         return Promise.resolve({
           data: { data: mockVehicle, success: true },
           error: undefined
         });
-      case '/schedule-slots/{scheduleSlotId}/assign-child':
+      case '/api/v1/schedule-slots/{scheduleSlotId}/assign-child':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/schedule-slots/{scheduleSlotId}/assign-vehicle':
+      case '/api/v1/schedule-slots/{scheduleSlotId}/assign-vehicle':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
@@ -470,22 +470,22 @@ const createMockClient = () => {
 
   mockClient.PATCH.mockImplementation((path: string) => {
     switch (path) {
-      case '/groups/{groupId}':
+      case '/api/v1/groups/{groupId}':
         return Promise.resolve({
           data: { data: { ...mockGroup, name: 'Updated Group' }, success: true },
           error: undefined
         });
-      case '/groups/{groupId}/families/{familyId}/role':
+      case '/api/v1/groups/{groupId}/families/{familyId}/role':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/children/{childId}':
+      case '/api/v1/children/{childId}':
         return Promise.resolve({
           data: { data: mockChild, success: true },
           error: undefined
         });
-      case '/vehicles/{vehicleId}':
+      case '/api/v1/vehicles/{vehicleId}':
         return Promise.resolve({
           data: { data: mockVehicle, success: true },
           error: undefined
@@ -501,32 +501,32 @@ const createMockClient = () => {
   mockClient.DELETE.mockImplementation((path: string) => {
 
     switch (path) {
-      case '/groups/{groupId}':
+      case '/api/v1/groups/{groupId}':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/groups/{groupId}/families/{familyId}':
+      case '/api/v1/groups/{groupId}/families/{familyId}':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/groups/{groupId}/invitations/{invitationId}':
+      case '/api/v1/groups/{groupId}/invitations/{invitationId}':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/children/{childId}':
+      case '/api/v1/children/{childId}':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/vehicles/{vehicleId}':
+      case '/api/v1/vehicles/{vehicleId}':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
         });
-      case '/families/{familyId}/leave':
+      case '/api/v1/families/{familyId}/leave':
         return Promise.resolve({
           data: { data: { success: true }, success: true },
           error: undefined
@@ -541,7 +541,7 @@ const createMockClient = () => {
 
   mockClient.PUT.mockImplementation((path: string) => {
     switch (path) {
-      case '/groups/{groupId}/schedule-config':
+      case '/api/v1/groups/{groupId}/schedule-config':
         return Promise.resolve({
           data: {
             data: {

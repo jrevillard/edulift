@@ -5,17 +5,17 @@ import type { paths } from '@/generated/api/types';
 import type { Child, GroupChildMembership } from '@/types/api';
 
 // OpenAPI generated types
-export type UserGroup = paths['/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
+export type UserGroup = paths['/api/v1/groups/my-groups']['get']['responses'][200]['content']['application/json']['data'][0];
 
 /*
   MIGRATION STATUS: ✅ FULLY MIGRATED TO OPENAPI GENERATED TYPES
   ==========================================================
   Using direct HTTP methods with generated type safety:
 
-  1. api.GET('/children/{childId}/groups', { params: { path: { childId } } })
-  2. api.GET('/groups/my-groups', {})
-  3. api.POST('/children/{childId}/groups/{groupId}', { params: { path: { childId, groupId } } })
-  4. api.DELETE('/children/{childId}/groups/{groupId}', { params: { path: { childId, groupId } } })
+  1. api.GET('/api/v1/children/{childId}/groups', { params: { path: { childId } } })
+  2. api.GET('/api/v1/groups/my-groups', {})
+  3. api.POST('/api/v1/children/{childId}/groups/{groupId}', { params: { path: { childId, groupId } } })
+  4. api.DELETE('/api/v1/children/{childId}/groups/{groupId}', { params: { path: { childId, groupId } } })
 
   All functionality preserved with full type safety and IDE auto-completion.
 */
@@ -38,7 +38,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
   const { data: childGroupsData, isLoading: loadingChildGroups } = useQuery({
     queryKey: ['child-groups', child.id],
     queryFn: async () => {
-      const result = await api.GET('/children/{childId}/groups', {
+      const result = await api.GET('/api/v1/children/{childId}/groups', {
         params: { path: { childId: child.id } }
       });
       return result.data;
@@ -50,7 +50,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
   const { data: userGroupsData, isLoading: loadingUserGroups } = useQuery({
     queryKey: ['my-groups'],
     queryFn: async () => {
-      const result = await api.GET('/groups/my-groups', {});
+      const result = await api.GET('/api/v1/groups/my-groups', {});
       return result.data;
     },
     enabled: isOpen,
@@ -68,7 +68,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
   // Mutations
   const addToGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      const result = await api.POST('/children/{childId}/groups/{groupId}', {
+      const result = await api.POST('/api/v1/children/{childId}/groups/{groupId}', {
         params: { path: { childId: child.id, groupId } }
       });
       return result;
@@ -82,7 +82,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
 
   const removeFromGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
-      const result = await api.DELETE('/children/{childId}/groups/{groupId}', {
+      const result = await api.DELETE('/api/v1/children/{childId}/groups/{groupId}', {
         params: { path: { childId: child.id, groupId } }
       });
       return result;

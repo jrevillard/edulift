@@ -167,7 +167,7 @@ describe('VehiclesPage', () => {
     await user.click(submitButton)
     
     await waitFor(() => {
-      expect(mockApi.POST).toHaveBeenCalledWith('/vehicles', { body: { name: 'Test Vehicle', capacity: 5 } })
+      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', { body: { name: 'Test Vehicle', capacity: 5 } })
     })
   })
 
@@ -252,7 +252,7 @@ describe('VehiclesPage', () => {
     
     await waitFor(() => {
       expect(mockApi.PATCH).toHaveBeenCalledWith(
-        '/vehicles/{vehicleId}',
+        '/api/v1/vehicles/{vehicleId}',
         {
           params: { path: { vehicleId: mockVehicle.id } },
           body: { name: 'Updated Vehicle', capacity: mockVehicle.capacity }
@@ -297,7 +297,7 @@ describe('VehiclesPage', () => {
     await user.click(confirmButton)
     
     await waitFor(() => {
-      expect(mockApi.DELETE).toHaveBeenCalledWith('/vehicles/{vehicleId}', {
+      expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
       params: { path: { vehicleId: mockVehicle.id } }
     })
     })
