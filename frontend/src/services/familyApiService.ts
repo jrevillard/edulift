@@ -1,5 +1,6 @@
 import { api } from './api';
 import type { paths, components } from '../generated/api/types';
+import { throwApiError, getApiError, isHttpError } from '../utils/apiError';
 
 // Extract types from OpenAPI generated types for backward compatibility
 type BaseFamily = paths['/api/v1/families/current']['get']['responses']['200']['content']['application/json']['data'];
@@ -55,7 +56,7 @@ class FamilyApiService {
 
       if (error) {
         console.error('🚨 FamilyApiService: API error creating family:', error);
-        throw new Error(typeof error === 'string' ? error : 'Failed to create family');
+        throwApiError(error, 'Failed to create family');
       }
 
       if (!response?.success || !response?.data) {
@@ -71,99 +72,72 @@ class FamilyApiService {
   }
 
   async joinFamily(data: JoinFamilyRequest): Promise<Family> {
-    try {
-      const { data: response, error } = await api.POST('/api/v1/families/join', {
-        body: data,
-      });
+    const { data: response, error } = await api.POST('/api/v1/families/join', {
+      body: data,
+    });
 
-      if (error) {
-        // Handle different error types
-        if (typeof error === 'object' && error !== null) {
-          const errObj = error as { status?: number; message?: string; error?: string };
-
-          // Extract error message from API response
-          const apiErrorMessage = errObj.message || errObj.error;
-
-          switch (errObj.status) {
-            case 400:
-              if (apiErrorMessage?.includes('invitation') || apiErrorMessage?.includes('code')) {
-                throw new Error('Invalid invitation code. Please check the code and try again.');
-              }
-              throw new Error(apiErrorMessage || 'Invalid invitation code. Please check and try again.');
-            case 404:
-              throw new Error('Invitation not found or has expired. Please check with the family member who sent it.');
-            case 403:
-              throw new Error('You do not have permission to join this family.');
-            case 409:
-              throw new Error('You are already a member of this family.');
-            default:
-              throw new Error(apiErrorMessage || 'Unable to join family. Please try again later.');
-          }
+    if (error) {
+      // Handle different HTTP status codes with user-friendly messages
+      if (isHttpError(error, 400)) {
+        const apiError = getApiError(error);
+        if (apiError.message?.includes('invitation') || apiError.message?.includes('code')) {
+          throw new Error('Invalid invitation code. Please check the code and try again.');
         }
-
-        throw new Error(typeof error === 'string' ? error : 'Failed to join family');
+        throw new Error(apiError.message || 'Invalid invitation code. Please check and try again.');
       }
-
-      if (!response?.success || !response?.data) {
-        throw new Error('Failed to join family');
+      if (isHttpError(error, 404)) {
+        throw new Error('Invitation not found or has expired. Please check with the family member who sent it.');
       }
-
-      const familyData = response.data;
-      return familyData;
-    } catch (error) {
-      // Network or other errors
-      if (error instanceof Error) {
-        throw error;
+      if (isHttpError(error, 403)) {
+        throw new Error('You do not have permission to join this family.');
       }
-
-      throw new Error('Network error. Please check your connection and try again.');
+      if (isHttpError(error, 409)) {
+        throw new Error('You are already a member of this family.');
+      }
+      throwApiError(error, 'Unable to join family. Please try again later.');
     }
+
+    if (!response?.success || !response?.data) {
+      throw new Error('Failed to join family');
+    }
+
+    return response.data;
   }
 
   async getCurrentFamily(): Promise<Family | null> {
-    try {
-      console.log('🔍 FamilyApiService: Fetching current family...');
-      const { data: response, error } = await api.GET('/api/v1/families/current');
+    console.log('🔍 FamilyApiService: Fetching current family...');
+    const { data: response, error } = await api.GET('/api/v1/families/current');
 
-      if (error) {
-        // Handle 404 as "no family" case
-        if (typeof error === 'object' && error !== null && (error as { status?: number }).status === 404) {
-          console.log('📝 FamilyApiService: User is not part of any family (404)');
-          return null;
-        }
-        throw new Error(typeof error === 'string' ? error : 'Failed to fetch current family');
-      }
-
-      if (!response?.success) {
-        if (response === null) {
-          console.log('📝 FamilyApiService: No current family found');
-          return null;
-        }
-        throw new Error('Failed to fetch current family');
-      }
-
-      const familyData = response.data || null;
-      if (familyData) {
-        console.log('✅ FamilyApiService: Current family fetched successfully:', {
-          familyId: familyData.id,
-          familyName: familyData.name,
-          memberCount: familyData.members?.length || 0,
-          adminCount: familyData.members?.filter(m => m.role === 'ADMIN').length || 0
-        });
-      } else {
-        console.log('📝 FamilyApiService: No current family found');
-      }
-
-      return familyData as Family | null;
-    } catch (error) {
-      // Check if it's a 404 error object
-      if (typeof error === 'object' && error !== null && (error as { status?: number }).status === 404) {
-        console.log('📝 FamilyApiService: User is not part of any family (404 error)');
+    if (error) {
+      // Handle 404 as "no family" case
+      if (isHttpError(error, 404)) {
+        console.log('📝 FamilyApiService: User is not part of any family (404)');
         return null;
       }
-      console.error('🚨 FamilyApiService: Error fetching current family:', error);
-      throw error;
+      throwApiError(error, 'Failed to fetch current family');
     }
+
+    if (!response?.success) {
+      if (response === null) {
+        console.log('📝 FamilyApiService: No current family found');
+        return null;
+      }
+      throw new Error('Failed to fetch current family');
+    }
+
+    const familyData = response.data || null;
+    if (familyData) {
+      console.log('✅ FamilyApiService: Current family fetched successfully:', {
+        familyId: familyData.id,
+        familyName: familyData.name,
+        memberCount: familyData.members?.length || 0,
+        adminCount: familyData.members?.filter(m => m.role === 'ADMIN').length || 0
+      });
+    } else {
+      console.log('📝 FamilyApiService: No current family found');
+    }
+
+    return familyData as Family | null;
   }
 
   async getFamilyById(familyId: string): Promise<Family> {
@@ -198,7 +172,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to leave family');
+      throwApiError(error, 'Failed to leave family');
     }
 
     if (!response?.success) {
@@ -224,7 +198,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to send invitation');
+      throwApiError(error, 'Failed to send invitation');
     }
 
     if (!response?.success || !response?.data) {
@@ -243,7 +217,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to update member role');
+      throwApiError(error, 'Failed to update member role');
     }
 
     if (!response?.success) {
@@ -259,7 +233,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to remove member');
+      throwApiError(error, 'Failed to remove member');
     }
 
     if (!response?.success) {
@@ -278,7 +252,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to update family name');
+      throwApiError(error, 'Failed to update family name');
     }
 
     if (!response?.success || !response?.data) {
@@ -298,7 +272,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to fetch permissions');
+      throwApiError(error, 'Failed to fetch permissions');
     }
 
     if (!response?.success || !response?.data) {
@@ -317,7 +291,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to fetch invitations');
+      throwApiError(error, 'Failed to fetch invitations');
     }
 
     if (!response?.success || !response?.data) {
@@ -335,7 +309,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to cancel invitation');
+      throwApiError(error, 'Failed to cancel invitation');
     }
 
     if (!response?.success) {
@@ -368,7 +342,7 @@ class FamilyApiService {
           const errorMessage = (error as { message?: string; error?: string }).message || (error as { message?: string; error?: string }).error;
           return { valid: false, error: errorMessage || 'Failed to validate invite code' };
         }
-        return { valid: false, error: typeof error === 'string' ? error : 'Failed to validate invite code' };
+        return { valid: false, error: getApiError(error).message || 'Failed to validate invite code' };
       }
 
       if (!data?.valid) {
@@ -402,7 +376,7 @@ class FamilyApiService {
     const { data: response, error } = await api.GET('/api/v1/children');
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to fetch family children');
+      throwApiError(error, 'Failed to fetch family children');
     }
 
     if (!response?.success || !response?.data) {
@@ -421,7 +395,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to add child to family');
+      throwApiError(error, 'Failed to add child to family');
     }
 
     if (!response?.success || !response?.data) {
@@ -441,7 +415,7 @@ class FamilyApiService {
     const { data: response, error } = await api.GET('/api/v1/vehicles');
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to fetch family vehicles');
+      throwApiError(error, 'Failed to fetch family vehicles');
     }
 
     if (!response?.success || !response?.data) {
@@ -460,7 +434,7 @@ class FamilyApiService {
     });
 
     if (error) {
-      throw new Error(typeof error === 'string' ? error : 'Failed to add vehicle to family');
+      throwApiError(error, 'Failed to add vehicle to family');
     }
 
     if (!response?.success || !response?.data) {

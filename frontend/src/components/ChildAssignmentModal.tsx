@@ -268,29 +268,40 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
 
   const handleAddChild = async () => {
     if (!selectedChild || !currentScheduleSlotId || !selectedVehicleAssignment) {
+      toast.error('Missing information. Please select a child and vehicle.');
       return;
     }
 
     try {
-      const assignmentData = { 
-        scheduleSlotId: currentScheduleSlotId, 
+      const assignmentData = {
+        scheduleSlotId: currentScheduleSlotId,
         childId: selectedChild,
         vehicleAssignmentId: selectedVehicleAssignment
       };
-      
+
       await assignChildMutation.mutateAsync(assignmentData);
     } catch (error) {
       console.error('Failed to add child:', error);
+      toast.error('Failed to assign child to vehicle. Please try again.');
     }
   };
 
   const handleRemoveChild = async (childId: string, vehicleAssignmentId: string | undefined) => {
-    if (!currentScheduleSlotId || !vehicleAssignmentId) return;
+    if (!currentScheduleSlotId) {
+      toast.error('Schedule slot not found. Please refresh and try again.');
+      return;
+    }
+
+    if (!vehicleAssignmentId) {
+      toast.error('Vehicle assignment information missing. Please refresh and try again.');
+      return;
+    }
 
     try {
       await removeChildMutation.mutateAsync({ scheduleSlotId: currentScheduleSlotId, childId, vehicleAssignmentId });
     } catch (error) {
       console.error('Failed to remove child:', error);
+      toast.error('Failed to remove child assignment. Please try again.');
     }
   };
 

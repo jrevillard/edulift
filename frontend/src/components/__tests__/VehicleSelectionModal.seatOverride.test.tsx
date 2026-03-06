@@ -92,14 +92,14 @@ describe('VehicleSelectionModal - Seat Override', () => {
       if (path === '/api/v1/vehicles') {
         return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
       }
-      if (path.startsWith('/schedule-slots/')) {
+      if (path.startsWith('/api/v1/schedule-slots/')) {
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
       }
       return Promise.resolve({ data: undefined, error: undefined });
     });
 
     vi.mocked(api.POST).mockImplementation((path: string) => {
-      if (path.includes('/schedule-slots/')) {
+      if (path.includes('/api/v1/schedule-slots/')) {
         return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
       }
       return Promise.resolve({ data: undefined, error: undefined });
@@ -412,7 +412,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
       if (path === '/api/v1/vehicles') {
         return Promise.resolve({ data: { data: mockVehicles }, error: undefined });
       }
-      if (path.includes('/schedule-slots/') && options?.params?.path?.scheduleSlotId === 'slot-1') {
+      if (path.includes('/api/v1/schedule-slots/') && options?.params?.path?.scheduleSlotId === 'slot-1') {
         return Promise.resolve({ data: { data: slotWithVehicles }, error: undefined });
       }
       return Promise.resolve({ data: { data: mockScheduleSlot }, error: undefined });
