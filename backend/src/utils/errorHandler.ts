@@ -115,7 +115,7 @@ export const createServiceError = function(
  */
 export const isServiceError = function(error: any): error is ServiceError {
   return Boolean(error && typeof error === 'object' && error.isServiceError === true);
-}
+};
 
 /**
  * Normalizes any error into a standardized format
@@ -324,4 +324,4 @@ export const createErrorResponse = function(error: unknown): {
     code: normalized.code,
     details: normalized.details,
   };
-}
+};

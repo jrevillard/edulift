@@ -48,7 +48,7 @@ type ScheduleSlotVariables = {
 /**
  * Transform Date to ISO string safely
  */
-function dateToISOString(date: Date | string | null | undefined): string | undefined {
+export const dateToISOString = function(date: Date | string | null | undefined): string | undefined {
   if (!date) return undefined;
   if (typeof date === 'string') return date;
   try {
@@ -56,12 +56,12 @@ function dateToISOString(date: Date | string | null | undefined): string | undef
   } catch {
     return undefined;
   }
-}
+};
 
 /**
  * Transform schedule slot from Prisma to OpenAPI schema format
  */
-function transformScheduleSlot(slot: ScheduleSlotWithDetails | null): any {
+export const transformScheduleSlot = function(slot: ScheduleSlotWithDetails | null): any {
   if (!slot) return null;
 
   return {
@@ -72,12 +72,12 @@ function transformScheduleSlot(slot: ScheduleSlotWithDetails | null): any {
     vehicleAssignments: slot.vehicleAssignments?.map(va => transformVehicleAssignment(va)),
     childAssignments: slot.childAssignments?.map(ca => transformChildAssignment(ca)),
   };
-}
+};
 
 /**
  * Transform vehicle assignment from Prisma to OpenAPI schema format
  */
-function transformVehicleAssignment(assignment: any): any {
+export const transformVehicleAssignment = function(assignment: any): any {
   if (!assignment) return assignment;
 
   return {
@@ -93,12 +93,12 @@ function transformVehicleAssignment(assignment: any): any {
       name: assignment.driver.name,
     } : null,  // ✅ FIX: null instead of undefined to match OpenAPI schema
   };
-}
+};
 
 /**
  * Transform available child from Prisma to OpenAPI schema format
  */
-function transformAvailableChild(child: any): any {
+export const transformAvailableChild = function(child: any): any {
   if (!child) return child;
 
   return {
@@ -110,13 +110,13 @@ function transformAvailableChild(child: any): any {
     canAssign: child.canAssign ?? true,
     conflictReason: child.conflictReason,
   };
-}
+};
 
 /**
  * Transform child assignment from service to API response format.
  * Service returns Prisma model with nested relations; we need flat structure.
  */
-function transformChildAssignment(assignment: any): any {
+export const transformChildAssignment = function(assignment: any): any {
   if (!assignment) return assignment;
 
   // ScheduleSlotChild uses composite key (@@id([scheduleSlotId, childId]))
@@ -132,7 +132,7 @@ function transformChildAssignment(assignment: any): any {
     child: assignment.child,
     vehicleAssignment: assignment.vehicleAssignment ? transformVehicleAssignment(assignment.vehicleAssignment) : undefined,
   };
-}
+};
 
 // ============================================================================
 // FACTORY FUNCTION
@@ -993,7 +993,7 @@ app.openapi(assignVehicleRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 201);
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to assign vehicle',
@@ -1064,7 +1064,7 @@ app.openapi(removeVehicleRoute, async (c) => {
         data: result, // Returns full ScheduleSlot with vehicleAssignments and childAssignments
       }, 200);
     }
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to remove vehicle',
@@ -1156,7 +1156,7 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 200);
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to update vehicle assignment',
@@ -1217,7 +1217,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 200); // Type narrowing: Hono's strict typing doesn't match our union response type
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to update driver',
@@ -1257,7 +1257,7 @@ app.openapi(getScheduleSlotRoute, async (c) => {
       success: true,
       data: transformedSlot,
     }, 200);
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to retrieve schedule slot',
@@ -1331,7 +1331,7 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
       success: true,
       data: { conflicts },
     }, 200);
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to retrieve conflicts',
@@ -1428,7 +1428,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 200); // Type narrowing: Hono's strict typing doesn't match our union response type
-  } catch (error) {
+  } catch {
     return c.json({
       success: false,
       error: 'Failed to update seat override',

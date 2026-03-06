@@ -9,6 +9,8 @@ import { Hono } from 'hono';
 import { createPrismaMock } from '../mocks/prisma-mock';
 import { mockPushNotificationService } from '../mocks/push-notification-service-mock';
 import { createFcmTokenControllerRoutes } from '../controllers/v1/FcmTokenController';
+import { prisma } from '../config/database';
+import { PushNotificationServiceFactory } from '../services/PushNotificationServiceFactory';
 
 // Helper function for typing response.json()
 const responseJson = async <T = any>(response: Response): Promise<T> => {
@@ -49,10 +51,8 @@ describe('FcmTokenController Hono', () => {
     jest.clearAllMocks();
 
     // Get the actual mocked prisma instance from the database module
-    const { prisma } = require('../config/database');
     mockPrisma = prisma;
 
-    const { PushNotificationServiceFactory } = require('../services/PushNotificationServiceFactory');
     PushNotificationServiceFactory.reset();
 
     // Create controller instance with auth middleware

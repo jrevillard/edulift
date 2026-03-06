@@ -281,7 +281,7 @@ app.get('/docs/info', (c) => {
  * Command-line interface for OpenAPI generation
  * Usage: npm run swagger:generate
  */
-async function handleCLI() {
+const handleCLI = async function() {
   const args = process.argv.slice(2);
 
   if (args.includes('--generate-openapi')) {
@@ -356,7 +356,7 @@ async function handleCLI() {
     // Exit after generation
     process.exit(0);
   }
-}
+};
 
 // Handle CLI commands
 await handleCLI();

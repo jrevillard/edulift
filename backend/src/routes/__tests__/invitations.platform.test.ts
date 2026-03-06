@@ -68,7 +68,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
   let app: Hono;
   let authToken: string;
   let mockUserFindUnique: jest.Mock;
-  let mockMiddleware: jest.Mock;
 
   const testUser = {
     id: 'test-user-id',
@@ -100,16 +99,8 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       name: 'Test User',
     });
 
-    // Create mock middleware that sets userId in context
-    mockMiddleware = jest.fn(async (c: any, next: any) => {
-      c.set('userId', testUser.id);
-      c.set('user', {
-        id: testUser.id,
-        email: testUser.email,
-        name: 'Test User',
-      });
-      await next();
-    });
+    // Create fresh app instance with controller for each test
+    app = new Hono();
 
     // Create a custom Hono middleware wrapper
     const authMiddleware = async (c: any, next: any) => {
@@ -121,9 +112,6 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       });
       await next();
     };
-
-    // Create fresh app instance with controller for each test
-    app = new Hono();
 
     // Apply the auth middleware to all routes
     app.use('*', authMiddleware);

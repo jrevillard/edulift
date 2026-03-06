@@ -85,15 +85,15 @@ export const anonymousRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 100, // 100 requests per minute
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: function(c) {
+  keyGenerator(c) {
     return `anonymous:${getClientIP(c)}`;
   },
   // Custom handler to integrate with our error system
-  handler: function(c, retryAfter) {
+  handler(c, retryAfter) {
     return createRateLimitResponse(c, Number(retryAfter));
   },
   // Skip if user is authenticated (will use higher limits)
-  skip: function(c) {
+  skip(c) {
     return isUserAuthenticated(c);
   },
 });
@@ -107,10 +107,10 @@ export const authenticatedRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 300, // 300 requests per minute
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: function(c) { return `user:${getAuthenticatedUserId(c)}`; },
-  handler: function(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
+  keyGenerator(c) { return `user:${getAuthenticatedUserId(c)}`; },
+  handler(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
   // Skip if user is not authenticated (will use anonymous limits)
-  skip: function(c) {
+  skip(c) {
     return !isUserAuthenticated(c);
   },
 });
@@ -125,8 +125,8 @@ export const authEndpointRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 20, // 20 requests per minute
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: function(c) { return `auth:${getClientIP(c)}`; },
-  handler: function(c, retryAfter) {
+  keyGenerator(c) { return `auth:${getClientIP(c)}`; },
+  handler(c, retryAfter) {
     logger.warn('Auth endpoint rate limit exceeded', {
       ip: getClientIP(c),
       userAgent: c.req.header('user-agent'),
@@ -160,11 +160,11 @@ export const globalRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: isUserAuthenticated => isUserAuthenticated ? 300 : 100, // Dynamic limit based on auth
   standardHeaders: 'draft-6', // RateLimit-* headers
-  keyGenerator: function(c) {
+  keyGenerator(c) {
     const userId = getAuthenticatedUserId(c);
     return isUserAuthenticated(c) ? `user:${userId}` : `anonymous:${getClientIP(c)}`;
   },
-  handler: function(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
+  handler(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
 });
 
 /**
@@ -188,13 +188,13 @@ export const createConditionalRateLimiter = function(options: {
     windowMs,
     limit: isUserAuthenticated => isUserAuthenticated ? authenticatedLimit : anonymousLimit,
     standardHeaders: 'draft-6',
-    keyGenerator: function(c) {
+    keyGenerator(c) {
       const userId = getAuthenticatedUserId(c);
       return isUserAuthenticated(c) ? `user:${userId}` : `anonymous:${getClientIP(c)}`;
     },
-    handler: function(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
+    handler(c, retryAfter) { return createRateLimitResponse(c, Number(retryAfter)); },
     // Only apply to specified path patterns if provided
-    skip: function(c) {
+    skip(c) {
       if (pathPatterns.length === 0) return false; // Apply to all routes if no patterns specified
 
       const path = c.req.path;
@@ -211,8 +211,8 @@ export const adminRateLimiter = rateLimiter({
   windowMs: 60 * 1000, // 1 minute
   limit: 50, // 50 requests per minute
   standardHeaders: 'draft-6',
-  keyGenerator: function(c) { return `admin:${getAuthenticatedUserId(c)}`; },
-  handler: function(c, retryAfter) {
+  keyGenerator(c) { return `admin:${getAuthenticatedUserId(c)}`; },
+  handler(c, retryAfter) {
     logger.warn('Admin endpoint rate limit exceeded', {
       userId: getAuthenticatedUserId(c),
       ip: getClientIP(c),
@@ -236,7 +236,7 @@ export const adminRateLimiter = rateLimiter({
     return c.json(response, 429);
   },
   // Only apply if user is authenticated
-  skip: function(c) {
+  skip(c) {
     return !isUserAuthenticated(c);
   },
 });

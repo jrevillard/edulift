@@ -215,6 +215,7 @@ export const TEST_ENVIRONMENTS = {
  * Malicious URLs for security testing
  */
 export const MALICIOUS_URLS = [
+  // eslint-disable-next-line no-script-url
   'javascript:alert(1)',
   'data:text/html,<script>alert(1)</script>',
   'vbscript:msgbox("test")',
