@@ -115,7 +115,7 @@ describe('DesktopNav', () => {
 
       expect(screen.getByRole('link', { name: /dashboard/i })).toHaveAttribute('href', '/dashboard');
       expect(screen.getByRole('link', { name: /manage family/i })).toHaveAttribute('href', '/family/manage');
-      expect(screen.getByRole('link', { name: /groups/i })).toHaveAttribute('href', '/api/v1/groups');
+      expect(screen.getByRole('link', { name: /groups/i })).toHaveAttribute('href', '/groups');
       expect(screen.getByRole('link', { name: /schedule/i })).toHaveAttribute('href', '/schedule');
     });
   });
