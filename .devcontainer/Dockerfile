@@ -94,12 +94,8 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   -x
 
 # Install Claude and associated tools
-RUN npm install -g @anthropic-ai/claude-code \
-  && npm install -g claude-flow@alpha \
-  && npm install -g ccusage \
+RUN curl -fsSL https://claude.ai/install.sh | bash \
   && npm install -g happy-coder \
-  && npm install -g @musistudio/claude-code-router \
-  && npm install -g @qwen-code/qwen-code@latest \
   && npm install -g firebase-tools \
   && if ! grep -q "Z.ai GLM" /home/node/.zshrc; then \
   echo "# Z.ai GLM" >> /home/node/.zshrc && \
