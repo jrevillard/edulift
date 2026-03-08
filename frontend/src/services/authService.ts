@@ -1,10 +1,7 @@
-import axios from 'axios';
 import { useConnectionStore } from '@/stores/connectionStore';
-import type { ApiResponse } from '@/types';
-import type { User } from '@/types/api';  // Import directly from api.ts to avoid ambiguity
-import { secureStorage } from '@/utils/secureStorage';
-
-import { API_BASE_URL } from '@/config/runtime';
+import type { User } from '@/types/api';
+import { secureStorage } from '../utils/secureStorage';
+import { api } from './api';
 
 // Re-export User type for convenience
 export type { User };
@@ -24,20 +21,14 @@ export interface AuthResponse {
   };
 }
 
-
 class AuthService {
   private token: string | null = null;
   private storedRefreshToken: string | null = null;
   private user: User | null = null;
-  private interceptorsSetup = false;
   private onAuthChanged?: () => void;
 
   constructor() {
-    // Set up axios interceptors first
-    this.setupAxiosInterceptors();
-
     // Initialize from secure storage (async operation)
-    // Note: This will update tokens asynchronously, interceptors will handle null tokens initially
     this.initializeFromSecureStorage();
   }
 
@@ -76,106 +67,11 @@ class AuthService {
     }
   }
 
-  private setupAxiosInterceptors() {
-    // Prevent setting up interceptors multiple times
-    if (this.interceptorsSetup) return;
-    this.interceptorsSetup = true;
-
-    // Request interceptor to add auth header
-    axios.interceptors.request.use(
-      (config) => {
-        // Use token from memory (synchronously) - secureStorage is async so we rely on the cached token
-        const currentToken = this.token;
-        if (currentToken && config.url?.startsWith(API_BASE_URL)) {
-          config.headers.Authorization = `Bearer ${currentToken}`;
-        }
-        
-        // Mark API as connecting when making a request
-        if (config.url?.startsWith(API_BASE_URL)) {
-          useConnectionStore.getState().setApiStatus('connecting');
-        }
-        
-        return config;
-      },
-      (error) => {
-        // Request setup error (very rare)
-        useConnectionStore.getState().setApiStatus('error', 'Failed to send request');
-        return Promise.reject(error);
-      }
-    );
-
-    // Response interceptor to handle auth errors
-    axios.interceptors.response.use(
-      (response) => {
-        // Mark API as connected on successful response
-        if (response.config.url?.startsWith(API_BASE_URL)) {
-          useConnectionStore.getState().setApiStatus('connected');
-        }
-        return response;
-      },
-      async (error) => {
-        // Handle different types of errors
-        if (error.code === 'ECONNREFUSED' || error.message === 'Network Error') {
-          // Backend is not running or network is down
-          useConnectionStore.getState().setApiStatus('error', 'Cannot connect to server. Please ensure the backend is running.');
-          return Promise.reject(error);
-        }
-        
-        if (error.code === 'ETIMEDOUT') {
-          // Request timeout
-          useConnectionStore.getState().setApiStatus('error', 'Request timed out. Please check your connection.');
-          return Promise.reject(error);
-        }
-        
-        // For successful connection but error response, mark as connected
-        if (error.response && error.config?.url?.startsWith(API_BASE_URL)) {
-          useConnectionStore.getState().setApiStatus('connected');
-        }
-        
-        if (error.response?.status === 401) {
-          console.log('🔒 401 Unauthorized detected - redirecting to login');
-          
-          // Check if this is a refresh token request that failed
-          if (error.config?.url?.includes('/auth/refresh')) {
-            console.log('🚫 Refresh token request failed with 401 - logging out');
-            this.clearAuth(); // Fire and forget - async but we don't await in interceptor
-            this.redirectToLogin();
-            return Promise.resolve();
-          }
-          
-          if (this.token && !this.isRefreshInProgress) {
-            // User has a token but got 401 - try to refresh
-            try {
-              await this.refreshToken();
-              // Retry the original request
-              return axios.request(error.config);
-            } catch {
-              // Refresh failed, logout user and redirect
-              console.log('🔄 Token refresh failed - logging out');
-              this.clearAuth(); // Fire and forget - async but we don't await in interceptor
-              this.redirectToLogin();
-              // Return a resolved promise to prevent further error handling
-              return Promise.resolve();
-            }
-          } else {
-            // User has no token or refresh is already in progress - redirect to login
-            console.log('🚫 No token found or refresh in progress - redirecting to login');
-            this.redirectToLogin();
-            // Return a resolved promise to prevent further error handling
-            return Promise.resolve();
-          }
-        }
-        
-        return Promise.reject(error);
-      }
-    );
-  }
-
   async requestMagicLink(email: string, context?: { name?: string; inviteCode?: string; [key: string]: unknown }): Promise<{ success: boolean; userExists?: boolean; message?: string }> {
     try {
       // Import PKCE utilities
       const { generateAndStorePKCEPair, isPKCESupported, PKCEError } = await import('../utils/pkceUtils');
-      
+
       // Check browser PKCE support
       if (!isPKCESupported()) {
         throw new Error('Your browser does not support the required security features for authentication. Please use a modern browser.');
@@ -194,6 +90,9 @@ class AuthService {
         throw new Error('Failed to initialize secure authentication. Please try again.');
       }
 
+      // Mark API as connecting
+      useConnectionStore.getState().setApiStatus('connecting');
+
       const requestBody = {
         email,
         name: context?.name,
@@ -202,20 +101,31 @@ class AuthService {
         ...context
       };
       console.log('🔍 DEBUG: Frontend authService sending request body:', JSON.stringify({ ...requestBody, code_challenge: '[REDACTED]' }, null, 2));
-      
-      const response = await axios.post<ApiResponse<{ userExists?: boolean; message?: string }>>(`${API_BASE_URL}/auth/magic-link`, requestBody);
 
-      if (!response.data.success) {
-        throw new Error(response.data.error || 'Failed to send magic link');
+      const { data, error } = await api.POST('/api/v1/auth/magic-link', {
+        body: requestBody,
+      });
+
+      // Mark API as connected
+      useConnectionStore.getState().setApiStatus('connected');
+
+      if (error) {
+        throw error;
       }
 
-      const data = response.data.data as { userExists?: boolean; message?: string } | undefined;
-      return { 
+      if (!data?.success) {
+        throw new Error(data?.error || 'Failed to send magic link');
+      }
+
+      return {
         success: true,
-        userExists: data?.userExists,
-        message: data?.message
+        userExists: data.data?.userExists,
+        message: data.data?.message
       };
     } catch (error) {
+      // Mark API as connected (we got a response)
+      useConnectionStore.getState().setApiStatus('connected');
+
       // Clear PKCE data on error to prevent security issues
       try {
         const { clearPKCEData } = await import('../utils/pkceUtils');
@@ -224,31 +134,32 @@ class AuthService {
         console.error('Failed to clear PKCE data after error:', clearError);
       }
 
-      // Handle specific network and API errors with user-friendly messages
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+      // Handle API errors
+      if (error && typeof error === 'object') {
+        const err = error as { code?: string; message?: string; response?: { data?: { error?: string }; status?: number } };
+
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
           throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
         }
-        if (error.response?.status === 404) {
+        if (err.response?.status === 404) {
           throw new Error('Service temporarily unavailable. Please try again in a few moments.');
         }
-        if (error.response?.status === 422) {
-          // Validation error - pass through the server message for name field display
-          throw new Error(error.response.data.error || 'Validation failed');
+        if (err.response?.status === 422) {
+          throw new Error(err.response.data?.error || 'Validation failed');
         }
-        if (error.response?.status === 500) {
+        if (err.response?.status === 500) {
           throw new Error('Server error occurred. Please try again later.');
         }
-        if (error.response?.data?.error) {
-          throw new Error(error.response.data.error);
+        if (err.response?.data?.error) {
+          throw new Error(err.response.data.error);
         }
       }
-      
+
       // Re-throw the original error if it's already a custom error
       if (error instanceof Error) {
         throw error;
       }
-      
+
       // Fallback error message
       throw new Error('Failed to send magic link. Please try again.');
     }
@@ -270,6 +181,9 @@ class AuthService {
         throw new Error('Authentication security data not found. Please open this link in the same browser/app where you requested it, or request a new magic link.');
       }
 
+      // Mark API as connecting
+      useConnectionStore.getState().setApiStatus('connecting');
+
       // Send everything in the body (clean REST design)
       const requestBody = {
         token,
@@ -277,28 +191,37 @@ class AuthService {
         ...(inviteCode && { inviteCode }) // Add inviteCode to body only if provided
       };
 
-      const response = await axios.post<ApiResponse<AuthResponse>>(
-        `${API_BASE_URL}/auth/verify`,
-        requestBody
-      );
+      const { data, error } = await api.POST('/api/v1/auth/verify', {
+        body: requestBody,
+      });
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to verify magic link');
+      // Mark API as connected
+      useConnectionStore.getState().setApiStatus('connected');
+
+      if (error) {
+        throw error;
       }
 
-      const authData = response.data.data;
+      if (!data?.success || !data?.data) {
+        throw new Error(data?.error || 'Failed to verify magic link');
+      }
+
+      const authData = data.data;
       await this.setAuth(authData.token, authData.user, authData.refreshToken);
 
       // Clear PKCE data after successful authentication
       await clearPKCEData();
       console.log('✅ Magic link verified successfully with PKCE');
-      
+
       // Include invitation result in the response
       return {
         ...authData,
         invitationResult: authData.invitationResult
       };
     } catch (error) {
+      // Mark API as connected (we got a response)
+      useConnectionStore.getState().setApiStatus('connected');
+
       // Clear PKCE data on error to prevent reuse
       try {
         const { clearPKCEData } = await import('../utils/pkceUtils');
@@ -307,22 +230,23 @@ class AuthService {
         console.error('Failed to clear PKCE data after verification error:', clearError);
       }
 
-      // Handle specific network and API errors with user-friendly messages
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+      // Handle API errors
+      if (error && typeof error === 'object') {
+        const err = error as { code?: string; message?: string; response?: { data?: { error?: string } } };
+
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
           throw new Error('Unable to connect to the server. Please check your connection and try again.');
         }
-        
-        if (error.response?.data?.error) {
-          throw new Error(error.response.data.error);
+        if (err.response?.data?.error) {
+          throw new Error(err.response.data.error);
         }
       }
-      
+
       // Re-throw the original error if it's already a custom error
       if (error instanceof Error) {
         throw error;
       }
-      
+
       // Fallback error message
       throw new Error('Failed to verify magic link. Please try again.');
     }
@@ -354,35 +278,40 @@ class AuthService {
 
     try {
       // Send refresh token to backend
-    if (this.storedRefreshToken) {
-      console.log('🔄 Refreshing token...');
-    } else {
-      console.warn('🔄 No refresh token available');
-    }
-
-      const response = await axios.post<ApiResponse<{ accessToken: string; refreshToken: string; expiresIn: number; tokenType: string }>>(
-        `${API_BASE_URL}/auth/refresh`,
-        {
-          refreshToken: this.storedRefreshToken
-        }
-      );
-
-      if (!response.data) {
-        throw new Error('No response data from server');
+      if (this.storedRefreshToken) {
+        console.log('🔄 Refreshing token...');
+      } else {
+        console.warn('🔄 No refresh token available');
       }
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to refresh token');
+      // Mark API as connecting
+      useConnectionStore.getState().setApiStatus('connecting');
+
+      const { data, error } = await api.POST('/api/v1/auth/refresh', {
+        body: {
+          refreshToken: this.storedRefreshToken as string
+        },
+      });
+
+      // Mark API as connected
+      useConnectionStore.getState().setApiStatus('connected');
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data?.success || !data?.data) {
+        throw new Error(data?.error || 'Failed to refresh token');
       }
 
       // Update both access token and refresh token (token rotation)
-      this.token = response.data.data.accessToken;
-      this.storedRefreshToken = response.data.data.refreshToken;
+      this.token = data.data.accessToken;
+      this.storedRefreshToken = data.data.refreshToken;
 
       // Store securely only
       try {
-        await secureStorage.setItem('authToken', this.token);
-        await secureStorage.setItem('refreshToken', this.storedRefreshToken);
+        await secureStorage.setItem('authToken', this.token as string);
+        await secureStorage.setItem('refreshToken', this.storedRefreshToken as string);
       } catch (error) {
         console.error('Failed to store refreshed tokens securely:', error);
         throw new Error('Secure storage required for authentication');
@@ -396,7 +325,17 @@ class AuthService {
 
   async logout(): Promise<void> {
     try {
-      await axios.post(`${API_BASE_URL}/auth/logout`);
+      // Mark API as connecting
+      useConnectionStore.getState().setApiStatus('connecting');
+
+      const { error } = await api.POST('/api/v1/auth/logout');
+
+      // Mark API as connected
+      useConnectionStore.getState().setApiStatus('connected');
+
+      if (error) {
+        console.error('Logout request failed:', error);
+      }
     } catch (error) {
       // Continue with logout even if server request fails
       console.error('Logout request failed:', error);
@@ -486,15 +425,15 @@ class AuthService {
     this.onAuthChanged = callback;
   }
 
-  private redirectToLogin(): void {
+  redirectToLogin(): void {
     console.log('🚀 redirectToLogin() called');
     console.log('Current pathname:', window.location.pathname);
-    
+
     // Store the current path to redirect back after login (if not already on login)
     if (window.location.pathname !== '/login') {
       const currentPath = window.location.pathname + window.location.search;
       console.log('Current path to store:', currentPath);
-      
+
       if (currentPath !== '/' && currentPath !== '/login') {
         try {
           sessionStorage.setItem('redirectAfterLogin', currentPath);
@@ -504,7 +443,7 @@ class AuthService {
         }
       }
     }
-    
+
     // Clear auth data - this will trigger the AuthContext callback
     // which will update React state and cause ProtectedRoute to redirect
     console.log('🔀 Clearing auth - React Router will handle redirect');
@@ -546,7 +485,7 @@ class AuthService {
   // Check if token is expired (basic check - in production, decode JWT)
   isTokenExpired(): boolean {
     if (!this.token) return true;
-    
+
     try {
       // Simple check - in production, properly decode and check JWT expiration
       const tokenData = JSON.parse(atob(this.token.split('.')[1]));
@@ -563,35 +502,43 @@ class AuthService {
     }
 
     try {
-      const response = await axios.put<ApiResponse<User>>(
-        `${API_BASE_URL}/auth/profile`,
-        userData,
-        {
-          headers: { Authorization: `Bearer ${this.token}` }
-        }
-      );
+      // Mark API as connecting
+      useConnectionStore.getState().setApiStatus('connecting');
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to update profile');
+      const { data, error } = await api.PUT('/api/v1/auth/profile', {
+        body: userData,
+      });
+
+      // Mark API as connected
+      useConnectionStore.getState().setApiStatus('connected');
+
+      if (error) {
+        throw error;
       }
 
-      const updatedUser = response.data.data;
+      if (!data?.success || !data?.data) {
+        throw new Error(data?.error || 'Failed to update profile');
+      }
+
+      const updatedUser = data.data;
       await this.setAuth(this.token, updatedUser);
 
       return updatedUser;
     } catch (error) {
-      // Handle specific network and API errors with user-friendly messages
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+      // Mark API as connected (we got a response)
+      useConnectionStore.getState().setApiStatus('connected');
+
+      // Handle API errors
+      if (error && typeof error === 'object') {
+        const err = error as { code?: string; message?: string; response?: { data?: { error?: string }; status?: number } };
+
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
           throw new Error('Unable to connect to the server. Please check your connection and try again.');
         }
-
-        if (error.response?.status === 401) {
+        if (err.response?.status === 401) {
           throw new Error('You are not authorized to update this profile. Please log in again.');
         }
-
-        // Pass through the error response for better error handling in components
-        if (error.response?.status === 400 || error.response?.data) {
+        if (err.response?.status === 400 || err.response?.data) {
           throw error;
         }
       }
@@ -612,19 +559,25 @@ class AuthService {
     }
 
     try {
-      const response = await axios.patch<ApiResponse<User>>(
-        `${API_BASE_URL}/auth/profile/timezone`,
-        { timezone },
-        {
-          headers: { Authorization: `Bearer ${this.token}` }
-        }
-      );
+      // Mark API as connecting
+      useConnectionStore.getState().setApiStatus('connecting');
 
-      if (!response.data.success || !response.data.data) {
-        throw new Error(response.data.error || 'Failed to update timezone');
+      const { data, error } = await api.PATCH('/api/v1/auth/profile/timezone', {
+        body: { timezone },
+      });
+
+      // Mark API as connected
+      useConnectionStore.getState().setApiStatus('connected');
+
+      if (error) {
+        throw error;
       }
 
-      const updatedUser = response.data.data;
+      if (!data?.success || !data?.data) {
+        throw new Error(data?.error || 'Failed to update timezone');
+      }
+
+      const updatedUser = data.data;
       await this.setAuth(this.token, updatedUser);
 
       // Notify auth context of change
@@ -634,23 +587,24 @@ class AuthService {
 
       return updatedUser;
     } catch (error) {
-      // Handle specific network and API errors with user-friendly messages
-      if (axios.isAxiosError(error)) {
-        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+      // Mark API as connected (we got a response)
+      useConnectionStore.getState().setApiStatus('connected');
+
+      // Handle API errors
+      if (error && typeof error === 'object') {
+        const err = error as { code?: string; message?: string; response?: { data?: { error?: string; validationErrors?: Array<{ message: string }> }; status?: number } };
+
+        if (err.code === 'ECONNREFUSED' || err.message?.includes('Network Error')) {
           throw new Error('Unable to connect to the server. Please check your connection and try again.');
         }
-
-        if (error.response?.status === 401) {
+        if (err.response?.status === 401) {
           throw new Error('You are not authorized to update timezone. Please log in again.');
         }
-
-        if (error.response?.status === 400 && error.response?.data?.error) {
-          throw new Error(error.response.data.error);
+        if (err.response?.status === 400 && err.response?.data?.error) {
+          throw new Error(err.response.data.error);
         }
-
-        // Pass through validation errors
-        if (error.response?.data?.validationErrors) {
-          const validationError = error.response.data.validationErrors
+        if (err.response?.data?.validationErrors) {
+          const validationError = err.response.data.validationErrors
             .map((ve: { message: string }) => ve.message)
             .join(', ');
           throw new Error(validationError);

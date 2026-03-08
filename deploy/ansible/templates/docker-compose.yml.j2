@@ -261,7 +261,7 @@ services:
     restart: unless-stopped
     environment:
       # Runtime configuration - injected by docker-entrypoint.sh
-      VITE_API_URL: {{ backend_url }}/v1
+      VITE_API_URL: {{ backend_base_url }}
       VITE_SOCKET_URL: {{ backend_base_url }}
       VITE_SOCKET_FORCE_POLLING: "false"
 
