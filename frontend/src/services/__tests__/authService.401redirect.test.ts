@@ -9,8 +9,20 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { api } from '../api';
-import { secureStorage } from '@/utils/secureStorage';
+
+// Mock secureStorage FIRST before any imports
+const mockSecureStorage = {
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  hasItem: vi.fn(),
+  getKeys: vi.fn(),
+};
+
+vi.mock('@/utils/secureStorage', () => ({
+  secureStorage: mockSecureStorage
+}));
 
 // Mock connection store
 vi.mock('@/stores/connectionStore', () => {
@@ -30,19 +42,7 @@ vi.mock('@/stores/connectionStore', () => {
   };
 });
 
-// Mock secureStorage
-const mockSecureStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  hasItem: vi.fn(),
-  getKeys: vi.fn(),
-};
-
-vi.mock('@/utils/secureStorage', () => ({
-  secureStorage: mockSecureStorage
-}));
+import { api } from '../api';
 
 // Mock sessionStorage for redirectAfterLogin
 const sessionStorageMock = {

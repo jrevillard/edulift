@@ -8,6 +8,16 @@ import { authService } from '../authService';
 import * as pkceUtils from '../../utils/pkceUtils';
 import { mockClient } from './setup';
 
+// Mock secureStorage BEFORE importing authService
+vi.mock('@/utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  },
+}));
+
 // Mock PKCE utilities
 vi.mock('../../utils/pkceUtils');
 const mockedPkceUtils = vi.mocked(pkceUtils);
@@ -258,7 +268,7 @@ describe('AuthService PKCE Integration', () => {
         }
       });
 
-      await expect(authService.requestMagicLink(testEmail)).rejects.toThrow('Validation failed');
+      await expect(authService.requestMagicLink(testEmail)).rejects.toThrow('Invalid email format');
 
       expect(mockedPkceUtils.clearPKCEData).toHaveBeenCalled();
     });
