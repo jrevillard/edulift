@@ -2,6 +2,16 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authService } from '../authService';
 import { secureStorage } from '@/utils/secureStorage';
 
+// Mock secureStorage
+vi.mock('@/utils/secureStorage', () => ({
+  secureStorage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+  },
+}));
+
 const mockSecureStorage = vi.mocked(secureStorage);
 
 // Mock sessionStorage for redirect paths
@@ -15,16 +25,6 @@ const sessionStorageMock = {
 Object.defineProperty(global, 'sessionStorage', {
   value: sessionStorageMock,
 });
-
-// Mock secureStorage
-vi.mock('@/utils/secureStorage', () => ({
-  secureStorage: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn(),
-  },
-}));
 
 // Mock window.location
 const mockLocation = {
@@ -51,18 +51,18 @@ describe('AuthService 401 Redirect - Simple Test', () => {
   describe('Basic Auth Service Functionality', () => {
     it('should be able to set and call auth change callback', () => {
       const callback = vi.fn();
-      
+
       // Test that we can register a callback
       authService.setAuthChangeCallback(callback);
-      
+
       // Test that clearing auth calls the callback
-      (authService as unknown as { clearAuth: () => void }).clearAuth();
-      
+      (authService as unknown as { clearAuth: () => Promise<void> }).clearAuth();
+
       expect(callback).toHaveBeenCalled();
     });
 
-    it('should clear secureStorage when auth is cleared', () => {
-      (authService as unknown as { clearAuth: () => void }).clearAuth();
+    it('should clear secureStorage when auth is cleared', async () => {
+      await (authService as unknown as { clearAuth: () => Promise<void> }).clearAuth();
 
       expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('authToken');
       expect(mockSecureStorage.removeItem).toHaveBeenCalledWith('userData');

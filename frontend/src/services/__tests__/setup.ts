@@ -404,6 +404,44 @@ const createMockClient = () => {
 
   mockClient.POST.mockImplementation((path: string) => {
     switch (path) {
+      // Auth endpoints
+      case '/api/v1/auth/magic-link':
+        return Promise.resolve({
+          data: { success: true, data: { userExists: true, message: 'Magic link sent' } },
+          error: undefined
+        });
+      case '/api/v1/auth/verify':
+        return Promise.resolve({
+          data: {
+            success: true,
+            data: {
+              user: mockUser,
+              accessToken: 'test-access-token',
+              refreshToken: 'test-refresh-token',
+              expiresIn: 3600,
+              tokenType: 'Bearer'
+            }
+          },
+          error: undefined
+        });
+      case '/api/v1/auth/logout':
+        return Promise.resolve({
+          data: { success: true },
+          error: undefined
+        });
+      case '/api/v1/auth/refresh':
+        return Promise.resolve({
+          data: {
+            success: true,
+            data: {
+              accessToken: 'new-access-token',
+              refreshToken: 'new-refresh-token',
+              expiresIn: 3600,
+              tokenType: 'Bearer'
+            }
+          },
+          error: undefined
+        });
       case '/api/v1/groups/{groupId}/schedule-config/reset':
         return Promise.resolve({
           data: {
@@ -470,6 +508,12 @@ const createMockClient = () => {
 
   mockClient.PATCH.mockImplementation((path: string) => {
     switch (path) {
+      // Auth endpoints
+      case '/api/v1/auth/profile/timezone':
+        return Promise.resolve({
+          data: { success: true, data: { ...mockUser, timezone: 'America/New_York' } },
+          error: undefined
+        });
       case '/api/v1/groups/{groupId}':
         return Promise.resolve({
           data: { data: { ...mockGroup, name: 'Updated Group' }, success: true },
@@ -541,6 +585,17 @@ const createMockClient = () => {
 
   mockClient.PUT.mockImplementation((path: string) => {
     switch (path) {
+      // Auth endpoints
+      case '/api/v1/auth/profile':
+        return Promise.resolve({
+          data: { success: true, data: mockUser },
+          error: undefined
+        });
+      case '/api/v1/families/name':
+        return Promise.resolve({
+          data: { success: true, data: { ...mockFamily, name: 'Updated Family' } },
+          error: undefined
+        });
       case '/api/v1/groups/{groupId}/schedule-config':
         return Promise.resolve({
           data: {
