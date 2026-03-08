@@ -114,7 +114,7 @@ class AuthService {
       }
 
       if (!data?.success) {
-        throw new Error(data?.error || 'Failed to send magic link');
+        throw new Error('Failed to send magic link');
       }
 
       return {
@@ -203,20 +203,20 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to verify magic link');
+        throw new Error('Failed to verify magic link');
       }
 
       const authData = data.data;
-      await this.setAuth(authData.token, authData.user, authData.refreshToken);
+      await this.setAuth(authData.accessToken, authData.user, authData.refreshToken);
 
       // Clear PKCE data after successful authentication
       await clearPKCEData();
       console.log('✅ Magic link verified successfully with PKCE');
 
-      // Include invitation result in the response
+      // Include invitation result in the response (convert null to undefined)
       return {
         ...authData,
-        invitationResult: authData.invitationResult
+        invitationResult: authData.invitationResult ?? undefined
       };
     } catch (error) {
       // Mark API as connected (we got a response)
@@ -301,7 +301,7 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to refresh token');
+        throw new Error('Failed to refresh token');
       }
 
       // Update both access token and refresh token (token rotation)
@@ -505,8 +505,14 @@ class AuthService {
       // Mark API as connecting
       useConnectionStore.getState().setApiStatus('connecting');
 
+      // Convert null values to undefined for API request
+      const sanitizedData = {
+        ...userData,
+        timezone: userData.timezone ?? undefined
+      };
+
       const { data, error } = await api.PUT('/api/v1/auth/profile', {
-        body: userData,
+        body: sanitizedData,
       });
 
       // Mark API as connected
@@ -517,7 +523,7 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to update profile');
+        throw new Error('Failed to update profile');
       }
 
       const updatedUser = data.data;
@@ -574,7 +580,7 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to update timezone');
+        throw new Error('Failed to update timezone');
       }
 
       const updatedUser = data.data;
