@@ -4,16 +4,13 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import axios from 'axios';
 import { authService } from '../authService';
 import * as pkceUtils from '../../utils/pkceUtils';
+import { mockClient } from './setup';
 
-// Mock axios
-vi.mock('axios');
-const mockedAxios = vi.mocked(axios);
-
-// Mock axios.isAxiosError to properly identify axios errors
-const isAxiosErrorSpy = vi.spyOn(axios, 'isAxiosError');
+// Mock PKCE utilities
+vi.mock('../../utils/pkceUtils');
+const mockedPkceUtils = vi.mocked(pkceUtils);
 
 // Mock PKCE utilities
 vi.mock('../../utils/pkceUtils');
@@ -31,6 +28,7 @@ describe('AuthService PKCE Integration', () => {
     // Clear localStorage and reset mocks
     localStorage.clear();
     vi.clearAllMocks();
+    resetApiMocks();
 
     // Mock successful PKCE support by default
     mockedPkceUtils.isPKCESupported.mockReturnValue(true);
@@ -38,11 +36,6 @@ describe('AuthService PKCE Integration', () => {
     mockedPkceUtils.hasPKCEData.mockReturnValue(true);
     mockedPkceUtils.getPKCEVerifier.mockReturnValue(mockPkcePair.code_verifier);
     mockedPkceUtils.clearPKCEData.mockImplementation(() => {});
-    
-    // Reset axios.isAxiosError to return true for axios errors by default
-    isAxiosErrorSpy.mockImplementation((payload) => {
-      return payload && typeof payload === 'object' && payload.isAxiosError === true;
-    });
   });
 
   afterEach(() => {
@@ -52,9 +45,10 @@ describe('AuthService PKCE Integration', () => {
   describe('requestMagicLink with PKCE', () => {
     it('should generate PKCE pair and include challenge in request', async () => {
       // Mock successful API response
-      mockedAxios.post.mockResolvedValue({
-        data: { success: true, data: { userExists: true } }
-      });
+      mockClient.POST.mockResolvedValue(Promise.resolve({
+        success: true,
+        data: { userExists: true }
+      }));
 
       await authService.requestMagicLink(testEmail);
 
@@ -65,11 +59,13 @@ describe('AuthService PKCE Integration', () => {
       expect(mockedPkceUtils.generateAndStorePKCEPair).toHaveBeenCalledWith(testEmail);
 
       // Verify API was called with PKCE challenge
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        expect.stringContaining('/auth/magic-link'),
+      expect(mockClient.POST).toHaveBeenCalledWith(
+        '/api/v1/auth/magic-link',
         expect.objectContaining({
-          email: testEmail,
-          code_challenge: mockPkcePair.code_challenge
+          body: expect.objectContaining({
+            email: testEmail,
+            code_challenge: mockPkcePair.code_challenge
+          })
         })
       );
     });
@@ -81,13 +77,14 @@ describe('AuthService PKCE Integration', () => {
         customField: 'custom-value'
       };
 
-      mockedAxios.post.mockResolvedValue({
-        data: { success: true, data: { userExists: false } }
-      });
+      mockClient.POST.mockResolvedValue(Promise.resolve({
+        success: true,
+        data: { userExists: false }
+      }));
 
       await authService.requestMagicLink(testEmail, context);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockClient.POST).toHaveBeenCalledWith(
         expect.stringContaining('/auth/magic-link'),
         expect.objectContaining({
           email: testEmail,
@@ -107,7 +104,7 @@ describe('AuthService PKCE Integration', () => {
       );
 
       // Verify no API call was made
-      expect(mockedAxios.post).not.toHaveBeenCalled();
+      expect(mockClient.POST).not.toHaveBeenCalled();
     });
 
     it('should handle PKCE generation failure', async () => {
@@ -163,9 +160,10 @@ describe('AuthService PKCE Integration', () => {
     it('should not log sensitive PKCE data', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
       
-      mockedAxios.post.mockResolvedValue({
-        data: { success: true, data: { userExists: true } }
-      });
+      mockClient.POST.mockResolvedValue(Promise.resolve({
+        success: true,
+        data: { userExists: true }
+      }));
 
       await authService.requestMagicLink(testEmail);
 
@@ -203,7 +201,7 @@ describe('AuthService PKCE Integration', () => {
       expect(mockedPkceUtils.getPKCEVerifier).toHaveBeenCalled();
 
       // Verify API was called with PKCE verifier
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockClient.POST).toHaveBeenCalledWith(
         expect.stringContaining('/auth/verify'),
         expect.objectContaining({
           token: testToken,
@@ -223,7 +221,7 @@ describe('AuthService PKCE Integration', () => {
 
       await authService.verifyMagicLink(testToken, inviteCode);
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockClient.POST).toHaveBeenCalledWith(
         expect.stringContaining('/auth/verify'),
         expect.objectContaining({
           token: testToken,
@@ -240,7 +238,7 @@ describe('AuthService PKCE Integration', () => {
         'This magic link must be opened in the same browser/app where it was requested'
       );
 
-      expect(mockedAxios.post).not.toHaveBeenCalled();
+      expect(mockClient.POST).not.toHaveBeenCalled();
     });
 
     it('should throw error when PKCE verifier is not found', async () => {
@@ -251,7 +249,7 @@ describe('AuthService PKCE Integration', () => {
         'Authentication security data not found. Please open this link in the same browser/app where you requested it'
       );
 
-      expect(mockedAxios.post).not.toHaveBeenCalled();
+      expect(mockClient.POST).not.toHaveBeenCalled();
     });
 
     it('should clear PKCE data on verification error', async () => {
@@ -304,7 +302,7 @@ describe('AuthService PKCE Integration', () => {
   describe('PKCE data cleanup on auth events', () => {
     it('should clear PKCE data on logout', async () => {
       // Mock logout endpoint
-      mockedAxios.post.mockResolvedValue({ data: { success: true } });
+      mockClient.POST.mockResolvedValue(Promise.resolve({ success: true, data: {} }));
 
       await authService.logout();
 
@@ -316,7 +314,7 @@ describe('AuthService PKCE Integration', () => {
 
     it('should clear PKCE data when auth is cleared', async () => {
       // Simulate auth clear by calling clearAuth through logout
-      mockedAxios.post.mockResolvedValue({ data: { success: true } });
+      mockClient.POST.mockResolvedValue(Promise.resolve({ success: true, data: {} }));
       
       await authService.logout();
       
@@ -375,14 +373,15 @@ describe('AuthService PKCE Integration', () => {
 
   describe('Backend compatibility', () => {
     it('should send PKCE challenge in expected format', async () => {
-      mockedAxios.post.mockResolvedValue({
-        data: { success: true, data: { userExists: true } }
-      });
+      mockClient.POST.mockResolvedValue(Promise.resolve({
+        success: true,
+        data: { userExists: true }
+      }));
 
       await authService.requestMagicLink(testEmail, { name: 'Test User' });
 
       // Verify the request body format matches backend expectations
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockClient.POST).toHaveBeenCalledWith(
         expect.stringContaining('/auth/magic-link'),
         expect.objectContaining({
           email: testEmail,
@@ -405,7 +404,7 @@ describe('AuthService PKCE Integration', () => {
       await authService.verifyMagicLink(testToken);
 
       // Verify the request body format matches backend expectations
-      expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect(mockClient.POST).toHaveBeenCalledWith(
         expect.stringContaining('/auth/verify'),
         expect.objectContaining({
           token: testToken,
@@ -417,9 +416,10 @@ describe('AuthService PKCE Integration', () => {
 
   describe('Concurrent request handling', () => {
     it('should handle multiple simultaneous magic link requests', async () => {
-      mockedAxios.post.mockResolvedValue({
-        data: { success: true, data: { userExists: true } }
-      });
+      mockClient.POST.mockResolvedValue(Promise.resolve({
+        success: true,
+        data: { userExists: true }
+      }));
 
       // Simulate multiple concurrent requests
       const requests = [

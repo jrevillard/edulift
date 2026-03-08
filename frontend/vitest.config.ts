@@ -13,7 +13,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./src/services/__tests__/setup.ts', './src/test/setup.ts'],
     exclude: ['**/node_modules/**', '**/e2e/**', '**/dist/**'],
     // Limit parallel threads to reduce memory usage during testing
     pool: 'threads',
