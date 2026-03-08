@@ -215,7 +215,10 @@ class AuthService {
 
       // Include invitation result in the response (convert null to undefined)
       return {
-        ...authData,
+        user: authData.user,
+        token: authData.accessToken,
+        refreshToken: authData.refreshToken,
+        expiresAt: authData.expiresAt || new Date(Date.now() + authData.expiresIn * 1000).toISOString(),
         invitationResult: authData.invitationResult ?? undefined
       };
     } catch (error) {
