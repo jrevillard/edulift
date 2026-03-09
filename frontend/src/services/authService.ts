@@ -113,7 +113,9 @@ class AuthService {
       }
 
       if (!data?.success) {
-        throw new Error(data?.error || 'Failed to send magic link');
+        // Type assertion to access optional error property from backend
+        const responseData = data as { success: boolean; data?: { message: string; userExists: boolean }; error?: string } | undefined;
+        throw new Error(responseData?.error || 'Failed to send magic link');
       }
 
       return {
@@ -202,7 +204,9 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to verify magic link');
+        // Type assertion to access optional error property from backend
+        const responseData = data as { success: boolean; data?: unknown; error?: string } | undefined;
+        throw new Error(responseData?.error || 'Failed to verify magic link');
       }
 
       const authData = data.data;
@@ -302,7 +306,9 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to refresh token');
+        // Type assertion to access optional error property from backend
+        const responseData = data as { success: boolean; data?: unknown; error?: string } | undefined;
+        throw new Error(responseData?.error || 'Failed to refresh token');
       }
 
       // Update both access token and refresh token (token rotation)
@@ -523,7 +529,9 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to update profile');
+        // Type assertion to access optional error property from backend
+        const responseData = data as { success: boolean; data?: unknown; error?: string } | undefined;
+        throw new Error(responseData?.error || 'Failed to update profile');
       }
 
       const updatedUser = data.data;
@@ -580,7 +588,9 @@ class AuthService {
       }
 
       if (!data?.success || !data?.data) {
-        throw new Error(data?.error || 'Failed to update timezone');
+        // Type assertion to access optional error property from backend
+        const responseData = data as { success: boolean; data?: unknown; error?: string } | undefined;
+        throw new Error(responseData?.error || 'Failed to update timezone');
       }
 
       const updatedUser = data.data;
