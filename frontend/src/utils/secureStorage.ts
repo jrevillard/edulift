@@ -40,7 +40,7 @@
  * ┌──────────────────────────────────────────────────────────────────────┐
  * │ CHECK 2: RUNTIME WINDOW FLAG                                               │
  * │                                                                            │
- * │ (window as any).__E2E_TEST_MODE__ === true                               │
+ * │ (window as E2EWindow).__E2E_TEST_MODE__ === true                               │
  * │                                                                            │
  * │ • Set by: universal-auth-helper.ts in E2E tests                          │
  * │ • Verified at: Line 126 in decryptData()                                 │
@@ -70,7 +70,7 @@
  * Run this in browser console:
  * ```javascript
  * console.log('Build check:', import.meta.env.VITE_E2E_TEST);
- * console.log('Window flag:', (window as any).__E2E_TEST_MODE__);
+ * console.log('Window flag:', (window as E2EWindow).__E2E_TEST_MODE__);
  * console.log('Storage flag:', localStorage.getItem('__E2E_TEST_MODE__'));
  * ```
  *
@@ -138,6 +138,13 @@
  */
 
 import { E2E_TEST_OVERRIDE_IV_BASE64 } from '../constants/e2e';
+
+/**
+ * Extended Window interface for E2E testing
+ */
+interface E2EWindow extends Window {
+  __E2E_TEST_MODE__?: boolean;
+}
 
 // Current fingerprint version - increment if entropy sources change significantly
 const KEY_VERSION = 1;
@@ -245,7 +252,7 @@ const decryptData = async (encryptedData: string, iv: string): Promise<string> =
 
       // CRITICAL SECURITY: Verify test mode flags are present
       const isE2EMode = typeof window !== 'undefined' &&
-                    ((window as any).__E2E_TEST_MODE__ === true ||
+                    ((window as E2EWindow).__E2E_TEST_MODE__ === true ||
                      localStorage.getItem('__E2E_TEST_MODE__') === 'true');
 
       if (!isE2EMode) {

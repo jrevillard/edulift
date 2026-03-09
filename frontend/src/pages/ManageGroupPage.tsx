@@ -595,7 +595,7 @@ const ManageGroupPage: React.FC = () => {
                     <div className="space-y-1">
                       <p>Total time slots: {Object.values(scheduleConfig.scheduleHours).reduce((total, slots) => total + (slots?.length || 0), 0)}</p>
                       <p>Active weekdays: {Object.values(scheduleConfig.scheduleHours).filter(slots => slots && slots.length > 0).length}</p>
-                      {(scheduleConfig as any)?.isDefault && (
+                      {scheduleConfig && ('isDefault' in scheduleConfig) && (scheduleConfig.isDefault as boolean) && (
                         <Badge variant="secondary" className="mt-2">Using Default Configuration</Badge>
                       )}
                     </div>

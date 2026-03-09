@@ -428,6 +428,9 @@ const ManageFamilyPage: React.FC = () => {
               <InvitationManagement
                 members={currentFamily.members?.map(member => ({
                   id: member.id,
+                  userId: member.userId,
+                  familyId: member.familyId,
+                  joinedAt: member.joinedAt,
                   role: member.role,
                   user: {
                     id: member.user?.id || '',
@@ -453,7 +456,7 @@ const ManageFamilyPage: React.FC = () => {
                 ]}
                 onInviteMember={handleInviteMember}
                 onCancelInvitation={handleCancelInvitation}
-                renderMember={(member: any) => (
+                renderMember={(member) => (
                   <div
                     key={`member-${member.id}`}
                     className="flex items-center justify-between p-3 rounded-lg border"

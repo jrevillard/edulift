@@ -8,6 +8,13 @@ import { secureStorage } from './secureStorage';
 import { E2E_TEST_OVERRIDE_IV, E2E_TEST_OVERRIDE_IV_BASE64, verifyE2EConstants } from '../constants/e2e';
 
 /**
+ * Extended Window interface for E2E testing
+ */
+interface E2EWindow extends Window {
+  __E2E_TEST_MODE__?: boolean;
+}
+
+/**
  * PKCE key pair structure
  */
 export interface PKCEPair {
@@ -214,7 +221,7 @@ export async function clearPKCEData(): Promise<void> {
 
   const isE2ETestMode = isE2ETestBuild &&
                        typeof window !== 'undefined' &&
-                       ((window as any).__E2E_TEST_MODE__ === true ||
+                       ((window as E2EWindow).__E2E_TEST_MODE__ === true ||
                         localStorage.getItem('__E2E_TEST_MODE__') === 'true');
 
   if (isE2ETestMode) {
@@ -250,7 +257,7 @@ export async function hasPKCEData(): Promise<boolean> {
         hasChallenge: !!challenge,
         hasEmail: !!email,
         e2eTestMode: typeof window !== 'undefined' &&
-                     ((window as any).__E2E_TEST_MODE__ === true ||
+                     ((window as E2EWindow).__E2E_TEST_MODE__ === true ||
                       localStorage.getItem('__E2E_TEST_MODE__') === 'true')
       });
     }
@@ -301,7 +308,7 @@ export async function restorePKCEData(pkceData: Record<string, string>): Promise
 
   // Layer 3: Verify E2E test mode flags are present
   const isE2EMode = typeof window !== 'undefined' &&
-                    ((window as any).__E2E_TEST_MODE__ === true ||
+                    ((window as E2EWindow).__E2E_TEST_MODE__ === true ||
                      localStorage.getItem('__E2E_TEST_MODE__') === 'true');
 
   if (!isE2EMode) {

@@ -27,7 +27,7 @@ class ScheduleConfigService {
     }
 
     // Extract the actual data from the response wrapper
-    return (data as any).data as unknown as GroupScheduleConfig;
+    return (data as { data: GroupScheduleConfig }).data;
   }
 
 
@@ -49,7 +49,7 @@ class ScheduleConfigService {
     }
 
     // Extract the actual data from the response wrapper
-    return (data as any).data as unknown as GroupScheduleConfig;
+    return (data as { data: GroupScheduleConfig }).data;
   }
 
   /**
@@ -69,7 +69,7 @@ class ScheduleConfigService {
     }
 
     // Extract the actual data from the response wrapper
-    return (data as any).data as unknown as GroupScheduleConfig;
+    return (data as { data: GroupScheduleConfig }).data;
   }
 
 }
