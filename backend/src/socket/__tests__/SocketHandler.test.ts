@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { Server as HTTPServer } from 'http';
+import { createAdaptorServer } from '@hono/node-server';
+import { Hono } from 'hono';
 import { Server as SocketIOServer } from 'socket.io';
 import { io, Socket } from 'socket.io-client';
 import jwt from 'jsonwebtoken';
@@ -70,8 +72,11 @@ describe('SocketHandler', () => {
   });
 
   beforeEach(async () => {
-    // Create HTTP server
-    httpServer = new HTTPServer();
+    // Create Hono server using createAdaptorServer (same approach as server.ts)
+    const app = new Hono();
+    httpServer = createAdaptorServer({
+      fetch: app.fetch,
+    }) as any; // Cast to any for Socket.IO compatibility
     
     // Mock Prisma client with ALL required methods
     mockPrisma = {

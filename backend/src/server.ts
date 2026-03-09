@@ -21,8 +21,7 @@ import 'dotenv/config';
 // Import console override FIRST to ensure ALL console calls respect LOG_LEVEL
 import './utils/consoleOverride';
 
-import { serve } from '@hono/node-server';
-import { createServer } from 'node:http';
+import { createAdaptorServer } from '@hono/node-server';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { swaggerUI } from '@hono/swagger-ui';
@@ -452,25 +451,25 @@ console.log(`🌐 Server: http://${host}:${port}`);
 console.log(`📚 API Documentation: http://${host}:${port}/docs`);
 console.log(`📋 OpenAPI Spec: http://${host}:${port}/openapi.json`);
 
-// Create HTTP server for both Hono and Socket.IO
-const httpServer = createServer();
+// Create Hono server using createAdaptorServer
+// This ensures Hono's request handlers are attached BEFORE Socket.IO
+const server = createAdaptorServer({
+  fetch: app.fetch,
+});
 
-// Initialize Socket.IO with the HTTP server
-const socketHandler = new SocketHandler(httpServer);
+// Initialize Socket.IO with the Hono server
+// Socket.IO is attached AFTER Hono, preventing request handler conflicts
+// Cast to http.Server as createAdaptorServer returns ServerType (HTTP or HTTP/2)
+const socketHandler = new SocketHandler(server as any);
 
 // Make SocketHandler globally available for other services
 setGlobalSocketHandler(socketHandler);
 
-// Start server with Hono app and Socket.IO attached
+// Start server manually with callback
 console.log('🔍 [DEBUG] About to start server...');
 console.log(`🔍 [DEBUG] Port: ${port}, Host: ${host}`);
 
-serve({
-  fetch: app.fetch,
-  createServer: () => httpServer, // Use our HTTP server
-  port,
-  hostname: host,
-}, () => {
+server.listen(port, host, () => {
   // This callback is executed when the server is actually ready to accept connections
   console.log(`✅ Server ready on http://${host}:${port}`);
   console.log(`🔌 WebSocket endpoint: ws://${host}:${port}/socket.io/`);
