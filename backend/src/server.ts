@@ -87,13 +87,22 @@ app.get('/health', (c) => {
   });
 });
 
-// Global middleware (applied to all routes except those defined above)
-app.use('*', cors({
-  origin: env === 'production'
-    ? ['https://app.familytracker.com', 'https://familytracker.com']
-    : ['http://localhost:3000', 'http://localhost:5173'],
-  credentials: true,
-}));
+// Global middleware with CORS conditional logic
+// Health checks are excluded from CORS restrictions for monitoring/CI access
+app.use('*', async (c, next) => {
+  // Skip CORS for health check endpoints
+  if (c.req.path === '/health' || c.req.path === '/health/database') {
+    return next();
+  }
+
+  // Apply CORS to all other routes
+  return cors({
+    origin: env === 'production'
+      ? ['https://app.familytracker.com', 'https://familytracker.com']
+      : ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+  })(c, next);
+});
 
 app.use('*', logger());
 
@@ -453,6 +462,9 @@ const socketHandler = new SocketHandler(httpServer);
 setGlobalSocketHandler(socketHandler);
 
 // Start server with Hono app and Socket.IO attached
+console.log('🔍 [DEBUG] About to start server...');
+console.log(`🔍 [DEBUG] Port: ${port}, Host: ${host}`);
+
 serve({
   fetch: app.fetch,
   createServer: () => httpServer, // Use our HTTP server
@@ -462,3 +474,4 @@ serve({
 
 console.log(`✅ Server ready on http://${host}:${port}`);
 console.log(`🔌 WebSocket endpoint: ws://${host}:${port}/socket.io/`);
+console.log('🔍 [DEBUG] Server successfully listening');

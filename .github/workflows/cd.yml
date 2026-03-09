@@ -34,10 +34,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for git diff
 
       - name: Check which CI workflows should run
         id: check-ci-needed
         run: |
+          # Debug: Show available commits
+          echo "=== Debug git log ==="
+          git log --oneline -5
+          echo "=== Debug event.before vs sha ==="
+          echo "github.event.before: ${{ github.event.before }}"
+          echo "github.sha: ${{ github.sha }}"
+          echo "=== Testing git diff ==="
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} || echo "Git diff failed or no changes"
+
           # Check which specific paths changed to determine which CI workflows to wait for
           FRONTEND_CHANGED=$(
             git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^frontend/' || echo ""
