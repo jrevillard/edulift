@@ -1,5 +1,6 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
+import { ServerType } from '@hono/node-server';
 import { SocketService } from '../services/SocketService';
 import { ScheduleSlotService } from '../services/ScheduleSlotService';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
@@ -28,13 +29,19 @@ export class SocketHandler {
   private logger = createLogger('socket');
   private rateLimitMap: Map<string, { count: number; resetTime: number }> = new Map();
 
-  constructor(server: HTTPServer) {
+  constructor(server: HTTPServer | ServerType) {
+    // Type safety: createAdaptorServer returns ServerType which includes HTTP/2,
+    // but Socket.IO requires HTTP/1. In practice, createAdaptorServer always
+    // creates HTTP/1 servers, so this cast is safe. Socket.IO will fail clearly
+    // if HTTP/2 is ever used.
+    const httpServer = server as HTTPServer;
+
     // Initialize Socket.io with CORS configuration
     const corsOrigins = process.env.CORS_ORIGIN === '*'
       ? '*'
       : process.env.CORS_ORIGIN?.split(',').map(origin => origin.trim());
 
-    this.io = new SocketIOServer(server, {
+    this.io = new SocketIOServer(httpServer, {
       cors: {
         origin: corsOrigins,
         methods: ['GET', 'POST'],

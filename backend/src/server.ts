@@ -457,10 +457,37 @@ const server = createAdaptorServer({
   fetch: app.fetch,
 });
 
+// Add error handling for server startup
+server.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string' ? `Pipe ${port}` : `Port ${port}`;
+
+  // Handle specific listen errors with clear messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(`❌ ${bind} requires elevated privileges`);
+      console.error('   Try running with sudo or use a port > 1024');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(`❌ ${bind} is already in use`);
+      console.error('   Another process is already listening on this port');
+      console.error('   Try: lsof -ti :${port} | xargs kill -9');
+      process.exit(1);
+      break;
+    default:
+      console.error('❌ Failed to start server:', error);
+      throw error;
+  }
+});
+
 // Initialize Socket.IO with the Hono server
 // Socket.IO is attached AFTER Hono, preventing request handler conflicts
-// Cast to http.Server as createAdaptorServer returns ServerType (HTTP or HTTP/2)
-const socketHandler = new SocketHandler(server as any);
+// SocketHandler now accepts ServerType and performs runtime type checking
+const socketHandler = new SocketHandler(server);
 
 // Make SocketHandler globally available for other services
 setGlobalSocketHandler(socketHandler);

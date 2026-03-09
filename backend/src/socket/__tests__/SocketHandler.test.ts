@@ -76,7 +76,7 @@ describe('SocketHandler', () => {
     const app = new Hono();
     httpServer = createAdaptorServer({
       fetch: app.fetch,
-    }) as any; // Cast to any for Socket.IO compatibility
+    });
     
     // Mock Prisma client with ALL required methods
     mockPrisma = {
