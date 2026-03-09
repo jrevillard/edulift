@@ -534,7 +534,7 @@ const SchedulePage: React.FC = () => {
 
   const handleVehicleDrop = useCallback(async (day: string, time: string, vehicleId: string) => {
     try {
-      const daySchedule = scheduleByDay[day] || [];
+      const daySchedule = Array.isArray(scheduleByDay[day]) ? scheduleByDay[day] : [];
       let scheduleSlot = daySchedule.find((slot: ScheduleSlot) => {
         // Convert UTC datetime to local time for matching
         const slotTime = getTimeInTimezone(slot.datetime, user?.timezone || 'UTC');
@@ -635,7 +635,7 @@ const SchedulePage: React.FC = () => {
       );
     }
 
-    const daySchedule = scheduleByDay[weekday.key] || [];
+    const daySchedule = Array.isArray(scheduleByDay[weekday.key]) ? scheduleByDay[weekday.key] : [];
 
     const scheduleSlot = daySchedule.find((slot: ScheduleSlot) => {
       // Convert UTC datetime to local time for matching
@@ -974,21 +974,23 @@ const SchedulePage: React.FC = () => {
         />
         <div className="text-center py-12">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl mx-auto">
-            {groups.map((group) => (
-              <ModernCard key={group.id} className="cursor-pointer transition-transform hover:scale-105" onClick={() => setSelectedGroup(group.id)}>
-                <div className="p-6 text-center">
-                  <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-xl bg-primary/10">
-                    <Users className="h-6 w-6 text-primary" />
+            {Array.isArray(groups) ? (
+              groups.map((group) => (
+                <ModernCard key={group.id} className="cursor-pointer transition-transform hover:scale-105" onClick={() => setSelectedGroup(group.id)}>
+                  <div className="p-6 text-center">
+                    <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-xl bg-primary/10">
+                      <Users className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-2">{group.name}</h3>
+                    <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
+                      <Badge variant="secondary">{group.userRole}</Badge>
+                      <span>•</span>
+                      <span>{group.familyCount} famil{group.familyCount !== 1 ? 'ies' : 'y'}</span>
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-2">{group.name}</h3>
-                  <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground">
-                    <Badge variant="secondary">{group.userRole}</Badge>
-                    <span>•</span>
-                    <span>{group.familyCount} famil{group.familyCount !== 1 ? 'ies' : 'y'}</span>
-                  </div>
-                </div>
-              </ModernCard>
-            ))}
+                </ModernCard>
+              ))
+            ) : null}
           </div>
         </div>
       </PageLayout>
@@ -1008,7 +1010,7 @@ const SchedulePage: React.FC = () => {
     );
   }
 
-  const selectedGroupData = groups.find(g => g.id === selectedGroup);
+  const selectedGroupData = Array.isArray(groups) ? groups.find(g => g.id === selectedGroup) : undefined;
 
   return (
     <PageLayout variant="schedule">
