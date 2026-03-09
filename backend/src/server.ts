@@ -470,8 +470,9 @@ serve({
   createServer: () => httpServer, // Use our HTTP server
   port,
   hostname: host,
+}, () => {
+  // This callback is executed when the server is actually ready to accept connections
+  console.log(`✅ Server ready on http://${host}:${port}`);
+  console.log(`🔌 WebSocket endpoint: ws://${host}:${port}/socket.io/`);
+  console.log('🔍 [DEBUG] Server successfully listening');
 });
-
-console.log(`✅ Server ready on http://${host}:${port}`);
-console.log(`🔌 WebSocket endpoint: ws://${host}:${port}/socket.io/`);
-console.log('🔍 [DEBUG] Server successfully listening');
