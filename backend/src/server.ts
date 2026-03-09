@@ -76,7 +76,18 @@ const app = new OpenAPIHono({
   },
 });
 
-// Global middleware
+// IMPORTANT: Health check endpoint MUST be defined BEFORE CORS middleware
+// to allow monitoring from any origin (especially in CI/CD environments)
+app.get('/health', (c) => {
+  return c.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    environment: env,
+  });
+});
+
+// Global middleware (applied to all routes except those defined above)
 app.use('*', cors({
   origin: env === 'production'
     ? ['https://app.familytracker.com', 'https://familytracker.com']
@@ -94,16 +105,6 @@ app.use('/api/v1/auth/*', authEndpointRateLimiter);
 
 // Apply admin rate limiting to admin operations (if they exist)
 app.use('/api/v1/admin/*', adminRateLimiter);
-
-// Health check endpoint (always available)
-app.get('/health', (c) => {
-  return c.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    version: '1.0.0',
-    environment: env,
-  });
-});
 
 // Database health check
 app.get('/health/database', async (c) => {
