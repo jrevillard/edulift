@@ -21,22 +21,76 @@ export interface AuthResponse {
   };
 }
 
+/**
+ * AuthService - Authentication Service
+ *
+ * SINGLE SOURCE OF TRUTH for authentication state.
+ *
+ * Architecture:
+ * - authService.token: Authoritative source (in-memory)
+ * - secureStorage: Persistence layer only (for page reloads)
+ *
+ * All token reads MUST go through authService.getToken()
+ * API middleware uses authService, not secureStorage directly
+ *
+ * Initialization:
+ * - Constructor starts async initialization from secureStorage
+ * - Use ensureInitialized() before any operation that requires the token
+ * - setAuth() marks initialization as complete (handles manual login)
+ */
 class AuthService {
+  // SINGLE SOURCE OF TRUTH for authentication state
   private token: string | null = null;
-  private storedRefreshToken: string | null = null;
+  private _refreshToken: string | null = null;  // Prefix to avoid conflict with refreshToken() method
   private user: User | null = null;
   private onAuthChanged?: () => void;
+  private initializationPromise: Promise<void> | null = null;
+  private isInitialized: boolean = false;
 
   constructor() {
-    // Initialize from secure storage (async operation)
-    this.initializeFromSecureStorage();
+    // Initialize from secure storage and track the promise
+    this.initializationPromise = this.initializeFromSecureStorage();
+  }
+
+  /**
+   * Ensure authentication is initialized before proceeding.
+   * Components should call this before making authenticated API calls.
+   *
+   * This method waits for the async initialization from secureStorage to complete.
+   * Once initialization is done, subsequent calls return immediately.
+   *
+   * @param timeoutMs - Maximum time to wait for initialization (default: 5000ms)
+   */
+  async ensureInitialized(timeoutMs: number = 5000): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+    if (this.initializationPromise) {
+      // Add timeout protection to prevent indefinite waiting
+      await Promise.race([
+        this.initializationPromise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth initialization timeout')), timeoutMs)
+        )
+      ]);
+    }
+    // Note: isInitialized is set by initializeFromSecureStorage() or setAuth()
+    // We don't set it here to avoid marking as initialized before the actual init completes
+  }
+
+  /**
+   * Check if authentication has been initialized.
+   * Useful for synchronous checks (e.g., rendering conditions).
+   */
+  ready(): boolean {
+    return this.isInitialized;
   }
 
   private async initializeFromSecureStorage(): Promise<void> {
     try {
       // Load from secure storage only
       this.token = await secureStorage.getItem('authToken');
-      this.storedRefreshToken = await secureStorage.getItem('refreshToken');
+      this._refreshToken = await secureStorage.getItem('refreshToken');
       const userData = await secureStorage.getItem('userData');
 
       if (userData) {
@@ -45,9 +99,13 @@ class AuthService {
         } catch (error) {
           console.error('Failed to parse user data:', error);
           await this.clearAuth();
+          this.isInitialized = true;
           return;
         }
       }
+
+      // Mark initialization as complete
+      this.isInitialized = true;
 
       // Notify auth context that tokens are loaded
       if (this.onAuthChanged) {
@@ -57,8 +115,11 @@ class AuthService {
       console.error('Failed to initialize from secure storage:', error);
       // No fallback - secure storage is required for security
       this.token = null;
-      this.storedRefreshToken = null;
+      this._refreshToken = null;
       this.user = null;
+
+      // Mark initialization as complete (even if failed)
+      this.isInitialized = true;
 
       // Still notify to update loading state
       if (this.onAuthChanged) {
@@ -260,12 +321,12 @@ class AuthService {
   private isRefreshInProgress = false;
 
   async refreshToken(): Promise<void> {
-    if (!this.storedRefreshToken) {
+    if (!this._refreshToken) {
       console.warn('🔄 Refresh token not in memory, checking secure storage...');
       // Try to fetch from secure storage as fallback
       try {
-        this.storedRefreshToken = await secureStorage.getItem('refreshToken');
-        if (!this.storedRefreshToken) {
+        this._refreshToken = await secureStorage.getItem('refreshToken');
+        if (!this._refreshToken) {
           throw new Error('No refresh token available');
         }
       } catch (error) {
@@ -283,7 +344,7 @@ class AuthService {
 
     try {
       // Send refresh token to backend
-      if (this.storedRefreshToken) {
+      if (this._refreshToken) {
         console.log('🔄 Refreshing token...');
       } else {
         console.warn('🔄 No refresh token available');
@@ -294,7 +355,7 @@ class AuthService {
 
       const { data, error } = await api.POST('/api/v1/auth/refresh', {
         body: {
-          refreshToken: this.storedRefreshToken as string
+          refreshToken: this._refreshToken as string
         },
       });
 
@@ -313,12 +374,12 @@ class AuthService {
 
       // Update both access token and refresh token (token rotation)
       this.token = data.data.accessToken;
-      this.storedRefreshToken = data.data.refreshToken;
+      this._refreshToken = data.data.refreshToken;
 
       // Store securely only
       try {
         await secureStorage.setItem('authToken', this.token as string);
-        await secureStorage.setItem('refreshToken', this.storedRefreshToken as string);
+        await secureStorage.setItem('refreshToken', this._refreshToken as string);
       } catch (error) {
         console.error('Failed to store refreshed tokens securely:', error);
         throw new Error('Secure storage required for authentication');
@@ -357,7 +418,7 @@ class AuthService {
 
     // Store refresh token in memory if provided
     if (refreshToken) {
-      this.storedRefreshToken = refreshToken;
+      this._refreshToken = refreshToken;
     }
 
     // Authentication successful
@@ -372,8 +433,21 @@ class AuthService {
       if (refreshToken) {
         await secureStorage.setItem('refreshToken', refreshToken);
       }
+
+      // Mark initialization as complete since token is now in secureStorage
+      // This prevents race conditions where initialization tries to overwrite
+      this.isInitialized = true;
+
+      // Notify listeners (AuthContext) that auth state has changed
+      if (this.onAuthChanged) {
+        this.onAuthChanged();
+      }
     } catch (error) {
       console.error('Failed to store auth data securely:', error);
+      // Rollback memory state on storage failure
+      this.token = null;
+      this.user = null;
+      this._refreshToken = null;
       throw new Error('Secure storage required for authentication');
     }
   }
@@ -397,7 +471,7 @@ class AuthService {
 
   private async clearAuth(): Promise<void> {
     this.token = null;
-    this.storedRefreshToken = null;
+    this._refreshToken = null;
     this.user = null;
 
     try {
@@ -466,26 +540,6 @@ class AuthService {
 
   getToken(): string | null {
     return this.token;
-  }
-
-  // Method to refresh token from secure storage (useful for E2E tests)
-  async refreshTokenFromStorage(): Promise<void> {
-    try {
-      this.token = await secureStorage.getItem('authToken');
-      const userData = await secureStorage.getItem('userData');
-      if (userData) {
-        try {
-          this.user = JSON.parse(userData);
-        } catch (error) {
-          console.error('Failed to parse user data:', error);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to refresh token from secure storage:', error);
-      // No fallback - secure storage is required
-      this.token = null;
-      this.user = null;
-    }
   }
 
   // Check if token is expired (basic check - in production, decode JWT)

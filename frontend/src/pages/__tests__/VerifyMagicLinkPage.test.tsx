@@ -23,10 +23,11 @@ vi.mock('../../services/authService', () => ({
     getToken: vi.fn(),
     setAuthChangeCallback: vi.fn(),
     isTokenExpired: vi.fn().mockReturnValue(false),
-    refreshTokenFromStorage: vi.fn().mockResolvedValue(undefined),
     logout: vi.fn(),
     requestPasswordReset: vi.fn(),
     resetPassword: vi.fn(),
+    ensureInitialized: vi.fn().mockResolvedValue(undefined),
+    ready: vi.fn().mockReturnValue(true),
   } as Partial<AuthService>
 }))
 

@@ -145,7 +145,13 @@ const apiProxy = new Proxy(client, {
 client.use({
   async onRequest({ request }: { request: Request }) {
     try {
-      const token = await secureStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+      // Get token from authService (single source of truth)
+      // authService ensures initialization before returning the token
+      const { authService } = await import('./authService');
+      await authService.ensureInitialized();
+
+      const token = authService.getToken();
+
       if (token) {
         request.headers.set('Authorization', `Bearer ${token}`);
       }

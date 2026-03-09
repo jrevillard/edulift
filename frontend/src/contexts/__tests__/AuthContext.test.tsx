@@ -29,7 +29,8 @@ vi.mock('../../services/authService', () => ({
     refreshToken: vi.fn(),
     logout: vi.fn(),
     setAuthChangeCallback: vi.fn(),
-    refreshTokenFromStorage: vi.fn(),
+    ensureInitialized: vi.fn().mockResolvedValue(undefined),
+    ready: vi.fn().mockReturnValue(true),
   },
 }))
 

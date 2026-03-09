@@ -317,7 +317,6 @@ export const createMockAuthService = () => ({
   verifyMagicLink: vi.fn().mockResolvedValue({ user: mockUser, token: 'mock-token' }),
   logout: vi.fn().mockResolvedValue(undefined),
   refreshToken: vi.fn().mockResolvedValue({ user: mockUser, token: 'new-token' }),
-  refreshTokenFromStorage: vi.fn().mockResolvedValue('mock-token'),
   setAuthChangeCallback: vi.fn(),
   isAuthenticated: vi.fn().mockReturnValue(true),
   getUser: vi.fn().mockReturnValue(mockUser),
@@ -325,6 +324,8 @@ export const createMockAuthService = () => ({
   isTokenExpired: vi.fn().mockReturnValue(false),
   requestPasswordReset: vi.fn().mockResolvedValue(undefined),
   resetPassword: vi.fn().mockResolvedValue({ user: mockUser, token: 'mock-token' }),
+  ensureInitialized: vi.fn().mockResolvedValue(undefined),
+  ready: vi.fn().mockReturnValue(true),
 })
 
 // Connection store mock factory

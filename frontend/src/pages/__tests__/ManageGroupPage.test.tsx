@@ -36,7 +36,8 @@ vi.mock('../../services/authService', () => ({
     requestMagicLink: vi.fn(),
     verifyMagicLink: vi.fn(),
     refreshToken: vi.fn(),
-    refreshTokenFromStorage: vi.fn().mockResolvedValue(true),
+    ensureInitialized: vi.fn().mockResolvedValue(undefined),
+    ready: vi.fn().mockReturnValue(true),
   },
 }));
 

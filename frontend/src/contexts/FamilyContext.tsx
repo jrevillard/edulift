@@ -69,7 +69,6 @@ export function createFamilyError(
 }
 
 import { familyApiService } from '../services/familyApiService';
-import { authService } from '../services/authService';
 import { useAuth } from './AuthContext';
 import { secureStorage } from '@/utils/secureStorage';
 
@@ -135,7 +134,6 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   // Initialize family data when user is authenticated
   useEffect(() => {
     const loadUserFamily = async () => {
-      console.log('🔍 DEBUG FAMILYCONTEXT: loadUserFamily called, user =', !!user);
       if (!user) return;
 
       // Check if user is marked as new user (for E2E tests) - use secure storage
@@ -144,8 +142,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         if (authStorage) {
           const authData = JSON.parse(authStorage);
 
-          // DEBUG: Log auth storage state for troubleshooting
-          console.log('🔍 DEBUG: Auth storage found:', {
+          // Check auth storage state for isNewUser flag
+          console.log('Auth storage found:', {
             isNewUser: authData.state?.isNewUser,
             userId: authData.state?.user?.id,
             hasToken: !!authData.state?.token
@@ -153,14 +151,14 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
           if (authData.state?.isNewUser) {
             // Always try to clear stale isNewUser flag first, then check if user actually needs onboarding
-            console.warn('🔍 DEBUG: Clearing potentially stale isNewUser flag');
+            console.warn('Clearing potentially stale isNewUser flag');
             // Force clear stale isNewUser flag
             const updatedAuthData = { ...authData, state: { ...authData.state, isNewUser: false } };
             await secureStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
 
             // Only redirect to onboarding if we're sure this is a different user (not just stale data)
             if (authData.state?.user?.id !== user?.id) {
-              console.log('🔍 DEBUG: Different user detected, may need onboarding');
+              console.log(': Different user detected, may need onboarding');
               // Don't redirect immediately - let the normal family check logic handle it
               // This prevents false redirects for existing users with families
             }
@@ -173,11 +171,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       setState(prev => ({ ...prev, isCheckingFamily: true, error: null }));
 
       try {
-        console.log('🔍 DEBUG FAMILYCONTEXT: About to call getCurrentFamily');
-        // Refresh authService token to ensure it has the latest token from localStorage
-        authService.refreshTokenFromStorage();
         const family = await familyApiService.getCurrentFamily();
-        console.log('🔍 DEBUG FAMILYCONTEXT: getCurrentFamily succeeded, family =', family);
 
         if (family) {
           // User has a family - load permissions
@@ -203,7 +197,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           }));
         }
       } catch (error) {
-        console.error('🔍 DEBUG FAMILYCONTEXT: Failed to load user family:', error);
+        console.error(' FAMILYCONTEXT: Failed to load user family:', error);
 
         // Check if this is a network/connection error or server startup issue
         const isNetworkError = error instanceof Error && (
@@ -217,8 +211,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
           error.message.includes('504')
         );
 
-        console.log('🔍 DEBUG FAMILYCONTEXT: isNetworkError =', isNetworkError);
-        console.log('🔍 DEBUG FAMILYCONTEXT: error.message =', error instanceof Error ? error.message : error);
+        console.log(' FAMILYCONTEXT: isNetworkError =', isNetworkError);
+        console.log(' FAMILYCONTEXT: error.message =', error instanceof Error ? error.message : error);
 
         // Be more conservative - only require family if we're certain it's not a network/server issue
         // Also check if user previously had a family (in session) to avoid false redirects
@@ -237,9 +231,9 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       }
     };
 
-    console.log('🔍 DEBUG FAMILYCONTEXT: useEffect triggered, isAuthenticated =', isAuthenticated, ', user =', !!user);
+    console.log(' FAMILYCONTEXT: useEffect triggered, isAuthenticated =', isAuthenticated, ', user =', !!user);
     if (isAuthenticated && user) {
-      console.log('🔍 DEBUG FAMILYCONTEXT: Calling loadUserFamily()');
+      console.log(' FAMILYCONTEXT: Calling loadUserFamily()');
       loadUserFamily();
     } else {
       // Clear family data when user logs out
