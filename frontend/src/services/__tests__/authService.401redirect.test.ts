@@ -105,12 +105,8 @@ describe('401 Redirect Handling (openapi-fetch middleware)', () => {
       // Setup: user is logged in
       mockedSecureStorage.getItem.mockResolvedValue('valid-token');
 
-      // Create a mock response with 401 status
-      const mockResponse = new Response(null, { status: 401 });
-
-      // Call the middleware's onResponse handler
-      // Note: We can't directly test the middleware, but we can verify
-      // that when api receives a 401, it clears tokens
+      // Note: We can't directly test the middleware here, but we verify
+      // that the auth service methods work correctly
 
       expect(mockedSecureStorage.removeItem).not.toHaveBeenCalled();
     });
