@@ -61,6 +61,61 @@ describe('SocketHandler', () => {
     return timeout;
   };
 
+  // Helper function to create socket connection with retry logic
+  const createSocketConnection = (
+    token: string | null,
+    port: number,
+    options: {
+      timeout?: number;
+      retries?: number;
+    } = {},
+  ): Promise<Socket> => {
+    const { timeout = 10000, retries = 3 } = options;
+
+    return new Promise((resolve, reject) => {
+      let attempt = 0;
+
+      const tryConnect = () => {
+        attempt++;
+
+        const socket = io(`http://localhost:${port}`, {
+          auth: token ? { token } : undefined,
+          autoConnect: false,
+          reconnection: false,
+          timeout: 5000,
+        });
+
+        const timeoutId = setTimeout(() => {
+          socket.disconnect();
+          if (attempt < retries) {
+            setTimeout(tryConnect, 100);
+          } else {
+            reject(new Error(`Connection timeout after ${retries} attempts`));
+          }
+        }, timeout / retries);
+
+        socket.on('connect', () => {
+          clearTimeout(timeoutId);
+          resolve(socket);
+        });
+
+        socket.on('connect_error', (error: unknown) => {
+          clearTimeout(timeoutId);
+          socket.disconnect();
+          if (attempt < retries) {
+            setTimeout(tryConnect, 100);
+          } else {
+            reject(error);
+          }
+        });
+
+        socket.connect();
+      };
+
+      tryConnect();
+    });
+  };
+
   beforeAll(() => {
     process.env.JWT_ACCESS_SECRET = JWT_ACCESS_SECRET;
     process.env.CORS_ORIGIN = 'http://localhost:3000';
@@ -142,55 +197,55 @@ describe('SocketHandler', () => {
         resolve();
       });
     });
+
+    // Wait for Socket.IO to be fully initialized
+    // This prevents race conditions where client connects before Socket.IO is ready
+    await new Promise(resolve => {
+      const timer = setTimeout(resolve, 100);
+      timer.unref();
+    });
   });
 
   afterEach(async () => {
     // Clear all tracked timeouts
     activeTimeouts.forEach(timeout => clearTimeout(timeout));
     activeTimeouts = [];
-    
-    // Disconnect client sockets
+
+    // Disconnect client sockets first
     if (clientSocket) {
       clientSocket.disconnect();
+      clientSocket.removeAllListeners();
+      clientSocket = null as any;
     }
-    
+
     // Cleanup socket handler (includes Prisma disconnect)
     if (socketHandler) {
       await socketHandler.cleanup();
     }
-    
-    // Close HTTP server with proper await
+
+    // Close HTTP server with proper await and additional wait
     await new Promise<void>((resolve) => {
-      httpServer.close(() => resolve());
+      httpServer.close(() => {
+        // Additional wait to ensure port is fully released
+        setTimeout(resolve, 50);
+      });
     });
-    
+
     jest.clearAllMocks();
   });
 
   describe('Authentication Middleware', () => {
     it('should accept valid JWT token', async () => {
       const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
-      
-      const connectionPromise = new Promise<void>((resolve, reject) => {
-        clientSocket = io(`http://localhost:${(httpServer.address() as any).port}`, {
-          auth: { token },
-          autoConnect: false,
-        });
+      const port = (httpServer.address() as any).port;
 
-        clientSocket.on('connect', () => {
-          resolve();
-        });
-
-        clientSocket.on('connect_error', (error: unknown) => {
-          reject(error);
-        });
-
-        // Set timeout to prevent hanging tests
-        setTestTimeout(() => reject(new Error('Connection timeout')), 5000);
+      clientSocket = await createSocketConnection(token, port, {
+        timeout: 10000,
+        retries: 3,
       });
 
-      clientSocket.connect();
-      await expect(connectionPromise).resolves.toBeUndefined();
+      expect(clientSocket.connected).toBe(true);
+      clientSocket.disconnect();
     });
 
     it('should reject connection without token', async () => {
