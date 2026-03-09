@@ -154,9 +154,8 @@ describe('AuthService PKCE Integration', () => {
 
     beforeEach(() => {
       // Setup secureStorage mock for verifyMagicLink
-      const secureStorage = require('@/utils/secureStorage').secureStorage;
-      secureStorage.setItem.mockResolvedValue(undefined);
-      secureStorage.getItem.mockResolvedValue(null);
+      // Mock is already configured at file level with vi.mock
+      vi.clearAllMocks();
     });
 
     it('should verify magic link with PKCE verifier', async () => {
@@ -308,12 +307,24 @@ describe('AuthService PKCE Integration', () => {
     });
 
     it('should send verifier in expected format', async () => {
-      const secureStorage = require('@/utils/secureStorage').secureStorage;
-      secureStorage.setItem.mockResolvedValue(undefined);
-      secureStorage.getItem.mockResolvedValue(null);
+      // Define local auth response for this test
+      const localAuthResponse = {
+        user: {
+          id: 'user-123',
+          email: testEmail,
+          name: 'Test User',
+          timezone: 'UTC',
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z'
+        },
+        accessToken: 'new-access-token',
+        refreshToken: 'new-refresh-token',
+        expiresIn: 3600,
+        tokenType: 'Bearer'
+      };
 
       mockClient.POST.mockResolvedValue({
-        data: { success: true, data: mockAuthResponse },
+        data: { success: true, data: localAuthResponse },
         error: null
       });
 

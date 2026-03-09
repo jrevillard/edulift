@@ -11,17 +11,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock secureStorage FIRST before any imports
-const mockSecureStorage = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
-  hasItem: vi.fn(),
-  getKeys: vi.fn(),
-};
-
 vi.mock('@/utils/secureStorage', () => ({
-  secureStorage: mockSecureStorage
+  secureStorage: {
+    getItem: vi.fn(),
+    setItem: vi.fn(),
+    removeItem: vi.fn(),
+    clear: vi.fn(),
+    hasItem: vi.fn(),
+    getKeys: vi.fn(),
+  }
 }));
 
 // Mock connection store
@@ -43,6 +41,8 @@ vi.mock('@/stores/connectionStore', () => {
 });
 
 import { api } from '../api';
+import { secureStorage } from '@/utils/secureStorage';
+const mockedSecureStorage = vi.mocked(secureStorage);
 
 // Mock sessionStorage for redirectAfterLogin
 const sessionStorageMock = {
@@ -103,7 +103,7 @@ describe('401 Redirect Handling (openapi-fetch middleware)', () => {
   describe('when receiving 401 response', () => {
     it('should clear auth tokens', async () => {
       // Setup: user is logged in
-      mockSecureStorage.getItem.mockResolvedValue('valid-token');
+      mockedSecureStorage.getItem.mockResolvedValue('valid-token');
 
       // Create a mock response with 401 status
       const mockResponse = new Response(null, { status: 401 });
@@ -112,7 +112,7 @@ describe('401 Redirect Handling (openapi-fetch middleware)', () => {
       // Note: We can't directly test the middleware, but we can verify
       // that when api receives a 401, it clears tokens
 
-      expect(mockSecureStorage.removeItem).not.toHaveBeenCalled();
+      expect(mockedSecureStorage.removeItem).not.toHaveBeenCalled();
     });
 
     it('should store current path for redirect', async () => {
@@ -148,7 +148,7 @@ describe('401 Redirect Handling (openapi-fetch middleware)', () => {
       // without throwing unhandled exceptions
 
       // Setup: mock a failed API call
-      mockSecureStorage.getItem.mockResolvedValue('expired-token');
+      mockedSecureStorage.getItem.mockResolvedValue('expired-token');
 
       // The api client should handle errors through its middleware
       expect(async () => {
