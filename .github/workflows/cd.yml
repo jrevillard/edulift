@@ -35,24 +35,54 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Check if CI workflows should run
+      - name: Check which CI workflows should run
         id: check-ci-needed
         run: |
-          # Check if any frontend or backend files changed
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^(frontend|backend)/'; then
+          # Check which specific paths changed to determine which CI workflows to wait for
+          FRONTEND_CHANGED=$(
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^frontend/' || echo ""
+          )
+          BACKEND_CHANGED=$(
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -E '^backend/' || echo ""
+          )
+
+          # Initialize outputs
+          echo "ci_needed=false" >> $GITHUB_OUTPUT
+          echo "frontend_needed=false" >> $GITHUB_OUTPUT
+          echo "backend_needed=false" >> $GITHUB_OUTPUT
+
+          if [ -n "$FRONTEND_CHANGED" ]; then
             echo "ci_needed=true" >> $GITHUB_OUTPUT
-            echo "Frontend or backend changes detected - waiting for CI"
-          else
-            echo "ci_needed=false" >> $GITHUB_OUTPUT
+            echo "frontend_needed=true" >> $GITHUB_OUTPUT
+            echo "Frontend changes detected - will wait for Frontend Tests"
+          fi
+
+          if [ -n "$BACKEND_CHANGED" ]; then
+            echo "ci_needed=true" >> $GITHUB_OUTPUT
+            echo "backend_needed=true" >> $GITHUB_OUTPUT
+            echo "Backend changes detected - will wait for Backend Tests"
+          fi
+
+          if [ -z "$FRONTEND_CHANGED" ] && [ -z "$BACKEND_CHANGED" ]; then
             echo "No frontend/backend changes - skipping CI wait"
           fi
 
-      - name: Wait for CI workflows to complete
-        if: steps.check-ci-needed.outputs.ci_needed == 'true'
+      - name: Wait for Frontend CI
+        if: steps.check-ci-needed.outputs.frontend_needed == 'true'
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.sha }}
-          check-regexp: '^(Frontend Tests|Backend Tests|Frontend Build Validation|CI for Workflow Changes).*'
+          check-name: 'Frontend Tests'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 30
+          allowed-conclusions: success
+
+      - name: Wait for Backend CI
+        if: steps.check-ci-needed.outputs.backend_needed == 'true'
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: 'Backend Tests'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 30
           allowed-conclusions: success
