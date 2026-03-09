@@ -22,6 +22,7 @@ import 'dotenv/config';
 import './utils/consoleOverride';
 
 import { serve } from '@hono/node-server';
+import { createServer } from 'node:http';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { swaggerUI } from '@hono/swagger-ui';
@@ -34,6 +35,10 @@ import {
   adminRateLimiter,
 } from './utils/rateLimiter';
 import { prisma } from './database';
+
+// Import Socket.IO handler
+import { SocketHandler } from './socket/socketHandler';
+import { setGlobalSocketHandler } from './utils/socketEmitter';
 
 // Import all route modules (auto-registers OpenAPI)
 // API v1 routes - organized in v1/ directory for future multi-versioning support
@@ -430,17 +435,29 @@ app.notFound((c) => {
   }, 404);
 });
 
-// Start server
+// Start server with Socket.IO integration
 console.log('🚀 EduLift API Server - State-of-the-Art Implementation');
 console.log(`📍 Environment: ${env}`);
 console.log(`🌐 Server: http://${host}:${port}`);
 console.log(`📚 API Documentation: http://${host}:${port}/docs`);
 console.log(`📋 OpenAPI Spec: http://${host}:${port}/openapi.json`);
 
+// Create HTTP server for both Hono and Socket.IO
+const httpServer = createServer();
+
+// Initialize Socket.IO with the HTTP server
+const socketHandler = new SocketHandler(httpServer);
+
+// Make SocketHandler globally available for other services
+setGlobalSocketHandler(socketHandler);
+
+// Start server with Hono app and Socket.IO attached
 serve({
   fetch: app.fetch,
+  createServer: () => httpServer, // Use our HTTP server
   port,
   hostname: host,
 });
 
 console.log(`✅ Server ready on http://${host}:${port}`);
+console.log(`🔌 WebSocket endpoint: ws://${host}:${port}/socket.io/`);
