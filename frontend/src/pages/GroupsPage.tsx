@@ -37,7 +37,7 @@ const GroupsPage: React.FC = () => {
     },
   });
 
-  const groups = (Array.isArray(groupsData?.data) ? groupsData.data : []).map((group: GroupsResponse[0]) => ({
+  const groups = groupsData?.data?.map((group: GroupsResponse[0]) => ({
     ...group,
     familyCount: group.familyCount || 0,
     description: group.description || null,

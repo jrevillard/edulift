@@ -67,7 +67,7 @@ const ChildrenPage: React.FC = () => {
     },
   });
 
-  const groups = Array.isArray(groupsData?.data) ? groupsData.data : [];
+  const groups = groupsData?.data || [];
 
   const createMutation = useMutation({
     mutationFn: async (data: { name: string; age?: number; groupIds: string[] }) => {

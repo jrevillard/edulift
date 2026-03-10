@@ -141,7 +141,7 @@ const ManageGroupPage: React.FC = () => {
     },
   });
 
-  const userGroups = Array.isArray(userGroupsData) ? userGroupsData : [];
+  const userGroups = userGroupsData || [];
 
   const currentGroup = userGroups.find((group: typeof userGroups[0]) => group.id === groupId);
   const isAdmin = currentGroup?.userRole === 'ADMIN';

@@ -271,8 +271,9 @@ const SchedulePage: React.FC = () => {
     console.log(`🔍 DEBUG: Found ${schedule.scheduleSlots.length} schedule slots`);
 
     // Transform schedule data for display - convert from OpenAPI format to ScheduleSlot format
+    // IMPORTANT: The API returns vehicleAssignments[] (array of assignments), NOT slot.vehicle directly
     const grouped: { [day: string]: ScheduleSlot[] } = {};
-    schedule.scheduleSlots.forEach((slot: { id: string; datetime: string; vehicle?: { id: string; name: string; capacity: number }; driver?: { id: string; name: string } }) => {
+    schedule.scheduleSlots.forEach((slot: any) => {
       // Extract day from datetime using UTC to match server timezone
       const slotDate = new Date(slot.datetime);
       const dayKey = slotDate.toLocaleDateString('en-US', {
@@ -283,29 +284,51 @@ const SchedulePage: React.FC = () => {
       console.log(`🔍 DEBUG: Slot datetime: ${slot.datetime}, parsed as: ${slotDate.toISOString()}, dayKey: ${dayKey} (UTC)`);
 
       // Transform OpenAPI slot to ScheduleSlot format
+      // API structure: slot.vehicleAssignments[] with each having vehicle, driver, childAssignments
+      const vehicleAssignments = slot.vehicleAssignments?.map((va: any) => ({
+        id: va.id,
+        scheduleSlotId: va.scheduleSlotId,
+        vehicleId: va.vehicleId,
+        driverId: va.driverId,
+        vehicle: va.vehicle,
+        driver: va.driver ? {
+          id: va.driver.id,
+          firstName: va.driver.name,
+          lastName: '',
+          email: ''
+        } : null,
+        seatOverride: null,
+        childAssignments: va.childAssignments?.map((ca: any) => ({
+          id: ca.id,
+          scheduleSlotId: ca.scheduleSlotId,
+          childId: ca.childId,
+          vehicleAssignmentId: ca.vehicleAssignmentId,
+          assignedAt: ca.assignedAt,
+          child: ca.child
+        })) || []
+      })) || [];
+
+      const childAssignments = slot.childAssignments?.map((ca: any) => ({
+        id: ca.id,
+        scheduleSlotId: ca.scheduleSlotId,
+        childId: ca.childId,
+        vehicleAssignmentId: ca.vehicleAssignmentId,
+        assignedAt: ca.assignedAt,
+        child: ca.child
+      })) || [];
+
+      const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va: any) => sum + (va.vehicle?.capacity || 0), 0) || 0;
+
       const transformedSlot: ScheduleSlot = {
         id: slot.id,
         groupId: selectedGroup,
         datetime: slot.datetime,
-        vehicleAssignments: slot.vehicle ? [{
-          id: `${slot.id}-vehicle`, // Generate assignment ID
-          scheduleSlotId: slot.id,
-          vehicleId: slot.vehicle.id,
-          driverId: slot.driver?.id || null,
-          vehicle: slot.vehicle,
-          driver: slot.driver ? {
-            id: slot.driver.id,
-            firstName: slot.driver.name,
-            lastName: '', // Not available in current structure
-            email: '', // Not available in current structure
-          } : null,
-          seatOverride: null
-        }] : [],
-        childAssignments: [], // OpenAPI response doesn't include children yet
-        totalCapacity: slot.vehicle?.capacity || 0,
-        availableSeats: slot.vehicle?.capacity || 0,
-        createdAt: '', // Not in OpenAPI response
-        updatedAt: ''  // Not in OpenAPI response
+        vehicleAssignments,
+        childAssignments,
+        totalCapacity,
+        availableSeats: Math.max(0, totalCapacity - childAssignments.length),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
 
       if (!grouped[dayKey]) {
@@ -534,7 +557,7 @@ const SchedulePage: React.FC = () => {
 
   const handleVehicleDrop = useCallback(async (day: string, time: string, vehicleId: string) => {
     try {
-      const daySchedule = Array.isArray(scheduleByDay[day]) ? scheduleByDay[day] : [];
+      const daySchedule = scheduleByDay[day] || [];
       let scheduleSlot = daySchedule.find((slot: ScheduleSlot) => {
         // Convert UTC datetime to local time for matching
         const slotTime = getTimeInTimezone(slot.datetime, user?.timezone || 'UTC');
@@ -635,7 +658,7 @@ const SchedulePage: React.FC = () => {
       );
     }
 
-    const daySchedule = Array.isArray(scheduleByDay[weekday.key]) ? scheduleByDay[weekday.key] : [];
+    const daySchedule = scheduleByDay[weekday.key] || [];
 
     const scheduleSlot = daySchedule.find((slot: ScheduleSlot) => {
       // Convert UTC datetime to local time for matching
@@ -712,9 +735,9 @@ const SchedulePage: React.FC = () => {
             {/* Modern vehicle cards */}
             {scheduleSlot.vehicleAssignments?.map((vehicleAssignment: ScheduleSlotVehicle) => {
               // Calculate children assigned to this specific vehicle
-              const vehicleChildren = (scheduleSlot.childAssignments || []).filter((ca) =>
+              const vehicleChildren = scheduleSlot.childAssignments?.filter((ca) =>
                 ca.vehicleAssignmentId === vehicleAssignment.id
-              );
+              ) || [];
 
 
               const currentCapacity = vehicleChildren.length;
@@ -974,8 +997,7 @@ const SchedulePage: React.FC = () => {
         />
         <div className="text-center py-12">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-4xl mx-auto">
-            {Array.isArray(groups) ? (
-              groups.map((group) => (
+            {groups.map((group) => (
                 <ModernCard key={group.id} className="cursor-pointer transition-transform hover:scale-105" onClick={() => setSelectedGroup(group.id)}>
                   <div className="p-6 text-center">
                     <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-xl bg-primary/10">
@@ -989,8 +1011,7 @@ const SchedulePage: React.FC = () => {
                     </div>
                   </div>
                 </ModernCard>
-              ))
-            ) : null}
+            ))}
           </div>
         </div>
       </PageLayout>
@@ -1010,7 +1031,7 @@ const SchedulePage: React.FC = () => {
     );
   }
 
-  const selectedGroupData = Array.isArray(groups) ? groups.find(g => g.id === selectedGroup) : undefined;
+  const selectedGroupData = groups.find(g => g.id === selectedGroup);
 
   return (
     <PageLayout variant="schedule">
