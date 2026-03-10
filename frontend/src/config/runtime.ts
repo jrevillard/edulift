@@ -16,6 +16,7 @@ interface RuntimeConfig {
   VITE_PLAY_STORE_URL: string;
   VITE_APP_UNIVERSAL_LINKS_BASE_URL?: string;
   VITE_MOBILE_APP_LINKS_BASE_URL?: string;
+  VITE_MOBILE_CUSTOM_SCHEME?: string;
 }
 
 // Extend Window interface to include our runtime config
@@ -33,8 +34,14 @@ declare global {
  */
 function getRuntimeConfig(): RuntimeConfig {
   // If runtime config is available, use it (production/staging)
+  // Apply fallbacks for properties not written by docker-entrypoint.sh
   if (typeof window !== 'undefined' && window.__ENV__) {
-    return window.__ENV__;
+    return {
+      ...window.__ENV__,
+      VITE_APP_STORE_URL: window.__ENV__.VITE_APP_STORE_URL || 'https://apps.apple.com/app/edulift',
+      VITE_PLAY_STORE_URL: window.__ENV__.VITE_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.edulift',
+      VITE_MOBILE_CUSTOM_SCHEME: window.__ENV__.VITE_MOBILE_CUSTOM_SCHEME || 'edulift',
+    };
   }
 
   // Fallback to build-time env vars (local development)
@@ -46,6 +53,7 @@ function getRuntimeConfig(): RuntimeConfig {
     VITE_PLAY_STORE_URL: import.meta.env.VITE_PLAY_STORE_URL || 'https://play.google.com/store/apps/details?id=com.edulift',
     VITE_APP_UNIVERSAL_LINKS_BASE_URL: import.meta.env.VITE_APP_UNIVERSAL_LINKS_BASE_URL,
     VITE_MOBILE_APP_LINKS_BASE_URL: import.meta.env.VITE_MOBILE_APP_LINKS_BASE_URL,
+    VITE_MOBILE_CUSTOM_SCHEME: import.meta.env.VITE_MOBILE_CUSTOM_SCHEME || 'edulift',
   };
 }
 
@@ -58,3 +66,4 @@ export const SOCKET_URL = config.VITE_SOCKET_URL;
 export const SOCKET_FORCE_POLLING = config.VITE_SOCKET_FORCE_POLLING === 'true';
 export const APP_STORE_URL = config.VITE_APP_STORE_URL;
 export const PLAY_STORE_URL = config.VITE_PLAY_STORE_URL;
+export const MOBILE_CUSTOM_SCHEME = config.VITE_MOBILE_CUSTOM_SCHEME || 'edulift';

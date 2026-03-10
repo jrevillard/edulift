@@ -25,6 +25,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { DEEP_LINK_PATHS } from "../utils/mobileRedirection";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -138,11 +139,11 @@ const LoginPage: React.FC = () => {
         const redirectUrl = new URL(decodedRedirectTo, window.location.origin);
         console.log('🔍 DEBUG: Parsed URL pathname:', redirectUrl.pathname);
         console.log('🔍 DEBUG: Parsed URL search params:', redirectUrl.search);
-        // Check both with and without /api/v1 prefix
-        if (redirectUrl.pathname === '/families/join' || redirectUrl.pathname === '/api/v1/families/join') {
+        // Check for deep link paths (NOT API paths - deep links don't have /api/v1/ prefix)
+        if (redirectUrl.pathname === DEEP_LINK_PATHS.FAMILIES_JOIN) {
           inviteCode = redirectUrl.searchParams.get('code') || undefined;
           console.log('🔍 DEBUG: Extracted invite code from /families/join:', inviteCode);
-        } else if (redirectUrl.pathname === '/groups/join' || redirectUrl.pathname === '/api/v1/groups/join') {
+        } else if (redirectUrl.pathname === DEEP_LINK_PATHS.GROUPS_JOIN) {
           inviteCode = redirectUrl.searchParams.get('code') || undefined;
           console.log('🔍 DEBUG: Extracted invite code from /groups/join:', inviteCode);
         }

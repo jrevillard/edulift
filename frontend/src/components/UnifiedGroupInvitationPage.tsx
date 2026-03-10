@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useMobileDetection } from '../hooks/useMobileDetection';
-import { attemptMobileAppOpen, parseSearchParams } from '../utils/mobileRedirection';
+import { attemptMobileAppOpen, parseSearchParams, DEEP_LINK_PATHS } from '../utils/mobileRedirection';
 import { authService } from '../services/authService';
 import { unifiedInvitationService } from '../services/unifiedInvitationService';
 import type { FamilyMember } from '../services/familyApiService';
@@ -91,7 +91,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
         const params = parseSearchParams(searchParams);
 
         attemptMobileAppOpen(
-          '/api/v1/groups/join',
+          DEEP_LINK_PATHS.GROUPS_JOIN,
           params,
           mobileDetection,
           {

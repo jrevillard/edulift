@@ -40,10 +40,14 @@ vi.mock('../../hooks/useMobileDetection', () => ({
   useMobileDetection: vi.fn(),
 }));
 
-vi.mock('../../utils/mobileRedirection', () => ({
-  parseSearchParams: vi.fn(),
-  attemptMobileAppOpen: vi.fn(),
-}));
+vi.mock('../../utils/mobileRedirection', async () => {
+  const actual = await vi.importActual('../../utils/mobileRedirection');
+  return {
+    ...actual,
+    parseSearchParams: vi.fn(),
+    attemptMobileAppOpen: vi.fn(),
+  };
+});
 
 // Mock router hooks
 const mockNavigate = vi.fn();
@@ -478,7 +482,7 @@ describe('UnifiedFamilyInvitationPage', () => {
 
       // Verify the contract: attemptMobileAppOpen is called with correct parameters
       expect(mockAttemptMobileAppOpen).toHaveBeenCalledWith(
-        '/api/v1/families/join',                  // correct path
+        '/families/join',                  // correct deep link path (not API path)
         { code: 'FAM123' },               // correct parsed parameters
         expect.objectContaining({          // mobile detection info
           isMobile: true,

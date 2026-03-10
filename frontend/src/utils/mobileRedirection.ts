@@ -2,24 +2,37 @@ import type { MobileDetectionResult } from '../hooks/useMobileDetection';
 import { config } from '../config/runtime';
 
 /**
- * Configuration des custom schemes pour EduLift
+ * Custom scheme for mobile deep links
+ * Retrieved from runtime configuration (configurable per environment)
+ * Defaults to 'edulift'; configure per environment via VITE_MOBILE_CUSTOM_SCHEME
  */
-const CUSTOM_SCHEME = 'edulift';
+const CUSTOM_SCHEME = config.VITE_MOBILE_CUSTOM_SCHEME || 'edulift';
 
 /**
- * Types de chemins supportés par l'application mobile
+ * Deep link paths supported by the mobile application
+ * NOTE: These are deep link paths, NOT API paths (do not include /api/v1/ prefix)
+ */
+export const DEEP_LINK_PATHS = {
+  AUTH_VERIFY: '/auth/verify',
+  FAMILIES_JOIN: '/families/join',
+  GROUPS_JOIN: '/groups/join',
+  DASHBOARD: '/dashboard',
+} as const;
+
+/**
+ * Path types supported by the mobile application (deep link paths, NOT API paths)
  */
 type SupportedPath =
   | '/auth/verify'
-  | '/api/v1/families/join'
-  | '/api/v1/groups/join'
+  | '/families/join'
+  | '/groups/join'
   | '/dashboard';
 
 /**
- * Options de redirection mobile perfectionnées
+ * Enhanced mobile redirection options
  */
 interface MobileRedirectionOptions {
-  /** Délai avant le fallback en ms (default: 2000) */
+  /** Delay before fallback in ms (default: 2000) */
   fallbackDelay?: number;
   /** Force Universal Links/App Links over custom scheme */
   preferUniversalLinks?: boolean;
@@ -50,8 +63,9 @@ const validateParams = (params: Record<string, string>): Record<string, string> 
 
 /**
  * Builds custom scheme URL for the mobile application
+ * Exported for testing purposes
  */
-const buildCustomSchemeUrl = (
+export const buildCustomSchemeUrl = (
   path: SupportedPath,
   params: Record<string, string> = {}
 ): string => {
@@ -290,10 +304,10 @@ interface RouteMapping {
  * Mapping of web routes to supported mobile routes
  */
 const ROUTE_MAPPING: RouteMapping = {
-  '/auth/verify': '/auth/verify',
-  '/api/v1/families/join': '/api/v1/families/join',
-  '/api/v1/groups/join': '/api/v1/groups/join',
-  '/dashboard': '/dashboard'
+  '/auth/verify': DEEP_LINK_PATHS.AUTH_VERIFY,
+  '/families/join': DEEP_LINK_PATHS.FAMILIES_JOIN,
+  '/groups/join': DEEP_LINK_PATHS.GROUPS_JOIN,
+  '/dashboard': DEEP_LINK_PATHS.DASHBOARD
 };
 
 /**

@@ -61,10 +61,14 @@ vi.mock('../../hooks/useMobileDetection', () => ({
   useMobileDetection: vi.fn(),
 }));
 
-vi.mock('../../utils/mobileRedirection', () => ({
-  parseSearchParams: vi.fn(),
-  attemptMobileAppOpen: vi.fn(),
-}));
+vi.mock('../../utils/mobileRedirection', async () => {
+  const actual = await vi.importActual('../../utils/mobileRedirection');
+  return {
+    ...actual,
+    parseSearchParams: vi.fn(),
+    attemptMobileAppOpen: vi.fn(),
+  };
+});
 
 // Mock connection store
 vi.mock('@/stores/connectionStore', () => ({

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { FamilyInvitationProposal } from '../components/family/FamilyInvitationProposal';
 import { useMobileDetection } from '../hooks/useMobileDetection';
-import { attemptMobileAppOpen, parseSearchParams } from '../utils/mobileRedirection';
+import { attemptMobileAppOpen, parseSearchParams, DEEP_LINK_PATHS } from '../utils/mobileRedirection';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -151,7 +151,7 @@ const VerifyMagicLinkPage: React.FC = () => {
       const params = parseSearchParams(searchParams);
 
       attemptMobileAppOpen(
-        '/auth/verify',
+        DEEP_LINK_PATHS.AUTH_VERIFY,
         params,
         mobileDetection,
         {

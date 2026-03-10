@@ -268,6 +268,10 @@ services:
       # Mobile Store URLs (for deep links)
       VITE_APP_STORE_URL: {{ edulift_stores.app_store_url }}
       VITE_PLAY_STORE_URL: {{ edulift_stores.play_store_url }}
+      # Mobile custom scheme (must match iOS Info.plist / Android AndroidManifest.xml)
+{% if edulift_stores.custom_scheme is defined %}
+      VITE_MOBILE_CUSTOM_SCHEME: "{{ edulift_stores.custom_scheme }}"
+{% endif %}
     volumes:
       # Android App Links and iOS Universal Links verification files
       - ./.well-known:/usr/share/nginx/html/.well-known:ro

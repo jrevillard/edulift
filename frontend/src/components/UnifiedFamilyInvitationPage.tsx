@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamily } from '../contexts/FamilyContext';
 import { useMobileDetection } from '../hooks/useMobileDetection';
-import { attemptMobileAppOpen, parseSearchParams } from '../utils/mobileRedirection';
+import { attemptMobileAppOpen, parseSearchParams, DEEP_LINK_PATHS } from '../utils/mobileRedirection';
 import { unifiedInvitationService, type FamilyRole } from '../services/unifiedInvitationService';
 import { authService } from '../services/authService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -82,7 +82,7 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
         const params = parseSearchParams(searchParams);
 
         attemptMobileAppOpen(
-            '/api/v1/families/join',
+            DEEP_LINK_PATHS.FAMILIES_JOIN,
             params,
             mobileDetection,
             {
