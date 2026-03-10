@@ -543,10 +543,10 @@ const ManageFamilyPage: React.FC = () => {
                 <User className="h-5 w-5" />
                 <span data-testid="ManageFamilyPage-Heading-childrenCountTitle">Children ({currentFamily.children?.length || 0})</span>
               </div>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
-                onClick={() => navigate('/api/v1/children')}
+                onClick={() => navigate('/children')}
                 data-testid="ManageFamilyPage-Button-manageChildren"
               >
                 Manage
@@ -583,10 +583,10 @@ const ManageFamilyPage: React.FC = () => {
                 </svg>
                 <span data-testid="ManageFamilyPage-Heading-vehiclesCountTitle">Vehicles ({currentFamily.vehicles?.length || 0})</span>
               </div>
-              <Button 
-                size="sm" 
+              <Button
+                size="sm"
                 variant="outline"
-                onClick={() => navigate('/api/v1/vehicles')}
+                onClick={() => navigate('/vehicles')}
                 data-testid="ManageFamilyPage-Button-manageVehicles"
               >
                 Manage

@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import { noApiRoutesInNavigate } from './eslint-rules/no-api-routes-in-navigate.js'
 
 export default tseslint.config(
   { ignores: ['dist'] },
@@ -16,6 +17,11 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      'edulift-custom': {
+        rules: {
+          'no-api-routes-in-navigate': noApiRoutesInNavigate,
+        },
+      },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -30,6 +36,8 @@ export default tseslint.config(
           'fixToUnknown': false
         }
       ],
+      // Prevent navigate() calls to API routes
+      'edulift-custom/no-api-routes-in-navigate': 'error',
     },
   },
 )

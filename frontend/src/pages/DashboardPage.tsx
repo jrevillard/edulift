@@ -170,26 +170,26 @@ const DashboardPage: React.FC = () => {
 
 
   const quickActions = [
-    { 
-      label: 'Join a Group', 
-      variant: 'default' as const, 
+    {
+      label: 'Join a Group',
+      variant: 'default' as const,
       icon: Users,
       description: 'Connect with other families',
-      onClick: () => navigate('/api/v1/groups')
+      onClick: () => navigate('/groups')
     },
-    { 
-      label: 'Add Child', 
-      variant: 'secondary' as const, 
+    {
+      label: 'Add Child',
+      variant: 'secondary' as const,
       icon: UserPlus,
       description: 'Register for transport',
-      onClick: () => navigate('/api/v1/children')
+      onClick: () => navigate('/children')
     },
-    { 
-      label: 'Add Vehicle', 
-      variant: 'outline' as const, 
+    {
+      label: 'Add Vehicle',
+      variant: 'outline' as const,
       icon: Car,
       description: 'Offer rides to others',
-      onClick: () => navigate('/api/v1/vehicles')
+      onClick: () => navigate('/vehicles')
     },
   ];
 

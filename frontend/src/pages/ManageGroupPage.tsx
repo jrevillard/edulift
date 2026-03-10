@@ -305,7 +305,7 @@ const ManageGroupPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group deleted successfully');
       setErrorMessage('');
-      navigate('/api/v1/groups');
+      navigate('/groups');
     },
     onError: (error: Error) => {
       setErrorMessage(error.message || 'Failed to delete group');
@@ -332,7 +332,7 @@ const ManageGroupPage: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Left group successfully');
       setErrorMessage('');
-      navigate('/api/v1/groups');
+      navigate('/groups');
     },
     onError: (error: Error) => {
       setErrorMessage(error.message || 'Failed to leave group');
@@ -380,7 +380,7 @@ const ManageGroupPage: React.FC = () => {
 
   // Early return check after all hooks
   if (!groupId) {
-    navigate('/api/v1/groups');
+    navigate('/groups');
     return null;
   }
 
@@ -481,7 +481,7 @@ const ManageGroupPage: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/api/v1/groups')}
+          onClick={() => navigate('/groups')}
           className="gap-2"
           data-testid="ManageGroupPage-Button-backToGroups"
         >

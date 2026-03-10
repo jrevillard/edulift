@@ -29,7 +29,7 @@ export const GroupMembershipWarning: React.FC<GroupMembershipWarningProps> = ({
   }
 
   const handleGoToChildren = () => {
-    navigate('/api/v1/children');
+    navigate('/children');
   };
 
   const getTitle = () => {
