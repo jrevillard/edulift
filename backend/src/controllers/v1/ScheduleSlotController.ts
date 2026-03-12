@@ -1071,10 +1071,11 @@ app.openapi(removeVehicleRoute, async (c) => {
         data: result.scheduleSlot,
       }, 200);
     }
-  } catch {
+  } catch (error) {
+    const normalizedError = normalizeError(error);
     return c.json({
       success: false,
-      error: 'Failed to remove vehicle',
+      error: normalizedError.message,
       code: 'REMOVE_FAILED' as const,
     }, 500);
   }
