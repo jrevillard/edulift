@@ -499,7 +499,7 @@ export class FamilyService implements IFamilyService {
 
   private async getFamilyWithMembers(
     familyId: string,
-    tx?: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>
+    tx?: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>,
   ): Promise<Prisma.FamilyGetPayload<{ include: typeof FamilyService.FAMILY_INCLUDE }>> {
     const client = tx || this.prisma;
     return await client.family.findUniqueOrThrow({
@@ -522,7 +522,7 @@ export class FamilyService implements IFamilyService {
   // Transaction helpers
   private async ensureUserHasNoFamily(
     tx: Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>,
-    userId: string
+    userId: string,
   ): Promise<void> {
     const existingMembership = await tx.familyMember.findFirst({
       where: { userId },

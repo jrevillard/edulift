@@ -273,7 +273,7 @@ const SchedulePage: React.FC = () => {
     // Transform schedule data for display - convert from OpenAPI format to ScheduleSlot format
     // IMPORTANT: The API returns vehicleAssignments[] (array of assignments), NOT slot.vehicle directly
     const grouped: { [day: string]: ScheduleSlot[] } = {};
-    schedule.scheduleSlots.forEach((slot: any) => {
+    schedule.scheduleSlots.forEach((slot: ScheduleSlot) => {
       // Extract day from datetime using UTC to match server timezone
       const slotDate = new Date(slot.datetime);
       const dayKey = slotDate.toLocaleDateString('en-US', {
@@ -285,7 +285,7 @@ const SchedulePage: React.FC = () => {
 
       // Transform OpenAPI slot to ScheduleSlot format
       // API structure: slot.vehicleAssignments[] with each having vehicle, driver, childAssignments
-      const vehicleAssignments = slot.vehicleAssignments?.map((va: any) => ({
+      const vehicleAssignments = slot.vehicleAssignments?.map((va: ScheduleSlotVehicle) => ({
         id: va.id,
         scheduleSlotId: va.scheduleSlotId,
         vehicleId: va.vehicleId,
@@ -298,7 +298,7 @@ const SchedulePage: React.FC = () => {
           email: ''
         } : null,
         seatOverride: null,
-        childAssignments: va.childAssignments?.map((ca: any) => ({
+        childAssignments: va.childAssignments?.map((ca) => ({
           id: ca.id,
           scheduleSlotId: ca.scheduleSlotId,
           childId: ca.childId,
@@ -308,7 +308,7 @@ const SchedulePage: React.FC = () => {
         })) || []
       })) || [];
 
-      const childAssignments = slot.childAssignments?.map((ca: any) => ({
+      const childAssignments = slot.childAssignments?.map((ca) => ({
         id: ca.id,
         scheduleSlotId: ca.scheduleSlotId,
         childId: ca.childId,
@@ -317,7 +317,7 @@ const SchedulePage: React.FC = () => {
         child: ca.child
       })) || [];
 
-      const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va: any) => sum + (va.vehicle?.capacity || 0), 0) || 0;
+      const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va: ScheduleSlotVehicle) => sum + (va.vehicle?.capacity || 0), 0) || 0;
 
       const transformedSlot: ScheduleSlot = {
         id: slot.id,

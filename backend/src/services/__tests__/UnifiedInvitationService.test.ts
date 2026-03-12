@@ -686,7 +686,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+               
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 // Return OWNER membership for admin's family (permission check)
                 // Return null for target family (not already a member)
@@ -782,7 +782,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+               
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
@@ -855,7 +855,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+               
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
@@ -940,7 +940,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               findFirst: jest.fn().mockResolvedValue(mockAdminMember),
             },
             groupFamilyMember: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+               
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 if (where.familyId === 'admin-family-123') {
                   return Promise.resolve({
@@ -1030,7 +1030,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+               
               findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
                 // Return OWNER membership for admin's family (permission check)
                 // Return null for target family (not already a member)
