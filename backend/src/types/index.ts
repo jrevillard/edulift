@@ -79,6 +79,10 @@ export interface ScheduleSlotWithDetails {
   id: string;
   groupId: string;
   datetime: string; // ISO string returned by service
+  group: {
+    id: string;
+    name: string;
+  };
   vehicleAssignments: Array<{
     id: string;
     vehicleId: string;

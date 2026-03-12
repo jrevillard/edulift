@@ -991,4 +991,96 @@ describe('FamilyController Test Suite', () => {
       });
     });
   });
+
+  // =========================================================================
+  // Array Response Validation Tests
+  // Ensuring arrays are returned as [] instead of null/undefined
+  // =========================================================================
+
+  describe('Array Response Validation', () => {
+    describe('GET /current', () => {
+      it('should return empty arrays for family with no children', async () => {
+        const mockFamilyWithNoChildren = {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          members: [],
+          children: [], // Empty array
+          vehicles: [],
+        };
+
+        mockFamilyService.getUserFamily.mockResolvedValue(mockFamilyWithNoChildren as any);
+
+        const response = await makeAuthenticatedRequest(app, '/current');
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.children).toBeDefined();
+        expect(jsonResponse.data.children).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.children)).toBe(true);
+        expect(jsonResponse.data.children).not.toBeNull();
+        expect(jsonResponse.data.children).not.toBeUndefined();
+      });
+
+      it('should return empty arrays for family with no vehicles', async () => {
+        const mockFamilyWithNoVehicles = {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          members: [{
+            id: TEST_IDS.MEMBER,
+            userId: mockUserId,
+            familyId: TEST_IDS.FAMILY,
+            role: 'ADMIN',
+            joinedAt: new Date(),
+            user: { id: mockUserId, email: 'test@example.com', name: 'Test User' },
+          }],
+          children: [],
+          vehicles: [], // Empty array
+        };
+
+        mockFamilyService.getUserFamily.mockResolvedValue(mockFamilyWithNoVehicles as any);
+
+        const response = await makeAuthenticatedRequest(app, '/current');
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.vehicles).toBeDefined();
+        expect(jsonResponse.data.vehicles).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.vehicles)).toBe(true);
+        expect(jsonResponse.data.vehicles).not.toBeNull();
+        expect(jsonResponse.data.vehicles).not.toBeUndefined();
+      });
+
+      it('should return empty arrays for family with no members (edge case)', async () => {
+        const mockFamilyWithNoMembers = {
+          id: TEST_IDS.FAMILY,
+          name: 'Test Family',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          members: [], // Empty array - rare but possible
+          children: [],
+          vehicles: [],
+        };
+
+        mockFamilyService.getUserFamily.mockResolvedValue(mockFamilyWithNoMembers as any);
+
+        const response = await makeAuthenticatedRequest(app, '/current');
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.members).toBeDefined();
+        expect(jsonResponse.data.members).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.members)).toBe(true);
+      });
+    });
+  });
 });

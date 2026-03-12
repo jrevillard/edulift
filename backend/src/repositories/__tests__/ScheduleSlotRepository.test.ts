@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { ScheduleSlotRepository } from '../ScheduleSlotRepository';
 import { PrismaClient } from '@prisma/client';
 import { CreateScheduleSlotData } from '../../types';

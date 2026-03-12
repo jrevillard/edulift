@@ -219,10 +219,10 @@ describe('FamilyMigrationService', () => {
             deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
           },
           child: {
-            updateMany: jest.fn().mockResolvedValue({ count: 2 }),
+            deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
           },
           vehicle: {
-            updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+            deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
           },
         });
       });

@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { PrismaClient } from '@prisma/client';
+
+import { PrismaClient, Prisma } from '@prisma/client';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ActivityLogRepository');
@@ -11,7 +11,7 @@ export interface CreateActivityData {
   entityType?: string | null;
   entityId?: string | null;
   entityName?: string | null;
-  metadata?: Record<string, unknown>;
+  metadata?: Prisma.InputJsonValue;
 }
 
 export interface ActivityLog {
@@ -22,7 +22,7 @@ export interface ActivityLog {
   entityType: string | null;
   entityId: string | null;
   entityName: string | null;
-  metadata: Record<string, unknown> | null;
+  metadata: Prisma.JsonValue | null;
   createdAt: Date;
 }
 
@@ -55,7 +55,7 @@ export class ActivityLogRepository {
           entityType: data.entityType || null,
           entityId: data.entityId || null,
           entityName: data.entityName || null,
-          metadata: data.metadata || null,
+          metadata: data.metadata ?? Prisma.JsonNull,
         },
       });
     } catch {
@@ -69,7 +69,7 @@ export class ActivityLogRepository {
         entityType: data.entityType || null,
         entityId: data.entityId || null,
         entityName: data.entityName || null,
-        metadata: data.metadata || null,
+        metadata: (data.metadata ?? null) as Prisma.JsonValue | null,
         createdAt: new Date(),
       };
       return activity;

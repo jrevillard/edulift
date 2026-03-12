@@ -23,22 +23,23 @@ export const transformFamilyForResponse = (family: any): any => {
   };
 
   // Transform nested arrays - members, children, vehicles
+  // Always return empty arrays instead of null/undefined to prevent frontend map() errors
   const transformedMembers = family.members?.map((member: any) => ({
     ...member,
     joinedAt: toDateISOString(member.joinedAt),
-  }));
+  })) ?? [];
 
   const transformedChildren = family.children?.map((child: any) => ({
     ...child,
     createdAt: toDateISOString(child.createdAt),
     updatedAt: toDateISOString(child.updatedAt),
-  }));
+  })) ?? [];
 
   const transformedVehicles = family.vehicles?.map((vehicle: any) => ({
     ...vehicle,
     createdAt: toDateISOString(vehicle.createdAt),
     updatedAt: toDateISOString(vehicle.updatedAt),
-  }));
+  })) ?? [];
 
   return {
     ...family,

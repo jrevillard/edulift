@@ -1,7 +1,54 @@
-// @ts-nocheck
+
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
 import { CreateScheduleSlotData, WeeklySchedule, ScheduleSlotWithDetails } from '../types';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
+
+// Type for schedule slot from repository with details
+type ScheduleSlotFromRepo = Prisma.ScheduleSlotGetPayload<{
+  include: {
+    group: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+    vehicleAssignments: {
+      include: {
+        vehicle: true;
+        driver: {
+          select: {
+            id: true;
+            name: true;
+          };
+        };
+      };
+    };
+    childAssignments: {
+      select: {
+        scheduleSlotId: true;
+        childId: true;
+        vehicleAssignmentId: true;
+        assignedAt: true;
+        child: {
+          select: {
+            id: true;
+            name: true;
+            age: true;
+            familyId: true;
+            createdAt: true;
+            updatedAt: true;
+          };
+        };
+      };
+    };
+  };
+} & {
+  id: string;
+  groupId: string;
+  datetime: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}>;
 
 export class SchedulingService {
   constructor(
@@ -78,21 +125,27 @@ export class SchedulingService {
     weekEnd.setUTCHours(23, 59, 59, 999); // End of Sunday in UTC
 
     const scheduleSlots = await this.scheduleSlotRepository.getWeeklyScheduleByDateRange(
-      groupId, 
-      weekStart, 
+      groupId,
+      weekStart,
       weekEnd,
-    );
+    ) as ScheduleSlotFromRepo[];
 
-    const scheduleSlotDetails: ScheduleSlotWithDetails[] = scheduleSlots.map((slot: unknown) => {
-      const totalCapacity = slot.vehicleAssignments.reduce((sum: number, va: unknown) => 
-        sum + (va.seatOverride || va.vehicle.capacity), 0);
-      
+    const scheduleSlotDetails: ScheduleSlotWithDetails[] = scheduleSlots.map((slot) => {
+      const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va) =>
+        sum + (va.seatOverride || va.vehicle.capacity), 0) ?? 0;
+
       return {
         id: slot.id,
         groupId: slot.groupId,
         datetime: slot.datetime.toISOString(),
-        vehicleAssignments: slot.vehicleAssignments.map((va: unknown) => ({
+        group: slot.group,
+        vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
           id: va.id,
+          vehicleId: va.vehicleId,
+          scheduleSlotId: va.scheduleSlotId,
+          driverId: va.driverId,
+          seatOverride: va.seatOverride,
+          createdAt: va.createdAt.toISOString(),
           vehicle: {
             id: va.vehicle.id,
             name: va.vehicle.name,
@@ -104,12 +157,15 @@ export class SchedulingService {
           driver: va.driver ? {
             id: va.driver.id,
             name: va.driver.name,
-          } : undefined,
-          seatOverride: va.seatOverride,
-        })),
-        childAssignments: slot.childAssignments.map((assignment: unknown) => ({
+          } : null,
+          childAssignments: [],
+        })) ?? [],
+        childAssignments: slot.childAssignments?.map((assignment) => ({
           id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+          scheduleSlotId: assignment.scheduleSlotId,
+          childId: assignment.childId,
           vehicleAssignmentId: assignment.vehicleAssignmentId,
+          assignedAt: assignment.assignedAt.toISOString(),
           child: {
             id: assignment.child.id,
             name: assignment.child.name,
@@ -118,9 +174,9 @@ export class SchedulingService {
             createdAt: assignment.child.createdAt.toISOString(),
             updatedAt: assignment.child.updatedAt.toISOString(),
           },
-        })),
+        })) ?? [],
         totalCapacity,
-        availableSeats: Math.max(0, totalCapacity - slot.childAssignments.length),
+        availableSeats: Math.max(0, totalCapacity - (slot.childAssignments?.length || 0)),
         createdAt: slot.createdAt.toISOString(),
         updatedAt: slot.updatedAt.toISOString(),
       };
@@ -137,16 +193,16 @@ export class SchedulingService {
     const conflicts: string[] = [];
     
     // Get schedule slot details first
-    const scheduleSlot = await this.scheduleSlotRepository.findById(scheduleSlotId);
+    const scheduleSlot = await this.scheduleSlotRepository.findById(scheduleSlotId) as ScheduleSlotFromRepo | null;
     if (!scheduleSlot) {
       return conflicts;
     }
-    
+
     const conflictingSlots = await this.scheduleSlotRepository.findConflictingSlotsForParentByDateTime(
       parentId,
       scheduleSlot.groupId,
       scheduleSlot.datetime,
-    );
+    ) as ScheduleSlotFromRepo[];
 
     for (const slot of conflictingSlots) {
       // Check if parent is already driving
@@ -204,12 +260,12 @@ export class SchedulingService {
 
   async detectConflicts(parentId: string, groupId: string, datetime: Date): Promise<string[]> {
     const conflicts: string[] = [];
-    
+
     const conflictingSlots = await this.scheduleSlotRepository.findConflictingSlotsForParentByDateTime(
       parentId,
       groupId,
       datetime,
-    );
+    ) as ScheduleSlotFromRepo[];
 
     for (const slot of conflictingSlots) {
       // Check if parent is already driving

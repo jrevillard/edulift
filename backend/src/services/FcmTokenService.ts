@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { PrismaClient } from '@prisma/client';
+
+import { PrismaClient, Prisma } from '@prisma/client';
 import { FcmTokenServiceInterface, FcmTokenData } from '../types/PushNotificationInterface';
 import { createLogger } from '../utils/logger';
 
@@ -268,7 +268,7 @@ export class FcmTokenService implements FcmTokenServiceInterface {
     }
   }
 
-  private mapPrismaToTokenData(token: unknown): FcmTokenData {
+  private mapPrismaToTokenData(token: Prisma.FcmTokenGetPayload<{}>): FcmTokenData {
     return {
       id: token.id,
       userId: token.userId,

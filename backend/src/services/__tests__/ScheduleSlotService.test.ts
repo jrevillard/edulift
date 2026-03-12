@@ -223,20 +223,35 @@ describe('ScheduleSlotService', () => {
 
   describe('removeVehicleFromSlot', () => {
     it('should remove vehicle and keep slot when other vehicles exist', async () => {
-      const mockResult = {
-        vehicleAssignment: { 
+      const mockScheduleSlotFromRepo = {
+        id: TEST_IDS.SLOT,
+        groupId: TEST_IDS.GROUP,
+        datetime: new Date(),
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
+        vehicleAssignments: [{
           id: 'cltestassign1234567890123',
           createdAt: new Date(),
           scheduleSlotId: TEST_IDS.SLOT,
           vehicleId: TEST_IDS.VEHICLE,
           driverId: null,
-        seatOverride: null,
-        },
-        slotDeleted: false,
+          seatOverride: null,
+          vehicle: {
+            id: TEST_IDS.VEHICLE,
+            name: 'Test Vehicle',
+            capacity: 4,
+            familyId: TEST_IDS.FAMILY,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          driver: null,
+        }],
+        childAssignments: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
-      mockRepository.removeVehicleFromSlot.mockResolvedValue(mockResult);
+      mockRepository.removeVehicleFromSlot.mockResolvedValue({ scheduleSlot: mockScheduleSlotFromRepo, slotDeleted: false });
       mockValidationService.validateSlotIntegrity.mockResolvedValue(true);
 
       const result = await scheduleSlotService.removeVehicleFromSlot(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
@@ -247,31 +262,21 @@ describe('ScheduleSlotService', () => {
         TEST_IDS.SLOT,
         'VEHICLE_REMOVED',
       );
-      expect(result).toEqual(mockResult);
+      expect(result.slotDeleted).toBe(false);
+      expect(result.scheduleSlot).toBeDefined();
     });
 
     it('should remove vehicle and delete slot when it was the last vehicle', async () => {
-      const mockResult = {
-        vehicleAssignment: { 
-          id: 'cltestassign1234567890123',
-          createdAt: new Date(),
-          scheduleSlotId: TEST_IDS.SLOT,
-          vehicleId: TEST_IDS.VEHICLE,
-          driverId: null,
-        seatOverride: null,
-        },
-        slotDeleted: true,
-      };
-
       mockRepository.findById.mockResolvedValue(mockScheduleSlot);
-      mockRepository.removeVehicleFromSlot.mockResolvedValue(mockResult);
+      mockRepository.removeVehicleFromSlot.mockResolvedValue({ scheduleSlot: null, slotDeleted: true });
 
       const result = await scheduleSlotService.removeVehicleFromSlot(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
 
       expect(mockRepository.removeVehicleFromSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE);
       // Should not validate slot integrity when slot is deleted
       expect(mockValidationService.validateSlotIntegrity).not.toHaveBeenCalled();
-      expect(result).toEqual(mockResult);
+      expect(result.slotDeleted).toBe(true);
+      expect(result.scheduleSlot).toBeNull();
     });
   });
 

@@ -387,9 +387,9 @@ export const ChildAssignmentSchema = z.object({
     familyId: z.cuid(),
     createdAt: z.iso.datetime(),
     updatedAt: z.iso.datetime(),
-  }).optional()
+  })
     .openapi({
-      description: 'Child information (included when requested)',
+      description: 'Child information (always present in a child assignment)',
     }),
   vehicleAssignment: ScheduleVehicleAssignmentSchema.optional()
     .openapi({

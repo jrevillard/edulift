@@ -1195,4 +1195,91 @@ describe('ScheduleSlotController Test Suite', () => {
       });
     });
   });
+
+  // =========================================================================
+  // Array Response Validation Tests
+  // Ensuring arrays are returned as [] instead of null/undefined
+  // =========================================================================
+
+  describe('Array Response Validation', () => {
+    describe('GET /groups/:groupId/schedule', () => {
+      it('should return empty arrays for schedule with no slots', async () => {
+        const mockEmptySchedule = {
+          id: 'clschedule123',
+          groupId: TEST_IDS.GROUP,
+          weekStart: '2025-01-06T00:00:00.000Z',
+          weekEnd: '2025-01-12T23:59:59.999Z',
+          scheduleSlots: [], // Empty array
+        };
+
+        mockScheduleSlotService.getSchedule.mockResolvedValue(mockEmptySchedule as any);
+
+        const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule?startDate=2025-01-06T00:00:00.000Z&endDate=2025-01-12T23:59:59.999Z`);
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.scheduleSlots).toBeDefined();
+        expect(jsonResponse.data.scheduleSlots).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.scheduleSlots)).toBe(true);
+        expect(jsonResponse.data.scheduleSlots).not.toBeNull();
+        expect(jsonResponse.data.scheduleSlots).not.toBeUndefined();
+      });
+    });
+
+    describe('GET /schedule-slots/:slotId', () => {
+      it('should return empty arrays for slot with no vehicle assignments', async () => {
+        const mockSlotWithNoVehicles = {
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
+          datetime: '2025-01-06T08:00:00.000Z',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          vehicleAssignments: [], // Empty array
+          childAssignments: [],
+        };
+
+        mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithNoVehicles as any);
+
+        const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}`);
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.vehicleAssignments).toBeDefined();
+        expect(jsonResponse.data.vehicleAssignments).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.vehicleAssignments)).toBe(true);
+        expect(jsonResponse.data.vehicleAssignments).not.toBeNull();
+        expect(jsonResponse.data.vehicleAssignments).not.toBeUndefined();
+      });
+
+      it('should return empty arrays for slot with no child assignments', async () => {
+        const mockSlotWithNoChildren = {
+          id: TEST_IDS.SLOT,
+          groupId: TEST_IDS.GROUP,
+          datetime: '2025-01-06T08:00:00.000Z',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          vehicleAssignments: [],
+          childAssignments: [], // Empty array
+        };
+
+        mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithNoChildren as any);
+
+        const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}`);
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.childAssignments).toBeDefined();
+        expect(jsonResponse.data.childAssignments).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.childAssignments)).toBe(true);
+        expect(jsonResponse.data.childAssignments).not.toBeNull();
+        expect(jsonResponse.data.childAssignments).not.toBeUndefined();
+      });
+    });
+  });
 });

@@ -1,5 +1,6 @@
 import { ActivityLogRepository } from '../ActivityLogRepository';
 import { TEST_IDS } from '../../utils/testHelpers';
+import { Prisma } from '@prisma/client';
 
 // Mock Prisma with necessary models for ActivityLogRepository
 const mockPrisma = {
@@ -58,7 +59,7 @@ describe('ActivityLogRepository', () => {
         entityType: activityData.entityType,
         entityId: activityData.entityId,
         entityName: activityData.entityName,
-        metadata: null,
+        metadata: Prisma.JsonNull,
         createdAt: new Date(),
       };
 
@@ -77,7 +78,7 @@ describe('ActivityLogRepository', () => {
           entityType: activityData.entityType,
           entityId: activityData.entityId,
           entityName: activityData.entityName,
-          metadata: null,
+          metadata: Prisma.JsonNull,
         },
       });
       expect(result).toEqual(expectedActivity);
@@ -145,7 +146,7 @@ describe('ActivityLogRepository', () => {
         entityType: activityData.entityType,
         entityId: null,
         entityName: null,
-        metadata: null,
+        metadata: Prisma.JsonNull,
         createdAt: new Date(),
       };
 
@@ -164,7 +165,7 @@ describe('ActivityLogRepository', () => {
           entityType: activityData.entityType,
           entityId: null,
           entityName: null,
-          metadata: null,
+          metadata: Prisma.JsonNull,
         },
       });
       expect(result).toEqual(expectedActivity);

@@ -129,10 +129,10 @@ export class ChildService {
       // Transform the response to match schema expectations (convert Date to ISO string)
       const transformedChildren = children.map(child => ({
         ...child,
-        groupMemberships: child.groupMemberships.map(membership => ({
+        groupMemberships: child.groupMemberships?.map(membership => ({
           ...membership,
           addedAt: membership.addedAt ? membership.addedAt.toISOString() : new Date().toISOString(),
-        })),
+        })) ?? [],
       }));
 
       return transformedChildren;

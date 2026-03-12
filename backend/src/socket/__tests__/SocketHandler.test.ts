@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Server as HTTPServer } from 'http';
 import { createAdaptorServer } from '@hono/node-server';
 import { Hono } from 'hono';

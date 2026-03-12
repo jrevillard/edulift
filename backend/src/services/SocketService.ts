@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { ScheduleSlotService } from './ScheduleSlotService';
 import { WeeklySchedule } from '../types';
@@ -171,14 +171,16 @@ export class SocketService {
   }
 
   private categorizeError(error: unknown): string {
-    if (error.message.includes('capacity')) {
-      return 'CAPACITY_ERROR';
-    }
-    if (error.message.includes('not found')) {
-      return 'NOT_FOUND_ERROR';
-    }
-    if (error.message.includes('duplicate') || error.message.includes('already exists')) {
-      return 'DUPLICATE_ERROR';
+    if (error instanceof Error) {
+      if (error.message.includes('capacity')) {
+        return 'CAPACITY_ERROR';
+      }
+      if (error.message.includes('not found')) {
+        return 'NOT_FOUND_ERROR';
+      }
+      if (error.message.includes('duplicate') || error.message.includes('already exists')) {
+        return 'DUPLICATE_ERROR';
+      }
     }
     return 'UNKNOWN_ERROR';
   }

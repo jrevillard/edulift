@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 /* tslint:disable */
 import { jest } from '@jest/globals';
 

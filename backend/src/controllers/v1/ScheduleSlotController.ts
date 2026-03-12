@@ -7,7 +7,7 @@
  */
 
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
-import { PrismaClient, ScheduleSlotVehicle as PrismaScheduleSlotVehicle } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { ScheduleSlotService } from '../../services/ScheduleSlotService';
 import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
@@ -69,8 +69,8 @@ export const transformScheduleSlot = function(slot: ScheduleSlotWithDetails | nu
     datetime: typeof slot.datetime === 'string' ? slot.datetime : dateToISOString(slot.datetime as any) || slot.datetime,
     createdAt: dateToISOString(slot.createdAt as any) || slot.createdAt,
     updatedAt: dateToISOString(slot.updatedAt as any) || slot.updatedAt,
-    vehicleAssignments: slot.vehicleAssignments?.map(va => transformVehicleAssignment(va)),
-    childAssignments: slot.childAssignments?.map(ca => transformChildAssignment(ca)),
+    vehicleAssignments: slot.vehicleAssignments?.map(va => transformVehicleAssignment(va)) ?? [],
+    childAssignments: slot.childAssignments?.map(ca => transformChildAssignment(ca)) ?? [],
   };
 };
 
@@ -962,15 +962,17 @@ app.openapi(assignVehicleRoute, async (c) => {
       assignmentData.seatOverride = input.seatOverride;
     }
 
-    const result = await scheduleSlotServiceInstance.assignVehicleToSlot(assignmentData) as PrismaScheduleSlotVehicle;
+    const result = await scheduleSlotServiceInstance.assignVehicleToSlot(assignmentData);
+    // Get the vehicle assignment that was just created
+    const vehicleAssignment = result.vehicleAssignments?.find(va => va.vehicleId === input.vehicleId);
 
     // Assign children if provided (initial batch assignment)
-    if (input.childIds && input.childIds.length > 0) {
+    if (input.childIds && input.childIds.length > 0 && vehicleAssignment) {
       for (const childId of input.childIds) {
         await childAssignmentServiceInstance.assignChildToScheduleSlot(
           scheduleSlotId,
           childId,
-          result.id,
+          vehicleAssignment.id,
           userId,
         );
       }
@@ -1042,7 +1044,7 @@ app.openapi(removeVehicleRoute, async (c) => {
     const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId);
 
     // Emit WebSocket event for real-time updates
-    if (!result) {
+    if (result.slotDeleted) {
       // Slot was deleted (last vehicle removed)
       SocketEmitter.broadcastScheduleSlotDeleted(scheduleSlot.groupId, scheduleSlotId);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
@@ -1056,12 +1058,22 @@ app.openapi(removeVehicleRoute, async (c) => {
       }, 200);
     } else {
       // Slot still exists with remaining vehicles
-      SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result);
-      SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+      if (result.scheduleSlot) {
+        SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result.scheduleSlot);
+        SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+      }
 
       return c.json({
         success: true,
-        data: result, // Returns full ScheduleSlot with vehicleAssignments and childAssignments
+        data: result.scheduleSlot || {
+          id: scheduleSlotId,
+          datetime: new Date().toISOString(),
+          groupId: scheduleSlot.groupId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          vehicleAssignments: [],
+          childAssignments: [],
+        },
       }, 200);
     }
   } catch {
@@ -1292,7 +1304,7 @@ app.openapi(getScheduleRoute, async (c) => {
   // Transform schedule slots to ensure ISO date strings
   const transformedSchedule = {
     ...schedule,
-    scheduleSlots: schedule.scheduleSlots?.map((slot: ScheduleSlotWithDetails) => slot),
+    scheduleSlots: schedule.scheduleSlots?.map((slot: ScheduleSlotWithDetails) => slot) ?? [],
   };
 
   loggerInstance.debug('Controller sending response:', { transformedSchedule });

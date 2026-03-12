@@ -417,4 +417,80 @@ describe('DashboardController Test Suite', () => {
       });
     });
   });
+
+  // =========================================================================
+  // Array Response Validation Tests
+  // Ensuring arrays are returned as [] instead of null/undefined
+  // =========================================================================
+
+  describe('Array Response Validation', () => {
+    describe('GET /weekly', () => {
+      it('should return empty arrays for user with no schedule data', async () => {
+        const mockEmptyWeeklyData = {
+          success: true,
+          data: {
+            startDate: '2025-01-06',
+            endDate: '2025-01-12',
+            days: [], // Empty array
+            metadata: {
+              totalGroups: 0,
+              totalChildren: 0,
+            },
+          },
+        };
+
+        mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockEmptyWeeklyData as any);
+
+        const response = await makeAuthenticatedRequest(app, '/weekly?startDate=2025-01-06T00:00:00.000Z');
+
+        expect(response.status).toBe(200);
+        const data = await responseJson(response);
+
+        expect(data.success).toBe(true);
+        expect(data.data.dailySchedules).toBeDefined();
+        expect(data.data.dailySchedules).toEqual([]);
+        expect(Array.isArray(data.data.dailySchedules)).toBe(true);
+        expect(data.data.dailySchedules).not.toBeNull();
+        expect(data.data.dailySchedules).not.toBeUndefined();
+      });
+    });
+
+    describe('GET /today-schedule', () => {
+      it('should return empty arrays for user with no trips', async () => {
+        // Mock returning empty array for today's trips
+        mockDashboardService.getTodayTripsForUser.mockResolvedValue([]);
+
+        const response = await makeAuthenticatedRequest(app, '/today-schedule');
+
+        expect(response.status).toBe(200);
+        const data = await responseJson(response);
+
+        expect(data.success).toBe(true);
+        expect(data.data.upcomingTrips).toBeDefined();
+        expect(data.data.upcomingTrips).toEqual([]);
+        expect(Array.isArray(data.data.upcomingTrips)).toBe(true);
+        expect(data.data.upcomingTrips).not.toBeNull();
+        expect(data.data.upcomingTrips).not.toBeUndefined();
+      });
+    });
+
+    describe('GET /recent-activity', () => {
+      it('should return empty arrays for user with no activity', async () => {
+        // Mock returning empty array for activity
+        mockDashboardService.getRecentActivityForUser.mockResolvedValue([]);
+
+        const response = await makeAuthenticatedRequest(app, '/recent-activity');
+
+        expect(response.status).toBe(200);
+        const data = await responseJson(response);
+
+        expect(data.success).toBe(true);
+        expect(data.data.activities).toBeDefined();
+        expect(data.data.activities).toEqual([]);
+        expect(Array.isArray(data.data.activities)).toBe(true);
+        expect(data.data.activities).not.toBeNull();
+        expect(data.data.activities).not.toBeUndefined();
+      });
+    });
+  });
 });

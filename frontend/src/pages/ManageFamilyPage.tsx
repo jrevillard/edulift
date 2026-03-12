@@ -438,7 +438,7 @@ const ManageFamilyPage: React.FC = () => {
                     email: member.user?.email || 'No email'
                   }
                 })) || []}
-                pendingInvitations={pendingInvitations.map(invitation => ({
+                pendingInvitations={pendingInvitations?.map(invitation => ({
                   id: invitation.id,
                   email: invitation.email,
                   role: invitation.role,
@@ -446,7 +446,7 @@ const ManageFamilyPage: React.FC = () => {
                   status: invitation.status === 'DECLINED' ? 'CANCELLED' as const : invitation.status,
                   expiresAt: invitation.expiresAt,
                   createdAt: invitation.createdAt,
-                }))}
+                })) ?? []}
                 loadingInvitations={loadingInvitations}
                 isAdmin={isAdmin}
                 entityType="family"

@@ -1219,4 +1219,58 @@ describe('ChildController Test Suite', () => {
       expect(errorMessage).toContain('Invalid');
     });
   });
+
+  // =========================================================================
+  // Array Response Validation Tests
+  // Ensuring arrays are returned as [] instead of null/undefined
+  // =========================================================================
+
+  describe('Array Response Validation', () => {
+    describe('GET /children (list endpoint)', () => {
+      it('should return empty arrays for user with no children', async () => {
+        // Mock returning empty array for children
+        mockChildService.getChildrenByUser.mockResolvedValue([]);
+
+        const response = await makeAuthenticatedRequest(app, '/');
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data).toBeDefined();
+        expect(jsonResponse.data).toEqual([]);
+        expect(Array.isArray(jsonResponse.data)).toBe(true);
+        expect(jsonResponse.data).not.toBeNull();
+        expect(jsonResponse.data).not.toBeUndefined();
+      });
+    });
+
+    describe('GET /:childId/groups', () => {
+      it('should return empty groupMemberships array for child with no groups', async () => {
+        const childId = TEST_IDS.CHILD;
+
+        const mockChildWithNoGroups = {
+          id: childId,
+          name: 'Test Child',
+          age: 8,
+          familyId: TEST_IDS.FAMILY,
+          groupMemberships: [], // Empty array - no groups
+        };
+
+        mockChildAssignmentService.getChildGroupMemberships.mockResolvedValue(mockChildWithNoGroups as any);
+
+        const response = await makeAuthenticatedRequest(app, `/${childId}/groups`);
+
+        expect(response.status).toBe(200);
+        const jsonResponse = await responseJson(response);
+
+        expect(jsonResponse.success).toBe(true);
+        expect(jsonResponse.data.groupMemberships).toBeDefined();
+        expect(jsonResponse.data.groupMemberships).toEqual([]);
+        expect(Array.isArray(jsonResponse.data.groupMemberships)).toBe(true);
+        expect(jsonResponse.data.groupMemberships).not.toBeNull();
+        expect(jsonResponse.data.groupMemberships).not.toBeUndefined();
+      });
+    });
+  });
 });

@@ -27344,7 +27344,7 @@
                                   "createdAt",
                                   "updatedAt"
                                 ],
-                                "description": "Child information (included when requested)"
+                                "description": "Child information (always present in a child assignment)"
                               },
                               "vehicleAssignment": {
                                 "type": "object",
@@ -27564,7 +27564,8 @@
                               "scheduleSlotId",
                               "childId",
                               "vehicleAssignmentId",
-                              "assignedAt"
+                              "assignedAt",
+                              "child"
                             ],
                             "title": "Child Assignment",
                             "description": "Child assignment information for a schedule slot"
@@ -28294,7 +28295,7 @@
                                   "createdAt",
                                   "updatedAt"
                                 ],
-                                "description": "Child information (included when requested)"
+                                "description": "Child information (always present in a child assignment)"
                               },
                               "vehicleAssignment": {
                                 "type": "object",
@@ -28514,7 +28515,8 @@
                               "scheduleSlotId",
                               "childId",
                               "vehicleAssignmentId",
-                              "assignedAt"
+                              "assignedAt",
+                              "child"
                             ],
                             "title": "Child Assignment",
                             "description": "Child assignment information for a schedule slot"
@@ -29234,7 +29236,7 @@
                                       "createdAt",
                                       "updatedAt"
                                     ],
-                                    "description": "Child information (included when requested)"
+                                    "description": "Child information (always present in a child assignment)"
                                   },
                                   "vehicleAssignment": {
                                     "type": "object",
@@ -29454,7 +29456,8 @@
                                   "scheduleSlotId",
                                   "childId",
                                   "vehicleAssignmentId",
-                                  "assignedAt"
+                                  "assignedAt",
+                                  "child"
                                 ],
                                 "title": "Child Assignment",
                                 "description": "Child assignment information for a schedule slot"
@@ -30195,7 +30198,7 @@
                                   "createdAt",
                                   "updatedAt"
                                 ],
-                                "description": "Child information (included when requested)"
+                                "description": "Child information (always present in a child assignment)"
                               },
                               "vehicleAssignment": {
                                 "type": "object",
@@ -30415,7 +30418,8 @@
                               "scheduleSlotId",
                               "childId",
                               "vehicleAssignmentId",
-                              "assignedAt"
+                              "assignedAt",
+                              "child"
                             ],
                             "title": "Child Assignment",
                             "description": "Child assignment information for a schedule slot"
@@ -31135,7 +31139,7 @@
                                   "createdAt",
                                   "updatedAt"
                                 ],
-                                "description": "Child information (included when requested)"
+                                "description": "Child information (always present in a child assignment)"
                               },
                               "vehicleAssignment": {
                                 "type": "object",
@@ -31355,7 +31359,8 @@
                               "scheduleSlotId",
                               "childId",
                               "vehicleAssignmentId",
-                              "assignedAt"
+                              "assignedAt",
+                              "child"
                             ],
                             "title": "Child Assignment",
                             "description": "Child assignment information for a schedule slot"
@@ -32038,7 +32043,7 @@
                                   "createdAt",
                                   "updatedAt"
                                 ],
-                                "description": "Child information (included when requested)"
+                                "description": "Child information (always present in a child assignment)"
                               },
                               "vehicleAssignment": {
                                 "type": "object",
@@ -32258,7 +32263,8 @@
                               "scheduleSlotId",
                               "childId",
                               "vehicleAssignmentId",
-                              "assignedAt"
+                              "assignedAt",
+                              "child"
                             ],
                             "title": "Child Assignment",
                             "description": "Child assignment information for a schedule slot"
@@ -32916,7 +32922,7 @@
                                         "createdAt",
                                         "updatedAt"
                                       ],
-                                      "description": "Child information (included when requested)"
+                                      "description": "Child information (always present in a child assignment)"
                                     },
                                     "vehicleAssignment": {
                                       "type": "object",
@@ -33136,7 +33142,8 @@
                                     "scheduleSlotId",
                                     "childId",
                                     "vehicleAssignmentId",
-                                    "assignedAt"
+                                    "assignedAt",
+                                    "child"
                                   ],
                                   "title": "Child Assignment",
                                   "description": "Child assignment information for a schedule slot"
@@ -34444,7 +34451,7 @@
                                   "createdAt",
                                   "updatedAt"
                                 ],
-                                "description": "Child information (included when requested)"
+                                "description": "Child information (always present in a child assignment)"
                               },
                               "vehicleAssignment": {
                                 "type": "object",
@@ -34664,7 +34671,8 @@
                               "scheduleSlotId",
                               "childId",
                               "vehicleAssignmentId",
-                              "assignedAt"
+                              "assignedAt",
+                              "child"
                             ],
                             "title": "Child Assignment",
                             "description": "Child assignment information for a schedule slot"

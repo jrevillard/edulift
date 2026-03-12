@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { Hono } from 'hono';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';

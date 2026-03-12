@@ -32,6 +32,11 @@ export const TEST_IDS = {
   FAMILY: 'cltestfamily1234567890123',
   FAMILY_2: 'cltestfamily2123456789012',
 
+  // Family Member IDs
+  MEMBER: 'cltestmember12345678901234',
+  MEMBER_2: 'cltestmember21234567890123',
+  MEMBER_3: 'cltestmember31234567890123',
+
   // Child IDs
   CHILD: 'cltestchild1123456789012345',
   CHILD_2: 'cltestchild2123456789012345',

@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
 import { CreateScheduleSlotData, AssignVehicleToSlotData, ScheduleSlotWithDetails, UpdateSeatOverrideData } from '../types';
 import { NotificationService } from './NotificationService';
@@ -8,6 +8,15 @@ import { getWeekBoundaries } from '../utils/isoWeekUtils';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('ScheduleSlotService');
+
+// Common schedule slot type from repository
+interface ScheduleSlotBasic {
+  id: string;
+  groupId: string;
+  datetime: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
 type ScheduleSlotFromRepo = Prisma.ScheduleSlotGetPayload<{
   include: {
@@ -67,7 +76,7 @@ export class ScheduleSlotService {
    * @param userId - The user ID (to get timezone)
    */
   async validateSlotNotInPast(scheduleSlotId: string, userId?: string): Promise<void> {
-    const slot = await this.scheduleSlotRepository.findById(scheduleSlotId);
+    const slot = await this.scheduleSlotRepository.findById(scheduleSlotId) as ScheduleSlotBasic | null;
     if (!slot) {
       throw new Error('Schedule slot not found');
     }
@@ -143,16 +152,16 @@ export class ScheduleSlotService {
     }
 
     // First create the schedule slot
-    const scheduleSlot = await this.scheduleSlotRepository.create(slotData);
+    const scheduleSlot = await this.scheduleSlotRepository.create(slotData) as { id: string };
 
     // Then immediately assign the vehicle with optional seat override
-    await this.scheduleSlotRepository.assignVehicleToSlot(scheduleSlot.id, vehicleId, driverId, seatOverride);
+    await this.scheduleSlotRepository.assignVehicleToSlot(scheduleSlot.id, vehicleId, driverId ?? undefined, seatOverride);
 
     // Return the complete schedule slot with vehicle assignment
-    return await this.scheduleSlotRepository.findById(scheduleSlot.id);
+    return await this.scheduleSlotRepository.findById(scheduleSlot.id) as ScheduleSlotFromRepo | null;
   }
 
-  async assignVehicleToSlot(data: AssignVehicleToSlotData) {
+  async assignVehicleToSlot(data: AssignVehicleToSlotData): Promise<ScheduleSlotFromRepo> {
     const { scheduleSlotId, vehicleId, driverId, seatOverride } = data;
 
     // Validate that we're not modifying a trip in the past
@@ -168,24 +177,24 @@ export class ScheduleSlotService {
         await this.validationService.validateSeatOverride(seatOverride);
       }
     }
-    
-    const result = await this.scheduleSlotRepository.assignVehicleToSlot(scheduleSlotId, vehicleId, driverId, seatOverride);
-    
+
+    const result = await this.scheduleSlotRepository.assignVehicleToSlot(scheduleSlotId, vehicleId, driverId, seatOverride) as ScheduleSlotFromRepo;
+
     // Validate slot integrity after assignment
     if (this.validationService) {
       await this.validationService.validateSlotIntegrity(scheduleSlotId);
     }
-    
+
     // Send notification for vehicle assignment
     if (this.notificationService) {
       this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'VEHICLE_ASSIGNED')
         .catch(error => logger.error('Failed to send vehicle assignment notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
-    
+
     return result;
   }
 
-  async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string) {
+  async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string): Promise<{ slotDeleted: boolean; scheduleSlot: ScheduleSlotWithDetails | null }> {
     // Validate that we're not modifying a trip in the past
     await this.validateSlotNotInPast(scheduleSlotId);
 
@@ -194,15 +203,90 @@ export class ScheduleSlotService {
       this.notificationService.notifyScheduleSlotChange(scheduleSlotId, 'VEHICLE_REMOVED')
         .catch(error => logger.error('Failed to send vehicle removal notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
-    
-    const result = await this.scheduleSlotRepository.removeVehicleFromSlot(scheduleSlotId, vehicleId);
-    
+
+    const result = await this.scheduleSlotRepository.removeVehicleFromSlot(scheduleSlotId, vehicleId) as { slotDeleted: boolean; scheduleSlot: ScheduleSlotFromRepo | null };
+
     // Only validate slot integrity if the slot still exists (wasn't deleted)
     if (this.validationService && !result.slotDeleted) {
       await this.validationService.validateSlotIntegrity(scheduleSlotId);
     }
-    
-    return result;
+
+    // Transform to ScheduleSlotWithDetails if slot exists
+    if (!result.scheduleSlot) {
+      return { slotDeleted: result.slotDeleted, scheduleSlot: null };
+    }
+
+    const slot = result.scheduleSlot;
+    const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va) =>
+      sum + (va.seatOverride ?? va.vehicle.capacity), 0) ?? 0;
+    const availableSeats = totalCapacity > 0
+      ? totalCapacity - (slot.childAssignments?.length || 0)
+      : 999;
+
+    const transformedSlot: ScheduleSlotWithDetails = {
+      id: slot.id,
+      groupId: slot.groupId,
+      datetime: slot.datetime.toISOString(),
+      group: slot.group,
+      vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
+        id: va.id,
+        vehicleId: va.vehicleId,
+        scheduleSlotId: va.scheduleSlotId,
+        driverId: va.driverId,
+        seatOverride: va.seatOverride,
+        createdAt: va.createdAt.toISOString(),
+        vehicle: {
+          id: va.vehicle.id,
+          name: va.vehicle.name,
+          capacity: va.vehicle.capacity,
+          familyId: va.vehicle.familyId,
+          createdAt: va.vehicle.createdAt.toISOString(),
+          updatedAt: va.vehicle.updatedAt.toISOString(),
+        },
+        driver: va.driver ? {
+          id: va.driver.id,
+          name: va.driver.name,
+        } : null,
+        childAssignments: slot.childAssignments
+          .filter((assignment) => assignment.vehicleAssignmentId === va.id)
+          .map((assignment) => ({
+            id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+            scheduleSlotId: assignment.scheduleSlotId,
+            childId: assignment.childId,
+            vehicleAssignmentId: assignment.vehicleAssignmentId,
+            assignedAt: assignment.assignedAt.toISOString(),
+            child: {
+              id: assignment.child.id,
+              name: assignment.child.name,
+              age: assignment.child.age,
+              familyId: assignment.child.familyId,
+              createdAt: assignment.child.createdAt.toISOString(),
+              updatedAt: assignment.child.updatedAt.toISOString(),
+            },
+          })),
+      })) ?? [],
+      childAssignments: (slot.childAssignments ?? []).map((assignment) => ({
+        id: `${assignment.scheduleSlotId}_${assignment.childId}`,
+        scheduleSlotId: assignment.scheduleSlotId,
+        childId: assignment.childId,
+        vehicleAssignmentId: assignment.vehicleAssignmentId,
+        assignedAt: assignment.assignedAt.toISOString(),
+        child: {
+          id: assignment.child.id,
+          name: assignment.child.name,
+          age: assignment.child.age,
+          familyId: assignment.child.familyId,
+          createdAt: assignment.child.createdAt.toISOString(),
+          updatedAt: assignment.child.updatedAt.toISOString(),
+        },
+      })),
+      totalCapacity,
+      availableSeats,
+      createdAt: slot.createdAt?.toISOString() ?? new Date().toISOString(),
+      updatedAt: slot.updatedAt?.toISOString() ?? new Date().toISOString(),
+    };
+
+    return { slotDeleted: result.slotDeleted, scheduleSlot: transformedSlot };
   }
 
 
@@ -241,11 +325,12 @@ export class ScheduleSlotService {
     return result;
   }
 
-  async updateSeatOverride(data: UpdateSeatOverrideData) {
+  async updateSeatOverride(data: UpdateSeatOverrideData): Promise<ScheduleSlotFromRepo> {
     const { vehicleAssignmentId, seatOverride } = data;
 
     // Get the vehicle assignment to check the schedule slot date
-    const vehicleAssignment = await this.scheduleSlotRepository.findVehicleAssignmentById(vehicleAssignmentId);
+    const vehicleAssignment = await this.scheduleSlotRepository.findVehicleAssignmentById(vehicleAssignmentId) as
+      { id: string; scheduleSlotId: string; vehicleId: string; driverId: string | null; seatOverride: number | null; createdAt: Date; } | null;
     if (vehicleAssignment) {
       await this.validateSlotNotInPast(vehicleAssignment.scheduleSlotId);
     }
@@ -255,7 +340,7 @@ export class ScheduleSlotService {
       await this.validationService.validateSeatOverride(seatOverride);
     }
 
-    const result = await this.scheduleSlotRepository.updateSeatOverride(vehicleAssignmentId, seatOverride);
+    const result = await this.scheduleSlotRepository.updateSeatOverride(vehicleAssignmentId, seatOverride) as ScheduleSlotFromRepo;
 
     // Use the existing vehicleAssignment for integrity validation and notification
     if (vehicleAssignment) {
@@ -274,7 +359,7 @@ export class ScheduleSlotService {
     return result;
   }
 
-  async updateSeatOverrideByVehicle(scheduleSlotId: string, vehicleId: string, seatOverride?: number) {
+  async updateSeatOverrideByVehicle(scheduleSlotId: string, vehicleId: string, seatOverride?: number): Promise<ScheduleSlotFromRepo> {
     // Validate slot is not in the past
     await this.validateSlotNotInPast(scheduleSlotId);
 
@@ -283,7 +368,7 @@ export class ScheduleSlotService {
       await this.validationService.validateSeatOverride(seatOverride);
     }
 
-    const result = await this.scheduleSlotRepository.updateSeatOverrideByVehicle(scheduleSlotId, vehicleId, seatOverride);
+    const result = await this.scheduleSlotRepository.updateSeatOverrideByVehicle(scheduleSlotId, vehicleId, seatOverride) as ScheduleSlotFromRepo;
 
     // Validate slot integrity after update
     if (this.validationService) {
@@ -313,17 +398,18 @@ export class ScheduleSlotService {
       logger.debug('Vehicle assignment details', { vehicleName: va.vehicle.name, vehicleId: va.vehicle.id, assignmentId: va.id });
     });
 
-    const totalCapacity = slot.vehicleAssignments.reduce((sum: number, va) =>
-      sum + (va.seatOverride ?? va.vehicle.capacity), 0);
+    const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va) =>
+      sum + (va.seatOverride ?? va.vehicle.capacity), 0) ?? 0;
     const availableSeats = totalCapacity > 0
-      ? totalCapacity - slot.childAssignments.length
+      ? totalCapacity - (slot.childAssignments?.length || 0)
       : 999; // Unlimited if no vehicles
 
     const result: ScheduleSlotWithDetails = {
       id: slot.id,
       groupId: slot.groupId,
-      datetime: slot.datetime,
-      vehicleAssignments: slot.vehicleAssignments.map((va) => ({
+      datetime: slot.datetime.toISOString(),
+      group: slot.group,
+      vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
         id: va.id,
         vehicleId: va.vehicleId,
         scheduleSlotId: va.scheduleSlotId,
@@ -461,7 +547,8 @@ export class ScheduleSlotService {
         id: slot.id,
         groupId: slot.groupId,
         datetime: slot.datetime.toISOString(),
-        vehicleAssignments: slot.vehicleAssignments.map((va) => ({
+        group: slot.group,
+        vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
           id: va.id,
           vehicleId: va.vehicleId,
           scheduleSlotId: va.scheduleSlotId,
@@ -565,7 +652,7 @@ export class ScheduleSlotService {
             vehicleAssignment.driver.id,
             slot.groupId,
             slot.datetime,
-          );
+          ) as ScheduleSlotFromRepo[];
 
           if (driverConflicts.length > 1) {
             conflicts.push('DRIVER_DOUBLE_BOOKING');

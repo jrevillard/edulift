@@ -236,6 +236,7 @@ export class ScheduleSlotRepository {
       const updatedSlot = await tx.scheduleSlot.findUnique({
         where: { id: scheduleSlotId },
         include: {
+          group: { select: { id: true, name: true } },
           vehicleAssignments: {
             include: {
               vehicle: {
@@ -352,6 +353,7 @@ export class ScheduleSlotRepository {
         const updatedSlot = await tx.scheduleSlot.findUnique({
         where: { id: scheduleSlotId },
         include: {
+          group: { select: { id: true, name: true } },
           vehicleAssignments: {
             include: {
               vehicle: {
@@ -421,6 +423,7 @@ export class ScheduleSlotRepository {
         },
       },
       include: {
+        group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
             vehicle: true, // Return ALL vehicle fields (including timestamps)
@@ -488,6 +491,7 @@ export class ScheduleSlotRepository {
         },
       },
       include: {
+        group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
             vehicle: true, // Return ALL vehicle fields (including timestamps)
@@ -551,6 +555,7 @@ export class ScheduleSlotRepository {
         },
       },
       include: {
+        group: { select: { id: true, name: true } },
         vehicleAssignments: {
           include: {
             vehicle: true, // Return ALL vehicle fields (including timestamps)

@@ -1,8 +1,15 @@
-// @ts-nocheck
+
 import { PrismaClient } from '@prisma/client';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 import { getWeekdayInTimezone, getTimeInTimezone } from '../utils/timezoneUtils';
 import { ConflictDetectionService } from './schedules/ConflictDetectionService';
+
+type VehicleAssignmentWithCapacity = {
+  seatOverride: number | null;
+  vehicle: {
+    capacity: number;
+  };
+};
 
 export class ScheduleSlotValidationService {
   private conflictService: ConflictDetectionService;
@@ -14,7 +21,7 @@ export class ScheduleSlotValidationService {
   /**
    * Get effective capacity for a vehicle assignment (with seat override)
    */
-  private getEffectiveCapacity(assignment: unknown): number {
+  private getEffectiveCapacity(assignment: VehicleAssignmentWithCapacity): number {
     return assignment.seatOverride ?? assignment.vehicle.capacity;
   }
 

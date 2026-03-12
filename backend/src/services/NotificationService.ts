@@ -1,13 +1,73 @@
-// @ts-nocheck
+
 import { EmailServiceInterface, ScheduleSlotNotificationData } from '../types/EmailServiceInterface';
 import { PushNotificationService } from './PushNotificationService';
 import { PushNotificationServiceFactory } from './PushNotificationServiceFactory';
 import { UserRepository } from '../repositories/UserRepository';
 import { ScheduleSlotRepository } from '../repositories/ScheduleSlotRepository';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 import { createLogger } from '../utils/logger';
 
 const logger = createLogger('NotificationService');
+
+// Type for schedule slot returned from repository with details
+type ScheduleSlotWithDetails = Prisma.ScheduleSlotGetPayload<{
+  include: {
+    group: {
+      select: {
+        id: true;
+        name: true;
+      };
+    };
+    vehicleAssignments: {
+      include: {
+        vehicle: true;
+        driver: {
+          select: {
+            id: true;
+            name: true;
+          };
+        };
+      };
+    };
+    childAssignments: {
+      select: {
+        scheduleSlotId: true;
+        childId: true;
+        vehicleAssignmentId: true;
+        assignedAt: true;
+        child: {
+          select: {
+            id: true;
+            name: true;
+            age: true;
+            familyId: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+// Type for group member with user - manually defined since GroupMember includes different relations
+interface GroupMemberWithUser {
+  id: string;
+  userId: string;
+  groupId: string;
+  role: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+// Type for group with name
+interface GroupWithName {
+  id: string;
+  name: string;
+}
 
 export class NotificationService {
   private pushNotificationService: PushNotificationService;
@@ -27,8 +87,8 @@ export class NotificationService {
   ): Promise<void> {
     try {
       // Get schedule slot details with all related data
-      const scheduleSlot = await this.scheduleSlotRepository.findByIdWithDetails(scheduleSlotId);
-      
+      const scheduleSlot = await this.scheduleSlotRepository.findByIdWithDetails(scheduleSlotId) as ScheduleSlotWithDetails | null;
+
       if (!scheduleSlot) {
         logger.error('ScheduleSlot not found for notification');
         return;
@@ -36,8 +96,8 @@ export class NotificationService {
 
       // TODO: Replace with family-based notifications - get family members instead of individual group members
       // Get group members to notify
-      const groupMembers = await this.userRepository.getGroupMembers(scheduleSlot.groupId);
-      
+      const groupMembers = await this.userRepository.getGroupMembers(scheduleSlot.groupId) as GroupMemberWithUser[];
+
       // Verify that group data is properly loaded
       if (!scheduleSlot.group || !scheduleSlot.group.name) {
         throw new Error('Schedule slot group data not properly loaded from database');
@@ -47,7 +107,7 @@ export class NotificationService {
       const notificationData: ScheduleSlotNotificationData = {
         scheduleSlotId: scheduleSlot.id,
         datetime: scheduleSlot.datetime.toISOString(), // Send UTC datetime to client
-        assignedChildren: scheduleSlot.childAssignments?.map((a: unknown) => a.child.name) || [],
+        assignedChildren: scheduleSlot.childAssignments?.map(a => a.child.name) || [],
         groupName: scheduleSlot.group.name,
         changeType,
       };
@@ -60,7 +120,7 @@ export class NotificationService {
           ...(va.driver?.name && { driverName: va.driver.name }),
         }));
         notificationData.vehicles = vehicles;
-        notificationData.totalCapacity = vehicles.reduce((sum, v) => sum + v.capacity, 0);
+        notificationData.totalCapacity = vehicles.reduce((sum: number, v) => sum + v.capacity, 0);
       }
 
       // Determine who should receive notifications
@@ -86,10 +146,10 @@ export class NotificationService {
           groupName: scheduleSlot.group.name,
           datetime: scheduleSlot.datetime.toISOString(),
           changeType,
-          assignedChildren: scheduleSlot.childAssignments?.map((a: unknown) => a.child.name) || [],
-          vehicles: scheduleSlot.vehicleAssignments?.map((va: unknown) => ({
+          assignedChildren: scheduleSlot.childAssignments?.map(a => a.child.name) || [],
+          vehicles: scheduleSlot.vehicleAssignments?.map(va => ({
             name: va.vehicle.name,
-            driverName: va.driver?.name,
+            ...(va.driver?.name && { driverName: va.driver.name }),
           })) || [],
         },
       ).catch(error => {
@@ -113,29 +173,35 @@ export class NotificationService {
       // Calculate tomorrow's date range
       const tomorrowStart = new Date(tomorrow);
       tomorrowStart.setUTCHours(0, 0, 0, 0);
-      
+
       const tomorrowEnd = new Date(tomorrow);
       tomorrowEnd.setUTCHours(23, 59, 59, 999);
 
       // Get all schedule slots for tomorrow in this group
-      const scheduleSlots = await this.scheduleSlotRepository.findSlotsByDateTimeRange(groupId, tomorrowStart, tomorrowEnd);
-      
+      const scheduleSlots = await this.scheduleSlotRepository.findSlotsByDateTimeRange(groupId, tomorrowStart, tomorrowEnd) as ScheduleSlotWithDetails[];
+
       if (scheduleSlots.length === 0) {
         return; // No schedule slots tomorrow
       }
 
       // Get group members
-      const groupMembers = await this.userRepository.getGroupMembers(groupId);
-      const group = await this.userRepository.getGroupById(groupId);
-      
+      const groupMembers = await this.userRepository.getGroupMembers(groupId) as GroupMemberWithUser[];
+      const group = await this.userRepository.getGroupById(groupId) as GroupWithName | null;
+
       if (!group) {
         logger.error('Group not found for daily reminders');
         return;
       }
 
       // Group schedule slots by user (based on children or driver)
-      const userSlots = new Map<string, any[]>();
-      
+      const userSlots = new Map<string, Array<{
+        datetime: Date;
+        vehicle?: { name: string; driver?: { name: string } };
+        role: string;
+        childName?: string;
+        childAssignments?: ScheduleSlotWithDetails['childAssignments'];
+      }>>();
+
       for (const slot of scheduleSlots) {
         // Add slot for drivers
         for (const vehicleAssignment of slot.vehicleAssignments || []) {
@@ -144,7 +210,7 @@ export class NotificationService {
               userSlots.set(vehicleAssignment.driver.id, []);
             }
             userSlots.get(vehicleAssignment.driver.id)?.push({
-              ...slot,
+              datetime: slot.datetime,
               vehicle: vehicleAssignment.vehicle,
               role: 'driver',
             });
@@ -154,15 +220,15 @@ export class NotificationService {
         // Add slot for parents of assigned children
         for (const assignment of slot.childAssignments || []) {
           const child = assignment.child;
-          
+
           // Check if child has familyId (new system) or userId (legacy)
-          if ((child as any).familyId) {
+          if (child.familyId) {
             // New family system: Get all family members for this child's family
             const familyMembers = await this.prisma.familyMember.findMany({
-              where: { familyId: (child as any).familyId },
+              where: { familyId: child.familyId },
               select: { userId: true },
             });
-            
+
             // Add slot for all family members
             for (const familyMember of familyMembers) {
               const parentId = familyMember.userId;
@@ -170,9 +236,10 @@ export class NotificationService {
                 userSlots.set(parentId, []);
               }
               userSlots.get(parentId)?.push({
-                ...slot,
+                datetime: slot.datetime,
                 role: 'parent',
                 childName: child.name,
+                childAssignments: slot.childAssignments,
               });
             }
           }
@@ -181,15 +248,15 @@ export class NotificationService {
 
       // Send reminders to users with schedule slots tomorrow
       const reminderPromises = Array.from(userSlots.entries()).map(([userId, userSlotList]) => {
-        const member = groupMembers.find((m: unknown) => m.user.id === userId);
+        const member = groupMembers.find(m => m.user.id === userId);
         if (!member) return Promise.resolve();
 
         const formattedSlots = userSlotList.map(slot => ({
-          datetime: slot.datetime,
-          driverName: slot.vehicle?.driver?.name,
-          vehicleName: slot.vehicle?.name,
-          children: slot.role === 'parent' ? [slot.childName] : 
-                   slot.childAssignments?.map((a: unknown) => a.child.name) || [],
+          datetime: slot.datetime.toISOString(),
+          ...(slot.vehicle?.driver?.name && { driverName: slot.vehicle.driver.name }),
+          ...(slot.vehicle?.name && { vehicleName: slot.vehicle.name }),
+          children: slot.role === 'parent' ? [slot.childName!] :
+                   slot.childAssignments?.map(a => a.child.name) || [],
           role: slot.role,
         }));
 
@@ -203,7 +270,7 @@ export class NotificationService {
       });
 
       await Promise.allSettled(reminderPromises);
-      
+
       logger.info(`Sent daily reminders to ${userSlots.size} users for group ${groupId}`, { groupId });
     } catch (error) {
       logger.error('Failed to send daily reminders', { error });
@@ -213,9 +280,9 @@ export class NotificationService {
   async sendWeeklySchedule(groupId: string, week: string): Promise<void> {
     try {
       // Get group members and group info
-      const groupMembers = await this.userRepository.getGroupMembers(groupId);
-      const group = await this.userRepository.getGroupById(groupId);
-      
+      const groupMembers = await this.userRepository.getGroupMembers(groupId) as GroupMemberWithUser[];
+      const group = await this.userRepository.getGroupById(groupId) as GroupWithName | null;
+
       if (!group) {
         logger.error('Group not found for weekly schedule', { groupId });
         return;
@@ -223,11 +290,11 @@ export class NotificationService {
 
       // Calculate week start and end dates for datetime filtering
       const [year, weekNum] = week.split('-').map(Number);
-      
+
       // Calculate the Monday of the specified ISO week (same logic as SchedulingService)
       const jan1 = new Date(year, 0, 1);
       const jan1Day = jan1.getDay();
-      
+
       let daysToFirstMonday;
       if (jan1Day === 0) { // Sunday
         daysToFirstMonday = 1;
@@ -236,9 +303,9 @@ export class NotificationService {
       } else { // Tuesday to Saturday
         daysToFirstMonday = 8 - jan1Day;
       }
-      
+
       const firstMonday = new Date(year, 0, 1 + daysToFirstMonday);
-      
+
       // ISO week 1 logic
       let isoWeek1Start;
       if (firstMonday.getDate() <= 4) {
@@ -247,12 +314,12 @@ export class NotificationService {
         isoWeek1Start = new Date(firstMonday);
         isoWeek1Start.setDate(firstMonday.getDate() - 7);
       }
-      
+
       // Calculate target week start (Monday) and end (Sunday)
       const weekStart = new Date(isoWeek1Start);
       weekStart.setDate(isoWeek1Start.getDate() + (weekNum - 1) * 7);
       weekStart.setUTCHours(0, 0, 0, 0);
-      
+
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       weekEnd.setUTCHours(23, 59, 59, 999);
@@ -261,7 +328,7 @@ export class NotificationService {
       const scheduleData = await this.scheduleSlotRepository.getWeeklyScheduleByDateRange(groupId, weekStart, weekEnd);
 
       // Send weekly schedule to all group members
-      const schedulePromises = groupMembers.map((member: unknown) =>
+      const schedulePromises = groupMembers.map(member =>
         this.emailService.sendWeeklySchedule(
           member.user.email,
           group.name,
@@ -273,7 +340,7 @@ export class NotificationService {
       );
 
       await Promise.allSettled(schedulePromises);
-      
+
       logger.info(`Sent weekly schedule to ${groupMembers.length} members for group ${groupId}`, { groupId, memberCount: groupMembers.length });
     } catch (error) {
       logger.error('Failed to send weekly schedule', { groupId, error });
@@ -281,27 +348,27 @@ export class NotificationService {
   }
 
   private async determineScheduleSlotNotificationRecipients(
-    groupMembers: unknown[],
-    scheduleSlot: any,
+    groupMembers: GroupMemberWithUser[],
+    scheduleSlot: ScheduleSlotWithDetails,
     changeType: ScheduleSlotNotificationData['changeType'],
-  ): Promise<any[]> {
+  ): Promise<Array<{ id: string; email: string; name: string }>> {
     switch (changeType) {
       case 'SLOT_CREATED':
         // Notify all group members
-        return groupMembers.map(m => m.user);
-        
+        return groupMembers.map(m => ({ id: m.user.id, email: m.user.email, name: m.user.name }));
+
       case 'VEHICLE_ASSIGNED':
       case 'DRIVER_ASSIGNED': {
         // Notify parents of assigned children and drivers
         const affectedUsers = new Set<string>();
-        
+
         // Add all drivers
-        scheduleSlot.vehicleAssignments?.forEach((va: unknown) => {
+        scheduleSlot.vehicleAssignments?.forEach(va => {
           if (va.driver) {
             affectedUsers.add(va.driver.id);
           }
         });
-        
+
         // Add family members of assigned children
         for (const assignment of scheduleSlot.childAssignments || []) {
           // Get family members for this child
@@ -317,31 +384,31 @@ export class NotificationService {
               },
             },
           });
-          
+
           if (childWithFamily?.family?.members) {
             childWithFamily.family.members.forEach(member => {
               affectedUsers.add(member.userId);
             });
           }
         }
-        
+
         return groupMembers
           .filter(m => affectedUsers.has(m.userId))
-          .map(m => m.user);
+          .map(m => ({ id: m.user.id, email: m.user.email, name: m.user.name }));
         }
 
       case 'CHILD_ADDED':
       case 'CHILD_REMOVED': {
         // Notify drivers and parents of all children in the slot
         const allAffectedUsers = new Set<string>();
-        
+
         // Add all drivers
-        scheduleSlot.vehicleAssignments?.forEach((va: unknown) => {
+        scheduleSlot.vehicleAssignments?.forEach(va => {
           if (va.driver) {
             allAffectedUsers.add(va.driver.id);
           }
         });
-        
+
         // Add family members of all assigned children
         for (const assignment of scheduleSlot.childAssignments || []) {
           // Get family members for this child
@@ -357,29 +424,29 @@ export class NotificationService {
               },
             },
           });
-          
+
           if (childWithFamily?.family?.members) {
             childWithFamily.family.members.forEach(member => {
               allAffectedUsers.add(member.userId);
             });
           }
         }
-        
+
         return groupMembers
           .filter(m => allAffectedUsers.has(m.userId))
-          .map(m => m.user);
+          .map(m => ({ id: m.user.id, email: m.user.email, name: m.user.name }));
         }
 
       case 'SLOT_CANCELLED': {
         // Notify all affected users (drivers + parents of children)
         const cancelledSlotUsers = new Set<string>();
-        
-        scheduleSlot.vehicleAssignments?.forEach((va: unknown) => {
+
+        scheduleSlot.vehicleAssignments?.forEach(va => {
           if (va.driver) {
             cancelledSlotUsers.add(va.driver.id);
           }
         });
-        
+
         // Add family members of cancelled children assignments
         for (const assignment of scheduleSlot.childAssignments || []) {
           // Get family members for this child
@@ -395,17 +462,17 @@ export class NotificationService {
               },
             },
           });
-          
+
           if (childWithFamily?.family?.members) {
             childWithFamily.family.members.forEach(member => {
               cancelledSlotUsers.add(member.userId);
             });
           }
         }
-        
+
         return groupMembers
           .filter(m => cancelledSlotUsers.has(m.userId))
-          .map(m => m.user);
+          .map(m => ({ id: m.user.id, email: m.user.email, name: m.user.name }));
         }
 
       default:

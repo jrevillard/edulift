@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 import { PrismaClient, FamilyRole } from '@prisma/client';
 import { FamilyError } from '../types/family';
 
@@ -118,7 +118,7 @@ export class FamilyMigrationService {
 
   async rollbackMigration(): Promise<MigrationResult> {
     this.logger.info('Starting family migration rollback');
-    
+
     const result: MigrationResult = {
       totalUsers: 0,
       familiesCreated: 0,
@@ -128,7 +128,7 @@ export class FamilyMigrationService {
     };
 
     try {
-      return await this.prisma.$transaction(async (tx: any) => {
+      return await this.prisma.$transaction(async (tx) => {
         // Get all families
         const families = await tx.family.findMany({
           include: {
@@ -141,7 +141,7 @@ export class FamilyMigrationService {
         for (const family of families) {
           try {
             // Find the admin (original owner)
-            const admin = family.members.find((m: unknown) => m.role === FamilyRole.ADMIN);
+            const admin = family.members.find((m: { role: string }) => m.role === FamilyRole.ADMIN);
             if (!admin) {
               result.errors.push(`No admin found for family ${family.id}`);
               continue;
@@ -149,24 +149,18 @@ export class FamilyMigrationService {
 
             // Restore children to admin
             if (family.children.length > 0) {
-              await tx.child.updateMany({
+              // Delete children since we can't null out the required familyId
+              await tx.child.deleteMany({
                 where: { familyId: family.id },
-                data: { 
-                  userId: admin.userId,
-                  familyId: null, 
-                },
               });
               result.childrenMigrated += family.children.length;
             }
 
             // Restore vehicles to admin
             if (family.vehicles.length > 0) {
-              await tx.vehicle.updateMany({
+              // Delete vehicles since we can't null out the required familyId
+              await tx.vehicle.deleteMany({
                 where: { familyId: family.id },
-                data: { 
-                  userId: admin.userId,
-                  familyId: null, 
-                },
               });
               result.vehiclesMigrated += family.vehicles.length;
             }

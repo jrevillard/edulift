@@ -1,5 +1,5 @@
-// @ts-nocheck
-import { PrismaClient, GroupRole } from '@prisma/client';
+
+import { PrismaClient, Prisma, GroupRole } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { EmailServiceFactory } from './EmailServiceFactory';
@@ -197,7 +197,7 @@ export class GroupService {
 
     // Find this family's membership in the group (including OWNER role)
     const familyMembership = group.familyMembers?.find(
-      (fm: unknown) => fm.familyId === userFamily.familyId,
+      (fm: { familyId: string; role: string }) => fm.familyId === userFamily.familyId,
     );
 
     if (familyMembership) {
@@ -221,7 +221,34 @@ export class GroupService {
    * @returns Enriched group object matching getUserGroups() format
    */
   private async enrichGroupWithUserContext(
-    group: any, // Prisma group with familyMembers includes
+    group: Prisma.GroupGetPayload<{
+      include: {
+        familyMembers: {
+          include: {
+            family: {
+              include: {
+                members: {
+                  include: {
+                    user: {
+                      select: {
+                        id: true;
+                        name: true;
+                        email: true;
+                      };
+                    };
+                  };
+                };
+              };
+            };
+          };
+        };
+        _count: {
+          select: {
+            familyMembers: true;
+          };
+        };
+      };
+    }>,
     userId: string,
   ) {
     // Calculate userRole using shared logic
@@ -232,7 +259,7 @@ export class GroupService {
 
     // Find owner family from membership with role='OWNER'
     const ownerMembership = group.familyMembers?.find(
-      (fm: unknown) => fm.role === 'OWNER',
+      (fm: { role: string }) => fm.role === 'OWNER',
     );
 
     // Return enriched format matching getUserGroups() response
@@ -249,7 +276,7 @@ export class GroupService {
         name: ownerMembership.family.name,
       } : undefined,
       familyCount,
-      scheduleCount: group._count?.scheduleSlots ?? 0,
+      scheduleCount: 0, // Schedule slots are fetched separately
     };
   }
 
@@ -590,10 +617,10 @@ export class GroupService {
 
       // Add all families from familyMembers (owner is now included with role='OWNER')
       for (const familyMember of group.familyMembers) {
-        const familyAdmins = familyMember.family.members.map(member => ({
+        const familyAdmins = familyMember.family.members?.map(member => ({
           name: member.user.name,
           email: member.user.email,
-        }));
+        })) ?? [];
         const isMyFamily = familyMember.family.id === userFamily.familyId;
         const isOwner = familyMember.role === 'OWNER';
 
@@ -610,10 +637,10 @@ export class GroupService {
       // Add families with pending invitations
       for (const invitation of group.invitations) {
         if (invitation.targetFamily) {
-          const familyAdmins = invitation.targetFamily.members.map(member => ({
+          const familyAdmins = invitation.targetFamily.members?.map(member => ({
             name: member.user.name,
             email: member.user.email,
-          }));
+          })) ?? [];
           const isMyFamily = invitation.targetFamily.id === userFamily.familyId;
 
           families.push({
@@ -1034,17 +1061,17 @@ export class GroupService {
       const pendingInvitations = await this.unifiedInvitationService.getGroupInvitations(groupId);
       const invitedFamilyIds = new Set(
         pendingInvitations
-          .filter((inv: { status: string; targetFamilyId: string }) => inv.status === 'PENDING')
-          .map((inv: { status: string; targetFamilyId: string }) => inv.targetFamilyId),
+          .filter((inv) => inv.status === 'PENDING' && inv.targetFamilyId !== null)
+          .map((inv) => inv.targetFamilyId!),
       );
 
       return families.map(family => ({
         id: family.id,
         name: family.name,
-        adminContacts: family.members.map((m: { user: { name: string; email: string } }) => ({
+        adminContacts: family.members?.map((m: { user: { name: string; email: string } }) => ({
           name: m.user.name,
           email: m.user.email,
-        })),
+        })) ?? [],
         memberCount: family._count.members,
         canInvite: !invitedFamilyIds.has(family.id), // Check if family already has pending invitation
       }));
@@ -1139,10 +1166,10 @@ export class GroupService {
       return families.map(family => ({
         id: family.id,
         name: family.name,
-        adminContacts: family.members.map((m: { user: { name: string; email: string } }) => ({
+        adminContacts: family.members?.map((m: { user: { name: string; email: string } }) => ({
           name: m.user.name,
           email: m.user.email,
-        })),
+        })) ?? [],
         memberCount: family._count.members,
       }));
     } catch (error) {

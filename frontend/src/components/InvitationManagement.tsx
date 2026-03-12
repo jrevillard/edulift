@@ -136,14 +136,14 @@ export function InvitationManagement<TInvitation extends BaseInvitation, TMember
       {/* Members and Invitations List */}
       <div className="space-y-3" data-testid="InvitationManagement-Container-memberList">
         {/* Active Members */}
-        {members.map((member, index) => (
+        {members?.map((member, index) => (
           <div key={`member-${member.id}`}>
             {renderMember(member, index)}
           </div>
         ))}
 
         {/* Pending Invitations */}
-        {isAdmin && pendingInvitations.map((invitation) => (
+        {isAdmin && (pendingInvitations || []).map((invitation) => (
           <div
             key={`invitation-${invitation.id}`}
             className="flex items-center justify-between p-3 rounded-lg border border-orange-200 bg-orange-50/50"
@@ -227,7 +227,7 @@ export function InvitationManagement<TInvitation extends BaseInvitation, TMember
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {roleOptions.map((option) => (
+                  {(roleOptions || []).map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
                     </SelectItem>
