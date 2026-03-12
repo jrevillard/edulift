@@ -96,13 +96,22 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
 
       const mockSlotWithDetails = {
         ...mockCreatedSlot,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         vehicleAssignments: [{
           id: 'assignment-1',
-          vehicle: { id: TEST_IDS.VEHICLE, name: 'Test Vehicle', capacity: 8 },
-          driver: { id: 'driver-1', name: 'Test Driver' },
+          vehicleId: TEST_IDS.VEHICLE,
+          scheduleSlotId: 'slot-1',
+          driverId: 'driver-1',
           seatOverride: null,
+          createdAt: new Date(),
+          vehicle: { id: TEST_IDS.VEHICLE, name: 'Test Vehicle', capacity: 8, familyId: TEST_IDS.FAMILY, createdAt: new Date(), updatedAt: new Date() },
+          driver: { id: 'driver-1', name: 'Test Driver' },
+          childAssignments: [],
         }],
         childAssignments: [],
+        totalCapacity: 8,
+        availableSeats: 8,
+        updatedAt: new Date(),
       };
 
       mockRepository.create.mockResolvedValue(mockCreatedSlot);
@@ -138,8 +147,12 @@ describe('ScheduleSlotService - Past Date Prevention', () => {
 
       const mockSlotWithDetails = {
         ...mockCreatedSlot,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         vehicleAssignments: [],
         childAssignments: [],
+        totalCapacity: 0,
+        availableSeats: 999,
+        updatedAt: new Date(),
       };
 
       mockRepository.create.mockResolvedValue(mockCreatedSlot);

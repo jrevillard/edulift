@@ -167,8 +167,8 @@ export class ScheduleSlotService {
           })),
       })),
       childAssignments: (() => {
-        const validAssignments = slot.childAssignments.filter((assignment) => assignment.vehicleAssignmentId);
-        const invalidAssignments = slot.childAssignments.filter((assignment) => !assignment.vehicleAssignmentId);
+        const validAssignments = slot.childAssignments.filter((assignment) => assignment.vehicleAssignmentId != null);
+        const invalidAssignments = slot.childAssignments.filter((assignment) => assignment.vehicleAssignmentId == null);
 
         // Filter out invalid assignments silently
         if (invalidAssignments.length > 0) {
@@ -268,7 +268,13 @@ export class ScheduleSlotService {
       }
     }
 
-    const result = await this.scheduleSlotRepository.assignVehicleToSlot(scheduleSlotId, vehicleId, driverId, seatOverride) as ScheduleSlotFromRepo;
+    await this.scheduleSlotRepository.assignVehicleToSlot(scheduleSlotId, vehicleId, driverId, seatOverride);
+
+    // Fetch the full schedule slot after assignment
+    const slot = await this.scheduleSlotRepository.findById(scheduleSlotId) as ScheduleSlotFromRepo | null;
+    if (!slot) {
+      throw new Error('Schedule slot not found after assignment');
+    }
 
     // Validate slot integrity after assignment
     if (this.validationService) {
@@ -281,7 +287,7 @@ export class ScheduleSlotService {
         .catch(error => logger.error('Failed to send vehicle assignment notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
 
-    return this.transformToScheduleSlotWithDetails(result);
+    return this.transformToScheduleSlotWithDetails(slot);
   }
 
   async removeVehicleFromSlot(scheduleSlotId: string, vehicleId: string): Promise<{ slotDeleted: boolean; scheduleSlot: ScheduleSlotWithDetails | null }> {
@@ -306,76 +312,7 @@ export class ScheduleSlotService {
       return { slotDeleted: result.slotDeleted, scheduleSlot: null };
     }
 
-    const slot = result.scheduleSlot;
-    const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va) =>
-      sum + (va.seatOverride ?? va.vehicle.capacity), 0) ?? 0;
-    const availableSeats = totalCapacity > 0
-      ? totalCapacity - (slot.childAssignments?.length || 0)
-      : 999;
-
-    const transformedSlot: ScheduleSlotWithDetails = {
-      id: slot.id,
-      groupId: slot.groupId,
-      datetime: slot.datetime.toISOString(),
-      group: slot.group,
-      vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
-        id: va.id,
-        vehicleId: va.vehicleId,
-        scheduleSlotId: va.scheduleSlotId,
-        driverId: va.driverId,
-        seatOverride: va.seatOverride,
-        createdAt: va.createdAt.toISOString(),
-        vehicle: {
-          id: va.vehicle.id,
-          name: va.vehicle.name,
-          capacity: va.vehicle.capacity,
-          familyId: va.vehicle.familyId,
-          createdAt: va.vehicle.createdAt.toISOString(),
-          updatedAt: va.vehicle.updatedAt.toISOString(),
-        },
-        driver: va.driver ? {
-          id: va.driver.id,
-          name: va.driver.name,
-        } : null,
-        childAssignments: slot.childAssignments
-          .filter((assignment) => assignment.vehicleAssignmentId === va.id)
-          .map((assignment) => ({
-            id: `${assignment.scheduleSlotId}_${assignment.childId}`,
-            scheduleSlotId: assignment.scheduleSlotId,
-            childId: assignment.childId,
-            vehicleAssignmentId: assignment.vehicleAssignmentId,
-            assignedAt: assignment.assignedAt.toISOString(),
-            child: {
-              id: assignment.child.id,
-              name: assignment.child.name,
-              age: assignment.child.age,
-              familyId: assignment.child.familyId,
-              createdAt: assignment.child.createdAt.toISOString(),
-              updatedAt: assignment.child.updatedAt.toISOString(),
-            },
-          })),
-      })) ?? [],
-      childAssignments: (slot.childAssignments ?? []).map((assignment) => ({
-        id: `${assignment.scheduleSlotId}_${assignment.childId}`,
-        scheduleSlotId: assignment.scheduleSlotId,
-        childId: assignment.childId,
-        vehicleAssignmentId: assignment.vehicleAssignmentId,
-        assignedAt: assignment.assignedAt.toISOString(),
-        child: {
-          id: assignment.child.id,
-          name: assignment.child.name,
-          age: assignment.child.age,
-          familyId: assignment.child.familyId,
-          createdAt: assignment.child.createdAt.toISOString(),
-          updatedAt: assignment.child.updatedAt.toISOString(),
-        },
-      })),
-      totalCapacity,
-      availableSeats,
-      createdAt: slot.createdAt?.toISOString() ?? new Date().toISOString(),
-      updatedAt: slot.updatedAt?.toISOString() ?? new Date().toISOString(),
-    };
-
+    const transformedSlot = this.transformToScheduleSlotWithDetails(result.scheduleSlot);
     return { slotDeleted: result.slotDeleted, scheduleSlot: transformedSlot };
   }
 
@@ -430,7 +367,17 @@ export class ScheduleSlotService {
       await this.validationService.validateSeatOverride(seatOverride);
     }
 
-    const result = await this.scheduleSlotRepository.updateSeatOverride(vehicleAssignmentId, seatOverride) as ScheduleSlotFromRepo;
+    await this.scheduleSlotRepository.updateSeatOverride(vehicleAssignmentId, seatOverride);
+
+    // Fetch the full schedule slot after update
+    const scheduleSlotId = vehicleAssignment?.scheduleSlotId;
+    if (!scheduleSlotId) {
+      throw new Error('Schedule slot not found');
+    }
+    const slot = await this.scheduleSlotRepository.findById(scheduleSlotId) as ScheduleSlotFromRepo | null;
+    if (!slot) {
+      throw new Error('Schedule slot not found after update');
+    }
 
     // Use the existing vehicleAssignment for integrity validation and notification
     if (vehicleAssignment) {
@@ -446,7 +393,7 @@ export class ScheduleSlotService {
       }
     }
 
-    return this.transformToScheduleSlotWithDetails(result);
+    return this.transformToScheduleSlotWithDetails(slot);
   }
 
   async updateSeatOverrideByVehicle(scheduleSlotId: string, vehicleId: string, seatOverride?: number): Promise<ScheduleSlotWithDetails> {
@@ -458,7 +405,13 @@ export class ScheduleSlotService {
       await this.validationService.validateSeatOverride(seatOverride);
     }
 
-    const result = await this.scheduleSlotRepository.updateSeatOverrideByVehicle(scheduleSlotId, vehicleId, seatOverride) as ScheduleSlotFromRepo;
+    await this.scheduleSlotRepository.updateSeatOverrideByVehicle(scheduleSlotId, vehicleId, seatOverride);
+
+    // Fetch the full schedule slot after update
+    const slot = await this.scheduleSlotRepository.findById(scheduleSlotId) as ScheduleSlotFromRepo | null;
+    if (!slot) {
+      throw new Error('Schedule slot not found after update');
+    }
 
     // Validate slot integrity after update
     if (this.validationService) {
@@ -471,7 +424,7 @@ export class ScheduleSlotService {
         .catch(error => logger.error('Failed to send seat override update notification', { error: error instanceof Error ? error.message : String(error), scheduleSlotId }));
     }
 
-    return this.transformToScheduleSlotWithDetails(result);
+    return this.transformToScheduleSlotWithDetails(slot);
   }
 
   async getScheduleSlotDetails(scheduleSlotId: string): Promise<ScheduleSlotWithDetails | null> {
@@ -484,88 +437,8 @@ export class ScheduleSlotService {
     }
 
     logger.debug('Repository returned schedule slot', { scheduleSlotId, vehicleAssignmentCount: slot.vehicleAssignments?.length || 0 });
-    slot.vehicleAssignments?.forEach((va) => {
-      logger.debug('Vehicle assignment details', { vehicleName: va.vehicle.name, vehicleId: va.vehicle.id, assignmentId: va.id });
-    });
 
-    const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va) =>
-      sum + (va.seatOverride ?? va.vehicle.capacity), 0) ?? 0;
-    const availableSeats = totalCapacity > 0
-      ? totalCapacity - (slot.childAssignments?.length || 0)
-      : 999; // Unlimited if no vehicles
-
-    const result: ScheduleSlotWithDetails = {
-      id: slot.id,
-      groupId: slot.groupId,
-      datetime: slot.datetime.toISOString(),
-      group: slot.group,
-      vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
-        id: va.id,
-        vehicleId: va.vehicleId,
-        scheduleSlotId: va.scheduleSlotId,
-        driverId: va.driverId,
-        seatOverride: va.seatOverride,
-        createdAt: va.createdAt.toISOString(),
-        vehicle: {
-          id: va.vehicle.id,
-          name: va.vehicle.name,
-          capacity: va.vehicle.capacity,
-          familyId: va.vehicle.familyId,
-          createdAt: va.vehicle.createdAt.toISOString(),
-          updatedAt: va.vehicle.updatedAt.toISOString(),
-        },
-        driver: va.driver ? {
-          id: va.driver.id,
-          name: va.driver.name,
-        } : null,
-        childAssignments: slot.childAssignments
-          .filter((assignment) => assignment.vehicleAssignmentId === va.id)
-          .map((assignment) => ({
-            id: `${assignment.scheduleSlotId}_${assignment.childId}`,
-            scheduleSlotId: assignment.scheduleSlotId,
-            childId: assignment.childId,
-            vehicleAssignmentId: assignment.vehicleAssignmentId,
-            assignedAt: assignment.assignedAt.toISOString(),
-            child: {
-              id: assignment.child.id,
-              name: assignment.child.name,
-              age: assignment.child.age,
-              familyId: assignment.child.familyId,
-              createdAt: assignment.child.createdAt.toISOString(),
-              updatedAt: assignment.child.updatedAt.toISOString(),
-            },
-          })),
-      })),
-      childAssignments: (() => {
-        const validAssignments = slot.childAssignments.filter((assignment) => assignment.vehicleAssignmentId);
-        const invalidAssignments = slot.childAssignments.filter((assignment) => !assignment.vehicleAssignmentId);
-
-        // Filter out invalid assignments silently
-        if (invalidAssignments.length > 0) {
-          logger.warn('Found child assignments with missing vehicleAssignmentId', { slotId: slot.id, invalidCount: invalidAssignments.length });
-        }
-
-        return validAssignments.map((assignment) => ({
-          id: `${assignment.scheduleSlotId}_${assignment.childId}`,
-          scheduleSlotId: assignment.scheduleSlotId,
-          childId: assignment.childId,
-          vehicleAssignmentId: assignment.vehicleAssignmentId,
-          assignedAt: assignment.assignedAt.toISOString(),
-          child: {
-            id: assignment.child.id,
-            name: assignment.child.name,
-            age: assignment.child.age,
-            familyId: assignment.child.familyId,
-            createdAt: assignment.child.createdAt.toISOString(),
-            updatedAt: assignment.child.updatedAt.toISOString(),
-          },
-        }));
-      })(),
-      totalCapacity,
-      availableSeats,
-      createdAt: slot.createdAt?.toISOString(),
-      updatedAt: slot.updatedAt?.toISOString(),
-    };
+    const result = this.transformToScheduleSlotWithDetails(slot);
 
     logger.debug('Returning schedule slot details', { scheduleSlotId, vehicleAssignmentCount: result.vehicleAssignments.length });
 
@@ -618,84 +491,7 @@ export class ScheduleSlotService {
 
     // Transform to match expected format (data already enriched by repository includes)
     logger.debug('Transforming schedule slots', { slotCount: slots.length });
-    const slotsWithDetails = slots.map((slot) => {
-      const totalCapacity = slot.vehicleAssignments.reduce((sum: number, va) =>
-        sum + (va.seatOverride ?? va.vehicle.capacity), 0);
-      const availableSeats = totalCapacity > 0
-        ? totalCapacity - slot.childAssignments.length
-        : 999; // Unlimited if no vehicles
-
-      // Filter out invalid child assignments
-      const validAssignments = slot.childAssignments.filter((assignment) => assignment.vehicleAssignmentId);
-      const invalidAssignments = slot.childAssignments.filter((assignment) => !assignment.vehicleAssignmentId);
-
-      if (invalidAssignments.length > 0) {
-        logger.warn('Found child assignments with missing vehicleAssignmentId', { slotId: slot.id, invalidCount: invalidAssignments.length });
-      }
-
-      return {
-        id: slot.id,
-        groupId: slot.groupId,
-        datetime: slot.datetime.toISOString(),
-        group: slot.group,
-        vehicleAssignments: slot.vehicleAssignments?.map((va) => ({
-          id: va.id,
-          vehicleId: va.vehicleId,
-          scheduleSlotId: va.scheduleSlotId,
-          driverId: va.driverId,
-          seatOverride: va.seatOverride,
-          createdAt: va.createdAt.toISOString(),
-          vehicle: {
-            id: va.vehicle.id,
-            name: va.vehicle.name,
-            capacity: va.vehicle.capacity,
-            familyId: va.vehicle.familyId,
-            createdAt: va.vehicle.createdAt.toISOString(),
-            updatedAt: va.vehicle.updatedAt.toISOString(),
-          },
-          driver: va.driver ? {
-            id: va.driver.id,
-            name: va.driver.name,
-          } : null,
-          childAssignments: validAssignments
-            .filter((assignment) => assignment.vehicleAssignmentId === va.id)
-            .map((assignment) => ({
-              id: `${assignment.scheduleSlotId}_${assignment.childId}`,
-              scheduleSlotId: assignment.scheduleSlotId,
-              childId: assignment.childId,
-              vehicleAssignmentId: assignment.vehicleAssignmentId,
-              assignedAt: assignment.assignedAt.toISOString(),
-              child: {
-                id: assignment.child.id,
-                name: assignment.child.name,
-                age: assignment.child.age,
-                familyId: assignment.child.familyId,
-                createdAt: assignment.child.createdAt.toISOString(),
-                updatedAt: assignment.child.updatedAt.toISOString(),
-              },
-            })),
-        })),
-        childAssignments: validAssignments.map((assignment) => ({
-          id: `${assignment.scheduleSlotId}_${assignment.childId}`,
-          scheduleSlotId: assignment.scheduleSlotId,
-          childId: assignment.childId,
-          vehicleAssignmentId: assignment.vehicleAssignmentId,
-          assignedAt: assignment.assignedAt.toISOString(),
-          child: {
-            id: assignment.child.id,
-            name: assignment.child.name,
-            age: assignment.child.age,
-            familyId: assignment.child.familyId,
-            createdAt: assignment.child.createdAt.toISOString(),
-            updatedAt: assignment.child.updatedAt.toISOString(),
-          },
-        })),
-        totalCapacity,
-        availableSeats,
-        createdAt: slot.createdAt?.toISOString(),
-        updatedAt: slot.updatedAt?.toISOString(),
-      };
-    });
+    const slotsWithDetails = slots.map((slot) => this.transformToScheduleSlotWithDetails(slot));
 
     logger.debug('Final schedule result prepared', { slotCount: slotsWithDetails.length });
     slotsWithDetails.forEach((slot, index) => {

@@ -79,7 +79,7 @@ describe('SocketHandler', () => {
         attempt++;
 
         const socket = io(`http://localhost:${port}`, {
-          auth: token ? { token } : undefined,
+          ...(token && { auth: { token } }),
           autoConnect: false,
           reconnection: false,
           timeout: 5000,
@@ -131,7 +131,7 @@ describe('SocketHandler', () => {
     const app = new Hono();
     httpServer = createAdaptorServer({
       fetch: app.fetch,
-    });
+    }) as HTTPServer;
     
     // Mock Prisma client with ALL required methods
     mockPrisma = {
@@ -255,7 +255,7 @@ describe('SocketHandler', () => {
         });
 
         clientSocket.on('connect_error', (error: unknown) => {
-          resolve(error);
+          resolve(error as Error);
         });
 
         // Set timeout in case no error is emitted
@@ -275,7 +275,7 @@ describe('SocketHandler', () => {
         });
 
         clientSocket.on('connect_error', (error: unknown) => {
-          resolve(error);
+          resolve(error as Error);
         });
 
         setTestTimeout(() => resolve(new Error('No error received')), 3000);

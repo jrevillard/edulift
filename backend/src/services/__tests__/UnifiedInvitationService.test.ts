@@ -107,7 +107,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           user: { name: 'Admin User' },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             family: {
               findUnique: jest.fn().mockResolvedValue(mockFamily),
@@ -163,7 +163,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           user: { name: 'Admin User' },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             family: {
               findUnique: jest.fn().mockResolvedValue(mockFamily),
@@ -197,7 +197,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
 
       it('should throw error if user is not family admin', async () => {
         // RED: Test permission check
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyMember: {
               findFirst: jest.fn().mockResolvedValue({
@@ -230,7 +230,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           user: { name: 'Admin User' },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             family: {
               findUnique: jest.fn().mockResolvedValue(mockFamily),
@@ -407,7 +407,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           family: { name: 'Test Family' },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -461,7 +461,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -497,7 +497,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           role: FamilyRole.MEMBER,
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -557,7 +557,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           name: 'Hacker User',
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -593,7 +593,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           name: 'Intended User',
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -666,7 +666,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           ],
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue(mockGroup),
@@ -762,7 +762,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           ],
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue(mockGroup),
@@ -831,7 +831,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           personalMessage: 'Open invitation to join!',
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue({
@@ -931,7 +931,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue(mockGroup),
@@ -999,7 +999,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
 
         const mockSendGroupInvitation = jest.fn().mockResolvedValue(undefined);
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             group: {
               findUnique: jest.fn().mockResolvedValue({
@@ -1128,7 +1128,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -1163,7 +1163,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
 
         const userFamilyId = 'user-family-123';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -1238,7 +1238,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -1260,7 +1260,9 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
             },
             groupFamilyMember: {
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              findFirst: jest.fn().mockImplementation(({ where }: { where: { familyId: string } }) => {
+              findFirst: (jest.fn() as any).mockImplementation(({ where }: { where: { familyId: string } }) => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                void where; // Unused but part of mock signature
                 // Return null for user's family (not already a member)
                 // This allows test to proceed to admin check
                 return Promise.resolve(null);
@@ -1287,7 +1289,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
           group: { name: 'Test Group' },
         };
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             groupInvitation: {
               findFirst: jest.fn().mockResolvedValue(mockInvitation),
@@ -1370,7 +1372,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
         const invitationId = 'fam-inv-123';
         const adminId = 'admin-123';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             familyInvitation: {
               findUnique: jest.fn().mockResolvedValue({
@@ -1401,7 +1403,7 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
         const invitationId = 'grp-inv-123';
         const adminId = 'admin-123';
 
-        mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+        mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
           const tx = {
             groupInvitation: {
               findUnique: jest.fn().mockResolvedValue({

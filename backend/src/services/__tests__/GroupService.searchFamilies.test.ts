@@ -46,7 +46,7 @@ describe('GroupService - searchFamiliesForInvitation', () => {
     beforeEach(() => {
       // Mock hasGroupAdminPermissions - requester is family admin
       // This is called twice: once for permission check, once to get requester's family
-      mockPrisma.familyMember.findFirst.mockImplementation(({ where }: unknown) => {
+      mockPrisma.familyMember.findFirst.mockImplementation(({ where }: { where: { userId: string } }) => {
         return Promise.resolve({
           familyId: 'requester-family',
           role: 'ADMIN',

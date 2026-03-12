@@ -117,7 +117,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
     app.use('*', authMiddleware);
 
     // Create controller with mocked services
-    const mockInvitationService = new MockUnifiedInvitationService();
+    const mockInvitationService = new MockUnifiedInvitationService() as any;
     const controller = createInvitationControllerRoutes({
       invitationService: mockInvitationService,
     });
@@ -359,7 +359,7 @@ describe('Platform Parameter Handling in Invitation Routes', () => {
       });
 
       expect(response.status).toBe(400);
-      const responseBody = await response.json();
+      const responseBody = await response.json() as { success: boolean; error: { name: string } };
       expect(responseBody.success).toBe(false);
       expect(responseBody.error.name).toBe('ZodError');
     });

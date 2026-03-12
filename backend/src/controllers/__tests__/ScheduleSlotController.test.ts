@@ -273,7 +273,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to create schedule slot',
+        error: 'Service unavailable',
         code: 'CREATE_FAILED',
       });
     });
@@ -291,12 +291,12 @@ describe('ScheduleSlotController Test Suite', () => {
         }),
       });
 
-      // Controller returns generic error for all exceptions
+      // Controller now returns actual error message instead of generic message
       expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to create schedule slot',
+        error: 'Schedule slot already exists for this datetime',
         code: 'CREATE_FAILED',
       });
     });
@@ -645,8 +645,8 @@ describe('ScheduleSlotController Test Suite', () => {
           driver: {
             id: TEST_IDS.USER,
             name: 'John Doe',
-            email: 'john@example.com',
           },
+          childAssignments: [],
         }],
         childAssignments: [],
         totalCapacity: 30,
@@ -655,7 +655,7 @@ describe('ScheduleSlotController Test Suite', () => {
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithDetails as any);
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithDetails);
 
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}`, {
         method: 'GET',
@@ -795,38 +795,38 @@ describe('ScheduleSlotController Test Suite', () => {
         scheduleSlotId: TEST_IDS.SLOT,
         childId: TEST_IDS.CHILD,
         vehicleAssignmentId: TEST_IDS.VEHICLE_ASSIGNMENT,
-        assignedAt: '2024-01-01T00:00:00.000Z',
-        createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
+        assignedAt: new Date('2024-01-01T00:00:00.000Z'),
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
         child: {
           id: TEST_IDS.CHILD,
           name: 'Test Child',
           age: 8,
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
           familyId: TEST_IDS.FAMILY,
         },
         scheduleSlot: {
           id: TEST_IDS.SLOT,
           groupId: TEST_IDS.GROUP,
-          datetime: '2024-01-08T08:00:00.000Z',
-          createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z',
+          datetime: new Date('2024-01-08T08:00:00.000Z'),
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
+          updatedAt: new Date('2024-01-01T00:00:00.000Z'),
         },
         vehicleAssignment: {
           id: TEST_IDS.VEHICLE_ASSIGNMENT,
           vehicleId: TEST_IDS.VEHICLE,
           scheduleSlotId: TEST_IDS.SLOT,
           driverId: TEST_IDS.USER,
-          createdAt: '2024-01-01T00:00:00.000Z',
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
           seatOverride: 0,
           vehicle: {
             id: TEST_IDS.VEHICLE,
             name: 'Test Vehicle',
             capacity: 30,
             familyId: TEST_IDS.FAMILY,
-            createdAt: '2024-01-01T00:00:00.000Z',
-            updatedAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
+            updatedAt: new Date('2024-01-01T00:00:00.000Z'),
           },
           driver: {
             id: TEST_IDS.USER,
@@ -862,7 +862,6 @@ describe('ScheduleSlotController Test Suite', () => {
             driver: {
               id: TEST_IDS.USER,
               name: 'Test Driver',
-              email: 'driver@test.com',
             },
             childAssignments: [],
           },
@@ -1092,7 +1091,6 @@ describe('ScheduleSlotController Test Suite', () => {
             driver: {
               id: TEST_IDS.USER,
               name: 'John Doe',
-              email: 'john@example.com',
             },
             childAssignments: [],
           },
@@ -1105,7 +1103,7 @@ describe('ScheduleSlotController Test Suite', () => {
       };
 
       mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockScheduleSlotService.updateSeatOverrideByVehicle.mockResolvedValue(mockScheduleSlot as any);
+      mockScheduleSlotService.updateSeatOverrideByVehicle.mockResolvedValue(mockScheduleSlot);
 
       // ✅ Updated: New path uses scheduleSlotId and vehicleId in path
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles/${TEST_IDS.VEHICLE}/seat-override`, {
@@ -1233,14 +1231,13 @@ describe('ScheduleSlotController Test Suite', () => {
     describe('GET /groups/:groupId/schedule', () => {
       it('should return empty arrays for schedule with no slots', async () => {
         const mockEmptySchedule = {
-          id: 'clschedule123',
           groupId: TEST_IDS.GROUP,
-          weekStart: '2025-01-06T00:00:00.000Z',
-          weekEnd: '2025-01-12T23:59:59.999Z',
+          startDate: '2025-01-06T00:00:00.000Z',
+          endDate: '2025-01-12T23:59:59.999Z',
           scheduleSlots: [], // Empty array
         };
 
-        mockScheduleSlotService.getSchedule.mockResolvedValue(mockEmptySchedule as any);
+        mockScheduleSlotService.getSchedule.mockResolvedValue(mockEmptySchedule);
 
         const response = await makeAuthenticatedRequest(app, `/groups/${TEST_IDS.GROUP}/schedule?startDate=2025-01-06T00:00:00.000Z&endDate=2025-01-12T23:59:59.999Z`);
 
@@ -1261,14 +1258,17 @@ describe('ScheduleSlotController Test Suite', () => {
         const mockSlotWithNoVehicles = {
           id: TEST_IDS.SLOT,
           groupId: TEST_IDS.GROUP,
+          group: { id: TEST_IDS.GROUP, name: 'Test Group' },
           datetime: '2025-01-06T08:00:00.000Z',
           createdAt: '2025-01-06T00:00:00.000Z',
           updatedAt: '2025-01-06T00:00:00.000Z',
           vehicleAssignments: [], // Empty array
           childAssignments: [],
+          totalCapacity: 0,
+          availableSeats: 999, // Unlimited if no vehicles
         };
 
-        mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithNoVehicles as any);
+        mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithNoVehicles);
 
         const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}`);
 
@@ -1287,14 +1287,17 @@ describe('ScheduleSlotController Test Suite', () => {
         const mockSlotWithNoChildren = {
           id: TEST_IDS.SLOT,
           groupId: TEST_IDS.GROUP,
+          group: { id: TEST_IDS.GROUP, name: 'Test Group' },
           datetime: '2025-01-06T08:00:00.000Z',
           createdAt: '2025-01-06T00:00:00.000Z',
           updatedAt: '2025-01-06T00:00:00.000Z',
           vehicleAssignments: [],
           childAssignments: [], // Empty array
+          totalCapacity: 0,
+          availableSeats: 999, // Unlimited if no vehicles
         };
 
-        mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithNoChildren as any);
+        mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockSlotWithNoChildren);
 
         const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}`);
 

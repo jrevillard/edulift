@@ -5,6 +5,47 @@ import { CreateScheduleSlotData } from '../../types';
 import * as isoWeekUtils from '../../utils/isoWeekUtils';
 import { TEST_IDS } from '../../utils/testHelpers';
 
+// Type for schedule slot returned by repository with nested includes
+type ScheduleSlotFromRepo = {
+  id: string;
+  groupId: string;
+  datetime: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  group: { id: string; name: string };
+  vehicleAssignments: Array<{
+    id: string;
+    vehicleId: string;
+    scheduleSlotId: string;
+    driverId: string | null;
+    seatOverride: number | null;
+    createdAt: Date;
+    vehicle: {
+      id: string;
+      name: string;
+      capacity: number;
+      familyId: string;
+    };
+    driver: { id: string; name: string } | null;
+    childAssignments: Array<{
+      vehicleAssignmentId: string;
+      child: {
+        id: string;
+        name: string;
+        familyId: string;
+      };
+    }>;
+  }>;
+  childAssignments: Array<{
+    vehicleAssignmentId: string;
+    child: {
+      id: string;
+      name: string;
+      familyId: string;
+    };
+  }>;
+};
+
 // Mock Prisma Client
 const mockPrisma = {
   scheduleSlot: {
@@ -145,7 +186,7 @@ describe('ScheduleSlotRepository', () => {
         },
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockTransaction);
       });
 
@@ -169,7 +210,7 @@ describe('ScheduleSlotRepository', () => {
         },
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockTransaction);
       });
 
@@ -188,7 +229,7 @@ describe('ScheduleSlotRepository', () => {
         },
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockTransaction);
       });
 
@@ -213,7 +254,7 @@ describe('ScheduleSlotRepository', () => {
         },
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockTransaction);
       });
 
@@ -291,7 +332,7 @@ describe('ScheduleSlotRepository', () => {
         },
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockTransaction);
       });
 
@@ -347,7 +388,7 @@ describe('ScheduleSlotRepository', () => {
         },
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockTransaction);
       });
 
@@ -380,7 +421,7 @@ describe('ScheduleSlotRepository', () => {
         childAssignments: [],
       };
 
-      mockPrisma.$transaction.mockImplementation(async (callback: unknown) => {
+      mockPrisma.$transaction.mockImplementation(async (callback: (tx: unknown) => unknown) => {
         return await callback(mockPrisma);
       });
 
@@ -489,7 +530,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlotWithVehicleSpecificChildren);
 
-        const result = await repository.findById('slot-1');
+        const result = await repository.findById('slot-1') as ScheduleSlotFromRepo | null;
 
         expect(result).not.toBeNull();
         expect(mockPrisma.scheduleSlot.findUnique).toHaveBeenCalledWith({
@@ -559,7 +600,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlotWithNoChildren);
 
-        const result = await repository.findById('slot-1');
+        const result = await repository.findById('slot-1') as ScheduleSlotFromRepo | null;
 
         expect(result).not.toBeNull();
         expect(result!.childAssignments).toHaveLength(0);
@@ -605,7 +646,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlotWithDetailedChildren);
 
-        const result = await repository.findByIdWithDetails('slot-1');
+        const result = await repository.findByIdWithDetails('slot-1') as ScheduleSlotFromRepo | null;
 
         expect(result).not.toBeNull();
         expect(mockPrisma.scheduleSlot.findUnique).toHaveBeenCalledWith({
@@ -724,14 +765,15 @@ describe('ScheduleSlotRepository', () => {
 
         const weekStart = new Date('2024-01-08T00:00:00.000Z'); 
         const weekEnd = new Date('2024-01-14T23:59:59.999Z');
-        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
+        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd) as ScheduleSlotFromRepo[];
 
         expect(mockPrisma.scheduleSlot.findMany).toHaveBeenCalledWith({
-          where: { 
-            groupId: TEST_IDS.GROUP, 
-            datetime: { gte: expect.any(Date), lte: expect.any(Date) }, 
+          where: {
+            groupId: TEST_IDS.GROUP,
+            datetime: { gte: expect.any(Date), lte: expect.any(Date) },
           },
           include: {
+            group: { select: { id: true, name: true } },
             vehicleAssignments: {
               include: {
                 vehicle: true, // Return ALL vehicle fields (including timestamps)
@@ -793,7 +835,7 @@ describe('ScheduleSlotRepository', () => {
 
         const weekStart = new Date('2024-01-08T00:00:00.000Z'); 
         const weekEnd = new Date('2024-01-14T23:59:59.999Z');
-        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
+        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd) as ScheduleSlotFromRepo[];
 
         expect(result).toHaveLength(1);
         expect(result[0].vehicleAssignments).toHaveLength(2);
@@ -834,7 +876,7 @@ describe('ScheduleSlotRepository', () => {
 
         mockPrisma.scheduleSlot.findUnique.mockResolvedValue(mockSlotWithCapacityData);
 
-        const result = await repository.findById('slot-1');
+        const result = await repository.findById('slot-1') as ScheduleSlotFromRepo | null;
 
         expect(result).not.toBeNull();
         // Verify that we can assess vehicle capacity utilization
@@ -1123,7 +1165,7 @@ describe('ScheduleSlotRepository', () => {
 
         const weekStart = new Date('2024-01-08T00:00:00.000Z');
         const weekEnd = new Date('2024-01-14T23:59:59.999Z');
-        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd);
+        const result = await repository.getWeeklyScheduleByDateRange(TEST_IDS.GROUP, weekStart, weekEnd) as ScheduleSlotFromRepo[];
 
         expect(result).toEqual(mockSlots);
       });

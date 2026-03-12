@@ -22,7 +22,7 @@ describe('ScheduleSlotService', () => {
   const mockScheduleSlot = {
     id: TEST_IDS.SLOT,
     groupId: TEST_IDS.GROUP,
-    datetime: new Date('2050-01-08T08:00:00.000Z'), // Use future date to avoid "Cannot create trips in the past" error
+    datetime: new Date('2050-01-08T08:00:00.000Z'), // Use Date for Prisma types
     group: {
       id: TEST_IDS.GROUP,
       name: 'Group 1',
@@ -145,7 +145,12 @@ describe('ScheduleSlotService', () => {
         undefined,
       );
       expect(mockRepository.findById).toHaveBeenCalledWith(TEST_IDS.SLOT);
-      expect(result).toEqual(mockScheduleSlot);
+      // Result is transformed to ScheduleSlotWithDetails with ISO strings
+      expect(result).toHaveProperty('id', TEST_IDS.SLOT);
+      expect(result).toHaveProperty('groupId', TEST_IDS.GROUP);
+      expect(result).toHaveProperty('datetime');
+      expect(result).toHaveProperty('group');
+      expect(result.datetime).toBe('2050-01-08T08:00:00.000Z');
     });
   });
 
@@ -202,7 +207,9 @@ describe('ScheduleSlotService', () => {
         TEST_IDS.SLOT,
         'VEHICLE_ASSIGNED',
       );
-      expect(result).toEqual(mockVehicleAssignment);
+      // Now returns full ScheduleSlotWithDetails instead of just the vehicle assignment
+      expect(result).toHaveProperty('id', TEST_IDS.SLOT);
+      expect(result).toHaveProperty('groupId', TEST_IDS.GROUP);
     });
 
     it('should handle validation errors', async () => {
@@ -689,7 +696,9 @@ describe('ScheduleSlotService', () => {
       expect(mockValidationService.validateSeatOverride).toHaveBeenCalledWith(15);
       expect(mockRepository.updateSeatOverride).toHaveBeenCalledWith('cltestassign1234567890123', 15);
       expect(mockValidationService.validateSlotIntegrity).toHaveBeenCalledWith(TEST_IDS.SLOT);
-      expect(result).toEqual(mockVehicleAssignment);
+      // Now returns full ScheduleSlotWithDetails instead of just the vehicle assignment
+      expect(result).toHaveProperty('id', TEST_IDS.SLOT);
+      expect(result).toHaveProperty('groupId', TEST_IDS.GROUP);
     });
 
     it('should clear seat override when undefined is passed', async () => {
@@ -720,7 +729,9 @@ describe('ScheduleSlotService', () => {
 
       expect(mockValidationService.validateSeatOverride).not.toHaveBeenCalled();
       expect(mockRepository.updateSeatOverride).toHaveBeenCalledWith('cltestassign1234567890123', undefined);
-      expect(result).toEqual(mockVehicleAssignment);
+      // Now returns full ScheduleSlotWithDetails instead of just the vehicle assignment
+      expect(result).toHaveProperty('id', TEST_IDS.SLOT);
+      expect(result).toHaveProperty('groupId', TEST_IDS.GROUP);
     });
 
     it('should not validate seat override if undefined', async () => {
@@ -820,7 +831,9 @@ describe('ScheduleSlotService', () => {
 
       expect(mockValidationService.validateSeatOverride).toHaveBeenCalledWith(15);
       expect(mockRepository.assignVehicleToSlot).toHaveBeenCalledWith(TEST_IDS.SLOT, TEST_IDS.VEHICLE, TEST_IDS.DRIVER, 15);
-      expect(result).toEqual(mockResult);
+      // Now returns full ScheduleSlotWithDetails instead of just the vehicle assignment
+      expect(result).toHaveProperty('id', TEST_IDS.SLOT);
+      expect(result).toHaveProperty('groupId', TEST_IDS.GROUP);
     });
 
     it('should not validate seat override if not provided', async () => {

@@ -908,7 +908,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
 
     return c.json({
       success: false,
-      error: 'Failed to create schedule slot',
+      error: normalizedError.message,
       code: 'CREATE_FAILED' as const,
     }, 500);
   }
