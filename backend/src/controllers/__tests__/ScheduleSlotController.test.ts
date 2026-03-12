@@ -64,6 +64,7 @@ describe('ScheduleSlotController Test Suite', () => {
   const mockScheduleSlot = {
     id: TEST_IDS.SLOT,
     groupId: TEST_IDS.GROUP,
+    group: { id: TEST_IDS.GROUP, name: 'Test Group' },
     datetime: '2024-01-08T08:00:00.000Z',
     vehicleAssignments: [{
       id: 'cltestvlassignment1234567890',
@@ -71,14 +72,14 @@ describe('ScheduleSlotController Test Suite', () => {
       scheduleSlotId: TEST_IDS.SLOT,
       driverId: TEST_IDS.USER,
       seatOverride: 0,
-      createdAt: '2024-01-01T00:00:00.000Z',
+      createdAt: new Date('2024-01-01T00:00:00.000Z'),
       vehicle: {
         id: TEST_IDS.VEHICLE,
         name: 'Unknown Vehicle',
         capacity: 30,
         familyId: TEST_IDS.FAMILY,
-        createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2024-01-01T00:00:00.000Z'),
       },
       driver: {
         id: TEST_IDS.USER,
@@ -307,12 +308,13 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
         availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
@@ -322,13 +324,13 @@ describe('ScheduleSlotController Test Suite', () => {
         scheduleSlotId: TEST_IDS.SLOT,
         driverId: TEST_IDS.USER,
         seatOverride: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         vehicle: {
           id: TEST_IDS.VEHICLE,
           name: 'Unknown Vehicle',
           capacity: 30,
           familyId: TEST_IDS.FAMILY,
-          createdAt: '2024-01-01T00:00:00.000Z',
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
           updatedAt: '2024-01-01T00:00:00.000Z',
         },
         driver: {
@@ -351,13 +353,13 @@ describe('ScheduleSlotController Test Suite', () => {
             scheduleSlotId: TEST_IDS.SLOT,
             driverId: TEST_IDS.USER,
             seatOverride: 0,
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             vehicle: {
               id: TEST_IDS.VEHICLE,
               name: 'Unknown Vehicle',
               capacity: 30,
               familyId: TEST_IDS.FAMILY,
-              createdAt: '2024-01-01T00:00:00.000Z',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
               updatedAt: '2024-01-01T00:00:00.000Z',
             },
             driver: {
@@ -471,18 +473,20 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
         availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
       const mockResult = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [
           {
@@ -491,13 +495,13 @@ describe('ScheduleSlotController Test Suite', () => {
             scheduleSlotId: TEST_IDS.SLOT,
             driverId: null,
             seatOverride: null,
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             vehicle: {
               id: 'remaining-vehicle-id',
               name: 'Remaining Bus',
               capacity: 20,
               familyId: TEST_IDS.FAMILY,
-              createdAt: '2024-01-01T00:00:00.000Z',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
               updatedAt: '2024-01-01T00:00:00.000Z',
             },
             driver: null,
@@ -507,7 +511,7 @@ describe('ScheduleSlotController Test Suite', () => {
         childAssignments: [],
         totalCapacity: 0,
         availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
@@ -543,18 +547,22 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-01T09:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
         availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
-      // ✅ NEW: Returns null when slot is deleted (last vehicle removed)
+      // ✅ NEW: Returns null scheduleSlot when slot is deleted (last vehicle removed)
       mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue(null);
+      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue({
+        slotDeleted: true,
+        scheduleSlot: null,
+      });
 
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
         method: 'DELETE',
@@ -596,6 +604,39 @@ describe('ScheduleSlotController Test Suite', () => {
       expect(jsonResponse.error).toHaveProperty('message');
       expect(jsonResponse.error).toHaveProperty('name', 'ZodError');
     });
+
+    it('should throw error if service returns slotDeleted=false with no scheduleSlot (should never happen)', async () => {
+      const mockScheduleSlot = {
+        id: TEST_IDS.SLOT,
+        groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
+        datetime: '2024-01-01T09:00:00.000Z',
+        vehicleAssignments: [],
+        childAssignments: [],
+        totalCapacity: 0,
+        availableSeats: 0,
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      };
+
+      // Simulate invalid service response - slotDeleted=false but no scheduleSlot
+      mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
+      mockScheduleSlotService.removeVehicleFromSlot.mockResolvedValue({
+        slotDeleted: false,
+        scheduleSlot: null,
+      });
+
+      const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ vehicleId: TEST_IDS.VEHICLE }),
+      });
+
+      expect(response.status).toBe(500);
+      const jsonResponse = await responseJson(response);
+      expect(jsonResponse.success).toBe(false);
+      expect(jsonResponse.error).toContain('Service returned slotDeleted=false but no scheduleSlot');
+    });
   });
 
   describe('GET /schedule-slots/:scheduleSlotId', () => {
@@ -610,13 +651,13 @@ describe('ScheduleSlotController Test Suite', () => {
           scheduleSlotId: TEST_IDS.SLOT,
           driverId: TEST_IDS.USER,
           seatOverride: 0,
-          createdAt: '2024-01-01T00:00:00.000Z',
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
           vehicle: {
             id: TEST_IDS.VEHICLE,
             name: 'Bus 1',
             capacity: 30,
             familyId: TEST_IDS.FAMILY,
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             updatedAt: '2024-01-01T00:00:00.000Z',
           },
           driver: {
@@ -628,7 +669,7 @@ describe('ScheduleSlotController Test Suite', () => {
         childAssignments: [],
         totalCapacity: 30,
         availableSeats: 30,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
@@ -681,13 +722,13 @@ describe('ScheduleSlotController Test Suite', () => {
           scheduleSlotId: TEST_IDS.SLOT,
           driverId: TEST_IDS.USER,
           seatOverride: 0,
-          createdAt: '2024-01-01T00:00:00.000Z',
+          createdAt: new Date('2024-01-01T00:00:00.000Z'),
           vehicle: {
             id: TEST_IDS.VEHICLE,
             name: 'Bus 1',
             capacity: 30,
             familyId: TEST_IDS.FAMILY,
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             updatedAt: '2024-01-01T00:00:00.000Z',
           },
           driver: {
@@ -699,7 +740,7 @@ describe('ScheduleSlotController Test Suite', () => {
         childAssignments: [],
         totalCapacity: 30,
         availableSeats: 30,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
@@ -825,13 +866,13 @@ describe('ScheduleSlotController Test Suite', () => {
             scheduleSlotId: TEST_IDS.SLOT,
             driverId: TEST_IDS.USER,
             seatOverride: 0,
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             vehicle: {
               id: TEST_IDS.VEHICLE,
               name: 'Test Vehicle',
               capacity: 30,
               familyId: TEST_IDS.FAMILY,
-              createdAt: '2024-01-01T00:00:00.000Z',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
               updatedAt: '2024-01-01T00:00:00.000Z',
             },
             driver: {
@@ -854,14 +895,14 @@ describe('ScheduleSlotController Test Suite', () => {
               name: 'Test Child',
               age: 8,
               familyId: TEST_IDS.FAMILY,
-              createdAt: '2024-01-01T00:00:00.000Z',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
               updatedAt: '2024-01-01T00:00:00.000Z',
             },
           },
         ],
         totalCapacity: 30,
         availableSeats: 29,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
@@ -940,6 +981,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [
           {
@@ -948,13 +990,13 @@ describe('ScheduleSlotController Test Suite', () => {
             scheduleSlotId: TEST_IDS.SLOT,
             driverId: TEST_IDS.USER,
             seatOverride: 0,
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             vehicle: {
               id: TEST_IDS.VEHICLE,
               name: 'Test Vehicle',
               capacity: 30,
               familyId: TEST_IDS.FAMILY,
-              createdAt: '2024-01-01T00:00:00.000Z',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
               updatedAt: '2024-01-01T00:00:00.000Z',
             },
             driver: {
@@ -968,7 +1010,7 @@ describe('ScheduleSlotController Test Suite', () => {
         childAssignments: [],
         totalCapacity: 30,
         availableSeats: 30,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
@@ -1045,6 +1087,7 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [
           {
@@ -1053,13 +1096,13 @@ describe('ScheduleSlotController Test Suite', () => {
             scheduleSlotId: TEST_IDS.SLOT,
             driverId: TEST_IDS.USER,
             seatOverride: 5, // Updated seat override
-            createdAt: '2024-01-01T00:00:00.000Z',
+            createdAt: new Date('2024-01-01T00:00:00.000Z'),
             vehicle: {
               id: TEST_IDS.VEHICLE,
               name: 'Bus 1',
               capacity: 30,
               familyId: TEST_IDS.FAMILY,
-              createdAt: '2024-01-01T00:00:00.000Z',
+              createdAt: new Date('2024-01-01T00:00:00.000Z'),
               updatedAt: '2024-01-01T00:00:00.000Z',
             },
             driver: {
@@ -1073,12 +1116,12 @@ describe('ScheduleSlotController Test Suite', () => {
         childAssignments: [],
         totalCapacity: 5, // seatOverride
         availableSeats: 5,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
 
       mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);
-      mockScheduleSlotService.updateSeatOverrideByVehicle.mockResolvedValue(mockScheduleSlot.vehicleAssignments[0]);
+      mockScheduleSlotService.updateSeatOverrideByVehicle.mockResolvedValue(mockScheduleSlot);
 
       // ✅ Updated: New path uses scheduleSlotId and vehicleId in path
       const response = await makeAuthenticatedRequest(app, `/schedule-slots/${TEST_IDS.SLOT}/vehicles/${TEST_IDS.VEHICLE}/seat-override`, {
@@ -1129,12 +1172,13 @@ describe('ScheduleSlotController Test Suite', () => {
       const mockScheduleSlot = {
         id: TEST_IDS.SLOT,
         groupId: TEST_IDS.GROUP,
+        group: { id: TEST_IDS.GROUP, name: 'Test Group' },
         datetime: '2024-01-08T08:00:00.000Z',
         vehicleAssignments: [],
         childAssignments: [],
         totalCapacity: 0,
         availableSeats: 0,
-        createdAt: '2024-01-01T00:00:00.000Z',
+        createdAt: new Date('2024-01-01T00:00:00.000Z'),
         updatedAt: '2024-01-01T00:00:00.000Z',
       };
       mockScheduleSlotService.getScheduleSlotDetails.mockResolvedValue(mockScheduleSlot);

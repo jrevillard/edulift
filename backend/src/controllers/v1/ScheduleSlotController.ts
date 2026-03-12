@@ -1058,22 +1058,17 @@ app.openapi(removeVehicleRoute, async (c) => {
       }, 200);
     } else {
       // Slot still exists with remaining vehicles
-      if (result.scheduleSlot) {
-        SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result.scheduleSlot);
-        SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
+      if (!result.scheduleSlot) {
+        // This should never happen - service must return scheduleSlot when slotDeleted is false
+        throw new Error('Service returned slotDeleted=false but no scheduleSlot');
       }
+
+      SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result.scheduleSlot);
+      SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
       return c.json({
         success: true,
-        data: result.scheduleSlot || {
-          id: scheduleSlotId,
-          datetime: new Date().toISOString(),
-          groupId: scheduleSlot.groupId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          vehicleAssignments: [],
-          childAssignments: [],
-        },
+        data: result.scheduleSlot,
       }, 200);
     }
   } catch {

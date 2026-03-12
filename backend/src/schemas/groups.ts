@@ -298,7 +298,6 @@ export const GroupResponseSchema = z.object({
       description: 'Group description',
     }),
   inviteCode: z.string()
-    .optional()
     .openapi({
       example: 'ABC123XYZ',
       description: 'Group invitation code',
@@ -334,13 +333,11 @@ export const GroupResponseSchema = z.object({
       description: 'Number of schedule slots configured for the group',
     }),
   createdAt: z.iso.datetime()
-    .optional()
     .openapi({
       example: '2023-01-01T00:00:00.000Z',
       description: 'When the group was created',
     }),
   updatedAt: z.iso.datetime()
-    .optional()
     .openapi({
       example: '2023-01-15T10:30:00.000Z',
       description: 'When the group was last updated',

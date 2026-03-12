@@ -14308,7 +14308,10 @@
                       },
                       "required": [
                         "id",
-                        "name"
+                        "name",
+                        "inviteCode",
+                        "createdAt",
+                        "updatedAt"
                       ],
                       "title": "Group Response",
                       "description": "Complete group information with user context"
@@ -14749,7 +14752,10 @@
                       },
                       "required": [
                         "id",
-                        "name"
+                        "name",
+                        "inviteCode",
+                        "createdAt",
+                        "updatedAt"
                       ],
                       "title": "Group Response",
                       "description": "Complete group information with user context"
@@ -15239,7 +15245,10 @@
                         },
                         "required": [
                           "id",
-                          "name"
+                          "name",
+                          "inviteCode",
+                          "createdAt",
+                          "updatedAt"
                         ],
                         "title": "Group Response",
                         "description": "Complete group information with user context"
@@ -17688,7 +17697,10 @@
                       },
                       "required": [
                         "id",
-                        "name"
+                        "name",
+                        "inviteCode",
+                        "createdAt",
+                        "updatedAt"
                       ],
                       "title": "Group Response",
                       "description": "Complete group information with user context"
@@ -18216,7 +18228,10 @@
                       },
                       "required": [
                         "id",
-                        "name"
+                        "name",
+                        "inviteCode",
+                        "createdAt",
+                        "updatedAt"
                       ],
                       "title": "Group Response",
                       "description": "Complete group information with user context"
@@ -27045,6 +27060,37 @@
                           "example": "cl123456789012345678901235",
                           "description": "Group identifier"
                         },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901235",
+                              "description": "Group identifier"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Morning School Run",
+                              "description": "Group name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "totalCapacity": {
+                          "type": "number",
+                          "example": 8,
+                          "description": "Total seating capacity across all vehicles"
+                        },
+                        "availableSeats": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Available seats remaining"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -27597,6 +27643,9 @@
                         "id",
                         "datetime",
                         "groupId",
+                        "group",
+                        "totalCapacity",
+                        "availableSeats",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -27996,6 +28045,37 @@
                           "example": "cl123456789012345678901235",
                           "description": "Group identifier"
                         },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901235",
+                              "description": "Group identifier"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Morning School Run",
+                              "description": "Group name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "totalCapacity": {
+                          "type": "number",
+                          "example": 8,
+                          "description": "Total seating capacity across all vehicles"
+                        },
+                        "availableSeats": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Available seats remaining"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -28548,6 +28628,9 @@
                         "id",
                         "datetime",
                         "groupId",
+                        "group",
+                        "totalCapacity",
+                        "availableSeats",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -28936,6 +29019,37 @@
                               "format": "cuid",
                               "example": "cl123456789012345678901235",
                               "description": "Group identifier"
+                            },
+                            "group": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "format": "cuid",
+                                  "example": "cl123456789012345678901235",
+                                  "description": "Group identifier"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "example": "Morning School Run",
+                                  "description": "Group name"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name"
+                              ],
+                              "description": "Group information"
+                            },
+                            "totalCapacity": {
+                              "type": "number",
+                              "example": 8,
+                              "description": "Total seating capacity across all vehicles"
+                            },
+                            "availableSeats": {
+                              "type": "number",
+                              "example": 3,
+                              "description": "Available seats remaining"
                             },
                             "createdAt": {
                               "type": "string",
@@ -29489,6 +29603,9 @@
                             "id",
                             "datetime",
                             "groupId",
+                            "group",
+                            "totalCapacity",
+                            "availableSeats",
                             "createdAt",
                             "updatedAt"
                           ],
@@ -29899,6 +30016,37 @@
                           "example": "cl123456789012345678901235",
                           "description": "Group identifier"
                         },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901235",
+                              "description": "Group identifier"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Morning School Run",
+                              "description": "Group name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "totalCapacity": {
+                          "type": "number",
+                          "example": 8,
+                          "description": "Total seating capacity across all vehicles"
+                        },
+                        "availableSeats": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Available seats remaining"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -30451,6 +30599,9 @@
                         "id",
                         "datetime",
                         "groupId",
+                        "group",
+                        "totalCapacity",
+                        "availableSeats",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -30840,6 +30991,37 @@
                           "example": "cl123456789012345678901235",
                           "description": "Group identifier"
                         },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901235",
+                              "description": "Group identifier"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Morning School Run",
+                              "description": "Group name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "totalCapacity": {
+                          "type": "number",
+                          "example": 8,
+                          "description": "Total seating capacity across all vehicles"
+                        },
+                        "availableSeats": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Available seats remaining"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -31392,6 +31574,9 @@
                         "id",
                         "datetime",
                         "groupId",
+                        "group",
+                        "totalCapacity",
+                        "availableSeats",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -31744,6 +31929,37 @@
                           "example": "cl123456789012345678901235",
                           "description": "Group identifier"
                         },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901235",
+                              "description": "Group identifier"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Morning School Run",
+                              "description": "Group name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "totalCapacity": {
+                          "type": "number",
+                          "example": 8,
+                          "description": "Total seating capacity across all vehicles"
+                        },
+                        "availableSeats": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Available seats remaining"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -32296,6 +32512,9 @@
                         "id",
                         "datetime",
                         "groupId",
+                        "group",
+                        "totalCapacity",
+                        "availableSeats",
                         "createdAt",
                         "updatedAt"
                       ],
@@ -32622,6 +32841,37 @@
                                 "format": "cuid",
                                 "example": "cl123456789012345678901235",
                                 "description": "Group identifier"
+                              },
+                              "group": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901235",
+                                    "description": "Group identifier"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "example": "Morning School Run",
+                                    "description": "Group name"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name"
+                                ],
+                                "description": "Group information"
+                              },
+                              "totalCapacity": {
+                                "type": "number",
+                                "example": 8,
+                                "description": "Total seating capacity across all vehicles"
+                              },
+                              "availableSeats": {
+                                "type": "number",
+                                "example": 3,
+                                "description": "Available seats remaining"
                               },
                               "createdAt": {
                                 "type": "string",
@@ -33175,6 +33425,9 @@
                               "id",
                               "datetime",
                               "groupId",
+                              "group",
+                              "totalCapacity",
+                              "availableSeats",
                               "createdAt",
                               "updatedAt"
                             ],
@@ -34152,6 +34405,37 @@
                           "example": "cl123456789012345678901235",
                           "description": "Group identifier"
                         },
+                        "group": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "cuid",
+                              "example": "cl123456789012345678901235",
+                              "description": "Group identifier"
+                            },
+                            "name": {
+                              "type": "string",
+                              "example": "Morning School Run",
+                              "description": "Group name"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "description": "Group information"
+                        },
+                        "totalCapacity": {
+                          "type": "number",
+                          "example": 8,
+                          "description": "Total seating capacity across all vehicles"
+                        },
+                        "availableSeats": {
+                          "type": "number",
+                          "example": 3,
+                          "description": "Available seats remaining"
+                        },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
@@ -34704,6 +34988,9 @@
                         "id",
                         "datetime",
                         "groupId",
+                        "group",
+                        "totalCapacity",
+                        "availableSeats",
                         "createdAt",
                         "updatedAt"
                       ],

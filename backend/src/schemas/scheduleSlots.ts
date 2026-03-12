@@ -416,6 +416,26 @@ export const ScheduleSlotSchema = z.object({
       example: 'cl123456789012345678901235',
       description: 'Group identifier',
     }),
+  group: z.object({
+    id: z.cuid().openapi({
+      example: 'cl123456789012345678901235',
+      description: 'Group identifier',
+    }),
+    name: z.string().openapi({
+      example: 'Morning School Run',
+      description: 'Group name',
+    }),
+  }).openapi({
+    description: 'Group information',
+  }),
+  totalCapacity: z.number().openapi({
+    example: 8,
+    description: 'Total seating capacity across all vehicles',
+  }),
+  availableSeats: z.number().openapi({
+    example: 3,
+    description: 'Available seats remaining',
+  }),
   createdAt: z.iso.datetime()
     .openapi({
       example: '2023-12-01T08:00:00.000Z',
