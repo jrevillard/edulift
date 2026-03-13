@@ -155,6 +155,11 @@ export const TripVehicleSchema = z.object({
       example: 7,
       description: 'Vehicle seating capacity',
     }),
+  familyId: z.string()
+    .openapi({
+      example: 'cl123456789012345678901241',
+      description: 'ID of the family that owns this vehicle.',
+    }),
 }).openapi({
   title: 'Trip Vehicle',
   description: 'Vehicle information in trip context',

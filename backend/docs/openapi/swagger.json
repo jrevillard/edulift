@@ -25944,12 +25944,18 @@
                                     "minimum": 1,
                                     "description": "Vehicle capacity",
                                     "example": 6
+                                  },
+                                  "familyId": {
+                                    "type": "string",
+                                    "description": "ID of the family that owns this vehicle.",
+                                    "example": "cl123456789012345678901236"
                                   }
                                 },
                                 "required": [
                                   "id",
                                   "name",
-                                  "capacity"
+                                  "capacity",
+                                  "familyId"
                                 ],
                                 "description": "Vehicle assigned to this trip"
                               },
@@ -26565,12 +26571,18 @@
                                           "minimum": 1,
                                           "description": "Vehicle capacity",
                                           "example": 6
+                                        },
+                                        "familyId": {
+                                          "type": "string",
+                                          "description": "ID of the family that owns this vehicle.",
+                                          "example": "cl123456789012345678901236"
                                         }
                                       },
                                       "required": [
                                         "id",
                                         "name",
-                                        "capacity"
+                                        "capacity",
+                                        "familyId"
                                       ],
                                       "description": "Vehicle assigned to this trip"
                                     },

@@ -15,6 +15,7 @@ interface ScheduleSlotVehicleWithRelations {
     id: string;
     name: string;
     capacity: number;
+    familyId: string;
   };
   driver?: {
     id: string;
@@ -70,6 +71,7 @@ export interface TodayTrip {
     id: string;
     name: string;
     capacity: number;
+    familyId: string;
   } | undefined;
   driver?: {
     id: string;
@@ -159,6 +161,7 @@ export class DashboardService {
           id: slot.vehicleAssignments[0].vehicle.id,
           name: slot.vehicleAssignments[0].vehicle.name,
           capacity: slot.vehicleAssignments[0].vehicle.capacity,
+          familyId: slot.vehicleAssignments[0].vehicle.familyId,
         } : undefined,
         driver: slot.vehicleAssignments?.[0]?.driver ? {
           id: slot.vehicleAssignments[0].driver.id,
@@ -214,6 +217,7 @@ export class DashboardService {
           id: slot.vehicleAssignments[0].vehicle.id,
           name: slot.vehicleAssignments[0].vehicle.name,
           capacity: slot.vehicleAssignments[0].vehicle.capacity,
+          familyId: slot.vehicleAssignments[0].vehicle.familyId,
         } : undefined,
         driver: slot.vehicleAssignments?.[0]?.driver ? {
           id: slot.vehicleAssignments[0].driver.id,

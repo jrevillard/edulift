@@ -130,6 +130,10 @@ const VehicleInfoSchema = z.object({
     description: 'Vehicle capacity',
     example: 6,
   }),
+  familyId: z.string().openapi({
+    description: 'ID of the family that owns this vehicle.',
+    example: 'cl123456789012345678901236',
+  }),
 });
 
 const DriverInfoSchema = z.object({
@@ -646,6 +650,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
             id: transport.vehicleAssignmentSummaries[0].vehicleId,
             name: transport.vehicleAssignmentSummaries[0].vehicleName,
             capacity: transport.vehicleAssignmentSummaries[0].vehicleCapacity,
+            familyId: transport.vehicleAssignmentSummaries[0].vehicleFamilyId,
           } : undefined,
           driver: transport.vehicleAssignmentSummaries?.[0]?.driver ? {
             id: transport.vehicleAssignmentSummaries[0].driver.id,

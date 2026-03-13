@@ -189,7 +189,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'cltestassign1234567890123',
-              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
@@ -221,7 +221,7 @@ describe('DashboardService', () => {
         datetime: testDatetime.toISOString(),
         date: 'Today',
         children: [{ id: TEST_IDS.CHILD, name: 'Emma' }],
-        vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+        vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
         driver: { id: TEST_IDS.USER, name: 'John Doe' },
         group: { id: TEST_IDS.GROUP, name: 'Maple Street Families' },
       });
@@ -239,7 +239,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'cltestassign21234567890123',
-              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: TEST_IDS.USER_2, name: 'Jane Smith' },
               childAssignments: [],
             },
@@ -288,7 +288,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'cltestassign1234567890123',
-              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
@@ -335,7 +335,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'cltestassign1234567890123',
-              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
@@ -382,7 +382,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'cltestassign1234567890123',
-              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
@@ -429,7 +429,7 @@ describe('DashboardService', () => {
           vehicleAssignments: [
             {
               id: 'cltestassign1234567890123',
-              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4 },
+              vehicle: { id: TEST_IDS.VEHICLE, name: 'Honda Civic', capacity: 4, familyId: TEST_IDS.FAMILY },
               driver: { id: TEST_IDS.USER, name: 'John Doe' },
               childAssignments: [
                 {
