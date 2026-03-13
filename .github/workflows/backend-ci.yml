@@ -50,16 +50,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
 
       # Backend-specific Node.js cache (isolated from frontend)
       - name: Cache Node.js modules (backend)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: backend/node_modules
           key: ${{ env.CACHE_VERSION }}-node-${{ runner.os }}-backend-${{ hashFiles('backend/package-lock.json') }}
@@ -73,7 +74,7 @@ jobs:
 
       # Cache Prisma generated client and migrations
       - name: Cache Prisma artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             backend/node_modules/.prisma

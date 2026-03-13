@@ -25,16 +25,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
 
       # Frontend-specific Node.js cache (isolated from backend)
       - name: Cache Node.js modules (frontend)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             frontend/node_modules
@@ -79,16 +80,17 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
 
       # Reuse frontend Node.js cache
       - name: Cache Node.js modules (frontend)
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             frontend/node_modules
@@ -104,7 +106,7 @@ jobs:
 
       # Cache build artifacts for potential reuse
       - name: Cache build artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             frontend/dist
