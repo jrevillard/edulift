@@ -293,19 +293,9 @@ const SchedulePage: React.FC = () => {
         vehicle: va.vehicle,
         driver: va.driver ? {
           id: va.driver.id,
-          firstName: va.driver.name,
-          lastName: '',
-          email: ''
+          name: va.driver.name
         } : null,
-        seatOverride: null,
-        childAssignments: va.childAssignments?.map((ca) => ({
-          id: ca.id,
-          scheduleSlotId: ca.scheduleSlotId,
-          childId: ca.childId,
-          vehicleAssignmentId: ca.vehicleAssignmentId,
-          assignedAt: ca.assignedAt,
-          child: ca.child
-        })) || []
+        seatOverride: va.seatOverride ?? null
       })) || [];
 
       const childAssignments = slot.childAssignments?.map((ca) => ({
@@ -800,8 +790,7 @@ const SchedulePage: React.FC = () => {
                       <span data-testid={`capacity-indicator-${vehicleAssignment.id}`}>{currentCapacity}/{maxCapacity} seats</span>
                       {vehicleAssignment.driver && (
                         <span className="text-xs opacity-75" data-testid="driver-info">
-                          {/* FIXME: Legacy driver format compatibility - handle both name and firstName/lastName formats */}
-                          Driver: {vehicleAssignment.driver?.firstName && vehicleAssignment.driver?.lastName ? `${vehicleAssignment.driver.firstName} ${vehicleAssignment.driver.lastName}` : 'Unassigned'}
+                          Driver: {vehicleAssignment.driver?.name || 'Unassigned'}
                         </span>
                       )}
                     </div>

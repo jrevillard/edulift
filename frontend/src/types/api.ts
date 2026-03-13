@@ -167,14 +167,10 @@ type ExtractVehicleAssignmentFromResponse = {
   } | Vehicle;
   driver?: {
     id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
+    name: string;
   } | {
     id?: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
+    name?: string;
   } | null;
   _count?: {
     childAssignments: number;
