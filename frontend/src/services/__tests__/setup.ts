@@ -313,7 +313,7 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/api/v1/dashboard/weekly':
+      case '/api/v1/dashboard/7day-schedule':
         return Promise.resolve({
           data: {
             data: {
@@ -349,7 +349,6 @@ const createMockClient = () => {
           },
           error: undefined
         });
-      case '/api/v1/dashboard/weekly-schedule':
         return Promise.resolve({
           data: {
             data: {

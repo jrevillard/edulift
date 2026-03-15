@@ -277,10 +277,10 @@ export type UpdateChildRequest = components['schemas']['UpdateChildRequest'];
 export type CreateVehicleRequest = components['schemas']['CreateVehicleRequest'];
 export type UpdateVehicleRequest = components['schemas']['UpdateVehicleRequest'];
 /**
- * Weekly Dashboard Response - Extracted from /dashboard/weekly endpoint
- * Response format for the weekly dashboard data
+ * Weekly Dashboard Response - Extracted from /dashboard/7day-schedule endpoint
+ * Response format for the 7-day rolling schedule dashboard data
  */
-export type WeeklyDashboardResponse = paths['/api/v1/dashboard/weekly']['get']['responses'][200]['content']['application/json'];
+export type WeeklyDashboardResponse = paths['/api/v1/dashboard/7day-schedule']['get']['responses'][200]['content']['application/json'];
 
 // Re-export for convenience
 export type {

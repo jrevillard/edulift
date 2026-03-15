@@ -138,7 +138,7 @@ const DashboardPage: React.FC = () => {
   const { data: weeklyDashboardData, isLoading: scheduleLoading, error: scheduleError } = useQuery({
     queryKey: ['weekly-dashboard', user?.id],
     queryFn: async () => {
-      const result = await api.GET('/api/v1/dashboard/weekly', {});
+      const result = await api.GET('/api/v1/dashboard/7day-schedule', {});
       return result.data;
     },
     enabled: !!user,

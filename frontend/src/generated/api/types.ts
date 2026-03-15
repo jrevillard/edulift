@@ -9169,7 +9169,7 @@ export interface paths {
                                  * @description Group invitation code
                                  * @example ABC123XYZ
                                  */
-                                inviteCode?: string;
+                                inviteCode: string;
                                 /**
                                  * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
@@ -9205,13 +9205,13 @@ export interface paths {
                                  * @description When the group was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt?: string;
+                                createdAt: string;
                                 /**
                                  * Format: date-time
                                  * @description When the group was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt?: string;
+                                updatedAt: string;
                                 /** @description Counts of related entities */
                                 _count?: {
                                     /**
@@ -9470,7 +9470,7 @@ export interface paths {
                                  * @description Group invitation code
                                  * @example ABC123XYZ
                                  */
-                                inviteCode?: string;
+                                inviteCode: string;
                                 /**
                                  * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
@@ -9506,13 +9506,13 @@ export interface paths {
                                  * @description When the group was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt?: string;
+                                createdAt: string;
                                 /**
                                  * Format: date-time
                                  * @description When the group was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt?: string;
+                                updatedAt: string;
                                 /** @description Counts of related entities */
                                 _count?: {
                                     /**
@@ -9797,7 +9797,7 @@ export interface paths {
                                  * @description Group invitation code
                                  * @example ABC123XYZ
                                  */
-                                inviteCode?: string;
+                                inviteCode: string;
                                 /**
                                  * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
@@ -9833,13 +9833,13 @@ export interface paths {
                                  * @description When the group was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt?: string;
+                                createdAt: string;
                                 /**
                                  * Format: date-time
                                  * @description When the group was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt?: string;
+                                updatedAt: string;
                                 /** @description Counts of related entities */
                                 _count?: {
                                     /**
@@ -11389,7 +11389,7 @@ export interface paths {
                                  * @description Group invitation code
                                  * @example ABC123XYZ
                                  */
-                                inviteCode?: string;
+                                inviteCode: string;
                                 /**
                                  * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
@@ -11425,13 +11425,13 @@ export interface paths {
                                  * @description When the group was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt?: string;
+                                createdAt: string;
                                 /**
                                  * Format: date-time
                                  * @description When the group was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt?: string;
+                                updatedAt: string;
                                 /** @description Counts of related entities */
                                 _count?: {
                                     /**
@@ -11986,7 +11986,7 @@ export interface paths {
                                  * @description Group invitation code
                                  * @example ABC123XYZ
                                  */
-                                inviteCode?: string;
+                                inviteCode: string;
                                 /**
                                  * @description User's role in the group (ADMIN or MEMBER - OWNER is family-level only)
                                  * @example ADMIN
@@ -12022,13 +12022,13 @@ export interface paths {
                                  * @description When the group was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
-                                createdAt?: string;
+                                createdAt: string;
                                 /**
                                  * Format: date-time
                                  * @description When the group was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
-                                updatedAt?: string;
+                                updatedAt: string;
                                 /** @description Counts of related entities */
                                 _count?: {
                                     /**
@@ -16940,6 +16940,11 @@ export interface paths {
                                          * @example 6
                                          */
                                         capacity: number;
+                                        /**
+                                         * @description ID of the family that owns this vehicle.
+                                         * @example cl123456789012345678901236
+                                         */
+                                        familyId: string;
                                     };
                                     /** @description Driver assigned to this trip */
                                     driver?: {
@@ -17229,7 +17234,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/dashboard/weekly": {
+    "/api/v1/dashboard/7day-schedule": {
         parameters: {
             query?: never;
             header?: never;
@@ -17237,13 +17242,13 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get weekly dashboard
-         * @description Retrieve complete weekly dashboard with detailed schedules and summary statistics.
+         * Get rolling 7-day schedule dashboard
+         * @description Retrieve complete dashboard for a rolling 7-day period with detailed schedules and summary statistics. The period starts from the provided startDate (or today) and spans 7 days forward.
          */
         get: {
             parameters: {
                 query?: {
-                    /** @description Optional start date for the weekly dashboard (ISO 8601 format) */
+                    /** @description Optional start date for the rolling 7-day period (ISO 8601 format). If not provided, uses today. The period spans 7 days from the start date. */
                     startDate?: string;
                 };
                 header?: never;
@@ -17252,7 +17257,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Weekly dashboard retrieved successfully */
+                /** @description 7-day dashboard retrieved successfully */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -17262,12 +17267,12 @@ export interface paths {
                             success: boolean;
                             data: {
                                 /**
-                                 * @description Week start date
+                                 * @description Period start date (first day of the rolling 7-day period)
                                  * @example 2024-01-15
                                  */
                                 weekStart: string;
                                 /**
-                                 * @description Week end date
+                                 * @description Period end date (last day of the rolling 7-day period)
                                  * @example 2024-01-21
                                  */
                                 weekEnd: string;
@@ -17293,7 +17298,7 @@ export interface paths {
                                      */
                                     activeGroups: number;
                                 };
-                                /** @description Daily breakdown of the weekly schedule */
+                                /** @description Daily breakdown of the 7-day rolling schedule */
                                 dailySchedules: {
                                     /**
                                      * @description Date in ISO format
@@ -17358,6 +17363,11 @@ export interface paths {
                                              * @example 6
                                              */
                                             capacity: number;
+                                            /**
+                                             * @description ID of the family that owns this vehicle.
+                                             * @example cl123456789012345678901236
+                                             */
+                                            familyId: string;
                                         };
                                         /** @description Driver assigned to this trip */
                                         driver?: {
@@ -17403,7 +17413,7 @@ export interface paths {
                                         activeTrips: number;
                                     };
                                 }[];
-                                /** @description Weekly trend indicators */
+                                /** @description Trend indicators for the 7-day period */
                                 trends?: {
                                     tripTrend: {
                                         /**
@@ -17666,6 +17676,30 @@ export interface paths {
                                  * @example cl123456789012345678901235
                                  */
                                 groupId: string;
+                                /** @description Group information */
+                                group: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Group identifier
+                                     * @example cl123456789012345678901235
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Group name
+                                     * @example Morning School Run
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total seating capacity across all vehicles
+                                 * @example 8
+                                 */
+                                totalCapacity: number;
+                                /**
+                                 * @description Available seats remaining
+                                 * @example 3
+                                 */
+                                availableSeats: number;
                                 /**
                                  * Format: date-time
                                  * @description Schedule slot creation timestamp
@@ -17857,8 +17891,8 @@ export interface paths {
                                      * @example 2023-12-01T08:00:00.000Z
                                      */
                                     assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
+                                    /** @description Child information (always present in a child assignment) */
+                                    child: {
                                         /** Format: cuid */
                                         id: string;
                                         name: string;
@@ -18301,6 +18335,30 @@ export interface paths {
                                  * @example cl123456789012345678901235
                                  */
                                 groupId: string;
+                                /** @description Group information */
+                                group: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Group identifier
+                                     * @example cl123456789012345678901235
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Group name
+                                     * @example Morning School Run
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total seating capacity across all vehicles
+                                 * @example 8
+                                 */
+                                totalCapacity: number;
+                                /**
+                                 * @description Available seats remaining
+                                 * @example 3
+                                 */
+                                availableSeats: number;
                                 /**
                                  * Format: date-time
                                  * @description Schedule slot creation timestamp
@@ -18492,8 +18550,8 @@ export interface paths {
                                      * @example 2023-12-01T08:00:00.000Z
                                      */
                                     assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
+                                    /** @description Child information (always present in a child assignment) */
+                                    child: {
                                         /** Format: cuid */
                                         id: string;
                                         name: string;
@@ -18901,6 +18959,30 @@ export interface paths {
                                  * @example cl123456789012345678901235
                                  */
                                 groupId: string;
+                                /** @description Group information */
+                                group: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Group identifier
+                                     * @example cl123456789012345678901235
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Group name
+                                     * @example Morning School Run
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total seating capacity across all vehicles
+                                 * @example 8
+                                 */
+                                totalCapacity: number;
+                                /**
+                                 * @description Available seats remaining
+                                 * @example 3
+                                 */
+                                availableSeats: number;
                                 /**
                                  * Format: date-time
                                  * @description Schedule slot creation timestamp
@@ -19092,8 +19174,8 @@ export interface paths {
                                      * @example 2023-12-01T08:00:00.000Z
                                      */
                                     assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
+                                    /** @description Child information (always present in a child assignment) */
+                                    child: {
                                         /** Format: cuid */
                                         id: string;
                                         name: string;
@@ -19542,6 +19624,30 @@ export interface paths {
                                  * @example cl123456789012345678901235
                                  */
                                 groupId: string;
+                                /** @description Group information */
+                                group: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Group identifier
+                                     * @example cl123456789012345678901235
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Group name
+                                     * @example Morning School Run
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total seating capacity across all vehicles
+                                 * @example 8
+                                 */
+                                totalCapacity: number;
+                                /**
+                                 * @description Available seats remaining
+                                 * @example 3
+                                 */
+                                availableSeats: number;
                                 /**
                                  * Format: date-time
                                  * @description Schedule slot creation timestamp
@@ -19733,8 +19839,8 @@ export interface paths {
                                      * @example 2023-12-01T08:00:00.000Z
                                      */
                                     assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
+                                    /** @description Child information (always present in a child assignment) */
+                                    child: {
                                         /** Format: cuid */
                                         id: string;
                                         name: string;
@@ -20141,6 +20247,30 @@ export interface paths {
                                  * @example cl123456789012345678901235
                                  */
                                 groupId: string;
+                                /** @description Group information */
+                                group: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Group identifier
+                                     * @example cl123456789012345678901235
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Group name
+                                     * @example Morning School Run
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total seating capacity across all vehicles
+                                 * @example 8
+                                 */
+                                totalCapacity: number;
+                                /**
+                                 * @description Available seats remaining
+                                 * @example 3
+                                 */
+                                availableSeats: number;
                                 /**
                                  * Format: date-time
                                  * @description Schedule slot creation timestamp
@@ -20332,8 +20462,8 @@ export interface paths {
                                      * @example 2023-12-01T08:00:00.000Z
                                      */
                                     assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
+                                    /** @description Child information (always present in a child assignment) */
+                                    child: {
                                         /** Format: cuid */
                                         id: string;
                                         name: string;
@@ -20726,6 +20856,30 @@ export interface paths {
                                      * @example cl123456789012345678901235
                                      */
                                     groupId: string;
+                                    /** @description Group information */
+                                    group: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Group identifier
+                                         * @example cl123456789012345678901235
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Group name
+                                         * @example Morning School Run
+                                         */
+                                        name: string;
+                                    };
+                                    /**
+                                     * @description Total seating capacity across all vehicles
+                                     * @example 8
+                                     */
+                                    totalCapacity: number;
+                                    /**
+                                     * @description Available seats remaining
+                                     * @example 3
+                                     */
+                                    availableSeats: number;
                                     /**
                                      * Format: date-time
                                      * @description Schedule slot creation timestamp
@@ -20917,8 +21071,8 @@ export interface paths {
                                          * @example 2023-12-01T08:00:00.000Z
                                          */
                                         assignedAt: string;
-                                        /** @description Child information (included when requested) */
-                                        child?: {
+                                        /** @description Child information (always present in a child assignment) */
+                                        child: {
                                             /** Format: cuid */
                                             id: string;
                                             name: string;
@@ -21732,6 +21886,30 @@ export interface paths {
                                  * @example cl123456789012345678901235
                                  */
                                 groupId: string;
+                                /** @description Group information */
+                                group: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Group identifier
+                                     * @example cl123456789012345678901235
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Group name
+                                     * @example Morning School Run
+                                     */
+                                    name: string;
+                                };
+                                /**
+                                 * @description Total seating capacity across all vehicles
+                                 * @example 8
+                                 */
+                                totalCapacity: number;
+                                /**
+                                 * @description Available seats remaining
+                                 * @example 3
+                                 */
+                                availableSeats: number;
                                 /**
                                  * Format: date-time
                                  * @description Schedule slot creation timestamp
@@ -21923,8 +22101,8 @@ export interface paths {
                                      * @example 2023-12-01T08:00:00.000Z
                                      */
                                     assignedAt: string;
-                                    /** @description Child information (included when requested) */
-                                    child?: {
+                                    /** @description Child information (always present in a child assignment) */
+                                    child: {
                                         /** Format: cuid */
                                         id: string;
                                         name: string;
@@ -22363,6 +22541,30 @@ export interface operations {
                              * @example cl123456789012345678901235
                              */
                             groupId: string;
+                            /** @description Group information */
+                            group: {
+                                /**
+                                 * Format: cuid
+                                 * @description Group identifier
+                                 * @example cl123456789012345678901235
+                                 */
+                                id: string;
+                                /**
+                                 * @description Group name
+                                 * @example Morning School Run
+                                 */
+                                name: string;
+                            };
+                            /**
+                             * @description Total seating capacity across all vehicles
+                             * @example 8
+                             */
+                            totalCapacity: number;
+                            /**
+                             * @description Available seats remaining
+                             * @example 3
+                             */
+                            availableSeats: number;
                             /**
                              * Format: date-time
                              * @description Schedule slot creation timestamp
@@ -22554,8 +22756,8 @@ export interface operations {
                                  * @example 2023-12-01T08:00:00.000Z
                                  */
                                 assignedAt: string;
-                                /** @description Child information (included when requested) */
-                                child?: {
+                                /** @description Child information (always present in a child assignment) */
+                                child: {
                                     /** Format: cuid */
                                     id: string;
                                     name: string;
