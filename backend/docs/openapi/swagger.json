@@ -26413,8 +26413,8 @@
         "tags": [
           "Dashboard"
         ],
-        "summary": "Get weekly dashboard",
-        "description": "Retrieve complete weekly dashboard with detailed schedules and summary statistics.",
+        "summary": "Get rolling 7-day dashboard",
+        "description": "Retrieve complete dashboard for a rolling 7-day period with detailed schedules and summary statistics. The period starts from the provided startDate (or today) and spans 7 days forward.",
         "security": [
           {
             "Bearer": []
@@ -26425,18 +26425,18 @@
             "schema": {
               "type": "string",
               "format": "date-time",
-              "description": "Optional start date for the weekly dashboard (ISO 8601 format)",
+              "description": "Optional start date for the rolling 7-day period (ISO 8601 format). If not provided, uses today. The period spans 7 days from the start date.",
               "example": "2024-01-15T00:00:00Z"
             },
             "required": false,
-            "description": "Optional start date for the weekly dashboard (ISO 8601 format)",
+            "description": "Optional start date for the rolling 7-day period (ISO 8601 format). If not provided, uses today. The period spans 7 days from the start date.",
             "name": "startDate",
             "in": "query"
           }
         ],
         "responses": {
           "200": {
-            "description": "Weekly dashboard retrieved successfully",
+            "description": "7-day dashboard retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -26450,12 +26450,12 @@
                       "properties": {
                         "weekStart": {
                           "type": "string",
-                          "description": "Week start date",
+                          "description": "Period start date (first day of the rolling 7-day period)",
                           "example": "2024-01-15"
                         },
                         "weekEnd": {
                           "type": "string",
-                          "description": "Week end date",
+                          "description": "Period end date (last day of the rolling 7-day period)",
                           "example": "2024-01-21"
                         },
                         "weeklyStats": {
@@ -26670,7 +26670,7 @@
                               "summary"
                             ]
                           },
-                          "description": "Daily breakdown of the weekly schedule"
+                          "description": "Daily breakdown of the 7-day rolling schedule"
                         },
                         "trends": {
                           "type": "object",
@@ -26740,7 +26740,7 @@
                             "tripTrend",
                             "efficiencyTrend"
                           ],
-                          "description": "Weekly trend indicators"
+                          "description": "Trend indicators for the 7-day period"
                         }
                       },
                       "required": [

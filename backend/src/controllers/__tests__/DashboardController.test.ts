@@ -168,7 +168,7 @@ describe('DashboardController Test Suite', () => {
         success: true,
         data: { upcomingTrips: mockTodayTrips },
       });
-      expect(mockDashboardService.getTodayTripsForUser).toHaveBeenCalledWith(mockUserId);
+      expect(mockDashboardService.getTodayTripsForUser).toHaveBeenCalledWith(mockUserId, 'UTC');
     });
 
     it('should return empty array when no trips for today', async () => {
@@ -352,7 +352,7 @@ describe('DashboardController Test Suite', () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data).toBeDefined();
-      expect(mockDashboardService.getWeeklyDashboard).toHaveBeenCalledWith(mockUserId, undefined);
+      expect(mockDashboardService.getWeeklyDashboard).toHaveBeenCalledWith(mockUserId, undefined, 'UTC');
     });
 
     it('should handle weekly dashboard with start date parameter', async () => {
@@ -380,7 +380,7 @@ describe('DashboardController Test Suite', () => {
 
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
-      expect(mockDashboardService.getWeeklyDashboard).toHaveBeenCalledWith(mockUserId, new Date(startDate));
+      expect(mockDashboardService.getWeeklyDashboard).toHaveBeenCalledWith(mockUserId, new Date(startDate), 'UTC');
     });
 
     it('should return error when user has no family', async () => {

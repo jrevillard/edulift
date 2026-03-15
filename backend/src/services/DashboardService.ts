@@ -109,14 +109,14 @@ export class DashboardService {
     this.activityLogRepository = new ActivityLogRepository(prismaInstance);
   }
 
-  async calculateUserStats(userId: string): Promise<DashboardStats> {
+  async calculateUserStats(userId: string, timezone?: string): Promise<DashboardStats> {
     try {
       // Fetch user data in parallel
       const [groups, children, vehicles, thisWeekTrips] = await Promise.all([
         this.groupService.getUserGroups(userId),
         this.childService.getChildrenByUser(userId),
         this.vehicleService.getVehiclesByUser(userId),
-        this.getThisWeekTripsCountForUser(userId), // Fallback implementation
+        this.getThisWeekTripsCountForUser(userId, timezone),
       ]);
 
       // Calculate basic stats
@@ -140,10 +140,10 @@ export class DashboardService {
     }
   }
 
-  async getTodayTripsForUser(userId: string): Promise<TodayTrip[]> {
+  async getTodayTripsForUser(userId: string, timezone?: string): Promise<TodayTrip[]> {
     try {
       // Get today's schedule slots for the user
-      const todaySlots = await this.getTodayScheduleSlotsForUser(userId);
+      const todaySlots = await this.getTodayScheduleSlotsForUser(userId, timezone);
 
       // Transform schedule slots to trip format with optimized data
       const trips: TodayTrip[] = todaySlots.map(slot => ({
@@ -191,15 +191,16 @@ export class DashboardService {
         return [];
       }
 
-      // Get week date range
+      // Get rolling 7-day period date range
       const today = new Date();
-      const weekStart = this.getWeekStartDate(today);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      weekEnd.setUTCHours(23, 59, 59, 999);
+      const periodStart = new Date(today);
+      periodStart.setUTCHours(0, 0, 0, 0);
+      const periodEnd = new Date(periodStart);
+      periodEnd.setDate(periodStart.getDate() + 6);
+      periodEnd.setUTCHours(23, 59, 59, 999);
 
       // Get this week's schedule slots using optimized method
-      const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, weekStart, weekEnd);
+      const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, periodStart, periodEnd);
 
       // Transform schedule slots to trip format with optimized data
       const trips: TodayTrip[] = weeklySlots.map((slot: ScheduleSlotWithRelations) => ({
@@ -352,7 +353,7 @@ export class DashboardService {
   }
 
   // Get this week's trips count for user
-  private async getThisWeekTripsCountForUser(userId: string): Promise<number> {
+  private async getThisWeekTripsCountForUser(userId: string, timezone?: string): Promise<number> {
     try {
       // Get user's family first for optimized filtering
       const userFamily = await this.getUserFamily(userId);
@@ -362,18 +363,20 @@ export class DashboardService {
 
       const today = new Date();
 
-      // Calculate this week's date range for datetime filtering
-      const weekStart = this.getWeekStartDate(today);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      weekEnd.setUTCHours(23, 59, 59, 999);
+      // Calculate rolling 7-day period date range for datetime filtering
+      const periodStart = timezone
+        ? this.getDayBoundariesInTimezone(today, timezone).start
+        : this.getUTCDayBoundaries(today).start;
+      const periodEnd = new Date(periodStart);
+      periodEnd.setDate(periodStart.getDate() + 6);
+      periodEnd.setUTCHours(23, 59, 59, 999);
 
       // Optimized count query with DB-level filtering using userFamilyId
       const tripCount = await this.prisma.scheduleSlot.count({
         where: {
           datetime: {
-            gte: weekStart,
-            lte: weekEnd,
+            gte: periodStart,
+            lte: periodEnd,
           },
           OR: [
             // User's family is a member of the group (including owner family)
@@ -415,7 +418,7 @@ export class DashboardService {
     }
   }
 
-  private async getTodayScheduleSlotsForUser(userId: string): Promise<any[]> {
+  private async getTodayScheduleSlotsForUser(userId: string, timezone?: string): Promise<any[]> {
     try {
       // Get user's family first for optimized filtering
       const userFamily = await this.getUserFamily(userId);
@@ -427,11 +430,10 @@ export class DashboardService {
       const today = new Date();
 
       // Calculate today's date range for datetime filtering
-      const todayStart = new Date(today);
-      todayStart.setUTCHours(0, 0, 0, 0);
-
-      const todayEnd = new Date(today);
-      todayEnd.setUTCHours(23, 59, 59, 999);
+      // If timezone is provided, calculate day boundaries in that timezone
+      const { start: todayStart, end: todayEnd } = timezone
+        ? this.getDayBoundariesInTimezone(today, timezone)
+        : this.getUTCDayBoundaries(today);
 
       // Optimized query with DB-level filtering using userFamilyId
       const scheduleSlots = await this.prisma.scheduleSlot.findMany({
@@ -538,29 +540,14 @@ export class DashboardService {
     }
   }
 
-  private getWeekStartDate(date: Date): Date {
-    const d = new Date(date);
-    const dayOfWeek = d.getUTCDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday (use UTC)
-    
-    // Calculate days to subtract to get to Monday
-    let daysToSubtract = dayOfWeek - 1; // Monday is day 1
-    if (dayOfWeek === 0) { // Sunday
-      daysToSubtract = 6; // Go back 6 days to get to Monday
-    }
-    
-    // Create a new date object to avoid mutation issues
-    const weekStart = new Date(d.getTime() - (daysToSubtract * 24 * 60 * 60 * 1000));
-    weekStart.setUTCHours(0, 0, 0, 0);
-    return weekStart;
-  }
-
   /**
    * Get weekly dashboard with DB-level filtering for optimal performance
    * Returns 7 days of transport summaries with vehicles and children filtered at database level
-   * Per specification: getWeeklyDashboard(userId, startDate?)
+   * Per specification: getWeeklyDashboard(userId, startDate?, timezone?)
    * Returns WeeklyDashboardResponse format with success wrapper
+   * Uses rolling 7-day period from startDate (or today)
    */
-  async getWeeklyDashboard(userId: string, startDate?: Date): Promise<WeeklyDashboardResponse> {
+  async getWeeklyDashboard(userId: string, startDate?: Date, timezone?: string): Promise<WeeklyDashboardResponse> {
     try {
       // Get user's family first
       const userFamily = await this.getUserFamily(userId);
@@ -572,18 +559,20 @@ export class DashboardService {
         } as WeeklyDashboardResponse;
       }
 
-      // Get week date range (Monday to Sunday) - use provided startDate or today
+      // Get rolling 7-day period date range - use provided startDate or today
       const baseDate = startDate || new Date();
-      const weekStart = this.getWeekStartDate(baseDate);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 6);
-      weekEnd.setUTCHours(23, 59, 59, 999);
+      const periodStart = timezone
+        ? this.getDayBoundariesInTimezone(baseDate, timezone).start
+        : this.getUTCDayBoundaries(baseDate).start;
+      const periodEnd = new Date(periodStart);
+      periodEnd.setDate(periodStart.getDate() + 6);
+      periodEnd.setUTCHours(23, 59, 59, 999);
 
       // Get weekly schedule slots with comprehensive DB-level filtering
-      const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, weekStart, weekEnd);
+      const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, periodStart, periodEnd);
 
       // Aggregate slots by day and transform to daily summaries
-      const days = this.aggregateSlotsByDay(weeklySlots, weekStart, userFamily.id);
+      const days = this.aggregateSlotsByDay(weeklySlots, periodStart, userFamily.id);
 
       // Get metadata information
       const groupIds = await this.getGroupIdsForFamily(userFamily.id);
@@ -598,8 +587,8 @@ export class DashboardService {
         success: true,
         data: {
           days,
-          startDate: weekStart.toISOString().split('T')[0],
-          endDate: weekEnd.toISOString().split('T')[0],
+          startDate: periodStart.toISOString().split('T')[0],
+          endDate: periodEnd.toISOString().split('T')[0],
           generatedAt: new Date().toISOString(),
           metadata: {
             familyId: userFamily.id,
@@ -982,4 +971,64 @@ export class DashboardService {
     return familyMember?.family || null;
   }
 
+  /**
+   * Get day boundaries in UTC (default when no timezone specified)
+   * Returns start (00:00:00.000 UTC) and end (23:59:59.999 UTC) of the day
+   */
+  private getUTCDayBoundaries(date: Date): { start: Date; end: Date } {
+    const start = new Date(date);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(date);
+    end.setUTCHours(23, 59, 59, 999);
+
+    return { start, end };
   }
+
+  /**
+   * Get day boundaries in a specific timezone
+   * Calculates when the day starts and ends in the user's timezone,
+   * then returns those moments as UTC dates for database queries.
+   *
+   * Example: User in Europe/Paris (UTC+1), on 2025-01-15
+   * - Their day starts at 2025-01-15 00:00 Paris time = 2025-01-14 23:00 UTC
+   * - Their day ends at 2025-01-15 23:59:59 Paris time = 2025-01-15 22:59:59 UTC
+   *
+   * @param date - The reference date (usually "now" or a specific start date)
+   * @param timezone - IANA timezone string (e.g., "Europe/Paris", "America/New_York")
+   * @returns Start and end of the day in UTC for database queries
+   */
+  private getDayBoundariesInTimezone(date: Date, timezone: string): { start: Date; end: Date } {
+    // Format the date as YYYY-MM-DD in the user's timezone
+    const formatter = new Intl.DateTimeFormat('en-CA', { // en-CA gives ISO 8601 date format (YYYY-MM-DD)
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    // Parse the date string to extract year, month, day
+    const parts = formatter.formatToParts(date);
+    const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
+    const month = parseInt(parts.find(p => p.type === 'month')?.value || '0') - 1; // JS months are 0-indexed
+    const day = parseInt(parts.find(p => p.type === 'day')?.value || '0');
+
+    // Create a date representing midnight in the user's timezone
+    // We use Date.UTC which treats the parameters as UTC
+    const utcMidnight = Date.UTC(year, month, day, 0, 0, 0);
+
+    // Get the actual timestamp for midnight in the user's timezone
+    // by creating a local date and using getTime()
+    const localMidnight = new Date(year, month, day, 0, 0, 0);
+
+    // The offset between local time and UTC for this specific date
+    const offsetMs = localMidnight.getTime() - utcMidnight;
+
+    // Calculate start and end in UTC
+    const start = new Date(utcMidnight + offsetMs);
+    const end = new Date(utcMidnight + offsetMs + 24 * 60 * 60 * 1000 - 1); // 23:59:59.999
+
+    return { start, end };
+  }
+
+}

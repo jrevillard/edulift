@@ -280,22 +280,22 @@ const WeeklyStatsSchema = z.object({
 
 const WeeklyDashboardDataSchema = z.object({
   weekStart: z.string().openapi({
-    description: 'Week start date',
+    description: 'Period start date (first day of the rolling 7-day period)',
     example: '2024-01-15',
   }),
   weekEnd: z.string().openapi({
-    description: 'Week end date',
+    description: 'Period end date (last day of the rolling 7-day period)',
     example: '2024-01-21',
   }),
   weeklyStats: WeeklyStatsSchema,
   dailySchedules: z.array(WeeklyScheduleDaySchema).openapi({
-    description: 'Daily breakdown of the weekly schedule',
+    description: 'Daily breakdown of the 7-day rolling schedule',
   }),
   trends: z.object({
     tripTrend: TrendDataSchema,
     efficiencyTrend: TrendDataSchema,
   }).optional().openapi({
-    description: 'Weekly trend indicators',
+    description: 'Trend indicators for the 7-day period',
   }),
 });
 
@@ -304,7 +304,7 @@ const WeeklyDashboardDataSchema = z.object({
  */
 const WeeklyDashboardQuerySchema = z.object({
   startDate: z.string().datetime().optional().openapi({
-    description: 'Optional start date for the weekly dashboard (ISO 8601 format)',
+    description: 'Optional start date for the rolling 7-day period (ISO 8601 format). If not provided, uses today. The period spans 7 days from the start date.',
     example: '2024-01-15T00:00:00Z',
   }),
 });
@@ -424,14 +424,14 @@ const getRecentActivityRoute = createRoute({
 });
 
 /**
- * GET /dashboard/weekly - Get weekly dashboard analytics
+ * GET /dashboard/weekly - Get rolling 7-day dashboard analytics
  */
 const getWeeklyDashboardRoute = createRoute({
   method: 'get',
   path: '/weekly',
   tags: ['Dashboard'],
-  summary: 'Get weekly dashboard',
-  description: 'Retrieve complete weekly dashboard with detailed schedules and summary statistics.',
+  summary: 'Get rolling 7-day dashboard',
+  description: 'Retrieve complete dashboard for a rolling 7-day period with detailed schedules and summary statistics. The period starts from the provided startDate (or today) and spans 7 days forward.',
   security: [{ Bearer: [] }],
   request: {
     query: WeeklyDashboardQuerySchema,
@@ -443,7 +443,7 @@ const getWeeklyDashboardRoute = createRoute({
           schema: createSuccessSchema(WeeklyDashboardDataSchema),
         },
       },
-      description: 'Weekly dashboard retrieved successfully',
+      description: '7-day dashboard retrieved successfully',
     },
     401: {
       content: {
@@ -508,11 +508,12 @@ app.openapi(getStatsRoute, async (c) => {
  */
 app.openapi(getTodayScheduleRoute, async (c) => {
   const userId = c.get('userId');
+  const user = c.get('user');
 
-  loggerInstance.info('getTodaySchedule', { userId });
+  loggerInstance.info('getTodaySchedule', { userId, timezone: user?.timezone });
 
   try {
-    const trips = await dashboardServiceInstance.getTodayTripsForUser(userId);
+    const trips = await dashboardServiceInstance.getTodayTripsForUser(userId, user?.timezone);
 
     // Transform trips to match expected format
     const upcomingTrips = trips.map(trip => ({
@@ -601,15 +602,16 @@ app.openapi(getRecentActivityRoute, async (c) => {
  */
 app.openapi(getWeeklyDashboardRoute, async (c) => {
   const userId = c.get('userId');
+  const user = c.get('user');
   const { startDate } = c.req.valid('query');
 
-  loggerInstance.info('getWeeklyDashboard', { userId, startDate });
+  loggerInstance.info('getWeeklyDashboard', { userId, timezone: user?.timezone, startDate });
 
   try {
     // Parse startDate if provided
     const parsedStartDate = startDate ? new Date(startDate) : undefined;
 
-    const weeklyData = await dashboardServiceInstance.getWeeklyDashboard(userId, parsedStartDate);
+    const weeklyData = await dashboardServiceInstance.getWeeklyDashboard(userId, parsedStartDate, user?.timezone);
 
     // Check if service returned an error response
     if (!weeklyData.success) {
