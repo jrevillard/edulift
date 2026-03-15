@@ -5,6 +5,8 @@ import { ActivityLogRepository } from '../repositories/ActivityLogRepository';
 import { PrismaClient } from '@prisma/client';
 import { createLogger } from '../utils/logger';
 import { DayTransportSummary, TransportSlotSummary, VehicleAssignmentSummary, CapacityStatus, WeeklyDashboardResponse } from '../types/DashboardTypes';
+import { DateTime } from 'luxon';
+import { getValidatedTimezone } from '../utils/timezoneUtils';
 
 const logger = createLogger('DashboardService');
 
@@ -183,7 +185,7 @@ export class DashboardService {
     }
   }
 
-  async getWeeklyTripsForUser(userId: string): Promise<TodayTrip[]> {
+  async getWeeklyTripsForUser(userId: string, timezone?: string): Promise<TodayTrip[]> {
     try {
       // Get user's family first for optimized queries
       const userFamily = await this.getUserFamily(userId);
@@ -191,10 +193,14 @@ export class DashboardService {
         return [];
       }
 
+      // Validate timezone
+      const validatedTimezone = timezone ? getValidatedTimezone(timezone) : 'UTC';
+
       // Get rolling 7-day period date range
       const today = new Date();
-      const periodStart = new Date(today);
-      periodStart.setUTCHours(0, 0, 0, 0);
+      const periodStart = timezone
+        ? this.getDayBoundariesInTimezone(today, validatedTimezone).start
+        : this.getUTCDayBoundaries(today).start;
       const periodEnd = new Date(periodStart);
       periodEnd.setDate(periodStart.getDate() + 6);
       periodEnd.setUTCHours(23, 59, 59, 999);
@@ -207,7 +213,7 @@ export class DashboardService {
         id: slot.id,
         time: this.formatTimeFromDatetime(slot.datetime),
         datetime: slot.datetime.toISOString(), // Include full datetime for frontend timezone conversion
-        date: this.formatDateFromDatetime(slot.datetime),
+        date: this.formatDateFromDatetime(slot.datetime, validatedTimezone),
         children: slot.vehicleAssignments?.flatMap((va: ScheduleSlotVehicleWithRelations) =>
           va.childAssignments?.map((assignment) => ({
             id: assignment.child.id,
@@ -230,11 +236,14 @@ export class DashboardService {
         } : { id: '', name: 'Unknown Group' },
       }));
 
-      // Sort by day then time
+      // Sort by date then time
       trips.sort((a, b) => {
-        const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        const dayComparison = dayOrder.indexOf(a.date) - dayOrder.indexOf(b.date);
-        return dayComparison || a.time.localeCompare(b.time);
+        // First compare by ISO datetime (date field for display, but use datetime for actual sorting)
+        const dateA = new Date(a.datetime);
+        const dateB = new Date(b.datetime);
+        const dateComparison = dateA.getTime() - dateB.getTime();
+        if (dateComparison !== 0) return dateComparison;
+        return a.time.localeCompare(b.time);
       });
 
       return trips;
@@ -334,9 +343,14 @@ export class DashboardService {
     return `${hours}:${minutes}`;
   }
 
-  private formatDateFromDatetime(datetime: Date): string {
-    // Return UTC-based day of week
-    // Backend should send UTC times and let frontend handle display timezone
+  private formatDateFromDatetime(datetime: Date, timezone?: string): string {
+    // Return day of week in user's timezone, or UTC if no timezone specified
+    if (timezone) {
+      const validatedTimezone = getValidatedTimezone(timezone);
+      const dtInTimezone = DateTime.fromJSDate(datetime, { zone: validatedTimezone });
+      return dtInTimezone.toFormat('EEEE'); // "Monday", "Tuesday", etc.
+    }
+    // Fallback to UTC-based day of week
     const dayOfWeek = datetime.getUTCDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[dayOfWeek];
@@ -572,7 +586,7 @@ export class DashboardService {
       const weeklySlots = await this.getWeeklyScheduleSlotsOptimized(userId, userFamily.id, periodStart, periodEnd);
 
       // Aggregate slots by day and transform to daily summaries
-      const days = this.aggregateSlotsByDay(weeklySlots, periodStart, userFamily.id);
+      const days = this.aggregateSlotsByDay(weeklySlots, periodStart, userFamily.id, timezone);
 
       // Get metadata information
       const groupIds = await this.getGroupIdsForFamily(userFamily.id);
@@ -766,25 +780,41 @@ export class DashboardService {
   /**
    * Aggregate slots by day and transform to daily summaries
    * Per specification: groups slots by date and creates DayTransportSummary objects
+   *
+   * @param slots - Schedule slots to aggregate
+   * @param periodStart - Start of the period (UTC date)
+   * @param userFamilyId - User's family ID for filtering
+   * @param timezone - Optional timezone for day grouping (defaults to UTC)
    */
   private aggregateSlotsByDay(
-    slots: any[],
-    weekStart: Date,
+    slots: Array<{ datetime: Date; vehicleAssignments?: any[]; group?: { id?: string; name?: string } | null; id: string }>,
+    periodStart: Date,
     userFamilyId: string,
+    timezone?: string,
   ): DayTransportSummary[] {
-    const daysMap = new Map<string, any[]>();
+    const validatedTimezone = timezone ? getValidatedTimezone(timezone) : 'UTC';
+    const daysMap = new Map<string, Array<{ datetime: Date; vehicleAssignments?: any[]; group?: { id?: string; name?: string } | null; id: string }>>();
 
-    // Initialize all 7 days with empty arrays
+    // Initialize all 7 days with empty arrays using user's timezone for day keys
     for (let i = 0; i < 7; i++) {
-      const currentDay = new Date(weekStart);
-      currentDay.setDate(weekStart.getDate() + i);
-      const dayKey = currentDay.toISOString().split('T')[0]; // YYYY-MM-DD
+      const currentDay = new Date(periodStart);
+      currentDay.setDate(periodStart.getDate() + i);
+
+      // Get day key in user's timezone
+      const dayKey = timezone
+        ? DateTime.fromJSDate(currentDay, { zone: validatedTimezone }).toFormat('yyyy-MM-dd')
+        : currentDay.toISOString().split('T')[0]; // YYYY-MM-DD
+
       daysMap.set(dayKey, []);
     }
 
-    // Group slots by date
+    // Group slots by date (in user's timezone)
     slots.forEach(slot => {
-      const dayKey = slot.datetime.toISOString().split('T')[0];
+      // Get day key in user's timezone
+      const dayKey = timezone
+        ? DateTime.fromJSDate(slot.datetime, { zone: validatedTimezone }).toFormat('yyyy-MM-dd')
+        : slot.datetime.toISOString().split('T')[0]; // YYYY-MM-DD (UTC)
+
       if (!daysMap.has(dayKey)) {
         daysMap.set(dayKey, []);
       }
@@ -795,9 +825,14 @@ export class DashboardService {
     const weeklyDashboard: DayTransportSummary[] = [];
 
     for (let i = 0; i < 7; i++) {
-      const currentDay = new Date(weekStart);
-      currentDay.setDate(weekStart.getDate() + i);
-      const dayKey = currentDay.toISOString().split('T')[0];
+      const currentDay = new Date(periodStart);
+      currentDay.setDate(periodStart.getDate() + i);
+
+      // Get day key in user's timezone
+      const dayKey = timezone
+        ? DateTime.fromJSDate(currentDay, { zone: validatedTimezone }).toFormat('yyyy-MM-dd')
+        : currentDay.toISOString().split('T')[0]; // YYYY-MM-DD (UTC)
+
       const daySlots = daysMap.get(dayKey) || [];
 
       // Group slots by time to create transport summaries
@@ -986,7 +1021,7 @@ export class DashboardService {
   }
 
   /**
-   * Get day boundaries in a specific timezone
+   * Get day boundaries in a specific timezone using Luxon
    * Calculates when the day starts and ends in the user's timezone,
    * then returns those moments as UTC dates for database queries.
    *
@@ -999,34 +1034,21 @@ export class DashboardService {
    * @returns Start and end of the day in UTC for database queries
    */
   private getDayBoundariesInTimezone(date: Date, timezone: string): { start: Date; end: Date } {
-    // Format the date as YYYY-MM-DD in the user's timezone
-    const formatter = new Intl.DateTimeFormat('en-CA', { // en-CA gives ISO 8601 date format (YYYY-MM-DD)
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
+    // Validate timezone
+    const validatedTimezone = getValidatedTimezone(timezone);
 
-    // Parse the date string to extract year, month, day
-    const parts = formatter.formatToParts(date);
-    const year = parseInt(parts.find(p => p.type === 'year')?.value || '0');
-    const month = parseInt(parts.find(p => p.type === 'month')?.value || '0') - 1; // JS months are 0-indexed
-    const day = parseInt(parts.find(p => p.type === 'day')?.value || '0');
+    // Convert the input date to Luxon DateTime in the user's timezone
+    const dtInTimezone = DateTime.fromJSDate(date, { zone: validatedTimezone });
 
-    // Create a date representing midnight in the user's timezone
-    // We use Date.UTC which treats the parameters as UTC
-    const utcMidnight = Date.UTC(year, month, day, 0, 0, 0);
+    // Get start of day in user's timezone
+    const startOfDayInTimezone = dtInTimezone.startOf('day');
 
-    // Get the actual timestamp for midnight in the user's timezone
-    // by creating a local date and using getTime()
-    const localMidnight = new Date(year, month, day, 0, 0, 0);
+    // Get end of day in user's timezone (last millisecond)
+    const endOfDayInTimezone = dtInTimezone.endOf('day');
 
-    // The offset between local time and UTC for this specific date
-    const offsetMs = localMidnight.getTime() - utcMidnight;
-
-    // Calculate start and end in UTC
-    const start = new Date(utcMidnight + offsetMs);
-    const end = new Date(utcMidnight + offsetMs + 24 * 60 * 60 * 1000 - 1); // 23:59:59.999
+    // Convert back to UTC Date objects for database queries
+    const start = startOfDayInTimezone.toUTC().toJSDate();
+    const end = endOfDayInTimezone.toUTC().toJSDate();
 
     return { start, end };
   }
