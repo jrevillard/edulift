@@ -424,13 +424,13 @@ const getRecentActivityRoute = createRoute({
 });
 
 /**
- * GET /dashboard/weekly - Get rolling 7-day dashboard analytics
+ * GET /dashboard/7day-schedule - Get rolling 7-day dashboard analytics
  */
 const getWeeklyDashboardRoute = createRoute({
   method: 'get',
-  path: '/weekly',
+  path: '/7day-schedule',
   tags: ['Dashboard'],
-  summary: 'Get rolling 7-day dashboard',
+  summary: 'Get rolling 7-day schedule dashboard',
   description: 'Retrieve complete dashboard for a rolling 7-day period with detailed schedules and summary statistics. The period starts from the provided startDate (or today) and spans 7 days forward.',
   security: [{ Bearer: [] }],
   request: {

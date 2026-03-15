@@ -284,7 +284,7 @@ describe('DashboardController Test Suite', () => {
     });
   });
 
-  describe('GET /weekly', () => {
+  describe('GET /7day-schedule', () => {
     it('should return weekly dashboard successfully', async () => {
       const mockWeeklyDashboard = {
         success: true,
@@ -346,7 +346,7 @@ describe('DashboardController Test Suite', () => {
 
       mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
-      const response = await makeAuthenticatedRequest(app, '/weekly');
+      const response = await makeAuthenticatedRequest(app, '/7day-schedule');
       const data = await responseJson(response);
 
       expect(response.status).toBe(200);
@@ -375,7 +375,7 @@ describe('DashboardController Test Suite', () => {
 
       mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockWeeklyDashboard);
 
-      const response = await makeAuthenticatedRequest(app, `/weekly?startDate=${startDate}`);
+      const response = await makeAuthenticatedRequest(app, `/7day-schedule?startDate=${startDate}`);
       const data = await responseJson(response);
 
       expect(response.status).toBe(200);
@@ -392,7 +392,7 @@ describe('DashboardController Test Suite', () => {
 
       mockDashboardService.getWeeklyDashboard.mockResolvedValue(errorResponse);
 
-      const response = await makeAuthenticatedRequest(app, '/weekly');
+      const response = await makeAuthenticatedRequest(app, '/7day-schedule');
       const data = await responseJson(response);
 
       expect(response.status).toBe(401);
@@ -406,7 +406,7 @@ describe('DashboardController Test Suite', () => {
     it('should handle service errors when fetching weekly dashboard', async () => {
       mockDashboardService.getWeeklyDashboard.mockRejectedValue(new Error('Database connection failed'));
 
-      const response = await makeAuthenticatedRequest(app, '/weekly');
+      const response = await makeAuthenticatedRequest(app, '/7day-schedule');
       const data = await responseJson(response);
 
       expect(response.status).toBe(500);
@@ -424,7 +424,7 @@ describe('DashboardController Test Suite', () => {
   // =========================================================================
 
   describe('Array Response Validation', () => {
-    describe('GET /weekly', () => {
+    describe('GET /7day-schedule', () => {
       it('should return empty arrays for user with no schedule data', async () => {
         const mockEmptyWeeklyData = {
           success: true,
@@ -441,7 +441,7 @@ describe('DashboardController Test Suite', () => {
 
         mockDashboardService.getWeeklyDashboard.mockResolvedValue(mockEmptyWeeklyData as any);
 
-        const response = await makeAuthenticatedRequest(app, '/weekly?startDate=2025-01-06T00:00:00.000Z');
+        const response = await makeAuthenticatedRequest(app, '/7day-schedule?startDate=2025-01-06T00:00:00.000Z');
 
         expect(response.status).toBe(200);
         const data = await responseJson(response);
