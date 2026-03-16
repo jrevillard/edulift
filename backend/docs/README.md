@@ -4,16 +4,56 @@ Bienvenue dans la documentation du backend EduLift.
 
 ## 📚 Table des Matières
 
-### Documentation API
+### Documentation API REST (HTTP)
 
 - **[Migration OpenAPI - Résumé](./OPENAPI_SUMMARY.md)** - Vue d'ensemble de la migration vers OpenAPI 3.1
 - **[Plan de Migration OpenAPI](./OPENAPI_MIGRATION_PLAN.md)** - Plan complet détaillé en 7 phases avec stratégie de non-régression
 - **[Analyse des Endpoints](./OPENAPI_ENDPOINTS_ANALYSIS.md)** - Résultats de l'analyse d'utilisation des endpoints
 
+### Documentation API WebSocket (Real-time)
+
+- **[AsyncAPI Documentation](./asyncapi/README.md)** - Documentation complète de l'API WebSocket
+- **[AsyncAPI Specification](./asyncapi/asyncapi.yaml)** - Spécification AsyncAPI formelle
+- **[Examples](./asyncapi/examples/)** - Flows d'exemple pour les événements WebSocket
+
 ### Documentation Technique
 
 - **[Instructions pour les Agents AI](../AGENTS.md)** - Guide pour les assistants de code IA
 - **[Documentation API](./API_DOCUMENTATION.md)** - Documentation de l'API (à créer après migration)
+
+---
+
+## 🌐 API Documentation
+
+### API REST (HTTP)
+
+- **Spécification:** `/backend/docs/openapi/swagger.json`
+- **UI Interactive:** `http://localhost:3000/api-docs` (dev only)
+- **Génération:** `npm run swagger:generate`
+- **Version:** OpenAPI 3.1.0
+- **Endpoints:** 93+ endpoints documentés
+
+### API WebSocket (Real-time)
+
+- **Spécification:** `/backend/docs/asyncapi/asyncapi.yaml`
+- **Documentation:** `/backend/docs/asyncapi/README.md`
+- **Validation:** `npm run asyncapi:validate`
+- **Génération HTML:** `npm run asyncapi:generate`
+- **Version:** AsyncAPI 2.6.0
+- **Événements:** 40+ événements documentés
+
+**Événements WebSocket par catégorie:**
+
+| Catégorie | Événements | Description |
+|-----------|------------|-------------|
+| Connection | 2 | Connexion, déconnexion |
+| Groups | 9 | Création, suppression, gestion membres |
+| Schedules | 7 | Mises à jour créneaux horaires |
+| Children | 3 | Gestion des enfants |
+| Vehicles | 3 | Gestion des véhicules |
+| Families | 3 | Gestion des familles |
+| Presence | 4 | Statut utilisateurs |
+| System | 3 | Notifications, erreurs, heartbeat |
 
 ---
 

@@ -1,0 +1,190 @@
+# Connection Flow
+# Complete WebSocket connection and authentication flow
+
+name: Connection Flow
+description: |
+  This flow describes the complete process of establishing a WebSocket connection
+  with JWT authentication and reconnection management.
+
+steps:
+  - name: Client Initialization
+    description: Client initializes Socket.IO connection
+    details: |
+      ```typescript
+      import { io } from 'socket.io-client';
+
+      const socket = io('https://api.edulift.com', {
+        auth: {
+          token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+        },
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
+      ```
+
+  - name: TCP Connection Established
+    description: A TCP connection is established with the server
+    details: Client connects to wss://api.edulift.com/socket.io/
+
+  - name: Socket.IO Handshake
+    description: Client sends connection parameters
+    details: |
+      The HTTP handshake includes:
+      - Transport: websocket
+      - Auth token: JWT in auth.token field
+
+  - name: Server Authentication
+    description: Server validates the JWT token
+    details: |
+      - Verify token signature
+      - Check token expiration
+      - Extract userId from payload
+
+  - name: Authentication Success
+    description: Authentication succeeds
+    event:
+      name: connected
+      direction: server -> client
+      payload:
+        userId: "user-123"
+        groups: ["group-456", "group-789"]
+        timestamp: 1709654400
+
+  - name: Client Joins Default Rooms
+    description: Client automatically joins their groups' rooms
+    details: |
+      Server subscribes client to rooms:
+      - group:456
+      - group:789
+
+  - name: Client Ready
+    description: Client can now receive and emit events
+    details: |
+      ```typescript
+      socket.on('connected', (data) => {
+        console.log('Connected as:', data.userId);
+        console.log('Groups:', data.groups);
+
+        // Join additional rooms if needed
+        socket.emit('schedule:subscribe', {
+          groupId: 'group-456',
+          week: '2024-12'
+        });
+      });
+      ```
+
+  - name: Receive Real-time Events
+    description: Client receives real-time events
+    details: |
+      ```typescript
+      socket.on('group:family:added', (data) => {
+        console.log('New family joined:', data.familyId);
+        // Update UI
+      });
+
+      socket.on('schedule:slot:updated', (data) => {
+        console.log('Schedule slot updated:', data.scheduleSlotId);
+        // Refresh display
+      });
+      ```
+
+errorHandling:
+  authenticationFailed:
+    event: error
+    payload:
+      type: "AUTHENTICATION_FAILED"
+      message: "Invalid or expired token"
+    clientAction: |
+      - Display error message to user
+      - Redirect to login page
+      - Request new JWT token
+
+  connectionTimeout:
+    event: disconnect
+    payload:
+      reason: "timeout"
+    clientAction: |
+      Socket.IO automatically attempts reconnection
+      up to reconnectionAttempts (5 by default)
+
+  serverDisconnect:
+    event: disconnect
+    payload:
+      reason: "server_disconnect"
+    clientAction: |
+      Socket.IO automatically attempts reconnection
+      with increasing delay (reconnectionDelay)
+
+reconnectionFlow:
+  trigger: Connection lost (timeout, server shutdown, network issue)
+  automatic: true
+  maxAttempts: 5
+  delay: 1000ms (increasing exponentially)
+
+  steps:
+    - name: Connection Lost
+      description: Client detects connection loss
+      event:
+        name: disconnect
+        payload:
+          reason: "timeout"
+
+    - name: Attempt Reconnection
+      description: Socket.IO automatically attempts reconnection
+      delay: 1000ms
+
+    - name: Reconnection Success
+      description: Connection is re-established
+      event:
+        name: connected
+        payload:
+          userId: "user-123"
+          groups: ["group-456", "group-789"]
+          timestamp: 1709654500
+
+    - name: Re-subscribe to Rooms
+      description: Client must re-subscribe to rooms
+      details: |
+        ```typescript
+        socket.on('connect', () => {
+          // Re-subscribe to schedules
+          socket.emit('schedule:subscribe', {
+            groupId: 'group-456',
+            week: '2024-12'
+          });
+        });
+        ```
+
+cleanup:
+  onComponentUnmount:
+    description: Cleanup on component unmount
+    code: |
+      ```typescript
+      useEffect(() => {
+        // Setup listeners...
+
+        return () => {
+          // Unsubscribe from schedules
+          socket.emit('schedule:unsubscribe', {
+            groupId: 'group-456',
+            week: '2024-12'
+          });
+
+          // Leave group rooms
+          groups.forEach(groupId => {
+            socket.emit('group:leave', { groupId });
+          });
+
+          // Disconnect
+          socket.disconnect();
+        };
+      }, [groups]);
+      ```
+
+notes:
+  - The JWT token is obtained via REST API POST /auth/login
+  - The token must be valid and not expired
+  - Reconnection is automatic but requires re-subscribing to rooms
+  - It's recommended to listen to the 'error' event to handle server errors

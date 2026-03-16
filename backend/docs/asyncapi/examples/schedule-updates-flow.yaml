@@ -1,0 +1,401 @@
+# Schedule Updates Flow
+# Real-time schedule updates flow
+
+name: Schedule Updates Flow
+description: |
+  This flow describes how schedule and slot updates are managed in real-time
+  via WebSocket, from creation to capacity alerts.
+
+steps:
+  - name: User Subscribes to Schedule
+    description: A user subscribes to a group's schedule events
+    details: |
+      ```typescript
+      socket.emit('schedule:subscribe', {
+        groupId: 'group-abc123',
+        week: '2024-12'
+      });
+      ```
+
+  - name: Server Adds User to Schedule Room
+    description: Server subscribes the user to the schedule room
+    details: |
+      Room: `schedule:group-abc123:2024-12`
+      The user will now receive all events related to this schedule
+
+  - name: Admin Creates Schedule Slot
+    description: An admin creates a new schedule slot via REST API
+    details: |
+      ```http
+      POST /api/v1/groups/group-abc123/schedules/slots
+      Authorization: Bearer eyJhbGc...
+      Content-Type: application/json
+
+      {
+        "date": "2024-03-25",
+        "startTime": "08:00",
+        "endTime": "08:30",
+        "capacity": 5,
+        "location": "Market Square Stop"
+      }
+      ```
+
+  - name: Server Creates Slot in Database
+    description: Server creates the slot in database
+    details: |
+      - Generate unique scheduleSlotId
+      - Initialize currentLoad to 0
+      - Link to group and week
+
+  - name: Server Emits Slot Created Event
+    description: Server notifies all schedule subscribers
+    event:
+      name: schedule:slot:created
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        action: "created"
+        slot:
+          id: "slot-xyz789"
+          date: "2024-03-25"
+          startTime: "08:00"
+          endTime: "08:30"
+          capacity: 5
+          currentLoad: 0
+          location: "Market Square Stop"
+
+  - name: All Clients Update UI
+    description: All clients display the new slot
+    details: |
+      ```typescript
+      socket.on('schedule:slot:created', (data) => {
+        console.log('New slot created:', data.scheduleSlotId);
+        // Add slot to UI
+        addSlotToCalendar(data.slot);
+        // Show notification
+        showNotification('New slot available', 'info');
+      });
+      ```
+
+  - name: Driver Joins Slot
+    description: A driver registers for the slot
+    details: |
+      ```http
+      POST /api/v1/schedules/slots/slot-xyz789/join
+      Authorization: Bearer eyJhbGc...
+      Content-Type: application/json
+
+      {
+        "vehicleId": "vehicle-123",
+        "driverId": "user-456",
+        "childrenIds": ["child-1", "child-2"]
+      }
+      ```
+
+  - name: Server Updates Slot
+    description: Server updates the slot with new information
+    details: |
+      - Increment currentLoad (0 → 3)
+      - Register vehicle and driver
+      - Associate children
+
+  - name: Server Emits Slot Updated Event
+    description: Server notifies of the slot update
+    event:
+      name: schedule:slot:updated
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        action: "updated"
+        slot:
+          id: "slot-xyz789"
+          date: "2024-03-25"
+          startTime: "08:00"
+          endTime: "08:30"
+          capacity: 5
+          currentLoad: 3
+          vehicle:
+            id: "vehicle-123"
+            make: "Renault"
+            model: "Espace"
+          driver:
+            id: "user-456"
+            name: "Pierre Martin"
+          children:
+            - id: "child-1"
+              name: "Lucie Martin"
+            - id: "child-2"
+              name: "Thomas Martin"
+
+  - name: All Clients Refresh Slot Display
+    description: All clients update the slot display
+    details: |
+      ```typescript
+      socket.on('schedule:slot:updated', (data) => {
+        console.log('Slot updated:', data.scheduleSlotId);
+        // Update slot display
+        updateSlotDisplay(data.slot);
+        // Update capacity gauge
+        updateCapacityGauge(data.slot.currentLoad, data.slot.capacity);
+      });
+      ```
+
+  - name: Another Driver Joins
+    description: Another driver joins the slot
+    details: |
+      currentLoad goes from 3 → 5 (maximum capacity)
+
+  - name: Server Emits Capacity Full Event
+    description: Server notifies that the slot is full
+    event:
+      name: scheduleSlot:capacity:full
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        status: "full"
+        currentLoad: 5
+        capacity: 5
+        message: "This slot is now full"
+
+  - name: All Clients Disable Slot
+    description: All clients disable the slot in UI
+    details: |
+      ```typescript
+      socket.on('scheduleSlot:capacity:full', (data) => {
+        console.log('Slot is full:', data.scheduleSlotId);
+        // Disable join button
+        disableJoinButton(data.scheduleSlotId);
+        // Show visual indicator
+        showFullIndicator(data.scheduleSlotId);
+        // Show notification
+        showNotification(
+          'This slot is now full',
+          'warning'
+        );
+      });
+      ```
+
+  - name: Slot Approaches Capacity (Alternative Flow)
+    description: A slot approaches maximum capacity (80%)
+    trigger: currentLoad >= 0.8 * capacity
+    event:
+      name: scheduleSlot:capacity:warning
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        status: "warning"
+        currentLoad: 4
+        capacity: 5
+        message: "This slot is almost full (4/5 places)"
+
+  - name: Clients Show Warning Indicator
+    details: |
+      ```typescript
+      socket.on('scheduleSlot:capacity:warning', (data) => {
+        const percentage = (data.currentLoad / data.capacity) * 100;
+        console.log(`Slot is ${percentage}% full`);
+
+        // Show visual warning
+        showCapacityWarning(data.scheduleSlotId, percentage);
+        // Show notification
+        showNotification(
+          `This slot is almost full (${data.currentLoad}/${data.capacity} places)`,
+          'info'
+        );
+      });
+      ```
+
+  - name: Admin Updates Slot Details
+    description: An admin modifies slot details
+    details: |
+      ```http
+      PATCH /api/v1/schedules/slots/slot-xyz789
+      Authorization: Bearer eyJhbGc...
+      Content-Type: application/json
+
+      {
+        "startTime": "07:45",
+        "endTime": "08:15",
+        "location": "Market Square Stop (modified)"
+      }
+      ```
+
+  - name: Server Emits Update Event
+    description: Server notifies of the modification
+    event:
+      name: schedule:slot:updated
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        action: "updated"
+        slot:
+          id: "slot-xyz789"
+          date: "2024-03-25"
+          startTime: "07:45"
+          endTime: "08:15"
+          capacity: 5
+          currentLoad: 5
+          location: "Market Square Stop (modified)"
+
+  - name: Driver Leaves Slot
+    description: A driver unregisters from the slot
+    details: |
+      ```http
+      DELETE /api/v1/schedules/slots/slot-xyz789/leave
+      Authorization: Bearer eyJhbGc...
+      ```
+
+  - name: Server Updates Slot Load
+    description: Server updates the slot load
+    details: |
+      currentLoad goes from 5 → 2 (3 places freed)
+
+  - name: Server Emits Update Event
+    description: Server notifies of available places
+    event:
+      name: schedule:slot:updated
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        action: "updated"
+        slot:
+          id: "slot-xyz789"
+          currentLoad: 2
+          capacity: 5
+
+  - name: Clients Re-enable Slot
+    description: Clients re-enable the slot in UI
+    details: |
+      ```typescript
+      socket.on('schedule:slot:updated', (data) => {
+        if (data.slot.currentLoad < data.slot.capacity) {
+          // Re-enable join button
+          enableJoinButton(data.scheduleSlotId);
+          // Hide full indicator
+          hideFullIndicator(data.scheduleSlotId);
+          // Show notification
+          showNotification(
+            'Places are now available',
+            'success'
+          );
+        }
+      });
+      ```
+
+  - name: Admin Deletes Slot
+    description: An admin deletes a slot
+    details: |
+      ```http
+      DELETE /api/v1/schedules/slots/slot-xyz789
+      Authorization: Bearer eyJhbGc... (admin token)
+      ```
+
+  - name: Server Deletes Slot from Database
+    description: Server deletes the slot and all associations
+    details: |
+      - Delete slot
+      - Free drivers and vehicles
+      - Remove child associations
+
+  - name: Server Emits Slot Deleted Event
+    description: Server notifies of the deletion
+    event:
+      name: schedule:slot:deleted
+      direction: server -> client
+      room: schedule:group-abc123:2024-12
+      payload:
+        groupId: "group-abc123"
+        scheduleSlotId: "slot-xyz789"
+        action: "deleted"
+
+  - name: Clients Remove Slot from UI
+    description: Clients remove the slot from display
+    details: |
+      ```typescript
+      socket.on('schedule:slot:deleted', (data) => {
+        console.log('Slot deleted:', data.scheduleSlotId);
+        // Remove slot from UI
+        removeSlotFromCalendar(data.scheduleSlotId);
+        // Show notification
+        showNotification('Slot deleted', 'info');
+      });
+      ```
+
+  - name: User Unsubscribes from Schedule
+    description: A user unsubscribes from schedule events
+    details: |
+      ```typescript
+      socket.emit('schedule:unsubscribe', {
+        groupId: 'group-abc123',
+        week: '2024-12'
+      });
+      ```
+
+  - name: Server Removes User from Schedule Room
+    description: Server removes the user from the room
+    details: |
+      The user will no longer receive events from this schedule
+
+typingIndicatorsFlow:
+  name: Typing Indicators Flow
+  description: Real-time typing indicators management
+
+  steps:
+    - name: User Starts Typing
+      details: |
+        ```typescript
+        // Debounce the event
+        emitTyping(scheduleSlotId);
+
+        function emitTyping(scheduleSlotId: string) {
+          socket.emit('user:typing', { scheduleSlotId });
+
+          clearTimeout(typingTimeout);
+          typingTimeout = setTimeout(() => {
+            socket.emit('user:stopped_typing', { scheduleSlotId });
+          }, 1000);
+        }
+        ```
+
+    - name: Server Broadcasts Typing Event
+      event:
+        name: user:typing
+        direction: server -> client
+        room: slot:slot-xyz789
+        payload:
+          userId: "user-456"
+          scheduleSlotId: "slot-xyz789"
+          action: "typing"
+
+    - name: Other Users See Typing Indicator
+      details: |
+        ```typescript
+        socket.on('user:typing', (data) => {
+          if (data.userId !== currentUserId) {
+            showTypingIndicator(data.scheduleSlotId, data.userId);
+          }
+        });
+
+        socket.on('user:stopped_typing', (data) => {
+          hideTypingIndicator(data.scheduleSlotId, data.userId);
+        });
+        ```
+
+notes:
+  - Capacity events are emitted automatically during updates
+  - The warning threshold is configurable (default: 80%)
+  - Typing indicators are local to each slot
+  - It's recommended to unsubscribe from unused schedules to save resources
+  - Synchronization is immediate for all connected clients

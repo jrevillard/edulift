@@ -1,0 +1,284 @@
+# Group Management Flow
+# Group creation and management flow
+
+name: Group Management Flow
+description: |
+  This flow describes the complete process of creating a group and managing
+  its members via REST API and real-time WebSocket events.
+
+steps:
+  - name: Create Group via REST API
+    description: A user creates a group via REST API
+    details: |
+      ```http
+      POST /api/v1/groups
+      Authorization: Bearer eyJhbGc...
+      Content-Type: application/json
+
+      {
+        "name": "Saint-Exupéry School Group",
+        "description": "Transport for Saint-Exupéry School",
+        "timezone": "Europe/Paris"
+      }
+      ```
+
+  - name: Server Creates Group
+    description: Server creates the group in database
+    details: |
+      - Generate unique groupId
+      - Generate unique inviteCode
+      - Set creator as admin
+      - Add creator as member
+
+  - name: Server Emits WebSocket Event
+    description: Server notifies all concerned members
+    event:
+      name: group:created
+      direction: server -> client
+      room: group:{groupId}
+      payload:
+        groupId: "group-abc123"
+        action: "created"
+        createdBy: "user-456"
+        group:
+          id: "group-abc123"
+          name: "Saint-Exupéry School Group"
+          description: "Transport for Saint-Exupéry School"
+          inviteCode: "SCHOOL2024"
+          timezone: "Europe/Paris"
+
+  - name: Client Receives Event
+    description: Creator receives the creation event
+    details: |
+      ```typescript
+      socket.on('group:created', (data) => {
+        console.log('Group created:', data.groupId);
+        // Show success notification
+        showNotification('Group created successfully!', 'success');
+        // Navigate to group page
+        navigateToGroup(data.groupId);
+      });
+      ```
+
+  - name: Invite Family via Share Code
+    description: Creator shares the invitation code
+    details: |
+      Creator copies the code "SCHOOL2024" and sends it to another family
+      via email, SMS, or messaging app.
+
+  - name: Family Joins Group
+    description: A family joins the group with the invitation code
+    details: |
+      ```http
+      POST /api/v1/groups/join
+      Authorization: Bearer eyJhbGc...
+      Content-Type: application/json
+
+      {
+        "inviteCode": "SCHOOL2024"
+      }
+      ```
+
+  - name: Server Adds Family to Group
+    description: Server adds the family to the group
+    details: |
+      - Validate inviteCode
+      - Add family as member
+      - Default role: "member"
+
+  - name: Server Emits WebSocket Events
+    description: Server notifies all group members
+    events:
+      - name: group:family:added
+        direction: server -> client
+        room: group:abc123
+        payload:
+          groupId: "group-abc123"
+          familyId: "family-789"
+          action: "added"
+          familyName: "Dupont Family"
+          joinedBy: "user-456"
+
+      - name: member:joined
+        direction: server -> client
+        room: group:abc123
+        payload:
+          groupId: "group-abc123"
+          userId: "user-789"
+          action: "joined"
+          userName: "Marie Dupont"
+
+  - name: All Clients Update UI
+    description: All group members update their UI
+    details: |
+      ```typescript
+      socket.on('group:family:added', (data) => {
+        console.log('New family joined:', data.familyName);
+        // Refresh members list
+        refreshMembersList();
+        // Show notification
+        showNotification(
+          `${data.familyName} joined the group`,
+          'info'
+        );
+      });
+      ```
+
+  - name: Admin Updates Family Role
+    description: Admin promotes a family to admin
+    details: |
+      ```http
+      PATCH /api/v1/groups/group-abc123/families/family-789/role
+      Authorization: Bearer eyJhbGc...
+      Content-Type: application/json
+
+      {
+        "role": "admin"
+      }
+      ```
+
+  - name: Server Emits Role Update Event
+    description: Server notifies of the role change
+    event:
+      name: group:family:role:updated
+      direction: server -> client
+      room: group:abc123
+      payload:
+        groupId: "group-abc123"
+        familyId: "family-789"
+        newRole: "admin"
+        previousRole: "member"
+        updatedBy: "user-456"
+
+  - name: Family Leaves Group
+    description: A family decides to leave the group
+    details: |
+      ```http
+      DELETE /api/v1/groups/group-abc123/leave
+      Authorization: Bearer eyJhbGc...
+      ```
+
+  - name: Server Removes Family
+    description: Server removes the family from the group
+    details: |
+      - Remove family from members
+      - Remove slot assignments
+
+  - name: Server Emits Leave Events
+    description: Server notifies of the departure
+    events:
+      - name: group:family:left
+        direction: server -> client
+        room: group:abc123
+        payload:
+          groupId: "group-abc123"
+          familyId: "family-789"
+          action: "left"
+          familyName: "Dupont Family"
+
+      - name: member:left
+        direction: server -> client
+        room: group:abc123
+        payload:
+          groupId: "group-abc123"
+          userId: "user-789"
+          action: "left"
+          userName: "Marie Dupont"
+
+alternativeFlows:
+  - name: Admin Removes Family
+    trigger: Admin decides to remove a family
+    steps:
+      - name: Admin Calls Remove API
+        details: |
+          ```http
+          DELETE /api/v1/groups/group-abc123/families/family-789
+          Authorization: Bearer eyJhbGc... (admin token)
+          ```
+
+      - name: Server Emits Removed Event
+        event:
+          name: group:family:removed
+          direction: server -> client
+          room: group:abc123
+          payload:
+            groupId: "group-abc123"
+            familyId: "family-789"
+            action: "removed"
+            familyName: "Dupont Family"
+            removedBy: "user-456"
+
+  - name: Update Group Information
+    trigger: Admin modifies group information
+    steps:
+      - name: Admin Calls Update API
+        details: |
+          ```http
+          PATCH /api/v1/groups/group-abc123
+          Authorization: Bearer eyJhbGc...
+          Content-Type: application/json
+
+          {
+            "name": "Saint-Exupéry School Group - North",
+            "description": "North sector transport for school"
+          }
+          ```
+
+      - name: Server Emits Update Event
+        event:
+          name: group:updated
+          direction: server -> client
+          room: group:abc123
+          payload:
+            groupId: "group-abc123"
+            action: "updated"
+            updatedBy: "user-456"
+            group:
+              id: "group-abc123"
+              name: "Saint-Exupéry School Group - North"
+              description: "North sector transport for school"
+
+  - name: Delete Group
+    trigger: Admin deletes the group
+    steps:
+      - name: Admin Calls Delete API
+        details: |
+          ```http
+          DELETE /api/v1/groups/group-abc123
+          Authorization: Bearer eyJhbGc... (admin token)
+          ```
+
+      - name: Server Deletes Group
+        details: |
+          - Delete group from database
+          - Remove all members
+          - Delete all schedules and slots
+
+      - name: Server Emits Delete Event
+        event:
+          name: group:deleted
+          direction: server -> client
+          room: group:abc123
+          payload:
+            groupId: "group-abc123"
+            action: "deleted"
+            deletedBy: "user-456"
+
+      - name: All Clients Redirect
+        details: |
+          ```typescript
+          socket.on('group:deleted', (data) => {
+            console.log('Group deleted:', data.groupId);
+            // Redirect to groups list
+            navigateToGroupsList();
+            // Show notification
+            showNotification('This group has been deleted', 'warning');
+          });
+          ```
+
+notes:
+  - All WebSocket events are emitted in the group's room (group:{groupId})
+  - Clients must join the room with group:join to receive events
+  - Role changes are immediate and notified in real-time
+  - The invitation code remains valid as long as the group exists
+  - Only admins can change roles and delete the group
