@@ -122,15 +122,33 @@ export class AuthorizationService {
    */
   async canUserAccessGroups(userId: string, groupIds: string[]): Promise<{[groupId: string]: boolean}> {
     const results: {[groupId: string]: boolean} = {};
-    
+
     // Get accessible group IDs for the user
     const accessibleGroupIds = await this.getUserAccessibleGroupIds(userId);
-    
+
     // Check each requested group
     for (const groupId of groupIds) {
       results[groupId] = accessibleGroupIds.includes(groupId);
     }
-    
+
     return results;
+  }
+
+  /**
+   * Get all family IDs that a user belongs to
+   * Used during WebSocket connection setup to join family rooms
+   */
+  async getUserFamilies(userId: string): Promise<string[]> {
+    try {
+      const familyMemberships = await this.prisma.familyMember.findMany({
+        where: { userId },
+        select: { familyId: true },
+      });
+
+      return familyMemberships.map(fm => fm.familyId);
+    } catch (error) {
+      this.logger.error(`Error getting families for user ${userId}:`, { error: error instanceof Error ? error.message : String(error) });
+      return [];
+    }
   }
 }

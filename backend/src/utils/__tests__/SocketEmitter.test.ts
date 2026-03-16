@@ -133,7 +133,7 @@ describe('SocketEmitter', () => {
 
     it('should broadcast group update', () => {
       const groupData = { name: 'Updated Group Name', memberCount: 15 };
-      
+
       SocketEmitter.broadcastGroupUpdate(groupId, groupData);
 
       expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
@@ -157,6 +157,110 @@ describe('SocketEmitter', () => {
         },
       );
     });
+
+    it('should broadcast group created event', () => {
+      const groupData = { name: 'New Group', createdBy: 'user-123' };
+
+      SocketEmitter.broadcastGroupCreated(groupId, groupData);
+
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        groupId,
+        SOCKET_EVENTS.GROUP_CREATED,
+        {
+          groupId,
+          ...groupData,
+        },
+      );
+    });
+
+    it('should broadcast group deleted event', () => {
+      const groupData = { deletedBy: 'user-456' };
+
+      SocketEmitter.broadcastGroupDeleted(groupId, groupData);
+
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        groupId,
+        SOCKET_EVENTS.GROUP_DELETED,
+        {
+          groupId,
+          ...groupData,
+        },
+      );
+    });
+
+    it('should broadcast family added to group event', () => {
+      const familyId = 'family-123';
+      const familyData = { familyName: 'Smith Family', joinedBy: 'user-789' };
+
+      SocketEmitter.broadcastGroupFamilyAdded(groupId, familyId, familyData);
+
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        groupId,
+        SOCKET_EVENTS.GROUP_FAMILY_ADDED,
+        {
+          groupId,
+          familyId,
+          ...familyData,
+        },
+      );
+    });
+
+    it('should broadcast family left group event', () => {
+      const familyId = 'family-456';
+      const familyData = { familyName: 'Johnson Family' };
+
+      SocketEmitter.broadcastGroupFamilyLeft(groupId, familyId, familyData);
+
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        groupId,
+        SOCKET_EVENTS.GROUP_FAMILY_LEFT,
+        {
+          groupId,
+          familyId,
+          ...familyData,
+        },
+      );
+    });
+
+    it('should broadcast family removed from group event', () => {
+      const familyId = 'family-789';
+      const removedBy = 'user-999';
+      const familyData = { action: 'removed' };
+
+      SocketEmitter.broadcastGroupFamilyRemoved(groupId, familyId, removedBy, familyData);
+
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        groupId,
+        SOCKET_EVENTS.GROUP_FAMILY_REMOVED,
+        {
+          groupId,
+          familyId,
+          removedBy,
+          ...familyData,
+        },
+      );
+    });
+
+    it('should broadcast family role updated event', () => {
+      const familyId = 'family-101';
+      const newRole = 'ADMIN';
+      const changedBy = 'user-202';
+      const roleData = { oldRole: 'MEMBER', action: 'roleUpdated' };
+
+      SocketEmitter.broadcastGroupFamilyRoleUpdated(groupId, familyId, newRole, changedBy, roleData);
+
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        groupId,
+        SOCKET_EVENTS.GROUP_FAMILY_ROLE_UPDATED,
+        {
+          groupId,
+          familyId,
+          newRole,
+          changedBy,
+          ...roleData,
+        },
+      );
+    });
   });
 
   describe('Child Management Events', () => {
@@ -165,11 +269,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast child added event', () => {
       const childData = { childId: 'child-789', name: 'Alice Smith', age: 8 };
-      
+
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'added', childData);
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.CHILD_ADDED,
         {
           userId,
@@ -181,11 +285,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast child updated event', () => {
       const childData = { childId: 'child-789', name: 'Alice Johnson', age: 9 };
-      
+
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'updated', childData);
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.CHILD_UPDATED,
         {
           userId,
@@ -197,11 +301,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast child deleted event', () => {
       const childData = { childId: 'child-789' };
-      
+
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'deleted', childData);
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.CHILD_DELETED,
         {
           userId,
@@ -214,8 +318,8 @@ describe('SocketEmitter', () => {
     it('should handle child events without additional data', () => {
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'added');
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.CHILD_ADDED,
         {
           userId,
@@ -231,11 +335,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast vehicle added event', () => {
       const vehicleData = { vehicleId: 'vehicle-123', name: 'Honda Civic', capacity: 5 };
-      
+
       SocketEmitter.broadcastVehicleUpdate(userId, familyId, 'added', vehicleData);
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.VEHICLE_ADDED,
         {
           userId,
@@ -247,11 +351,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast vehicle updated event', () => {
       const vehicleData = { vehicleId: 'vehicle-123', name: 'Honda Civic 2024', capacity: 5 };
-      
+
       SocketEmitter.broadcastVehicleUpdate(userId, familyId, 'updated', vehicleData);
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.VEHICLE_UPDATED,
         {
           userId,
@@ -263,11 +367,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast vehicle deleted event', () => {
       const vehicleData = { vehicleId: 'vehicle-123' };
-      
+
       SocketEmitter.broadcastVehicleUpdate(userId, familyId, 'deleted', vehicleData);
 
-      expect(mockSocketHandler.broadcastToUser).toHaveBeenCalledWith(
-        userId,
+      expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
+        `family-${familyId}`,
         SOCKET_EVENTS.VEHICLE_DELETED,
         {
           userId,
@@ -283,11 +387,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast family member joined event', () => {
       const memberData = { memberId: 'member-123', name: 'John Doe', role: 'parent' };
-      
+
       SocketEmitter.broadcastFamilyUpdate(familyId, 'memberJoined', memberData);
 
       expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
-        familyId,
+        `family-${familyId}`,
         SOCKET_EVENTS.FAMILY_MEMBER_JOINED,
         {
           familyId,
@@ -298,11 +402,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast family member left event', () => {
       const memberData = { memberId: 'member-123', name: 'John Doe' };
-      
+
       SocketEmitter.broadcastFamilyUpdate(familyId, 'memberLeft', memberData);
 
       expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
-        familyId,
+        `family-${familyId}`,
         SOCKET_EVENTS.FAMILY_MEMBER_LEFT,
         {
           familyId,
@@ -313,11 +417,11 @@ describe('SocketEmitter', () => {
 
     it('should broadcast family updated event', () => {
       const familyData = { name: 'The Smith Family', memberCount: 4 };
-      
+
       SocketEmitter.broadcastFamilyUpdate(familyId, 'updated', familyData);
 
       expect(mockSocketHandler.broadcastToGroup).toHaveBeenCalledWith(
-        familyId,
+        `family-${familyId}`,
         SOCKET_EVENTS.FAMILY_UPDATED,
         {
           familyId,
@@ -387,9 +491,9 @@ describe('SocketEmitter', () => {
 
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'added', extraData);
 
-      const [actualUserId, actualEvent, actualData] = mockSocketHandler.broadcastToUser.mock.calls[0];
-      
-      expect(actualUserId).toBe(userId);
+      const [actualRoom, actualEvent, actualData] = mockSocketHandler.broadcastToGroup.mock.calls[0];
+
+      expect(actualRoom).toBe(`family-${familyId}`);
       expect(actualEvent).toBe(SOCKET_EVENTS.CHILD_ADDED);
       expect(actualData).toEqual({
         userId,
@@ -419,7 +523,7 @@ describe('SocketEmitter', () => {
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'updated');
       SocketEmitter.broadcastChildUpdate(userId, familyId, 'deleted');
 
-      const calls = mockSocketHandler.broadcastToUser.mock.calls;
+      const calls = mockSocketHandler.broadcastToGroup.mock.calls;
       expect(calls[0][1]).toBe(SOCKET_EVENTS.CHILD_ADDED);
       expect(calls[1][1]).toBe(SOCKET_EVENTS.CHILD_UPDATED);
       expect(calls[2][1]).toBe(SOCKET_EVENTS.CHILD_DELETED);
@@ -433,7 +537,7 @@ describe('SocketEmitter', () => {
       SocketEmitter.broadcastVehicleUpdate(userId, familyId, 'updated');
       SocketEmitter.broadcastVehicleUpdate(userId, familyId, 'deleted');
 
-      const calls = mockSocketHandler.broadcastToUser.mock.calls;
+      const calls = mockSocketHandler.broadcastToGroup.mock.calls;
       expect(calls[0][1]).toBe(SOCKET_EVENTS.VEHICLE_ADDED);
       expect(calls[1][1]).toBe(SOCKET_EVENTS.VEHICLE_UPDATED);
       expect(calls[2][1]).toBe(SOCKET_EVENTS.VEHICLE_DELETED);
@@ -447,8 +551,11 @@ describe('SocketEmitter', () => {
       SocketEmitter.broadcastFamilyUpdate(familyId, 'updated');
 
       const calls = mockSocketHandler.broadcastToGroup.mock.calls;
+      expect(calls[0][0]).toBe(`family-${familyId}`);
       expect(calls[0][1]).toBe(SOCKET_EVENTS.FAMILY_MEMBER_JOINED);
+      expect(calls[1][0]).toBe(`family-${familyId}`);
       expect(calls[1][1]).toBe(SOCKET_EVENTS.FAMILY_MEMBER_LEFT);
+      expect(calls[2][0]).toBe(`family-${familyId}`);
       expect(calls[2][1]).toBe(SOCKET_EVENTS.FAMILY_UPDATED);
     });
   });

@@ -11,6 +11,7 @@ import {
   FamilySearchResult,
 } from '../types/GroupTypes';
 import { createLogger } from '../utils/logger';
+import { SocketEmitter } from '../utils/socketEmitter';
 
 interface GroupInviteValidationResponse {
   valid: boolean;
@@ -338,6 +339,12 @@ export class GroupService {
         entityName: data.name,
       });
 
+      // Broadcast group creation event
+      SocketEmitter.broadcastGroupCreated(group.id, {
+        action: 'created',
+        createdBy: data.createdBy,
+      });
+
       // Return enriched group with userRole (RESTful consistency)
       return await this.enrichGroupWithUserContext(group, data.createdBy);
     } catch (error) {
@@ -476,6 +483,14 @@ export class GroupService {
         entityType: 'group',
         entityId: group.id,
         entityName: group.name,
+      });
+
+      // Broadcast family added to group event
+      SocketEmitter.broadcastGroupFamilyAdded(group.id, userFamily.familyId, {
+        action: 'joined',
+        familyId: userFamily.familyId,
+        familyName: userFamily.family.name,
+        joinedBy: userId,
       });
 
       // Return enriched group with userRole (RESTful consistency)
@@ -719,6 +734,15 @@ export class GroupService {
         entityId: groupId,
       });
 
+      // Broadcast family role updated event
+      SocketEmitter.broadcastGroupFamilyRoleUpdated(groupId, targetFamilyId, newRole, requesterId, {
+        action: 'roleUpdated',
+        familyId: targetFamilyId,
+        oldRole: currentMembership.role,
+        newRole,
+        changedBy: requesterId,
+      });
+
       // Convert Date objects to ISO strings for JSON serialization
       // Return in schema order: groupId, familyId, role, joinedAt, addedBy, family
       // Note: GroupFamilyMember uses composite key (familyId+groupId), not separate id field
@@ -810,6 +834,13 @@ export class GroupService {
         entityId: groupId,
       });
 
+      // Broadcast family removed from group event
+      SocketEmitter.broadcastGroupFamilyRemoved(groupId, targetFamilyId, requesterId, {
+        action: 'removed',
+        familyId: targetFamilyId,
+        removedBy: requesterId,
+      });
+
       // Return enriched Group with userRole (RESTful consistency)
       return await this.enrichGroupWithUserContext(updatedGroup, requesterId);
     } catch (error) {
@@ -881,6 +912,13 @@ export class GroupService {
         entityName: updatedGroup.name,
       });
 
+      // Broadcast group update event
+      SocketEmitter.broadcastGroupUpdate(groupId, {
+        action: 'updated',
+        changes: updateData,
+        changedBy: requesterId,
+      });
+
       // Use shared enrichment logic for consistent REST response
       return await this.enrichGroupWithUserContext(updatedGroup, requesterId);
     } catch (error) {
@@ -927,6 +965,12 @@ export class GroupService {
         actionDescription: 'Deleted group',
         entityType: 'group',
         entityId: groupId,
+      });
+
+      // Broadcast group deletion event
+      SocketEmitter.broadcastGroupDeleted(groupId, {
+        action: 'deleted',
+        deletedBy: requesterId,
       });
 
       return { success: true };
@@ -998,6 +1042,13 @@ export class GroupService {
         actionDescription: `Family "${userFamily.family.name}" left group`,
         entityType: 'group',
         entityId: groupId,
+      });
+
+      // Broadcast family left group event
+      SocketEmitter.broadcastGroupFamilyLeft(groupId, userFamily.familyId, {
+        action: 'left',
+        familyId: userFamily.familyId,
+        familyName: userFamily.family.name,
       });
 
       return { success: true };

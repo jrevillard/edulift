@@ -27,6 +27,7 @@ jest.mock('../../services/AuthorizationService', () => {
       canUserAccessScheduleSlot: jest.fn().mockResolvedValue(true),
       canUserAccessFamily: jest.fn().mockResolvedValue(true),
       getUserAccessibleGroupIds: jest.fn().mockResolvedValue([]),
+      getUserFamilies: jest.fn().mockResolvedValue([]),
       canUserAccessGroups: jest.fn().mockResolvedValue({}),
     })),
   };
@@ -294,7 +295,7 @@ describe('SocketHandler Security', () => {
         // Try to subscribe to unauthorized group schedule
         clientSocket.emit(SOCKET_EVENTS.SCHEDULE_SUBSCRIBE, {
           groupId: UNAUTHORIZED_GROUP_ID,
-          week: '2024-01-01',
+          week: '2024-1',
         });
       });
 

@@ -91,14 +91,15 @@ export class SocketEmitter {
       logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastChildUpdate', userId, familyId, eventType });
       return;
     }
-    
+
     const eventMap = {
       added: SOCKET_EVENTS.CHILD_ADDED,
       updated: SOCKET_EVENTS.CHILD_UPDATED,
       deleted: SOCKET_EVENTS.CHILD_DELETED,
     };
-    
-    globalSocketHandler.broadcastToUser(userId, eventMap[eventType], {
+
+    // Broadcast to family room so ALL family members receive the notification
+    globalSocketHandler.broadcastToGroup(`family-${familyId}`, eventMap[eventType], {
       userId,
       familyId,
       ...(data as Record<string, unknown>),
@@ -110,14 +111,15 @@ export class SocketEmitter {
       logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastVehicleUpdate', userId, familyId, eventType });
       return;
     }
-    
+
     const eventMap = {
       added: SOCKET_EVENTS.VEHICLE_ADDED,
       updated: SOCKET_EVENTS.VEHICLE_UPDATED,
       deleted: SOCKET_EVENTS.VEHICLE_DELETED,
     };
-    
-    globalSocketHandler.broadcastToUser(userId, eventMap[eventType], {
+
+    // Broadcast to family room so ALL family members receive the notification
+    globalSocketHandler.broadcastToGroup(`family-${familyId}`, eventMap[eventType], {
       userId,
       familyId,
       ...(data as Record<string, unknown>),
@@ -129,16 +131,96 @@ export class SocketEmitter {
       logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastFamilyUpdate', familyId, eventType });
       return;
     }
-    
+
     const eventMap = {
       memberJoined: SOCKET_EVENTS.FAMILY_MEMBER_JOINED,
       memberLeft: SOCKET_EVENTS.FAMILY_MEMBER_LEFT,
       updated: SOCKET_EVENTS.FAMILY_UPDATED,
     };
-    
-    // Broadcast to all family members (assuming they're in rooms based on family ID)
-    globalSocketHandler.broadcastToGroup(familyId, eventMap[eventType], {
+
+    // Broadcast to family room so ALL family members receive the notification
+    globalSocketHandler.broadcastToGroup(`family-${familyId}`, eventMap[eventType], {
       familyId,
+      ...(data as Record<string, unknown>),
+    });
+  };
+
+  // Group Management Events
+  static broadcastGroupCreated = (groupId: string, data?: unknown): void => {
+    if (!globalSocketHandler) {
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupCreated', groupId });
+      return;
+    }
+
+    globalSocketHandler.broadcastToGroup(groupId, SOCKET_EVENTS.GROUP_CREATED, {
+      groupId,
+      ...(data as Record<string, unknown>),
+    });
+  };
+
+  static broadcastGroupDeleted = (groupId: string, data?: unknown): void => {
+    if (!globalSocketHandler) {
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupDeleted', groupId });
+      return;
+    }
+
+    globalSocketHandler.broadcastToGroup(groupId, SOCKET_EVENTS.GROUP_DELETED, {
+      groupId,
+      ...(data as Record<string, unknown>),
+    });
+  };
+
+  static broadcastGroupFamilyAdded = (groupId: string, familyId: string, data?: unknown): void => {
+    if (!globalSocketHandler) {
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupFamilyAdded', groupId, familyId });
+      return;
+    }
+
+    globalSocketHandler.broadcastToGroup(groupId, SOCKET_EVENTS.GROUP_FAMILY_ADDED, {
+      groupId,
+      familyId,
+      ...(data as Record<string, unknown>),
+    });
+  };
+
+  static broadcastGroupFamilyLeft = (groupId: string, familyId: string, data?: unknown): void => {
+    if (!globalSocketHandler) {
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupFamilyLeft', groupId, familyId });
+      return;
+    }
+
+    globalSocketHandler.broadcastToGroup(groupId, SOCKET_EVENTS.GROUP_FAMILY_LEFT, {
+      groupId,
+      familyId,
+      ...(data as Record<string, unknown>),
+    });
+  };
+
+  static broadcastGroupFamilyRemoved = (groupId: string, familyId: string, removedBy: string, data?: unknown): void => {
+    if (!globalSocketHandler) {
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupFamilyRemoved', groupId, familyId });
+      return;
+    }
+
+    globalSocketHandler.broadcastToGroup(groupId, SOCKET_EVENTS.GROUP_FAMILY_REMOVED, {
+      groupId,
+      familyId,
+      removedBy,
+      ...(data as Record<string, unknown>),
+    });
+  };
+
+  static broadcastGroupFamilyRoleUpdated = (groupId: string, familyId: string, newRole: string, changedBy: string, data?: unknown): void => {
+    if (!globalSocketHandler) {
+      logger.warn('SocketHandler not initialized, skipping WebSocket emission', { operation: 'broadcastGroupFamilyRoleUpdated', groupId, familyId });
+      return;
+    }
+
+    globalSocketHandler.broadcastToGroup(groupId, SOCKET_EVENTS.GROUP_FAMILY_ROLE_UPDATED, {
+      groupId,
+      familyId,
+      newRole,
+      changedBy,
       ...(data as Record<string, unknown>),
     });
   };

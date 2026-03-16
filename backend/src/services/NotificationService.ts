@@ -94,7 +94,6 @@ export class NotificationService {
         return;
       }
 
-      // TODO: Replace with family-based notifications - get family members instead of individual group members
       // Get group members to notify
       const groupMembers = await this.userRepository.getGroupMembers(scheduleSlot.groupId) as GroupMemberWithUser[];
 
@@ -117,7 +116,6 @@ export class NotificationService {
         const vehicles = scheduleSlot.vehicleAssignments.map(va => ({
           name: va.vehicle.name,
           capacity: va.vehicle.capacity,
-          ...(va.driver?.name && { driverName: va.driver.name }),
         }));
         notificationData.vehicles = vehicles;
         notificationData.totalCapacity = vehicles.reduce((sum: number, v) => sum + v.capacity, 0);
@@ -149,7 +147,6 @@ export class NotificationService {
           assignedChildren: scheduleSlot.childAssignments?.map(a => a.child.name) || [],
           vehicles: scheduleSlot.vehicleAssignments?.map(va => ({
             name: va.vehicle.name,
-            ...(va.driver?.name && { driverName: va.driver.name }),
           })) || [],
         },
       ).catch(error => {
@@ -203,17 +200,26 @@ export class NotificationService {
       }>>();
 
       for (const slot of scheduleSlots) {
-        // Add slot for drivers
+        // Add slot for vehicle's family members (instead of individual driver)
         for (const vehicleAssignment of slot.vehicleAssignments || []) {
-          if (vehicleAssignment.driver) {
-            if (!userSlots.has(vehicleAssignment.driver.id)) {
-              userSlots.set(vehicleAssignment.driver.id, []);
-            }
-            userSlots.get(vehicleAssignment.driver.id)?.push({
-              datetime: slot.datetime,
-              vehicle: vehicleAssignment.vehicle,
-              role: 'driver',
+          if (vehicleAssignment.vehicle.familyId) {
+            // Get all members of the vehicle's family
+            const vehicleFamilyMembers = await this.prisma.familyMember.findMany({
+              where: { familyId: vehicleAssignment.vehicle.familyId },
+              select: { userId: true },
             });
+
+            for (const familyMember of vehicleFamilyMembers) {
+              const userId = familyMember.userId;
+              if (!userSlots.has(userId)) {
+                userSlots.set(userId, []);
+              }
+              userSlots.get(userId)?.push({
+                datetime: slot.datetime,
+                vehicle: vehicleAssignment.vehicle,
+                role: 'vehicle-family',
+              });
+            }
           }
         }
 
@@ -253,7 +259,6 @@ export class NotificationService {
 
         const formattedSlots = userSlotList.map(slot => ({
           datetime: slot.datetime.toISOString(),
-          ...(slot.vehicle?.driver?.name && { driverName: slot.vehicle.driver.name }),
           ...(slot.vehicle?.name && { vehicleName: slot.vehicle.name }),
           children: slot.role === 'parent' ? [slot.childName!] :
                    slot.childAssignments?.map(a => a.child.name) || [],
@@ -359,15 +364,21 @@ export class NotificationService {
 
       case 'VEHICLE_ASSIGNED':
       case 'DRIVER_ASSIGNED': {
-        // Notify parents of assigned children and drivers
+        // Notify parents of assigned children and vehicle's family members
         const affectedUsers = new Set<string>();
 
-        // Add all drivers
-        scheduleSlot.vehicleAssignments?.forEach(va => {
-          if (va.driver) {
-            affectedUsers.add(va.driver.id);
+        // Add all members of vehicle's family (instead of individual driver)
+        for (const va of scheduleSlot.vehicleAssignments || []) {
+          if (va.vehicle.familyId) {
+            const vehicleFamilyMembers = await this.prisma.familyMember.findMany({
+              where: { familyId: va.vehicle.familyId },
+              select: { userId: true },
+            });
+            vehicleFamilyMembers.forEach(member => {
+              affectedUsers.add(member.userId);
+            });
           }
-        });
+        }
 
         // Add family members of assigned children
         for (const assignment of scheduleSlot.childAssignments || []) {
@@ -399,15 +410,21 @@ export class NotificationService {
 
       case 'CHILD_ADDED':
       case 'CHILD_REMOVED': {
-        // Notify drivers and parents of all children in the slot
+        // Notify vehicle's family members and parents of all children in the slot
         const allAffectedUsers = new Set<string>();
 
-        // Add all drivers
-        scheduleSlot.vehicleAssignments?.forEach(va => {
-          if (va.driver) {
-            allAffectedUsers.add(va.driver.id);
+        // Add all members of vehicle's family (instead of individual driver)
+        for (const va of scheduleSlot.vehicleAssignments || []) {
+          if (va.vehicle.familyId) {
+            const vehicleFamilyMembers = await this.prisma.familyMember.findMany({
+              where: { familyId: va.vehicle.familyId },
+              select: { userId: true },
+            });
+            vehicleFamilyMembers.forEach(member => {
+              allAffectedUsers.add(member.userId);
+            });
           }
-        });
+        }
 
         // Add family members of all assigned children
         for (const assignment of scheduleSlot.childAssignments || []) {
@@ -438,14 +455,21 @@ export class NotificationService {
         }
 
       case 'SLOT_CANCELLED': {
-        // Notify all affected users (drivers + parents of children)
+        // Notify all affected users (vehicle's family members + parents of children)
         const cancelledSlotUsers = new Set<string>();
 
-        scheduleSlot.vehicleAssignments?.forEach(va => {
-          if (va.driver) {
-            cancelledSlotUsers.add(va.driver.id);
+        // Add all members of vehicle's family (instead of individual driver)
+        for (const va of scheduleSlot.vehicleAssignments || []) {
+          if (va.vehicle.familyId) {
+            const vehicleFamilyMembers = await this.prisma.familyMember.findMany({
+              where: { familyId: va.vehicle.familyId },
+              select: { userId: true },
+            });
+            vehicleFamilyMembers.forEach(member => {
+              cancelledSlotUsers.add(member.userId);
+            });
           }
-        });
+        }
 
         // Add family members of cancelled children assignments
         for (const assignment of scheduleSlot.childAssignments || []) {

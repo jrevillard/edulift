@@ -185,6 +185,7 @@ describe('SocketHandler', () => {
       mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(true);
       mockAuthService.canUserAccessFamily = jest.fn().mockResolvedValue(true);
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([TEST_GROUP_ID, 'another-group-id']);
+      mockAuthService.getUserFamilies = jest.fn().mockResolvedValue(['test-family-123']);
       mockAuthService.canUserAccessGroups = jest.fn().mockResolvedValue({
         [TEST_GROUP_ID]: true,
         'another-group-id': true,
@@ -594,6 +595,7 @@ describe('SocketHandler', () => {
       // Mock the authorization service to return empty groups for this specific user
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
+      mockAuthService.getUserFamilies = jest.fn().mockResolvedValue([]);
       
       const token = jwt.sign({ userId: 'user-without-family' }, JWT_ACCESS_SECRET);
       
@@ -619,6 +621,7 @@ describe('SocketHandler', () => {
       // Mock authorization service to throw database error
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockRejectedValue(new Error('Database error'));
+      mockAuthService.getUserFamilies = jest.fn().mockRejectedValue(new Error('Database error'));
       
       const token = jwt.sign({ userId: 'user-db-error' }, JWT_ACCESS_SECRET);
       

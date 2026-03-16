@@ -13,8 +13,15 @@ export const SOCKET_EVENTS = {
   // Group Management Events
   GROUP_JOIN: 'group:join',
   GROUP_LEAVE: 'group:leave',
+  GROUP_CREATED: 'group:created',
+  GROUP_DELETED: 'group:deleted',
+  GROUP_FAMILY_ADDED: 'group:family:added',
+  GROUP_FAMILY_LEFT: 'group:family:left',
+  GROUP_FAMILY_REMOVED: 'group:family:removed',
+  GROUP_FAMILY_ROLE_UPDATED: 'group:family:role:updated',
+  GROUP_INVITATION_SENT: 'group:invitation:sent',
   GROUP_UPDATED: 'group:updated',
-  MEMBER_JOINED: 'member:joined', 
+  MEMBER_JOINED: 'member:joined',
   MEMBER_LEFT: 'member:left',
   
   // User Presence Events

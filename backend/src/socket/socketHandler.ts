@@ -13,6 +13,15 @@ import jwt from 'jsonwebtoken';
 import { SOCKET_EVENTS } from '../shared/events';
 import { AuthorizationService } from '../services/AuthorizationService';
 import { createLogger } from '../utils/logger';
+import {
+  validatePayload,
+  scheduleSlotUpdateSchema,
+  scheduleSlotJoinSchema,
+  groupJoinSchema,
+  scheduleSubscribeSchema,
+  typingStartSchema,
+  authenticateSchema,
+} from './validation';
 
 // Extend Socket interface to include userId
 declare module 'socket.io' {
@@ -149,10 +158,29 @@ export class SocketHandler {
 
         // Schedule Slot related events
         socket.on(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, async (data) => {
-          await this.socketService.handleScheduleSlotUpdate(socket, this.io, data);
+          // Validate payload before processing
+          const validation = validatePayload(scheduleSlotUpdateSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+          await this.socketService.handleScheduleSlotUpdate(socket, this.io, validation.data as any);
         });
 
-        socket.on(SOCKET_EVENTS.SCHEDULE_SLOT_JOIN, async (data: { scheduleSlotId: string }) => {
+        socket.on(SOCKET_EVENTS.SCHEDULE_SLOT_JOIN, async (data) => {
+          // Validate payload first
+          const validation = validatePayload(scheduleSlotJoinSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -162,8 +190,8 @@ export class SocketHandler {
             return;
           }
 
-          const canAccess = await this.authorizationService.canUserAccessScheduleSlot(socket.userId, data.scheduleSlotId);
-          
+          const canAccess = await this.authorizationService.canUserAccessScheduleSlot(socket.userId, validation.data.scheduleSlotId);
+
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
@@ -172,19 +200,39 @@ export class SocketHandler {
             return;
           }
 
-          await socket.join(`scheduleSlot-${data.scheduleSlotId}`);
+          await socket.join(`scheduleSlot-${validation.data.scheduleSlotId}`);
           if (process.env.NODE_ENV !== 'test') {
-            this.logger.info(`User ${socket.userId} joined schedule slot ${data.scheduleSlotId}`);
+            this.logger.info(`User ${socket.userId} joined schedule slot ${validation.data.scheduleSlotId}`);
           }
         });
 
-        socket.on(SOCKET_EVENTS.SCHEDULE_SLOT_LEAVE, async (data: { scheduleSlotId: string }) => {
-          await socket.leave(`scheduleSlot-${data.scheduleSlotId}`);
-          this.logger.info(`User ${socket.userId} left schedule slot ${data.scheduleSlotId}`);
+        socket.on(SOCKET_EVENTS.SCHEDULE_SLOT_LEAVE, async (data) => {
+          // Validate payload first
+          const validation = validatePayload(scheduleSlotJoinSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
+          await socket.leave(`scheduleSlot-${validation.data.scheduleSlotId}`);
+          this.logger.info(`User ${socket.userId} left schedule slot ${validation.data.scheduleSlotId}`);
         });
 
         // Group-related events
-        socket.on(SOCKET_EVENTS.GROUP_JOIN, async (data: { groupId: string }) => {
+        socket.on(SOCKET_EVENTS.GROUP_JOIN, async (data) => {
+          // Validate payload first
+          const validation = validatePayload(groupJoinSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -194,8 +242,8 @@ export class SocketHandler {
             return;
           }
 
-          const canAccess = await this.authorizationService.canUserAccessGroup(socket.userId, data.groupId);
-          
+          const canAccess = await this.authorizationService.canUserAccessGroup(socket.userId, validation.data.groupId);
+
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
@@ -204,23 +252,43 @@ export class SocketHandler {
             return;
           }
 
-          await socket.join(data.groupId);
-          socket.to(data.groupId).emit(SOCKET_EVENTS.USER_JOINED, {
+          await socket.join(validation.data.groupId);
+          socket.to(validation.data.groupId).emit(SOCKET_EVENTS.USER_JOINED, {
             userId: socket.userId,
-            groupId: data.groupId,
+            groupId: validation.data.groupId,
           });
         });
 
-        socket.on(SOCKET_EVENTS.GROUP_LEAVE, async (data: { groupId: string }) => {
-          await socket.leave(data.groupId);
-          socket.to(data.groupId).emit(SOCKET_EVENTS.USER_LEFT, {
+        socket.on(SOCKET_EVENTS.GROUP_LEAVE, async (data) => {
+          // Validate payload first
+          const validation = validatePayload(groupJoinSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
+          await socket.leave(validation.data.groupId);
+          socket.to(validation.data.groupId).emit(SOCKET_EVENTS.USER_LEFT, {
             userId: socket.userId,
-            groupId: data.groupId,
+            groupId: validation.data.groupId,
           });
         });
 
         // Schedule-related events
-        socket.on(SOCKET_EVENTS.SCHEDULE_SUBSCRIBE, async (data: { groupId: string, week: string }) => {
+        socket.on(SOCKET_EVENTS.SCHEDULE_SUBSCRIBE, async (data) => {
+          // Validate payload first
+          const validation = validatePayload(scheduleSubscribeSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -230,7 +298,7 @@ export class SocketHandler {
             return;
           }
 
-          const canAccess = await this.authorizationService.canUserAccessGroup(socket.userId, data.groupId);
+          const canAccess = await this.authorizationService.canUserAccessGroup(socket.userId, validation.data.groupId);
           
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -240,15 +308,35 @@ export class SocketHandler {
             return;
           }
 
-          await socket.join(`schedule-${data.groupId}-${data.week}`);
+          await socket.join(`schedule-${validation.data.groupId}-${validation.data.week}`);
         });
 
-        socket.on(SOCKET_EVENTS.SCHEDULE_UNSUBSCRIBE, async (data: { groupId: string, week: string }) => {
-          await socket.leave(`schedule-${data.groupId}-${data.week}`);
+        socket.on(SOCKET_EVENTS.SCHEDULE_UNSUBSCRIBE, async (data) => {
+          // Validate payload first
+          const validation = validatePayload(scheduleSubscribeSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
+          await socket.leave(`schedule-${validation.data.groupId}-${validation.data.week}`);
         });
 
         // Real-time collaboration events
-        socket.on('typing:start', async (data: { scheduleSlotId: string }) => {
+        socket.on('typing:start', async (data) => {
+          // Validate payload first
+          const validation = validatePayload(typingStartSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -258,7 +346,7 @@ export class SocketHandler {
             return;
           }
 
-          const canAccess = await this.authorizationService.canUserAccessScheduleSlot(socket.userId, data.scheduleSlotId);
+          const canAccess = await this.authorizationService.canUserAccessScheduleSlot(socket.userId, validation.data.scheduleSlotId);
           
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -268,13 +356,23 @@ export class SocketHandler {
             return;
           }
 
-          socket.to(`scheduleSlot-${data.scheduleSlotId}`).emit(SOCKET_EVENTS.USER_TYPING, {
+          socket.to(`scheduleSlot-${validation.data.scheduleSlotId}`).emit(SOCKET_EVENTS.USER_TYPING, {
             userId: socket.userId,
-            scheduleSlotId: data.scheduleSlotId,
+            scheduleSlotId: validation.data.scheduleSlotId,
           });
         });
 
-        socket.on('typing:stop', async (data: { scheduleSlotId: string }) => {
+        socket.on('typing:stop', async (data) => {
+          // Validate payload first
+          const validation = validatePayload(typingStartSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
             socket.emit(SOCKET_EVENTS.ERROR, {
@@ -284,8 +382,8 @@ export class SocketHandler {
             return;
           }
 
-          const canAccess = await this.authorizationService.canUserAccessScheduleSlot(socket.userId, data.scheduleSlotId);
-          
+          const canAccess = await this.authorizationService.canUserAccessScheduleSlot(socket.userId, validation.data.scheduleSlotId);
+
           if (!canAccess) {
             socket.emit(SOCKET_EVENTS.ERROR, {
               type: 'AUTHORIZATION_ERROR',
@@ -294,9 +392,9 @@ export class SocketHandler {
             return;
           }
 
-          socket.to(`scheduleSlot-${data.scheduleSlotId}`).emit(SOCKET_EVENTS.USER_STOPPED_TYPING, {
+          socket.to(`scheduleSlot-${validation.data.scheduleSlotId}`).emit(SOCKET_EVENTS.USER_STOPPED_TYPING, {
             userId: socket.userId,
-            scheduleSlotId: data.scheduleSlotId,
+            scheduleSlotId: validation.data.scheduleSlotId,
           });
         });
 
@@ -306,24 +404,54 @@ export class SocketHandler {
         });
 
         // Test-specific event handlers for simplified room operations
-        socket.on('join-group', async (groupId: string) => {
+        socket.on('join-group', async (data) => {
+          // Accept both raw string and object format for backwards compatibility
+          const groupId = typeof data === 'string' ? data : data?.id;
+          if (!groupId) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: 'Invalid group ID',
+            });
+            return;
+          }
+
           if (socket.userId) {
             await socket.join(groupId);
             this.logger.info(`User ${socket.userId} joined group ${groupId}`);
           }
         });
 
-        socket.on('join-family', async (familyId: string) => {
+        socket.on('join-family', async (data) => {
+          // Accept both raw string and object format for backwards compatibility
+          const familyId = typeof data === 'string' ? data : data?.id;
+          if (!familyId) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: 'Invalid family ID',
+            });
+            return;
+          }
+
           if (socket.userId) {
             await socket.join(familyId);
             this.logger.info(`User ${socket.userId} joined family ${familyId}`);
           }
         });
 
-        socket.on('authenticate', async (data: { userId: string }) => {
+        socket.on('authenticate', async (data) => {
+          // Validate payload first (even for test events)
+          const validation = validatePayload(authenticateSchema, data);
+          if (!validation.success) {
+            socket.emit(SOCKET_EVENTS.ERROR, {
+              type: 'VALIDATION_ERROR',
+              message: validation.error,
+            });
+            return;
+          }
+
           if (socket.userId) {
-            await socket.join(data.userId);
-            this.logger.info(`User ${socket.userId} authenticated and joined user room ${data.userId}`);
+            await socket.join(validation.data.userId);
+            this.logger.info(`User ${socket.userId} authenticated and joined user room ${validation.data.userId}`);
           }
         });
 
@@ -368,6 +496,12 @@ export class SocketHandler {
         userId: socket.userId,
         groupIds,
       });
+
+      // Also join family rooms for family-wide notifications
+      const userFamilies = await this.authorizationService.getUserFamilies(socket.userId);
+      for (const familyId of userFamilies) {
+        await socket.join(`family-${familyId}`);
+      }
 
       // Send connection success
       socket.emit(SOCKET_EVENTS.CONNECTED, {

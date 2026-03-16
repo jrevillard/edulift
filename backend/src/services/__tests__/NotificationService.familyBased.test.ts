@@ -43,6 +43,9 @@ const mockPrisma = {
   vehicle: {
     findUnique: jest.fn(),
   },
+  familyMember: {
+    findMany: jest.fn(),
+  },
 } as unknown as PrismaClient;
 
 describe('NotificationService - Family Based Notifications', () => {
@@ -141,8 +144,11 @@ describe('NotificationService - Family Based Notifications', () => {
               );
     });
 
-    it('should notify only relevant family members and drivers', async () => {
+    it('should notify only relevant family members and vehicle family members', async () => {
       const scheduleSlotId = 'slot-1';
+      const vehicleFamilyId = 'vehicle-family-1'; // Family that owns the vehicle
+      const vehicleFamilyUserId = 'vehicle-family-member-1';
+
       const mockScheduleSlot = {
         id: 'slot-1',
         groupId: TEST_IDS.GROUP,
@@ -162,8 +168,9 @@ describe('NotificationService - Family Based Notifications', () => {
               id: TEST_IDS.VEHICLE,
               name: 'Test Vehicle',
               capacity: 4,
+              familyId: vehicleFamilyId, // Vehicle belongs to this family
             },
-            driver: { id: 'driver-1', name: 'Driver' },
+            driver: { id: 'driver-1', name: 'Driver' }, // Driver still exists but not used for notifications
           },
         ],
       };
@@ -178,8 +185,8 @@ describe('NotificationService - Family Based Notifications', () => {
           user: { id: 'user-2', email: 'parent2@example.com', name: 'Parent 2' },
         },
         {
-          userId: 'driver-1',
-          user: { id: 'driver-1', email: 'driver@example.com', name: 'Driver' },
+          userId: vehicleFamilyUserId,
+          user: { id: vehicleFamilyUserId, email: 'vehicle-family@example.com', name: 'Vehicle Family Member' },
         },
         {
           userId: 'other-user',
@@ -199,15 +206,21 @@ describe('NotificationService - Family Based Notifications', () => {
         },
       };
 
+      const mockVehicleFamilyMembers = [
+        { userId: vehicleFamilyUserId },
+      ];
+
       // Setup mocks
       (mockScheduleSlotRepository.findByIdWithDetails as jest.Mock).mockResolvedValue(mockScheduleSlot);
       (mockPrisma.child.findUnique as jest.Mock).mockResolvedValue(mockChildWithFamily);
       (mockUserRepository.getGroupMembers as jest.Mock).mockResolvedValue(mockGroupMembers);
+      // Mock the family member query for vehicle's family
+      (mockPrisma.familyMember.findMany as jest.Mock).mockResolvedValue(mockVehicleFamilyMembers);
 
       // Act
       await notificationService.notifyScheduleSlotChange(scheduleSlotId, 'DRIVER_ASSIGNED');
 
-      // Assert - Should notify driver and family members, but not other users
+      // Assert - Should notify vehicle's family members and child's family members, but not other users
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledTimes(3);
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
         'parent1@example.com',
@@ -218,7 +231,7 @@ describe('NotificationService - Family Based Notifications', () => {
         expect.anything(),
               );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
-        'driver@example.com',
+        'vehicle-family@example.com',
         expect.anything(),
               );
       expect(mockEmailService.sendScheduleSlotNotification).not.toHaveBeenCalledWith(
@@ -366,8 +379,10 @@ describe('NotificationService - Family Based Notifications', () => {
   });
 
   describe('Slot Cancellation Notifications', () => {
-    it('should notify all affected family members and drivers when slot is cancelled', async () => {
+    it('should notify all affected family members and vehicle family members when slot is cancelled', async () => {
       const scheduleSlotId = 'slot-1';
+      const vehicleFamilyId = 'vehicle-family-1';
+
       const mockScheduleSlot = {
         id: 'slot-1',
         groupId: TEST_IDS.GROUP,
@@ -387,8 +402,8 @@ describe('NotificationService - Family Based Notifications', () => {
               id: TEST_IDS.VEHICLE,
               name: 'Test Vehicle',
               capacity: 4,
+              familyId: vehicleFamilyId,
             },
-            driver: { id: 'driver-1', name: 'Driver' },
           },
         ],
       };
@@ -399,8 +414,8 @@ describe('NotificationService - Family Based Notifications', () => {
           user: { id: TEST_IDS.USER, email: 'parent1@example.com', name: 'Parent 1' },
         },
         {
-          userId: 'driver-1',
-          user: { id: 'driver-1', email: 'driver@example.com', name: 'Driver' },
+          userId: 'vehicle-family-member-1',
+          user: { id: 'vehicle-family-member-1', email: 'vehicle-family@example.com', name: 'Vehicle Family' },
         },
       ];
 
@@ -415,10 +430,15 @@ describe('NotificationService - Family Based Notifications', () => {
         },
       };
 
+      const mockVehicleFamilyMembers = [
+        { userId: 'vehicle-family-member-1' },
+      ];
+
       // Setup mocks
       (mockScheduleSlotRepository.findByIdWithDetails as jest.Mock).mockResolvedValue(mockScheduleSlot);
       (mockPrisma.child.findUnique as jest.Mock).mockResolvedValue(mockChildWithFamily);
       (mockUserRepository.getGroupMembers as jest.Mock).mockResolvedValue(mockGroupMembers);
+      (mockPrisma.familyMember.findMany as jest.Mock).mockResolvedValue(mockVehicleFamilyMembers);
 
       // Act
       await notificationService.notifyScheduleSlotChange(scheduleSlotId, 'SLOT_CANCELLED');
@@ -432,7 +452,7 @@ describe('NotificationService - Family Based Notifications', () => {
         }),
               );
       expect(mockEmailService.sendScheduleSlotNotification).toHaveBeenCalledWith(
-        'driver@example.com',
+        'vehicle-family@example.com',
         expect.objectContaining({
           changeType: 'SLOT_CANCELLED',
         }),
