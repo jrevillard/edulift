@@ -1,0 +1,16 @@
+{
+  "name": "@shared-types/asyncapi",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Shared AsyncAPI types for EduLift monorepo",
+  "exports": {
+    ".": {
+      "import": "./asyncapi/index.ts",
+      "types": "./asyncapi/index.ts"
+    },
+    "./events": {
+      "import": "./asyncapi/events.ts",
+      "types": "./asyncapi/events.ts"
+    }
+  }
+}
