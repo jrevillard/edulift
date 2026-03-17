@@ -88,7 +88,33 @@ npm run asyncapi:validate
 }
 ```
 
-### 5. Main Documentation Update
+### 5. TypeScript Type Generation
+
+**Location:** `/workspace/backend/src/generated/types/`
+
+**Features:**
+- Auto-generated TypeScript types from AsyncAPI spec
+- Clean, named types (no more AnonymousSchema_*)
+- 13 reusable enums (GroupAction, FamilyAction, etc.)
+- 6 data structures (GroupInfo, SlotInfo, etc.)
+- Centralized export from `index.ts`
+
+**Scripts:**
+```json
+{
+  "asyncapi:validate": "Validate AsyncAPI spec",
+  "asyncapi:generate": "Generate HTML documentation (requires Node.js 24+)",
+  "asyncapi:generate-types": "Generate TypeScript types",
+  "asyncapi:build": "Validate + generate types (recommended)"
+}
+```
+
+**Workflow:**
+1. Modify `docs/asyncapi/asyncapi.yaml`
+2. Run `npm run asyncapi:build`
+3. Types are automatically regenerated
+
+### 6. Main Documentation Update
 
 **Location:** `/workspace/backend/docs/README.md`
 

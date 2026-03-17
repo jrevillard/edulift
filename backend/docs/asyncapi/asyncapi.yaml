@@ -1,6 +1,6 @@
-asyncapi: '2.6.0'
-id: 'urn:edulift:websocket-api'
-defaultContentType: 'application/json'
+asyncapi: 2.6.0
+id: urn:edulift:websocket-api
+defaultContentType: application/json
 info:
   title: EduLift WebSocket API
   version: 1.0.0
@@ -11,6 +11,11 @@ info:
     This API enables clients to receive real-time updates on state changes
     in groups, schedules, and resources (children, vehicles) without the need
     for repeated HTTP polling.
+
+    **Note:** This specification uses AsyncAPI 2.6.0 (instead of 3.1.0) because
+    the TypeScript code generator (`@asyncapi/cli generate models typescript`)
+    has full support for 2.6.0 but generates only 1 type with 3.1.0.
+    Version 2.6.0 is stable, mature, and all tooling works correctly.
   contact:
     name: EduLift Backend Team
     url: https://github.com/edulift
@@ -25,7 +30,6 @@ tags:
     description: Real-time event notifications
   - name: edulift
     description: EduLift school transportation management
-
 servers:
   production:
     url: wss://api.edulift.com
@@ -34,9 +38,10 @@ servers:
     variables:
       transport:
         description: Transport protocol
-        enum: [websocket, polling]
+        enum:
+          - websocket
+          - polling
         default: websocket
-
   development:
     url: ws://localhost:3000
     protocol: socket.io
@@ -44,631 +49,592 @@ servers:
     variables:
       transport:
         description: Transport protocol
-        enum: [websocket, polling]
+        enum:
+          - websocket
+          - polling
         default: websocket
-
 channels:
-  # Connection Events
   connected:
     publish:
       operationId: onConnected
       message:
-        $ref: '#/components/messages/Connected'
+        $ref: "#/components/messages/Connected"
       description: Emitted when connection is established with successful authentication
-
   disconnected:
     publish:
       message:
-        $ref: '#/components/messages/Disconnected'
+        $ref: "#/components/messages/Disconnected"
       description: Emitted when client disconnects
-
-  # Group Management Events
+      operationId: publish_disconnected
   group:created:
     publish:
       operationId: onGroupCreated
       message:
-        $ref: '#/components/messages/GroupCreated'
+        $ref: "#/components/messages/GroupCreated"
       description: Emitted when a new group is created
       x-room: Creator and invited families receive this event
-
   group:deleted:
     publish:
       message:
-        $ref: '#/components/messages/GroupDeleted'
+        $ref: "#/components/messages/GroupDeleted"
       description: Emitted when a group is deleted
       x-room: All group members receive this event
-
+      operationId: publish_group_deleted
   group:updated:
     publish:
       message:
-        $ref: '#/components/messages/GroupUpdated'
+        $ref: "#/components/messages/GroupUpdated"
       description: Emitted when a group is modified (name, description, etc.)
       x-room: All group members receive this event
-
+      operationId: publish_group_updated
   group:family:added:
     publish:
       message:
-        $ref: '#/components/messages/GroupFamilyAdded'
+        $ref: "#/components/messages/GroupFamilyAdded"
       description: Emitted when a family joins a group
       x-room: All group members receive this event
-
+      operationId: publish_group_family_added
   group:family:left:
     publish:
       message:
-        $ref: '#/components/messages/GroupFamilyLeft'
+        $ref: "#/components/messages/GroupFamilyLeft"
       description: Emitted when a family voluntarily leaves a group
       x-room: All group members receive this event
-
+      operationId: publish_group_family_left
   group:family:removed:
     publish:
       message:
-        $ref: '#/components/messages/GroupFamilyRemoved'
+        $ref: "#/components/messages/GroupFamilyRemoved"
       description: Emitted when a family is removed from a group by an admin
       x-room: All group members receive this event
-
+      operationId: publish_group_family_removed
   group:family:role:updated:
     publish:
       message:
-        $ref: '#/components/messages/GroupFamilyRoleUpdated'
+        $ref: "#/components/messages/GroupFamilyRoleUpdated"
       description: Emitted when a family's role is changed in a group
       x-room: All group members receive this event
-
+      operationId: publish_group_family_role_updated
   group:invitation:sent:
     publish:
       message:
-        $ref: '#/components/messages/GroupInvitationSent'
+        $ref: "#/components/messages/GroupInvitationSent"
       description: Emitted when an invitation to join a group is sent
       x-room: Group admins and invited family receive this event
-
+      operationId: publish_group_invitation_sent
   member:joined:
     publish:
       message:
-        $ref: '#/components/messages/MemberJoined'
+        $ref: "#/components/messages/MemberJoined"
       description: Emitted when a member joins a group
       x-room: All group members receive this event
-
+      operationId: publish_member_joined
   member:left:
     publish:
       message:
-        $ref: '#/components/messages/MemberLeft'
+        $ref: "#/components/messages/MemberLeft"
       description: Emitted when a member leaves a group
       x-room: All group members receive this event
-
-  # Group Subscription (Client -> Server)
+      operationId: publish_member_left
   group:join:
     subscribe:
       message:
-        $ref: '#/components/messages/GroupJoin'
+        $ref: "#/components/messages/GroupJoin"
       description: Client requests to join a group's room to receive its events
-
+      operationId: subscribe_group_join
   group:leave:
     subscribe:
       message:
-        $ref: '#/components/messages/GroupLeave'
+        $ref: "#/components/messages/GroupLeave"
       description: Client requests to leave a group's room
-
-  # Schedule Management Events
+      operationId: subscribe_group_leave
   schedule:updated:
     publish:
       message:
-        $ref: '#/components/messages/ScheduleUpdated'
+        $ref: "#/components/messages/ScheduleUpdated"
       description: Emitted when a schedule is updated (publication, modifications)
       x-room: All group members receive this event
-
+      operationId: publish_schedule_updated
   schedule:slot:created:
     publish:
       message:
-        $ref: '#/components/messages/ScheduleSlotCreated'
+        $ref: "#/components/messages/ScheduleSlotCreated"
       description: Emitted when a new schedule slot is created
       x-room: All group members receive this event
-
+      operationId: publish_schedule_slot_created
   schedule:slot:updated:
     publish:
       operationId: onScheduleSlotUpdated
       message:
-        $ref: '#/components/messages/ScheduleSlotUpdated'
+        $ref: "#/components/messages/ScheduleSlotUpdated"
       description: Emitted when a schedule slot is modified (assignment, capacity)
       x-room: All group members and slot subscribers receive this event
-
   schedule:slot:deleted:
     publish:
       message:
-        $ref: '#/components/messages/ScheduleSlotDeleted'
+        $ref: "#/components/messages/ScheduleSlotDeleted"
       description: Emitted when a schedule slot is deleted
       x-room: All group members receive this event
-
-  # Schedule Capacity Events
+      operationId: publish_schedule_slot_deleted
   scheduleSlot:capacity:full:
     publish:
       message:
-        $ref: '#/components/messages/ScheduleSlotCapacityFull'
+        $ref: "#/components/messages/ScheduleSlotCapacityFull"
       description: Emitted when a slot reaches maximum capacity
       x-room: All group members receive this event
-
+      operationId: publish_scheduleSlot_capacity_full
   scheduleSlot:capacity:warning:
     publish:
       message:
-        $ref: '#/components/messages/ScheduleSlotCapacityWarning'
+        $ref: "#/components/messages/ScheduleSlotCapacityWarning"
       description: Emitted when a slot approaches maximum capacity (alert)
       x-room: All group members receive this event
-
-  # Schedule Subscription (Client -> Server)
+      operationId: publish_scheduleSlot_capacity_warning
   schedule:subscribe:
     subscribe:
       message:
-        $ref: '#/components/messages/ScheduleSubscribe'
+        $ref: "#/components/messages/ScheduleSubscribe"
       description: Client subscribes to a group's schedule events for a week
-
+      operationId: subscribe_schedule_subscribe
   schedule:unsubscribe:
     subscribe:
       message:
-        $ref: '#/components/messages/ScheduleUnsubscribe'
+        $ref: "#/components/messages/ScheduleUnsubscribe"
       description: Client unsubscribes from a group's schedule events
-
+      operationId: subscribe_schedule_unsubscribe
   scheduleSlot:join:
     subscribe:
       message:
-        $ref: '#/components/messages/ScheduleSlotJoin'
+        $ref: "#/components/messages/ScheduleSlotJoin"
       description: Client joins a specific schedule slot
-
+      operationId: subscribe_scheduleSlot_join
   scheduleSlot:leave:
     subscribe:
       message:
-        $ref: '#/components/messages/ScheduleSlotLeave'
+        $ref: "#/components/messages/ScheduleSlotLeave"
       description: Client leaves a specific schedule slot
-
-  # Child Management Events
+      operationId: subscribe_scheduleSlot_leave
   child:added:
     publish:
       message:
-        $ref: '#/components/messages/ChildAdded'
+        $ref: "#/components/messages/ChildAdded"
       description: Emitted when a child is added to a family
       x-room: All family members receive this event
-
+      operationId: publish_child_added
   child:updated:
     publish:
       message:
-        $ref: '#/components/messages/ChildUpdated'
+        $ref: "#/components/messages/ChildUpdated"
       description: Emitted when a child is modified (information, permissions)
       x-room: All family members receive this event
-
+      operationId: publish_child_updated
   child:deleted:
     publish:
       message:
-        $ref: '#/components/messages/ChildDeleted'
+        $ref: "#/components/messages/ChildDeleted"
       description: Emitted when a child is deleted from a family
       x-room: All family members receive this event
-
-  # Vehicle Management Events
+      operationId: publish_child_deleted
   vehicle:added:
     publish:
       message:
-        $ref: '#/components/messages/VehicleAdded'
+        $ref: "#/components/messages/VehicleAdded"
       description: Emitted when a vehicle is added to a family
       x-room: All family members receive this event
-
+      operationId: publish_vehicle_added
   vehicle:updated:
     publish:
       message:
-        $ref: '#/components/messages/VehicleUpdated'
+        $ref: "#/components/messages/VehicleUpdated"
       description: Emitted when a vehicle is modified (characteristics, availability)
       x-room: All family members receive this event
-
+      operationId: publish_vehicle_updated
   vehicle:deleted:
     publish:
       message:
-        $ref: '#/components/messages/VehicleDeleted'
+        $ref: "#/components/messages/VehicleDeleted"
       description: Emitted when a vehicle is deleted from a family
       x-room: All family members receive this event
-
-  # Family Management Events
+      operationId: publish_vehicle_deleted
   family:member:joined:
     publish:
       message:
-        $ref: '#/components/messages/FamilyMemberJoined'
+        $ref: "#/components/messages/FamilyMemberJoined"
       description: Emitted when a member joins a family
       x-room: All family members receive this event
-
+      operationId: publish_family_member_joined
   family:member:left:
     publish:
       message:
-        $ref: '#/components/messages/FamilyMemberLeft'
+        $ref: "#/components/messages/FamilyMemberLeft"
       description: Emitted when a member leaves a family
       x-room: All family members receive this event
-
+      operationId: publish_family_member_left
   family:updated:
     publish:
       message:
-        $ref: '#/components/messages/FamilyUpdated'
+        $ref: "#/components/messages/FamilyUpdated"
       description: Emitted when a family is modified (name, settings)
       x-room: All family members receive this event
-
-  # User Presence Events
+      operationId: publish_family_updated
   user:joined:
     publish:
       message:
-        $ref: '#/components/messages/UserJoined'
+        $ref: "#/components/messages/UserJoined"
       description: Emitted when a user connects and joins a group
       x-room: All group members receive this event
-
+      operationId: publish_user_joined
   user:left:
     publish:
       message:
-        $ref: '#/components/messages/UserLeft'
+        $ref: "#/components/messages/UserLeft"
       description: Emitted when a user disconnects or leaves a group
       x-room: All group members receive this event
-
+      operationId: publish_user_left
   user:typing:
     publish:
       message:
-        $ref: '#/components/messages/UserTyping'
+        $ref: "#/components/messages/UserTyping"
       description: Emitted when a user starts typing in a schedule slot
       x-room: Users subscribed to this slot receive this event
-
+      operationId: publish_user_typing
   user:stopped_typing:
     publish:
       message:
-        $ref: '#/components/messages/UserStoppedTyping'
+        $ref: "#/components/messages/UserStoppedTyping"
       description: Emitted when a user stops typing
       x-room: Users subscribed to this slot receive this event
-
-  # System Events
+      operationId: publish_user_stopped_typing
   notification:
     publish:
       message:
-        $ref: '#/components/messages/Notification'
+        $ref: "#/components/messages/Notification"
       description: General system notification
       x-room: Sent to concerned users
-
+      operationId: publish_notification
   conflict:detected:
     publish:
       message:
-        $ref: '#/components/messages/ConflictDetected'
+        $ref: "#/components/messages/ConflictDetected"
       description: Emitted when a conflict is detected (double booking, capacity exceeded)
       x-room: Sent to users affected by the conflict
-
+      operationId: publish_conflict_detected
   error:
     publish:
       operationId: onError
       message:
-        $ref: '#/components/messages/Error'
+        $ref: "#/components/messages/Error"
       description: Server error or validation error
       x-room: Sent to concerned client
-
   heartbeat:
     subscribe:
       message:
-        $ref: '#/components/messages/Heartbeat'
+        $ref: "#/components/messages/Heartbeat"
       description: Client sends a ping to maintain connection
-
+      operationId: subscribe_heartbeat
   heartbeat-ack:
     publish:
       message:
-        $ref: '#/components/messages/HeartbeatAck'
+        $ref: "#/components/messages/HeartbeatAck"
       description: Server responds to client ping
-
+      operationId: publish_heartbeat-ack
 components:
   messages:
-    # Connection Messages
     Connected:
       name: Connected
       messageId: connectedEvent
       title: Connection Established
       summary: Emitted when connection is established with successful authentication
       payload:
-        $ref: '#/components/schemas/ConnectedPayload'
-
+        $ref: "#/components/schemas/ConnectedPayload"
     Disconnected:
       name: Disconnected
       title: Disconnection
       summary: Emitted when client disconnects
       payload:
-        type: object
-        properties:
-          reason:
-            type: string
-            enum: [client_disconnect, server_disconnect, timeout, auth_failed]
-            description: Reason for disconnection
-          timestamp:
-            type: integer
-            description: UNIX timestamp of disconnection
-
-    # Group Messages
+        $ref: "#/components/schemas/DisconnectedPayload"
+      messageId: disconnectedEvent
     GroupCreated:
       name: GroupCreated
       messageId: groupCreatedEvent
       title: Group Created
       summary: A new group has been created
       payload:
-        $ref: '#/components/schemas/GroupEventData'
-
+        $ref: "#/components/schemas/GroupEventDataCreated"
     GroupDeleted:
       name: GroupDeleted
       title: Group Deleted
       summary: A group has been deleted
       payload:
-        $ref: '#/components/schemas/GroupEventData'
-
+        $ref: "#/components/schemas/GroupEventDataDeleted"
+      messageId: groupDeletedEvent
     GroupUpdated:
       name: GroupUpdated
       title: Group Updated
       summary: Group information has been modified
       payload:
-        $ref: '#/components/schemas/GroupEventData'
-
+        $ref: "#/components/schemas/GroupEventDataUpdated"
+      messageId: groupUpdatedEvent
     GroupFamilyAdded:
       name: GroupFamilyAdded
       title: Family Added to Group
       summary: A family has joined a group
       payload:
-        $ref: '#/components/schemas/GroupFamilyEventData'
-
+        $ref: "#/components/schemas/GroupFamilyEventDataAdded"
+      messageId: groupFamilyAddedEvent
     GroupFamilyLeft:
       name: GroupFamilyLeft
       title: Family Left Group
       summary: A family has voluntarily left a group
       payload:
-        $ref: '#/components/schemas/GroupFamilyEventData'
-
+        $ref: "#/components/schemas/GroupFamilyLeftEventData"
+      messageId: groupFamilyLeftEvent
     GroupFamilyRemoved:
       name: GroupFamilyRemoved
       title: Family Removed from Group
       summary: A family has been removed from a group by an admin
       payload:
-        $ref: '#/components/schemas/GroupFamilyEventData'
-
+        $ref: "#/components/schemas/GroupFamilyRemovedEventData"
+      messageId: groupFamilyRemovedEvent
     GroupFamilyRoleUpdated:
       name: GroupFamilyRoleUpdated
       title: Family Role Updated
       summary: A family's role has been changed in a group
       payload:
-        $ref: '#/components/schemas/GroupFamilyRoleEventData'
-
+        $ref: "#/components/schemas/GroupFamilyRoleEventData"
+      messageId: groupFamilyRoleUpdatedEvent
     GroupInvitationSent:
       name: GroupInvitationSent
       title: Invitation Sent
       summary: An invitation to join a group has been sent
       payload:
-        $ref: '#/components/schemas/GroupInvitationEventData'
-
+        $ref: "#/components/schemas/GroupInvitationEventData"
+      messageId: groupInvitationSentEvent
     MemberJoined:
       name: MemberJoined
       title: Member Joined
       summary: A member has joined a group
       payload:
-        $ref: '#/components/schemas/MemberEventData'
-
+        $ref: "#/components/schemas/MemberJoinedEventData"
+      messageId: memberJoinedEvent
     MemberLeft:
       name: MemberLeft
       title: Member Left
       summary: A member has left a group
       payload:
-        $ref: '#/components/schemas/MemberEventData'
-
+        $ref: "#/components/schemas/MemberLeftEventData"
+      messageId: memberLeftEvent
     GroupJoin:
       name: GroupJoin
       title: Join Group
       summary: Client requests to join a group's room
       payload:
-        $ref: '#/components/schemas/GroupJoinData'
-
+        $ref: "#/components/schemas/GroupJoinRequestData"
+      messageId: groupJoin
     GroupLeave:
       name: GroupLeave
       title: Leave Group
       summary: Client requests to leave a group's room
       payload:
-        $ref: '#/components/schemas/GroupJoinData'
-
-    # Schedule Messages
+        $ref: "#/components/schemas/GroupLeaveRequestData"
+      messageId: groupLeave
     ScheduleUpdated:
       name: ScheduleUpdated
       title: Schedule Updated
       summary: A schedule has been updated
       payload:
-        $ref: '#/components/schemas/ScheduleEventData'
-
+        $ref: "#/components/schemas/ScheduleEventData"
+      messageId: scheduleUpdatedEvent
     ScheduleSlotCreated:
       name: ScheduleSlotCreated
       title: Slot Created
       summary: A new schedule slot has been created
       payload:
-        $ref: '#/components/schemas/ScheduleSlotEventData'
-
+        $ref: "#/components/schemas/ScheduleSlotEventDataCreated"
+      messageId: scheduleSlotCreatedEvent
     ScheduleSlotUpdated:
       name: ScheduleSlotUpdated
       messageId: scheduleSlotUpdatedEvent
       title: Slot Updated
       summary: A schedule slot has been modified
       payload:
-        $ref: '#/components/schemas/ScheduleSlotEventData'
-
+        $ref: "#/components/schemas/ScheduleSlotEventDataUpdated"
     ScheduleSlotDeleted:
       name: ScheduleSlotDeleted
       title: Slot Deleted
       summary: A schedule slot has been deleted
       payload:
-        $ref: '#/components/schemas/ScheduleSlotEventData'
-
+        $ref: "#/components/schemas/ScheduleSlotEventDataDeleted"
+      messageId: scheduleSlotDeletedEvent
     ScheduleSlotCapacityFull:
       name: ScheduleSlotCapacityFull
       title: Maximum Capacity Reached
       summary: A slot has reached its maximum capacity
       payload:
-        $ref: '#/components/schemas/ScheduleSlotCapacityEventData'
-
+        $ref: "#/components/schemas/ScheduleSlotCapacityFullEventData"
+      messageId: scheduleSlotCapacityFullEvent
     ScheduleSlotCapacityWarning:
       name: ScheduleSlotCapacityWarning
       title: Capacity Alert
       summary: A slot is approaching its maximum capacity
       payload:
-        $ref: '#/components/schemas/ScheduleSlotCapacityEventData'
-
+        $ref: "#/components/schemas/ScheduleSlotCapacityWarningEventData"
+      messageId: scheduleSlotCapacityWarningEvent
     ScheduleSubscribe:
       name: ScheduleSubscribe
       title: Subscribe to Schedule
       summary: Client subscribes to schedule events
       payload:
-        $ref: '#/components/schemas/ScheduleSubscribeData'
-
+        $ref: "#/components/schemas/ScheduleSubscribeRequestData"
+      messageId: scheduleSubscribe
     ScheduleUnsubscribe:
       name: ScheduleUnsubscribe
       title: Unsubscribe from Schedule
       summary: Client unsubscribes from schedule events
       payload:
-        $ref: '#/components/schemas/ScheduleSubscribeData'
-
+        $ref: "#/components/schemas/ScheduleUnsubscribeRequestData"
+      messageId: scheduleUnsubscribe
     ScheduleSlotJoin:
       name: ScheduleSlotJoin
       title: Join Slot
       summary: Client joins a schedule slot
       payload:
-        $ref: '#/components/schemas/ScheduleSlotJoinData'
-
+        $ref: "#/components/schemas/ScheduleSlotJoinRequestData"
+      messageId: scheduleSlotJoin
     ScheduleSlotLeave:
       name: ScheduleSlotLeave
       title: Leave Slot
       summary: Client leaves a schedule slot
       payload:
-        $ref: '#/components/schemas/ScheduleSlotJoinData'
-
-    # Child Messages
+        $ref: "#/components/schemas/ScheduleSlotLeaveRequestData"
+      messageId: scheduleSlotLeave
     ChildAdded:
       name: ChildAdded
       title: Child Added
       summary: A child has been added to a family
       payload:
-        $ref: '#/components/schemas/ChildEventData'
-
+        $ref: "#/components/schemas/ChildEventDataAdded"
+      messageId: childAddedEvent
     ChildUpdated:
       name: ChildUpdated
       title: Child Updated
       summary: Child information has been modified
       payload:
-        $ref: '#/components/schemas/ChildEventData'
-
+        $ref: "#/components/schemas/ChildEventDataUpdated"
+      messageId: childUpdatedEvent
     ChildDeleted:
       name: ChildDeleted
       title: Child Deleted
       summary: A child has been deleted from a family
       payload:
-        $ref: '#/components/schemas/ChildEventData'
-
-    # Vehicle Messages
+        $ref: "#/components/schemas/ChildEventDataDeleted"
+      messageId: childDeletedEvent
     VehicleAdded:
       name: VehicleAdded
       title: Vehicle Added
       summary: A vehicle has been added to a family
       payload:
-        $ref: '#/components/schemas/VehicleEventData'
-
+        $ref: "#/components/schemas/VehicleEventDataAdded"
+      messageId: vehicleAddedEvent
     VehicleUpdated:
       name: VehicleUpdated
       title: Vehicle Updated
       summary: Vehicle information has been modified
       payload:
-        $ref: '#/components/schemas/VehicleEventData'
-
+        $ref: "#/components/schemas/VehicleEventDataUpdated"
+      messageId: vehicleUpdatedEvent
     VehicleDeleted:
       name: VehicleDeleted
       title: Vehicle Deleted
       summary: A vehicle has been deleted from a family
       payload:
-        $ref: '#/components/schemas/VehicleEventData'
-
-    # Family Messages
+        $ref: "#/components/schemas/VehicleEventDataDeleted"
+      messageId: vehicleDeletedEvent
     FamilyMemberJoined:
       name: FamilyMemberJoined
       title: Member Joined Family
       summary: A member has joined a family
       payload:
-        $ref: '#/components/schemas/FamilyMemberEventData'
-
+        $ref: "#/components/schemas/FamilyMemberJoinedEventData"
+      messageId: familyMemberJoinedEvent
     FamilyMemberLeft:
       name: FamilyMemberLeft
       title: Member Left Family
       summary: A member has left a family
       payload:
-        $ref: '#/components/schemas/FamilyMemberEventData'
-
+        $ref: "#/components/schemas/FamilyMemberLeftEventData"
+      messageId: familyMemberLeftEvent
     FamilyUpdated:
       name: FamilyUpdated
       title: Family Updated
       summary: Family information has been modified
       payload:
-        $ref: '#/components/schemas/FamilyEventData'
-
-    # User Presence Messages
+        $ref: "#/components/schemas/FamilyEventData"
+      messageId: familyUpdatedEvent
     UserJoined:
       name: UserJoined
       title: User Connected
       summary: A user has connected and joined a group
       payload:
-        $ref: '#/components/schemas/UserEventData'
-
+        $ref: "#/components/schemas/UserJoinedEventData"
+      messageId: userJoinedEvent
     UserLeft:
       name: UserLeft
       title: User Disconnected
       summary: A user has disconnected or left a group
       payload:
-        $ref: '#/components/schemas/UserEventData'
-
+        $ref: "#/components/schemas/UserLeftEventData"
+      messageId: userLeftEvent
     UserTyping:
       name: UserTyping
       title: User Typing
       summary: A user starts typing
       payload:
-        $ref: '#/components/schemas/TypingEventData'
-
+        $ref: "#/components/schemas/TypingEventDataTyping"
+      messageId: userTypingEvent
     UserStoppedTyping:
       name: UserStoppedTyping
       title: User Stopped Typing
       summary: A user stops typing
       payload:
-        $ref: '#/components/schemas/TypingEventData'
-
-    # System Messages
+        $ref: "#/components/schemas/TypingEventDataStoppedTyping"
+      messageId: userStoppedTypingEvent
     Notification:
       name: Notification
       title: Notification
       summary: System notification
       payload:
-        $ref: '#/components/schemas/NotificationEventData'
-
+        $ref: "#/components/schemas/NotificationEventData"
+      messageId: notificationEvent
     ConflictDetected:
       name: ConflictDetected
       title: Conflict Detected
       summary: A conflict has been detected
       payload:
-        $ref: '#/components/schemas/ConflictEventData'
-
+        $ref: "#/components/schemas/ConflictEventData"
+      messageId: conflictDetectedEvent
     Error:
       name: Error
       messageId: errorEvent
       title: Error
       summary: Server or validation error
       payload:
-        $ref: '#/components/schemas/ErrorEventData'
-
+        $ref: "#/components/schemas/ErrorEventData"
     Heartbeat:
       name: Heartbeat
       title: Ping
       summary: Client sends a keep-alive ping
       payload:
-        type: object
-        properties:
-          timestamp:
-            type: integer
-            description: UNIX timestamp of ping
-
+        $ref: "#/components/schemas/HeartbeatPayload"
+      messageId: heartbeat
     HeartbeatAck:
       name: HeartbeatAck
       title: Pong
       summary: Server responds to client ping
       payload:
-        $ref: '#/components/schemas/HeartbeatAckData'
-
+        $ref: "#/components/schemas/HeartbeatAckData"
+      messageId: heartbeatAck
   schemas:
-    # Common Schemas
     ConnectedPayload:
       type: object
       description: Payload sent on successful connection
@@ -687,70 +653,6 @@ components:
         timestamp:
           type: integer
           description: UNIX timestamp of connection
-
-    # Group Schemas
-    GroupEventData:
-      type: object
-      required:
-        - groupId
-        - action
-      properties:
-        groupId:
-          type: string
-          description: Group ID
-        action:
-          type: string
-          enum: [created, deleted, updated]
-          description: Action performed on group
-        createdBy:
-          type: string
-          description: ID of user who created the group (for created)
-        deletedBy:
-          type: string
-          description: ID of user who deleted the group (for deleted)
-        updatedBy:
-          type: string
-          description: ID of user who updated the group (for updated)
-        group:
-          type: object
-          description: Full group data (optional)
-          properties:
-            id:
-              type: string
-            name:
-              type: string
-            description:
-              type: string
-            inviteCode:
-              type: string
-
-    GroupFamilyEventData:
-      type: object
-      required:
-        - groupId
-        - familyId
-        - action
-      properties:
-        groupId:
-          type: string
-          description: Group ID
-        familyId:
-          type: string
-          description: Family ID
-        action:
-          type: string
-          enum: [added, left, removed]
-          description: Action performed on family
-        familyName:
-          type: string
-          description: Family name (optional)
-        joinedBy:
-          type: string
-          description: ID of user who added the family
-        removedBy:
-          type: string
-          description: ID of user who removed the family
-
     GroupFamilyRoleEventData:
       type: object
       required:
@@ -765,17 +667,12 @@ components:
           type: string
           description: Family ID
         newRole:
-          type: string
-          enum: [admin, member]
-          description: New family role
+          $ref: "#/components/schemas/FamilyRole"
         previousRole:
-          type: string
-          enum: [admin, member]
-          description: Previous family role
+          $ref: "#/components/schemas/FamilyRole"
         updatedBy:
           type: string
           description: ID of user who changed the role
-
     GroupInvitationEventData:
       type: object
       required:
@@ -797,38 +694,22 @@ components:
         expiresAt:
           type: integer
           description: Invitation expiration timestamp
-
-    MemberEventData:
-      type: object
-      required:
-        - groupId
-        - userId
-        - action
-      properties:
-        groupId:
-          type: string
-          description: Group ID
-        userId:
-          type: string
-          description: Member ID
-        action:
-          type: string
-          enum: [joined, left]
-          description: Action performed by member
-        userName:
-          type: string
-          description: User name (optional)
-
-    GroupJoinData:
+    GroupJoinRequestData:
       type: object
       required:
         - groupId
       properties:
         groupId:
           type: string
-          description: Group ID to join/leave
-
-    # Schedule Schemas
+          description: Group ID to join
+    GroupLeaveRequestData:
+      type: object
+      required:
+        - groupId
+      properties:
+        groupId:
+          type: string
+          description: Group ID to leave
     ScheduleEventData:
       type: object
       required:
@@ -840,50 +721,11 @@ components:
           description: Group ID
         week:
           type: string
-          pattern: '^\d{4}-\d{1,2}$'
+          pattern: ^\d{4}-\d{1,2}$
           description: Week in format YYYY-W or YYYY-WW
         schedule:
-          type: object
-          description: Schedule data (optional)
-
-    ScheduleSlotEventData:
-      type: object
-      required:
-        - groupId
-        - scheduleSlotId
-        - action
-      properties:
-        groupId:
-          type: string
-          description: Group ID
-        scheduleSlotId:
-          type: string
-          description: Schedule slot ID
-        action:
-          type: string
-          enum: [created, updated, deleted]
-          description: Action performed on slot
-        slot:
-          type: object
-          description: Slot data (optional)
-          properties:
-            id:
-              type: string
-            date:
-              type: string
-              format: date
-            startTime:
-              type: string
-              format: time
-            endTime:
-              type: string
-              format: time
-            capacity:
-              type: integer
-            currentLoad:
-              type: integer
-
-    ScheduleSlotCapacityEventData:
+          $ref: "#/components/schemas/ScheduleData"
+    ScheduleSlotCapacityFullEventData:
       type: object
       required:
         - groupId
@@ -897,9 +739,7 @@ components:
           type: string
           description: Schedule slot ID
         status:
-          type: string
-          enum: [full, warning]
-          description: Capacity status
+          $ref: "#/components/schemas/CapacityStatusFull"
         currentLoad:
           type: integer
           description: Current slot load
@@ -909,8 +749,31 @@ components:
         message:
           type: string
           description: Descriptive message (optional)
-
-    ScheduleSubscribeData:
+    ScheduleSlotCapacityWarningEventData:
+      type: object
+      required:
+        - groupId
+        - scheduleSlotId
+        - status
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        scheduleSlotId:
+          type: string
+          description: Schedule slot ID
+        status:
+          $ref: "#/components/schemas/CapacityStatusWarning"
+        currentLoad:
+          type: integer
+          description: Current slot load
+        capacity:
+          type: integer
+          description: Maximum slot capacity
+        message:
+          type: string
+          description: Descriptive message (optional)
+    ScheduleSubscribeRequestData:
       type: object
       required:
         - groupId
@@ -921,10 +784,22 @@ components:
           description: Group ID
         week:
           type: string
-          pattern: '^\d{4}-\d{1,2}$'
+          pattern: ^\d{4}-\d{1,2}$
           description: Week in format YYYY-W or YYYY-WW
-
-    ScheduleSlotJoinData:
+    ScheduleUnsubscribeRequestData:
+      type: object
+      required:
+        - groupId
+        - week
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        week:
+          type: string
+          pattern: ^\d{4}-\d{1,2}$
+          description: Week in format YYYY-W or YYYY-WW
+    ScheduleSlotJoinRequestData:
       type: object
       required:
         - scheduleSlotId
@@ -932,74 +807,15 @@ components:
         scheduleSlotId:
           type: string
           description: Schedule slot ID
-
-    # Child Schemas
-    ChildEventData:
+    ScheduleSlotLeaveRequestData:
       type: object
       required:
-        - familyId
-        - childId
-        - action
+        - scheduleSlotId
       properties:
-        familyId:
+        scheduleSlotId:
           type: string
-          description: Family ID
-        childId:
-          type: string
-          description: Child ID
-        action:
-          type: string
-          enum: [added, updated, deleted]
-          description: Action performed on child
-        child:
-          type: object
-          description: Child data (optional)
-          properties:
-            id:
-              type: string
-            firstName:
-              type: string
-            lastName:
-              type: string
-            dateOfBirth:
-              type: string
-              format: date
-
-    # Vehicle Schemas
-    VehicleEventData:
-      type: object
-      required:
-        - familyId
-        - vehicleId
-        - action
-      properties:
-        familyId:
-          type: string
-          description: Family ID
-        vehicleId:
-          type: string
-          description: Vehicle ID
-        action:
-          type: string
-          enum: [added, updated, deleted]
-          description: Action performed on vehicle
-        vehicle:
-          type: object
-          description: Vehicle data (optional)
-          properties:
-            id:
-              type: string
-            make:
-              type: string
-            model:
-              type: string
-            year:
-              type: integer
-            capacity:
-              type: integer
-
-    # Family Schemas
-    FamilyMemberEventData:
+          description: Schedule slot ID
+    FamilyMemberJoinedEventData:
       type: object
       required:
         - familyId
@@ -1013,16 +829,34 @@ components:
           type: string
           description: Member ID
         action:
-          type: string
-          enum: [joined, left]
-          description: Action performed by member
+          $ref: "#/components/schemas/MemberActionJoined"
         userName:
           type: string
           description: User name (optional)
         role:
           type: string
           description: Role in family (optional)
-
+    FamilyMemberLeftEventData:
+      type: object
+      required:
+        - familyId
+        - userId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        userId:
+          type: string
+          description: Member ID
+        action:
+          $ref: "#/components/schemas/MemberActionLeft"
+        userName:
+          type: string
+          description: User name (optional)
+        role:
+          type: string
+          description: Role in family (optional)
     FamilyEventData:
       type: object
       required:
@@ -1033,59 +867,9 @@ components:
           type: string
           description: Family ID
         action:
-          type: string
-          enum: [updated]
-          description: Action performed on family
+          $ref: "#/components/schemas/FamilyUpdateAction"
         family:
-          type: object
-          description: Family data (optional)
-          properties:
-            id:
-              type: string
-            name:
-              type: string
-
-    # User Presence Schemas
-    UserEventData:
-      type: object
-      required:
-        - userId
-        - groupId
-        - action
-      properties:
-        userId:
-          type: string
-          description: User ID
-        groupId:
-          type: string
-          description: Group ID
-        action:
-          type: string
-          enum: [joined, left]
-          description: Action performed by user
-        userName:
-          type: string
-          description: User name (optional)
-
-    TypingEventData:
-      type: object
-      required:
-        - userId
-        - scheduleSlotId
-        - action
-      properties:
-        userId:
-          type: string
-          description: User ID
-        scheduleSlotId:
-          type: string
-          description: Schedule slot ID
-        action:
-          type: string
-          enum: [typing, stopped_typing]
-          description: Typing action
-
-    # System Schemas
+          $ref: "#/components/schemas/FamilyData"
     NotificationEventData:
       type: object
       required:
@@ -1093,16 +877,12 @@ components:
         - message
       properties:
         type:
-          type: string
-          enum: [SCHEDULE_PUBLISHED, MEMBER_JOINED, MEMBER_LEFT, INFO, WARNING, SUCCESS]
-          description: Notification type
+          $ref: "#/components/schemas/NotificationType"
         message:
           type: string
           description: Notification message
         data:
-          type: object
-          description: Additional data (optional)
-
+          $ref: "#/components/schemas/NotificationData"
     ConflictEventData:
       type: object
       required:
@@ -1114,9 +894,7 @@ components:
           type: string
           description: Conflicting schedule slot ID
         conflictType:
-          type: string
-          enum: [DRIVER_DOUBLE_BOOKING, VEHICLE_DOUBLE_BOOKING, CAPACITY_EXCEEDED]
-          description: Conflict type
+          $ref: "#/components/schemas/ConflictType"
         affectedUsers:
           type: array
           items:
@@ -1125,7 +903,6 @@ components:
         message:
           type: string
           description: Descriptive conflict message
-
     ErrorEventData:
       type: object
       required:
@@ -1139,14 +916,632 @@ components:
           type: string
           description: Error message
         details:
-          type: object
-          description: Additional error details
-
+          $ref: "#/components/schemas/ErrorDetails"
     HeartbeatAckData:
+      $ref: "#/components/schemas/HeartbeatAckTimestamp"
+    DisconnectedPayload:
       type: object
+      description: Payload sent when client disconnects
       required:
+        - reason
         - timestamp
+      properties:
+        reason:
+          $ref: "#/components/schemas/DisconnectReason"
+        timestamp:
+          type: integer
+          description: UNIX timestamp of disconnection
+    DisconnectReason:
+      type: string
+      enum:
+        - client_disconnect
+        - server_disconnect
+        - timeout
+        - auth_failed
+      description: Reason for disconnection
+    GroupData:
+      type: object
+      description: Full group data
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        inviteCode:
+          type: string
+        reservedName:
+          type: string
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    ScheduleData:
+      type: object
+      description: Schedule data
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    ScheduleSlotData:
+      type: object
+      description: Slot data
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date
+        startTime:
+          type: string
+          format: time
+        endTime:
+          type: string
+          format: time
+        capacity:
+          type: integer
+        currentLoad:
+          type: integer
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    ChildData:
+      type: object
+      description: Child data
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        dateOfBirth:
+          type: string
+          format: date
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    VehicleData:
+      type: object
+      description: Vehicle data
+      properties:
+        id:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        capacity:
+          type: integer
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    FamilyData:
+      type: object
+      description: Family data
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    NotificationData:
+      type: object
+      description: Additional notification data
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    ErrorDetails:
+      type: object
+      description: Additional error details
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    MemberActionJoined:
+      type: string
+      enum:
+        - joined
+      description: Member joined action
+    MemberActionLeft:
+      type: string
+      enum:
+        - left
+      description: Member left action
+    TypingActionTyping:
+      type: string
+      enum:
+        - typing
+      description: Typing started action
+    TypingActionStoppedTyping:
+      type: string
+      enum:
+        - stopped_typing
+      description: Typing stopped action
+    NotificationType:
+      type: string
+      enum:
+        - SCHEDULE_PUBLISHED
+        - MEMBER_JOINED
+        - MEMBER_LEFT
+        - INFO
+        - WARNING
+        - SUCCESS
+      description: Notification type
+    ConflictType:
+      type: string
+      enum:
+        - DRIVER_DOUBLE_BOOKING
+        - VEHICLE_DOUBLE_BOOKING
+        - CAPACITY_EXCEEDED
+      description: Conflict type
+    HeartbeatPayload:
+      type: object
+      description: Heartbeat ping payload
+      properties:
+        timestamp:
+          type: integer
+          description: UNIX timestamp of ping
+    HeartbeatAckTimestamp:
+      type: object
+      description: Heartbeat acknowledgment timestamp
       properties:
         timestamp:
           type: integer
           description: UNIX timestamp of response
+      additionalProperties:
+        type: object
+        additionalProperties: true
+    FamilyRole:
+      type: string
+      enum:
+        - admin
+        - member
+      description: Role of a family in a group
+    CapacityStatusFull:
+      type: string
+      enum:
+        - full
+      description: Capacity full status
+    CapacityStatusWarning:
+      type: string
+      enum:
+        - warning
+      description: Capacity warning status
+    FamilyUpdateAction:
+      type: string
+      enum:
+        - updated
+      description: Action performed on a family
+    MemberJoinedEventData:
+      type: object
+      required:
+        - groupId
+        - userId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        userId:
+          type: string
+          description: Member ID
+        action:
+          $ref: "#/components/schemas/MemberActionJoined"
+        userName:
+          type: string
+          description: User name (optional)
+    MemberLeftEventData:
+      type: object
+      required:
+        - groupId
+        - userId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        userId:
+          type: string
+          description: Member ID
+        action:
+          $ref: "#/components/schemas/MemberActionLeft"
+        userName:
+          type: string
+          description: User name (optional)
+    UserJoinedEventData:
+      type: object
+      required:
+        - userId
+        - groupId
+        - action
+      properties:
+        userId:
+          type: string
+          description: User ID
+        groupId:
+          type: string
+          description: Group ID
+        action:
+          $ref: "#/components/schemas/MemberActionJoined"
+        userName:
+          type: string
+          description: User name (optional)
+    UserLeftEventData:
+      type: object
+      required:
+        - userId
+        - groupId
+        - action
+      properties:
+        userId:
+          type: string
+          description: User ID
+        groupId:
+          type: string
+          description: Group ID
+        action:
+          $ref: "#/components/schemas/MemberActionLeft"
+        userName:
+          type: string
+          description: User name (optional)
+    TypingEventDataTyping:
+      type: object
+      required:
+        - userId
+        - scheduleSlotId
+        - action
+      properties:
+        userId:
+          type: string
+          description: User ID
+        scheduleSlotId:
+          type: string
+          description: Schedule slot ID
+        action:
+          $ref: "#/components/schemas/TypingActionTyping"
+    TypingEventDataStoppedTyping:
+      type: object
+      required:
+        - userId
+        - scheduleSlotId
+        - action
+      properties:
+        userId:
+          type: string
+          description: User ID
+        scheduleSlotId:
+          type: string
+          description: Schedule slot ID
+        action:
+          $ref: "#/components/schemas/TypingActionStoppedTyping"
+    GroupActionCreated:
+      type: string
+      enum:
+        - created
+      description: Group created action
+    GroupActionDeleted:
+      type: string
+      enum:
+        - deleted
+      description: Group deleted action
+    GroupActionUpdated:
+      type: string
+      enum:
+        - updated
+      description: Group updated action
+    GroupFamilyActionAdded:
+      type: string
+      enum:
+        - added
+      description: Family added to group action
+    GroupFamilyActionRemoved:
+      type: string
+      enum:
+        - removed
+      description: Family removed from group action
+    ChildActionAdded:
+      type: string
+      enum:
+        - added
+      description: Child added action
+    ChildActionUpdated:
+      type: string
+      enum:
+        - updated
+      description: Child updated action
+    ChildActionDeleted:
+      type: string
+      enum:
+        - deleted
+      description: Child deleted action
+    VehicleActionAdded:
+      type: string
+      enum:
+        - added
+      description: Vehicle added action
+    VehicleActionUpdated:
+      type: string
+      enum:
+        - updated
+      description: Vehicle updated action
+    VehicleActionDeleted:
+      type: string
+      enum:
+        - deleted
+      description: Vehicle deleted action
+    ScheduleSlotActionCreated:
+      type: string
+      enum:
+        - created
+      description: Schedule slot created action
+    ScheduleSlotActionUpdated:
+      type: string
+      enum:
+        - updated
+      description: Schedule slot updated action
+    ScheduleSlotActionDeleted:
+      type: string
+      enum:
+        - deleted
+      description: Schedule slot deleted action
+    GroupEventDataCreated:
+      type: object
+      required:
+        - groupId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        action:
+          $ref: "#/components/schemas/GroupActionCreated"
+        createdBy:
+          type: string
+          description: ID of user who created the group
+        group:
+          $ref: "#/components/schemas/GroupData"
+    GroupEventDataDeleted:
+      type: object
+      required:
+        - groupId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        action:
+          $ref: "#/components/schemas/GroupActionDeleted"
+        deletedBy:
+          type: string
+          description: ID of user who deleted the group
+        group:
+          $ref: "#/components/schemas/GroupData"
+    GroupEventDataUpdated:
+      type: object
+      required:
+        - groupId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        action:
+          $ref: "#/components/schemas/GroupActionUpdated"
+        updatedBy:
+          type: string
+          description: ID of user who updated the group
+        group:
+          $ref: "#/components/schemas/GroupData"
+    GroupFamilyEventDataAdded:
+      type: object
+      required:
+        - groupId
+        - familyId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        familyId:
+          type: string
+          description: Family ID
+        action:
+          $ref: "#/components/schemas/GroupFamilyActionAdded"
+        familyName:
+          type: string
+          description: Family name (optional)
+        joinedBy:
+          type: string
+          description: ID of user who added the family
+    GroupFamilyLeftEventData:
+      type: object
+      required:
+        - groupId
+        - familyId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        familyId:
+          type: string
+          description: Family ID
+        action:
+          $ref: "#/components/schemas/GroupFamilyActionRemoved"
+        removedBy:
+          type: string
+          description: ID of user who removed the family
+    GroupFamilyRemovedEventData:
+      type: object
+      required:
+        - groupId
+        - familyId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        familyId:
+          type: string
+          description: Family ID
+        action:
+          $ref: "#/components/schemas/GroupFamilyActionRemoved"
+        removedBy:
+          type: string
+          description: ID of user who removed the family
+    ChildEventDataAdded:
+      type: object
+      required:
+        - familyId
+        - childId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        childId:
+          type: string
+          description: Child ID
+        action:
+          $ref: "#/components/schemas/ChildActionAdded"
+        child:
+          $ref: "#/components/schemas/ChildData"
+    ChildEventDataUpdated:
+      type: object
+      required:
+        - familyId
+        - childId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        childId:
+          type: string
+          description: Child ID
+        action:
+          $ref: "#/components/schemas/ChildActionUpdated"
+        child:
+          $ref: "#/components/schemas/ChildData"
+    ChildEventDataDeleted:
+      type: object
+      required:
+        - familyId
+        - childId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        childId:
+          type: string
+          description: Child ID
+        action:
+          $ref: "#/components/schemas/ChildActionDeleted"
+        child:
+          $ref: "#/components/schemas/ChildData"
+    VehicleEventDataAdded:
+      type: object
+      required:
+        - familyId
+        - vehicleId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        vehicleId:
+          type: string
+          description: Vehicle ID
+        action:
+          $ref: "#/components/schemas/VehicleActionAdded"
+        vehicle:
+          $ref: "#/components/schemas/VehicleData"
+    VehicleEventDataUpdated:
+      type: object
+      required:
+        - familyId
+        - vehicleId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        vehicleId:
+          type: string
+          description: Vehicle ID
+        action:
+          $ref: "#/components/schemas/VehicleActionUpdated"
+        vehicle:
+          $ref: "#/components/schemas/VehicleData"
+    VehicleEventDataDeleted:
+      type: object
+      required:
+        - familyId
+        - vehicleId
+        - action
+      properties:
+        familyId:
+          type: string
+          description: Family ID
+        vehicleId:
+          type: string
+          description: Vehicle ID
+        action:
+          $ref: "#/components/schemas/VehicleActionDeleted"
+        vehicle:
+          $ref: "#/components/schemas/VehicleData"
+    ScheduleSlotEventDataCreated:
+      type: object
+      required:
+        - groupId
+        - scheduleSlotId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        scheduleSlotId:
+          type: string
+          description: Schedule slot ID
+        action:
+          $ref: "#/components/schemas/ScheduleSlotActionCreated"
+        slot:
+          $ref: "#/components/schemas/ScheduleSlotData"
+    ScheduleSlotEventDataDeleted:
+      type: object
+      required:
+        - groupId
+        - scheduleSlotId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        scheduleSlotId:
+          type: string
+          description: Schedule slot ID
+        action:
+          $ref: "#/components/schemas/ScheduleSlotActionDeleted"
+        slot:
+          $ref: "#/components/schemas/ScheduleSlotData"
+    ScheduleSlotEventDataUpdated:
+      type: object
+      required:
+        - groupId
+        - scheduleSlotId
+        - action
+      properties:
+        groupId:
+          type: string
+          description: Group ID
+        scheduleSlotId:
+          type: string
+          description: Schedule slot ID
+        action:
+          $ref: "#/components/schemas/ScheduleSlotActionUpdated"
+        slot:
+          $ref: "#/components/schemas/ScheduleSlotData"

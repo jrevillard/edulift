@@ -25,7 +25,9 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "typecheck": "tsc --noEmit",
     "asyncapi:validate": "npx @asyncapi/cli validate docs/asyncapi/asyncapi.yaml",
-    "asyncapi:generate": "npx @asyncapi/cli generate fromTemplate @asyncapi/html-template ./docs/asyncapi/asyncapi.yaml -o ./docs/asyncapi/html --force-write"
+    "asyncapi:generate": "npx @asyncapi/cli generate fromTemplate @asyncapi/html-template ./docs/asyncapi/asyncapi.yaml -o ./docs/asyncapi/html --force-write",
+    "asyncapi:generate-types": "rm -rf src/generated/types && mkdir -p src/generated/types && npx @asyncapi/cli generate models typescript docs/asyncapi/asyncapi.yaml -o src/generated/types --tsModelType interface --tsExportType named --tsModuleSystem ESM --no-interactive && bash scripts/generate-types-index.sh",
+    "asyncapi:build": "npm run asyncapi:validate && npm run asyncapi:generate-types"
   },
   "keywords": [],
   "author": "",

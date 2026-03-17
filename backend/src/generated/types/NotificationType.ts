@@ -1,0 +1,10 @@
+
+enum NotificationType {
+  SCHEDULE_PUBLISHED = "SCHEDULE_PUBLISHED",
+  MEMBER_JOINED = "MEMBER_JOINED",
+  MEMBER_LEFT = "MEMBER_LEFT",
+  INFO = "INFO",
+  WARNING = "WARNING",
+  SUCCESS = "SUCCESS",
+}
+export { NotificationType };
