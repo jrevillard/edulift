@@ -73,7 +73,7 @@ interface ConnectedPayload {
 
 ## WebSocket Events
 
-The WebSocket API defines **40+ events** organized into 8 categories:
+The WebSocket API defines **38 events** organized into 8 categories:
 
 | Category | Events | Description |
 |-----------|------------|-------------|

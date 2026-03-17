@@ -79,24 +79,150 @@ export const SOCKET_EVENTS = {
 export type SocketEventName = typeof SOCKET_EVENTS[keyof typeof SOCKET_EVENTS];
 
 // Event data interfaces
+export interface ConnectedPayload {
+  userId: string;
+  groups: string[];
+  timestamp: number;
+}
+
+export interface DisconnectedPayload {
+  reason: 'client_disconnect' | 'server_disconnect' | 'timeout' | 'auth_failed';
+  timestamp: number;
+}
+
 export interface GroupEventData {
   groupId: string;
-  userId?: string;
+  action: 'created' | 'deleted' | 'updated';
+  createdBy?: string;
+  deletedBy?: string;
+  updatedBy?: string;
+  group?: {
+    id: string;
+    name: string;
+    description: string;
+    inviteCode: string;
+  };
+}
+
+export interface GroupFamilyEventData {
+  groupId: string;
+  familyId: string;
+  action: 'added' | 'left' | 'removed';
+  familyName?: string;
+  joinedBy?: string;
+  removedBy?: string;
+}
+
+export interface GroupFamilyRoleEventData {
+  groupId: string;
+  familyId: string;
+  newRole: 'admin' | 'member';
+  previousRole?: 'admin' | 'member';
+  updatedBy: string;
+}
+
+export interface GroupInvitationEventData {
+  groupId: string;
+  familyId: string;
+  inviteCode: string;
+  invitedBy: string;
+  expiresAt: number;
+}
+
+export interface MemberEventData {
+  groupId: string;
+  userId: string;
+  action: 'joined' | 'left';
+  userName?: string;
 }
 
 export interface ScheduleEventData {
   groupId: string;
   scheduleSlotId?: string;
   week?: string;
+  schedule?: Record<string, unknown>;
+}
+
+export interface ScheduleSlotEventData {
+  groupId: string;
+  scheduleSlotId: string;
+  action: 'created' | 'updated' | 'deleted';
+  slot?: {
+    id: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    capacity: number;
+    currentLoad: number;
+  };
+}
+
+export interface ScheduleSlotCapacityEventData {
+  groupId: string;
+  scheduleSlotId: string;
+  status: 'full' | 'warning';
+  currentLoad: number;
+  capacity: number;
+  message?: string;
+}
+
+export interface ChildEventData {
+  familyId: string;
+  childId: string;
+  action: 'added' | 'updated' | 'deleted';
+  child?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+  };
+}
+
+export interface VehicleEventData {
+  familyId: string;
+  vehicleId: string;
+  action: 'added' | 'updated' | 'deleted';
+  vehicle?: {
+    id: string;
+    make: string;
+    model: string;
+    year: number;
+    capacity: number;
+  };
+}
+
+export interface FamilyMemberEventData {
+  familyId: string;
+  userId: string;
+  action: 'joined' | 'left';
+  userName?: string;
+  role?: string;
+}
+
+export interface FamilyEventData {
+  familyId: string;
+  action: 'updated';
+  family?: {
+    id: string;
+    name: string;
+  };
 }
 
 export interface UserEventData {
   userId: string;
   groupId: string;
+  action: 'joined' | 'left';
+  userName?: string;
+}
+
+export interface TypingEventData {
+  userId: string;
+  scheduleSlotId: string;
+  action: 'typing' | 'stopped_typing';
 }
 
 export interface NotificationEventData {
-  type: 'SCHEDULE_PUBLISHED' | 'MEMBER_JOINED' | 'MEMBER_LEFT';
+  type: 'SCHEDULE_PUBLISHED' | 'MEMBER_JOINED' | 'MEMBER_LEFT' | 'INFO' | 'WARNING' | 'SUCCESS';
   message: string;
   data?: Record<string, unknown>;
 }
@@ -104,6 +230,7 @@ export interface NotificationEventData {
 export interface ErrorEventData {
   type: string;
   message: string;
+  details?: Record<string, unknown>;
 }
 
 export interface ConflictEventData {
@@ -111,6 +238,10 @@ export interface ConflictEventData {
   conflictType: 'DRIVER_DOUBLE_BOOKING' | 'VEHICLE_DOUBLE_BOOKING' | 'CAPACITY_EXCEEDED';
   affectedUsers: string[];
   message?: string;
+}
+
+export interface HeartbeatAckData {
+  timestamp: number;
 }
 
 // All events now use modern colon-separated format only

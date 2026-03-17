@@ -8,7 +8,7 @@
 
 **Features:**
 - AsyncAPI 2.6.0 specification
-- 40+ WebSocket events fully documented
+- 38 WebSocket events fully documented
 - 8 event categories:
   - Connection (2 events)
   - Group Management (9 events)
@@ -131,14 +131,14 @@ These are optional fields that don't affect functionality. They can be added lat
 
 | Metric | Value |
 |--------|-------|
-| Events Documented | 40+ |
+| Events Documented | 38 |
 | Event Categories | 8 |
-| Channels | 40+ |
-| Message Schemas | 40+ |
-| TypeScript Interfaces | 40+ (in events.ts) |
+| Channels | 38 |
+| Message Schemas | 38 |
+| TypeScript Interfaces | 38+ (in events.ts) |
 | Example Flows | 3 |
 | Documentation Pages | 1 comprehensive README |
-| Specification Lines | ~640 |
+| Specification Lines | ~650 |
 
 ## 🔗 File Structure
 
@@ -213,7 +213,7 @@ When modifying an existing event:
 ## ✅ Verification Checklist
 
 - [x] AsyncAPI specification created (asyncapi.yaml)
-- [x] All 40+ events documented
+- [x] All 38 events documented
 - [x] Payload schemas defined for all events
 - [x] User guide created (README.md)
 - [x] Example flows created (3 flows)

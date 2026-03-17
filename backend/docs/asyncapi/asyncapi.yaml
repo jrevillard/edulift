@@ -1,4 +1,6 @@
 asyncapi: '2.6.0'
+id: 'urn:edulift:websocket-api'
+defaultContentType: 'application/json'
 info:
   title: EduLift WebSocket API
   version: 1.0.0
@@ -9,6 +11,20 @@ info:
     This API enables clients to receive real-time updates on state changes
     in groups, schedules, and resources (children, vehicles) without the need
     for repeated HTTP polling.
+  contact:
+    name: EduLift Backend Team
+    url: https://github.com/edulift
+    email: backend@edulift.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+tags:
+  - name: websocket
+    description: WebSocket API for real-time events
+  - name: realtime
+    description: Real-time event notifications
+  - name: edulift
+    description: EduLift school transportation management
 
 servers:
   production:
@@ -35,6 +51,7 @@ channels:
   # Connection Events
   connected:
     publish:
+      operationId: onConnected
       message:
         $ref: '#/components/messages/Connected'
       description: Emitted when connection is established with successful authentication
@@ -48,6 +65,7 @@ channels:
   # Group Management Events
   group:created:
     publish:
+      operationId: onGroupCreated
       message:
         $ref: '#/components/messages/GroupCreated'
       description: Emitted when a new group is created
@@ -146,6 +164,7 @@ channels:
 
   schedule:slot:updated:
     publish:
+      operationId: onScheduleSlotUpdated
       message:
         $ref: '#/components/messages/ScheduleSlotUpdated'
       description: Emitted when a schedule slot is modified (assignment, capacity)
@@ -310,6 +329,7 @@ channels:
 
   error:
     publish:
+      operationId: onError
       message:
         $ref: '#/components/messages/Error'
       description: Server error or validation error
@@ -332,6 +352,7 @@ components:
     # Connection Messages
     Connected:
       name: Connected
+      messageId: connectedEvent
       title: Connection Established
       summary: Emitted when connection is established with successful authentication
       payload:
@@ -355,6 +376,7 @@ components:
     # Group Messages
     GroupCreated:
       name: GroupCreated
+      messageId: groupCreatedEvent
       title: Group Created
       summary: A new group has been created
       payload:
@@ -454,6 +476,7 @@ components:
 
     ScheduleSlotUpdated:
       name: ScheduleSlotUpdated
+      messageId: scheduleSlotUpdatedEvent
       title: Slot Updated
       summary: A schedule slot has been modified
       payload:
@@ -620,6 +643,7 @@ components:
 
     Error:
       name: Error
+      messageId: errorEvent
       title: Error
       summary: Server or validation error
       payload:

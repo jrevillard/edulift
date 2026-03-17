@@ -1,5 +1,5 @@
-import { 
-  SOCKET_EVENTS, 
+import {
+  SOCKET_EVENTS,
   SocketEventName,
   GroupEventData,
   ScheduleEventData,
@@ -140,18 +140,21 @@ describe('Event Registry', () => {
     it('should validate GroupEventData interface', () => {
       const groupData: GroupEventData = {
         groupId: 'test-group-123',
-        userId: 'test-user-456',
+        action: 'created',
+        createdBy: 'test-user-456',
       };
 
       expect(groupData.groupId).toBe('test-group-123');
-      expect(groupData.userId).toBe('test-user-456');
+      expect(groupData.action).toBe('created');
+      expect(groupData.createdBy).toBe('test-user-456');
 
-      // userId should be optional
-      const groupDataWithoutUser: GroupEventData = {
-        groupId: 'test-group-123',
+      // Minimal group data
+      const minimalGroupData: GroupEventData = {
+        groupId: 'test-group-456',
+        action: 'deleted',
       };
-      expect(groupDataWithoutUser.groupId).toBe('test-group-123');
-      expect(groupDataWithoutUser.userId).toBeUndefined();
+      expect(minimalGroupData.groupId).toBe('test-group-456');
+      expect(minimalGroupData.action).toBe('deleted');
     });
 
     it('should validate ScheduleEventData interface', () => {
@@ -176,10 +179,12 @@ describe('Event Registry', () => {
       const userData: UserEventData = {
         userId: 'test-user-123',
         groupId: 'test-group-456',
+        action: 'joined',
       };
 
       expect(userData.userId).toBe('test-user-123');
       expect(userData.groupId).toBe('test-group-456');
+      expect(userData.action).toBe('joined');
     });
 
     it('should validate NotificationEventData interface', () => {
@@ -198,6 +203,9 @@ describe('Event Registry', () => {
         'SCHEDULE_PUBLISHED',
         'MEMBER_JOINED',
         'MEMBER_LEFT',
+        'INFO',
+        'WARNING',
+        'SUCCESS',
       ];
 
       validTypes.forEach(type => {
