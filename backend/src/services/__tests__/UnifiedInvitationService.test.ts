@@ -1259,9 +1259,9 @@ describe('UnifiedInvitationService - TDD Implementation', () => {
               }),
             },
             groupFamilyMember: {
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+               
               findFirst: (jest.fn() as any).mockImplementation(({ where }: { where: { familyId: string } }) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                 
                 void where; // Unused but part of mock signature
                 // Return null for user's family (not already a member)
                 // This allows test to proceed to admin check

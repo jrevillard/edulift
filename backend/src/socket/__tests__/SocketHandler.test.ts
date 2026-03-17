@@ -6,7 +6,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { io, Socket } from 'socket.io-client';
 import jwt from 'jsonwebtoken';
 import { SocketHandler } from '../socketHandler';
-import { SOCKET_EVENTS } from '../../shared/events';
+import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 import { PrismaClient } from '@prisma/client';
 
 // Mock dependencies

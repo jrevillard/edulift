@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(process.cwd(), './src'),
+      '@shared-types': path.resolve(__dirname, '../shared-types'),
     },
   },
   test: {

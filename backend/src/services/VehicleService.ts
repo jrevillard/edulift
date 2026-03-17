@@ -85,7 +85,7 @@ export class VehicleService {
       SocketEmitter.broadcastVehicleUpdate(userId, data.familyId, 'added', {
         vehicleId: vehicle.id,
         familyId: data.familyId,
-        newVehicle: vehicle,
+        vehicle,
       });
 
       // Log the activity
@@ -220,8 +220,7 @@ export class VehicleService {
       SocketEmitter.broadcastVehicleUpdate(userId, userFamily.id, 'updated', {
         vehicleId,
         familyId: userFamily.id,
-        previousVehicle: existingVehicle,
-        updatedVehicle,
+        vehicle: updatedVehicle,
       });
 
       // Fetch and return complete updated Family
@@ -281,7 +280,6 @@ export class VehicleService {
       SocketEmitter.broadcastVehicleUpdate(userId, userFamily.id, 'deleted', {
         vehicleId,
         familyId: userFamily.id,
-        deletedVehicle: existingVehicle,
       });
 
       // Fetch and return complete updated Family

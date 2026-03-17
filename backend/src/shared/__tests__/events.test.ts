@@ -1,13 +1,19 @@
 import {
   SOCKET_EVENTS,
   SocketEventName,
-  GroupEventData,
+} from '../events';
+
+// Import specific event data types
+import type {
+  GroupEventDataCreated,
+  GroupEventDataDeleted,
   ScheduleEventData,
-  UserEventData,
+  UserJoinedEventData,
   NotificationEventData,
   ErrorEventData,
   ConflictEventData,
-} from '../events';
+} from '@shared-types/asyncapi';
+import { GroupActionCreated, GroupActionDeleted, ConflictType, NotificationType, MemberActionJoined } from '@shared-types/asyncapi';
 
 describe('Event Registry', () => {
   describe('SOCKET_EVENTS Constants', () => {
@@ -137,10 +143,10 @@ describe('Event Registry', () => {
   });
 
   describe('Event Data Interfaces', () => {
-    it('should validate GroupEventData interface', () => {
-      const groupData: GroupEventData = {
+    it('should validate GroupEventDataCreated interface', () => {
+      const groupData: GroupEventDataCreated = {
         groupId: 'test-group-123',
-        action: 'created',
+        action: GroupActionCreated.CREATED,
         createdBy: 'test-user-456',
       };
 
@@ -149,88 +155,97 @@ describe('Event Registry', () => {
       expect(groupData.createdBy).toBe('test-user-456');
 
       // Minimal group data
-      const minimalGroupData: GroupEventData = {
+      const minimalGroupData: GroupEventDataCreated = {
         groupId: 'test-group-456',
-        action: 'deleted',
+        action: GroupActionCreated.CREATED,
       };
       expect(minimalGroupData.groupId).toBe('test-group-456');
-      expect(minimalGroupData.action).toBe('deleted');
+      expect(minimalGroupData.action).toBe('created');
+    });
+
+    it('should validate GroupEventDataDeleted interface', () => {
+      const deletedGroupData: GroupEventDataDeleted = {
+        groupId: 'test-group-789',
+        action: GroupActionDeleted.DELETED,
+        deletedBy: 'admin-user',
+      };
+      expect(deletedGroupData.groupId).toBe('test-group-789');
+      expect(deletedGroupData.action).toBe('deleted');
+      expect(deletedGroupData.deletedBy).toBe('admin-user');
     });
 
     it('should validate ScheduleEventData interface', () => {
       const scheduleData: ScheduleEventData = {
         groupId: 'test-group-123',
-        scheduleSlotId: 'test-slot-456',
         week: '2024-03',
       };
 
       expect(scheduleData.groupId).toBe('test-group-123');
-      expect(scheduleData.scheduleSlotId).toBe('test-slot-456');
       expect(scheduleData.week).toBe('2024-03');
 
-      // Optional fields
+      // Minimal schedule data (week is required)
       const minimalScheduleData: ScheduleEventData = {
         groupId: 'test-group-123',
+        week: '2024-04',
       };
       expect(minimalScheduleData.groupId).toBe('test-group-123');
     });
 
-    it('should validate UserEventData interface', () => {
-      const userData: UserEventData = {
+    it('should validate UserJoinedEventData interface', () => {
+      const userData: UserJoinedEventData = {
         userId: 'test-user-123',
         groupId: 'test-group-456',
-        action: 'joined',
+        action: MemberActionJoined.MEMBER_JOINED,
       };
 
       expect(userData.userId).toBe('test-user-123');
       expect(userData.groupId).toBe('test-group-456');
-      expect(userData.action).toBe('joined');
+      expect(userData.action).toBe('memberJoined');
     });
 
     it('should validate NotificationEventData interface', () => {
       const notificationData: NotificationEventData = {
-        type: 'SCHEDULE_PUBLISHED',
+        reservedType: NotificationType.SCHEDULE_PUBLISHED,
         message: 'Schedule has been published',
-        data: { scheduleId: 'schedule-123' },
+        data: new Map([['scheduleId', new Map([['id', 'schedule-123']])]]),
       };
 
-      expect(notificationData.type).toBe('SCHEDULE_PUBLISHED');
+      expect(notificationData.reservedType).toBe('SCHEDULE_PUBLISHED');
       expect(notificationData.message).toBe('Schedule has been published');
-      expect(notificationData.data?.scheduleId).toBe('schedule-123');
 
       // Test all valid notification types
-      const validTypes: NotificationEventData['type'][] = [
-        'SCHEDULE_PUBLISHED',
-        'MEMBER_JOINED',
-        'MEMBER_LEFT',
-        'INFO',
-        'WARNING',
-        'SUCCESS',
+      const validTypes: NotificationType[] = [
+        NotificationType.SCHEDULE_PUBLISHED,
+        NotificationType.MEMBER_JOINED,
+        NotificationType.MEMBER_LEFT,
+        NotificationType.INFO,
+        NotificationType.WARNING,
+        NotificationType.SUCCESS,
       ];
 
       validTypes.forEach(type => {
         const data: NotificationEventData = {
-          type,
+          reservedType: type,
           message: `Test message for ${type}`,
         };
-        expect(data.type).toBe(type);
+        expect(data.reservedType).toBe(type);
       });
     });
 
     it('should validate ErrorEventData interface', () => {
       const errorData: ErrorEventData = {
-        type: 'VALIDATION_ERROR',
+        reservedType: 'VALIDATION_ERROR',
         message: 'Invalid input provided',
       };
 
-      expect(errorData.type).toBe('VALIDATION_ERROR');
+      expect(errorData.reservedType).toBe('VALIDATION_ERROR');
       expect(errorData.message).toBe('Invalid input provided');
     });
 
     it('should validate ConflictEventData interface', () => {
       const conflictData: ConflictEventData = {
         scheduleSlotId: 'slot-123',
-        conflictType: 'DRIVER_DOUBLE_BOOKING',
+        conflictType: ConflictType.DRIVER_DOUBLE_BOOKING,
         affectedUsers: ['user-123', 'user-456'],
         message: 'Driver is already assigned to another slot',
       };
@@ -241,10 +256,10 @@ describe('Event Registry', () => {
       expect(conflictData.message).toBe('Driver is already assigned to another slot');
 
       // Test all valid conflict types
-      const validConflictTypes: ConflictEventData['conflictType'][] = [
-        'DRIVER_DOUBLE_BOOKING',
-        'VEHICLE_DOUBLE_BOOKING',
-        'CAPACITY_EXCEEDED',
+      const validConflictTypes: ConflictType[] = [
+        ConflictType.DRIVER_DOUBLE_BOOKING,
+        ConflictType.VEHICLE_DOUBLE_BOOKING,
+        ConflictType.CAPACITY_EXCEEDED,
       ];
 
       validConflictTypes.forEach(conflictType => {

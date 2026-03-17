@@ -10,7 +10,7 @@ import { EmailServiceFactory } from '../services/EmailServiceFactory';
 import { UserRepository } from '../repositories/UserRepository';
 import { prisma as globalPrisma } from '../config/database';
 import jwt from 'jsonwebtoken';
-import { SOCKET_EVENTS } from '../shared/events';
+import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 import { AuthorizationService } from '../services/AuthorizationService';
 import { createLogger } from '../utils/logger';
 import {
@@ -22,6 +22,7 @@ import {
   typingStartSchema,
   authenticateSchema,
 } from './validation';
+import { typedSocketEmit } from '../utils/typedSocketEmitter';
 
 // Extend Socket interface to include userId
 declare module 'socket.io' {
@@ -161,10 +162,7 @@ export class SocketHandler {
           // Validate payload before processing
           const validation = validatePayload(scheduleSlotUpdateSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
           await this.socketService.handleScheduleSlotUpdate(socket, this.io, validation.data as any);
@@ -174,19 +172,13 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(scheduleSlotJoinSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated',
-            });
+            typedSocketEmit.error(socket, 'AUTHENTICATION_ERROR', 'User not authenticated');
             return;
           }
 
@@ -210,10 +202,7 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(scheduleSlotJoinSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
@@ -226,19 +215,13 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(groupJoinSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated',
-            });
+            typedSocketEmit.error(socket, 'AUTHENTICATION_ERROR', 'User not authenticated');
             return;
           }
 
@@ -263,10 +246,7 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(groupJoinSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
@@ -282,19 +262,13 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(scheduleSubscribeSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated',
-            });
+            typedSocketEmit.error(socket, 'AUTHENTICATION_ERROR', 'User not authenticated');
             return;
           }
 
@@ -315,10 +289,7 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(scheduleSubscribeSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
@@ -330,19 +301,13 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(typingStartSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated',
-            });
+            typedSocketEmit.error(socket, 'AUTHENTICATION_ERROR', 'User not authenticated');
             return;
           }
 
@@ -366,19 +331,13 @@ export class SocketHandler {
           // Validate payload first
           const validation = validatePayload(typingStartSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
           // SECURITY: Check user authentication and authorization
           if (!socket.userId) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'AUTHENTICATION_ERROR',
-              message: 'User not authenticated',
-            });
+            typedSocketEmit.error(socket, 'AUTHENTICATION_ERROR', 'User not authenticated');
             return;
           }
 
@@ -442,10 +401,7 @@ export class SocketHandler {
           // Validate payload first (even for test events)
           const validation = validatePayload(authenticateSchema, data);
           if (!validation.success) {
-            socket.emit(SOCKET_EVENTS.ERROR, {
-              type: 'VALIDATION_ERROR',
-              message: validation.error,
-            });
+            typedSocketEmit.error(socket, 'VALIDATION_ERROR', validation.error);
             return;
           }
 
@@ -504,11 +460,7 @@ export class SocketHandler {
       }
 
       // Send connection success
-      socket.emit(SOCKET_EVENTS.CONNECTED, {
-        userId: socket.userId,
-        groups: groupIds,
-        timestamp: Date.now(),
-      });
+      typedSocketEmit.connected(socket, socket.userId!, groupIds);
 
     } catch (error) {
       this.logger.error(`Error handling user connection for user ${socket.userId}:`, { error: error instanceof Error ? error.message : String(error) });

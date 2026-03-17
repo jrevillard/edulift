@@ -1,7 +1,7 @@
 import { Server as HTTPServer } from 'http';
 import { AddressInfo } from 'net';
 import { SocketHandler } from '../socketHandler';
-import { SOCKET_EVENTS } from '../../shared/events';
+import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import Client from 'socket.io-client';

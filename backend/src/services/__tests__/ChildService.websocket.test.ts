@@ -194,7 +194,6 @@ describe('ChildService WebSocket Events', () => {
         expect.objectContaining({
           child: mockUpdatedChild,
           familyId,
-          previousData: mockExistingChild,
         }),
       );
     });
@@ -253,7 +252,6 @@ describe('ChildService WebSocket Events', () => {
         expect.objectContaining({
           child: mockUpdatedChild,
           familyId,
-          previousData: mockExistingChild,
         }),
       );
     });
@@ -330,7 +328,7 @@ describe('ChildService WebSocket Events', () => {
         expect.objectContaining({
           childId,
           familyId,
-          deletedChild: mockExistingChild,
+          child: mockExistingChild,
         }),
       );
     });
@@ -457,7 +455,6 @@ describe('ChildService WebSocket Events', () => {
         {
           child: mockUpdatedChild,
           familyId,
-          previousData: mockExistingChild,
         },
       );
     });
@@ -504,7 +501,7 @@ describe('ChildService WebSocket Events', () => {
         {
           childId,
           familyId,
-          deletedChild: mockExistingChild,
+          child: mockExistingChild,
         },
       );
     });

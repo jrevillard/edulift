@@ -2,7 +2,7 @@ import { GroupService } from '../GroupService';
 import { MockEmailService } from '../MockEmailService';
 import { TEST_IDS } from '../../utils/testHelpers';
 import { setGlobalSocketHandler } from '../../utils/socketEmitter';
-import { SOCKET_EVENTS } from '../../shared/events';
+import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 
 // Mock the logger module
 jest.mock('../../utils/logger', () => ({
@@ -301,7 +301,7 @@ describe('GroupService - WebSocket Events', () => {
         expect.objectContaining({
           groupId: TEST_IDS.GROUP,
           familyId,
-          action: 'joined',
+          action: 'familyJoined',
           joinedBy: userId,
         }),
       );
@@ -345,7 +345,7 @@ describe('GroupService - WebSocket Events', () => {
         expect.objectContaining({
           groupId,
           familyId,
-          action: 'left',
+          action: 'removed',
         }),
       );
     });

@@ -30,6 +30,9 @@ COPY src/ ./src/
 COPY public/ ./public/
 COPY index.html ./
 
+# Copy shared types from monorepo root
+COPY ../shared-types/ ../shared-types/
+
 # Build the application with environment variables
 RUN npm run build
 

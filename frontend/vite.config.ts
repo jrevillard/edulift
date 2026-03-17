@@ -57,6 +57,7 @@ window.__ENV__ = {
   resolve: {
     alias: {
       '@': path.resolve(process.cwd(), './src'),
+      '@shared-types': path.resolve(__dirname, '../shared-types'),
     },
   },
 })

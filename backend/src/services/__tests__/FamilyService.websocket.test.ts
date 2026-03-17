@@ -106,7 +106,7 @@ describe('FamilyService WebSocket Events', () => {
         familyId,
         'updated',
         expect.objectContaining({
-          action: 'created',
+          action: 'memberJoined',
           family: mockFamily,
         }),
       );
@@ -396,7 +396,7 @@ describe('FamilyService WebSocket Events', () => {
         familyId,
         'updated',
         expect.objectContaining({
-          action: 'created',
+          action: 'memberJoined',
           family: mockFamily,
         }),
       );

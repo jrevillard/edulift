@@ -1,5 +1,5 @@
 import { SocketEmitter, setGlobalSocketHandler, getGlobalSocketHandler } from '../socketEmitter';
-import { SOCKET_EVENTS } from '../../shared/events';
+import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 
 // Mock the logger module
 jest.mock('../logger', () => ({

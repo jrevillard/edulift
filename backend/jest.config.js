@@ -28,6 +28,7 @@ export default {
   },
   modulePathIgnorePatterns: ['<rootDir>/dist/'],
   moduleNameMapper: {
+    '^@shared-types/(.*)$': '<rootDir>/../shared-types/$1',
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   // Increase timeout for async operations

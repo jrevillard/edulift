@@ -880,7 +880,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
         groupId,
         slotId: slot.id,
       });
-      SocketEmitter.broadcastScheduleSlotCreated(groupId, slot.id, slot);
+      SocketEmitter.broadcastScheduleSlotCreated(groupId, slot.id, slot as unknown as Record<string, unknown>);
       SocketEmitter.broadcastScheduleUpdate(groupId);
     }
 
@@ -988,7 +988,7 @@ app.openapi(assignVehicleRoute, async (c) => {
     }
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({
@@ -1063,7 +1063,7 @@ app.openapi(removeVehicleRoute, async (c) => {
         throw new Error('Service returned slotDeleted=false but no scheduleSlot');
       }
 
-      SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result.scheduleSlot);
+      SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, result.scheduleSlot as unknown as Record<string, unknown>);
       SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
       return c.json({
@@ -1157,7 +1157,7 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
     }
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({
@@ -1218,7 +1218,7 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
     }
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({
@@ -1429,7 +1429,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
     }
 
     // Emit WebSocket event for real-time updates
-    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot);
+    SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
     return c.json({

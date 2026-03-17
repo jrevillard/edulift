@@ -1,4 +1,5 @@
 import { PrismaClient, FamilyRole, GroupRole, FamilyInvitationStatus, GroupInvitationStatus } from '@prisma/client';
+import { MemberActionJoined } from '@shared-types/asyncapi';
 import { EmailServiceInterface } from '../types/EmailServiceInterface';
 import { randomBytes } from 'crypto';
 import { SocketEmitter } from '../utils/socketEmitter';
@@ -496,7 +497,7 @@ export class UnifiedInvitationService {
           // Emit left family event BEFORE removing membership
           SocketEmitter.broadcastFamilyUpdate(existingMembership.familyId, 'memberLeft', {
             userId,
-            action: 'leftForNewFamily',
+            action: MemberActionJoined.MEMBER_REMOVED,
             leftTo: invitation.familyId,
           });
 
@@ -539,7 +540,7 @@ export class UnifiedInvitationService {
         // Emit WebSocket event for family invitation acceptance
         SocketEmitter.broadcastFamilyUpdate(invitation.familyId, 'memberJoined', {
           userId,
-          action: 'invitationAccepted',
+          action: MemberActionJoined.MEMBER_JOINED,
           invitationId: invitation.id,
           role: invitation.role,
         });
@@ -934,7 +935,7 @@ export class UnifiedInvitationService {
 
       // Emit WebSocket event for group invitation acceptance
       SocketEmitter.broadcastGroupUpdate(invitation.groupId, {
-        action: 'invitationAccepted',
+        action: MemberActionJoined.MEMBER_JOINED,
         userId,
         familyId: familyMember.familyId,
         groupId: invitation.groupId,

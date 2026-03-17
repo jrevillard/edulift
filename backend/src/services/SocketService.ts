@@ -2,8 +2,11 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { ScheduleSlotService } from './ScheduleSlotService';
 import { WeeklySchedule } from '../types';
-import { SOCKET_EVENTS } from '../shared/events';
+import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 import { createLogger } from '../utils/logger';
+import { ScheduleSlotActionUpdated } from '@shared-types/asyncapi';
+import { NotificationType } from '@shared-types/asyncapi';
+import { CapacityStatusWarning } from '@shared-types/asyncapi';
 
 const logger = createLogger('SocketService');
 
@@ -40,20 +43,23 @@ export class SocketService {
     // Join user to all their group rooms
     for (const groupId of authData.groupIds) {
       await socket.join(groupId);
-      
+
       // Notify other group members that user has joined
-      socket.to(groupId).emit(SOCKET_EVENTS.USER_JOINED, {
-        userId: authData.userId,
-        groupId,
-      });
+      socket.to(groupId).emit(
+        SOCKET_EVENTS.USER_JOINED,
+        {
+          userId: authData.userId,
+          groupId,
+        },
+      );
     }
 
     logger.info('User connected and joined groups', { userId: authData.userId, groupCount: authData.groupIds.length });
   }
 
   async handleScheduleSlotUpdate(
-    socket: Socket, 
-    io: SocketIOServer, 
+    socket: Socket,
+    io: SocketIOServer,
     data: ScheduleSlotUpdateData,
   ): Promise<void> {
     try {
@@ -83,10 +89,10 @@ export class SocketService {
 
       // Get updated schedule slot details
       const updatedSlot = await this.scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
-      
+
       if (!updatedSlot) {
         socket.emit(SOCKET_EVENTS.ERROR, {
-          type: 'SCHEDULE_SLOT_NOT_FOUND',
+          reservedType: 'SCHEDULE_SLOT_NOT_FOUND',
           message: 'Schedule slot not found',
         });
         return;
@@ -94,17 +100,23 @@ export class SocketService {
 
       // Broadcast schedule slot update to all group members
       const groupId = updatedSlot.groupId;
-      
-      io.to(groupId).emit(SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED, {
-        ...updatedSlot,
-        updatedBy: socket.userId,
-      });
+
+      io.to(groupId).emit(
+        SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED,
+        {
+          scheduleSlotId: updatedSlot.id,
+          groupId,
+          action: ScheduleSlotActionUpdated.UPDATED,
+          slot: updatedSlot as any,
+          updatedBy: socket.userId,
+        },
+      );
 
     } catch (error) {
       logger.error('Failed to update schedule slot', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined, scheduleSlotId: data.scheduleSlotId });
 
       socket.emit(SOCKET_EVENTS.ERROR, {
-        type: this.categorizeError(error),
+        reservedType: this.categorizeError(error),
         message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
@@ -117,10 +129,13 @@ export class SocketService {
     for (const room of socket.rooms) {
       if (room !== socket.id && room !== socket.userId) {
         // This is a group room
-        socket.to(room).emit(SOCKET_EVENTS.USER_LEFT, {
-          userId: socket.userId,
-          groupId: room,
-        });
+        socket.to(room).emit(
+          SOCKET_EVENTS.USER_LEFT,
+          {
+            userId: socket.userId,
+            groupId: room,
+          },
+        );
       }
     }
 
@@ -128,16 +143,22 @@ export class SocketService {
   }
 
   broadcastScheduleUpdate(io: SocketIOServer, scheduleData: WeeklySchedule): void {
-    io.to(scheduleData.groupId).emit(SOCKET_EVENTS.SCHEDULE_UPDATED, scheduleData);
+    io.to(scheduleData.groupId).emit(
+      SOCKET_EVENTS.SCHEDULE_UPDATED,
+      scheduleData,
+    );
   }
 
   async detectAndBroadcastConflicts(
-    io: SocketIOServer, 
+    io: SocketIOServer,
     conflictData: ConflictData,
   ): Promise<void> {
     // Notify affected users about the conflict
     for (const userId of conflictData.affectedUsers) {
-      io.to(userId).emit(SOCKET_EVENTS.CONFLICT_DETECTED, conflictData);
+      io.to(userId).emit(
+        SOCKET_EVENTS.CONFLICT_DETECTED,
+        conflictData,
+      );
     }
 
     logger.warn('Conflict detected for schedule slot', { scheduleSlotId: conflictData.scheduleSlotId, conflictType: conflictData.conflictType, affectedUserCount: conflictData.affectedUsers.length });
@@ -152,7 +173,14 @@ export class SocketService {
       data?: Record<string, unknown>;
     },
   ): Promise<void> {
-    io.to(groupId).emit(SOCKET_EVENTS.NOTIFICATION, notification);
+    io.to(groupId).emit(
+      SOCKET_EVENTS.NOTIFICATION,
+      {
+        reservedType: notification.type as NotificationType,
+        message: notification.message,
+        data: notification.data as any,
+      },
+    );
   }
 
   // Get real-time group statistics
@@ -164,7 +192,7 @@ export class SocketService {
   // Force disconnect user from all sessions
   async forceDisconnectUser(io: SocketIOServer, userId: string): Promise<void> {
     const sockets = await io.in(userId).fetchSockets();
-    
+
     for (const socket of sockets) {
       socket.disconnect(true);
     }
@@ -191,22 +219,29 @@ export class SocketService {
     scheduleSlotId: string,
   ): Promise<void> {
     const scheduleSlot = await this.scheduleSlotService.getScheduleSlotDetails(scheduleSlotId);
-    
+
     if (!scheduleSlot) return;
 
     const groupId = scheduleSlot.groupId;
-    
+
     if (scheduleSlot.availableSeats <= 0) {
-      io.to(groupId).emit(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_FULL, {
-        scheduleSlotId,
-        message: 'Schedule slot is now at full capacity',
-      });
+      io.to(groupId).emit(
+        SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_FULL,
+        {
+          scheduleSlotId,
+          message: 'Schedule slot is now at full capacity',
+        },
+      );
     } else if (scheduleSlot.availableSeats <= 1) {
-      io.to(groupId).emit(SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING, {
-        scheduleSlotId,
-        availableSeats: scheduleSlot.availableSeats,
-        message: 'Schedule slot is almost at capacity',
-      });
+      io.to(groupId).emit(
+        SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING,
+        {
+          groupId,
+          scheduleSlotId,
+          reservedStatus: CapacityStatusWarning.WARNING,
+          message: 'Schedule slot is almost at capacity',
+        },
+      );
     }
   }
 }

@@ -169,7 +169,7 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         'memberJoined',
         expect.objectContaining({
           userId,
-          action: 'invitationAccepted',
+          action: 'memberJoined',
           invitationId: mockInvitation.id,
           role: 'MEMBER',
         }),
@@ -254,14 +254,14 @@ describe('UnifiedInvitationService WebSocket Events', () => {
 
       // Should emit two events: member left old family and member joined new family
       expect(mockSocketEmitter.broadcastFamilyUpdate).toHaveBeenCalledTimes(2);
-      
+
       expect(mockSocketEmitter.broadcastFamilyUpdate).toHaveBeenNthCalledWith(
         1,
         oldFamilyId,
         'memberLeft',
         expect.objectContaining({
           userId,
-          action: 'leftForNewFamily',
+          action: 'memberRemoved',
           leftTo: newFamilyId,
         }),
       );
@@ -272,7 +272,7 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         'memberJoined',
         expect.objectContaining({
           userId,
-          action: 'invitationAccepted',
+          action: 'memberJoined',
           invitationId: mockInvitation.id,
           role: 'MEMBER',
         }),
@@ -475,7 +475,7 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         'memberJoined',
         {
           userId,
-          action: 'invitationAccepted',
+          action: 'memberJoined',
           invitationId,
           role,
         },
@@ -562,7 +562,7 @@ describe('UnifiedInvitationService WebSocket Events', () => {
         'memberLeft',
         {
           userId,
-          action: 'leftForNewFamily',
+          action: 'memberRemoved',
           leftTo: newFamilyId,
         },
       );

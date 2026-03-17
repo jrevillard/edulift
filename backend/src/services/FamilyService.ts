@@ -1,4 +1,5 @@
 
+import { MemberActionJoined, MemberActionLeft } from '@shared-types/asyncapi';
 import { PrismaClient, Prisma, FamilyRole } from '@prisma/client';
 import { Family, IFamilyService, FamilyError } from '../types/family';
 import { NotificationService } from './NotificationService';
@@ -65,7 +66,7 @@ export class FamilyService implements IFamilyService {
       
       // Emit WebSocket event for family creation
       SocketEmitter.broadcastFamilyUpdate(family.id, 'updated', {
-        action: 'created',
+        action: MemberActionJoined.MEMBER_JOINED,
         family: familyWithMembers,
       });
       
@@ -156,7 +157,7 @@ export class FamilyService implements IFamilyService {
       
       // Emit WebSocket event for member role update
       SocketEmitter.broadcastFamilyUpdate(adminMember.familyId, 'updated', {
-        action: 'memberRoleUpdated',
+        action: MemberActionJoined.MEMBER_ROLE_UPDATED,
         memberId,
         userId: targetMember.userId,
         oldRole: targetMember.role,
@@ -212,7 +213,7 @@ export class FamilyService implements IFamilyService {
     
     // Emit WebSocket event for member removal
     SocketEmitter.broadcastFamilyUpdate(adminMember.familyId, 'memberLeft', {
-      action: 'memberRemoved',
+      action: MemberActionJoined.MEMBER_REMOVED,
       memberId,
       userId: targetMember.userId,
       removedBy: adminId,
@@ -264,7 +265,7 @@ export class FamilyService implements IFamilyService {
       
       // Emit WebSocket event for member leaving family
       SocketEmitter.broadcastFamilyUpdate(memberRecord.familyId, 'memberLeft', {
-        action: 'memberLeft',
+        action: MemberActionLeft.MEMBER_LEFT,
         userId,
         memberId: memberRecord.id,
       });
@@ -482,7 +483,7 @@ export class FamilyService implements IFamilyService {
         
         // Emit WebSocket event for family name update
         SocketEmitter.broadcastFamilyUpdate(adminMember.familyId, 'updated', {
-          action: 'nameUpdated',
+          action: MemberActionJoined.NAME_UPDATED,
           oldName,
           newName,
           changedBy: adminId,

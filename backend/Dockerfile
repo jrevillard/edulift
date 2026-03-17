@@ -19,6 +19,9 @@ COPY prisma/ ./prisma/
 COPY scripts/ ./scripts/
 COPY tsconfig.json ./
 
+# Copy shared types from monorepo root
+COPY ../shared-types/ ../shared-types/
+
 # Copy assets (logo for emails)
 COPY assets/ ./assets/
 

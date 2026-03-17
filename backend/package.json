@@ -26,8 +26,9 @@
     "typecheck": "tsc --noEmit",
     "asyncapi:validate": "npx @asyncapi/cli validate docs/asyncapi/asyncapi.yaml",
     "asyncapi:generate": "npx @asyncapi/cli generate fromTemplate @asyncapi/html-template ./docs/asyncapi/asyncapi.yaml -o ./docs/asyncapi/html --force-write",
-    "asyncapi:generate-types": "rm -rf src/generated/types && mkdir -p src/generated/types && npx @asyncapi/cli generate models typescript docs/asyncapi/asyncapi.yaml -o src/generated/types --tsModelType interface --tsExportType named --tsModuleSystem ESM --no-interactive && bash scripts/generate-types-index.sh",
-    "asyncapi:build": "npm run asyncapi:validate && npm run asyncapi:generate-types"
+    "asyncapi:generate-types": "rm -rf ../shared-types/asyncapi && mkdir -p ../shared-types/asyncapi && npx @asyncapi/cli generate models typescript docs/asyncapi/asyncapi.yaml -o ../shared-types/asyncapi --tsModelType interface --tsExportType named --tsModuleSystem ESM --no-interactive && bash scripts/post-process/fix-strict-types.sh ../shared-types/asyncapi && bash scripts/generate-types-index.sh ../shared-types/asyncapi && python3 scripts/generate-events-constants.py",
+    "asyncapi:validate-types": "tsc --noEmit --project ../shared-types/tsconfig.json",
+    "asyncapi:build": "npm run asyncapi:validate && npm run asyncapi:generate-types && npm run asyncapi:validate-types"
   },
   "keywords": [],
   "author": "",

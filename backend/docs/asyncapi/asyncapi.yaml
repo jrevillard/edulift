@@ -1043,12 +1043,17 @@ components:
     MemberActionJoined:
       type: string
       enum:
-        - joined
+        - memberJoined
+        - memberRoleUpdated
+        - memberRemoved
+        - nameUpdated
       description: Member joined action
     MemberActionLeft:
       type: string
       enum:
-        - left
+        - memberLeft
+        - leftForNewFamily
+        - invitationAccepted
       description: Member left action
     TypingActionTyping:
       type: string
@@ -1231,10 +1236,12 @@ components:
       type: string
       enum:
         - updated
+        - invitationAccepted
       description: Group updated action
     GroupFamilyActionAdded:
       type: string
       enum:
+        - familyJoined
         - added
       description: Family added to group action
     GroupFamilyActionRemoved:

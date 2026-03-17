@@ -12,6 +12,7 @@ import {
 } from '../types/GroupTypes';
 import { createLogger } from '../utils/logger';
 import { SocketEmitter } from '../utils/socketEmitter';
+import { GroupActionCreated, GroupActionDeleted, GroupActionUpdated, GroupFamilyActionAdded, GroupFamilyActionRemoved } from '@shared-types/asyncapi';
 
 interface GroupInviteValidationResponse {
   valid: boolean;
@@ -341,7 +342,7 @@ export class GroupService {
 
       // Broadcast group creation event
       SocketEmitter.broadcastGroupCreated(group.id, {
-        action: 'created',
+        action: GroupActionCreated.CREATED,
         createdBy: data.createdBy,
       });
 
@@ -487,7 +488,7 @@ export class GroupService {
 
       // Broadcast family added to group event
       SocketEmitter.broadcastGroupFamilyAdded(group.id, userFamily.familyId, {
-        action: 'joined',
+        action: GroupFamilyActionAdded.FAMILY_JOINED,
         familyId: userFamily.familyId,
         familyName: userFamily.family.name,
         joinedBy: userId,
@@ -836,7 +837,7 @@ export class GroupService {
 
       // Broadcast family removed from group event
       SocketEmitter.broadcastGroupFamilyRemoved(groupId, targetFamilyId, requesterId, {
-        action: 'removed',
+        action: GroupFamilyActionRemoved.REMOVED,
         familyId: targetFamilyId,
         removedBy: requesterId,
       });
@@ -914,7 +915,7 @@ export class GroupService {
 
       // Broadcast group update event
       SocketEmitter.broadcastGroupUpdate(groupId, {
-        action: 'updated',
+        action: GroupActionUpdated.UPDATED,
         changes: updateData,
         changedBy: requesterId,
       });
@@ -969,7 +970,7 @@ export class GroupService {
 
       // Broadcast group deletion event
       SocketEmitter.broadcastGroupDeleted(groupId, {
-        action: 'deleted',
+        action: GroupActionDeleted.DELETED,
         deletedBy: requesterId,
       });
 
@@ -1046,7 +1047,7 @@ export class GroupService {
 
       // Broadcast family left group event
       SocketEmitter.broadcastGroupFamilyLeft(groupId, userFamily.familyId, {
-        action: 'left',
+        action: GroupFamilyActionRemoved.REMOVED,
         familyId: userFamily.familyId,
         familyName: userFamily.family.name,
       });

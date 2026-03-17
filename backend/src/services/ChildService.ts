@@ -204,7 +204,6 @@ export class ChildService {
       SocketEmitter.broadcastChildUpdate(userId, userFamily.id, 'updated', {
         child: updatedChild,
         familyId: userFamily.id,
-        previousData: existingChild,
       });
 
       return updatedChild;
@@ -259,7 +258,7 @@ export class ChildService {
       SocketEmitter.broadcastChildUpdate(userId, userFamily.id, 'deleted', {
         childId,
         familyId: userFamily.id,
-        deletedChild: existingChild,
+        child: existingChild,
       });
 
       // Fetch and return complete updated Family

@@ -25,6 +25,9 @@ RUN npx prisma generate
 COPY src ./src/
 COPY scripts ./scripts/
 
+# Copy shared types from monorepo root
+COPY ../shared-types/ ../shared-types/
+
 # Copy assets (logo for emails)
 COPY assets ./assets/
 
