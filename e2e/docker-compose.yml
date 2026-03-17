@@ -45,8 +45,8 @@ services:
 
   backend-e2e:
     build:
-      context: ../backend
-      dockerfile: Dockerfile.dev
+      context: ..
+      dockerfile: ./backend/Dockerfile.dev
     container_name: edulift-backend-e2e
     ports:
       - "8002:3001"
@@ -90,8 +90,8 @@ services:
 
   frontend-e2e:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile.dev
+      context: ..
+      dockerfile: ./frontend/Dockerfile.dev
     container_name: edulift-frontend-e2e
     ports:
       - "8001:3000"

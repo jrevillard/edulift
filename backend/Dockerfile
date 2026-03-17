@@ -8,22 +8,26 @@ RUN apk add --no-cache dumb-init wget openssl
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install dependencies (tsx is needed for runtime)
 RUN npm ci && npm cache clean --force
 
 # Copy source code, prisma, and scripts
-COPY src/ ./src/
-COPY prisma/ ./prisma/
-COPY scripts/ ./scripts/
-COPY tsconfig.json ./
+COPY backend/src/ ./src/
+COPY backend/prisma/ ./prisma/
+COPY backend/scripts/ ./scripts/
+COPY backend/tsconfig.json ./
+COPY backend/package*.json ./
+
+# Install dependencies
+RUN npm ci && npm cache clean --force
 
 # Copy shared types from monorepo root
-COPY ../shared-types/ ../shared-types/
+COPY shared-types/ ../shared-types/
 
 # Copy assets (logo for emails)
-COPY assets/ ./assets/
+COPY backend/assets/ ./assets/
 
 # Fix ownership for node user
 RUN chown -R node:node /app/src
@@ -33,9 +37,9 @@ RUN npx prisma generate
 
 # Create uploads directory and copy OpenAPI docs
 RUN mkdir -p uploads docs/openapi && chown node:node uploads docs/openapi
-COPY docs/openapi/swagger.json ./docs/openapi/
+COPY backend/docs/openapi/swagger.json ./docs/openapi/
 
-COPY entrypoint.sh /app/entrypoint.sh
+COPY backend/entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Switch to non-root user

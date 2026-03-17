@@ -40,8 +40,8 @@ services:
   # Backend API (Development with hot reload)
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: ./backend/Dockerfile.dev
     image: edulift-backend-dev
     container_name: edulift-backend-dev
     restart: unless-stopped

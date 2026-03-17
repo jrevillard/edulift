@@ -5,24 +5,24 @@ FROM node:18-alpine
 WORKDIR /app
 
 # Install dependencies first (for better caching)
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY vite.config.ts ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
-COPY eslint.config.js ./
-COPY components.json ./
+COPY frontend/package*.json ./
+COPY frontend/tsconfig*.json ./
+COPY frontend/vite.config.ts ./
+COPY frontend/tailwind.config.js ./
+COPY frontend/postcss.config.js ./
+COPY frontend/eslint.config.js ./
+COPY frontend/components.json ./
 
 # Install dependencies
 RUN npm ci && npm cache clean --force
 
 # Copy source code
-COPY src/ ./src/
-COPY public/ ./public/
-COPY index.html ./
+COPY frontend/src/ ./src/
+COPY frontend/public/ ./public/
+COPY frontend/index.html ./
 
 # Copy shared types from monorepo root
-COPY ../shared-types/ ../shared-types/
+COPY shared-types/ ../shared-types/
 
 # Expose development port
 EXPOSE 3000

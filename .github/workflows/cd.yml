@@ -122,6 +122,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Generate shared types
+        run: |
+          cd backend
+          npm ci
+          npm run asyncapi:build
+
+      - name: Verify shared types exist
+        run: |
+          if [ ! -d "shared-types/asyncapi" ] || [ -z "$(ls -A shared-types/asyncapi)" ]; then
+            echo "ERROR: shared-types not generated. Run 'cd backend && npm run asyncapi:build' first"
+            exit 1
+          fi
+          echo "✅ Shared types verified"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -199,7 +213,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
+          context: .
           file: ./backend/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
@@ -271,7 +285,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
+          context: .
           file: ./frontend/Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64

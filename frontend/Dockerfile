@@ -15,23 +15,23 @@ ENV VITE_SOCKET_URL=$VITE_SOCKET_URL
 ENV VITE_SOCKET_FORCE_POLLING=$VITE_SOCKET_FORCE_POLLING
 
 # Copy package files
-COPY package*.json ./
-COPY tsconfig*.json ./
-COPY vite.config.ts ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
-COPY eslint.config.js ./
+COPY frontend/package*.json ./
+COPY frontend/tsconfig*.json ./
+COPY frontend/vite.config.ts ./
+COPY frontend/tailwind.config.js ./
+COPY frontend/postcss.config.js ./
+COPY frontend/eslint.config.js ./
 
 # Install dependencies
 RUN npm ci && npm cache clean --force
 
 # Copy source code
-COPY src/ ./src/
-COPY public/ ./public/
-COPY index.html ./
+COPY frontend/src/ ./src/
+COPY frontend/public/ ./public/
+COPY frontend/index.html ./
 
 # Copy shared types from monorepo root
-COPY ../shared-types/ ../shared-types/
+COPY shared-types/ ../shared-types/
 
 # Build the application with environment variables
 RUN npm run build
@@ -43,10 +43,10 @@ FROM nginx:alpine AS production
 RUN apk add --no-cache wget
 
 # Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Copy entrypoint script for runtime config injection
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Copy built application
