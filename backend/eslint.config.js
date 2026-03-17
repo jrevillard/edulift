@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 export default [
-  { ignores: ['dist', 'node_modules', 'coverage', '**/*.js'] },
+  { ignores: ['dist', 'node_modules', 'coverage', '**/*.js', 'src/generated/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
