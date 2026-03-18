@@ -4,9 +4,7 @@ import { ScheduleSlotService } from './ScheduleSlotService';
 import { WeeklySchedule } from '../types';
 import { SOCKET_EVENTS } from '@shared-types/asyncapi/events';
 import { createLogger } from '../utils/logger';
-import { ScheduleSlotActionUpdated } from '@shared-types/asyncapi';
-import { NotificationType } from '@shared-types/asyncapi';
-import { CapacityStatusWarning } from '@shared-types/asyncapi';
+import { ScheduleSlotActionUpdated, NotificationType, CapacityStatusWarning, ConflictType } from '@shared-types/asyncapi';
 
 const logger = createLogger('SocketService');
 
@@ -15,17 +13,32 @@ export interface AuthData {
   groupIds: string[];
 }
 
+// Action types for schedule slot updates
+enum ScheduleSlotUpdateAction {
+  ASSIGN = 'assign',
+  REMOVE = 'remove',
+}
+
+// Error types (not yet defined in AsyncAPI)
+enum SocketErrorType {
+  SCHEDULE_SLOT_NOT_FOUND = 'SCHEDULE_SLOT_NOT_FOUND',
+  CAPACITY_ERROR = 'CAPACITY_ERROR',
+  NOT_FOUND_ERROR = 'NOT_FOUND_ERROR',
+  DUPLICATE_ERROR = 'DUPLICATE_ERROR',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
+
 export interface ScheduleSlotUpdateData {
   scheduleSlotId: string;
   vehicleId?: string;
   driverId?: string;
   childrenIds?: string[];
-  action?: 'assign' | 'remove';
+  action?: ScheduleSlotUpdateAction;
 }
 
 export interface ConflictData {
   scheduleSlotId: string;
-  conflictType: 'DRIVER_DOUBLE_BOOKING' | 'VEHICLE_DOUBLE_BOOKING' | 'CAPACITY_EXCEEDED';
+  conflictType: ConflictType;
   affectedUsers: string[];
   message?: string;
 }
@@ -67,7 +80,7 @@ export class SocketService {
 
       // Handle vehicle assignment/removal
       if (vehicleId) {
-        if (data.action === 'remove') {
+        if (data.action === ScheduleSlotUpdateAction.REMOVE) {
           await this.scheduleSlotService.removeVehicleFromSlot(scheduleSlotId, vehicleId);
         } else {
           // Default to assign
@@ -80,7 +93,7 @@ export class SocketService {
       }
 
       // Update driver for existing vehicle assignment
-      if (driverId && vehicleId && data.action !== 'remove') {
+      if (driverId && vehicleId && data.action !== ScheduleSlotUpdateAction.REMOVE) {
         await this.scheduleSlotService.updateVehicleDriver(scheduleSlotId, vehicleId, driverId);
       }
 
@@ -92,7 +105,7 @@ export class SocketService {
 
       if (!updatedSlot) {
         socket.emit(SOCKET_EVENTS.ERROR, {
-          reservedType: 'SCHEDULE_SLOT_NOT_FOUND',
+          reservedType: SocketErrorType.SCHEDULE_SLOT_NOT_FOUND,
           message: 'Schedule slot not found',
         });
         return;
@@ -100,6 +113,14 @@ export class SocketService {
 
       // Broadcast schedule slot update to all group members
       const groupId = updatedSlot.groupId;
+
+      logger.info('Broadcasting SCHEDULE_SLOT_UPDATED', {
+        scheduleSlotId: updatedSlot.id,
+        groupId,
+        action: ScheduleSlotActionUpdated.UPDATED,
+        updatedBy: socket.userId,
+        recipients: `${this.getGroupActiveUsers(io, groupId)  } users`,
+      });
 
       io.to(groupId).emit(
         SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED,
@@ -143,6 +164,13 @@ export class SocketService {
   }
 
   broadcastScheduleUpdate(io: SocketIOServer, scheduleData: WeeklySchedule): void {
+    logger.info('Broadcasting SCHEDULE_UPDATED', {
+      groupId: scheduleData.groupId,
+      week: scheduleData.week,
+      scheduleSlotsCount: scheduleData.scheduleSlots.length,
+      recipients: `${this.getGroupActiveUsers(io, scheduleData.groupId)  } users`,
+    });
+
     io.to(scheduleData.groupId).emit(
       SOCKET_EVENTS.SCHEDULE_UPDATED,
       scheduleData,
@@ -153,6 +181,13 @@ export class SocketService {
     io: SocketIOServer,
     conflictData: ConflictData,
   ): Promise<void> {
+    logger.info('Broadcasting CONFLICT_DETECTED', {
+      scheduleSlotId: conflictData.scheduleSlotId,
+      conflictType: conflictData.conflictType,
+      affectedUsers: conflictData.affectedUsers,
+      recipients: `${conflictData.affectedUsers.length  } users`,
+    });
+
     // Notify affected users about the conflict
     for (const userId of conflictData.affectedUsers) {
       io.to(userId).emit(
@@ -168,15 +203,23 @@ export class SocketService {
     io: SocketIOServer,
     groupId: string,
     notification: {
-      type: 'SCHEDULE_PUBLISHED' | 'MEMBER_JOINED' | 'MEMBER_LEFT';
+      type: NotificationType;
       message: string;
       data?: Record<string, unknown>;
     },
   ): Promise<void> {
+    const logger = createLogger('SocketService');
+    logger.info('Broadcasting group notification', {
+      groupId,
+      notificationType: notification.type,
+      message: notification.message,
+      recipients: `${await this.getGroupActiveUsers(io, groupId)  } users`,
+    });
+
     io.to(groupId).emit(
       SOCKET_EVENTS.NOTIFICATION,
       {
-        reservedType: notification.type as NotificationType,
+        reservedType: notification.type,
         message: notification.message,
         data: notification.data as any,
       },
@@ -201,16 +244,16 @@ export class SocketService {
   private categorizeError(error: unknown): string {
     if (error instanceof Error) {
       if (error.message.includes('capacity')) {
-        return 'CAPACITY_ERROR';
+        return SocketErrorType.CAPACITY_ERROR;
       }
       if (error.message.includes('not found')) {
-        return 'NOT_FOUND_ERROR';
+        return SocketErrorType.NOT_FOUND_ERROR;
       }
       if (error.message.includes('duplicate') || error.message.includes('already exists')) {
-        return 'DUPLICATE_ERROR';
+        return SocketErrorType.DUPLICATE_ERROR;
       }
     }
-    return 'UNKNOWN_ERROR';
+    return SocketErrorType.UNKNOWN_ERROR;
   }
 
   // Real-time capacity monitoring
@@ -225,6 +268,13 @@ export class SocketService {
     const groupId = scheduleSlot.groupId;
 
     if (scheduleSlot.availableSeats <= 0) {
+      logger.info('Broadcasting SCHEDULE_SLOT_CAPACITY_FULL', {
+        scheduleSlotId,
+        groupId,
+        availableSeats: scheduleSlot.availableSeats,
+        recipients: `${this.getGroupActiveUsers(io, groupId)  } users`,
+      });
+
       io.to(groupId).emit(
         SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_FULL,
         {
@@ -233,6 +283,14 @@ export class SocketService {
         },
       );
     } else if (scheduleSlot.availableSeats <= 1) {
+      logger.info('Broadcasting SCHEDULE_SLOT_CAPACITY_WARNING', {
+        scheduleSlotId,
+        groupId,
+        availableSeats: scheduleSlot.availableSeats,
+        status: CapacityStatusWarning.WARNING,
+        recipients: `${this.getGroupActiveUsers(io, groupId)  } users`,
+      });
+
       io.to(groupId).emit(
         SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING,
         {

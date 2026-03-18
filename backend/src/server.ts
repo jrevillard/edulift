@@ -75,9 +75,18 @@ const app = new OpenAPIHono({
   },
 });
 
+// Import createLogger for health endpoint
+import { createLogger } from './utils/logger';
+
 // IMPORTANT: Health check endpoint MUST be defined BEFORE CORS middleware
 // to allow monitoring from any origin (especially in CI/CD environments)
 app.get('/health', (c) => {
+  const logger = createLogger('Health');
+  logger.info('Health check requested', {
+    path: c.req.path,
+    method: c.req.method,
+  });
+
   return c.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
