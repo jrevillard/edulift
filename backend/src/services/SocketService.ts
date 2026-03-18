@@ -208,12 +208,11 @@ export class SocketService {
       data?: Record<string, unknown>;
     },
   ): Promise<void> {
-    const logger = createLogger('SocketService');
     logger.info('Broadcasting group notification', {
       groupId,
       notificationType: notification.type,
       message: notification.message,
-      recipients: `${await this.getGroupActiveUsers(io, groupId)  } users`,
+      recipients: `${this.getGroupActiveUsers(io, groupId)} users`,
     });
 
     io.to(groupId).emit(

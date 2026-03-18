@@ -28,6 +28,7 @@ import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { AppError } from './middleware/errorHandler';
 import { createErrorResponse, getErrorForLogging, ErrorCodes } from './utils/errorHandler';
+import { createLogger } from './utils/logger';
 import {
   globalRateLimiter,
   authEndpointRateLimiter,
@@ -56,6 +57,9 @@ const port = parseInt(process.env.PORT || '3000');
 const host = process.env.HOST || '0.0.0.0';
 const env = process.env.NODE_ENV || 'development';
 
+// Create logger for health endpoint
+const healthLogger = createLogger('Health');
+
 // Create main Hono application with OpenAPI support
 const app = new OpenAPIHono({
   strict: false,
@@ -75,14 +79,10 @@ const app = new OpenAPIHono({
   },
 });
 
-// Import createLogger for health endpoint
-import { createLogger } from './utils/logger';
-
 // IMPORTANT: Health check endpoint MUST be defined BEFORE CORS middleware
 // to allow monitoring from any origin (especially in CI/CD environments)
 app.get('/health', (c) => {
-  const logger = createLogger('Health');
-  logger.info('Health check requested', {
+  healthLogger.info('Health check requested', {
     path: c.req.path,
     method: c.req.method,
   });
