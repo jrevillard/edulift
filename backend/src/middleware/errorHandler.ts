@@ -144,6 +144,12 @@ export const getErrorInfo = function(error: unknown, defaultCode: string = 'UNKN
   };
 };
 /**
+ * Error type discriminator for normalized errors.
+ * Enables better type narrowing and error handling patterns.
+ */
+export type ErrorType = 'Error' | 'String' | 'Unknown' | 'AppError';
+
+/**
  * Normalize error objects for consistent logging across controllers.
  *
  * This utility provides a consistent way to extract error information
@@ -163,7 +169,7 @@ export const getErrorInfo = function(error: unknown, defaultCode: string = 'UNKN
 export interface NormalizedError {
   message: string;
   stack: string | undefined;
-  originalType: 'Error' | 'String' | 'Unknown' | 'AppError';
+  originalType: ErrorType;
 }
 
 export const normalizeError = function(error: unknown): NormalizedError {

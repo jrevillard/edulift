@@ -13,7 +13,7 @@ import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { ScheduleSlotRepository } from '../../repositories/ScheduleSlotRepository';
 import { SocketEmitter } from '../../utils/socketEmitter';
 import { createLogger } from '../../utils/logger';
-import { normalizeError } from '../../utils/errorHandler';
+import { normalizeError, getErrorInfo } from '../../middleware/errorHandler';
 import { verifyGroupAccess, verifyVehicleOwnership } from '../../utils/accessControl';
 import type { ScheduleSlotWithDetails, AssignVehicleToSlotData } from '../../types';
 import {
@@ -918,9 +918,10 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('createScheduleSlot', c, error as Error | string);
     loggerInstance.error('createScheduleSlotWithVehicle: error', { userId, groupId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'CREATE_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to create schedule slot',
+      error: errorMessage,
       code: 'CREATE_FAILED' as const,
     }, 500);
   }
@@ -1039,9 +1040,10 @@ app.openapi(assignVehicleRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('assignVehicle', c, error as Error | string);
     loggerInstance.error('assignVehicle: error', { userId, scheduleSlotId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'ASSIGN_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to assign vehicle',
+      error: errorMessage,
       code: 'ASSIGN_FAILED' as const,
     }, 500);
   }
@@ -1271,9 +1273,10 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('patchVehicleAssignment', c, error as Error | string);
     loggerInstance.error('patchVehicleAssignment: error', { userId, scheduleSlotId, vehicleAssignmentId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to update vehicle assignment',
+      error: errorMessage,
       code: 'UPDATE_FAILED' as const,
     }, 500);
   }
@@ -1362,9 +1365,10 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('updateVehicleDriver', c, error as Error | string);
     loggerInstance.error('updateVehicleDriver: error', { userId, scheduleSlotId, vehicleId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to update driver',
+      error: errorMessage,
       code: 'UPDATE_FAILED' as const,
     }, 500);
   }
@@ -1419,9 +1423,10 @@ app.openapi(getScheduleSlotRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('getScheduleSlot', c, error as Error | string);
     loggerInstance.error('getScheduleSlot: error', { userId, scheduleSlotId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to retrieve schedule slot',
+      error: errorMessage,
       code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
@@ -1535,9 +1540,10 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('getScheduleSlotConflicts', c, error as Error | string);
     loggerInstance.error('getScheduleSlotConflicts: error', { userId, scheduleSlotId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to retrieve conflicts',
+      error: errorMessage,
       code: 'RETRIEVE_FAILED' as const,
     }, 500);
   }
@@ -1686,9 +1692,10 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
   } catch (error: unknown) {
     scheduleLogger.logError('updateSeatOverride', c, error as Error | string);
     loggerInstance.error('updateSeatOverride: error', { userId, scheduleSlotId, vehicleId, error });
+    const { message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
       success: false,
-      error: 'Failed to update seat override',
+      error: errorMessage,
       code: 'UPDATE_FAILED' as const,
     }, 500);
   }

@@ -68,7 +68,8 @@ export const extractRequestContext = (
 
   // Sanitize user-agent to prevent log injection attacks
   const rawUserAgent = requestMetadata?.userAgent;
-  const sanitizedUserAgent = rawUserAgent ? sanitizeUserAgent(rawUserAgent) : undefined;
+  // Use explicit check for undefined to preserve empty string distinction
+  const sanitizedUserAgent = rawUserAgent !== undefined ? sanitizeUserAgent(rawUserAgent) : undefined;
 
   return {
     userId,

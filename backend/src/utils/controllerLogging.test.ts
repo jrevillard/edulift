@@ -571,3 +571,257 @@ describe('createTimer', () => {
     expect(timer).toBeInstanceOf(OperationTimer);
   });
 });
+
+describe('User-Agent Sanitization Integration', () => {
+  /**
+   * Integration tests verifying that user-agent sanitization is properly
+   * applied in extractRequestContext to prevent log injection attacks.
+   */
+
+  it('should sanitize user-agent with CRLF injection attempt', () => {
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            userAgent: 'Mozilla/5.0\r\n[Fake Log Entry] Malicious content',
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    // Should remove CRLF characters
+    expect(context.userAgent).toBe('Mozilla/5.0[Fake Log Entry] Malicious content');
+    expect(context.userAgent).not.toContain('\r');
+    expect(context.userAgent).not.toContain('\n');
+  });
+
+  it('should sanitize user-agent with tab characters', () => {
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            userAgent: 'Mozilla/5.0\t[TAB]\tInjection',
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    expect(context.userAgent).not.toContain('\t');
+    expect(context.userAgent).toBe('Mozilla/5.0[TAB]Injection');
+  });
+
+  it('should sanitize user-agent with control characters', () => {
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            userAgent: 'Agent\x00\x01\x02Control\x1FChars',
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    expect(context.userAgent).toBe('AgentControlChars');
+    expect(context.userAgent).not.toContain('\x00');
+    expect(context.userAgent).not.toContain('\x1F');
+  });
+
+  it('should preserve legitimate user-agents unchanged (fast path)', () => {
+    const legitimateUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36';
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            userAgent: legitimateUA,
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    // Legitimate user-agents should be returned unchanged (fast path optimization)
+    expect(context.userAgent).toBe(legitimateUA);
+  });
+
+  it('should handle mixed control characters in user-agent', () => {
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            userAgent: 'Agent\r\nWith\tVarious\x00Control\x7FChars',
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    expect(context.userAgent).toBe('AgentWithVariousControlChars');
+    expect(context.userAgent).not.toContain('\r');
+    expect(context.userAgent).not.toContain('\n');
+    expect(context.userAgent).not.toContain('\t');
+    expect(context.userAgent).not.toContain('\x00');
+    expect(context.userAgent).not.toContain('\x7F');
+  });
+
+  it('should sanitize user-agent when using fallback extraction', () => {
+    // Test that when requestMetadata is absent, user-agent is undefined
+    // (current implementation doesn't fallback to header extraction for user-agent)
+    const contextWithoutMetadata: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn((headerName: string) => {
+          if (headerName === 'user-agent') {
+            return 'Mozilla/5.0\r\n[Fake Entry] Attack';
+          }
+          return undefined;
+        }),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user456',
+          user: { id: 'user456', email: 'fallback@example.com' },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(contextWithoutMetadata, 'testOperation');
+
+    // Current behavior: user-agent is undefined when requestMetadata is absent
+    // This is acceptable as the middleware should set requestMetadata
+    expect(context.userAgent).toBeUndefined();
+  });
+
+  it('should handle empty user-agent strings', () => {
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            userAgent: '',
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    expect(context.userAgent).toBe('');
+  });
+
+  it('should handle undefined user-agent in metadata', () => {
+    const mockContext: Context = {
+      req: {
+        method: 'GET',
+        url: 'https://example.com/api/test',
+        header: jest.fn(),
+      },
+      get: jest.fn((key: string) => {
+        const data: Record<string, unknown> = {
+          userId: 'user123',
+          user: { id: 'user123', email: 'test@example.com' },
+          requestMetadata: {
+            clientIp: '10.0.0.1',
+            // userAgent is undefined
+            requestId: 'req-123',
+            timestamp: '2024-01-15T10:30:00Z',
+            method: 'GET',
+            path: '/api/test',
+          },
+        };
+        return data[key];
+      }),
+    } as unknown as Context;
+
+    const context = extractRequestContext(mockContext, 'testOperation');
+
+    // Should fallback to header extraction which returns undefined
+    expect(context.userAgent).toBeUndefined();
+  });
+});

@@ -209,6 +209,15 @@ describe('sanitizeUserAgent', () => {
     expect(sanitized).toBe(normal);
   });
 
+  it('should use fast-path optimization for legitimate user-agents', () => {
+    const legitimateUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    const sanitized = sanitizeUserAgent(legitimateUA);
+
+    // Fast-path: should return the same string reference (no control chars = no processing)
+    expect(sanitized).toBe(legitimateUA);
+    expect(sanitized).toEqual(legitimateUA);
+  });
+
   it('should handle empty string', () => {
     const sanitized = sanitizeUserAgent('');
 

@@ -1174,9 +1174,10 @@ describe('ScheduleSlotController Test Suite', () => {
 
       expect(response.status).toBe(500);
       const jsonResponse = await responseJson(response);
+      // Now returns actual error message from service instead of generic message
       expect(jsonResponse).toEqual({
         success: false,
-        error: 'Failed to update seat override',
+        error: 'Vehicle assignment not found',
         code: 'UPDATE_FAILED',
       });
     });

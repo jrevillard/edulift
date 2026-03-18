@@ -363,7 +363,8 @@ describe('FcmTokenController Hono', () => {
       expect(response.status).toBe(200);
       const json = await responseJson(response);
       expect(json.success).toBe(true);
-      expect(json.data.token).toBe(validToken);
+      // Token is no longer returned in response for security reasons
+      expect(json.data.token).toBeUndefined();
       expect(json.data.isValid).toBe(true);
       expect(json.data.isServiceAvailable).toBe(true);
       expect(mockPushNotificationService.validateToken).toHaveBeenCalledWith(validToken);
