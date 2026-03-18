@@ -240,7 +240,7 @@ export class SocketService {
     }
   }
 
-  private categorizeError(error: unknown): string {
+  private categorizeError(error: unknown): SocketErrorType {
     if (error instanceof Error) {
       if (error.message.includes('capacity')) {
         return SocketErrorType.CAPACITY_ERROR;
