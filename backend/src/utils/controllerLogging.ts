@@ -1,5 +1,7 @@
 import { Context } from 'hono';
 import { createLogger } from '../utils/logger';
+import { getClientIP } from './ipExtractor';
+import { sanitizeUserAgent } from './security';
 
 // Type for authenticated requests (Hono Context)
 interface AuthenticatedContext extends Context {
@@ -12,6 +14,16 @@ interface AuthenticatedContext extends Context {
 
 // Main logger for controller operations
 export const controllerLogger = createLogger('ControllerOperations');
+
+// Interface for request metadata set by requestContextMiddleware
+export interface RequestMetadata {
+  clientIp: string;
+  userAgent: string | undefined;
+  requestId: string;
+  timestamp: string;
+  method: string;
+  path: string;
+}
 
 // Interface for request context
 export interface RequestContext {
@@ -31,6 +43,8 @@ export interface RequestContext {
   clientIp: string | undefined;
   /** Client User Agent */
   userAgent: string | undefined;
+  /** Request correlation ID */
+  requestId: string | undefined;
   /** Custom business context */
   businessContext: Record<string, unknown> | undefined;
 }
@@ -41,23 +55,31 @@ export const extractRequestContext = (
   operationName: string,
   businessContext?: Record<string, unknown>,
 ): RequestContext => {
-  const timestamp = new Date().toISOString();
-  const path = new URL(c.req.url).pathname;
-  const endpoint = `${c.req.method} ${path}`;
+  // Try to use request metadata from middleware first (more efficient and consistent)
+  const requestMetadata = c.get('requestMetadata') as RequestMetadata | undefined;
 
   // Extract authentication information from Hono context
   const userId = c.get('userId') || c.get('user')?.id;
   const userEmail = c.get('user')?.email;
+
+  // Use middleware metadata if available, otherwise fall back to direct extraction
+  const path = requestMetadata?.path || new URL(c.req.url).pathname;
+  const endpoint = `${requestMetadata?.method || c.req.method} ${path}`;
+
+  // Sanitize user-agent to prevent log injection attacks
+  const rawUserAgent = requestMetadata?.userAgent;
+  const sanitizedUserAgent = rawUserAgent ? sanitizeUserAgent(rawUserAgent) : undefined;
 
   return {
     userId,
     userEmail,
     operation: operationName,
     endpoint,
-    method: c.req.method,
-    timestamp,
-    clientIp: c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || undefined,
-    userAgent: c.req.header('User-Agent'),
+    method: requestMetadata?.method || c.req.method,
+    timestamp: requestMetadata?.timestamp || new Date().toISOString(),
+    clientIp: requestMetadata?.clientIp || getClientIP(c),
+    userAgent: sanitizedUserAgent,
+    requestId: requestMetadata?.requestId,
     businessContext,
   };
 };

@@ -13,6 +13,9 @@ import { createLogger } from '../../utils/logger';
 import { verifyGroupAccess } from '../../utils/accessControl';
 import { getErrorInfo } from '../../middleware/errorHandler';
 import { transformFamilyForResponse } from '../../utils/transformers';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Import Hono-native schemas
 import {
@@ -61,6 +64,9 @@ export const createVehicleControllerRoutes = function(dependencies: {
   const prismaInstance = dependencies.prisma ?? new PrismaClient();
   const loggerInstance = dependencies.logger ?? createLogger('VehicleController');
   const vehicleServiceInstance = dependencies.vehicleService ?? new VehicleService(prismaInstance);
+
+  // Create controller logger for comprehensive request logging
+  const vehicleLogger = createControllerLogger('VehicleController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: VehicleVariables }>();
@@ -395,12 +401,21 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
   const user = c.get('user');
   const input = c.req.valid('json');
 
+  vehicleLogger.logStart('createVehicle', c, {
+    businessContext: {
+      userId,
+      name: input.name,
+      capacity: input.capacity,
+    },
+  });
+
   loggerInstance.info('createVehicle', { userId, name: input.name, capacity: input.capacity, userEmail: user?.email });
 
   try {
     // Verify user family
     const userFamily = await vehicleServiceInstance.getUserFamily(userId);
     if (!userFamily) {
+      vehicleLogger.logWarning('createVehicle', c, 'User without family');
       loggerInstance.warn('createVehicle: user without family', { userId });
       return c.json({
         success: false,
@@ -412,6 +427,7 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
     // Verify family admin permissions
     const canModifyVehicles = await vehicleServiceInstance.canUserModifyFamilyVehicles(userId, userFamily.id);
     if (!canModifyVehicles) {
+      vehicleLogger.logWarning('createVehicle', c, 'Insufficient permissions');
       loggerInstance.warn('createVehicle: insufficient permissions', { userId, familyId: userFamily.id });
       return c.json({
         success: false,
@@ -427,13 +443,15 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
       familyId: userFamily.id,
     }, userId);
 
+    vehicleLogger.logSuccess('createVehicle', c, { userId, familyId: family.id });
     loggerInstance.info('createVehicle: vehicle created', { userId, familyId: family.id });
 
     return c.json({
-      success: true,
-      data: family,
+    success: true,
+    data: family,
     }, 201);
-  } catch (error) {
+  } catch (error: unknown) {
+    vehicleLogger.logError('createVehicle', c, error as Error | string);
       loggerInstance.error('createVehicle: error', { userId, error });
       const { statusCode, message: errorMessage } = getErrorInfo(error, 'CREATE_FAILED');
       return c.json({
@@ -450,19 +468,21 @@ app.openapi(createVehicleRoute, async (c): Promise<any> => {
 app.openapi(getVehiclesRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
 
-  loggerInstance.info('getVehicles', { userId });
+  vehicleLogger.logStart('getVehicles', c, {
+    businessContext: { userId }
+  });
 
   try {
     const vehicles = await vehicleServiceInstance.getVehiclesByUser(userId);
 
-    loggerInstance.info('getVehicles: vehicles retrieved', { userId, count: vehicles.length });
+    vehicleLogger.logSuccess('getVehicles', c, { userId, count: vehicles.length });
 
     return c.json({
       success: true,
       data: vehicles,
     }, 200);
   } catch (error: any) {
-    loggerInstance.error('getVehicles: error', { userId, error });
+    vehicleLogger.logError('getVehicles', c, error as Error | string);
     const statusCode = error.statusCode || 500;
     const errorMessage = error.message || 'Failed to retrieve vehicles';
     return c.json({
@@ -480,18 +500,21 @@ app.openapi(getAvailableVehiclesRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const { groupId, timeSlotId } = c.req.valid('param');
 
-  loggerInstance.info('getAvailableVehicles', { userId, groupId, timeSlotId });
+  vehicleLogger.logStart('getAvailableVehicles', c, {
+    businessContext: { userId, groupId, timeSlotId }
+  });
 
   // Verify user has access to the group
   const accessError = await verifyGroupAccess(prismaInstance, userId, groupId);
   if (!accessError.hasAccess) {
+    vehicleLogger.logWarning('getAvailableVehicles', c, 'Group access denied', { userId, groupId });
     return c.json({ success: false, error: accessError.error }, accessError.statusCode);
   }
 
   try {
     const availableVehicles = await vehicleServiceInstance.getAvailableVehiclesForScheduleSlot(groupId, timeSlotId);
 
-    loggerInstance.info('getAvailableVehicles: available vehicles', {
+    vehicleLogger.logSuccess('getAvailableVehicles', c, {
       groupId,
       timeSlotId,
       count: availableVehicles.length,
@@ -502,7 +525,7 @@ app.openapi(getAvailableVehiclesRoute, async (c): Promise<any> => {
       data: availableVehicles,
     }, 200);
   } catch (error: any) {
-    loggerInstance.error('getAvailableVehicles: error', { userId, groupId, timeSlotId, error });
+    vehicleLogger.logError('getAvailableVehicles', c, error as Error | string);
     const statusCode = error.statusCode || 500;
     const errorMessage = error.message || 'Failed to retrieve available vehicles';
     return c.json({
@@ -520,19 +543,27 @@ app.openapi(getVehicleRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const { vehicleId } = c.req.valid('param');
 
-  loggerInstance.info('getVehicle', { userId, vehicleId });
+  vehicleLogger.logStart('getVehicle', c, {
+    businessContext: { userId, vehicleId }
+  });
 
   try {
     const vehicle = await vehicleServiceInstance.getVehicleById(vehicleId, userId);
 
-    loggerInstance.info('getVehicle: vehicle found', { userId, vehicleId, vehicleName: vehicle.name });
+    vehicleLogger.logSuccess('getVehicle', c, {
+      userId,
+      vehicleId,
+      vehicleName: vehicle.name,
+      familyId: vehicle.familyId,
+      capacity: vehicle.capacity,
+    });
 
     return c.json({
       success: true,
       data: vehicle,
     }, 200);
-  } catch (error) {
-    loggerInstance.error('getVehicle: error', { userId, vehicleId, error });
+  } catch (error: unknown) {
+    vehicleLogger.logError('getVehicle', c, error as Error | string);
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
@@ -550,6 +581,14 @@ app.openapi(updateVehicleRoute, async (c) => {
   const { vehicleId } = c.req.valid('param');
   const updateData = c.req.valid('json');
 
+  vehicleLogger.logStart('updateVehicle', c, {
+    businessContext: {
+      userId,
+      vehicleId,
+      fields: Object.keys(updateData),
+    },
+  });
+
   loggerInstance.info('updateVehicle', { userId, vehicleId, updateData });
 
   try {
@@ -564,6 +603,7 @@ app.openapi(updateVehicleRoute, async (c) => {
 
     const family = await vehicleServiceInstance.updateVehicle(vehicleId, userId, updateDataFiltered);
 
+    vehicleLogger.logSuccess('updateVehicle', c, { userId, vehicleId, familyId: family.id });
     loggerInstance.info('updateVehicle: vehicle updated', {
       userId,
       vehicleId,
@@ -571,10 +611,11 @@ app.openapi(updateVehicleRoute, async (c) => {
     });
 
     return c.json({
-      success: true,
-      data: family,
+    success: true,
+    data: family,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    vehicleLogger.logError('updateVehicle', c, error as Error | string);
     loggerInstance.error('updateVehicle: error', { userId, vehicleId, error });
     return c.json({
       success: false,
@@ -591,19 +632,25 @@ app.openapi(deleteVehicleRoute, async (c) => {
   const userId = c.get('userId');
   const { vehicleId } = c.req.valid('param');
 
+  vehicleLogger.logStart('deleteVehicle', c, {
+    businessContext: { userId, vehicleId },
+  });
+
   loggerInstance.info('deleteVehicle', { userId, vehicleId });
 
   try {
     // Delete vehicle - now returns complete Family
     const updatedFamily = await vehicleServiceInstance.deleteVehicle(vehicleId, userId);
 
+    vehicleLogger.logSuccess('deleteVehicle', c, { userId, vehicleId });
     loggerInstance.info('deleteVehicle: vehicle deleted', { userId, vehicleId });
 
     return c.json({
-      success: true,
-      data: transformFamilyForResponse(updatedFamily),
+    success: true,
+    data: transformFamilyForResponse(updatedFamily),
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    vehicleLogger.logError('deleteVehicle', c, error as Error | string);
     loggerInstance.error('deleteVehicle: error', { userId, vehicleId, error });
     return c.json({
       success: false,
@@ -621,12 +668,14 @@ app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
   const { vehicleId } = c.req.valid('param');
   const { week } = c.req.valid('query');
 
-  loggerInstance.info('getVehicleSchedule', { userId, vehicleId, week });
+  vehicleLogger.logStart('getVehicleSchedule', c, {
+    businessContext: { userId, vehicleId, week }
+  });
 
   try {
     const schedule = await vehicleServiceInstance.getVehicleSchedule(vehicleId, userId, week);
 
-    loggerInstance.info('getVehicleSchedule: schedule retrieved', {
+    vehicleLogger.logSuccess('getVehicleSchedule', c, {
       userId,
       vehicleId,
       week,
@@ -636,8 +685,8 @@ app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
       success: true,
       data: schedule,
     }, 200);
-  } catch (error) {
-    loggerInstance.error('getVehicleSchedule: error', { userId, vehicleId, error });
+  } catch (error: unknown) {
+    vehicleLogger.logError('getVehicleSchedule', c, error as Error | string);
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,

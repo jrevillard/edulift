@@ -98,3 +98,37 @@ export const logSecurityEvent = (event: string, details: unknown, level: 'info' 
       logger.info('ℹ️ SECURITY INFO', logEntry);
   }
 };
+/**
+ * Sanitize user-agent strings to prevent log injection attacks.
+ *
+ * Removes control characters that could be used to inject fake log entries,
+ * including CRLF (Carriage Return Line Feed) sequences and other control chars.
+ *
+ * @param userAgent - Raw user-agent string from request header
+ * @returns Sanitized user-agent string safe for logging
+ *
+ * @example
+ * sanitizeUserAgent('Mozilla/5.0\r\nFake log entry') // Returns 'Mozilla/5.0Fake log entry'
+ */
+export const sanitizeUserAgent = (userAgent: string): string => {
+  // Remove CRLF and other control characters (0x00-0x1F and 0x7F)
+  // This prevents log injection via crafted user-agent strings
+  return userAgent.replace(/[\r\n\t\x00-\x1F\x7F]/g, '');
+};
+
+/**
+ * Sanitize any string value to prevent log injection.
+ *
+ * Generic sanitizer for any string that will be logged, removing
+ * control characters that could be used for log injection attacks.
+ *
+ * @param value - Raw string value
+ * @returns Sanitized string safe for logging
+ */
+export const sanitizeLogValue = (value: unknown): string => {
+  if (typeof value !== 'string') {
+    return String(value);
+  }
+  // Remove control characters but preserve whitespace
+  return value.replace(/[\r\n\t\x00-\x1F\x7F]/g, ' ');
+};

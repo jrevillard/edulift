@@ -34,6 +34,8 @@ import {
   authEndpointRateLimiter,
   adminRateLimiter,
 } from './utils/rateLimiter';
+import { requestContextMiddleware } from './middleware/requestContext';
+import { performanceLogging } from './middleware/performanceLogging';
 import { prisma } from './database';
 
 // Import Socket.IO handler
@@ -113,6 +115,13 @@ app.use('*', async (c, next) => {
 });
 
 app.use('*', logger());
+
+// Performance logging middleware - automatic timing for all requests
+app.use('*', performanceLogging());
+
+// Request context middleware - MUST be applied BEFORE rate limiting and auth
+// to ensure request metadata is available to all downstream handlers
+app.use('*', requestContextMiddleware);
 
 // Apply rate limiting to all API routes
 app.use('/api/v1/*', globalRateLimiter);

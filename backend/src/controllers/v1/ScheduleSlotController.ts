@@ -16,6 +16,9 @@ import { createLogger } from '../../utils/logger';
 import { normalizeError } from '../../utils/errorHandler';
 import { verifyGroupAccess, verifyVehicleOwnership } from '../../utils/accessControl';
 import type { ScheduleSlotWithDetails, AssignVehicleToSlotData } from '../../types';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Import Hono-native schemas
 import {
@@ -159,6 +162,9 @@ export const createScheduleSlotControllerRoutes = function(dependencies: {
   const scheduleSlotRepositoryInstance = dependencies.scheduleSlotRepository ?? new ScheduleSlotRepository(prismaInstance);
   const scheduleSlotServiceInstance = dependencies.scheduleSlotService ?? new ScheduleSlotService(scheduleSlotRepositoryInstance);
   const childAssignmentServiceInstance = dependencies.childAssignmentService ?? new ChildAssignmentService(prismaInstance);
+
+  // Create controller logger for comprehensive request logging
+  const scheduleLogger = createControllerLogger('ScheduleSlotController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: ScheduleSlotVariables }>();
@@ -815,6 +821,15 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const input = c.req.valid('json');
 
+  scheduleLogger.logStart('createScheduleSlot', c, {
+    businessContext: {
+      userId,
+      groupId,
+      vehicleId: input.vehicleId,
+      datetime: input.datetime,
+    },
+  });
+
   loggerInstance.debug('createScheduleSlotWithVehicle: Received request', {
     userId,
     groupId,
@@ -826,6 +841,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   });
 
   if (!input.vehicleId) {
+    scheduleLogger.logWarning('createScheduleSlot', c, 'Vehicle ID is required');
     loggerInstance.warn('createScheduleSlotWithVehicle: Vehicle ID is required', { userId, groupId });
     return c.json({
       success: false,
@@ -836,6 +852,7 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   // Verify user has access to the group
   const accessError = await verifyGroupAccess(prismaInstance, userId, groupId);
   if (!accessError.hasAccess) {
+    scheduleLogger.logWarning('createScheduleSlot', c, 'Access denied');
     return c.json({ success: false, error: accessError.error }, accessError.statusCode);
   }
 
@@ -844,9 +861,11 @@ app.openapi(createScheduleSlotRoute, async (c) => {
   if (!vehicleAccessError.hasAccess) {
     // Vehicle not found or access denied - return 403 for authorization issues
     if (vehicleAccessError.statusCode === 403) {
+      scheduleLogger.logWarning('createScheduleSlot', c, 'Vehicle access denied');
       return c.json({ success: false, error: vehicleAccessError.error }, 403);
     }
     // Vehicle not found - treat as bad request (400) since vehicleId comes from request body
+    scheduleLogger.logWarning('createScheduleSlot', c, 'Vehicle not found');
     return c.json({ success: false, error: vehicleAccessError.error }, 400);
   }
 
@@ -880,10 +899,12 @@ app.openapi(createScheduleSlotRoute, async (c) => {
         groupId,
         slotId: slot.id,
       });
+
       SocketEmitter.broadcastScheduleSlotCreated(groupId, slot.id, slot as unknown as Record<string, unknown>);
       SocketEmitter.broadcastScheduleUpdate(groupId);
     }
 
+    scheduleLogger.logSuccess('createScheduleSlot', c, { userId, groupId, slotId: slot?.id });
     loggerInstance.debug('createScheduleSlotWithVehicle: Slot created successfully', {
       groupId,
       slotId: slot?.id,
@@ -894,21 +915,12 @@ app.openapi(createScheduleSlotRoute, async (c) => {
       success: true,
       data: transformedSlot,
     }, 201);
-  } catch (error) {
-    const normalizedError = normalizeError(error);
-
-    loggerInstance.error('createScheduleSlotWithVehicle: Error occurred', {
-      error: normalizedError.message,
-      code: normalizedError.code,
-      stack: normalizedError.stack,
-      statusCode: normalizedError.statusCode,
-      userId,
-      groupId,
-    });
-
+  } catch (error: unknown) {
+    scheduleLogger.logError('createScheduleSlot', c, error as Error | string);
+    loggerInstance.error('createScheduleSlotWithVehicle: error', { userId, groupId, error });
     return c.json({
       success: false,
-      error: normalizedError.message,
+      error: 'Failed to create schedule slot',
       code: 'CREATE_FAILED' as const,
     }, 500);
   }
@@ -922,7 +934,25 @@ app.openapi(assignVehicleRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
   const input = c.req.valid('json');
 
+  scheduleLogger.logStart('assignVehicle', c, {
+    businessContext: {
+      userId,
+      scheduleSlotId,
+      vehicleId: input.vehicleId,
+      driverId: input.driverId,
+    },
+  });
+
+  loggerInstance.info('assignVehicle: Received request', {
+    userId,
+    scheduleSlotId,
+    vehicleId: input.vehicleId,
+    driverId: input.driverId,
+  });
+
   if (!input.vehicleId) {
+    scheduleLogger.logWarning('assignVehicle', c, 'Vehicle ID is required');
+    loggerInstance.warn('assignVehicle: Vehicle ID is required', { userId, scheduleSlotId });
     return c.json({
       success: false,
       error: 'Vehicle ID is required',
@@ -933,6 +963,7 @@ app.openapi(assignVehicleRoute, async (c) => {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
     const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
+      scheduleLogger.logWarning('assignVehicle', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -942,12 +973,14 @@ app.openapi(assignVehicleRoute, async (c) => {
     // Verify user has access to the group
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('assignVehicle', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // SECURITY: Verify user's family owns the vehicle being assigned
     const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, input.vehicleId);
     if (!vehicleAccessError.hasAccess) {
+      scheduleLogger.logWarning('assignVehicle', c, 'Vehicle access denied');
       return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
     }
 
@@ -981,6 +1014,7 @@ app.openapi(assignVehicleRoute, async (c) => {
     // ✅ Fetch complete updated ScheduleSlot (returns full context)
     const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!updatedSlot) {
+      scheduleLogger.logError('assignVehicle', c, new Error('Schedule slot was deleted during update'));
       return c.json({
         success: false,
         error: 'Schedule slot was deleted during update',
@@ -991,11 +1025,20 @@ app.openapi(assignVehicleRoute, async (c) => {
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
     SocketEmitter.broadcastScheduleUpdate(scheduleSlot.groupId);
 
+    scheduleLogger.logSuccess('assignVehicle', c, { userId, scheduleSlotId, vehicleId: input.vehicleId });
+    loggerInstance.info('assignVehicle: vehicle assigned successfully', {
+      userId,
+      scheduleSlotId,
+      vehicleId: input.vehicleId,
+    });
+
     return c.json({
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 201);
-  } catch {
+  } catch (error: unknown) {
+    scheduleLogger.logError('assignVehicle', c, error as Error | string);
+    loggerInstance.error('assignVehicle: error', { userId, scheduleSlotId, error });
     return c.json({
       success: false,
       error: 'Failed to assign vehicle',
@@ -1012,7 +1055,23 @@ app.openapi(removeVehicleRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
   const input = c.req.valid('json');
 
+  scheduleLogger.logStart('removeVehicle', c, {
+    businessContext: {
+      userId,
+      scheduleSlotId,
+      vehicleId: input.vehicleId,
+    },
+  });
+
+  loggerInstance.info('removeVehicle: Received request', {
+    userId,
+    scheduleSlotId,
+    vehicleId: input.vehicleId,
+  });
+
   if (!input.vehicleId) {
+    scheduleLogger.logWarning('removeVehicle', c, 'Vehicle ID is required');
+    loggerInstance.warn('removeVehicle: Vehicle ID is required', { userId, scheduleSlotId });
     return c.json({
       success: false,
       error: 'Vehicle ID is required',
@@ -1023,6 +1082,7 @@ app.openapi(removeVehicleRoute, async (c) => {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
     const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
+      scheduleLogger.logWarning('removeVehicle', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -1032,16 +1092,31 @@ app.openapi(removeVehicleRoute, async (c) => {
     // Verify user has access to the group
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('removeVehicle', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // SECURITY: Verify user's family owns the vehicle being removed
     const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, input.vehicleId);
     if (!vehicleAccessError.hasAccess) {
+      scheduleLogger.logWarning('removeVehicle', c, 'Vehicle access denied');
       return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
     }
 
     const result = await scheduleSlotServiceInstance.removeVehicleFromSlot(scheduleSlotId, input.vehicleId);
+
+    scheduleLogger.logSuccess('removeVehicle', c, {
+      userId,
+      scheduleSlotId,
+      vehicleId: input.vehicleId,
+      slotDeleted: result.slotDeleted,
+    });
+    loggerInstance.info('removeVehicle: vehicle removed successfully', {
+      userId,
+      scheduleSlotId,
+      vehicleId: input.vehicleId,
+      slotDeleted: result.slotDeleted,
+    });
 
     // Emit WebSocket event for real-time updates
     if (result.slotDeleted) {
@@ -1071,7 +1146,9 @@ app.openapi(removeVehicleRoute, async (c) => {
         data: result.scheduleSlot,
       }, 200);
     }
-  } catch (error) {
+  } catch (error: unknown) {
+    scheduleLogger.logError('removeVehicle', c, error as Error | string);
+    loggerInstance.error('removeVehicle: error', { userId, scheduleSlotId, error });
     const normalizedError = normalizeError(error);
     return c.json({
       success: false,
@@ -1089,10 +1166,27 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
   const { scheduleSlotId, vehicleAssignmentId } = c.req.valid('param');
   const input = c.req.valid('json');
 
+  scheduleLogger.logStart('patchVehicleAssignment', c, {
+    businessContext: {
+      userId,
+      scheduleSlotId,
+      vehicleAssignmentId,
+      fields: Object.keys(input),
+    },
+  });
+
+  loggerInstance.info('patchVehicleAssignment: Received request', {
+    userId,
+    scheduleSlotId,
+    vehicleAssignmentId,
+    fields: Object.keys(input),
+  });
+
   try {
     // Get schedule slot for access check and structure
     const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
+      scheduleLogger.logWarning('patchVehicleAssignment', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -1102,12 +1196,14 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
     // Verify user has access to the group
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('patchVehicleAssignment', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // Verify vehicle assignment exists in this slot
     const vehicleAssignment = scheduleSlot.vehicleAssignments?.find(va => va.id === vehicleAssignmentId);
     if (!vehicleAssignment) {
+      scheduleLogger.logWarning('patchVehicleAssignment', c, 'Vehicle assignment not found');
       return c.json({
         success: false,
         error: 'Vehicle assignment not found in this schedule slot',
@@ -1150,11 +1246,19 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
     // Fetch complete updated ScheduleSlot
     const updatedSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!updatedSlot) {
+      scheduleLogger.logError('patchVehicleAssignment', c, new Error('Schedule slot was deleted during update'));
       return c.json({
         success: false,
         error: 'Schedule slot was deleted during update',
       }, 404);
     }
+
+    scheduleLogger.logSuccess('patchVehicleAssignment', c, { userId, scheduleSlotId, vehicleAssignmentId });
+    loggerInstance.info('patchVehicleAssignment: vehicle assignment updated successfully', {
+      userId,
+      scheduleSlotId,
+      vehicleAssignmentId,
+    });
 
     // Emit WebSocket event for real-time updates
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
@@ -1164,7 +1268,9 @@ app.openapi(patchVehicleAssignmentRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 200);
-  } catch {
+  } catch (error: unknown) {
+    scheduleLogger.logError('patchVehicleAssignment', c, error as Error | string);
+    loggerInstance.error('patchVehicleAssignment: error', { userId, scheduleSlotId, vehicleAssignmentId, error });
     return c.json({
       success: false,
       error: 'Failed to update vehicle assignment',
@@ -1181,10 +1287,27 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
   const { scheduleSlotId, vehicleId } = c.req.valid('param');
   const input = c.req.valid('json');
 
+  scheduleLogger.logStart('updateVehicleDriver', c, {
+    businessContext: {
+      userId,
+      scheduleSlotId,
+      vehicleId,
+      driverId: input.driverId,
+    },
+  });
+
+  loggerInstance.info('updateVehicleDriver: Received request', {
+    userId,
+    scheduleSlotId,
+    vehicleId,
+    driverId: input.driverId,
+  });
+
   try {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
     const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
+      scheduleLogger.logWarning('updateVehicleDriver', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -1194,12 +1317,14 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
     // Verify user has access to the group
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('updateVehicleDriver', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // SECURITY: Verify user's family owns the vehicle being updated
     const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, vehicleId);
     if (!vehicleAccessError.hasAccess) {
+      scheduleLogger.logWarning('updateVehicleDriver', c, 'Vehicle access denied');
       return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
     }
 
@@ -1211,11 +1336,20 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
 
     // Edge case: ScheduleSlot might have been deleted during the update
     if (!updatedSlot) {
+      scheduleLogger.logError('updateVehicleDriver', c, new Error('Schedule slot was deleted during update'));
       return c.json({
         success: false,
         error: 'Schedule slot was deleted during update',
       }, 404);
     }
+
+    scheduleLogger.logSuccess('updateVehicleDriver', c, { userId, scheduleSlotId, vehicleId, driverId: input.driverId });
+    loggerInstance.info('updateVehicleDriver: driver updated successfully', {
+      userId,
+      scheduleSlotId,
+      vehicleId,
+      driverId: input.driverId,
+    });
 
     // Emit WebSocket event for real-time updates
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
@@ -1225,7 +1359,9 @@ app.openapi(updateVehicleDriverRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 200); // Type narrowing: Hono's strict typing doesn't match our union response type
-  } catch {
+  } catch (error: unknown) {
+    scheduleLogger.logError('updateVehicleDriver', c, error as Error | string);
+    loggerInstance.error('updateVehicleDriver: error', { userId, scheduleSlotId, vehicleId, error });
     return c.json({
       success: false,
       error: 'Failed to update driver',
@@ -1242,10 +1378,17 @@ app.openapi(getScheduleSlotRoute, async (c) => {
   const userId = c.get('userId');
   const { scheduleSlotId } = c.req.valid('param');
 
+  scheduleLogger.logStart('getScheduleSlot', c, {
+    businessContext: { userId, scheduleSlotId },
+  });
+
+  loggerInstance.info('getScheduleSlot: Received request', { userId, scheduleSlotId });
+
   try {
     const slot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
 
     if (!slot) {
+      scheduleLogger.logWarning('getScheduleSlot', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -1255,17 +1398,27 @@ app.openapi(getScheduleSlotRoute, async (c) => {
     // Verify user has access to the group
     const accessError = await verifyGroupAccess(prismaInstance, userId, slot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('getScheduleSlot', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // Transform slot to OpenAPI format
     const transformedSlot = transformScheduleSlot(slot);
 
+    scheduleLogger.logSuccess('getScheduleSlot', c, { userId, scheduleSlotId, groupId: slot.groupId });
+    loggerInstance.info('getScheduleSlot: slot retrieved successfully', {
+      userId,
+      scheduleSlotId,
+      groupId: slot.groupId,
+    });
+
     return c.json({
       success: true,
       data: transformedSlot,
     }, 200);
-  } catch {
+  } catch (error: unknown) {
+    scheduleLogger.logError('getScheduleSlot', c, error as Error | string);
+    loggerInstance.error('getScheduleSlot: error', { userId, scheduleSlotId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve schedule slot',
@@ -1282,9 +1435,26 @@ app.openapi(getScheduleRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const { startDate, endDate } = c.req.valid('query');
 
+  scheduleLogger.logStart('getSchedule', c, {
+    businessContext: {
+      userId,
+      groupId,
+      startDate,
+      endDate,
+    },
+  });
+
+  loggerInstance.info('getSchedule: Received request', {
+    userId,
+    groupId,
+    startDate,
+    endDate,
+  });
+
   // Verify user has access to the group
   const accessError = await verifyGroupAccess(prismaInstance, userId, groupId);
   if (!accessError.hasAccess) {
+    scheduleLogger.logWarning('getSchedule', c, 'Access denied');
     return c.json({ success: false, error: accessError.error }, accessError.statusCode);
   }
 
@@ -1303,7 +1473,11 @@ app.openapi(getScheduleRoute, async (c) => {
     scheduleSlots: schedule.scheduleSlots?.map((slot: ScheduleSlotWithDetails) => slot) ?? [],
   };
 
-  loggerInstance.debug('Controller sending response:', { transformedSchedule });
+  scheduleLogger.logSuccess('getSchedule', c, {
+    userId,
+    groupId,
+    slotCount: transformedSchedule.scheduleSlots?.length ?? 0,
+  });
 
   return c.json({
     success: true,
@@ -1318,10 +1492,17 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
   const userId = c.get('userId');
   const { scheduleSlotId } = c.req.valid('param');
 
+  scheduleLogger.logStart('getScheduleSlotConflicts', c, {
+    businessContext: { userId, scheduleSlotId },
+  });
+
+  loggerInstance.info('getScheduleSlotConflicts: Received request', { userId, scheduleSlotId });
+
   try {
     // Verify user has access to the schedule slot's group
     const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
+      scheduleLogger.logWarning('getScheduleSlotConflicts', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -1330,16 +1511,30 @@ app.openapi(getScheduleSlotConflictsRoute, async (c) => {
 
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('getScheduleSlotConflicts', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     const conflicts = await scheduleSlotServiceInstance.validateSlotConflicts(scheduleSlotId);
 
+    scheduleLogger.logSuccess('getScheduleSlotConflicts', c, {
+      userId,
+      scheduleSlotId,
+      conflictCount: conflicts?.length ?? 0,
+    });
+    loggerInstance.info('getScheduleSlotConflicts: conflicts retrieved successfully', {
+      userId,
+      scheduleSlotId,
+      conflictCount: conflicts?.length ?? 0,
+    });
+
     return c.json({
       success: true,
       data: { conflicts },
     }, 200);
-  } catch {
+  } catch (error: unknown) {
+    scheduleLogger.logError('getScheduleSlotConflicts', c, error as Error | string);
+    loggerInstance.error('getScheduleSlotConflicts: error', { userId, scheduleSlotId, error });
     return c.json({
       success: false,
       error: 'Failed to retrieve conflicts',
@@ -1356,9 +1551,16 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
   const { scheduleSlotId } = c.req.valid('param');
   const userId = c.get('userId');
 
+  scheduleLogger.logStart('getAvailableChildren', c, {
+    businessContext: { userId, scheduleSlotId },
+  });
+
+  loggerInstance.info('getAvailableChildren: Received request', { userId, scheduleSlotId });
+
   // Verify user has access to the schedule slot's group
   const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
   if (!scheduleSlot) {
+    scheduleLogger.logWarning('getAvailableChildren', c, 'Schedule slot not found');
     return c.json({
       success: false,
       error: 'Schedule slot not found',
@@ -1367,6 +1569,7 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
 
   const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
   if (!accessError.hasAccess) {
+    scheduleLogger.logWarning('getAvailableChildren', c, 'Access denied');
     return c.json({ success: false, error: accessError.error }, accessError.statusCode);
   }
 
@@ -1377,6 +1580,17 @@ app.openapi(getAvailableChildrenRoute, async (c) => {
 
   // Transform children to OpenAPI format
   const transformedChildren = children.map(transformAvailableChild);
+
+  scheduleLogger.logSuccess('getAvailableChildren', c, {
+    userId,
+    scheduleSlotId,
+    childCount: transformedChildren.length,
+  });
+  loggerInstance.info('getAvailableChildren: children retrieved successfully', {
+    userId,
+    scheduleSlotId,
+    childCount: transformedChildren.length,
+  });
 
   return c.json({
     success: true,
@@ -1392,10 +1606,27 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
   const { scheduleSlotId, vehicleId } = c.req.valid('param');
   const input = c.req.valid('json');
 
+  scheduleLogger.logStart('updateSeatOverride', c, {
+    businessContext: {
+      userId,
+      scheduleSlotId,
+      vehicleId,
+      seatOverride: input.seatOverride,
+    },
+  });
+
+  loggerInstance.info('updateSeatOverride: Received request', {
+    userId,
+    scheduleSlotId,
+    vehicleId,
+    seatOverride: input.seatOverride,
+  });
+
   try {
     // Get the schedule slot first to obtain groupId for WebSocket emissions
     const scheduleSlot = await scheduleSlotServiceInstance.getScheduleSlotDetails(scheduleSlotId);
     if (!scheduleSlot) {
+      scheduleLogger.logWarning('updateSeatOverride', c, 'Schedule slot not found');
       return c.json({
         success: false,
         error: 'Schedule slot not found',
@@ -1405,12 +1636,14 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
     // Verify user has access to the group
     const accessError = await verifyGroupAccess(prismaInstance, userId, scheduleSlot.groupId);
     if (!accessError.hasAccess) {
+      scheduleLogger.logWarning('updateSeatOverride', c, 'Access denied');
       return c.json({ success: false, error: accessError.error }, accessError.statusCode);
     }
 
     // SECURITY: Verify user's family owns the vehicle being updated
     const vehicleAccessError = await verifyVehicleOwnership(prismaInstance, userId, vehicleId);
     if (!vehicleAccessError.hasAccess) {
+      scheduleLogger.logWarning('updateSeatOverride', c, 'Vehicle access denied');
       return c.json({ success: false, error: vehicleAccessError.error }, vehicleAccessError.statusCode);
     }
 
@@ -1422,11 +1655,25 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
 
     // Edge case: ScheduleSlot might have been deleted during the update
     if (!updatedSlot) {
+      scheduleLogger.logError('updateSeatOverride', c, new Error('Schedule slot was deleted during update'));
       return c.json({
         success: false,
         error: 'Schedule slot was deleted during update',
       }, 404);
     }
+
+    scheduleLogger.logSuccess('updateSeatOverride', c, {
+      userId,
+      scheduleSlotId,
+      vehicleId,
+      seatOverride: input.seatOverride,
+    });
+    loggerInstance.info('updateSeatOverride: seat override updated successfully', {
+      userId,
+      scheduleSlotId,
+      vehicleId,
+      seatOverride: input.seatOverride,
+    });
 
     // Emit WebSocket event for real-time updates
     SocketEmitter.broadcastScheduleSlotUpdate(scheduleSlot.groupId, scheduleSlotId, updatedSlot as unknown as Record<string, unknown>);
@@ -1436,7 +1683,9 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
       success: true,
       data: updatedSlot, // Complete ScheduleSlot with all vehicleAssignments and childAssignments
     }, 200); // Type narrowing: Hono's strict typing doesn't match our union response type
-  } catch {
+  } catch (error: unknown) {
+    scheduleLogger.logError('updateSeatOverride', c, error as Error | string);
+    loggerInstance.error('updateSeatOverride: error', { userId, scheduleSlotId, vehicleId, error });
     return c.json({
       success: false,
       error: 'Failed to update seat override',
@@ -1445,7 +1694,7 @@ app.openapi(updateSeatOverrideRoute, async (c) => {
   }
 });
 
-  return app;
+return app;
 };
 
 // Default export for backward compatibility (uses real services)

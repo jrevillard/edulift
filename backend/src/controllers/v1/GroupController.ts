@@ -13,6 +13,9 @@ import { GroupScheduleConfigService } from '../../services/GroupScheduleConfigSe
 import { EmailServiceFactory } from '../../services/EmailServiceFactory';
 import { createLogger } from '../../utils/logger';
 import { getErrorInfo } from '../../middleware/errorHandler';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Type for GroupScheduleConfig with group included (service returns this but type doesn't declare it)
 interface GroupScheduleConfigWithGroup {
@@ -83,6 +86,9 @@ export const createGroupControllerRoutes = function(dependencies: {
   const emailServiceInstance = dependencies.emailService ?? EmailServiceFactory.getInstance();
   const groupServiceInstance = dependencies.groupService ?? new GroupService(prismaInstance, emailServiceInstance);
   const scheduleConfigServiceInstance = dependencies.scheduleConfigService ?? new GroupScheduleConfigService(prismaInstance);
+
+  // Create controller logger for comprehensive request logging
+  const groupLogger = createControllerLogger('GroupController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: GroupVariables }>();
@@ -1038,6 +1044,13 @@ app.openapi(createGroupRoute, async (c) => {
   const user = c.get('user');
   const input = c.req.valid('json');
 
+  groupLogger.logStart('createGroup', c, {
+    businessContext: {
+      userId,
+      name: input.name,
+    },
+  });
+
   loggerInstance.info('createGroup', { userId, name: input.name, userEmail: user?.email });
 
   try {
@@ -1048,6 +1061,7 @@ app.openapi(createGroupRoute, async (c) => {
     });
 
     if (!userFamily) {
+      groupLogger.logWarning('createGroup', c, 'User without family');
       loggerInstance.warn('createGroup: user without family', { userId });
       return c.json({
         success: false,
@@ -1057,6 +1071,7 @@ app.openapi(createGroupRoute, async (c) => {
     }
 
     if (userFamily.role !== 'ADMIN') {
+      groupLogger.logWarning('createGroup', c, 'Insufficient permissions');
       loggerInstance.warn('createGroup: insufficient permissions', { userId, familyId: userFamily.familyId });
       return c.json({
         success: false,
@@ -1072,12 +1087,14 @@ app.openapi(createGroupRoute, async (c) => {
       createdBy: userId,
     });
 
+    groupLogger.logSuccess('createGroup', c, { userId, groupId: group.id });
     loggerInstance.info('createGroup: success', { userId, groupId: group.id });
     return c.json({
       success: true,
       data: group,
     }, 201);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('createGroup', c, error as Error | string);
     loggerInstance.error('createGroup', { error: error instanceof Error ? error.message : String(error) });
     return c.json({
       success: false,
@@ -1095,17 +1112,26 @@ app.openapi(joinGroupRoute, async (c): Promise<any> => {
   const user = c.get('user');
   const input = c.req.valid('json');
 
+  groupLogger.logStart('joinGroup', c, {
+    businessContext: {
+      userId,
+      inviteCode: `${input.inviteCode.substring(0, 8)}...`,
+    },
+  });
+
   loggerInstance.info('joinGroup', { userId, inviteCode: `${input.inviteCode.substring(0, 8)}...`, userEmail: user?.email });
 
   try {
     const membership = await groupServiceInstance.joinGroupByInviteCode(input.inviteCode.trim(), userId);
 
+    groupLogger.logSuccess('joinGroup', c, { userId, membershipId: membership.id });
     loggerInstance.info('joinGroup: success', { userId, membershipId: membership.id });
     return c.json({
       success: true,
       data: membership,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('joinGroup', c, error as Error | string);
     loggerInstance.error('joinGroup', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'JOIN_FAILED');
     return c.json({
@@ -1122,17 +1148,23 @@ app.openapi(joinGroupRoute, async (c): Promise<any> => {
 app.openapi(getMyGroupsRoute, async (c) => {
   const userId = c.get('userId');
 
+  groupLogger.logStart('getMyGroups', c, {
+    businessContext: { userId },
+  });
+
   loggerInstance.info('getMyGroups', { userId });
 
   try {
     const groups = await groupServiceInstance.getUserGroups(userId);
 
+    groupLogger.logSuccess('getMyGroups', c, { userId, count: groups.length });
     loggerInstance.info('getMyGroups: success', { userId, count: groups.length });
     return c.json({
       success: true,
       data: groups,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('getMyGroups', c, error as Error | string);
     loggerInstance.error('getMyGroups', { error: error instanceof Error ? error.message : String(error) });
     return c.json({
       success: false,
@@ -1149,17 +1181,23 @@ app.openapi(getGroupFamiliesRoute, async (c) => {
   const userId = c.get('userId');
   const { groupId } = c.req.valid('param');
 
+  groupLogger.logStart('getGroupFamilies', c, {
+    businessContext: { userId, groupId },
+  });
+
   loggerInstance.info('getGroupFamilies', { userId, groupId });
 
   try {
     const families = await groupServiceInstance.getGroupFamilies(groupId, userId);
 
+    groupLogger.logSuccess('getGroupFamilies', c, { userId, groupId, count: families.length });
     loggerInstance.info('getGroupFamilies: success', { userId, groupId, count: families.length });
     return c.json({
       success: true,
       data: families,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('getGroupFamilies', c, error as Error | string);
     loggerInstance.error('getGroupFamilies', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
@@ -1179,17 +1217,28 @@ app.openapi(updateFamilyRoleRoute, async (c) => {
   const { groupId, familyId } = c.req.valid('param');
   const { role } = c.req.valid('json');
 
+  groupLogger.logStart('updateFamilyRole', c, {
+    businessContext: {
+      userId,
+      groupId,
+      familyId,
+      role,
+    },
+  });
+
   loggerInstance.info('updateFamilyRole', { userId, groupId, familyId, role, userEmail: user?.email });
 
   try {
     const membership = await groupServiceInstance.updateFamilyRole(groupId, familyId, role as 'ADMIN' | 'MEMBER', userId);
 
+    groupLogger.logSuccess('updateFamilyRole', c, { userId, groupId, familyId, role });
     loggerInstance.info('updateFamilyRole: success', { userId, groupId, familyId, role });
     return c.json({
       success: true,
       data: membership,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('updateFamilyRole', c, error as Error | string);
     loggerInstance.error('updateFamilyRole', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
@@ -1208,6 +1257,15 @@ app.openapi(inviteFamilyRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
   const inviteData = c.req.valid('json');
+
+  groupLogger.logStart('inviteFamily', c, {
+    businessContext: {
+      userId,
+      groupId,
+      familyId: inviteData.familyId,
+      role: inviteData.role,
+    },
+  });
 
   loggerInstance.info('inviteFamilyById', {
     userId,
@@ -1238,6 +1296,7 @@ app.openapi(inviteFamilyRoute, async (c) => {
     );
 
     if (!invitation) {
+      groupLogger.logError('inviteFamily', c, new Error('Failed to create invitation'));
       return c.json({
         success: false,
         error: 'Failed to create invitation',
@@ -1245,6 +1304,12 @@ app.openapi(inviteFamilyRoute, async (c) => {
       }, 500);
     }
 
+    groupLogger.logSuccess('inviteFamily', c, {
+      userId,
+      groupId,
+      familyId: inviteData.familyId,
+      invitationId: invitation.id,
+    });
     loggerInstance.info('inviteFamilyById: success', {
       userId,
       groupId,
@@ -1255,7 +1320,8 @@ app.openapi(inviteFamilyRoute, async (c) => {
       success: true,
       data: invitation as any,
     }, 201);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('inviteFamily', c, error as Error | string);
     loggerInstance.error('inviteFamilyById', {
       error: error instanceof Error ? error.message : String(error),
       userId,
@@ -1280,6 +1346,14 @@ app.openapi(searchFamiliesRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const { searchTerm } = c.req.valid('json');
 
+  groupLogger.logStart('searchFamilies', c, {
+    businessContext: {
+      userId,
+      groupId,
+      searchTerm: `${searchTerm.substring(0, 20)}...`,
+    },
+  });
+
   loggerInstance.info('searchFamiliesForInvitation', {
     userId,
     groupId,
@@ -1294,6 +1368,11 @@ app.openapi(searchFamiliesRoute, async (c) => {
       groupId,
     );
 
+    groupLogger.logSuccess('searchFamilies', c, {
+      userId,
+      groupId,
+      count: families.length,
+    });
     loggerInstance.info('searchFamiliesForInvitation: success', {
       userId,
       groupId,
@@ -1303,7 +1382,8 @@ app.openapi(searchFamiliesRoute, async (c) => {
       success: true,
       data: families,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('searchFamilies', c, error as Error | string);
     loggerInstance.error('searchFamiliesForInvitation', {
       error: error instanceof Error ? error.message : String(error),
       userId,
@@ -1345,17 +1425,27 @@ app.openapi(removeFamilyFromGroupRoute, async (c): Promise<any> => {
   const user = c.get('user');
   const { groupId, familyId } = c.req.valid('param');
 
+  groupLogger.logStart('removeFamilyFromGroup', c, {
+    businessContext: {
+      userId,
+      groupId,
+      familyId,
+    },
+  });
+
   loggerInstance.info('removeFamilyFromGroup', { userId, groupId, familyId, userEmail: user?.email });
 
   try {
     const updatedGroup = await groupServiceInstance.removeFamilyFromGroup(groupId, familyId, userId);
 
+    groupLogger.logSuccess('removeFamilyFromGroup', c, { userId, groupId, familyId });
     loggerInstance.info('removeFamilyFromGroup: success', { userId, groupId, familyId });
     return c.json({
       success: true,
       data: updatedGroup,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('removeFamilyFromGroup', c, error as Error | string);
     loggerInstance.error('removeFamilyFromGroup', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'REMOVE_FAILED');
     return c.json({
@@ -1375,6 +1465,14 @@ app.openapi(updateGroupRoute, async (c) => {
   const { groupId } = c.req.valid('param');
   const updateData = c.req.valid('json');
 
+  groupLogger.logStart('updateGroup', c, {
+    businessContext: {
+      userId,
+      groupId,
+      fields: Object.keys(updateData),
+    },
+  });
+
   loggerInstance.info('updateGroup', { userId, groupId, userEmail: user?.email });
 
   try {
@@ -1388,12 +1486,14 @@ app.openapi(updateGroupRoute, async (c) => {
     }
     const group = await groupServiceInstance.updateGroup(groupId, userId, filteredUpdateData);
 
+    groupLogger.logSuccess('updateGroup', c, { userId, groupId });
     loggerInstance.info('updateGroup: success', { userId, groupId });
     return c.json({
       success: true,
       data: group,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('updateGroup', c, error as Error | string);
     loggerInstance.error('updateGroup', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
@@ -1412,17 +1512,23 @@ app.openapi(deleteGroupRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
 
+  groupLogger.logStart('deleteGroup', c, {
+    businessContext: { userId, groupId },
+  });
+
   loggerInstance.info('deleteGroup', { userId, groupId, userEmail: user?.email });
 
   try {
     await groupServiceInstance.deleteGroup(groupId, userId);
 
+    groupLogger.logSuccess('deleteGroup', c, { userId, groupId });
     loggerInstance.info('deleteGroup: success', { userId, groupId });
     return c.json({
       success: true,
       message: 'Group deleted successfully',
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('deleteGroup', c, error as Error | string);
     loggerInstance.error('deleteGroup', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'DELETE_FAILED');
     return c.json({
@@ -1441,17 +1547,23 @@ app.openapi(leaveGroupRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
 
+  groupLogger.logStart('leaveGroup', c, {
+    businessContext: { userId, groupId },
+  });
+
   loggerInstance.info('leaveGroup', { userId, groupId, userEmail: user?.email });
 
   try {
     await groupServiceInstance.leaveGroup(groupId, userId);
 
+    groupLogger.logSuccess('leaveGroup', c, { userId, groupId });
     loggerInstance.info('leaveGroup: success', { userId, groupId });
     return c.json({
       success: true,
       message: 'Left group successfully',
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('leaveGroup', c, error as Error | string);
     loggerInstance.error('leaveGroup', { error: error instanceof Error ? error.message : String(error) });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'LEAVE_FAILED');
     return c.json({
@@ -1472,6 +1584,10 @@ app.openapi(leaveGroupRoute, async (c) => {
 app.openapi(getScheduleConfigRoute, async (c) => {
   const userId = c.get('userId');
   const { groupId } = c.req.valid('param');
+
+  groupLogger.logStart('getScheduleConfig', c, {
+    businessContext: { userId, groupId },
+  });
 
   loggerInstance.info('getScheduleConfig', { userId, groupId });
 
@@ -1495,12 +1611,14 @@ app.openapi(getScheduleConfigRoute, async (c) => {
       updatedAt: config.updatedAt ? config.updatedAt.toISOString() : null,
     };
 
+    groupLogger.logSuccess('getScheduleConfig', c, { userId, groupId, configId: config.id || 'default-empty' });
     loggerInstance.info('getScheduleConfig: success', { userId, groupId, configId: config.id || 'default-empty' });
     return c.json({
       success: true,
       data: responseData,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('getScheduleConfig', c, error as Error | string);
     loggerInstance.error('getScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'FETCH_FAILED');
     return c.json({
@@ -1519,6 +1637,14 @@ app.openapi(updateScheduleConfigRoute, async (c) => {
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
   const { scheduleHours } = c.req.valid('json');
+
+  groupLogger.logStart('updateScheduleConfig', c, {
+    businessContext: {
+      userId,
+      groupId,
+      daysCount: Object.keys(scheduleHours || {}).length,
+    },
+  });
 
   loggerInstance.info('updateScheduleConfig', { userId, groupId, userEmail: user?.email });
 
@@ -1547,12 +1673,14 @@ app.openapi(updateScheduleConfigRoute, async (c) => {
       updatedAt: (config.updatedAt as Date).toISOString(),
     };
 
+    groupLogger.logSuccess('updateScheduleConfig', c, { userId, groupId, configId: config.id });
     loggerInstance.info('updateScheduleConfig: success', { userId, groupId, configId: config.id });
     return c.json({
       success: true,
       data: responseData,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('updateScheduleConfig', c, error as Error | string);
     loggerInstance.error('updateScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
@@ -1570,6 +1698,10 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
   const { groupId } = c.req.valid('param');
+
+  groupLogger.logStart('resetScheduleConfig', c, {
+    businessContext: { userId, groupId },
+  });
 
   loggerInstance.info('resetScheduleConfig', { userId, groupId, userEmail: user?.email });
 
@@ -1593,12 +1725,14 @@ app.openapi(resetScheduleConfigRoute, async (c) => {
       updatedAt: (config.updatedAt as Date).toISOString(),
     };
 
+    groupLogger.logSuccess('resetScheduleConfig', c, { userId, groupId, configId: config.id });
     loggerInstance.info('resetScheduleConfig: success', { userId, groupId, configId: config.id });
     return c.json({
       success: true,
       data: responseData,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    groupLogger.logError('resetScheduleConfig', c, error as Error | string);
     loggerInstance.error('resetScheduleConfig', { error: error instanceof Error ? error.message : String(error), userId, groupId });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'RESET_FAILED');
     return c.json({

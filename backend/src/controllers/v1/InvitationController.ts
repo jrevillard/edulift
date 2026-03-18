@@ -12,6 +12,9 @@ import { UnifiedInvitationService, CreateFamilyInvitationData, CreateGroupInvita
 import { createLogger } from '../../utils/logger';
 import { getErrorInfo } from '../../middleware/errorHandler';
 import { EmailServiceFactory } from '../../services/EmailServiceFactory';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Import Hono-native schemas
 import {
@@ -59,6 +62,9 @@ export const createInvitationControllerRoutes = function(dependencies: {
   const emailServiceInstance = dependencies.emailService ?? EmailServiceFactory.getInstance();
 
   const invitationServiceInstance = dependencies.invitationService ?? new UnifiedInvitationService(prismaInstance, loggerInstance, emailServiceInstance);
+
+  // Create controller logger for comprehensive request logging
+  const invitationLogger = createControllerLogger('InvitationController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: InvitationVariables }>();
@@ -497,7 +503,14 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const userId = c.get('userId');
     const input = c.req.valid('json');
 
-    loggerInstance.info('createFamilyInvitation', { userId, familyId: input.familyId, email: input.email, role: input.role });
+    invitationLogger.logStart('createFamilyInvitation', c, {
+      businessContext: {
+        userId,
+        familyId: input.familyId,
+        email: input.email,
+        role: input.role,
+      },
+    });
 
     try {
       const invitationData: CreateFamilyInvitationData = {
@@ -512,11 +525,10 @@ export const createInvitationControllerRoutes = function(dependencies: {
         userId,
       );
 
-      loggerInstance.info('createFamilyInvitation: family invitation created', {
+      invitationLogger.logSuccess('createFamilyInvitation', c, {
         userId,
         invitationId: invitation.id,
         familyId: input.familyId,
-        email: input.email,
       });
 
       // Transform Prisma response to match schema
@@ -527,8 +539,8 @@ export const createInvitationControllerRoutes = function(dependencies: {
 
       return c.json(response, 201);
 
-    } catch (error) {
-      loggerInstance.error('createFamilyInvitation: error', { userId, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('createFamilyInvitation', c, error as Error | string);
 
       const { message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
 
@@ -572,13 +584,15 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const { code } = c.req.valid('param');
     const currentUserId = c.get('userId');
 
-    loggerInstance.info('validateFamilyInvitation', { code, hasAuth: !!currentUserId });
+    invitationLogger.logStart('validateFamilyInvitation', c, {
+      businessContext: { code, hasAuth: !!currentUserId }
+    });
 
     try {
       const validation = await invitationServiceInstance.validateFamilyInvitation(code, currentUserId);
 
       if (validation.valid) {
-        loggerInstance.info('validateFamilyInvitation: valid family invitation', { code });
+        invitationLogger.logSuccess('validateFamilyInvitation', c, { code, valid: true });
         return c.json({
           valid: true,
           type: 'FAMILY' as const,
@@ -595,7 +609,11 @@ export const createInvitationControllerRoutes = function(dependencies: {
           ...(validation.existingUser !== undefined && { existingUser: validation.existingUser }),
         }, 200);
       } else {
-        loggerInstance.info('validateFamilyInvitation: invalid family invitation', { code, error: validation.error, errorCode: validation.errorCode });
+        invitationLogger.logWarning('validateFamilyInvitation', c, 'Invalid family invitation', {
+          code,
+          error: validation.error,
+          errorCode: validation.errorCode,
+        });
         return c.json({
           valid: false,
           type: 'FAMILY' as const,
@@ -605,8 +623,8 @@ export const createInvitationControllerRoutes = function(dependencies: {
           ...(validation.errorCode && { errorCode: validation.errorCode }),
         }, 200);
       }
-    } catch (error) {
-      loggerInstance.error('validateFamilyInvitation: error', { code, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('validateFamilyInvitation', c, error as Error | string);
       return c.json({
         success: false as const,
         error: 'Validation failed',
@@ -623,27 +641,33 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const { code } = c.req.valid('param');
     const { leaveCurrentFamily } = c.req.valid('json');
 
-    loggerInstance.info('acceptFamilyInvitation', { userId, code, leaveCurrentFamily });
+    invitationLogger.logStart('acceptFamilyInvitation', c, {
+      businessContext: {
+        userId,
+        code,
+        leaveCurrentFamily,
+      },
+    });
 
     try {
       const result = await invitationServiceInstance.acceptFamilyInvitation(code, userId, { leaveCurrentFamily });
 
       if (result.success) {
-        loggerInstance.info('acceptFamilyInvitation: family invitation accepted', { userId, code });
+        invitationLogger.logSuccess('acceptFamilyInvitation', c, { userId, code });
         return c.json({
           success: true,
           message: 'Family invitation accepted successfully',
         }, 200);
       } else {
-        loggerInstance.warn('acceptFamilyInvitation: accept failed', { userId, code, error: result.error });
+        invitationLogger.logWarning('acceptFamilyInvitation', c, result.error || 'Accept failed');
         return c.json({
           success: false as const,
           error: result.error || 'Failed to accept family invitation',
       code: 'ACCEPT_FAILED' as const,
         }, 400);
       }
-    } catch (error) {
-      loggerInstance.error('acceptFamilyInvitation: error', { userId, code, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('acceptFamilyInvitation', c, error as Error | string);
       return c.json({
         success: false as const,
         error: 'Failed to accept family invitation',
@@ -659,7 +683,15 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const userId = c.get('userId');
     const input = c.req.valid('json');
 
-    loggerInstance.info('createGroupInvitation', { userId, groupId: input.groupId, targetFamilyId: input.targetFamilyId, email: input.email, role: input.role });
+    invitationLogger.logStart('createGroupInvitation', c, {
+      businessContext: {
+        userId,
+        groupId: input.groupId,
+        targetFamilyId: input.targetFamilyId,
+        email: input.email,
+        role: input.role,
+      },
+    });
 
     try {
       const invitationData: CreateGroupInvitationData = {
@@ -676,6 +708,7 @@ export const createInvitationControllerRoutes = function(dependencies: {
       );
 
       if (!invitation) {
+        invitationLogger.logWarning('createGroupInvitation', c, 'Failed to create - no invitation returned');
         return c.json({
           success: false,
           error: 'Failed to create group invitation',
@@ -683,12 +716,10 @@ export const createInvitationControllerRoutes = function(dependencies: {
         }, 500);
       }
 
-      loggerInstance.info('createGroupInvitation: group invitation created', {
+      invitationLogger.logSuccess('createGroupInvitation', c, {
         userId,
         invitationId: invitation.id,
         groupId: input.groupId,
-        targetFamilyId: input.targetFamilyId,
-        email: input.email,
       });
 
       // Transform Prisma response to match schema
@@ -700,8 +731,8 @@ export const createInvitationControllerRoutes = function(dependencies: {
 
       return c.json(response, 201);
 
-    } catch (error) {
-      loggerInstance.error('createGroupInvitation: error', { userId, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('createGroupInvitation', c, error as Error | string);
 
       const { message: errorMessage, code: errorCode } = getErrorInfo(error, 'CREATE_FAILED');
 
@@ -759,13 +790,15 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const { code } = c.req.valid('param');
     const currentUserId = c.get('userId');
 
-    loggerInstance.info('validateGroupInvitation', { code, hasAuth: !!currentUserId });
+    invitationLogger.logStart('validateGroupInvitation', c, {
+      businessContext: { code, hasAuth: !!currentUserId }
+    });
 
     try {
       const validation = await invitationServiceInstance.validateGroupInvitation(code, currentUserId);
 
       if (validation.valid) {
-        loggerInstance.info('validateGroupInvitation: valid group invitation', { code });
+        invitationLogger.logSuccess('validateGroupInvitation', c, { code, valid: true });
         return c.json({
           valid: true,
           type: 'GROUP' as const,
@@ -784,7 +817,11 @@ export const createInvitationControllerRoutes = function(dependencies: {
           }),
         }, 200);
       } else {
-        loggerInstance.info('validateGroupInvitation: invalid group invitation', { code, error: validation.error, errorCode: validation.errorCode });
+        invitationLogger.logWarning('validateGroupInvitation', c, 'Invalid group invitation', {
+          code,
+          error: validation.error,
+          errorCode: validation.errorCode,
+        });
         return c.json({
           valid: false,
           type: 'GROUP' as const,
@@ -796,8 +833,8 @@ export const createInvitationControllerRoutes = function(dependencies: {
           ...(validation.errorCode && { errorCode: validation.errorCode }),
         }, 200);
       }
-    } catch (error) {
-      loggerInstance.error('validateGroupInvitation: error', { code, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('validateGroupInvitation', c, error as Error | string);
       return c.json({
         success: false as const,
         error: 'Validation failed',
@@ -813,20 +850,21 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const userId = c.get('userId');
     const { code } = c.req.valid('param');
 
-    loggerInstance.info('acceptGroupInvitation', { userId, code });
+    invitationLogger.logStart('acceptGroupInvitation', c, {
+      businessContext: { userId, code }
+    });
 
     try {
       const result = await invitationServiceInstance.acceptGroupInvitation(code, userId);
 
       if (result.success) {
-        loggerInstance.info('acceptGroupInvitation: group invitation accepted', { userId, code });
+        invitationLogger.logSuccess('acceptGroupInvitation', c, { userId, code });
         return c.json({
           success: true,
           message: 'Group invitation accepted successfully',
         }, 200);
       } else {
-        loggerInstance.warn('acceptGroupInvitation: accept failed', { userId, code, error: result.error });
-
+        invitationLogger.logWarning('acceptGroupInvitation', c, result.error || 'Accept failed');
         return c.json({
           success: false as const,
           error: result.error || 'Failed to accept group invitation',
@@ -834,8 +872,8 @@ export const createInvitationControllerRoutes = function(dependencies: {
           requiresFamilyOnboarding: result.error?.includes('Family onboarding required') ? true : undefined,
         }, 400);
       }
-    } catch (error) {
-      loggerInstance.error('acceptGroupInvitation: error', { userId, code, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('acceptGroupInvitation', c, error as Error | string);
       return c.json({
         success: false as const,
         error: 'Failed to accept group invitation',
@@ -851,19 +889,21 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const userId = c.get('userId');
     const { invitationId } = c.req.valid('param');
 
-    loggerInstance.info('cancelFamilyInvitation', { userId, invitationId });
+    invitationLogger.logStart('cancelFamilyInvitation', c, {
+      businessContext: { userId, invitationId }
+    });
 
     try {
       await invitationServiceInstance.cancelFamilyInvitation(invitationId, userId);
 
-      loggerInstance.info('cancelFamilyInvitation: family invitation cancelled', { userId, invitationId });
+      invitationLogger.logSuccess('cancelFamilyInvitation', c, { userId, invitationId });
 
       return c.json({
         message: 'Family invitation cancelled successfully',
       }, 200);
 
-    } catch (error) {
-      loggerInstance.error('cancelFamilyInvitation: error', { userId, invitationId, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('cancelFamilyInvitation', c, error as Error | string);
 
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel family invitation';
 
@@ -897,19 +937,21 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const userId = c.get('userId');
     const { invitationId } = c.req.valid('param');
 
-    loggerInstance.info('cancelGroupInvitation', { userId, invitationId });
+    invitationLogger.logStart('cancelGroupInvitation', c, {
+      businessContext: { userId, invitationId }
+    });
 
     try {
       await invitationServiceInstance.cancelGroupInvitation(invitationId, userId);
 
-      loggerInstance.info('cancelGroupInvitation: group invitation cancelled', { userId, invitationId });
+      invitationLogger.logSuccess('cancelGroupInvitation', c, { userId, invitationId });
 
       return c.json({
         message: 'Group invitation cancelled successfully',
       }, 200);
 
-    } catch (error) {
-      loggerInstance.error('cancelGroupInvitation: error', { userId, invitationId, error });
+    } catch (error: unknown) {
+      invitationLogger.logError('cancelGroupInvitation', c, error as Error | string);
 
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel group invitation';
 

@@ -10,7 +10,9 @@ import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { PrismaClient } from '@prisma/client';
 import { PushNotificationServiceFactory } from '../../services/PushNotificationServiceFactory';
 import { FcmTokenData, PushNotificationData } from '../../types/PushNotificationInterface';
-import { createLogger } from '../../utils/logger';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 import {
   SaveTokenSchema,
   ValidateTokenSchema,
@@ -71,7 +73,9 @@ export const createFcmTokenControllerRoutes = function(dependencies: {
 
   // Create or use injected services
   const prismaInstance = dependencies.prisma ?? new PrismaClient();
-  const loggerInstance = dependencies.logger ?? createLogger('FcmTokenController');
+
+  // Create controller logger for comprehensive request logging
+  const fcmLogger = createControllerLogger('FcmTokenController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: FcmTokenVariables }>();
@@ -449,7 +453,9 @@ app.openapi(saveTokenRoute, async (c) => {
   const input = c.req.valid('json');
   const userId = c.get('userId');
 
-  loggerInstance.info('Saving FCM token:', { userId, deviceId: input.deviceId, fcmPlatform: input.fcmPlatform });
+  fcmLogger.logStart('saveToken', c, {
+    businessContext: { userId, deviceId: input.deviceId, fcmPlatform: input.fcmPlatform }
+  });
 
   try {
     const pushService = PushNotificationServiceFactory.getInstance(prismaInstance);
@@ -463,7 +469,7 @@ app.openapi(saveTokenRoute, async (c) => {
 
     const savedToken = await pushService.saveToken(tokenData);
 
-    loggerInstance.info('FCM token saved successfully', { userId, tokenId: savedToken.id });
+    fcmLogger.logSuccess('saveToken', c, { userId, tokenId: savedToken.id });
 
     return c.json({
       success: true,
@@ -476,8 +482,8 @@ app.openapi(saveTokenRoute, async (c) => {
         createdAt: savedToken.lastUsed?.toISOString() || new Date().toISOString(),
       },
     }, 201);
-  } catch (error) {
-    loggerInstance.error('Error saving FCM token:', { userId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('saveToken', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to save FCM token',
@@ -491,6 +497,10 @@ app.openapi(saveTokenRoute, async (c) => {
  */
 app.openapi(getTokensRoute, async (c) => {
   const userId = c.get('userId');
+
+  fcmLogger.logStart('getTokens', c, {
+    businessContext: { userId }
+  });
 
   try {
     const tokens = await prismaInstance.fcmToken.findMany({
@@ -511,7 +521,7 @@ app.openapi(getTokensRoute, async (c) => {
       },
     });
 
-    loggerInstance.info('Retrieved FCM tokens:', { userId, tokenCount: tokens.length });
+    fcmLogger.logSuccess('getTokens', c, { userId, tokenCount: tokens.length });
 
     // Map platform to fcmPlatform to match schema
     const tokensWithFcmPlatform = tokens.map(token => ({
@@ -524,8 +534,8 @@ app.openapi(getTokensRoute, async (c) => {
       success: true,
       data: { tokens: tokensWithFcmPlatform },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error retrieving FCM tokens:', { userId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('getTokens', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to retrieve FCM tokens',
@@ -539,6 +549,10 @@ app.openapi(getTokensRoute, async (c) => {
  */
 app.openapi(cleanupInactiveRoute, async (c) => {
   const userId = c.get('userId');
+
+  fcmLogger.logStart('cleanupInactive', c, {
+    businessContext: { userId }
+  });
 
   try {
     const thirtyDaysAgo = new Date();
@@ -554,6 +568,7 @@ app.openapi(cleanupInactiveRoute, async (c) => {
     });
 
     if (inactiveTokens.length === 0) {
+      fcmLogger.logSuccess('cleanupInactive', c, { userId, cleanedUpTokens: 0 });
       return c.json({
         success: true,
         data: {
@@ -572,7 +587,7 @@ app.openapi(cleanupInactiveRoute, async (c) => {
       },
     });
 
-    loggerInstance.info('Inactive FCM tokens cleaned up:', {
+    fcmLogger.logSuccess('cleanupInactive', c, {
       userId,
       cleanedUpTokens: inactiveTokens.length,
     });
@@ -584,8 +599,8 @@ app.openapi(cleanupInactiveRoute, async (c) => {
         cleanedUpTokens: inactiveTokens.length,
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error cleaning up inactive tokens:', { userId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('cleanupInactive', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to clean up inactive tokens',
@@ -601,6 +616,10 @@ app.openapi(deleteTokenRoute, async (c) => {
   const { tokenId } = c.req.valid('param');
   const userId = c.get('userId');
 
+  fcmLogger.logStart('deleteToken', c, {
+    businessContext: { userId, tokenId }
+  });
+
   try {
     const token = await prismaInstance.fcmToken.findFirst({
       where: {
@@ -610,7 +629,7 @@ app.openapi(deleteTokenRoute, async (c) => {
     });
 
     if (!token) {
-      loggerInstance.warn('FCM token not found:', { tokenId, userId });
+      fcmLogger.logWarning('deleteToken', c, 'FCM token not found', { tokenId, userId });
       return c.json({
         success: false,
         error: 'FCM token not found',
@@ -621,7 +640,7 @@ app.openapi(deleteTokenRoute, async (c) => {
     const pushService = PushNotificationServiceFactory.getInstance(prismaInstance);
     await pushService.deleteToken(tokenId);
 
-    loggerInstance.info('FCM token deleted successfully:', { tokenId, userId, platform: token.platform });
+    fcmLogger.logSuccess('deleteToken', c, { tokenId, userId, platform: token.platform });
 
     return c.json({
       success: true,
@@ -629,8 +648,8 @@ app.openapi(deleteTokenRoute, async (c) => {
         message: 'FCM token deleted successfully',
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error deleting FCM token:', { userId, tokenId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('deleteToken', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to delete FCM token',
@@ -642,9 +661,13 @@ app.openapi(deleteTokenRoute, async (c) => {
 /**
  * POST /validate - Validate an FCM token
  */
-app.openapi(validateTokenRoute, async (c) => {
+app.openapi(validateTokenRoute, async (c): Promise<any> => {
   const { token } = c.req.valid('json');
   const userId = c.get('userId');
+
+  fcmLogger.logStart('validateToken', c, {
+    businessContext: { userId }
+  });
 
   try {
     const pushService = PushNotificationServiceFactory.getInstance(prismaInstance);
@@ -663,18 +686,18 @@ app.openapi(validateTokenRoute, async (c) => {
       });
     }
 
-    loggerInstance.info('Token validation result:', { userId, isValid });
+    fcmLogger.logSuccess('validateToken', c, { userId, isValid });
 
+    // SECURITY: Do NOT return the token in the response to prevent exposure in logs
     return c.json({
       success: true,
       data: {
-        token,
         isValid,
         isServiceAvailable: pushService.isAvailable(),
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error validating FCM token:', { userId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('validateToken', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to validate FCM token',
@@ -690,6 +713,10 @@ app.openapi(subscribeTopicRoute, async (c) => {
   const { topic, token } = c.req.valid('json');
   const userId = c.get('userId');
 
+  fcmLogger.logStart('subscribeTopic', c, {
+    businessContext: { userId, topic }
+  });
+
   try {
     const pushService = PushNotificationServiceFactory.getInstance(prismaInstance);
 
@@ -702,7 +729,7 @@ app.openapi(subscribeTopicRoute, async (c) => {
     });
 
     if (!userToken) {
-      loggerInstance.warn('FCM token not found or inactive:', { userId });
+      fcmLogger.logWarning('subscribeTopic', c, 'FCM token not found or inactive', { userId });
       return c.json({
         success: false,
         error: 'FCM token not found or inactive',
@@ -712,10 +739,9 @@ app.openapi(subscribeTopicRoute, async (c) => {
 
     const subscribed = await pushService.subscribeToTopic(token, topic);
 
-    loggerInstance.info('Topic subscription completed:', {
+    fcmLogger.logSuccess('subscribeTopic', c, {
       userId,
       topic,
-      token: `${token.substring(0, 10)  }...`,
       subscribed,
     });
 
@@ -727,8 +753,8 @@ app.openapi(subscribeTopicRoute, async (c) => {
         subscribed,
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error subscribing to topic:', { userId, topic, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('subscribeTopic', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to subscribe to topic',
@@ -744,6 +770,10 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
   const { topic, token } = c.req.valid('json');
   const userId = c.get('userId');
 
+  fcmLogger.logStart('unsubscribeTopic', c, {
+    businessContext: { userId, topic }
+  });
+
   try {
     const pushService = PushNotificationServiceFactory.getInstance(prismaInstance);
 
@@ -756,7 +786,7 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
     });
 
     if (!userToken) {
-      loggerInstance.warn('FCM token not found or inactive:', { userId });
+      fcmLogger.logWarning('unsubscribeTopic', c, 'FCM token not found or inactive', { userId });
       return c.json({
         success: false,
         error: 'FCM token not found or inactive',
@@ -766,10 +796,9 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
 
     const subscribed = !(await pushService.unsubscribeFromTopic(token, topic));
 
-    loggerInstance.info('Topic unsubscription completed:', {
+    fcmLogger.logSuccess('unsubscribeTopic', c, {
       userId,
       topic,
-      token: `${token.substring(0, 10)  }...`,
       unsubscribed: !subscribed,
     });
 
@@ -781,8 +810,8 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
         subscribed,
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error unsubscribing from topic:', { userId, topic, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('unsubscribeTopic', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to unsubscribe from topic',
@@ -798,6 +827,10 @@ app.openapi(testNotificationRoute, async (c) => {
   const { title, body, data, priority } = c.req.valid('json');
   const userId = c.get('userId');
 
+  fcmLogger.logStart('testNotification', c, {
+    businessContext: { userId, title }
+  });
+
   try {
     const pushService = PushNotificationServiceFactory.getInstance(prismaInstance);
 
@@ -812,7 +845,7 @@ app.openapi(testNotificationRoute, async (c) => {
     });
 
     if (tokens.length === 0) {
-      loggerInstance.warn('No active FCM tokens found:', { userId });
+      fcmLogger.logWarning('testNotification', c, 'No active FCM tokens found', { userId });
       return c.json({
         success: false,
         error: 'No active FCM tokens found',
@@ -836,7 +869,7 @@ app.openapi(testNotificationRoute, async (c) => {
 
     const results = await pushService.sendToTokens(tokens.map(t => t.token), notification);
 
-    loggerInstance.info('Test notification sent:', {
+    fcmLogger.logSuccess('testNotification', c, {
       userId,
       title,
       totalTokens: tokens.length,
@@ -853,8 +886,8 @@ app.openapi(testNotificationRoute, async (c) => {
         totalTokens: tokens.length,
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error sending test notification:', { userId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('testNotification', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to send test notification',
@@ -868,6 +901,10 @@ app.openapi(testNotificationRoute, async (c) => {
  */
 app.openapi(getStatsRoute, async (c) => {
   const userId = c.get('userId');
+
+  fcmLogger.logStart('getStats', c, {
+    businessContext: { userId }
+  });
 
   try {
     const [userTokens, serviceAvailable] = await Promise.all([
@@ -888,7 +925,7 @@ app.openapi(getStatsRoute, async (c) => {
       platforms[token.platform] = (platforms[token.platform] || 0) + 1;
     });
 
-    loggerInstance.info('Retrieved FCM token statistics:', { userId, tokenCount: userTokens.length });
+    fcmLogger.logSuccess('getStats', c, { userId, tokenCount: userTokens.length });
 
     return c.json({
       success: true,
@@ -898,8 +935,8 @@ app.openapi(getStatsRoute, async (c) => {
         platforms,
       },
     }, 200);
-  } catch (error) {
-    loggerInstance.error('Error getting token stats:', { userId, error });
+  } catch (error: unknown) {
+    fcmLogger.logError('getStats', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to retrieve token statistics',

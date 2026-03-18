@@ -143,3 +143,71 @@ export const getErrorInfo = function(error: unknown, defaultCode: string = 'UNKN
     code: defaultCode,
   };
 };
+/**
+ * Normalize error objects for consistent logging across controllers.
+ *
+ * This utility provides a consistent way to extract error information
+ * regardless of the error type (Error object, string, or unknown).
+ *
+ * @param error - Unknown error type from catch block
+ * @returns Normalized error with message and optional stack trace
+ *
+ * @example
+ * try {
+ *   await someOperation();
+ * } catch (error: unknown) {
+ *   const { message, stack } = normalizeError(error);
+ *   logger.error('Operation failed', { message, stack });
+ * }
+ */
+export interface NormalizedError {
+  message: string;
+  stack: string | undefined;
+  originalType: 'Error' | 'String' | 'Unknown' | 'AppError';
+}
+
+export const normalizeError = function(error: unknown): NormalizedError {
+  // Handle AppError instances first (must come before Error check since AppError extends Error)
+  if (error instanceof AppError) {
+    return {
+      message: error.message,
+      stack: error.stack,
+      originalType: 'AppError',
+    };
+  }
+
+  // Handle other Error instances
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      stack: error.stack,
+      originalType: 'Error',
+    };
+  }
+
+  // Handle string errors
+  if (typeof error === 'string') {
+    return {
+      message: error,
+      stack: undefined,
+      originalType: 'String',
+    };
+  }
+
+  // Handle objects with message property
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const err = error as { message?: string; stack?: string };
+    return {
+      message: err.message || 'Unknown error',
+      stack: err.stack,
+      originalType: 'Unknown',
+    };
+  }
+
+  // Fallback for completely unknown errors
+  return {
+    message: 'Unknown error',
+    stack: undefined,
+    originalType: 'Unknown',
+  };
+};

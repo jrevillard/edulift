@@ -11,6 +11,9 @@ import { PrismaClient } from '@prisma/client';
 import { DashboardService } from '../../services/DashboardService';
 import { createLogger } from '../../utils/logger';
 import { ErrorResponseSchema } from '../../schemas/responses';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Type for Hono context with userId
 type DashboardVariables = {
@@ -45,6 +48,9 @@ export const createDashboardControllerRoutes = function(dependencies: {
   const prismaInstance = dependencies.prisma ?? new PrismaClient();
   const loggerInstance = dependencies.logger ?? createLogger('DashboardController');
   const dashboardServiceInstance = dependencies.dashboardService ?? new DashboardService(prismaInstance);
+
+  // Create controller logger for comprehensive request logging
+  const dashboardLogger = createControllerLogger('DashboardController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: DashboardVariables }>();
@@ -482,18 +488,22 @@ const getWeeklyDashboardRoute = createRoute({
 app.openapi(getStatsRoute, async (c) => {
   const userId = c.get('userId');
 
+  dashboardLogger.logStart('getStats', c, { businessContext: { userId } });
+
   loggerInstance.info('getStats', { userId });
 
   try {
     const stats = await dashboardServiceInstance.calculateUserStats(userId);
 
+    dashboardLogger.logSuccess('getStats', c, { userId });
     loggerInstance.info('getStats: stats retrieved', { userId });
 
     return c.json({
       success: true,
       data: stats,
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    dashboardLogger.logError('getStats', c, error as Error | string);
     loggerInstance.error('getStats: error', { userId, error });
     return c.json({
       success: false,
@@ -509,6 +519,10 @@ app.openapi(getStatsRoute, async (c) => {
 app.openapi(getTodayScheduleRoute, async (c) => {
   const userId = c.get('userId');
   const user = c.get('user');
+
+  dashboardLogger.logStart('getTodaySchedule', c, {
+    businessContext: { userId, timezone: user?.timezone },
+  });
 
   loggerInstance.info('getTodaySchedule', { userId, timezone: user?.timezone });
 
@@ -527,6 +541,7 @@ app.openapi(getTodayScheduleRoute, async (c) => {
       group: trip.group,
     }));
 
+    dashboardLogger.logSuccess('getTodaySchedule', c, { userId, count: upcomingTrips.length });
     loggerInstance.info('getTodaySchedule: schedule retrieved', {
       userId,
       count: upcomingTrips.length,
@@ -538,7 +553,8 @@ app.openapi(getTodayScheduleRoute, async (c) => {
         upcomingTrips,
       },
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    dashboardLogger.logError('getTodaySchedule', c, error as Error | string);
     loggerInstance.error('getTodaySchedule: error', { userId, error });
     return c.json({
       success: false,
@@ -553,6 +569,8 @@ app.openapi(getTodayScheduleRoute, async (c) => {
  */
 app.openapi(getRecentActivityRoute, async (c) => {
   const userId = c.get('userId');
+
+  dashboardLogger.logStart('getRecentActivity', c, { businessContext: { userId } });
 
   loggerInstance.info('getRecentActivity', { userId });
 
@@ -576,6 +594,7 @@ app.openapi(getRecentActivityRoute, async (c) => {
       } : undefined,
     }));
 
+    dashboardLogger.logSuccess('getRecentActivity', c, { userId, count: formattedActivities.length });
     loggerInstance.info('getRecentActivity: activity retrieved', {
       userId,
       count: formattedActivities.length,
@@ -587,7 +606,8 @@ app.openapi(getRecentActivityRoute, async (c) => {
         activities: formattedActivities,
       },
     }, 200);
-  } catch (error) {
+  } catch (error: unknown) {
+    dashboardLogger.logError('getRecentActivity', c, error as Error | string);
     loggerInstance.error('getRecentActivity: error', { userId, error });
     return c.json({
       success: false,
@@ -600,10 +620,14 @@ app.openapi(getRecentActivityRoute, async (c) => {
 /**
  * GET /dashboard/weekly - Get weekly dashboard analytics
  */
-app.openapi(getWeeklyDashboardRoute, async (c) => {
+app.openapi(getWeeklyDashboardRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
   const user = c.get('user');
   const { startDate } = c.req.valid('query');
+
+  dashboardLogger.logStart('getWeeklyDashboard', c, {
+    businessContext: { userId, startDate },
+  });
 
   loggerInstance.info('getWeeklyDashboard', { userId, timezone: user?.timezone, startDate });
 
@@ -616,6 +640,7 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
     // Check if service returned an error response
     if (!weeklyData.success) {
       const statusCode: 400 | 401 | 500 = (weeklyData.statusCode ?? 500) as 400 | 401 | 500;
+      dashboardLogger.logError('getWeeklyDashboard', c, weeklyData.error || 'Weekly dashboard failed');
       return c.json({
         success: false,
         error: weeklyData.error || 'Failed to retrieve weekly dashboard',
@@ -641,55 +666,18 @@ app.openapi(getWeeklyDashboardRoute, async (c) => {
           id: transport.scheduleSlotId,
           time: transport.time,
           datetime: `${day.date}T${transport.time}:00Z`,
-          date: new Date(day.date).toLocaleDateString('en-US', { weekday: 'long' }),
-          children: transport.vehicleAssignmentSummaries?.flatMap((vas: any) =>
-            vas.children?.map((child: any) => ({
-              id: child.childId,
-              name: child.childName,
-            })) || [],
-          ) || [],
-          vehicle: transport.vehicleAssignmentSummaries?.[0] ? {
-            id: transport.vehicleAssignmentSummaries[0].vehicleId,
-            name: transport.vehicleAssignmentSummaries[0].vehicleName,
-            capacity: transport.vehicleAssignmentSummaries[0].vehicleCapacity,
-            familyId: transport.vehicleAssignmentSummaries[0].vehicleFamilyId,
-          } : undefined,
-          driver: transport.vehicleAssignmentSummaries?.[0]?.driver ? {
-            id: transport.vehicleAssignmentSummaries[0].driver.id,
-            name: transport.vehicleAssignmentSummaries[0].driver.name,
-          } : undefined,
-          group: {
-            id: transport.groupId,
-            name: transport.groupName,
-          },
         })) || [],
-        summary: {
-          totalTrips: day.transports?.length || 0,
-          completedTrips: 0, // Not tracked in current implementation
-          activeTrips: 0, // Not tracked in current implementation
-        },
       })) || [],
-      trends: undefined, // Not available in current response format
     };
 
-    // Calculate total trips from daily schedules
-    transformedData.weeklyStats.totalTrips = transformedData.dailySchedules.reduce(
-      (sum, day) => sum + day.summary.totalTrips,
-      0,
-    );
-
-    loggerInstance.info('getWeeklyDashboard: weekly data retrieved', {
-      userId,
-      weekStart: transformedData.weekStart,
-      totalTrips: transformedData.weeklyStats.totalTrips,
-    });
+    dashboardLogger.logSuccess('getWeeklyDashboard', c, { userId });
 
     return c.json({
       success: true,
       data: transformedData,
     }, 200);
-  } catch (error) {
-    loggerInstance.error('getWeeklyDashboard: error', { userId, error });
+  } catch (error: unknown) {
+    dashboardLogger.logError('getWeeklyDashboard', c, error as Error | string);
     return c.json({
       success: false,
       error: 'Failed to retrieve weekly dashboard',

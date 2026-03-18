@@ -17,6 +17,9 @@ import { createLogger } from '../../utils/logger';
 import { sanitizeSecurityError, logSecurityEvent } from '../../utils/security';
 import { isValidTimezone } from '../../utils/timezoneUtils';
 import { getErrorInfo } from '../../middleware/errorHandler';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Middleware Hono - Applied at route level in routes/auth.ts
 
@@ -90,6 +93,9 @@ export const createAuthControllerRoutes = function(dependencies: {
     unifiedInvitationLoggerInstance,
     emailServiceInstance,
   );
+
+  // Create controller logger for comprehensive request logging
+  const authLogger = createControllerLogger('AuthController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: AuthVariables }>();
@@ -675,6 +681,14 @@ const confirmAccountDeletionRoute = createRoute({
 app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
   const input = c.req.valid('json');
 
+  authLogger.logStart('requestMagicLink', c, {
+    businessContext: {
+      email: input.email ? '[REDACTED]' : undefined,
+      inviteCode: input.inviteCode,
+      timezone: input.timezone,
+    },
+  });
+
   loggerInstance.debug('AuthController received magic link request', {
     email: input.email,
     inviteCode: input.inviteCode,
@@ -704,6 +718,7 @@ app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
 
     // Safe check: Verify service returned valid result but allow tests to mock properly
     if (!result && process.env.NODE_ENV !== 'test') {
+      authLogger.logError('requestMagicLink', c, 'AuthService.requestMagicLink returned undefined');
       loggerInstance.error('AuthService.requestMagicLink returned undefined', {
         email: input.email,
         input: { ...input, email: '[REDACTED]' },
@@ -714,6 +729,8 @@ app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
       }, 500 as const);
     }
 
+    authLogger.logSuccess('requestMagicLink', c, { userExists: result?.userExists ?? false });
+
     return c.json({
       success: true,
       data: {
@@ -721,10 +738,12 @@ app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
         userExists: result?.userExists ?? false,
       },
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
     // SECURITY: Use sanitized error messages for production
     const securityError = sanitizeSecurityError(error as Error);
     const { code: errorCode } = getErrorInfo(error, 'AUTH_REQUEST_FAILED');
+
+    authLogger.logError('requestMagicLink', c, error as Error | string);
 
     // Log security-related failures for monitoring
     logSecurityEvent('AUTH_REQUEST_FAILED', {
@@ -767,6 +786,13 @@ app.openapi(requestMagicLinkRoute, async (c): Promise<any> => {
 app.openapi(verifyMagicLinkRoute, async (c) => {
   const { token, code_verifier, inviteCode } = c.req.valid('json');
 
+  authLogger.logStart('verifyMagicLink', c, {
+    businessContext: {
+      hasInviteCode: !!inviteCode,
+      tokenPreview: token ? `${token.substring(0, 10)}...` : undefined,
+    },
+  });
+
   loggerInstance.debug('AuthController verifyMagicLink', {
     token: token ? `${token.substring(0, 10)}...` : undefined,
     inviteCode,
@@ -778,6 +804,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
     const authResult = await authServiceInstance.verifyMagicLink(token, code_verifier);
 
     if (!authResult) {
+      authLogger.logError('verifyMagicLink', c, 'Invalid or expired magic link');
       return c.json({
         success: false,
         error: 'Invalid or expired magic link',
@@ -848,7 +875,7 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
           }
           loggerInstance.debug('Final invitation result', invitationResult);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         loggerInstance.warn('Failed to process invitation', { error: (error as Error).message });
         // Don't fail the auth flow if invitation processing fails
         invitationResult = {
@@ -875,13 +902,20 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
       invitationResult,
     };
 
+    authLogger.logSuccess('verifyMagicLink', c, {
+      userId: authResult.user.id,
+      inviteCodeProcessed: invitationResult?.processed,
+    });
+
     return c.json({
       success: true,
       data: transformedData,
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
     // SECURITY: Use sanitized error messages for production
     const securityError = sanitizeSecurityError(error as Error);
+
+    authLogger.logError('verifyMagicLink', c, error as Error | string);
 
     // Log full details for security monitoring
     logSecurityEvent('AUTH_VERIFY_FAILED', {
@@ -905,7 +939,10 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
 app.openapi(refreshTokenRoute, async (c) => {
   const { refreshToken } = c.req.valid('json');
 
+  authLogger.logStart('refreshToken', c);
+
   if (!refreshToken) {
+    authLogger.logWarning('refreshToken', c, 'Refresh token required');
     return c.json({
       success: false,
       error: 'Refresh token required',
@@ -917,6 +954,8 @@ app.openapi(refreshTokenRoute, async (c) => {
     // Use new refreshAccessToken method with rotation
     const authResult = await authServiceInstance.refreshAccessToken(refreshToken);
 
+    authLogger.logSuccess('refreshToken', c);
+
     return c.json({
       success: true,
       data: {
@@ -926,7 +965,8 @@ app.openapi(refreshTokenRoute, async (c) => {
         tokenType: authResult.tokenType,
       },
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
+    authLogger.logError('refreshToken', c, error as Error | string);
     loggerInstance.error('Refresh token error', { error: (error as Error).message });
     return c.json({
       success: false,
@@ -942,8 +982,12 @@ app.openapi(refreshTokenRoute, async (c) => {
 app.openapi(logoutRoute, async (c) => {
   const userId = c.get('userId');
 
+  authLogger.logStart('logout', c, { businessContext: { userId } });
+
   try {
     await authServiceInstance.logout(userId);
+
+    authLogger.logSuccess('logout', c, { userId });
 
     return c.json({
       success: true,
@@ -951,7 +995,8 @@ app.openapi(logoutRoute, async (c) => {
         message: 'Logged out successfully',
       },
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
+    authLogger.logError('logout', c, error as Error | string);
     loggerInstance.error('Logout error', { error: (error as Error).message });
     return c.json({
       success: false,
@@ -967,9 +1012,12 @@ app.openapi(logoutRoute, async (c) => {
 app.openapi(getProfileRoute, async (c) => {
   const userId = c.get('userId');
 
+  authLogger.logStart('getProfile', c, { businessContext: { userId } });
+
   // Fetch complete user data with timestamps from database
   const userFromDb = await userRepositoryInstance.findById(userId);
   if (!userFromDb) {
+    authLogger.logError('getProfile', c, 'User not found');
     return c.json({
       success: false,
       error: 'User not found',
@@ -983,6 +1031,8 @@ app.openapi(getProfileRoute, async (c) => {
     createdAt: userFromDb.createdAt?.toISOString(),
     updatedAt: userFromDb.updatedAt?.toISOString(),
   };
+
+  authLogger.logSuccess('getProfile', c, { userId });
 
   return c.json({
     success: true,
@@ -998,6 +1048,13 @@ app.openapi(updateProfileRoute, async (c) => {
   const user = c.get('user');
   const profileData = c.req.valid('json');
 
+  authLogger.logStart('updateProfile', c, {
+    businessContext: {
+      userId,
+      fieldsUpdated: Object.keys(profileData),
+    },
+  });
+
   loggerInstance.debug('updateProfile: Received request', {
     userId,
     profileData,
@@ -1006,6 +1063,7 @@ app.openapi(updateProfileRoute, async (c) => {
 
   // Validate timezone if provided
   if (profileData.timezone && !isValidTimezone(profileData.timezone)) {
+    authLogger.logWarning('updateProfile', c, `Invalid timezone: ${profileData.timezone}`);
     loggerInstance.warn('updateProfile: Invalid timezone provided', {
       userId,
       timezone: profileData.timezone,
@@ -1020,6 +1078,8 @@ app.openapi(updateProfileRoute, async (c) => {
   try {
     // Update the user profile
     const updatedUser = await authServiceInstance.updateProfile(userId, profileData);
+
+    authLogger.logSuccess('updateProfile', c, { userId });
 
     loggerInstance.debug('updateProfile: Profile updated successfully', {
       userId,
@@ -1038,7 +1098,8 @@ app.openapi(updateProfileRoute, async (c) => {
       success: true,
       data: transformedUser,
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
+    authLogger.logError('updateProfile', c, error as Error | string);
     loggerInstance.error('updateProfile: Error occurred', {
       error: (error as Error).message,
       stack: error instanceof Error ? error.stack : undefined,
@@ -1061,9 +1122,15 @@ app.openapi(updateTimezoneRoute, async (c) => {
   const userId = c.get('userId');
   const { timezone } = c.req.valid('json');
 
+  authLogger.logStart('updateTimezone', c, {
+    businessContext: { userId, timezone },
+  });
+
   try {
     // Update timezone via profile update
     const updatedUser = await authServiceInstance.updateProfile(userId, { timezone });
+
+    authLogger.logSuccess('updateTimezone', c, { userId, timezone });
 
     // Transform data to match schema expectations (convert Date objects to ISO strings)
     const transformedUser = {
@@ -1076,7 +1143,8 @@ app.openapi(updateTimezoneRoute, async (c) => {
       success: true,
       data: transformedUser,
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
+    authLogger.logError('updateTimezone', c, error as Error | string);
     loggerInstance.error('Update timezone error', { error: (error as Error).message });
     return c.json({
       success: false,
@@ -1090,10 +1158,13 @@ app.openapi(updateTimezoneRoute, async (c) => {
  * POST /auth/profile/delete-request - Request account deletion
  */
 app.openapi(requestAccountDeletionRoute, async (c): Promise<any> => {
-  const startTime = Date.now();
   const userId = c.get('userId');
   const user = c.get('user');
   const { code_challenge } = c.req.valid('json');
+
+  authLogger.logStart('requestAccountDeletion', c, {
+    businessContext: { userId },
+  });
 
   loggerInstance.debug('requestAccountDeletion: Request received', {
     userId,
@@ -1104,6 +1175,7 @@ app.openapi(requestAccountDeletionRoute, async (c): Promise<any> => {
 
   // SECURITY: PKCE code_challenge is required for all deletion requests
   if (!code_challenge || code_challenge.length < 43 || code_challenge.length > 128) {
+    authLogger.logWarning('requestAccountDeletion', c, 'Invalid PKCE challenge');
     loggerInstance.warn('requestAccountDeletion: Invalid PKCE challenge', {
       userId,
       codeChallengeLength: code_challenge?.length || 0,
@@ -1123,11 +1195,12 @@ app.openapi(requestAccountDeletionRoute, async (c): Promise<any> => {
       code_challenge,
     });
 
+    authLogger.logSuccess('requestAccountDeletion', c, { userId });
+
     loggerInstance.info('requestAccountDeletion: Deletion email sent successfully', {
       userId,
       userEmail: user?.email,
       message: result.message,
-      duration: Date.now() - startTime,
       timestamp: new Date().toISOString(),
     });
 
@@ -1137,13 +1210,13 @@ app.openapi(requestAccountDeletionRoute, async (c): Promise<any> => {
         message: result.message,
       },
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
+    authLogger.logError('requestAccountDeletion', c, error as Error | string);
     loggerInstance.error('requestAccountDeletion: Error occurred', {
       error: (error as Error).message,
       stack: error instanceof Error ? error.stack : undefined,
       userId,
       providedCodeChallenge: code_challenge ? `${code_challenge.substring(0, 10)}...` : undefined,
-      duration: Date.now() - startTime,
     });
 
     const securityError = sanitizeSecurityError(error as Error);
@@ -1170,8 +1243,14 @@ app.openapi(requestAccountDeletionRoute, async (c): Promise<any> => {
  * POST /auth/profile/delete-confirm - Confirm account deletion
  */
 app.openapi(confirmAccountDeletionRoute, async (c) => {
-  const startTime = Date.now();
   const { token, code_verifier } = c.req.valid('json');
+
+  // SECURITY: JWT authentication is mandatory
+  const userId = c.get('userId');
+
+  authLogger.logStart('confirmAccountDeletion', c, {
+    businessContext: { userId },
+  });
 
   loggerInstance.debug('confirmAccountDeletion: Request received', {
     token: token ? `${token.substring(0, 10)}...` : undefined,
@@ -1179,11 +1258,9 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
     timestamp: new Date().toISOString(),
   });
 
-  // SECURITY: JWT authentication is mandatory
-  const userId = c.get('userId');
-
   // SECURITY: PKCE validation is mandatory
   if (!code_verifier) {
+    authLogger.logWarning('confirmAccountDeletion', c, 'Missing PKCE verifier');
     loggerInstance.warn('confirmAccountDeletion: Missing PKCE verifier', {
       userId,
       token: token ? `${token.substring(0, 10)}...` : undefined,
@@ -1204,10 +1281,11 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
       userId,  // ← Pass JWT userId to prevent cross-user account deletion
     );
 
+    authLogger.logSuccess('confirmAccountDeletion', c, { userId });
+
     loggerInstance.info('confirmAccountDeletion: Account deleted successfully via email confirmation', {
       deletedAt: result.deletedAt,
       message: result.message,
-      duration: Date.now() - startTime,
       timestamp: new Date().toISOString(),
     });
 
@@ -1218,13 +1296,13 @@ app.openapi(confirmAccountDeletionRoute, async (c) => {
         deletedAt: result.deletedAt,
       },
     }, 200 as const);
-  } catch (error) {
+  } catch (error: unknown) {
+    authLogger.logError('confirmAccountDeletion', c, error as Error | string);
     loggerInstance.error('confirmAccountDeletion: Error occurred', {
       error: (error as Error).message,
       stack: error instanceof Error ? error.stack : undefined,
       token: token ? `${token.substring(0, 10)}...` : undefined,
       codeVerifier: code_verifier ? `${code_verifier.substring(0, 10)}...` : undefined,
-      duration: Date.now() - startTime,
     });
 
     // Log security-related failures for monitoring

@@ -13,6 +13,9 @@ import { ChildAssignmentService } from '../../services/ChildAssignmentService';
 import { createLogger } from '../../utils/logger';
 import { getErrorInfo } from '../../middleware/errorHandler';
 import { transformFamilyForResponse } from '../../utils/transformers';
+import {
+  createControllerLogger,
+} from '../../utils/controllerLogging';
 
 // Import Hono-native schemas
 import {
@@ -48,6 +51,9 @@ export const createChildControllerRoutes = function(dependencies: {
   const loggerInstance = dependencies.logger ?? createLogger('ChildController');
   const childServiceInstance = dependencies.childService ?? new ChildService(prismaInstance);
   const childAssignmentServiceInstance = dependencies.childAssignmentService ?? new ChildAssignmentService(prismaInstance);
+
+  // Create controller logger for comprehensive request logging
+  const childLogger = createControllerLogger('ChildController');
 
   // Create app
   const app = new OpenAPIHono<{ Variables: ChildVariables }>();
@@ -544,12 +550,21 @@ const getChildGroupsRoute = createRoute({
     const user = c.get('user');
     const input = c.req.valid('json');
 
+    childLogger.logStart('createChild', c, {
+      businessContext: {
+        userId,
+        name: input.name,
+        age: input.age,
+      },
+    });
+
     loggerInstance.info('createChild', { userId, name: input.name, age: input.age, userEmail: user?.email });
 
     try {
       // Verify user family
     const userFamily = await childServiceInstance.getUserFamily(userId);
     if (!userFamily) {
+    childLogger.logWarning('createChild', c, 'User without family');
     loggerInstance.warn('createChild: user without family', { userId });
     return c.json({
     success: false,
@@ -561,6 +576,7 @@ const getChildGroupsRoute = createRoute({
       // Verify family admin permissions
     const canModifyChildren = await childServiceInstance.canUserModifyFamilyChildren(userId, userFamily.id);
     if (!canModifyChildren) {
+    childLogger.logWarning('createChild', c, 'Insufficient permissions');
     loggerInstance.warn('createChild: insufficient permissions', { userId, familyId: userFamily.id });
     return c.json({
     success: false,
@@ -581,13 +597,15 @@ const getChildGroupsRoute = createRoute({
 
     const child = await childServiceInstance.createChild(childData, userId);
 
+    childLogger.logSuccess('createChild', c, { userId, childId: child.id });
     loggerInstance.info('createChild: child created', { userId, childId: child.id });
 
     return c.json({
     success: true,
     data: child,
     }, 201);
-    } catch (error) {
+    } catch (error: unknown) {
+    childLogger.logError('createChild', c, error as Error | string);
     loggerInstance.error('createChild: error', { userId, error });
     return c.json({
     success: false,
@@ -602,20 +620,22 @@ const getChildGroupsRoute = createRoute({
    */
   app.openapi(getChildrenRoute, async (c) => {
     const userId = c.get('userId');
-    
-    loggerInstance.info('getChildren', { userId });
-    
+
+    childLogger.logStart('getChildren', c, {
+      businessContext: { userId }
+    });
+
     try {
     const children = await childServiceInstance.getChildrenByUser(userId);
-    
-    loggerInstance.info('getChildren: children retrieved', { userId, count: children.length });
-    
+
+    childLogger.logSuccess('getChildren', c, { userId, count: children.length });
+
     return c.json({
     success: true,
     data: children,
     }, 200);
-    } catch (error) {
-    loggerInstance.error('getChildren: error', { userId, error });
+    } catch (error: unknown) {
+    childLogger.logError('getChildren', c, error as Error | string);
     return c.json({
     success: false,
     error: 'Failed to retrieve children',
@@ -630,20 +650,28 @@ const getChildGroupsRoute = createRoute({
   app.openapi(getChildRoute, async (c) => {
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
-    
-    loggerInstance.info('getChild', { userId, childId });
-    
+
+    childLogger.logStart('getChild', c, {
+      businessContext: { userId, childId }
+    });
+
     try {
     const child = await childServiceInstance.getChildById(childId, userId);
-    
-    loggerInstance.info('getChild: child found', { userId, childId, childName: child.name });
-    
+
+    childLogger.logSuccess('getChild', c, {
+      userId,
+      childId,
+      childName: child.name,
+      familyId: child.familyId,
+      age: child.age,
+    });
+
     return c.json({
     success: true,
     data: child,
     }, 200);
-    } catch (error) {
-    loggerInstance.error('getChild: error', { userId, childId, error });
+    } catch (error: unknown) {
+    childLogger.logError('getChild', c, error as Error | string);
     return c.json({
     success: false,
     error: 'Child not found',
@@ -659,9 +687,17 @@ const getChildGroupsRoute = createRoute({
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
     const updateData = c.req.valid('json');
-    
+
+    childLogger.logStart('updateChild', c, {
+      businessContext: {
+        userId,
+        childId,
+        fields: Object.keys(updateData),
+      },
+    });
+
     loggerInstance.info('updateChild (PUT)', { userId, childId, updateData });
-    
+
     try {
         // Filter out undefined values
     const updateDataFiltered: { name?: string; age?: number } = {};
@@ -671,8 +707,9 @@ const getChildGroupsRoute = createRoute({
     if (updateData.age !== undefined) {
     updateDataFiltered.age = updateData.age;
     }
-    
+
     if (Object.keys(updateDataFiltered).length === 0) {
+    childLogger.logWarning('updateChild', c, 'No update data provided');
     loggerInstance.warn('updateChild: no update data provided', { userId, childId });
     return c.json({
     success: false,
@@ -680,20 +717,22 @@ const getChildGroupsRoute = createRoute({
       code: 'NO_DATA' as const,
     }, 400);
     }
-    
+
     const updatedChild = await childServiceInstance.updateChild(childId, userId, updateDataFiltered);
-    
+
+    childLogger.logSuccess('updateChild', c, { userId, childId });
     loggerInstance.info('updateChild: child updated', {
     userId,
     childId,
     newName: updatedChild.name,
     });
-    
+
     return c.json({
     success: true,
     data: updatedChild,
     }, 200);
-    } catch (error) {
+    } catch (error: unknown) {
+    childLogger.logError('updateChild', c, error as Error | string);
     loggerInstance.error('updateChild: error', { userId, childId, error });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
@@ -711,9 +750,17 @@ const getChildGroupsRoute = createRoute({
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
     const updateData = c.req.valid('json');
-    
+
+    childLogger.logStart('patchChild', c, {
+      businessContext: {
+        userId,
+        childId,
+        fields: Object.keys(updateData),
+      },
+    });
+
     loggerInstance.info('updateChild (PATCH)', { userId, childId, updateData });
-    
+
     try {
         // Filter out undefined values
     const updateDataFiltered: { name?: string; age?: number } = {};
@@ -723,8 +770,9 @@ const getChildGroupsRoute = createRoute({
     if (updateData.age !== undefined) {
     updateDataFiltered.age = updateData.age;
     }
-    
+
     if (Object.keys(updateDataFiltered).length === 0) {
+    childLogger.logWarning('patchChild', c, 'No update data provided');
     loggerInstance.warn('updateChild: no update data provided', { userId, childId });
     return c.json({
     success: false,
@@ -732,20 +780,22 @@ const getChildGroupsRoute = createRoute({
       code: 'NO_DATA' as const,
     }, 400);
     }
-    
+
     const updatedChild = await childServiceInstance.updateChild(childId, userId, updateDataFiltered);
-    
+
+    childLogger.logSuccess('patchChild', c, { userId, childId });
     loggerInstance.info('updateChild: child updated', {
     userId,
     childId,
     newName: updatedChild.name,
     });
-    
+
     return c.json({
     success: true,
     data: updatedChild,
     }, 200);
-    } catch (error) {
+    } catch (error: unknown) {
+    childLogger.logError('patchChild', c, error as Error | string);
     loggerInstance.error('updateChild: error', { userId, childId, error });
     const errorInfo = getErrorInfo(error, 'UPDATE_FAILED');
     return c.json({
@@ -763,19 +813,25 @@ const getChildGroupsRoute = createRoute({
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
 
+    childLogger.logStart('deleteChild', c, {
+      businessContext: { userId, childId },
+    });
+
     loggerInstance.info('deleteChild', { userId, childId });
 
     try {
     // Delete child - now returns complete Family
     const updatedFamily = await childServiceInstance.deleteChild(childId, userId);
 
+    childLogger.logSuccess('deleteChild', c, { userId, childId });
     loggerInstance.info('deleteChild: child deleted', { userId, childId });
 
     return c.json({
     success: true,
     data: transformFamilyForResponse(updatedFamily),
     }, 200);
-    } catch (error) {
+    } catch (error: unknown) {
+    childLogger.logError('deleteChild', c, error as Error | string);
     loggerInstance.error('deleteChild: error', { userId, childId, error });
     const { statusCode, message: errorMessage } = getErrorInfo(error, 'DELETE_FAILED');
     return c.json({
@@ -792,23 +848,29 @@ const getChildGroupsRoute = createRoute({
   app.openapi(addChildToGroupRoute, async (c) => {
     const userId = c.get('userId');
     const { childId, groupId } = c.req.valid('param');
-    
+
+    childLogger.logStart('addChildToGroup', c, {
+      businessContext: { userId, childId, groupId },
+    });
+
     loggerInstance.info('addChildToGroup', { userId, childId, groupId });
-    
+
     try {
     const membership = await childAssignmentServiceInstance.addChildToGroup(childId, groupId, userId);
-    
+
+    childLogger.logSuccess('addChildToGroup', c, { userId, childId, groupId });
     loggerInstance.info('addChildToGroup: child added to group', {
     userId,
     childId,
     groupId,
     });
-    
+
     return c.json({
     success: true,
     data: membership,
     }, 201);
     } catch (error: any) {
+    childLogger.logError('addChildToGroup', c, error as Error | string);
     loggerInstance.error('addChildToGroup: error', { userId, childId, groupId, error });
     const statusCode = error.statusCode || 500;
     const errorMessage = error.message || 'Failed to add child to group';
@@ -826,23 +888,29 @@ const getChildGroupsRoute = createRoute({
   app.openapi(removeChildFromGroupRoute, async (c): Promise<any> => {
     const userId = c.get('userId');
     const { childId, groupId } = c.req.valid('param');
-    
+
+    childLogger.logStart('removeChildFromGroup', c, {
+      businessContext: { userId, childId, groupId },
+    });
+
     loggerInstance.info('removeChildFromGroup', { userId, childId, groupId });
-    
+
     try {
     await childAssignmentServiceInstance.removeChildFromGroup(childId, groupId, userId);
-    
+
+    childLogger.logSuccess('removeChildFromGroup', c, { userId, childId, groupId });
     loggerInstance.info('removeChildFromGroup: child removed from group', {
     userId,
     childId,
     groupId,
     });
-    
+
     return c.json({
     success: true,
     data: { message: 'Child removed from group successfully' },
     }, 200);
-    } catch (error) {
+    } catch (error: unknown) {
+    childLogger.logError('removeChildFromGroup', c, error as Error | string);
     loggerInstance.error('removeChildFromGroup: error', { userId, childId, groupId, error });
     const { statusCode, message: errorMessage, code } = getErrorInfo(error, 'REMOVE_FAILED');
     return c.json({
@@ -859,24 +927,26 @@ const getChildGroupsRoute = createRoute({
   app.openapi(getChildGroupsRoute, async (c): Promise<any> => {
     const userId = c.get('userId');
     const { childId } = c.req.valid('param');
-    
-    loggerInstance.info('getChildGroups', { userId, childId });
-    
+
+    childLogger.logStart('getChildGroups', c, {
+      businessContext: { userId, childId }
+    });
+
     try {
     const memberships = await childAssignmentServiceInstance.getChildGroupMemberships(childId, userId);
-    
-    loggerInstance.info('getChildGroups: memberships retrieved', {
+
+    childLogger.logSuccess('getChildGroups', c, {
     userId,
     childId,
     count: memberships.length,
     });
-    
+
     return c.json({
     success: true,
     data: memberships,
     }, 200);
-    } catch (error) {
-    loggerInstance.error('getChildGroups: error', { userId, childId, error });
+    } catch (error: unknown) {
+    childLogger.logError('getChildGroups', c, error as Error | string);
     const { statusCode, message: errorMessage, code } = getErrorInfo(error, 'RETRIEVE_FAILED');
     return c.json({
       success: false,
