@@ -105,32 +105,173 @@ See `e2e/PLAYWRIGHT_HEADED.md` for details.
 
 ## 🐛 Debugging Production Errors with Playwright
 
-### Quick Start for Live Debugging
+### ⚠️ CRITICAL: Capture to File First, Then Analyze
 
-To capture console errors from the live production site:
+**NEVER try to analyze errors in real-time from the console.** Always capture everything to a file FIRST, then analyze AFTER the session is complete.
 
-```bash
-# Navigate to E2E directory
-cd /workspace/e2e
+### Why This Matters
 
-# Run the debug script (opens browser in headed mode)
-node debug-simple.cjs
+1. **Errors may not appear immediately** - Some errors only occur after specific user actions or state changes
+2. **Console output is limited** - You lose context when errors scroll off screen
+3. **Complete object inspection** - File capture preserves full error objects and stack traces
+4. **Reproducible analysis** - You can share the exact error data with others or analyze it multiple times
+
+### Step-by-Step Debugging Workflow
+
+#### Step 1: Create Debug Script
+
+Create `/workspace/e2e/debug-production.cjs`:
+
+```javascript
+const { chromium } = require('playwright');
+const fs = require('fs');
+
+(async () => {
+  const browser = await chromium.launch({ headless: false });
+  const context = await browser.newContext({
+    ignoreHTTPSErrors: true
+  });
+  const page = await context.newPage();
+
+  // Storage for ALL errors
+  const capture = {
+    timestamp: new Date().toISOString(),
+    consoleErrors: [],
+    pageErrors: [],
+    apiResponses: []
+  };
+
+  // Capture console errors WITH object details
+  page.on('console', async msg => {
+    if (msg.type() === 'error') {
+      const errorData = {
+        text: msg.text(),
+        location: msg.location(),
+        timestamp: new Date().toISOString(),
+        args: []
+      };
+
+      // Try to capture object arguments
+      try {
+        const args = msg.args();
+        for (const arg of args) {
+          const json = await arg.jsonValue();
+          errorData.args.push(json);
+        }
+      } catch {
+        // Ignore serialization errors
+      }
+
+      capture.consoleErrors.push(errorData);
+      console.log('❌ CAPTURED:', msg.text());
+    }
+  });
+
+  // Capture page errors
+  page.on('pageerror', error => {
+    capture.pageErrors.push({
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+  });
+
+  // Capture API responses (to see what data backend returns)
+  page.on('response', async response => {
+    if (response.url().includes('/api/')) {
+      try {
+        const body = await response.json();
+        capture.apiResponses.push({
+          url: response.url(),
+          status: response.status(),
+          body: body,
+          timestamp: new Date().toISOString()
+        });
+      } catch {
+        // Ignore non-JSON responses
+      }
+    }
+  });
+
+  // Navigate to production site
+  await page.goto('https://transport.tanjama.fr:50443/');
+
+  console.log('🔐 BROWSER OPEN - Login and trigger errors');
+  console.log('⏳ Capturing to file for 5 minutes...');
+  console.log('⏳ All errors saved to: /workspace/e2e/captured-errors.json');
+
+  // Wait for manual interaction
+  await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
+
+  // SAVE TO FILE - This is the critical step
+  fs.writeFileSync('captured-errors.json', JSON.stringify(capture, null, 2));
+
+  console.log('✅ Capture complete! Analyzing...');
+
+  await browser.close();
+})();
 ```
 
-**What this does:**
-1. Opens a visible Chromium browser
-2. Navigates to `https://transport.tanjama.fr:50443/`
-3. Captures ALL console errors and page errors for 5 minutes
-4. Generates a detailed report with error locations and timestamps
-5. Takes a final screenshot
+#### Step 2: Run Capture Session
 
-### How to Use
+```bash
+cd /workspace/e2e
+node debug-production.cjs
+```
 
-1. **Run the script**: `node debug-simple.cjs`
-2. **Login manually** using magic link (check your email)
-3. **Navigate to pages** where errors occur
-4. **Trigger the errors** (VEHICLE_DELETED, family refresh, etc.)
-5. **Wait 5 minutes** for automatic report generation
+**While script runs:**
+1. Login with magic link
+2. Navigate to pages where errors occur
+3. Trigger the errors (delete vehicle, refresh family, etc.)
+4. Wait 5 minutes for automatic completion
+
+**⚠️ DO NOT stop the script early** - Let it complete to save the file!
+
+#### Step 3: Analyze Captured Data
+
+```bash
+# View the captured data
+cat captured-errors.json
+
+# Or format it for better readability
+jq . captured-errors.json
+
+# Check specific error types
+jq '.consoleErrors[] | .text' captured-errors.json
+
+# See API responses structure
+jq '.apiResponses[] | select(.url | contains("family"))' captured-errors.json
+```
+
+#### Step 4: Identify Root Cause
+
+Look for patterns in the captured data:
+
+```bash
+# Find TypeError: X.map is not a function
+jq '.consoleErrors[] | select(.text | contains("map is not a function"))' captured-errors.json
+
+# Check what family API returns
+jq '.apiResponses[] | select(.url | contains("family")) | .body.data' captured-errors.json
+
+# Verify types of properties
+jq '.apiResponses[] | select(.url | contains("family")) | .body.data | {
+  members: (.members | type),
+  vehicles: (.vehicles | type),
+  children: (.children | type)
+}' captured-errors.json
+```
+
+### Common Error Patterns
+
+**TypeError: X.map is not a function**
+- **Cause**: Property is undefined instead of array
+- **Solution**: Add optional chaining: `family.members?.map()`
+- **Location**: Usually in React components rendering family data
+
+**TypeError: Failed to fetch**
+- **Cause**: Network error or API not responding
+- **Action**: Check backend is running and CORS is configured
 
 ### Custom Debug Script
 
