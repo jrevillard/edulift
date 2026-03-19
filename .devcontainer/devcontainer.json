@@ -69,7 +69,7 @@
     "NODE_ENV": "development",
     "PLAYWRIGHT_BROWSERS_PATH": "/ms-playwright",
     "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64",
-    "CHROME_EXECUTABLE": "/usr/bin/chromium",
+    "PLAYWRIGHT_MCP_SANDBOX": "0",
     "LANG": "en_US.UTF-8",
     "LC_ALL": "en_US.UTF-8"
   },

@@ -102,3 +102,137 @@ The devcontainer is configured with:
 - `xauth` package installed (for compatibility)
 
 See `e2e/PLAYWRIGHT_HEADED.md` for details.
+
+## 🐛 Debugging Production Errors with Playwright
+
+### Quick Start for Live Debugging
+
+To capture console errors from the live production site:
+
+```bash
+# Navigate to E2E directory
+cd /workspace/e2e
+
+# Run the debug script (opens browser in headed mode)
+node debug-simple.cjs
+```
+
+**What this does:**
+1. Opens a visible Chromium browser
+2. Navigates to `https://transport.tanjama.fr:50443/`
+3. Captures ALL console errors and page errors for 5 minutes
+4. Generates a detailed report with error locations and timestamps
+5. Takes a final screenshot
+
+### How to Use
+
+1. **Run the script**: `node debug-simple.cjs`
+2. **Login manually** using magic link (check your email)
+3. **Navigate to pages** where errors occur
+4. **Trigger the errors** (VEHICLE_DELETED, family refresh, etc.)
+5. **Wait 5 minutes** for automatic report generation
+
+### Custom Debug Script
+
+Create a custom debug script in `/workspace/e2e/`:
+
+```javascript
+const { chromium } = require('playwright');
+
+(async () => {
+  const browser = await chromium.launch({
+    headless: false,  // Set to true for invisible mode
+    args: ['--disable-web-security']
+  });
+
+  const context = await browser.newContext({
+    viewport: { width: 1920, height: 1080 },
+    ignoreHTTPSErrors: true  // For self-signed certificates
+  });
+
+  const page = await context.newPage();
+
+  // Capture console errors
+  const consoleErrors = [];
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      consoleErrors.push({
+        text: msg.text(),
+        location: msg.location(),
+        timestamp: new Date().toISOString()
+      });
+      console.log('❌ ERROR:', msg.text());
+    }
+  });
+
+  // Capture page errors
+  const pageErrors = [];
+  page.on('pageerror', error => {
+    pageErrors.push({
+      message: error.message,
+      stack: error.stack
+    });
+    console.log('💥 PAGE ERROR:', error.message);
+  });
+
+  // Navigate and wait
+  await page.goto('https://transport.tanjama.fr:50443/');
+
+  // Wait for manual interaction
+  await new Promise(resolve => setTimeout(resolve, 5 * 60 * 1000));
+
+  // Generate report
+  console.log('Total errors:', consoleErrors.length);
+
+  await browser.close();
+})();
+```
+
+### playwright-cli Tool
+
+For interactive browser control:
+
+```bash
+# Open browser session
+playwright-cli -s=debug-session open https://transport.tanjama.fr:50443/ -- --headed
+
+# Take snapshots
+playwright-cli -s=debug-session snapshot
+
+# Check console
+playwright-cli -s=debug-session console
+
+# Close session
+playwright-cli -s=debug-session close
+```
+
+### Error Capture Locations
+
+Errors are captured and reported with:
+- **Error message**: Full console error text
+- **File location**: URL and line number
+- **Timestamp**: When the error occurred
+- **Stack trace**: For unhandled errors
+
+Common error locations to check:
+- `/workspace/e2e/capture-erreurs.txt` - Live error log
+- `debug-final-screenshot.png` - Final state screenshot
+- Console output during execution
+
+### Troubleshooting
+
+**Browser not visible:**
+- Ensure X11 is enabled: Run `xhost +local:docker` on host
+- Check `DISPLAY` environment variable is set
+- Verify browser is not blocked by window manager
+
+**No errors captured:**
+- Verify you're using the browser opened by the script (not your regular browser)
+- Check browser console manually (F12) to confirm errors exist
+- Ensure script is still running (check with `ps aux | grep debug-simple`)
+
+**Script terminated early:**
+- Check for errors in script output
+- Verify Playwright is installed: `npx playwright install chromium`
+- Ensure sufficient permissions for temporary files
+
