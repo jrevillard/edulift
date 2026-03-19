@@ -253,17 +253,17 @@ export const FamilyResponseSchema = BaseFamilySchema.extend({
     role: FamilyRoleEnum,
     joinedAt: z.iso.datetime(),
     user: UserSchema.optional(),
-  })).optional()
+  }))
     .openapi({
-      description: 'Family members (included in detailed responses)',
+      description: 'Family members',
     }),
-  vehicles: z.array(VehicleSchema).optional()
+  vehicles: z.array(VehicleSchema)
     .openapi({
-      description: 'Family vehicles (included in detailed responses)',
+      description: 'Family vehicles',
     }),
-  children: z.array(ChildSchema).optional()
+  children: z.array(ChildSchema)
     .openapi({
-      description: 'Family children (included in detailed responses)',
+      description: 'Family children',
     }),
 }).openapi({
   title: 'Family Response',

@@ -427,8 +427,9 @@ class FamilyApiService {
     return response.data;
   }
 
-  async addFamilyVehicle(vehicleData: { name: string; capacity: number }): Promise<Vehicle> {
+  async addFamilyVehicle(vehicleData: { name: string; capacity: number }): Promise<Family> {
     // NOTE: This uses the general /vehicles endpoint as family-specific endpoint is not available
+    // The endpoint returns the updated Family (not just the vehicle)
     const { data: response, error } = await api.POST('/api/v1/vehicles', {
       body: vehicleData,
     });
@@ -441,8 +442,8 @@ class FamilyApiService {
       throw new Error('Failed to add vehicle to family');
     }
 
-    // API returns: { id, name, capacity, familyId, createdAt, updatedAt }
-    return response.data as Vehicle;
+    // API returns the updated Family with the new vehicle added
+    return response.data as Family;
   }
 }
 

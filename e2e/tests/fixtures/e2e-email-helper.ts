@@ -51,16 +51,18 @@ export class E2EEmailHelper {
   private mailpitUrl: string;
 
   constructor() {
+    // Tests run from devcontainer, use localhost (mailpit-e2e port is forwarded)
+    // When running from within Docker (playwright-e2e container), use mailpit-e2e
     this.mailpitUrl = process.env.MAILPIT_URL || 'http://localhost:8025';
   }
 
   /**
    * Get all emails from MailPit
-   * Uses MailPit API v1: GET /messages
+   * Uses MailPit API v1: GET /api/v1/messages
    */
   async getAllEmails(): Promise<MailpitMessage[]> {
     try {
-      const response = await fetch(`${this.mailpitUrl}/messages`);
+      const response = await fetch(`${this.mailpitUrl}/api/v1/messages`);
       if (!response.ok) {
         throw new Error(`MailPit API error: ${response.status}`);
       }
@@ -146,7 +148,9 @@ export class E2EEmailHelper {
 
     // Look for magic link URL pattern in email body
     // Token is generated using randomBytes(32).toString('hex') which produces 64 hex characters
-    const magicLinkMatch = body.match(/https?:\/\/[^\s<>"]+\/auth\/verify\?token=([a-f0-9]+)/);
+    // The regex matches: protocol://domain/auth/verify?token=HEX_TOKEN[&additional_params]
+    // Supports: http://, https://, and custom protocols (e.g., edulift://)
+    const magicLinkMatch = body.match(/[a-z]+:\/\/[^<>"'\s]+\/auth\/verify\?token=[a-f0-9]+(?:&[^<>"'\s]+)?/);
     if (magicLinkMatch) {
       if (debug) {
         console.log(`  ✅ Magic link found: ${magicLinkMatch[0].substring(0, 80)}...`);
@@ -156,17 +160,26 @@ export class E2EEmailHelper {
 
     if (debug) {
       console.log(`  ❌ No magic link found in email body`);
+      // Show parts of body that contain relevant keywords
+      const authIndex = body.toLowerCase().indexOf('auth');
+      if (authIndex >= 0) {
+        console.log(`  📄 Found 'auth' at position ${authIndex}, showing context:`);
+        console.log(`     ${body.substring(Math.max(0, authIndex - 50), Math.min(body.length, authIndex + 150))}`);
+      } else {
+        console.log(`  📄 Email body preview (first 300 chars):`);
+        console.log(`     ${body.substring(0, 300)}`);
+      }
     }
     return null;
   }
 
   /**
    * Get full message content by ID
-   * MailPit API: GET /message/{id}
+   * MailPit API: GET /api/v1/message/{id}
    */
   async getMessageById(messageId: string): Promise<MailpitFullMessage | null> {
     try {
-      const response = await fetch(`${this.mailpitUrl}/message/${messageId}`);
+      const response = await fetch(`${this.mailpitUrl}/api/v1/message/${messageId}`);
       if (!response.ok) {
         throw new Error(`MailPit API error: ${response.status}`);
       }

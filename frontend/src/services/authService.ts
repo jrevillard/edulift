@@ -128,7 +128,7 @@ class AuthService {
     }
   }
 
-  async requestMagicLink(email: string, context?: { name?: string; inviteCode?: string; [key: string]: unknown }): Promise<{ success: boolean; userExists?: boolean; message?: string }> {
+  async requestMagicLink(email: string, context?: { name?: string; inviteCode?: string;[key: string]: unknown }): Promise<{ success: boolean; userExists?: boolean; message?: string }> {
     try {
       // Import PKCE utilities
       const { generateAndStorePKCEPair, isPKCESupported, PKCEError } = await import('../utils/pkceUtils');
@@ -162,6 +162,7 @@ class AuthService {
         ...context
       };
 
+      // Make the API call using OpenAPI client
       const { data, error } = await api.POST('/api/v1/auth/magic-link', {
         body: requestBody,
       });
@@ -169,12 +170,26 @@ class AuthService {
       // Mark API as connected
       useConnectionStore.getState().setApiStatus('connected');
 
+      // Handle error responses from openapi-fetch
       if (error) {
-        throw error;
+        // Handle different error structures:
+        // 1. Direct error: { success: false, error: "message", code: "VALIDATION_ERROR" }
+        // 2. Nested response error: { response: { status: 422, data: { error: "message" } } }
+        let errorMessage = 'Failed to send magic link. Please try again.';
+
+        const errorData = error as { success?: boolean; error?: string; code?: string; response?: { data?: { error?: string } } };
+
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.response?.data?.error) {
+          errorMessage = errorData.response.data.error;
+        }
+
+        throw new Error(errorMessage);
       }
 
+      // Handle backend returning success: false
       if (!data?.success) {
-        // Type assertion to access optional error property from backend
         const responseData = data as { success: boolean; data?: { message: string; userExists: boolean }; error?: string } | undefined;
         throw new Error(responseData?.error || 'Failed to send magic link');
       }
@@ -253,6 +268,7 @@ class AuthService {
         ...(inviteCode && { inviteCode }) // Add inviteCode to body only if provided
       };
 
+      // Use OpenAPI client for verification
       const { data, error } = await api.POST('/api/v1/auth/verify', {
         body: requestBody,
       });
@@ -261,11 +277,21 @@ class AuthService {
       useConnectionStore.getState().setApiStatus('connected');
 
       if (error) {
-        throw error;
+        // Handle different error structures (same as magic-link endpoint)
+        let errorMessage = 'Failed to verify magic link. Please try again.';
+
+        const errorData = error as { success?: boolean; error?: string; code?: string; response?: { data?: { error?: string } } };
+
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.response?.data?.error) {
+          errorMessage = errorData.response.data.error;
+        }
+
+        throw new Error(errorMessage);
       }
 
       if (!data?.success || !data?.data) {
-        // Type assertion to access optional error property from backend
         const responseData = data as { success: boolean; data?: unknown; error?: string } | undefined;
         throw new Error(responseData?.error || 'Failed to verify magic link');
       }

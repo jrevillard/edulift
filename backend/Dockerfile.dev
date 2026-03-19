@@ -28,8 +28,8 @@ COPY backend/scripts ./scripts/
 # Copy shared types from monorepo root
 COPY shared-types/ ../shared-types/
 
-# Copy assets (logo for emails)
-COPY assets ./assets/
+# Copy assets (logo for emails) - COMMENTED OUT: assets folder does not exist in devcontainer
+# COPY assets ./assets/
 
 # Create necessary directories
 RUN mkdir -p uploads docs/openapi && chown -R node:node /app
@@ -41,12 +41,14 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3001/health || exit 1
 
-COPY entrypoint-dev.sh /app/entrypoint-dev.sh
-RUN chmod +x /app/entrypoint-dev.sh
+# COMMENTED OUT: entrypoint-dev.sh does not exist in devcontainer
+# COPY entrypoint-dev.sh /app/entrypoint-dev.sh
+# RUN chmod +x /app/entrypoint-dev.sh
 
 # Switch to non-root user
 USER node
 
-# Start development server (no build step, uses ts-node)
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["/app/entrypoint-dev.sh"]
+# Start development server directly (no build step, uses ts-node)
+# COMMENTED OUT: dumb-init not available
+# ENTRYPOINT ["dumb-init", "--"]
+CMD ["npm", "run", "dev"]

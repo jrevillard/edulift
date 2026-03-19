@@ -106,10 +106,15 @@ app.use('*', async (c, next) => {
   }
 
   // Apply CORS to all other routes
-  return cors({
-    origin: env === 'production'
+  // Use CORS_ORIGIN environment variable if provided, otherwise use defaults
+  const corsOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : env === 'production'
       ? ['https://app.familytracker.com', 'https://familytracker.com']
-      : ['http://localhost:3000', 'http://localhost:5173'],
+      : ['http://localhost:3000', 'http://localhost:5173'];
+
+  return cors({
+    origin: corsOrigins,
     credentials: true,
   })(c, next);
 });

@@ -1,7 +1,7 @@
 import { Page, expect } from '@playwright/test';
 import { FileSpecificTestData } from './file-specific-test-data';
 import type { TestUser, TestFamily } from './file-specific-test-data';
-import { createHmac } from 'crypto';
+import { createHmac, createHash } from 'crypto';
 import { createTimingHelper, EnhancedTimingHelper } from './enhanced-timing-helper';
 import { execSync } from 'child_process';
 import { E2EEmailHelper } from './e2e-email-helper';
@@ -1068,15 +1068,109 @@ All tests MUST use automatic prefix detection for consistency.
   }
 
   /**
+   * Generate PKCE code verifier and challenge for magic link authentication
+   *
+   * PKCE (Proof Key for Code Exchange) is a security extension for OAuth.
+   * - code_verifier: Random string (43-128 chars)
+   * - code_challenge: BASE64URL(SHA256(code_verifier))
+   *
+   * @returns Object with code_verifier and code_challenge
+   */
+  private generatePKCE(): { code_verifier: string; code_challenge: string } {
+    // Generate random code_verifier (43-128 characters)
+    // Using the allowed character set: [A-Z][a-z][0-9]-._~
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const verifierLength = 43; // Minimum length for PKCE
+    let code_verifier = '';
+    for (let i = 0; i < verifierLength; i++) {
+      code_verifier += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Generate code_challenge = BASE64URL(SHA256(code_verifier))
+    // Using Node.js crypto module
+    const hash = createHash('sha256').update(code_verifier).digest('base64');
+
+    // Convert to base64url (remove padding and replace characters)
+    const code_challenge = hash.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+
+    console.log('🔐 Generated PKCE parameters:');
+    console.log(`  code_verifier: ${code_verifier.substring(0, 10)}... (${code_verifier.length} chars)`);
+    console.log(`  code_challenge: ${code_challenge.substring(0, 10)}... (${code_challenge.length} chars)`);
+
+    return { code_verifier, code_challenge };
+  }
+
+  /**
+   * Request magic link directly via API with PKCE parameters
+   *
+   * This bypasses the frontend UI and calls the backend API directly,
+   * including the required PKCE parameters.
+   *
+   * @param email - User email address
+   * @param code_challenge - PKCE code challenge
+   * @param name - Optional user name (for new user registration)
+   * @returns Promise<{success: boolean, userExists: boolean}>
+   */
+  private async requestMagicLinkWithPKCE(email: string, code_challenge: string, name?: string): Promise<{success: boolean; userExists: boolean}> {
+    const backendUrl = process.env.E2E_BASE_URL?.replace('8001', '8002') || 'http://localhost:8002';
+    const apiUrl = `${backendUrl}/api/v1/auth/magic-link`;
+
+    console.log(`📤 Requesting magic link from API: ${apiUrl}`);
+    console.log(`  Email: ${email}`);
+    console.log(`  code_challenge: ${code_challenge.substring(0, 10)}...`);
+    if (name) {
+      console.log(`  Name: ${name} (new user registration)`);
+    }
+
+    const requestBody: any = {
+      email,
+      code_challenge,
+    };
+
+    // Include name for new user registration
+    if (name) {
+      requestBody.name = name;
+    }
+
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Failed to request magic link: ${response.status} ${response.statusText}\n` +
+        `Response: ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log('✅ Magic link request successful!');
+    console.log(`  Response: ${JSON.stringify(data)}`);
+
+    return {
+      success: data.success,
+      userExists: data.data?.userExists ?? true
+    };
+  }
+
+  /**
    * Real authentication flow through the UI - tests complete backend connectivity
    *
    * This method performs actual user authentication by:
    * 1. Navigating to login page
    * 2. Filling out the login form with user email
-   * 3. Submitting the form to backend
-   * 4. Retrieving magic link from MailPit
-   * 5. Clicking the magic link to authenticate
-   * 6. Verifying authentication success
+   * 3. Submitting the form to backend (triggers PKCE automatically)
+   * 4. If new user: filling name field and submitting again
+   * 5. Retrieving magic link from MailPit
+   * 6. Navigating to magic link to authenticate
+   * 7. Verifying authentication success
+   *
+   * Pattern from Flutter E2E helpers - handles both new and existing users
    *
    * @param userKey - Key of a predefined user (must exist in FileSpecificTestData)
    * @param targetPath - Path to navigate to after authentication (default: '/dashboard')
@@ -1099,18 +1193,6 @@ All tests MUST use automatic prefix detection for consistency.
     const user = this.testData.getUser(userKey);
     console.log(`🔐 Starting real authentication flow for user: ${user.email}`);
 
-    // Verify user exists in database (helps catch setup issues early)
-    try {
-      await this.verifyUserExists(user.id);
-      console.log(`✅ User ${user.email} (ID: ${user.id}) verified in database`);
-    } catch (error) {
-      throw new Error(
-        `User ${user.email} (ID: ${user.id}) not found in database. ` +
-        `Did you forget to call createUsersInDatabase() in beforeAll()? ` +
-        `Error: ${error.message}`
-      );
-    }
-
     // Navigate to login page
     console.log('📍 Navigating to login page...');
     await this.page.goto('/login');
@@ -1118,17 +1200,93 @@ All tests MUST use automatic prefix detection for consistency.
 
     // Wait for login form to be visible
     await expect(this.page.locator('[data-testid="LoginPage-Heading-welcome"]')).toBeVisible({ timeout: UniversalAuthHelper.TIMEOUTS.PAGE_LOAD });
-    await expect(this.page.locator('[data-testid="LoginPage-Input-email-existing"]')).toBeVisible();
+    await expect(this.page.locator('[data-testid="LoginPage-Input-email"]')).toBeVisible();
 
-    // Fill in email for existing user
+    // Fill in email
     console.log(`📝 Entering email: ${user.email}`);
-    const emailInput = this.page.locator('[data-testid="LoginPage-Input-email-existing"]');
+    const emailInput = this.page.locator('[data-testid="LoginPage-Input-email"]');
     await emailInput.fill(user.email);
 
-    // Submit the form to request magic link
-    console.log('📤 Submitting login request to backend...');
-    const submitButton = this.page.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
-    await submitButton.click();
+    // Track network requests to see what frontend is sending
+    const apiRequests: { url: string; method: string; body?: any; status?: number }[] = [];
+    const consoleErrors: string[] = [];
+    const consoleWarnings: string[] = [];
+
+    // Capture console errors and warnings
+    this.page.on('console', msg => {
+      if (msg.type() === 'error') {
+        const text = msg.text();
+        consoleErrors.push(text);
+        console.log(`❌ Console Error: ${text}`);
+      } else if (msg.type() === 'warning') {
+        const text = msg.text();
+        consoleWarnings.push(text);
+        console.log(`⚠️ Console Warning: ${text}`);
+      }
+    });
+
+    this.page.on('request', request => {
+      const url = request.url();
+      if (url.includes('/api/')) {
+        const postData = request.postData();
+        apiRequests.push({
+          url: url,
+          method: request.method(),
+          body: postData ? (() => { try { return JSON.parse(postData); } catch { return postData; }})() : undefined
+        });
+        console.log(`📤 API Request: ${request.method()} ${url}`);
+      }
+    });
+    this.page.on('response', async response => {
+      const url = response.url();
+      console.log(`📥 Response [${response.status()}] ${url}`); // Log ALL responses
+      if (url.includes('/api/')) {
+        const status = response.status();
+        console.log(`📥 API Response [${status}] ${url}`);
+        // Find matching request and update status
+        const req = apiRequests.find(r => r.url === url);
+        if (req) {
+          req.status = status;
+        }
+        // Try to get response body
+        try {
+          const body = await response.text();
+          console.log(`   Body:`, body.substring(0, 300));
+        } catch (e) {
+          console.log(`   Body: (unable to read: ${e})`);
+        }
+      }
+    });
+
+    // First click - submit email without name
+    console.log('📤 First submit: sending email without name (expecting 422 error for new users)...');
+    const firstSubmitButton = this.page.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
+    await firstSubmitButton.click();
+
+    // Check if 422 error appears (indicates new user) - wait for name field to become visible
+    console.log('⏳ Checking if this is a new user (waiting for name field or success message)...');
+
+    // Wait a bit for the API call to complete
+    await this.page.waitForTimeout(2000);
+
+    // Log what API calls were made
+    console.log('🔍 API Requests made:', JSON.stringify(apiRequests, null, 2));
+
+    const nameField = this.page.locator('[data-testid="LoginPage-Input-name"]');
+    const isNameFieldVisible = await nameField.isVisible().catch(() => false);
+
+    if (isNameFieldVisible) {
+      console.log('✅ New user detected: Name field appeared (422 error received)');
+      console.log(`📝 Entering name: ${user.name}`);
+      await nameField.fill(user.name);
+
+      // Second click - submit with name for new user registration
+      console.log('📤 Second submit: sending email with name for new user registration...');
+      const createAccountButton = this.page.locator('[data-testid="LoginPage-Button-createAccount"]');
+      await createAccountButton.click();
+    } else {
+      console.log('✅ Existing user detected: No name field required');
+    }
 
     // Wait for success message or email sent confirmation
     console.log('⏳ Waiting for email to be sent...');
@@ -1142,7 +1300,7 @@ All tests MUST use automatic prefix detection for consistency.
       console.log('✅ Redirected to magic link sent page');
     }
 
-    // Now retrieve the magic link from MailPit
+    // Retrieve the magic link from MailPit
     console.log('📧 Retrieving magic link from MailPit...');
 
     // Wait for email to arrive (with timeout)
@@ -1152,7 +1310,7 @@ All tests MUST use automatic prefix detection for consistency.
       throw new Error(
         `❌ No magic link email received for ${user.email} within timeout. ` +
         `Possible issues:\n` +
-        `  - Backend not sending emails (check MailPit: http://localhost:8025)\n` +
+        `  - Backend not sending emails (check MailPit: http://mailpit-e2e:8025 from container, or http://localhost:8025 from host)\n` +
         `  - Email service not configured\n` +
         `  - User ${user.email} not properly created in database\n` +
         `  - Network connectivity issues between frontend and backend`

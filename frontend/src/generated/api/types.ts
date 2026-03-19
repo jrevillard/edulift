@@ -2120,8 +2120,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -2161,8 +2161,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -2198,8 +2198,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -2771,8 +2771,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -2812,8 +2812,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -2849,8 +2849,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -3027,8 +3027,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -3068,8 +3068,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -3105,8 +3105,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -4312,8 +4312,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -4353,8 +4353,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -4390,8 +4390,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -5582,8 +5582,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -5623,8 +5623,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -5660,8 +5660,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -5927,8 +5927,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -5968,8 +5968,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -6005,8 +6005,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -6302,8 +6302,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -6343,8 +6343,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -6380,8 +6380,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -8180,8 +8180,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -8221,8 +8221,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -8258,8 +8258,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)
@@ -8522,8 +8522,8 @@ export interface paths {
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /** @description Family members (included in detailed responses) */
-                                members?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
                                     id: string;
                                     /** Format: cuid */
@@ -8563,8 +8563,8 @@ export interface paths {
                                         timezone?: string;
                                     };
                                 }[];
-                                /** @description Family vehicles (included in detailed responses) */
-                                vehicles?: {
+                                /** @description Family vehicles */
+                                vehicles: {
                                     /**
                                      * Format: cuid
                                      * @description Vehicle unique identifier
@@ -8600,8 +8600,8 @@ export interface paths {
                                      */
                                     updatedAt: string;
                                 }[];
-                                /** @description Family children (included in detailed responses) */
-                                children?: {
+                                /** @description Family children */
+                                children: {
                                     /**
                                      * Format: cuid
                                      * @description Unique child identifier (CUID format)

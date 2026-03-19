@@ -4,14 +4,25 @@ import * as fs from 'fs';
 
 async function globalSetup(config: FullConfig) {
   console.log('🚀 Starting E2E environment setup...');
-  
+
+  // Check if running inside a container (no Docker available)
+  const isRunningInContainer = process.env.E2E_RUNNER === 'container' ||
+                                process.cwd() === '/e2e' ||
+                                fs.existsSync('/.dockerenv');
+
+  if (isRunningInContainer) {
+    console.log('📦 Running inside container - assuming containers are already managed');
+    console.log('✅ E2E environment ready!');
+    return;
+  }
+
   try {
     // Clean up any existing containers first
     console.log('🧹 Cleaning up existing containers...');
     try {
-      execSync('docker compose -f docker-compose.yml down -v', { 
+      execSync('docker compose -f docker-compose.yml down -v', {
         stdio: 'inherit',
-        timeout: 60000 
+        timeout: 60000
       });
     } catch (cleanupError) {
       console.log('No existing containers to clean up (this is normal)');
