@@ -556,7 +556,7 @@ const ManageFamilyPage: React.FC = () => {
           <CardContent>
             {currentFamily.children && currentFamily.children.length > 0 ? (
               <div className="space-y-2">
-                {currentFamily.children.map((child) => (
+                {currentFamily.children?.map((child) => (
                   <div key={child.id} className="flex items-center justify-between p-2 rounded border" data-testid={`ManageFamilyPage-Container-child-${child.id}`}>
                     <span className="font-medium" data-testid={`ManageFamilyPage-Text-childName-${child.id}`}>{child.name}</span>
                     {child.age !== undefined && (
@@ -596,7 +596,7 @@ const ManageFamilyPage: React.FC = () => {
           <CardContent>
             {currentFamily.vehicles && currentFamily.vehicles.length > 0 ? (
               <div className="space-y-2">
-                {currentFamily.vehicles.map((vehicle) => (
+                {currentFamily.vehicles?.map((vehicle) => (
                   <div key={vehicle.id} className="flex items-center justify-between p-2 rounded border" data-testid={`ManageFamilyPage-Container-vehicle-${vehicle.id}`}>
                     <span className="font-medium" data-testid={`ManageFamilyPage-Text-vehicleName-${vehicle.id}`}>{vehicle.name}</span>
                     <span className="text-sm text-muted-foreground" data-testid={`ManageFamilyPage-Text-vehicleCapacity-${vehicle.id}`}>{vehicle.capacity} seats</span>

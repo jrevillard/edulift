@@ -562,7 +562,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
                 <p className="text-sm text-gray-600 mb-2">All family members will join the group:</p>
                 {currentFamily.members && (
                   <div className="space-y-1" data-testid="GroupInvitationPage-List-familyMembers">
-                    {currentFamily.members.map((member: FamilyMember, index: number) => (
+                    {currentFamily.members?.map((member: FamilyMember, index: number) => (
                       <div
                         key={member.id || index}
                         className="text-sm text-gray-700"
