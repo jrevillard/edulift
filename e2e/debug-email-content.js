@@ -278,7 +278,7 @@ class EmailContentDebugger {
   async testHelperMethods() {
     console.log('🔧 Testing helper methods with mock data:\n');
     
-    // Create a mock MailHog message
+    // Create a mock MailPit message
     const mockMessage = {
       ID: 'test-123',
       From: { Mailbox: 'noreply', Domain: 'edulift.com', Params: '' },

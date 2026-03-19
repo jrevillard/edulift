@@ -54,7 +54,7 @@ test.describe('Family Member Management E2E', () => {
   });
 
   /**
-   * Helper to ensure invitation email reaches MailHog with proper timing
+   * Helper to ensure invitation email reaches MailPit with proper timing
    */
   async function waitForInvitationEmail(page: any, recipientEmail: string, testAuthHelper: any): Promise<any> {
     console.log(`🔍 Waiting for email for: ${recipientEmail}`);
@@ -92,23 +92,9 @@ test.describe('Family Member Management E2E', () => {
     // Try to get the email after centralized wait
     let email = await emailHelper.waitForEmailForRecipient(recipientEmail);
     if (email) {
-      console.log('✅ Email found after extended wait');
       return email;
     }
-    
-    // If still no email, provide detailed debugging
-    const allEmails = await emailHelper.getAllEmails();
-    const emailAddresses = allEmails.map(e => e.To.map(t => `${t.Mailbox}@${t.Domain}`)).flat();
-    console.log(`❌ Email not found after all attempts. Looking for: "${recipientEmail}"`);
-    console.log(`Available addresses: ${JSON.stringify(emailAddresses)}`);
-    console.log(`Total emails in MailHog: ${allEmails.length}`);
-    
-    // Check for partial matches
-    const partialMatches = emailAddresses.filter(addr => addr.includes(recipientEmail.split('@')[0]));
-    if (partialMatches.length > 0) {
-      console.log(`Partial matches found: ${JSON.stringify(partialMatches)}`);
-    }
-    
+
     throw new Error(`Email not received for ${recipientEmail} after UI confirmation and progressive wait strategy. This indicates a real email sending issue.`);
   }
 

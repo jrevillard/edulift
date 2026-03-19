@@ -1074,7 +1074,7 @@ All tests MUST use automatic prefix detection for consistency.
    * 1. Navigating to login page
    * 2. Filling out the login form with user email
    * 3. Submitting the form to backend
-   * 4. Retrieving magic link from MailHog
+   * 4. Retrieving magic link from MailPit
    * 5. Clicking the magic link to authenticate
    * 6. Verifying authentication success
    *
@@ -1142,8 +1142,8 @@ All tests MUST use automatic prefix detection for consistency.
       console.log('✅ Redirected to magic link sent page');
     }
 
-    // Now retrieve the magic link from MailHog
-    console.log('📧 Retrieving magic link from MailHog...');
+    // Now retrieve the magic link from MailPit
+    console.log('📧 Retrieving magic link from MailPit...');
 
     // Wait for email to arrive (with timeout)
     const magicLink = await emailHelper.extractMagicLinkForRecipient(user.email);
@@ -1152,7 +1152,7 @@ All tests MUST use automatic prefix detection for consistency.
       throw new Error(
         `❌ No magic link email received for ${user.email} within timeout. ` +
         `Possible issues:\n` +
-        `  - Backend not sending emails (check MailHog: http://localhost:8025)\n` +
+        `  - Backend not sending emails (check MailPit: http://localhost:8025)\n` +
         `  - Email service not configured\n` +
         `  - User ${user.email} not properly created in database\n` +
         `  - Network connectivity issues between frontend and backend`

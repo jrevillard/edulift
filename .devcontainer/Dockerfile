@@ -40,7 +40,7 @@ RUN apt update && apt install -y less \
   locales \
   wmctrl \
   xdotool \
-  # X11 libraries (for Android emulator)
+  # X11 libraries (for Android emulator and Playwright headed mode)
   libx11-6 libx11-xcb1 libxcb1 libxau6 libxdmcp6 libxcb-cursor0 mesa-vulkan-drivers qtbase5-dev libqt5x11extras5 cpu-checker\
   && apt clean \
   && rm -rf /var/lib/apt/lists/*
@@ -102,7 +102,7 @@ RUN curl -fsSL https://claude.ai/install.sh | bash \
   echo "alias claude-glm=\"source /home/node/.claude/glm-env && claude\"" >> /home/node/.zshrc ; \
   fi
 
-# Copy and set up firewall script
+# Copy and set up scripts
 COPY setup-edulift-node.sh setup-edulift-sudo.sh /usr/local/bin/
 USER root
 RUN chmod +x /usr/local/bin/*.sh && \

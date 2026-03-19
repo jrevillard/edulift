@@ -1,244 +1,412 @@
 /**
- * E2E Email Helper for interacting with MailHog
- * MailHog captures emails sent during E2E tests and provides an API to retrieve them
+ * E2E Email Helper for interacting with MailPit
+ * MailPit captures emails sent during E2E tests and provides an API to retrieve them
+ *
+ * Based on the working Dart implementation from the mobile team
  */
 
 // Global fetch declaration for Node.js environment
 declare const fetch: any;
 
-export interface MailHogMessage {
+export interface MailpitMessage {
   ID: string;
-  From: {
-    Relaying?: string;
-    Mailbox: string;
-    Domain: string;
-    Params: string;
-  };
+  MessageID: string;
   To: Array<{
-    Relaying?: string;
-    Mailbox: string;
-    Domain: string;
-    Params: string;
+    Address: string;
+    Name?: string;
   }>;
-  Content: {
-    Headers: Record<string, string[]>;
-    Body: string;
-    Size: number;
-    MIME: null;
+  Cc: Array<{
+    Address: string;
+    Name?: string;
+  }>;
+  Bcc: Array<{
+    Address: string;
+    Name?: string;
+  }>;
+  From: {
+    Address: string;
+    Name?: string;
   };
+  Subject: string;
   Created: string;
-  MIME: null;
-  Raw: {
-    From: string;
-    To: string[];
-    Data: string;
-    Helo: string;
-  };
+  Snippet: string;
+  Read: boolean;
+  Tags: string[];
+  Attachments: number;
 }
 
-export interface MailHogResponse {
+export interface MailpitFullMessage extends MailpitMessage {
+  HTML: string;
+  Text: string;
+}
+
+export interface MailpitResponse {
+  messages: MailpitMessage[];
   total: number;
   count: number;
   start: number;
-  items: MailHogMessage[];
 }
 
 export class E2EEmailHelper {
-  private mailhogUrl: string;
+  private mailpitUrl: string;
 
   constructor() {
-    this.mailhogUrl = process.env.MAILHOG_URL || 'http://localhost:8025';
+    this.mailpitUrl = process.env.MAILPIT_URL || 'http://localhost:8025';
   }
 
   /**
-   * Get all emails from MailHog
+   * Get all emails from MailPit
+   * Uses MailPit API v1: GET /messages
    */
-  async getAllEmails(): Promise<MailHogMessage[]> {
+  async getAllEmails(): Promise<MailpitMessage[]> {
     try {
-      const response = await fetch(`${this.mailhogUrl}/api/v2/messages`);
+      const response = await fetch(`${this.mailpitUrl}/messages`);
       if (!response.ok) {
-        throw new Error(`MailHog API error: ${response.status}`);
+        throw new Error(`MailPit API error: ${response.status}`);
       }
-      const data: MailHogResponse = await response.json();
-      return data.items || [];
+      const data: MailpitResponse = await response.json();
+      return data.messages || [];
     } catch (error) {
-      console.error('Failed to get emails from MailHog:', error);
+      console.error('Failed to get emails from MailPit:', error);
       return [];
     }
   }
 
   /**
    * Get emails for a specific recipient
+   * MailPit format: To is array of {Address: string, Name?: string}
    */
-  async getEmailsForRecipient(email: string): Promise<MailHogMessage[]> {
+  async getEmailsForRecipient(email: string): Promise<MailpitMessage[]> {
     const allEmails = await this.getAllEmails();
-    return allEmails.filter(msg => 
-      msg.To.some(to => `${to.Mailbox}@${to.Domain}`.toLowerCase() === email.toLowerCase())
+    return allEmails.filter(msg =>
+      msg.To.some(to => to.Address.toLowerCase() === email.toLowerCase())
     );
   }
 
   /**
    * Get latest email for a specific recipient
    */
-  async getLatestEmailForRecipient(email: string): Promise<MailHogMessage | null> {
+  async getLatestEmailForRecipient(email: string, options: { debug?: boolean } = {}): Promise<MailpitMessage | null> {
+    const debug = options.debug !== false;
     const emails = await this.getEmailsForRecipient(email);
-    if (emails.length === 0) return null;
-    
+
+    if (emails.length === 0) {
+      if (debug) {
+        console.log(`  ℹ️ No emails found for ${email}`);
+      }
+      return null;
+    }
+
     // Sort by creation date (most recent first)
     emails.sort((a, b) => new Date(b.Created).getTime() - new Date(a.Created).getTime());
-    return emails[0];
+    const latest = emails[0];
+
+    if (debug) {
+      console.log(`  📧 Latest email for ${email}: ${latest.Subject} (${latest.Created})`);
+    }
+
+    return latest;
   }
 
   /**
    * Extract magic link from the latest email for a recipient
+   * MailPit requires fetching the full message content separately
    */
-  async extractMagicLinkForRecipient(email: string): Promise<string | null> {
-    const latestEmail = await this.getLatestEmailForRecipient(email);
-    if (!latestEmail) return null;
+  async extractMagicLinkForRecipient(email: string, options: { debug?: boolean } = {}): Promise<string | null> {
+    const debug = options.debug !== false;
 
-    let body = latestEmail.Content.Body;
-    
-    // Decode Quoted-Printable encoding that MailHog might apply
-    body = this.decodeQuotedPrintable(body);
-    
+    if (debug) {
+      console.log(`🔍 Looking for magic link in email for ${email}...`);
+    }
+
+    const latestEmail = await this.getLatestEmailForRecipient(email, { debug });
+    if (!latestEmail) {
+      if (debug) {
+        console.log(`  ❌ No email found for ${email}`);
+      }
+      return null;
+    }
+
+    // Fetch full message content from MailPit
+    const fullMessage = await this.getMessageById(latestEmail.ID);
+    if (!fullMessage) {
+      if (debug) {
+        console.log(`  ❌ Could not fetch full message ${latestEmail.ID}`);
+      }
+      return null;
+    }
+
+    // Try HTML content first, then fallback to text
+    const body = fullMessage.HTML.length > 0 ? fullMessage.HTML : fullMessage.Text;
+    const bodyType = fullMessage.HTML.length > 0 ? 'HTML' : 'Text';
+
+    if (debug) {
+      console.log(`  📄 Using ${bodyType} body (${body.length} chars)`);
+    }
+
     // Look for magic link URL pattern in email body
     // Token is generated using randomBytes(32).toString('hex') which produces 64 hex characters
     const magicLinkMatch = body.match(/https?:\/\/[^\s<>"]+\/auth\/verify\?token=([a-f0-9]+)/);
     if (magicLinkMatch) {
+      if (debug) {
+        console.log(`  ✅ Magic link found: ${magicLinkMatch[0].substring(0, 80)}...`);
+      }
       return magicLinkMatch[0];
     }
-    
+
+    if (debug) {
+      console.log(`  ❌ No magic link found in email body`);
+    }
     return null;
   }
 
   /**
-   * Decode Quoted-Printable encoding commonly used in emails
+   * Get full message content by ID
+   * MailPit API: GET /message/{id}
    */
-  private decodeQuotedPrintable(input: string): string {
-    return input
-      // Replace soft line breaks (= at end of line) first
-      .replace(/=\r?\n/g, '')
-      .replace(/=$/gm, '')
-      // Replace all hex encodings (including =3D for =)
-      .replace(/=([0-9A-F]{2})/g, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
+  async getMessageById(messageId: string): Promise<MailpitFullMessage | null> {
+    try {
+      const response = await fetch(`${this.mailpitUrl}/message/${messageId}`);
+      if (!response.ok) {
+        throw new Error(`MailPit API error: ${response.status}`);
+      }
+      const data: MailpitFullMessage = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Failed to get message ${messageId} from MailPit:`, error);
+      return null;
+    }
   }
 
   /**
    * Extract invitation URL from the latest email for a recipient
    */
-  async extractInvitationUrlForRecipient(email: string): Promise<string | null> {
-    const latestEmail = await this.getLatestEmailForRecipient(email);
-    if (!latestEmail) return null;
+  async extractInvitationUrlForRecipient(email: string, options: { debug?: boolean } = {}): Promise<string | null> {
+    const debug = options.debug !== false;
 
-    let body = latestEmail.Content.Body;
-    
-    // Decode quoted-printable encoding if present
-    if (body.includes('=3D') || body.includes('=20')) {
-      body = this.decodeQuotedPrintable(body);
+    if (debug) {
+      console.log(`🔍 Looking for invitation URL in email for ${email}...`);
     }
-    
+
+    const latestEmail = await this.getLatestEmailForRecipient(email, { debug });
+    if (!latestEmail) {
+      if (debug) {
+        console.log(`  ❌ No email found for ${email}`);
+      }
+      return null;
+    }
+
+    // Fetch full message content from MailPit
+    const fullMessage = await this.getMessageById(latestEmail.ID);
+    if (!fullMessage) {
+      if (debug) {
+        console.log(`  ❌ Could not fetch full message ${latestEmail.ID}`);
+      }
+      return null;
+    }
+
+    // Try HTML content first, then fallback to text
+    const body = fullMessage.HTML.length > 0 ? fullMessage.HTML : fullMessage.Text;
+    const bodyType = fullMessage.HTML.length > 0 ? 'HTML' : 'Text';
+
+    if (debug) {
+      console.log(`  📄 Using ${bodyType} body (${body.length} chars)`);
+    }
+
     // Look for family or group invitation URL patterns
     // Note: Codes can be lowercase, uppercase, numbers, and special characters
     const familyInviteMatch = body.match(/https?:\/\/[^\s<>"]+\/families\/join\?code=([a-zA-Z0-9_-]+)/);
     if (familyInviteMatch) {
+      if (debug) {
+        console.log(`  ✅ Family invitation URL found: ${familyInviteMatch[0].substring(0, 80)}...`);
+      }
       return familyInviteMatch[0];
     }
-    
+
     const groupInviteMatch = body.match(/https?:\/\/[^\s<>"]+\/groups\/join\?code=([a-zA-Z0-9_-]+)/);
     if (groupInviteMatch) {
+      if (debug) {
+        console.log(`  ✅ Group invitation URL found: ${groupInviteMatch[0].substring(0, 80)}...`);
+      }
       return groupInviteMatch[0];
     }
-    
+
+    if (debug) {
+      console.log(`  ❌ No invitation URL found in email body`);
+    }
     return null;
   }
 
   /**
    * Extract magic link token from the latest email for a recipient
    */
-  async extractMagicLinkTokenForRecipient(email: string): Promise<string | null> {
-    const latestEmail = await this.getLatestEmailForRecipient(email);
-    if (!latestEmail) return null;
+  async extractMagicLinkTokenForRecipient(email: string, options: { debug?: boolean } = {}): Promise<string | null> {
+    const debug = options.debug !== false;
 
-    let body = latestEmail.Content.Body;
-    
-    // Decode quoted-printable encoding if present (same logic as extractInvitationUrlForRecipient)
-    if (body.includes('=3D') || body.includes('=20')) {
-      body = this.decodeQuotedPrintable(body);
+    if (debug) {
+      console.log(`🔍 Looking for magic link token in email for ${email}...`);
     }
-    
+
+    const latestEmail = await this.getLatestEmailForRecipient(email, { debug });
+    if (!latestEmail) {
+      if (debug) {
+        console.log(`  ❌ No email found for ${email}`);
+      }
+      return null;
+    }
+
+    // Fetch full message content from MailPit
+    const fullMessage = await this.getMessageById(latestEmail.ID);
+    if (!fullMessage) {
+      if (debug) {
+        console.log(`  ❌ Could not fetch full message ${latestEmail.ID}`);
+      }
+      return null;
+    }
+
+    // Try HTML content first, then fallback to text
+    const body = fullMessage.HTML.length > 0 ? fullMessage.HTML : fullMessage.Text;
+    const bodyType = fullMessage.HTML.length > 0 ? 'HTML' : 'Text';
+
+    if (debug) {
+      console.log(`  📄 Using ${bodyType} body (${body.length} chars)`);
+    }
+
     // Look for magic link token in email body
     // Token is generated using randomBytes(32).toString('hex') which produces 64 hex characters
     const tokenMatch = body.match(/token=([a-f0-9]+)/);
     if (tokenMatch) {
+      if (debug) {
+        console.log(`  ✅ Token found: ${tokenMatch[1].substring(0, 20)}...`);
+      }
       return tokenMatch[1];
     }
-    
+
+    if (debug) {
+      console.log(`  ❌ No token found in email body`);
+    }
     return null;
   }
 
   /**
    * Extract invitation code from the latest email for a recipient
    */
-  async extractInvitationCodeForRecipient(email: string): Promise<string | null> {
-    const latestEmail = await this.getLatestEmailForRecipient(email);
-    if (!latestEmail) return null;
+  async extractInvitationCodeForRecipient(email: string, options: { debug?: boolean } = {}): Promise<string | null> {
+    const debug = options.debug !== false;
 
-    let body = latestEmail.Content.Body;
-    
-    // Decode quoted-printable encoding if present (same logic as extractInvitationUrlForRecipient)
-    if (body.includes('=3D') || body.includes('=20')) {
-      body = this.decodeQuotedPrintable(body);
+    if (debug) {
+      console.log(`🔍 Looking for invitation code in email for ${email}...`);
     }
-    
+
+    const latestEmail = await this.getLatestEmailForRecipient(email, { debug });
+    if (!latestEmail) {
+      if (debug) {
+        console.log(`  ❌ No email found for ${email}`);
+      }
+      return null;
+    }
+
+    // Fetch full message content from MailPit
+    const fullMessage = await this.getMessageById(latestEmail.ID);
+    if (!fullMessage) {
+      if (debug) {
+        console.log(`  ❌ Could not fetch full message ${latestEmail.ID}`);
+      }
+      return null;
+    }
+
+    // Try HTML content first, then fallback to text
+    const body = fullMessage.HTML.length > 0 ? fullMessage.HTML : fullMessage.Text;
+    const bodyType = fullMessage.HTML.length > 0 ? 'HTML' : 'Text';
+
+    if (debug) {
+      console.log(`  📄 Using ${bodyType} body (${body.length} chars)`);
+    }
+
     // Look for invitation code patterns - multiple patterns to handle different code formats
     let codeMatch;
-    
+
     // 1. Try 25-character alphanumeric codes (current issue format)
     codeMatch = body.match(/code=([a-zA-Z0-9]{20,30})/);
     if (codeMatch) {
+      if (debug) {
+        console.log(`  ✅ Code found (20-30 chars): ${codeMatch[1]}`);
+      }
       return codeMatch[1];
     }
-    
+
     // 2. Try 16-character hex codes (standard family invite codes)
     codeMatch = body.match(/code=([A-Fa-f0-9]{16})/);
     if (codeMatch) {
+      if (debug) {
+        console.log(`  ✅ Code found (16 hex): ${codeMatch[1]}`);
+      }
       return codeMatch[1];
     }
-    
+
     // 3. Try 7-character invitation codes
     codeMatch = body.match(/code=([A-Z0-9]{7})/);
     if (codeMatch) {
+      if (debug) {
+        console.log(`  ✅ Code found (7 chars): ${codeMatch[1]}`);
+      }
       return codeMatch[1];
     }
-    
+
     // 4. Fallback: any code= parameter
     codeMatch = body.match(/code=([a-zA-Z0-9]+)/);
     if (codeMatch) {
+      if (debug) {
+        console.log(`  ✅ Code found (fallback): ${codeMatch[1]}`);
+      }
       return codeMatch[1];
     }
-    
+
+    if (debug) {
+      console.log(`  ❌ No invitation code found in email body`);
+    }
     return null;
   }
 
   /**
-   * Wait for an email to arrive for a specific recipient
+   * Wait for an email to arrive for a specific recipient with debugging
    */
   async waitForEmailForRecipient(
-    email: string, 
+    email: string,
     timeoutMs: number = 30000,
-    checkIntervalMs: number = 1000
-  ): Promise<MailHogMessage | null> {
+    checkIntervalMs: number = 1000,
+    options: { debug?: boolean } = {}
+  ): Promise<MailpitMessage | null> {
     const startTime = Date.now();
-    
+    const debug = options.debug !== false; // Debug enabled by default
+
     while (Date.now() - startTime < timeoutMs) {
       const latestEmail = await this.getLatestEmailForRecipient(email);
       if (latestEmail) {
+        if (debug) {
+          console.log(`✅ Email found for ${email}`);
+        }
         return latestEmail;
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, checkIntervalMs));
     }
-    
+
+    // If email not found and debug mode is enabled, provide debugging info
+    if (debug) {
+      const allEmails = await this.getAllEmails();
+      const emailAddresses = allEmails.map(e => e.To.map(t => t.Address)).flat();
+      console.log(`❌ Email not found after all attempts. Looking for: "${email}"`);
+      console.log(`Available addresses: ${JSON.stringify(emailAddresses)}`);
+      console.log(`Total emails in MailPit: ${allEmails.length}`);
+
+      // Check for partial matches
+      const partialMatches = emailAddresses.filter(addr => addr.includes(email.split('@')[0]));
+      if (partialMatches.length > 0) {
+        console.log(`Partial matches found: ${JSON.stringify(partialMatches)}`);
+      }
+    }
+
     return null;
   }
 
@@ -255,13 +423,13 @@ export class E2EEmailHelper {
    */
   async printEmailSummary(): Promise<void> {
     const emails = await this.getAllEmails();
-    console.log(`\n📧 MailHog Email Summary (${emails.length} emails):`);
-    
+    console.log(`\n📧 MailPit Email Summary (${emails.length} emails):`);
+
     emails.forEach((email, index) => {
-      const to = email.To.map(t => `${t.Mailbox}@${t.Domain}`).join(', ');
-      const from = `${email.From.Mailbox}@${email.From.Domain}`;
-      const subject = email.Content.Headers['Subject']?.[0] || 'No Subject';
-      
+      const to = email.To.map(t => t.Address).join(', ');
+      const from = email.From.Address;
+      const subject = email.Subject;
+
       console.log(`  ${index + 1}. From: ${from}`);
       console.log(`     To: ${to}`);
       console.log(`     Subject: ${subject}`);
@@ -275,26 +443,48 @@ export class E2EEmailHelper {
    * Returns object with found status and email data
    */
   async waitForEmailToUser(
-    email: string, 
-    timeoutMs: number = 30000
+    email: string,
+    timeoutMs: number = 30000,
+    options: { debug?: boolean } = {}
   ): Promise<{ found: boolean; email?: { body: string; subject: string; to: string; from: string } }> {
-    const mailhogEmail = await this.waitForEmailForRecipient(email, timeoutMs);
-    
-    if (!mailhogEmail) {
+    const debug = options.debug !== false;
+
+    if (debug) {
+      console.log(`⏳ Waiting for email to ${email} (timeout: ${timeoutMs}ms)...`);
+    }
+
+    const mailpitEmail = await this.waitForEmailForRecipient(email, timeoutMs, 1000, { debug });
+
+    if (!mailpitEmail) {
+      if (debug) {
+        console.log(`  ❌ No email received for ${email} within timeout`);
+      }
       return { found: false };
     }
 
-    // Decode body and return simplified format
-    let body = mailhogEmail.Content.Body;
-    body = this.decodeQuotedPrintable(body);
-    
+    // Fetch full message to get body content
+    const fullMessage = await this.getMessageById(mailpitEmail.ID);
+    if (!fullMessage) {
+      if (debug) {
+        console.log(`  ❌ Could not fetch full message ${mailpitEmail.ID}`);
+      }
+      return { found: false };
+    }
+
+    // Use HTML content if available, otherwise use text
+    const body = fullMessage.HTML.length > 0 ? fullMessage.HTML : fullMessage.Text;
+
+    if (debug) {
+      console.log(`  ✅ Email received: ${mailpitEmail.Subject}`);
+    }
+
     return {
       found: true,
       email: {
         body: body,
-        subject: mailhogEmail.Content.Headers['Subject']?.[0] || 'No Subject',
-        to: mailhogEmail.To.map(t => `${t.Mailbox}@${t.Domain}`).join(', '),
-        from: `${mailhogEmail.From.Mailbox}@${mailhogEmail.From.Domain}`
+        subject: mailpitEmail.Subject || 'No Subject',
+        to: mailpitEmail.To.map(t => t.Address).join(', '),
+        from: mailpitEmail.From.Address
       }
     };
   }

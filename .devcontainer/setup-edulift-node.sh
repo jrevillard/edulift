@@ -38,10 +38,12 @@ if [ -d "e2e" ] && [ -f "e2e/package.json" ]; then
     echo "🧪 Installing E2E dependencies..."
     cd e2e
     npm install
-    
+
     echo "🎭 Installing Playwright browsers..."
-    npx playwright install
-    
+    # Force installation to /ms-playwright for compatibility
+    export PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+    npx --yes playwright install
+
     cd ..
 else
     echo "❌ E2E directory not found."
