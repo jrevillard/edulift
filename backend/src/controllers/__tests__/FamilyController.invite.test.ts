@@ -116,7 +116,7 @@ const parseZodError = (error: any): string => {
 };
 
 // Helper function to make authenticated requests for protected endpoints
-const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Promise<Response> => {
+const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Response | Promise<Response> => {
   return app.request(url, {
     ...options,
     headers: {

@@ -28,7 +28,7 @@ const responseJson = async <T = any>(response: Response): Promise<T> => {
   return response.json() as Promise<T>;
 };
 
-const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Promise<Response> => {
+const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Response | Promise<Response> => {
   return app.request(url, {
     ...options,
     headers: {

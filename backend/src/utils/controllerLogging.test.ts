@@ -35,6 +35,10 @@ jest.mock('./ipExtractor', () => ({
 import { controllerLogger } from './controllerLogging';
 import { createLogger } from '../utils/logger';
 
+// Type the mocked logger correctly
+const mockedCreateLogger = createLogger as jest.MockedFunction<typeof createLogger>;
+const mockedControllerLogger = controllerLogger as jest.Mocked<typeof controllerLogger>;
+
 describe('extractRequestContext', () => {
   let mockContext: Context;
 
@@ -139,7 +143,7 @@ describe('logOperationStart', () => {
     } as unknown as Context;
 
     // Use imported module
-    controllerLogger.info = mockLogger;
+    mockedControllerLogger.info = mockLogger;
   });
 
   it('should log operation start with context', () => {
@@ -182,7 +186,7 @@ describe('logOperationSuccess', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    controllerLogger.info = mockLogger;
+    mockedControllerLogger.info = mockLogger;
   });
 
   it('should log operation success with result data', () => {
@@ -222,7 +226,7 @@ describe('logOperationError', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    controllerLogger.info = mockLogger;
+    mockedControllerLogger.error = mockLogger;
   });
 
   it('should log error with Error object', () => {
@@ -280,7 +284,7 @@ describe('logOperationWarning', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    controllerLogger.info = mockLogger;
+    mockedControllerLogger.warn = mockLogger;
   });
 
   it('should log warning with message', () => {
@@ -318,7 +322,7 @@ describe('logOperationDebug', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    controllerLogger.info = mockLogger;
+    mockedControllerLogger.debug = mockLogger;
   });
 
   it('should log debug message with context', () => {
@@ -354,7 +358,7 @@ describe('createControllerLogger', () => {
     };
 
     // Mock createLogger to return our mock instance
-    createLogger.mockReturnValue(mockLoggerInstance);
+    mockedCreateLogger.mockReturnValue(mockLoggerInstance);
 
     mockContext = {
       req: {
@@ -380,7 +384,7 @@ describe('createControllerLogger', () => {
   });
 
   it('should log success with correct prefix', () => {
-    createLogger.mockReturnValue(mockLoggerInstance);
+    mockedCreateLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
     logger.logSuccess('testOperation', mockContext, { id: '123' });
@@ -395,7 +399,7 @@ describe('createControllerLogger', () => {
   });
 
   it('should log error with correct prefix', () => {
-    createLogger.mockReturnValue(mockLoggerInstance);
+    mockedCreateLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
     const error = new Error('Test error');
@@ -411,7 +415,7 @@ describe('createControllerLogger', () => {
   });
 
   it('should log warning with correct prefix', () => {
-    createLogger.mockReturnValue(mockLoggerInstance);
+    mockedCreateLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
     logger.logWarning('testOperation', mockContext, 'Warning message');
@@ -425,7 +429,7 @@ describe('createControllerLogger', () => {
   });
 
   it('should log debug with correct prefix', () => {
-    createLogger.mockReturnValue(mockLoggerInstance);
+    mockedCreateLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
     logger.logDebug('testOperation', mockContext, 'Debug message');
@@ -439,7 +443,7 @@ describe('createControllerLogger', () => {
   });
 
   it('should provide access to native logger', () => {
-    createLogger.mockReturnValue(mockLoggerInstance);
+    mockedCreateLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
 
@@ -555,7 +559,7 @@ describe('createTimer', () => {
   });
 
   it('should use controllerLogger if no logger provided', () => {
-    controllerLogger.debug = mockLogger.debug;
+    mockedControllerLogger.debug = mockLogger.debug;
 
     const timer = createTimer('testOperation', mockContext);
 

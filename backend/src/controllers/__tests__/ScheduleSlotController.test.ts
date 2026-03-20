@@ -40,7 +40,7 @@ const responseJson = async <T = any>(response: Response): Promise<T> => {
 };
 
 
-const makeAuthenticatedRequest = async (app: Hono<any>, url: string, options: RequestInit = {}): Promise<Response> => {
+const makeAuthenticatedRequest = async (app: Hono<any>, url: string, options: RequestInit = {}) => {
   // Create a modified request that includes the authorization header
   const authOptions = {
     ...options,
