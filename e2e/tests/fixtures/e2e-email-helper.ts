@@ -424,6 +424,26 @@ export class E2EEmailHelper {
   }
 
   /**
+   * Delete all emails from MailPit
+   * MailPit API: DELETE /api/v1/messages
+   */
+  async deleteAllEmails(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.mailpitUrl}/api/v1/messages`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        throw new Error(`MailPit API error: ${response.status}`);
+      }
+      console.log('🗑️ All emails deleted from MailPit');
+      return true;
+    } catch (error) {
+      console.error('Failed to delete emails from MailPit:', error);
+      return false;
+    }
+  }
+
+  /**
    * Get email count for debugging
    */
   async getEmailCount(): Promise<number> {

@@ -7,7 +7,7 @@ async function globalTeardown() {
   // Check if running inside a container (no Docker available)
   const isRunningInContainer = process.env.E2E_RUNNER === 'container' ||
                                 process.cwd() === '/e2e' ||
-                                require('fs').existsSync('/.dockerenv');
+                                fs.existsSync('/.dockerenv');
 
   if (isRunningInContainer) {
     console.log('📦 Running inside container - skipping container cleanup');
