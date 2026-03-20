@@ -172,4 +172,11 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
     },
   },
+  {
+    files: ['src/utils/security.ts'],
+    rules: {
+      // Allow control characters in regex for security sanitization
+      'no-control-regex': 'off',
+    },
+  },
 ]

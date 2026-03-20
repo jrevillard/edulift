@@ -1073,7 +1073,7 @@ app.openapi(inviteMemberRoute, async (c) => {
   const { email, role, personalMessage } = c.req.valid('json');
 
   familyLogger.logStart('inviteMember', c, {
-    businessContext: { userId, familyId, email, role }
+    businessContext: { userId, familyId, email, role },
   });
 
   try {
@@ -1129,7 +1129,7 @@ app.openapi(getFamilyInvitationsRoute, async (c) => {
   const { familyId } = c.req.valid('param');
 
   familyLogger.logStart('getFamilyInvitations', c, {
-    businessContext: { userId, familyId }
+    businessContext: { userId, familyId },
   });
 
   try {
@@ -1174,7 +1174,7 @@ app.openapi(deleteInvitationRoute, async (c) => {
   const { familyId, invitationId } = c.req.valid('param');
 
   familyLogger.logStart('deleteInvitation', c, {
-    businessContext: { userId, familyId, invitationId }
+    businessContext: { userId, familyId, invitationId },
   });
 
   try {
@@ -1216,7 +1216,7 @@ app.openapi(updateFamilyNameRoute, async (c) => {
   const { name } = c.req.valid('json');
 
   familyLogger.logStart('updateFamilyName', c, {
-    businessContext: { userId, name }
+    businessContext: { userId, name },
   });
 
   try {
@@ -1246,7 +1246,7 @@ app.openapi(removeMemberRoute, async (c) => {
   const { familyId, memberId } = c.req.valid('param');
 
   familyLogger.logStart('removeMember', c, {
-    businessContext: { userId, familyId, memberId }
+    businessContext: { userId, familyId, memberId },
   });
 
   try {

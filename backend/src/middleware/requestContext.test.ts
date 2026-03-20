@@ -49,7 +49,7 @@ describe('requestContextMiddleware', () => {
         timestamp: expect.any(String),
         method: 'GET',
         path: '/api/test',
-      })
+      }),
     );
   });
 
@@ -79,11 +79,11 @@ describe('requestContextMiddleware', () => {
     await requestContextMiddleware(context2, mockNext);
 
     const metadata1 = (context1.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     )[1];
 
     const metadata2 = (context2.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     )[1];
 
     expect(metadata1.requestId).not.toBe(metadata2.requestId);
@@ -112,7 +112,7 @@ describe('requestContextMiddleware', () => {
     await requestContextMiddleware(mockContext, mockNext);
 
     const metadataCall = (mockContext.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     );
 
     expect(metadataCall[1].path).toBe('/api/test');
@@ -130,7 +130,7 @@ describe('requestContextMiddleware', () => {
     await requestContextMiddleware(contextWithoutUA, mockNext);
 
     const metadataCall = (contextWithoutUA.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     );
 
     expect(metadataCall[1].userAgent).toBeUndefined();
@@ -165,7 +165,7 @@ describe('requestContextMiddleware', () => {
       await requestContextMiddleware(contextWithMethod, mockNext);
 
       const metadataCall = (contextWithMethod.set as any).mock.calls.find(
-        (call: any[]) => call[0] === 'requestMetadata'
+        (call: any[]) => call[0] === 'requestMetadata',
       );
 
       expect(metadataCall[1].method).toBe(method);
@@ -176,7 +176,7 @@ describe('requestContextMiddleware', () => {
     await requestContextMiddleware(mockContext, mockNext);
 
     const metadataCall = (mockContext.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     );
 
     const timestamp = metadataCall[1].timestamp;
@@ -206,7 +206,7 @@ describe('requestContextMiddleware', () => {
     await requestContextMiddleware(contextWithRoot, mockNext);
 
     const metadataCall = (contextWithRoot.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     );
 
     expect(metadataCall[1].path).toBe('/');
@@ -224,7 +224,7 @@ describe('requestContextMiddleware', () => {
     await requestContextMiddleware(contextWithComplexPath, mockNext);
 
     const metadataCall = (contextWithComplexPath.set as any).mock.calls.find(
-      (call: any[]) => call[0] === 'requestMetadata'
+      (call: any[]) => call[0] === 'requestMetadata',
     );
 
     expect(metadataCall[1].path).toBe('/api/v1/users/123/posts/456');

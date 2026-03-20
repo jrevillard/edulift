@@ -469,7 +469,7 @@ app.openapi(getVehiclesRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
 
   vehicleLogger.logStart('getVehicles', c, {
-    businessContext: { userId }
+    businessContext: { userId },
   });
 
   try {
@@ -501,7 +501,7 @@ app.openapi(getAvailableVehiclesRoute, async (c): Promise<any> => {
   const { groupId, timeSlotId } = c.req.valid('param');
 
   vehicleLogger.logStart('getAvailableVehicles', c, {
-    businessContext: { userId, groupId, timeSlotId }
+    businessContext: { userId, groupId, timeSlotId },
   });
 
   // Verify user has access to the group
@@ -544,7 +544,7 @@ app.openapi(getVehicleRoute, async (c): Promise<any> => {
   const { vehicleId } = c.req.valid('param');
 
   vehicleLogger.logStart('getVehicle', c, {
-    businessContext: { userId, vehicleId }
+    businessContext: { userId, vehicleId },
   });
 
   try {
@@ -669,7 +669,7 @@ app.openapi(getVehicleScheduleRoute, async (c): Promise<any> => {
   const { week } = c.req.valid('query');
 
   vehicleLogger.logStart('getVehicleSchedule', c, {
-    businessContext: { userId, vehicleId, week }
+    businessContext: { userId, vehicleId, week },
   });
 
   try {

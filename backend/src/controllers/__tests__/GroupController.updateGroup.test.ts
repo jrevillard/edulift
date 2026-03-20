@@ -24,7 +24,7 @@ describe('GroupController.updateGroup Test Suite', () => {
   const mockUserEmail = 'test@example.com';
   const mockGroupId = TEST_IDS.GROUP;
 
-  const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}) => {
+  const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Promise<Response> => {
     return app.request(url, {
       ...options,
       headers: {

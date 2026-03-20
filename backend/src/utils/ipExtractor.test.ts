@@ -13,7 +13,7 @@ const createMockContext = (headers: Record<string, string>): Context => {
       header: (name: string) => {
         // Try exact match first, then case-insensitive fallback
         return headers[name] || headers[Object.keys(headers).find(
-          key => key.toLowerCase() === name.toLowerCase()
+          key => key.toLowerCase() === name.toLowerCase(),
         ) || ''];
       },
     },

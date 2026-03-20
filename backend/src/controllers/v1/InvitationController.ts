@@ -585,7 +585,7 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const currentUserId = c.get('userId');
 
     invitationLogger.logStart('validateFamilyInvitation', c, {
-      businessContext: { code, hasAuth: !!currentUserId }
+      businessContext: { code, hasAuth: !!currentUserId },
     });
 
     try {
@@ -791,7 +791,7 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const currentUserId = c.get('userId');
 
     invitationLogger.logStart('validateGroupInvitation', c, {
-      businessContext: { code, hasAuth: !!currentUserId }
+      businessContext: { code, hasAuth: !!currentUserId },
     });
 
     try {
@@ -851,7 +851,7 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const { code } = c.req.valid('param');
 
     invitationLogger.logStart('acceptGroupInvitation', c, {
-      businessContext: { userId, code }
+      businessContext: { userId, code },
     });
 
     try {
@@ -890,7 +890,7 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const { invitationId } = c.req.valid('param');
 
     invitationLogger.logStart('cancelFamilyInvitation', c, {
-      businessContext: { userId, invitationId }
+      businessContext: { userId, invitationId },
     });
 
     try {
@@ -938,7 +938,7 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const { invitationId } = c.req.valid('param');
 
     invitationLogger.logStart('cancelGroupInvitation', c, {
-      businessContext: { userId, invitationId }
+      businessContext: { userId, invitationId },
     });
 
     try {

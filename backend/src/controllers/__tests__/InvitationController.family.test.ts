@@ -30,7 +30,7 @@ const responseJson = async <T = any>(response: Response): Promise<T> => {
 };
 
 // Helper function to make authenticated requests for protected endpoints
-const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}) => {
+const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Promise<Response> => {
   return app.request(url, {
     ...options,
     headers: {

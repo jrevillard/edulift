@@ -14,6 +14,9 @@ jest.mock('../../utils/socketEmitter');
 
 jest.mock('../../middleware/auth-hono');
 
+// Import the mocked PrismaClient
+import { PrismaClient } from '@prisma/client';
+
 // Mock PrismaClient
 jest.mock('@prisma/client', () => {
   const mockPrisma = {
@@ -99,9 +102,7 @@ describe('ScheduleSlotController Test Suite', () => {
 
     // Mock Prisma queries for access control
     // @ts-ignore - Mocking Prisma for testing
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const MockedPrisma = require('@prisma/client').PrismaClient;
-    const mockPrisma = new MockedPrisma() as any;
+    const mockPrisma = new PrismaClient() as any;
     mockPrisma.familyMember.findFirst = jest.fn() as any;
     mockPrisma.familyMember.findFirst.mockResolvedValue({
       userId: mockUserId,

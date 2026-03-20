@@ -1,4 +1,6 @@
 import { createLogger } from '../../utils/logger';
+import { MockEmailService } from '../MockEmailService';
+import { BaseEmailService } from '../base/BaseEmailService';
 
 describe('MockEmailService', () => {
   let mockEmailService: any;
@@ -18,9 +20,7 @@ describe('MockEmailService', () => {
 
     // Clear module cache and create service with mocked logger
     jest.resetModules();
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { MockEmailService: MockEmailServiceClass } = require('../MockEmailService');
-    mockEmailService = new MockEmailServiceClass();
+    mockEmailService = new MockEmailService();
   });
 
   afterEach(() => {
@@ -30,8 +30,6 @@ describe('MockEmailService', () => {
   });
 
   it('should be an instance of BaseEmailService', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { BaseEmailService } = require('../base/BaseEmailService');
     expect(mockEmailService).toBeInstanceOf(BaseEmailService);
   });
 

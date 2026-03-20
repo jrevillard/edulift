@@ -454,7 +454,7 @@ app.openapi(saveTokenRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('saveToken', c, {
-    businessContext: { userId, deviceId: input.deviceId, fcmPlatform: input.fcmPlatform }
+    businessContext: { userId, deviceId: input.deviceId, fcmPlatform: input.fcmPlatform },
   });
 
   try {
@@ -499,7 +499,7 @@ app.openapi(getTokensRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('getTokens', c, {
-    businessContext: { userId }
+    businessContext: { userId },
   });
 
   try {
@@ -551,7 +551,7 @@ app.openapi(cleanupInactiveRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('cleanupInactive', c, {
-    businessContext: { userId }
+    businessContext: { userId },
   });
 
   try {
@@ -617,7 +617,7 @@ app.openapi(deleteTokenRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('deleteToken', c, {
-    businessContext: { userId, tokenId }
+    businessContext: { userId, tokenId },
   });
 
   try {
@@ -666,7 +666,7 @@ app.openapi(validateTokenRoute, async (c): Promise<any> => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('validateToken', c, {
-    businessContext: { userId }
+    businessContext: { userId },
   });
 
   try {
@@ -714,7 +714,7 @@ app.openapi(subscribeTopicRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('subscribeTopic', c, {
-    businessContext: { userId, topic }
+    businessContext: { userId, topic },
   });
 
   try {
@@ -771,7 +771,7 @@ app.openapi(unsubscribeTopicRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('unsubscribeTopic', c, {
-    businessContext: { userId, topic }
+    businessContext: { userId, topic },
   });
 
   try {
@@ -828,7 +828,7 @@ app.openapi(testNotificationRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('testNotification', c, {
-    businessContext: { userId, title }
+    businessContext: { userId, title },
   });
 
   try {
@@ -903,7 +903,7 @@ app.openapi(getStatsRoute, async (c) => {
   const userId = c.get('userId');
 
   fcmLogger.logStart('getStats', c, {
-    businessContext: { userId }
+    businessContext: { userId },
   });
 
   try {

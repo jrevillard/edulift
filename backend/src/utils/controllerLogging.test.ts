@@ -31,6 +31,10 @@ jest.mock('./ipExtractor', () => ({
   getClientIP: jest.fn(() => '192.168.1.100'),
 }));
 
+// Import mocked modules
+import { controllerLogger } from './controllerLogging';
+import { createLogger } from '../utils/logger';
+
 describe('extractRequestContext', () => {
   let mockContext: Context;
 
@@ -134,8 +138,7 @@ describe('logOperationStart', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    // Import logger after mocking
-    const { controllerLogger } = require('./controllerLogging');
+    // Use imported module
     controllerLogger.info = mockLogger;
   });
 
@@ -147,7 +150,7 @@ describe('logOperationStart', () => {
       expect.objectContaining({
         operation: 'testOperation',
         endpoint: 'GET /api/resource',
-      })
+      }),
     );
   });
 
@@ -159,7 +162,7 @@ describe('logOperationStart', () => {
       'testOperation: Operation started',
       expect.objectContaining({
         ...additionalData,
-      })
+      }),
     );
   });
 });
@@ -179,7 +182,6 @@ describe('logOperationSuccess', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    const { controllerLogger } = require('./controllerLogging');
     controllerLogger.info = mockLogger;
   });
 
@@ -191,7 +193,7 @@ describe('logOperationSuccess', () => {
       'createUser: Operation completed successfully',
       expect.objectContaining({
         resultData,
-      })
+      }),
     );
   });
 
@@ -200,7 +202,7 @@ describe('logOperationSuccess', () => {
 
     expect(mockLogger).toHaveBeenCalledWith(
       'deleteUser: Operation completed successfully',
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 });
@@ -220,8 +222,7 @@ describe('logOperationError', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    const { controllerLogger } = require('./controllerLogging');
-    controllerLogger.error = mockLogger;
+    controllerLogger.info = mockLogger;
   });
 
   it('should log error with Error object', () => {
@@ -233,7 +234,7 @@ describe('logOperationError', () => {
       expect.objectContaining({
         error: 'Database connection failed',
         stack: expect.any(String),
-      })
+      }),
     );
   });
 
@@ -245,7 +246,7 @@ describe('logOperationError', () => {
       'validateInput: Operation failed',
       expect.objectContaining({
         error: 'Validation failed',
-      })
+      }),
     );
   });
 
@@ -259,7 +260,7 @@ describe('logOperationError', () => {
       'getResource: Operation failed',
       expect.objectContaining({
         ...additionalContext,
-      })
+      }),
     );
   });
 });
@@ -279,8 +280,7 @@ describe('logOperationWarning', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    const { controllerLogger } = require('./controllerLogging');
-    controllerLogger.warn = mockLogger;
+    controllerLogger.info = mockLogger;
   });
 
   it('should log warning with message', () => {
@@ -288,7 +288,7 @@ describe('logOperationWarning', () => {
 
     expect(mockLogger).toHaveBeenCalledWith(
       'getData: Cache miss, fetching from database',
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -298,7 +298,7 @@ describe('logOperationWarning', () => {
 
     expect(mockLogger).toHaveBeenCalledWith(
       'getData: Cache miss',
-      expect.objectContaining(additionalData)
+      expect.objectContaining(additionalData),
     );
   });
 });
@@ -318,8 +318,7 @@ describe('logOperationDebug', () => {
       get: jest.fn(() => undefined),
     } as unknown as Context;
 
-    const { controllerLogger } = require('./controllerLogging');
-    controllerLogger.debug = mockLogger;
+    controllerLogger.info = mockLogger;
   });
 
   it('should log debug message with context', () => {
@@ -327,7 +326,7 @@ describe('logOperationDebug', () => {
 
     expect(mockLogger).toHaveBeenCalledWith(
       'processData: Starting data transformation',
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -337,7 +336,7 @@ describe('logOperationDebug', () => {
 
     expect(mockLogger).toHaveBeenCalledWith(
       'processData: Batch completed',
-      expect.objectContaining(additionalData)
+      expect.objectContaining(additionalData),
     );
   });
 });
@@ -355,7 +354,6 @@ describe('createControllerLogger', () => {
     };
 
     // Mock createLogger to return our mock instance
-    const { createLogger } = require('../utils/logger');
     createLogger.mockReturnValue(mockLoggerInstance);
 
     mockContext = {
@@ -377,12 +375,11 @@ describe('createControllerLogger', () => {
       'testOperation: Operation started',
       expect.objectContaining({
         operation: 'TestController.testOperation',
-      })
+      }),
     );
   });
 
   it('should log success with correct prefix', () => {
-    const { createLogger } = require('../utils/logger');
     createLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
@@ -393,12 +390,11 @@ describe('createControllerLogger', () => {
       expect.objectContaining({
         operation: 'TestController.testOperation',
         resultData: { id: '123' },
-      })
+      }),
     );
   });
 
   it('should log error with correct prefix', () => {
-    const { createLogger } = require('../utils/logger');
     createLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
@@ -410,12 +406,11 @@ describe('createControllerLogger', () => {
       expect.objectContaining({
         operation: 'TestController.testOperation',
         error: 'Test error',
-      })
+      }),
     );
   });
 
   it('should log warning with correct prefix', () => {
-    const { createLogger } = require('../utils/logger');
     createLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
@@ -425,12 +420,11 @@ describe('createControllerLogger', () => {
       'testOperation: Warning message',
       expect.objectContaining({
         operation: 'TestController.testOperation',
-      })
+      }),
     );
   });
 
   it('should log debug with correct prefix', () => {
-    const { createLogger } = require('../utils/logger');
     createLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
@@ -440,12 +434,11 @@ describe('createControllerLogger', () => {
       'testOperation: Debug message',
       expect.objectContaining({
         operation: 'TestController.testOperation',
-      })
+      }),
     );
   });
 
   it('should provide access to native logger', () => {
-    const { createLogger } = require('../utils/logger');
     createLogger.mockReturnValue(mockLoggerInstance);
 
     const logger = createControllerLogger('TestController');
@@ -481,7 +474,7 @@ describe('OperationTimer', () => {
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
       'testOperation: Timer started',
-      expect.any(Object)
+      expect.any(Object),
     );
   });
 
@@ -498,7 +491,7 @@ describe('OperationTimer', () => {
       expect.objectContaining({
         stepName: 'databaseQuery',
         elapsedMs: expect.any(Number),
-      })
+      }),
     );
   });
 
@@ -516,7 +509,7 @@ describe('OperationTimer', () => {
       expect.objectContaining({
         durationMs: expect.any(Number),
         resultData: { success: true },
-      })
+      }),
     );
   });
 
@@ -530,7 +523,7 @@ describe('OperationTimer', () => {
       'testOperation: Operation completed',
       expect.objectContaining({
         resultData,
-      })
+      }),
     );
   });
 });
@@ -562,7 +555,6 @@ describe('createTimer', () => {
   });
 
   it('should use controllerLogger if no logger provided', () => {
-    const { controllerLogger } = require('./controllerLogging');
     controllerLogger.debug = mockLogger.debug;
 
     const timer = createTimer('testOperation', mockContext);

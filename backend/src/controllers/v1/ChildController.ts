@@ -622,7 +622,7 @@ const getChildGroupsRoute = createRoute({
     const userId = c.get('userId');
 
     childLogger.logStart('getChildren', c, {
-      businessContext: { userId }
+      businessContext: { userId },
     });
 
     try {
@@ -652,7 +652,7 @@ const getChildGroupsRoute = createRoute({
     const { childId } = c.req.valid('param');
 
     childLogger.logStart('getChild', c, {
-      businessContext: { userId, childId }
+      businessContext: { userId, childId },
     });
 
     try {
@@ -929,7 +929,7 @@ const getChildGroupsRoute = createRoute({
     const { childId } = c.req.valid('param');
 
     childLogger.logStart('getChildGroups', c, {
-      businessContext: { userId, childId }
+      businessContext: { userId, childId },
     });
 
     try {

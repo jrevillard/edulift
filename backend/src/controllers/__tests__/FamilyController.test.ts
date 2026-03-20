@@ -113,7 +113,7 @@ const parseZodError = (error: any): string => {
   return String(error);
 };
 
-const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}) => {
+const makeAuthenticatedRequest = (app: Hono<any>, url: string, options: RequestInit = {}): Promise<Response> => {
   return app.request(url, {
     ...options,
     headers: {
