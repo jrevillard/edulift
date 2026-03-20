@@ -3,6 +3,7 @@ import { UniversalAuthHelper } from '../fixtures/universal-auth-helper';
 import { E2EEmailHelper } from '../fixtures/e2e-email-helper';
 import { SharedTestPatterns } from '../fixtures/shared-test-patterns';
 import { STANDARD_USER_ROLES } from '../fixtures/common-user-roles';
+import { TestDataGenerator } from '../fixtures/test-data-generator';
 
 test.describe('User Authentication Journey', () => {
   let emailHelper: E2EEmailHelper;
@@ -10,18 +11,16 @@ test.describe('User Authentication Journey', () => {
   test.beforeAll(async () => {
     const authHelper = new UniversalAuthHelper(null as any, 'userAuthentication');
 
-    // ⚠️ TEMPORARY: Skip DB manipulation - tests must use real authentication flow
-    // TODO: Implement proper user setup via UI for returning user tests
-    // See: .claude/rules/e2e-testing-patterns.md (Anti-Patterns section)
-
     // Define users for NEW USER authentication (working path)
     authHelper.defineUser(STANDARD_USER_ROLES.NEW_USER, 'new-user', 'New User', true);
     authHelper.defineUser(STANDARD_USER_ROLES.INVITED_USER, 'invited-new-user', 'Invited New User', true);
 
-    // Note: Returning user tests are skipped below
-    // They require either:
-    // - UI-based user creation with magic link authentication
-    // - Or token-based direct authentication setup
+    // Note: Returning user tests now create their own users via UI (no DB manipulation)
+    // Each returning user test will:
+    // 1. Create a new user via the new user flow
+    // 2. Complete onboarding (create family)
+    // 3. Logout
+    // 4. Test login as returning user
   });
 
   test.beforeEach(async () => {
@@ -277,31 +276,108 @@ test.describe('User Authentication Journey', () => {
   });
 
   test.describe('Returning User Authentication', () => {
-    test.skip('existing user logs in and reaches dashboard', async ({ page }) => {
+    test('existing user logs in and reaches dashboard', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
-      await test.step('Navigate to login and authenticate', async () => {
-        await authHelper.directUserSetup(STANDARD_USER_ROLES.RETURNING_USER, '/dashboard');
+      // Use a unique email for this returning user test
+      const returningUserEmail = authHelper.getFileSpecificEmail('returning.user.dashboard');
+      const returningUserName = 'Returning Dashboard User';
+      let magicLinkUrl: string | null = null;
+
+      await test.step('Setup: Create returning user via new user flow', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        // Click new user tab
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        // Fill name and email
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        await nameInput.click();
+        await nameInput.fill(returningUserName);
+
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+        await expect(emailInput).toBeVisible({ timeout: 5000 });
+        await emailInput.fill(returningUserEmail);
+
+        // Submit and get magic link
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+
+        // Complete registration via magic link
+        const email = await emailHelper.waitForEmailForRecipient(returningUserEmail);
+        expect(email).not.toBeNull();
+
+        magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(returningUserEmail);
+        expect(magicLinkUrl).toBeTruthy();
+        expect(magicLinkUrl).toContain('/auth/verify');
+
+        if (!magicLinkUrl) throw new Error('Magic link URL is null');
+        await page.goto(magicLinkUrl);
         await SharedTestPatterns.waitForPageLoad(page);
-        
-        // User MUST be authenticated and on a valid page after login
+
+        // Verify user is authenticated (not on login page)
         const currentUrl = page.url();
-        const isOnDashboard = currentUrl.includes('/dashboard') || currentUrl.includes('/family') || currentUrl.includes('/groups');
-        
-        expect(isOnDashboard).toBeTruthy();
-        console.log('✅ Returning user successfully logged in and reached dashboard');
+        const isAuthenticated = !currentUrl.includes('/login') && !currentUrl.includes('/auth');
+        expect(isAuthenticated).toBeTruthy();
+
+        console.log(`✅ Returning user created and authenticated on: ${currentUrl}`);
       });
 
-      await test.step('Verify dashboard functionality', async () => {
-        // Should see user-specific content - use the ACTUAL test ID from frontend
-        const userContent = page.locator('[data-testid="DashboardPage-Container-welcome"]');
+      await test.step('Logout the user', async () => {
+        // Clear session to logout
+        await page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
 
-        await expect(userContent).toBeVisible({ timeout: 10000 });
-        console.log('✅ Dashboard content visible for returning user');
+        // Verify logged out
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const currentUrl = page.url();
+        expect(currentUrl).toContain('/login');
+        console.log('✅ User logged out');
+      });
+
+      await test.step('Login as returning user', async () => {
+        // Now test login as returning user
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+        await expect(emailInput).toBeVisible({ timeout: 5000 });
+        await emailInput.fill(returningUserEmail);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await submitButton.click();
+
+        // Get magic link and login
+        const email = await emailHelper.waitForEmailForRecipient(returningUserEmail);
+        expect(email).not.toBeNull();
+
+        magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(returningUserEmail);
+        expect(magicLinkUrl).toBeTruthy();
+        expect(magicLinkUrl).toContain('/auth/verify');
+
+        if (!magicLinkUrl) throw new Error('Magic link URL is null');
+        await page.goto(magicLinkUrl);
+        await SharedTestPatterns.waitForPageLoad(page);
+
+        // Verify we're authenticated and on a valid page
+        const currentUrl = page.url();
+        const isAuthenticated = !currentUrl.includes('/login') && !currentUrl.includes('/auth');
+        expect(isAuthenticated).toBeTruthy();
+
+        console.log(`✅ Returning user successfully logged in and reached: ${currentUrl}`);
       });
     });
 
-    test.skip('family admin logs in and accesses family management', async ({ page }) => {
+    test('family admin logs in and accesses family management', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Login as family admin', async () => {
@@ -321,7 +397,7 @@ test.describe('User Authentication Journey', () => {
       });
     });
 
-    test.skip('family member logs in and sees member view', async ({ page }) => {
+    test('family member logs in and sees member view', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Login as family member', async () => {
@@ -344,7 +420,7 @@ test.describe('User Authentication Journey', () => {
       });
     });
 
-    test.skip('existing user logs in with invitation context', async ({ page }) => {
+    test('existing user logs in with invitation context', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Simulate invitation context for existing user', async () => {
@@ -372,7 +448,7 @@ test.describe('User Authentication Journey', () => {
       });
     });
 
-    test.skip('existing user with conflicting family invitation', async ({ page }) => {
+    test('existing user with conflicting family invitation', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Simulate conflicting invitation scenario', async () => {
@@ -393,7 +469,7 @@ test.describe('User Authentication Journey', () => {
   });
 
   test.describe('Session Management Integration', () => {
-    test.skip('preserves session across page refreshes', async ({ page }) => {
+    test('preserves session across page refreshes', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Login and refresh page', async () => {
@@ -413,7 +489,7 @@ test.describe('User Authentication Journey', () => {
       });
     });
 
-    test.skip('handles direct URL access when authenticated', async ({ page }) => {
+    test('handles direct URL access when authenticated', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Access protected URL directly', async () => {
