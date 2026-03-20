@@ -116,6 +116,7 @@ services:
     container_name: edulift-playwright-e2e
     environment:
       E2E_BASE_URL: http://frontend-e2e:3000
+      E2E_RUNNER: container
       CI: true
     networks:
       - edulift-e2e
