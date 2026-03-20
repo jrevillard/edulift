@@ -128,14 +128,19 @@ app.use('*', performanceLogging());
 // to ensure request metadata is available to all downstream handlers
 app.use('*', requestContextMiddleware);
 
-// Apply rate limiting to all API routes
-app.use('/api/v1/*', globalRateLimiter);
+// Apply rate limiting to all API routes (can be disabled via RATE_LIMIT_ENABLED=false)
+if (process.env.RATE_LIMIT_ENABLED !== 'false') {
+  app.use('/api/v1/*', globalRateLimiter);
 
-// Apply stricter rate limiting to authentication endpoints
-app.use('/api/v1/auth/*', authEndpointRateLimiter);
+  // Apply stricter rate limiting to authentication endpoints
+  app.use('/api/v1/auth/*', authEndpointRateLimiter);
 
-// Apply admin rate limiting to admin operations (if they exist)
-app.use('/api/v1/admin/*', adminRateLimiter);
+  // Apply admin rate limiting to admin operations (if they exist)
+  app.use('/api/v1/admin/*', adminRateLimiter);
+} else {
+  const configLogger = createLogger('Config');
+  configLogger.info('Rate limiting disabled via RATE_LIMIT_ENABLED=false');
+}
 
 // Database health check
 app.get('/health/database', async (c) => {

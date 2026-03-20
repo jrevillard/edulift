@@ -105,9 +105,9 @@ export default defineConfig({
   //   }
   // ],
 
-  /* Global setup and teardown */
-  globalSetup: './tests/global-setup.ts',
-  globalTeardown: './tests/global-teardown.ts',
+  /* Global setup and teardown - only when running outside container */
+  globalSetup: process.env.E2E_RUNNER === 'container' ? undefined : './tests/global-setup.ts',
+  globalTeardown: process.env.E2E_RUNNER === 'container' ? undefined : './tests/global-teardown.ts',
 
   /* Test timeout */
   timeout: 60000,

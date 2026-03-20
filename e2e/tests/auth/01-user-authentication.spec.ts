@@ -5,11 +5,13 @@ import { SharedTestPatterns } from '../fixtures/shared-test-patterns';
 import { STANDARD_USER_ROLES } from '../fixtures/common-user-roles';
 import { TestDataGenerator } from '../fixtures/test-data-generator';
 import { OnboardingFlowHelper } from '../fixtures/onboarding-helper';
+import { TestCleanupHelper } from '../fixtures/test-cleanup-helper';
 
 test.describe.configure({ mode: 'serial' });
 
 test.describe('User Authentication Journey', () => {
   let emailHelper: E2EEmailHelper;
+  let cleanupHelper: TestCleanupHelper;
 
   test.beforeAll(async () => {
     const authHelper = new UniversalAuthHelper(null as any, 'userAuthentication');
@@ -20,6 +22,9 @@ test.describe('User Authentication Journey', () => {
 
     // Initialize email helper for all tests
     emailHelper = new E2EEmailHelper();
+
+    // Initialize cleanup helper for test isolation
+    cleanupHelper = new TestCleanupHelper();
 
     // Note: Returning user tests now create their own users via UI (no DB manipulation)
     // Each returning user test will:
@@ -98,9 +103,15 @@ test.describe('User Authentication Journey', () => {
         if (!magicLinkUrl) throw new Error('Magic link URL is null');
         await page.goto(magicLinkUrl);
         await SharedTestPatterns.waitForPageLoad(page);
-        
-        // User MUST be redirected to onboarding, family, or dashboard after authentication
+
+        // DIAGNOSTIC: Log current URL before assertion
         const currentUrl = page.url();
+        console.log('🔍 DIAGNOSTIC: Current URL after magic link navigation:', currentUrl);
+        console.log('🔍 DIAGNOSTIC: URL includes /onboarding?', currentUrl.includes('/onboarding'));
+        console.log('🔍 DIAGNOSTIC: URL includes /family?', currentUrl.includes('/family'));
+        console.log('🔍 DIAGNOSTIC: URL includes /dashboard?', currentUrl.includes('/dashboard'));
+
+        // User MUST be redirected to onboarding, family, or dashboard after authentication
         const isOnValidPage = currentUrl.includes('/onboarding') || currentUrl.includes('/family') || currentUrl.includes('/dashboard');
         expect(isOnValidPage).toBeTruthy();
         console.log('✅ New user successfully authenticated and directed to onboarding');
@@ -360,7 +371,7 @@ test.describe('User Authentication Journey', () => {
         await expect(submitButton).toBeVisible({ timeout: 5000 });
 
         // Delete old emails to force backend to send a fresh magic link
-        await emailHelper.deleteAllEmails();
+        await cleanupHelper.deleteAllEmails();
 
         await submitButton.click();
 
@@ -463,7 +474,7 @@ test.describe('User Authentication Journey', () => {
         await expect(submitButton).toBeVisible({ timeout: 5000 });
 
         // Delete old emails to force backend to send a fresh magic link
-        await emailHelper.deleteAllEmails();
+        await cleanupHelper.deleteAllEmails();
 
         await submitButton.click();
 
@@ -585,7 +596,7 @@ test.describe('User Authentication Journey', () => {
         await expect(submitButton).toBeVisible({ timeout: 5000 });
 
         // Delete old emails to force backend to send a fresh magic link
-        await emailHelper.deleteAllEmails();
+        await cleanupHelper.deleteAllEmails();
 
         await submitButton.click();
 
@@ -695,7 +706,7 @@ test.describe('User Authentication Journey', () => {
         await expect(submitButton).toBeVisible({ timeout: 5000 });
 
         // Delete old emails to force backend to send a fresh magic link
-        await emailHelper.deleteAllEmails();
+        await cleanupHelper.deleteAllEmails();
 
         await submitButton.click();
 
@@ -801,7 +812,7 @@ test.describe('User Authentication Journey', () => {
         await expect(submitButton).toBeVisible({ timeout: 5000 });
 
         // Delete old emails to force backend to send a fresh magic link
-        await emailHelper.deleteAllEmails();
+        await cleanupHelper.deleteAllEmails();
 
         await submitButton.click();
 
