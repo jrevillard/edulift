@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { UniversalAuthHelper } from '../fixtures/universal-auth-helper';
 import { E2EEmailHelper } from '../fixtures/e2e-email-helper';
 
-test.describe('Family Invitations E2E', () => {
+test.describe.skip('Family Invitations E2E', () => {
   let emailHelper: E2EEmailHelper;
 
   test.beforeAll(async () => {

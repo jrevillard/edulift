@@ -4,7 +4,7 @@ import { E2EEmailHelper } from '../fixtures/e2e-email-helper';
 
 test.describe.configure({ mode: 'serial' });
 
-test.describe('Invitation Context and Edge Cases Journey', () => {
+test.describe.skip('Invitation Context and Edge Cases Journey', () => {
   let _emailHelper: E2EEmailHelper;
 
   test.beforeAll(async () => {

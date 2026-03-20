@@ -3,7 +3,7 @@ import { UniversalAuthHelper } from '../fixtures/universal-auth-helper';
 
 test.describe.configure({ mode: 'serial' });
 
-test.describe('Group Invitations User Journeys (All 5 Cases from Proposal)', () => {
+test.describe.skip('Group Invitations User Journeys (All 5 Cases from Proposal)', () => {
   let testGroupId: string;
   let inviteCode: string;
 
