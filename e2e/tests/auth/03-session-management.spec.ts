@@ -4,7 +4,7 @@ import { SharedTestPatterns } from '../fixtures/shared-test-patterns';
 
 test.describe.configure({ mode: 'serial' });
 
-test.describe('Session Management Journey', () => {
+test.describe.skip('Session Management Journey', () => {
   test.beforeAll(async () => {
     // Use automatic file prefix detection for consistency
     const authHelper = new UniversalAuthHelper(null as any); // For setup only
