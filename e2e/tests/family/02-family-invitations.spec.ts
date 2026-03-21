@@ -221,15 +221,60 @@ test.describe('Family Invitations E2E', () => {
       await test.step('User with no family accepts invitation', async () => {
         const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
+        expect(invitationUrl).toContain('/families/join?code=');
 
         const recipientContext = await browserContext.browser().newContext();
         const recipientPage = await recipientContext.newPage();
-        const recipientAuth = new UniversalAuthHelper(recipientPage);
+        const recipientAuth = UniversalAuthHelper.forCurrentFile(recipientPage);
 
-        await recipientAuth.acceptInvitation(invitationUrl, recipientEmail);
+        // New user navigates to invitation URL
+        await recipientPage.goto(invitationUrl);
+        await recipientPage.waitForLoadState('networkidle');
+
+        // Verify invitation page is displayed
+        const familyNameElement = recipientPage.locator('[data-testid="UnifiedFamilyInvitationPage-Text-familyName"]');
+        await expect(familyNameElement).toBeVisible({ timeout: 10000 });
+
+        console.log('✅ Invitation page displayed with family name');
+
+        // For unauthenticated new users, first click "Sign In to join" button
+        const signInButton = recipientPage.locator('[data-testid="UnifiedFamilyInvitationPage-Button-signInToJoin"]');
+        await expect(signInButton).toBeVisible({ timeout: 10000 });
+        await signInButton.click();
+
+        // Now the signup form should appear
+        const nameInput = recipientPage.locator('[data-testid="SignupForm-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 10000 });
+
+        const recipientName = `Recipient User 2 ${timestamp}`;
+        await nameInput.fill(recipientName);
+
+        // Submit the signup form to request magic link
+        const submitButton = recipientPage.locator('[data-testid="SignupForm-Button-submit"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+
+        await recipientAuth.waitForAuthenticationStability();
+        await recipientPage.waitForTimeout(2000);
+
+        console.log('✅ New user requested magic link from invitation page');
+
+        // Get magic link from email
+        const recipientMagicLink = await emailHelper.extractMagicLinkForRecipient(recipientEmail);
+        expect(recipientMagicLink).toBeTruthy();
+        expect(recipientMagicLink).toContain('/auth/verify');
+
+        // Verify magic link - this should automatically add user to the family
+        await recipientPage.goto(recipientMagicLink);
+        await recipientPage.waitForLoadState('networkidle');
+
+        // After accepting invitation, should be redirected to dashboard (already has family now)
+        await expect(recipientPage).toHaveURL(/\/dashboard/, { timeout: 20000 });
+
+        console.log('✅ User with no family accepted invitation and joined family');
+
         await recipientContext.close();
-
-        console.log('✅ User with no family accepted invitation');
       });
     });
   });
