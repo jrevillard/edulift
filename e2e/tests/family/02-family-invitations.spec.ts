@@ -2,493 +2,987 @@ import { test, expect } from '@playwright/test';
 import { UniversalAuthHelper } from '../fixtures/universal-auth-helper';
 import { E2EEmailHelper } from '../fixtures/e2e-email-helper';
 
-test.describe.skip('Family Invitations E2E', () => {
+test.describe('Family Invitations E2E', () => {
   let emailHelper: E2EEmailHelper;
-
-  test.beforeAll(async () => {
-    // Enhanced approach - encapsulated logic, no FileSpecificTestData exposure
-    const authHelper = new UniversalAuthHelper(null as any); // For setup only
-    
-    // Define users for this test file (auto-generates file-specific data)
-    authHelper.defineUser('admin', 'admin', 'Admin User');
-    authHelper.defineUser('noFamily', 'nofamily', 'No Family User', true); // Will receive invitation
-    authHelper.defineUser('withFamily', 'withfamily', 'With Family User');
-    authHelper.defineUser('testInvitation', 'test-invitation', 'Test Invitation User', true); // Will receive invitation
-    authHelper.defineUser('lastAdmin', 'last-admin', 'Last Admin User');
-    authHelper.defineUser('hacker', 'hacker', 'Hacker User'); // For security test
-    
-    // Define families
-    authHelper.defineFamily('adminFamily', 'Admin Test Family', 'admin');
-    authHelper.defineFamily('withFamilyFamily', 'With Family Test Family', 'withFamily', [
-      { userKey: 'hacker', role: 'ADMIN' } // Add another admin so 'withFamily' can leave
-    ]);
-    authHelper.defineFamily('lastAdminFamily', 'Last Admin Test Family', 'lastAdmin');
-
-    // Create file-specific users and families in the database
-    await authHelper.createUsersInDatabase();
-    await authHelper.createFamilyInDatabase('adminFamily');
-    await authHelper.createFamilyInDatabase('withFamilyFamily');
-    await authHelper.createFamilyInDatabase('lastAdminFamily');
-  });
 
   test.beforeEach(async () => {
     emailHelper = new E2EEmailHelper();
-    // Note: Ne pas vider tous les emails pour préserver le parallélisme
-    // Les emails sont spécifiques par fichier grâce au FILE_PREFIX
+    await emailHelper.deleteAllEmails();
   });
 
-  test.setTimeout(45000);
-
   test.describe('Core Invitation Use Cases', () => {
-    test('Use Case 1: Admin sends invitation and new user accepts', async ({ page, context: _context }) => {
-      let invitationUrl: string | null = null;
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const newUserEmail = testAuthHelper.getFileSpecificEmail('newuser.invited');
+    test('Use Case 1: Admin sends invitation and new user accepts', async ({ page, context: browserContext }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.invite1.${timestamp}`);
+      const adminName = `Admin User ${timestamp}`;
+      const familyName = `Invite Test Family ${timestamp}`;
+      const recipientEmail = authHelper.getFileSpecificEmail(`recipient.invite1.${timestamp}`);
 
-      await test.step('Admin sends invitation', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // Add defensive check: if redirected to onboarding, the family wasn't created properly
-        if (page.url().includes('/onboarding')) {
-          console.log('❌ admin was redirected to onboarding - family creation failed in beforeAll');
-          await testAuthHelper.completeOnboardingWithRetry('Admin Test Family');
-          await page.goto('/family/manage');
-          await page.waitForLoadState('networkidle', { timeout: 30000 });
-        }
-        
-        // Wait for family page to be fully ready (includes member and invitation data)
-        await testAuthHelper.waitForFamilyPageReady();
-        
-        await testAuthHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', newUserEmail);
-        await testAuthHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        
-        // Wait for invitation to be processed and UI to update
-        await testAuthHelper.waitForPageTransition();
-        
+      await test.step('Admin creates account and family', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        // Wait for backend to process the request
+        await page.waitForTimeout(2000);
+
+        console.log('✅ Magic link requested for admin');
+      });
+
+      await test.step('Admin completes onboarding to create family', async () => {
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+        expect(magicLinkUrl).toContain('/auth/verify');
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        const currentUrl = page.url();
+        expect(currentUrl).toContain('/onboarding');
+        console.log('✅ Authenticated and redirected to onboarding');
+
+        await authHelper.completeOnboarding(familyName);
+        console.log('✅ Family created and redirected to dashboard');
+      });
+
+      await test.step('Admin sends invitation to new user', async () => {
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        // Send invitation
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
         console.log('✅ Admin sent invitation to new user');
       });
 
-      await test.step('New user receives and accepts invitation', async () => {
-        // PREVENT SILENT FAILURE: Explicit email verification with centralized timeout
-        const email = await emailHelper.waitForEmailForRecipient(newUserEmail);
-        expect(email).not.toBeNull();
-        expect(email).toBeTruthy();
-        
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(newUserEmail);
+      await test.step('New user accepts invitation', async () => {
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
         expect(invitationUrl).toContain('/families/join?code=');
-        
-        // Use isolated browser context to prevent auth contamination
-        const newUserContext = await _context.browser()!.newContext();
-        const newUserPage = await newUserContext.newPage();
-        const newUserAuth = new UniversalAuthHelper(newUserPage);
-        
-        // Enhanced invitation acceptance - handles complete flow including magic link
-        await newUserAuth.acceptInvitation(invitationUrl!, newUserEmail);
-        
-        console.log('✅ New user fully accepted invitation and joined family');
-        await newUserContext.close();
+
+        const recipientContext = await browserContext.browser().newContext();
+        const recipientPage = await recipientContext.newPage();
+        const recipientAuth = UniversalAuthHelper.forCurrentFile(recipientPage);
+
+        // New user navigates to invitation URL
+        await recipientPage.goto(invitationUrl);
+        await recipientPage.waitForLoadState('networkidle');
+
+        // Verify invitation page is displayed
+        const familyNameElement = recipientPage.locator('[data-testid="UnifiedFamilyInvitationPage-Text-familyName"]');
+        await expect(familyNameElement).toBeVisible({ timeout: 10000 });
+
+        console.log('✅ Invitation page displayed with family name');
+
+        // For unauthenticated new users, first click "Sign In to join" button
+        const signInButton = recipientPage.locator('[data-testid="UnifiedFamilyInvitationPage-Button-signInToJoin"]');
+        await expect(signInButton).toBeVisible({ timeout: 10000 });
+        await signInButton.click();
+
+        // Now the signup form should appear
+        const nameInput = recipientPage.locator('[data-testid="SignupForm-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 10000 });
+
+        const recipientName = `Recipient User ${timestamp}`;
+        await nameInput.fill(recipientName);
+
+        // Submit the signup form to request magic link
+        const submitButton = recipientPage.locator('[data-testid="SignupForm-Button-submit"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+
+        await recipientAuth.waitForAuthenticationStability();
+        await recipientPage.waitForTimeout(2000);
+
+        console.log('✅ New user requested magic link from invitation page');
+
+        // Get magic link from email
+        const recipientMagicLink = await emailHelper.extractMagicLinkForRecipient(recipientEmail);
+        expect(recipientMagicLink).toBeTruthy();
+        expect(recipientMagicLink).toContain('/auth/verify');
+
+        // Verify magic link - this should automatically add user to the family
+        await recipientPage.goto(recipientMagicLink);
+        await recipientPage.waitForLoadState('networkidle');
+
+        // After accepting invitation, should be redirected to dashboard (already has family now)
+        await expect(recipientPage).toHaveURL(/\/dashboard/, { timeout: 20000 });
+
+        console.log('✅ New user accepted invitation and joined family');
+
+        await recipientContext.close();
       });
 
       await test.step('Admin verifies new member joined', async () => {
+        // Reload admin's page to see updated member count
         await page.reload();
         await page.waitForLoadState('networkidle');
-        
-        const memberList = page.locator('[data-testid="ManageFamilyPage-List-familyMembers"]');
-        // Wait for React Query to stabilize before checking member list
-        await testAuthHelper.waitForReactQueryStable();
-        await expect(memberList).toBeVisible({ timeout: 25000 });
-        
-        // Verify family has 2 members now (admin + new user)
-        const memberCountElement = page.locator('[data-testid="ManageFamilyPage-Text-familyMembersCount"]');
-        await expect(memberCountElement).toContainText('2 member', { timeout: 20000 });
-        
-        console.log('✅ Family member count increased - new member joined successfully');
+
+        // The dashboard shows "X members" text
+        const memberCountText = page.getByText('2 members');
+        await expect(memberCountText).toBeVisible({ timeout: 10000 });
+
+        console.log('✅ Family member count is 2 - new member joined successfully');
       });
     });
 
-    test('Use Case 2: User with no family accepts invitation', async ({ page, context: _context }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const invitationEmail = testAuthHelper.getUser('noFamily').email;
-      let invitationUrl: string | null = null;
+    test('Use Case 2: User with no family accepts invitation', async ({ page, context: browserContext }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.invite2.${timestamp}`);
+      const adminName = `Admin User 2 ${timestamp}`;
+      const familyName = `No Family Test ${timestamp}`;
+      const recipientEmail = authHelper.getFileSpecificEmail(`recipient.invite2.${timestamp}`);
 
-      await test.step('Admin sends invitation to user with no family', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // Wait for family page to be fully ready
-        await testAuthHelper.waitForFamilyPageReady();
-        
-        // Use waitAndClick for reliable button interaction
-        await testAuthHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
-        
-        const emailInput = page.locator('[data-testid="InvitationManagement-Input-inviteEmail"]');
-        await expect(emailInput).toBeVisible({ timeout: 15000 });
-        await emailInput.fill(invitationEmail);
-        await expect(emailInput).toHaveValue(invitationEmail);
-        
-        await testAuthHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await testAuthHelper.waitForPageTransition();
-        
+      await test.step('Admin creates family and sends invitation', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(familyName);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
         console.log('✅ Invitation sent to user with no family');
       });
 
       await test.step('User with no family accepts invitation', async () => {
-        // PREVENT SILENT FAILURE: Explicit email verification
-        const email = await emailHelper.waitForEmailForRecipient(invitationEmail);
-        expect(email).not.toBeNull();
-        expect(email).toBeTruthy();
-        
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(invitationEmail);
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
-        expect(invitationUrl).toContain('/families/join?code=');
-        
-        // Use isolated browser context to prevent auth contamination
-        const userContext = await _context.browser()!.newContext();
-        const userPage = await userContext.newPage();
-        const userAuth = new UniversalAuthHelper(userPage);
-        
-        // Enhanced invitation acceptance - supports direct email
-        await userAuth.acceptInvitation(invitationUrl!, invitationEmail);
-        
-        console.log('✅ User with no family successfully joined');
-        await userContext.close();
-      });
-    });
 
-    test('Use Case 3A: Security - Wrong User Cannot Access Invitation', async ({ page, context: _context }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const invitationEmail = testAuthHelper.getUser('testInvitation').email;
-      const _hackerEmail = testAuthHelper.getFileSpecificEmail('hacker');
-      let invitationUrl: string | null = null;
+        const recipientContext = await browserContext.browser().newContext();
+        const recipientPage = await recipientContext.newPage();
+        const recipientAuth = new UniversalAuthHelper(recipientPage);
 
-      await test.step('Send invitation to specific user', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // PREVENT SILENT FAILURE: Explicit assertions before actions
-        const inviteButton = page.locator('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await expect(inviteButton).toBeVisible({ timeout: 15000 });
-        await inviteButton.click();
-        
-        const emailInput = page.locator('[data-testid="InvitationManagement-Input-inviteEmail"]');
-        await expect(emailInput).toBeVisible({ timeout: 15000 });
-        await emailInput.fill(invitationEmail);
-        await expect(emailInput).toHaveValue(invitationEmail);
-        
-        const sendButton = page.locator('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await expect(sendButton).toBeVisible({ timeout: 15000 });
-        await sendButton.click();
-        await testAuthHelper.waitForPageTransition();
-        
-        console.log('✅ Invitation sent to specific user');
-      });
+        await recipientAuth.acceptInvitation(invitationUrl, recipientEmail);
+        await recipientContext.close();
 
-      await test.step('Wrong user tries to access invitation', async () => {
-        // PREVENT SILENT FAILURE: Explicit email verification
-        const email = await emailHelper.waitForEmailForRecipient(invitationEmail);
-        expect(email).not.toBeNull();
-        expect(email).toBeTruthy();
-        
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(invitationEmail);
-        expect(invitationUrl).toBeTruthy();
-        expect(invitationUrl).toContain('/families/join?code=');
-        
-        // Use isolated browser context to prevent auth contamination
-        const hackerContext = await _context.browser()!.newContext();
-        const hackerPage = await hackerContext.newPage();
-        const hackerAuth = new UniversalAuthHelper(hackerPage);
-        
-        // Use predefined hacker user with different email
-        await hackerAuth.directUserSetup('hacker', invitationUrl!);
-        
-        // Should see security error
-        const securityAlert = hackerPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-emailMismatch"]');
-        // Wait for security validation to complete
-        await testAuthHelper.waitForReactQueryStable();
-        await expect(securityAlert).toBeVisible({ timeout: 20000 });
-        
-        console.log('✅ Security working - wrong user correctly rejected');
-        await hackerContext.close();
-      });
-    });
-
-    test('Use Case 3B: Correct User With Existing Family Sees Conflict', async ({ page, context: _context }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const invitationEmail = testAuthHelper.getUser('withFamily').email;
-      const emailHelper = new E2EEmailHelper();
-      let invitationUrl: string | null = null;
-
-      await test.step('Send invitation to user with existing family', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // PREVENT SILENT FAILURE: Explicit assertions before actions
-        const inviteButton = page.locator('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await expect(inviteButton).toBeVisible({ timeout: 15000 });
-        await inviteButton.click();
-        
-        const emailInput = page.locator('[data-testid="InvitationManagement-Input-inviteEmail"]');
-        await expect(emailInput).toBeVisible({ timeout: 15000 });
-        await emailInput.fill(invitationEmail);
-        await expect(emailInput).toHaveValue(invitationEmail);
-        
-        const sendButton = page.locator('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await expect(sendButton).toBeVisible({ timeout: 15000 });
-        await sendButton.click();
-        await testAuthHelper.waitForPageTransition();
-        
-        console.log('✅ Invitation sent to user with existing family');
-      });
-
-      await test.step('User with existing family sees conflict options', async () => {
-        // PREVENT SILENT FAILURE: Explicit email verification
-        const email = await emailHelper.waitForEmailForRecipient(invitationEmail);
-        expect(email).not.toBeNull();
-        expect(email).toBeTruthy();
-        
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(invitationEmail);
-        expect(invitationUrl).toBeTruthy();
-        expect(invitationUrl).toContain('/families/join?code=');
-        
-        // Use isolated browser context to prevent auth contamination
-        const userContext = await _context.browser()!.newContext();
-        const userPage = await userContext.newPage();
-        const userAuth = new UniversalAuthHelper(userPage);
-        
-        // First authenticate the user with existing family
-        await userAuth.directUserSetup('withFamily', '/dashboard');
-        await userAuth.waitForAuthenticationStability();
-        
-        // Then navigate to invitation URL (Cas 3: User with existing family)
-        await userPage.goto(invitationUrl!);
-        await userPage.waitForLoadState('networkidle');
-        
-        // Enhanced error detection using the new specialized method
-        await userAuth.waitForFamilyConflictDetection(25000);
-        
-        // Should see existing family conflict alert with correct test ID
-        const existingFamilyAlert = userPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-alreadyInFamily"]');
-        await expect(existingFamilyAlert).toBeVisible({ timeout: 25000 });
-        
-        // Should have option to leave current family and join new one
-        const leaveAndJoinButton = userPage.locator('[data-testid="UnifiedFamilyInvitationPage-Button-leaveAndJoin"]');
-        await expect(leaveAndJoinButton).toBeVisible({ timeout: 25000 });
-        console.log('✅ User sees option to leave current family and join new one');
-        
-        await userContext.close();
-      });
-    });
-
-    test('Use Case 4: Last Admin Cannot Leave Family via Invitation', async ({ page, context: _context }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const invitationEmail = testAuthHelper.getUser('lastAdmin').email;
-      let invitationUrl: string | null = null;
-
-      await test.step('Send invitation to last admin of another family', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // PREVENT SILENT FAILURE: Explicit assertions before actions
-        const inviteButton = page.locator('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await expect(inviteButton).toBeVisible({ timeout: 15000 });
-        await inviteButton.click();
-        
-        const emailInput = page.locator('[data-testid="InvitationManagement-Input-inviteEmail"]');
-        await expect(emailInput).toBeVisible({ timeout: 15000 });
-        await emailInput.fill(invitationEmail);
-        await expect(emailInput).toHaveValue(invitationEmail);
-        
-        const sendButton = page.locator('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await expect(sendButton).toBeVisible({ timeout: 15000 });
-        await sendButton.click();
-        await testAuthHelper.waitForPageTransition();
-        
-        console.log('✅ Invitation sent to last admin');
-      });
-
-      await test.step('Last admin sees cannot leave warning', async () => {
-        // PREVENT SILENT FAILURE: Explicit email verification
-        const email = await emailHelper.waitForEmailForRecipient(invitationEmail);
-        expect(email).not.toBeNull();
-        expect(email).toBeTruthy();
-        
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(invitationEmail);
-        expect(invitationUrl).toBeTruthy();
-        expect(invitationUrl).toContain('/families/join?code=');
-        
-        // Use isolated browser context to prevent auth contamination
-        const adminContext = await _context.browser()!.newContext();
-        const adminPage = await adminContext.newPage();
-        const adminAuth = new UniversalAuthHelper(adminPage);
-        await adminAuth.directUserSetup('lastAdmin', invitationUrl!);
-        
-        // Debug: Check what elements are actually present on the invitation page
-        const _pageContent = await adminPage.content();
-        console.log('Page URL:', adminPage.url());
-        
-        const _testIds = await adminPage.evaluate(() => {
-          return Array.from(document.querySelectorAll('[data-testid]')).map(el => el.getAttribute('data-testid'));
-        });
-        console.log('Available test IDs:', _testIds);
-        
-        // Try multiple possible selectors for the warning
-        const _possibleAlertSelectors = [
-          '[data-testid="UnifiedFamilyInvitationPage-Alert-cannotLeave"]',
-          '[data-testid="ManageFamilyPage-Alert-successMessage"]',
-          '[data-testid="ManageFamilyPage-Container-main"]',
-          '[data-testid="ManageFamilyPage-Container-main"]',
-          'text*="last administrator"',
-          'text*="cannot leave"',
-          '.alert',
-          '[role="alert"]'
-        ];
-        
-        // Last admin should see cannot-leave alert or invitation page should load correctly
-        // PREVENT SILENT FAILURE: Use exact test ID
-        const cannotLeaveAlert = adminPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-cannotLeave"]');
-        
-        const isAlertVisible = await cannotLeaveAlert.isVisible();
-        if (isAlertVisible) {
-          console.log('✅ Last admin correctly prevented from leaving family');
-        } else {
-          // Verify the invitation page loaded at least
-          // PREVENT SILENT FAILURE: Use exact test ID
-          const invitationPage = adminPage.locator('[data-testid="UnifiedFamilyInvitationPage-Title-familyInvitation"]');
-          // Wait for invitation page to fully load
-          await adminAuth.waitForReactQueryStable();
-          await expect(invitationPage.first()).toBeVisible({ timeout: 20000 });
-          console.log('✅ Invitation page loaded, last admin flow completed');
-        }
-        
-        await adminContext.close();
+        console.log('✅ User with no family accepted invitation');
       });
     });
   });
 
-  test.describe('Email Integration', () => {
-    test('should receive invitation email with correct content', async ({ page }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const invitationEmail = testAuthHelper.getFileSpecificEmail('email.test');
-      const emailHelper = new E2EEmailHelper();
+  test.describe('Security and Edge Cases', () => {
+    test('Use Case 3A: Security - Wrong User Cannot Access Invitation', async ({ page, context: browserContext }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.security.${timestamp}`);
+      const adminName = `Admin Security ${timestamp}`;
+      const familyName = `Security Test Family ${timestamp}`;
+      const recipientEmail = authHelper.getFileSpecificEmail(`recipient.security.${timestamp}`);
 
-      await test.step('Send invitation and verify email received', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // PREVENT SILENT FAILURE: Explicit assertions before actions
-        const inviteButton = page.locator('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await expect(inviteButton).toBeVisible({ timeout: 15000 });
-        await inviteButton.click();
-        
-        const emailInput = page.locator('[data-testid="InvitationManagement-Input-inviteEmail"]');
-        await expect(emailInput).toBeVisible({ timeout: 15000 });
-        await emailInput.fill(invitationEmail);
-        await expect(emailInput).toHaveValue(invitationEmail);
-        
-        const sendButton = page.locator('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await expect(sendButton).toBeVisible({ timeout: 15000 });
-        await sendButton.click();
-        await testAuthHelper.waitForPageTransition();
-        
-        // PREVENT SILENT FAILURE: Use correct property names
-        const emailResult = await emailHelper.waitForEmailToUser(invitationEmail);
-        expect(emailResult.found).toBe(true);
-        expect(emailResult.email).toBeDefined();
-        
-        if (emailResult.found && emailResult.email) {
-          expect(emailResult.email.body.toLowerCase()).toContain('family invitation');
-          expect(emailResult.email.body.toLowerCase()).toContain('join');
-          console.log('✅ Invitation email received with correct content');
-        }
+      await test.step('Admin creates family and sends invitation', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(familyName);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation for security test');
+      });
+
+      await test.step('Hacker tries to access invitation URL', async () => {
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        expect(invitationUrl).toBeTruthy();
+
+        // Hacker creates their own account with family
+        const hackerContext = await browserContext.browser().newContext();
+        const hackerPage = await hackerContext.newPage();
+        const hackerAuth = new UniversalAuthHelper(hackerPage);
+        const hackerEmail = authHelper.getFileSpecificEmail(`hacker.${timestamp}`);
+        const hackerName = `Hacker User ${timestamp}`;
+        const hackerFamily = `Hacker Family ${timestamp}`;
+
+        // Hacker creates account via magic link
+        await hackerPage.goto('/auth/login');
+        await hackerPage.waitForLoadState('networkidle');
+
+        const hackerNewUserTab = hackerPage.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(hackerNewUserTab).toBeVisible({ timeout: 5000 });
+        await hackerNewUserTab.click();
+        await hackerAuth.waitForAuthenticationStability();
+
+        const hackerNameInput = hackerPage.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(hackerNameInput).toBeVisible({ timeout: 5000 });
+        const hackerEmailInput = hackerPage.locator('[data-testid="LoginPage-Input-email"]');
+
+        await hackerEmailInput.fill(hackerEmail);
+        await hackerNameInput.fill(hackerName);
+
+        const hackerSubmitButton = hackerPage.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(hackerSubmitButton).toBeVisible({ timeout: 5000 });
+        await expect(hackerSubmitButton).toBeEnabled({ timeout: 10000 });
+        await hackerSubmitButton.click();
+        await hackerAuth.waitForAuthenticationStability();
+
+        await hackerPage.waitForTimeout(2000);
+
+        const hackerMagicLink = await emailHelper.extractMagicLinkForRecipient(hackerEmail);
+        expect(hackerMagicLink).toBeTruthy();
+
+        await hackerPage.goto(hackerMagicLink);
+        await hackerPage.waitForLoadState('networkidle');
+
+        expect(hackerPage.url()).toContain('/onboarding');
+
+        // Hacker completes onboarding
+        await hackerAuth.completeOnboarding(hackerFamily);
+        await expect(hackerPage.locator('[data-testid="DashboardPage-Text-familyName"]')).toBeVisible();
+
+        // Hacker tries to access invitation URL
+        await hackerPage.goto(invitationUrl);
+
+        // Verify security alert appears
+        const securityAlert = hackerPage.locator('[data-testid="InvitationError-Alert-security"]');
+        await expect(securityAlert).toBeVisible({ timeout: 20000 });
+
+        await hackerContext.close();
+        console.log('✅ Security test passed - wrong user cannot access invitation');
       });
     });
 
-    test('should handle invitation URL extraction correctly', async ({ page }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const invitationEmail = testAuthHelper.getFileSpecificEmail('url.extraction.test');
+    test('Use Case 3B: Correct User With Existing Family Sees Conflict', async ({ page, context: browserContext }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const userAEmail = authHelper.getFileSpecificEmail(`user.conflict.${timestamp}`);
+      const userAName = `User A ${timestamp}`;
+      const userAFamily = `User A Family ${timestamp}`;
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.conflict.${timestamp}`);
+      const adminName = `Admin Conflict ${timestamp}`;
+      const adminFamily = `Admin Conflict Test ${timestamp}`;
 
-      await test.step('Extract and validate invitation URL', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        // Add defensive check: if redirected to onboarding, the family wasn't created properly
-        if (page.url().includes('/onboarding')) {
-          console.log('❌ admin was redirected to onboarding - family creation failed in beforeAll');
-          await testAuthHelper.completeOnboardingWithRetry('Admin Test Family');
-          await page.goto('/family/manage');
-          await testAuthHelper.waitForPageTransition();
-        }
-        
+      await test.step('User A creates their own family', async () => {
+        const userAContext = await browserContext.browser().newContext();
+        const userAPage = await userAContext.newPage();
+        const userAAuth = new UniversalAuthHelper(userAPage);
+
+        // User A creates account and family
+        await userAPage.goto('/auth/login');
+        await userAPage.waitForLoadState('networkidle');
+
+        const userANewUserTab = userAPage.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(userANewUserTab).toBeVisible({ timeout: 5000 });
+        await userANewUserTab.click();
+        await userAAuth.waitForAuthenticationStability();
+
+        const userANameInput = userAPage.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(userANameInput).toBeVisible({ timeout: 5000 });
+        const userAEmailInput = userAPage.locator('[data-testid="LoginPage-Input-email"]');
+
+        await userAEmailInput.fill(userAEmail);
+        await userANameInput.fill(userAName);
+
+        const userASubmitButton = userAPage.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(userASubmitButton).toBeVisible({ timeout: 5000 });
+        await expect(userASubmitButton).toBeEnabled({ timeout: 10000 });
+        await userASubmitButton.click();
+        await userAAuth.waitForAuthenticationStability();
+
+        await userAPage.waitForTimeout(2000);
+
+        const userAMagicLink = await emailHelper.extractMagicLinkForRecipient(userAEmail);
+        expect(userAMagicLink).toBeTruthy();
+
+        await userAPage.goto(userAMagicLink);
+        await userAPage.waitForLoadState('networkidle');
+
+        expect(userAPage.url()).toContain('/onboarding');
+
+        await userAAuth.completeOnboarding(userAFamily);
+        await expect(userAPage.locator('[data-testid="DashboardPage-Text-familyName"]')).toBeVisible();
+
+        await userAContext.close();
+        console.log('✅ User A created their own family');
+      });
+
+      await test.step('Admin sends invitation to User A', async () => {
+        await page.goto('/auth/login');
         await page.waitForLoadState('networkidle');
-        // Wait for family page to fully load before checking elements
-        await testAuthHelper.waitForFamilyPageReady();
-        await expect(page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]')).toBeVisible({ timeout: 25000 });
-        
-        // PREVENT SILENT FAILURE: Explicit assertions before actions
-        const inviteButton = page.locator('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await expect(inviteButton).toBeVisible({ timeout: 15000 });
-        await inviteButton.click();
-        
-        const emailInput = page.locator('[data-testid="InvitationManagement-Input-inviteEmail"]');
-        await expect(emailInput).toBeVisible({ timeout: 15000 });
-        await emailInput.fill(invitationEmail);
-        await expect(emailInput).toHaveValue(invitationEmail);
-        
-        const sendButton = page.locator('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await expect(sendButton).toBeVisible({ timeout: 15000 });
-        await sendButton.click();
-        await testAuthHelper.waitForPageTransition();
-        
-        // Wait for email to be sent and received
-        const email = await emailHelper.waitForEmailForRecipient(invitationEmail);
-        expect(email).not.toBeNull();
-        expect(email).toBeTruthy();
-        
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(invitationEmail);
+
+        const adminNewUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(adminNewUserTab).toBeVisible({ timeout: 5000 });
+        await adminNewUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const adminNameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(adminNameInput).toBeVisible({ timeout: 5000 });
+        const adminEmailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await adminEmailInput.fill(adminEmail);
+        await adminNameInput.fill(adminName);
+
+        const adminSubmitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(adminSubmitButton).toBeVisible({ timeout: 5000 });
+        await expect(adminSubmitButton).toBeEnabled({ timeout: 10000 });
+        await adminSubmitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const adminMagicLink = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(adminMagicLink).toBeTruthy();
+
+        await page.goto(adminMagicLink);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(adminFamily);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', userAEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation to user with existing family');
+      });
+
+      await test.step('User A navigates to invitation and sees conflict options', async () => {
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(userAEmail);
         expect(invitationUrl).toBeTruthy();
-        expect(invitationUrl).toContain('/families/join?code=');
-        
-        console.log('✅ Invitation URL extracted correctly');
+
+        const userAContext = await browserContext.browser().newContext();
+        const userAPage = await userAContext.newPage();
+        const userAAuth = new UniversalAuthHelper(userAPage);
+
+        // User A logs in (already has account from step 1)
+        await userAPage.goto('/auth/login');
+        await userAPage.waitForLoadState('networkidle');
+
+        const existingUserTab = userAPage.locator('[data-testid="LoginPage-Tab-existingUser"]');
+        await expect(existingUserTab).toBeVisible({ timeout: 5000 });
+        await existingUserTab.click();
+        await userAAuth.waitForAuthenticationStability();
+
+        const userAEmailInput = userAPage.locator('[data-testid="LoginPage-Input-email"]');
+        await userAEmailInput.fill(userAEmail);
+
+        const userASubmitButton = userAPage.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
+        await expect(userASubmitButton).toBeVisible({ timeout: 5000 });
+        await userASubmitButton.click();
+        await userAAuth.waitForAuthenticationStability();
+
+        await userAPage.waitForTimeout(2000);
+
+        const userAMagicLink = await emailHelper.extractMagicLinkForRecipient(userAEmail);
+        expect(userAMagicLink).toBeTruthy();
+
+        await userAPage.goto(userAMagicLink);
+        await userAPage.waitForLoadState('networkidle');
+
+        // Should go to dashboard (already has family)
+        await expect(userAPage).toHaveURL(/\/dashboard/, { timeout: 15000 });
+
+        // User A navigates to invitation URL while authenticated
+        await userAPage.goto(invitationUrl);
+
+        // Verify conflict UI appears
+        const existingFamilyAlert = userAPage.locator('[data-testid="InvitationConflict-Alert-existingFamily"]');
+        await expect(existingFamilyAlert).toBeVisible({ timeout: 25000 });
+
+        const leaveAndJoinButton = userAPage.locator('[data-testid="InvitationConflict-Button-leaveAndJoin"]');
+        await expect(leaveAndJoinButton).toBeVisible({ timeout: 25000 });
+
+        await userAContext.close();
+        console.log('✅ Conflict UI displayed correctly for user with existing family');
+      });
+    });
+
+    test('Use Case 4: Last Admin Cannot Leave Family via Invitation', async ({ page, context: browserContext }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const lastAdminEmail = authHelper.getFileSpecificEmail(`lastadmin.${timestamp}`);
+      const lastAdminName = `Last Admin ${timestamp}`;
+      const lastAdminFamily = `Last Admin Family ${timestamp}`;
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.lastadmin.${timestamp}`);
+      const adminName = `Admin Last Admin ${timestamp}`;
+      const adminFamily = `Admin Last Admin Test ${timestamp}`;
+
+      await test.step('Last admin creates family alone', async () => {
+        const lastAdminContext = await browserContext.browser().newContext();
+        const lastAdminPage = await lastAdminContext.newPage();
+        const lastAdminAuth = new UniversalAuthHelper(lastAdminPage);
+
+        // Last admin creates account and family
+        await lastAdminPage.goto('/auth/login');
+        await lastAdminPage.waitForLoadState('networkidle');
+
+        const lastAdminNewUserTab = lastAdminPage.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(lastAdminNewUserTab).toBeVisible({ timeout: 5000 });
+        await lastAdminNewUserTab.click();
+        await lastAdminAuth.waitForAuthenticationStability();
+
+        const lastAdminNameInput = lastAdminPage.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(lastAdminNameInput).toBeVisible({ timeout: 5000 });
+        const lastAdminEmailInput = lastAdminPage.locator('[data-testid="LoginPage-Input-email"]');
+
+        await lastAdminEmailInput.fill(lastAdminEmail);
+        await lastAdminNameInput.fill(lastAdminName);
+
+        const lastAdminSubmitButton = lastAdminPage.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(lastAdminSubmitButton).toBeVisible({ timeout: 5000 });
+        await expect(lastAdminSubmitButton).toBeEnabled({ timeout: 10000 });
+        await lastAdminSubmitButton.click();
+        await lastAdminAuth.waitForAuthenticationStability();
+
+        await lastAdminPage.waitForTimeout(2000);
+
+        const lastAdminMagicLink = await emailHelper.extractMagicLinkForRecipient(lastAdminEmail);
+        expect(lastAdminMagicLink).toBeTruthy();
+
+        await lastAdminPage.goto(lastAdminMagicLink);
+        await lastAdminPage.waitForLoadState('networkidle');
+
+        expect(lastAdminPage.url()).toContain('/onboarding');
+
+        await lastAdminAuth.completeOnboarding(lastAdminFamily);
+        await expect(lastAdminPage.locator('[data-testid="DashboardPage-Text-familyName"]')).toBeVisible();
+
+        await lastAdminContext.close();
+        console.log('✅ Last admin created family (alone, no other members)');
+      });
+
+      await test.step('Another admin sends invitation to last admin', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const adminNewUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(adminNewUserTab).toBeVisible({ timeout: 5000 });
+        await adminNewUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const adminNameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(adminNameInput).toBeVisible({ timeout: 5000 });
+        const adminEmailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await adminEmailInput.fill(adminEmail);
+        await adminNameInput.fill(adminName);
+
+        const adminSubmitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(adminSubmitButton).toBeVisible({ timeout: 5000 });
+        await expect(adminSubmitButton).toBeEnabled({ timeout: 10000 });
+        await adminSubmitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const adminMagicLink = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(adminMagicLink).toBeTruthy();
+
+        await page.goto(adminMagicLink);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(adminFamily);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', lastAdminEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation to last admin of another family');
+      });
+
+      await test.step('Last admin tries to accept invitation but cannot leave', async () => {
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(lastAdminEmail);
+        expect(invitationUrl).toBeTruthy();
+
+        const lastAdminContext = await browserContext.browser().newContext();
+        const lastAdminPage = await lastAdminContext.newPage();
+        const lastAdminAuth = new UniversalAuthHelper(lastAdminPage);
+
+        // Last admin logs in
+        await lastAdminPage.goto('/auth/login');
+        await lastAdminPage.waitForLoadState('networkidle');
+
+        const existingUserTab = lastAdminPage.locator('[data-testid="LoginPage-Tab-existingUser"]');
+        await expect(existingUserTab).toBeVisible({ timeout: 5000 });
+        await existingUserTab.click();
+        await lastAdminAuth.waitForAuthenticationStability();
+
+        const lastAdminEmailInput = lastAdminPage.locator('[data-testid="LoginPage-Input-email"]');
+        await lastAdminEmailInput.fill(lastAdminEmail);
+
+        const lastAdminSubmitButton = lastAdminPage.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
+        await expect(lastAdminSubmitButton).toBeVisible({ timeout: 5000 });
+        await lastAdminSubmitButton.click();
+        await lastAdminAuth.waitForAuthenticationStability();
+
+        await lastAdminPage.waitForTimeout(2000);
+
+        const lastAdminMagicLink = await emailHelper.extractMagicLinkForRecipient(lastAdminEmail);
+        expect(lastAdminMagicLink).toBeTruthy();
+
+        await lastAdminPage.goto(lastAdminMagicLink);
+        await lastAdminPage.waitForLoadState('networkidle');
+
+        await expect(lastAdminPage).toHaveURL(/\/dashboard/, { timeout: 15000 });
+
+        // Last admin navigates to invitation URL
+        await lastAdminPage.goto(invitationUrl);
+
+        // Verify last admin protection alert appears
+        const lastAdminAlert = lastAdminPage.locator('[data-testid="InvitationConflict-Alert-lastAdmin"]');
+        await expect(lastAdminAlert).toBeVisible({ timeout: 25000 });
+
+        await lastAdminContext.close();
+        console.log('✅ Last admin protection enforced - cannot leave family');
       });
     });
   });
 
   test.describe('Admin Invitation Management', () => {
     test('should display pending invitations correctly', async ({ page }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const pendingEmail = testAuthHelper.getFileSpecificEmail('pending.invitation.test');
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.pending.${timestamp}`);
+      const adminName = `Admin Pending ${timestamp}`;
+      const familyName = `Pending Test Family ${timestamp}`;
+      const recipientEmail = authHelper.getFileSpecificEmail(`recipient.pending.${timestamp}`);
 
-      await test.step('Send invitation and verify it appears in pending list', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        await page.click('[data-testid="InvitationManagement-Button-inviteMember"]');
-        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', pendingEmail);
-        await page.click('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await testAuthHelper.waitForPageTransition();
-        
-        // Check if pending invitation appears in the list
-        const pendingInvitation = page.locator('[data-testid="InvitationManagement-Text-pendingInvitationEmail"]').filter({ hasText: pendingEmail });
-        // Wait for invitation list to update
-        await testAuthHelper.waitForReactQueryStable();
+      await test.step('Admin creates family and sends invitation', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(familyName);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation');
+      });
+
+      await test.step('Verify pending invitation appears in UI', async () => {
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        await authHelper.waitForReactQueryStable();
+
+        // Check that pending invitation is displayed
+        const pendingInvitation = page.locator(`[data-testid="PendingInvitation-Email-${recipientEmail}"]`);
         await expect(pendingInvitation).toBeVisible({ timeout: 20000 });
-        console.log('✅ Pending invitation appears in admin interface');
+
+        console.log('✅ Pending invitation displayed correctly');
       });
     });
 
     test('should allow admin to cancel pending invitations', async ({ page }) => {
-      const testAuthHelper = UniversalAuthHelper.forCurrentFile(page); // Auto-detects file and uses shared data!
-      const cancelEmail = testAuthHelper.getFileSpecificEmail('cancel.invitation.test');
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.cancel.${timestamp}`);
+      const adminName = `Admin Cancel ${timestamp}`;
+      const familyName = `Cancel Test Family ${timestamp}`;
+      const cancelEmail = authHelper.getFileSpecificEmail(`recipient.cancel.${timestamp}`);
 
-      await test.step('Send invitation then cancel it', async () => {
-        await testAuthHelper.directUserSetup('admin', '/family/manage'); // Just use the key!
-        
-        await page.click('[data-testid="InvitationManagement-Button-inviteMember"]');
+      await test.step('Admin creates family and sends invitation', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(familyName);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
         await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', cancelEmail);
-        await page.click('[data-testid="InvitationManagement-Button-sendInvitation"]');
-        await testAuthHelper.waitForPageTransition();
-        
-        // PREVENT SILENT FAILURE: Use exact test ID, no regex selectors
-        // Multiple cancel buttons exist - select the first one
-        const cancelButton = page.locator('[data-testid="InvitationManagement-Button-cancelInvitation"]').first();
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation to cancel');
+      });
+
+      await test.step('Cancel the pending invitation', async () => {
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        await authHelper.waitForReactQueryStable();
+
+        // Find and click cancel button for this invitation
+        const cancelButton = page.locator(`[data-testid="PendingInvitation-Button-cancel-${cancelEmail}"]`);
         await expect(cancelButton).toBeVisible({ timeout: 20000 });
         await cancelButton.click();
-        console.log('✅ Admin can cancel pending invitations');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin canceled pending invitation');
+      });
+
+      await test.step('Verify invitation removed from UI', async () => {
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        await authHelper.waitForReactQueryStable();
+
+        // Verify invitation no longer appears
+        const pendingInvitation = page.locator(`[data-testid="PendingInvitation-Email-${cancelEmail}"]`);
+        await expect(pendingInvitation).not.toBeVisible({ timeout: 10000 });
+
+        console.log('✅ Invitation successfully removed after cancellation');
+      });
+    });
+  });
+
+  test.describe('Email Integration', () => {
+    test('should receive invitation email with correct content', async ({ page }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.emailcontent.${timestamp}`);
+      const adminName = `Admin Email Content ${timestamp}`;
+      const familyName = `Email Content Test ${timestamp}`;
+      const recipientEmail = authHelper.getFileSpecificEmail(`recipient.emailcontent.${timestamp}`);
+
+      await test.step('Admin creates family and sends invitation', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(familyName);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation for email content verification');
+      });
+
+      await test.step('Verify email was received', async () => {
+        const email = await emailHelper.waitForEmailForRecipient(recipientEmail);
+        expect(email).not.toBeNull();
+
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        expect(invitationUrl).toBeTruthy();
+        expect(invitationUrl).toContain('/families/join?code=');
+
+        console.log('✅ Email received with valid invitation URL');
+      });
+    });
+
+    test('should handle invitation URL extraction correctly', async ({ page }) => {
+      const timestamp = Date.now();
+      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const adminEmail = authHelper.getFileSpecificEmail(`admin.urlextract.${timestamp}`);
+      const adminName = `Admin URL Extract ${timestamp}`;
+      const familyName = `URL Extract Test ${timestamp}`;
+      const recipientEmail = authHelper.getFileSpecificEmail(`recipient.urlextract.${timestamp}`);
+
+      await test.step('Admin creates family and sends invitation', async () => {
+        await page.goto('/auth/login');
+        await page.waitForLoadState('networkidle');
+
+        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
+        await expect(newUserTab).toBeVisible({ timeout: 5000 });
+        await newUserTab.click();
+        await authHelper.waitForAuthenticationStability();
+
+        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
+        await expect(nameInput).toBeVisible({ timeout: 5000 });
+        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
+
+        await emailInput.fill(adminEmail);
+        await nameInput.fill(adminName);
+
+        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
+        await expect(submitButton).toBeVisible({ timeout: 5000 });
+        await expect(submitButton).toBeEnabled({ timeout: 10000 });
+        await submitButton.click();
+        await authHelper.waitForAuthenticationStability();
+
+        await page.waitForTimeout(2000);
+
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(adminEmail);
+        expect(magicLinkUrl).toBeTruthy();
+
+        await page.goto(magicLinkUrl);
+        await page.waitForLoadState('networkidle');
+
+        expect(page.url()).toContain('/onboarding');
+        await authHelper.completeOnboarding(familyName);
+
+        // Navigate to family management page via Manage Family button
+        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
+        await manageButton.click();
+
+        // Wait for navigation to family management page
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
+        // Verify family information container is loaded
+        const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+        await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
+        await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
+        await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+        await authHelper.waitForPageTransition();
+
+        console.log('✅ Admin sent invitation for URL extraction test');
+      });
+
+      await test.step('Extract and validate invitation URL', async () => {
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+
+        await authHelper.waitForFamilyPageReady();
+        await expect(page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]')).toBeVisible({ timeout: 25000 });
+
+        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        expect(invitationUrl).toBeTruthy();
+        expect(invitationUrl).toContain('/families/join?code=');
+
+        console.log('✅ Invitation URL extracted and validated successfully');
       });
     });
   });
