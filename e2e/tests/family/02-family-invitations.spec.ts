@@ -768,23 +768,78 @@ test.describe('Family Invitations E2E', () => {
         const familyInfo = page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
         await expect(familyInfo).toBeVisible({ timeout: 10000 });
 
+        // Track all API calls
+        const apiCalls: { url: string; method: string; status?: number }[] = [];
+        page.on('request', request => {
+          if (request.url().includes('/api/')) {
+            apiCalls.push({ url: request.url(), method: request.method() });
+            console.log(`📤 API Request: ${request.method()} ${request.url()}`);
+          }
+        });
+
+        // Track console logs from frontend
+        page.on('console', msg => {
+          const text = msg.text();
+          // Capture all emoji-prefixed logs for debugging
+          if (text.match(/^[🔍✅❌⚠️🔄🚨]/) || text.includes('Redirecting') || text.includes('checking redirect')) {
+            console.log(`🖥️  Frontend: ${text}`);
+          }
+        });
+
+        page.on('response', async response => {
+          if (response.url().includes('/api/')) {
+            const status = response.status();
+            const url = response.url();
+            console.log(`📥 API Response [${status}] ${url}`);
+
+            // Log response body for invitations endpoint
+            if (url.includes('/invitations')) {
+              try {
+                const body = await response.json();
+                console.log(`📄 Response body:`, JSON.stringify(body, null, 2));
+              } catch {
+                // Not JSON
+              }
+            }
+          }
+        });
+
         await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
         await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', recipientEmail);
         await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+
+        // Check URL immediately after clicking send
+        console.log(`📍 URL immediately after clicking send: ${page.url()}`);
+
+        // Wait for dialog to close and component to update
+        await page.waitForSelector('[data-testid="InvitationManagement-Dialog-inviteDialog"]', { state: 'hidden', timeout: 10000 }).catch(() => {
+          // Dialog might have different structure, just wait a bit
+          console.log('⚠️ Dialog selector not found, waiting for page transition instead');
+        });
+
+        // Check URL after dialog closes
+        console.log(`📍 URL after dialog closes: ${page.url()}`);
+
         await authHelper.waitForPageTransition();
 
-        console.log('✅ Admin sent invitation');
+        // Check URL after page transition
+        console.log(`📍 URL after page transition: ${page.url()}`);
+
+        console.log(`✅ Admin sent invitation. Total API calls tracked: ${apiCalls.length}`);
       });
 
       await test.step('Verify pending invitation appears in UI', async () => {
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-
+        // The component refreshes the invitations list after sending
+        // Wait for React Query to stabilize and component to update
         await authHelper.waitForReactQueryStable();
+        await page.waitForTimeout(3000);
 
-        // Check that pending invitation is displayed
-        const pendingInvitation = page.locator(`[data-testid="PendingInvitation-Email-${recipientEmail}"]`);
-        await expect(pendingInvitation).toBeVisible({ timeout: 20000 });
+        // Log current URL to debug
+        console.log('📍 Current URL:', page.url());
+
+        // Check that pending invitation is displayed using the email text
+        const pendingInvitationEmail = page.locator('[data-testid="InvitationManagement-Text-pendingInvitationEmail"]', { hasText: recipientEmail });
+        await expect(pendingInvitationEmail).toBeVisible({ timeout: 20000 });
 
         console.log('✅ Pending invitation displayed correctly');
       });
@@ -846,20 +901,31 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-inviteMember"]');
         await page.fill('[data-testid="InvitationManagement-Input-inviteEmail"]', cancelEmail);
         await authHelper.waitAndClick('[data-testid="InvitationManagement-Button-sendInvitation"]');
+
+        // Wait for dialog to close and component to update
+        await page.waitForSelector('[data-testid="InvitationManagement-Dialog-inviteDialog"]', { state: 'hidden', timeout: 10000 }).catch(() => {
+          // Dialog might have different structure, just wait a bit
+          console.log('⚠️ Dialog selector not found, waiting for page transition instead');
+        });
         await authHelper.waitForPageTransition();
 
         console.log('✅ Admin sent invitation to cancel');
       });
 
       await test.step('Cancel the pending invitation', async () => {
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-
+        // The component refreshes the invitations list after sending
+        // Wait for React Query to stabilize and component to update
         await authHelper.waitForReactQueryStable();
+        await page.waitForTimeout(2000);
 
-        // Find and click cancel button for this invitation
-        const cancelButton = page.locator(`[data-testid="PendingInvitation-Button-cancel-${cancelEmail}"]`);
-        await expect(cancelButton).toBeVisible({ timeout: 20000 });
+        // Find the invitation by email, then click its cancel button
+        const invitationEmail = page.locator(`[data-testid="InvitationManagement-Text-pendingInvitationEmail"]`, { hasText: cancelEmail });
+
+        // Navigate to the parent container to find the cancel button
+        const invitationRow = invitationEmail.locator('xpath=../../../../..');
+
+        const cancelButton = invitationRow.locator('[data-testid="InvitationManagement-Button-cancelInvitation"]');
+        await expect(cancelButton).toBeVisible({ timeout: 10000 });
         await cancelButton.click();
         await authHelper.waitForPageTransition();
 
@@ -867,14 +933,13 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Verify invitation removed from UI', async () => {
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-
+        // Wait for React Query to stabilize after cancellation
         await authHelper.waitForReactQueryStable();
+        await page.waitForTimeout(2000);
 
         // Verify invitation no longer appears
-        const pendingInvitation = page.locator(`[data-testid="PendingInvitation-Email-${cancelEmail}"]`);
-        await expect(pendingInvitation).not.toBeVisible({ timeout: 10000 });
+        const pendingInvitationEmail = page.locator('[data-testid="InvitationManagement-Text-pendingInvitationEmail"]', { hasText: cancelEmail });
+        await expect(pendingInvitationEmail).not.toBeVisible({ timeout: 10000 });
 
         console.log('✅ Invitation successfully removed after cancellation');
       });

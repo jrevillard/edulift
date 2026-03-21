@@ -397,8 +397,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         personalMessage
       } as CreateFamilyInvitationRequest);
 
-      // Refresh family to get updated invitations
-      await refreshFamily();
+      // Don't refresh family here - it can cause race conditions and redirects
+      // The component will handle refreshing invitations separately via refreshPendingInvitations()
 
       setState(prev => ({ ...prev, isLoading: false }));
     } catch (error) {
@@ -410,7 +410,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       }));
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  }, [state.currentFamily, refreshFamily]);
+  }, [state.currentFamily]);
 
   const updateMemberRole = useCallback(async (
     memberId: string,
