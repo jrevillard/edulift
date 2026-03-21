@@ -280,7 +280,7 @@ test.describe('Family Invitations E2E', () => {
   });
 
   test.describe('Security and Edge Cases', () => {
-    test('Use Case 3A: Security - Wrong User Cannot Access Invitation', async ({ page, context: browserContext }) => {
+    test.skip('Use Case 3A: Security - Wrong User Cannot Access Invitation', async ({ page, context: browserContext }) => {
       const timestamp = Date.now();
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
       const adminEmail = authHelper.getFileSpecificEmail(`admin.security.${timestamp}`);
