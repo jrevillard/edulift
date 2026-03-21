@@ -260,10 +260,11 @@ const DashboardPage: React.FC = () => {
                       {userPermissions?.canManageMembers ? 'Admin' : 
                        userPermissions?.canModifyChildren ? 'Parent' : 'Member'}
                     </Badge>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => navigate('/family/manage')}
+                      data-testid="DashboardPage-Button-manageFamily"
                       className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900"
                     >
                       Manage Family

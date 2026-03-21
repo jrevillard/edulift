@@ -2,8 +2,12 @@ import { Page, expect } from '@playwright/test';
 import { AuthHelper } from './auth-helpers';
 import { TestUser, TestFamily, TestChild, TestVehicle, TEST_USERS, TEST_FAMILIES, TEST_CHILDREN, TEST_VEHICLES } from './test-data';
 
+/**
+ * Helper pour les tests de famille
+ * Utilise le flow réel d'authentification (magic link) comme les tests d'auth
+ */
 export class FamilyTestHelper {
-  constructor(private _page: Page, private _authHelper: AuthHelper) {}
+  constructor(private _page: Page, private _authHelper?: AuthHelper) {}
 
   /**
    * Sets up a complete family environment for testing.
@@ -156,5 +160,67 @@ export class FamilyTestHelper {
    */
   async verifyFamilySetup(expectedFamilyName: string): Promise<void> {
     await expect(this._page.locator('[data-testid="family-name"]')).toContainText(expectedFamilyName);
+  }
+
+  /**
+   * Complete family onboarding (after manual authentication)
+   * Pattern: used after magic link authentication
+   */
+  async completeOnboardingManually(familyName: string): Promise<void> {
+    // Wait for onboarding page
+    await this._page.waitForURL('/onboarding', { timeout: 10000 });
+
+    // Verify welcome heading is visible
+    const welcomeHeading = this._page.locator('[data-testid="FamilyOnboardingWizard-Heading-welcome"]');
+    await welcomeHeading.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Click "Create a New Family"
+    const createFamilyButton = this._page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamilyChoice"]');
+    await createFamilyButton.click();
+
+    // Wait for family creation form
+    const familyNameInput = this._page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]');
+    await familyNameInput.waitFor({ state: 'visible', timeout: 5000 });
+
+    // Fill family name
+    await familyNameInput.fill(familyName);
+
+    // Submit family creation
+    const submitButton = this._page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamily"]');
+    await submitButton.click();
+
+    // Wait for navigation to dashboard
+    await this._page.waitForURL(
+      (url) => url.toString().includes('/dashboard'),
+      { timeout: 15000 }
+    );
+  }
+
+  /**
+   * Verify family information is displayed on family management page
+   */
+  async verifyFamilyInformation(familyName: string): Promise<void> {
+    // Navigate to family management page
+    await this._page.goto('/family/manage');
+
+    // Wait for page load
+    await this._page.waitForLoadState('domcontentloaded');
+    await this._page.waitForTimeout(1000);
+
+    // Verify page title first
+    const pageTitle = this._page.locator('[data-testid="ManageFamilyPage-Heading-pageTitle"]');
+    await expect(pageTitle).toBeVisible({ timeout: 10000 });
+
+    // Verify family information container
+    const familyInfo = this._page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]');
+    await expect(familyInfo).toBeVisible({ timeout: 10000 });
+
+    // Verify family name is visible (in an input)
+    const familyNameInput = this._page.locator('[data-testid="ManageFamilyPage-Input-familyNameDisplay"]');
+    await expect(familyNameInput).toBeVisible({ timeout: 5000 });
+
+    // Verify the value contains the family name
+    const actualValue = await familyNameInput.inputValue();
+    expect(actualValue).toContain(familyName.substring(0, 20)); // Check first characters
   }
 }

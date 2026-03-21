@@ -54,6 +54,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const initializationPromise = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
+    // IMPORTANT: Check if user is on logout page BEFORE initializing auth
+    // This prevents restoring auth state from storage when logout was requested
+    const currentPath = window.location.pathname;
+    if (currentPath === '/auth/logout') {
+      setIsLoading(false);
+      setUser(null); // Explicitly set user to null on logout page
+      return;
+    }
+
     // Register callback with authService to handle auth changes from interceptors
     const handleAuthChange = () => {
       setUser(authService.getUser());
@@ -99,7 +108,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.error('Auth initialization error:', error);
         } finally {
           setIsLoading(false);
-          console.log('✅ Auth initialization completed');
           // Clear the promise after completion
           initializationPromise.current = null;
         }

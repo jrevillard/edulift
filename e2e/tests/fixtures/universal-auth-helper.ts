@@ -684,162 +684,36 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async completeOnboarding(
     familyName: string = `Test Family ${this.filePrefix} ${Date.now().toString(36)}`,
-    _addChildren: boolean = true,
-    _addVehicles: boolean = true
+    _addChildren: boolean = false,
+    _addVehicles: boolean = false
   ): Promise<void> {
-    // Store user info for potential re-authentication before starting onboarding
-    const _userEmail = await this.page.evaluate(() => localStorage.getItem('userEmail'));
-    const _userId = await this.page.evaluate(() => localStorage.getItem('userId'));
+    console.log('Starting family onboarding...');
 
-    // Wait for onboarding page with shorter timeout
-    await this.page.waitForURL('/onboarding', { timeout: 45000 });
-
-    // Should see the choice between creating or joining a family  
-    await this.page.locator('[data-testid="FamilyOnboardingWizard-Heading-welcome"]').waitFor({ timeout: 35000 });
+    // Wait for onboarding page
+    await this.page.waitForURL('/onboarding', { timeout: 10000 });
 
     // Click "Create a New Family"
     const createFamilyButton = this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamilyChoice"]');
     await createFamilyButton.click();
 
-    // Wait for family creation form to appear
-    await this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]').waitFor({ timeout: 35000 });
+    // Wait for family creation form
+    const familyNameInput = this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]');
+    await familyNameInput.waitFor({ state: 'visible', timeout: 5000 });
 
-    // Fill in family name quickly
-    await this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]').fill(familyName);
+    // Fill family name
+    await familyNameInput.fill(familyName);
 
-    // Verify authentication token is still available before submitting
-    const authToken = await this.page.evaluate(() => localStorage.getItem('secure_authToken'));
-    if (!authToken) {
-      throw new Error('Authentication token lost during onboarding process');
-    }
+    // Submit family creation
+    const submitButton = this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamily"]');
+    await submitButton.click();
 
-    // Submit family creation immediately
-    await this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamily"]').click();
+    // Wait for navigation to dashboard
+    await this.page.waitForURL(
+      (url) => url.toString().includes('/dashboard'),
+      { timeout: 15000 }
+    );
 
-    // Wait for family creation to complete with optimized timeout
-    console.log('Waiting for family creation to complete...');
-
-    try {
-      // Wait for either success or URL change with extended timeout
-      await Promise.race([
-        this.page.locator('[data-testid="FamilyOnboardingWizard-Alert-familyCreated"]').waitFor({ timeout: 60000 }),
-        this.page.waitForURL(url => !url.toString().includes('/onboarding'), { timeout: 60000 })
-      ]);
-
-      console.log('Family creation process completed');
-    } catch (error) {
-      console.log('Family creation did not complete as expected, checking for errors...');
-
-      // Check if page is still open before checking for errors
-      if (this.page.isClosed()) {
-        throw new Error('Family creation failed: Page was closed during process');
-      }
-
-      // More comprehensive check for error indicators
-      const errorMessage = this.page.locator('[data-testid="FamilyOnboardingWizard-Alert-createFamilyError"]');
-      const networkError = this.page.locator('[data-testid="ConnectionIndicator-Alert-networkError"]');
-      const generalError = this.page.locator('[role="alert"]').filter({ hasText: /error|failed/i });
-
-      try {
-        if (await errorMessage.isVisible()) {
-          const errorText = await errorMessage.textContent();
-
-          // Handle specific "user already in family" errors
-          if (errorText && (errorText.includes('already') || errorText.includes('USER_ALREADY_IN_FAMILY'))) {
-            console.log('User already has a family, navigating directly to dashboard...');
-            await this.page.goto('/dashboard');
-            await this.page.waitForLoadState('networkidle');
-            return;
-          }
-
-          throw new Error(`Family creation failed: ${errorText || 'Unknown error'}`);
-        }
-
-        // Check for any general error alerts
-        if (await generalError.isVisible()) {
-          const errorText = await generalError.textContent();
-          console.log(`General error detected: ${errorText}`);
-        }
-
-        if (await networkError.isVisible()) {
-          console.log('Network error detected, waiting for recovery...');
-          await this.timingHelper.waitForAuthenticationReady();
-
-          // Try to dismiss the error and retry
-          try {
-            await this.page.reload();
-            await this.timingHelper.waitForNavigationStable();
-
-            // If we're back to onboarding, try creating family again
-            if (this.page.url().includes('/onboarding')) {
-              console.log('Retrying family creation after network error...');
-              await this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamilyChoice"]').click();
-              await this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]').fill(familyName);
-              await this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamily"]').click();
-
-              // Wait for success or navigation with longer timeout
-              await Promise.race([
-                this.page.locator('[data-testid="FamilyOnboardingWizard-Alert-familyCreated"]').waitFor({ timeout: 45000 }),
-                this.page.waitForURL(url => !url.toString().includes('/onboarding'), { timeout: 45000 })
-              ]);
-            }
-          } catch (retryError) {
-            console.warn('Retry failed, attempting direct navigation to dashboard...');
-            // Last resort: direct navigation
-            await this.page.goto('/dashboard');
-            await this.page.waitForLoadState('networkidle');
-
-            // Check if we're successfully authenticated and have family access
-            const currentUrl = this.page.url();
-            if (currentUrl.includes('/login')) {
-              throw new Error('Family creation failed: Authentication lost during process');
-            }
-            if (currentUrl.includes('/onboarding')) {
-              throw new Error('Family creation failed: Still redirected to onboarding after retry');
-            }
-
-            console.log('Successfully navigated to dashboard after retry');
-            return;
-          }
-        }
-
-        // Check current URL to see if we actually succeeded despite timeout
-        const currentUrl = this.page.url();
-        if (!currentUrl.includes('/onboarding') && !currentUrl.includes('/login')) {
-          console.log('Family creation may have succeeded despite timeout - continuing...');
-          return;
-        }
-
-      } catch (pageError) {
-        console.log('Error checking page elements (page may be closed):', pageError.message);
-        // If page is closed or has errors, try direct navigation as fallback
-        if (!this.page.isClosed()) {
-          await this.page.goto('/dashboard');
-          await this.page.waitForLoadState('networkidle');
-          return;
-        }
-      }
-
-      // If no specific error found, re-throw the original timeout error
-      throw error;
-    }
-
-    // Optimized wait for navigation - use domcontentloaded for SPA compatibility
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.timingHelper.waitForSessionStateChange('authenticated');
-
-    // Check final URL - session MUST persist through family creation
-    const currentUrl = this.page.url();
-    console.log(`🔍 Final URL after family creation: ${currentUrl}`);
-
-    if (currentUrl.includes('/login')) {
-      // This is a REAL FAILURE - session should not be lost
-      throw new Error(`Authentication session lost after family creation. This indicates a problem with token management or session persistence. Current URL: ${currentUrl}`);
-    }
-
-    // Ensure we're on the correct page after onboarding completion
-    const finalUrl = this.page.url();
-    console.log(`Family onboarding completed, current URL: ${finalUrl}`);
+    console.log('Family onboarding completed successfully');
   }
 
   /**

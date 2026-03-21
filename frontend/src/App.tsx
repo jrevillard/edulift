@@ -13,6 +13,7 @@ import BackendConnectionAlert from './components/common/BackendConnectionAlert';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import LoginPage from './pages/LoginPage';
 import VerifyMagicLinkPage from './pages/VerifyMagicLinkPage';
+import LogoutPage from './pages/LogoutPage';
 import TermsOfServicePage from './pages/TermsOfServicePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import AccountDeletionPage from './pages/AccountDeletionPage';
@@ -84,6 +85,7 @@ function AppContent() {
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/auth/verify" element={<VerifyMagicLinkPage />} />
+            <Route path="/auth/logout" element={<LogoutPage />} />
             <Route path="/terms-of-service" element={<TermsOfServicePage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/account-deletion" element={<AccountDeletionPage />} />

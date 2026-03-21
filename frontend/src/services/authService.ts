@@ -496,21 +496,29 @@ class AuthService {
   }
 
   private async clearAuth(): Promise<void> {
+    // First, clear all in-memory state immediately
+    // This ensures that even if storage operations fail, we're logged out
+    this.user = null;
     this.token = null;
     this._refreshToken = null;
-    this.user = null;
 
+    // Notify auth context IMMEDIATELY after clearing in-memory state
+    // This is critical to prevent race conditions where the UI still thinks user is logged in
+    if (this.onAuthChanged) {
+      this.onAuthChanged();
+    }
+
+    // Then clear persistent storage (fire and forget - don't await)
+    // These operations can happen in the background
     try {
-      // Clear from secure storage only
       secureStorage.removeItem('authToken');
       secureStorage.removeItem('refreshToken');
       secureStorage.removeItem('userData');
     } catch (error) {
       console.error('Failed to clear secure storage:', error);
-      // Continue even if secure storage fails
     }
 
-    // Clear PKCE data on auth clear to prevent security issues
+    // Clear PKCE data asynchronously (don't block on this)
     try {
       import('../utils/pkceUtils').then(async ({ clearPKCEData }) => {
         await clearPKCEData();
@@ -520,11 +528,28 @@ class AuthService {
     } catch (error) {
       console.error('Failed to import PKCE utilities during auth clear:', error);
     }
+  }
 
-    // Notify auth context of change
+  /**
+   * Synchronously clear authentication state (in-memory only).
+   * Use this when you need to immediately update UI state before async operations.
+   * Storage clearing happens asynchronously in the background.
+   */
+  clearAuthState(): void {
+    // Clear in-memory state IMMEDIATELY
+    this.user = null;
+    this.token = null;
+    this._refreshToken = null;
+
+    // Notify auth context IMMEDIATELY
     if (this.onAuthChanged) {
       this.onAuthChanged();
     }
+
+    // Clear storage in background (fire and forget)
+    this.clearAuth().catch(error => {
+      console.error('Background storage clear failed:', error);
+    });
   }
 
   setAuthChangeCallback(callback: () => void): void {
