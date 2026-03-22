@@ -378,6 +378,61 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   }, []);
 
+  /**
+   * INVITATION MANAGEMENT STRATEGY
+   *
+   * This context provides invitation management functions that follow a specific
+   * refresh pattern to prevent race conditions and unexpected redirects.
+   *
+   * **Architecture Layers:**
+   *
+   * 1. **Context Layer (FamilyContext):**
+   *    - inviteMember(): Only sends invitation API call
+   *    - cancelInvitation(): Only sends cancellation API call
+   *    - NO automatic refresh - prevents race conditions with component state
+   *    - Returns control to caller immediately after API call completes
+   *
+   * 2. **Component Layer (ManageFamilyPage):**
+   *    - handleInviteMember(): Calls context, then orchestrates refreshes
+   *    - refreshFamily(): Updates family members, children, vehicles (full refresh)
+   *    - refreshPendingInvitations(): Updates invitations list only (targeted refresh)
+   *    - Controls timing and sequence of all refresh operations
+   *
+   * **Why This Separation?**
+   *
+   * - Prevents duplicate API calls (context doesn't assume what needs refreshing)
+   * - Predictable refresh timing (component decides when to refresh)
+   * - No race conditions between context and component state updates
+   * - Component can show loading states during refresh
+   * - Component can handle errors specific to each refresh operation
+   *
+   * **Example Flow (Sending an Invitation):**
+   *
+   * ```
+   * // Component (ManageFamilyPage)
+   * const handleInviteMember = async (data) => {
+   *   try {
+   *     // Step 1: Call context (just API call, no refresh)
+   *     await inviteMember(data.email, data.role, data.personalMessage);
+   *
+   *     // Step 2: Refresh invitations list to show new invitation
+   *     await refreshPendingInvitations();
+   *
+   *     // Step 3: Optionally refresh full family if needed
+   *     // (e.g., if invitation affects member count)
+   *   } catch (error) {
+   *     // Handle error
+   *   }
+   * };
+   * ```
+   *
+   * **Important Notes:**
+   *
+   * - NEVER add refreshFamily() to context functions - it breaks this pattern
+   * - Always let components orchestrate their own refresh timing
+   * - Use refreshPendingInvitations() for invitation-specific updates
+   * - Use refreshFamily() only when family data structure changes
+   */
   const inviteMember = useCallback(async (
     email: string,
     role: string,
@@ -535,6 +590,15 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   }, [state.currentFamily]);
 
+  /**
+   * Cancel a pending family invitation
+   *
+   * NOTE: This function only sends the cancellation API call and does NOT refresh
+   * any data. The calling component should handle refreshing the invitations list
+   * via refreshPendingInvitations() to update the UI.
+   *
+   * See: INVITATION MANAGEMENT STRATEGY documentation above
+   */
   const cancelInvitation = useCallback(async (invitationId: string): Promise<void> => {
     if (!state.currentFamily) {
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');

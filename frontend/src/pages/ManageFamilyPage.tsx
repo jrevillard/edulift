@@ -201,8 +201,8 @@ const ManageFamilyPage: React.FC = () => {
       await inviteMember(data.email, data.role, data.personalMessage);
       setSuccessMessage('Invitation sent successfully');
       setErrorMessage('');
-      await refreshFamily();
-      await refreshPendingInvitations(); // Refresh invitations list
+      // Only refresh invitations list - family object doesn't change when adding invitation
+      await refreshPendingInvitations();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to send invitation');
       setSuccessMessage('');
@@ -215,7 +215,7 @@ const ManageFamilyPage: React.FC = () => {
       setSuccessMessage('Member removed successfully');
       setErrorMessage('');
       setShowRemoveMemberDialog(null);
-      await refreshFamily();
+      // Don't refresh family here - removeMember already does it internally
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to remove member';
       setErrorMessage(errorMsg);
@@ -230,7 +230,7 @@ const ManageFamilyPage: React.FC = () => {
         setSuccessMessage('Member role updated successfully');
         setErrorMessage('');
         setMemberToChangeRole(null);
-        await refreshFamily();
+        // Don't refresh family here - updateMemberRole already does it internally
       } catch (error) {
         setErrorMessage(error instanceof Error ? error.message : 'Failed to update member role');
         setSuccessMessage('');
