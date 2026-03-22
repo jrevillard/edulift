@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -35,23 +36,51 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { InvitationManagement } from '@/components/InvitationManagement';
-import type { FamilyMember, FamilyInvitation } from '../services/familyApiService';
+import type { FamilyMember } from '../services/familyApiService';
 
 const ManageFamilyPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { 
-    currentFamily, 
-    userPermissions, 
-    updateMemberRole, 
-    removeMember, 
+
+  // Track mount/unmount and renders
+  const renderCount = useRef(0);
+  renderCount.current++;
+  console.log(`🔄 ManageFamilyPage: RENDER #${renderCount.current}`);
+
+  useEffect(() => {
+    console.log('✅ ManageFamilyPage: MOUNTED');
+    return () => {
+      console.log('❌ ManageFamilyPage: UNMOUNTED');
+    };
+  }, []);
+  const {
+    currentFamily,
+    userPermissions,
+    isLoading,
+    isCheckingFamily,
+    updateMemberRole,
+    removeMember,
     inviteMember,
     leaveFamily,
-    refreshFamily,
     updateFamilyName,
     getPendingInvitations,
     cancelInvitation
   } = useFamily();
+
+  // Query for pending invitations (React Query manages caching and loading)
+  const invitationsQuery = useQuery({
+    queryKey: ['family-invitations', currentFamily?.id],
+    queryFn: async () => {
+      if (!currentFamily || !userPermissions?.canManageMembers) {
+        return [];
+      }
+      return await getPendingInvitations();
+    },
+    enabled: !!currentFamily && !!userPermissions?.canManageMembers,
+    staleTime: 1 * 60 * 1000,  // 1 minute
+    gcTime: 5 * 60 * 1000,     // 5 minutes
+  });
 
   // State for modals and editing
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
@@ -60,19 +89,21 @@ const ManageFamilyPage: React.FC = () => {
     member: FamilyMember;
     newRole: 'ADMIN' | 'MEMBER';
   } | null>(null);
-  
+
+  // Flag to prevent false redirects during async operations
+
   // State for notifications
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  
-  
+
+
   // State for family name editing
   const [showEditNameDialog, setShowEditNameDialog] = useState(false);
   const [editingFamilyName, setEditingFamilyName] = useState('');
-  
-  // State for pending invitations
-  const [pendingInvitations, setPendingInvitations] = useState<FamilyInvitation[]>([]);
-  const [loadingInvitations, setLoadingInvitations] = useState(false);
+
+  // Derive invitation state from React Query
+  const pendingInvitations = invitationsQuery.data ?? [];
+  const loadingInvitations = invitationsQuery.isLoading;
 
   // Clear messages after timeout
   useEffect(() => {
@@ -85,107 +116,30 @@ const ManageFamilyPage: React.FC = () => {
     }
   }, [successMessage, errorMessage]);
 
-  // Refresh family data when page regains focus (handles external changes)
-  useEffect(() => {
-    const handleFocus = () => {
-      // Only refresh if we have a current family
-      if (currentFamily) {
-        refreshFamily().catch(error => {
-          console.error('Failed to refresh family on focus:', error);
-        });
-      }
-    };
+  // Show loading spinner while checking family status
+  if (isCheckingFamily || isLoading) {
+    console.log('⏳ ManageFamilyPage: Loading family data...');
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading family data...</p>
+        </div>
+      </div>
+    );
+  }
 
-    window.addEventListener('focus', handleFocus);
-    
-    // Also refresh when the page becomes visible (handles tab switching)
-    const handleVisibilityChange = () => {
-      if (!document.hidden && currentFamily) {
-        refreshFamily().catch(error => {
-          console.error('Failed to refresh family on visibility change:', error);
-        });
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [currentFamily, refreshFamily]);
-
-  // Periodic refresh to catch external changes (every 30 seconds for active pages)
-  useEffect(() => {
-    if (!currentFamily) return;
-
-    const intervalId = setInterval(() => {
-      // Only refresh if the page is visible and user is likely active
-      if (!document.hidden) {
-        refreshFamily().catch(error => {
-          console.error('Failed to refresh family periodically:', error);
-        });
-      }
-    }, 30000); // 30 seconds
-
-    return () => clearInterval(intervalId);
-  }, [currentFamily, refreshFamily]);
-
-
-  // Load pending invitations when page loads or family changes
-  useEffect(() => {
-    const loadInvitations = async () => {
-      if (!currentFamily || !userPermissions?.canManageMembers) return;
-      
-      setLoadingInvitations(true);
-      try {
-        const invitations = await getPendingInvitations();
-        setPendingInvitations(invitations);
-      } catch (error) {
-        console.error('Failed to load pending invitations:', error);
-        setErrorMessage('Failed to load pending invitations');
-      } finally {
-        setLoadingInvitations(false);
-      }
-    };
-
-    if (currentFamily && userPermissions?.canManageMembers) {
-      // Log family member data for debugging admin count issues
-      console.log('🔍 ManageFamilyPage: Family data loaded:', {
-        familyId: currentFamily.id,
-        familyName: currentFamily.name,
-        memberCount: currentFamily.members?.length || 0,
-        adminCount: currentFamily.members?.filter(m => m.role === 'ADMIN').length || 0,
-        members: currentFamily.members?.map(m => ({ 
-          id: m.id, 
-          email: m.user?.email, 
-          role: m.role 
-        })) || []
-      });
-      loadInvitations();
-    }
-  }, [currentFamily, userPermissions?.canManageMembers, getPendingInvitations]);
-
-  // Manual refresh function for handlers
-  const refreshPendingInvitations = async () => {
-    if (!currentFamily || !userPermissions?.canManageMembers) return;
-    
-    setLoadingInvitations(true);
-    try {
-      const invitations = await getPendingInvitations();
-      setPendingInvitations(invitations);
-    } catch (error) {
-      console.error('Failed to load pending invitations:', error);
-      setErrorMessage('Failed to load pending invitations');
-    } finally {
-      setLoadingInvitations(false);
-    }
-  };
-
-  // Redirect if no family
+  // Show loading state if family data is temporarily unavailable
+  // This prevents redirect during React Query refetch operations
   if (!currentFamily || !userPermissions) {
-    navigate('/dashboard');
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading family data...</p>
+        </div>
+      </div>
+    );
   }
 
   const isAdmin = userPermissions.canManageMembers;
@@ -201,8 +155,8 @@ const ManageFamilyPage: React.FC = () => {
       await inviteMember(data.email, data.role, data.personalMessage);
       setSuccessMessage('Invitation sent successfully');
       setErrorMessage('');
-      // Only refresh invitations list - family object doesn't change when adding invitation
-      await refreshPendingInvitations();
+      // Wait for invitations query to refetch (mutation invalidates it)
+      await queryClient.refetchQueries({ queryKey: ['family-invitations'], type: 'active' });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to send invitation');
       setSuccessMessage('');
@@ -243,6 +197,8 @@ const ManageFamilyPage: React.FC = () => {
       await leaveFamily();
       setSuccessMessage('Left family successfully');
       setErrorMessage('');
+      console.log('🚨 ManageFamilyPage [handleLeaveFamily]: REDIRECTING to dashboard');
+      console.trace('Redirect call stack');
       navigate('/dashboard');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to leave family');
@@ -282,7 +238,7 @@ const ManageFamilyPage: React.FC = () => {
       await cancelInvitation(invitationId);
       setSuccessMessage('Invitation canceled successfully');
       setErrorMessage('');
-      await refreshPendingInvitations(); // Refresh invitations list
+      await queryClient.invalidateQueries({ queryKey: ['family-invitations'] }); // Refresh invitations list
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Failed to cancel invitation');
       setSuccessMessage('');
@@ -313,38 +269,26 @@ const ManageFamilyPage: React.FC = () => {
             Manage family settings and members
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => refreshFamily()}
-          className="gap-2"
-          data-testid="ManageFamilyPage-Button-refresh"
-        >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Refresh
-        </Button>
       </div>
 
       {/* Notifications */}
       {successMessage && (
-        <Alert 
-          className="border-green-200 bg-green-50 text-green-800" 
+        <Alert
+          className="border-green-200 bg-green-50 text-green-800"
           data-testid={
-            successMessage.includes('copied') ? "ManageFamilyPage-Alert-copySuccess" : 
-            successMessage.includes('Family name updated') ? "ManageFamilyPage-Alert-familyNameUpdatedSuccess" :
-            "ManageFamilyPage-Alert-invitationSentSuccess"
+            successMessage.includes('copied') ? "ManageFamilyPage-Alert-copySuccess" :
+              successMessage.includes('Family name updated') ? "ManageFamilyPage-Alert-familyNameUpdatedSuccess" :
+                "ManageFamilyPage-Alert-invitationSentSuccess"
           }
         >
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       )}
-      
+
       {errorMessage && (
-        <Alert 
-          className="border-red-200 bg-red-50 text-red-800" 
+        <Alert
+          className="border-red-200 bg-red-50 text-red-800"
           data-testid={
             errorMessage.toLowerCase().includes('last admin') || errorMessage.toLowerCase().includes('only admin')
               ? "ManageFamilyPage-Alert-lastAdminError"
@@ -462,71 +406,71 @@ const ManageFamilyPage: React.FC = () => {
                     className="flex items-center justify-between p-3 rounded-lg border"
                     data-testid={`ManageFamilyPage-Card-familyMember-${member.user?.email}`}
                   >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      {member.role === 'ADMIN' ? (
-                        <Shield className="h-4 w-4 text-primary" />
-                      ) : (
-                        <User className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        {member.role === 'ADMIN' ? (
+                          <Shield className="h-4 w-4 text-primary" />
+                        ) : (
+                          <User className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.user?.name || 'Unknown User'}</p>
+                        <p className="text-sm text-muted-foreground">{member.user?.email || 'No email'}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Badge variant={
+                        member.role === 'ADMIN' ? "default" : "outline"
+                      }>
+                        {member.role}
+                      </Badge>
+
+                      {isAdmin && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              data-testid={`ManageFamilyPage-Button-memberMenu-${member.user.email}`}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setMemberToChangeRole({
+                                  member,
+                                  newRole: member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN',
+                                })
+                              }
+                              data-testid={`ManageFamilyPage-Button-roleToggle-${member.user.email}`}
+                              disabled={member.user.id === user?.id && member.role === 'ADMIN'}
+                            >
+                              <Shield className="h-4 w-4 mr-2" />
+                              {member.user.id === user?.id && member.role === 'ADMIN'
+                                ? 'Cannot change own role'
+                                : (member.role as string) === 'ADMIN' ? 'Make Member' : 'Make Admin'
+                              }
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => setShowRemoveMemberDialog(member.id)}
+                              className="text-red-600 focus:text-red-600"
+                              data-testid={`ManageFamilyPage-Button-removeMember-${member.user.email}`}
+                            >
+                              <UserMinus className="h-4 w-4 mr-2" />
+                              Remove Member
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
-                    <div>
-                      <p className="font-medium">{member.user?.name || 'Unknown User'}</p>
-                      <p className="text-sm text-muted-foreground">{member.user?.email || 'No email'}</p>
-                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge variant={
-                      member.role === 'ADMIN' ? "default" : "outline"
-                    }>
-                      {member.role}
-                    </Badge>
-                    
-                    {isAdmin && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            data-testid={`ManageFamilyPage-Button-memberMenu-${member.user.email}`}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setMemberToChangeRole({
-                                member,
-                                newRole: member.role === 'ADMIN' ? 'MEMBER' : 'ADMIN',
-                              })
-                            }
-                            data-testid={`ManageFamilyPage-Button-roleToggle-${member.user.email}`}
-                            disabled={member.user.id === user?.id && member.role === 'ADMIN'}
-                          >
-                            <Shield className="h-4 w-4 mr-2" />
-                            {member.user.id === user?.id && member.role === 'ADMIN' 
-                              ? 'Cannot change own role'
-                              : (member.role as string) === 'ADMIN' ? 'Make Member' : 'Make Admin'
-                            }
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => setShowRemoveMemberDialog(member.id)}
-                            className="text-red-600 focus:text-red-600"
-                            data-testid={`ManageFamilyPage-Button-removeMember-${member.user.email}`}
-                          >
-                            <UserMinus className="h-4 w-4 mr-2" />
-                            Remove Member
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </div>
-              )}
-            />
+                )}
+              />
             </div>
           </CardContent>
         </Card>
@@ -615,11 +559,11 @@ const ManageFamilyPage: React.FC = () => {
         <Card className="border-red-500 border-2 bg-red-50/50 dark:bg-red-950/20" data-testid="ManageFamilyPage-Card-dangerZone">
           <CardHeader className="border-b border-red-200 dark:border-red-800 bg-red-100/50 dark:bg-red-900/20">
             <CardTitle className="text-red-700 dark:text-red-400 flex items-center gap-2" data-testid="ManageFamilyPage-Heading-dangerZoneTitle">
-              <svg 
-                className="h-5 w-5" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                strokeWidth={2} 
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
                 stroke="currentColor"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -640,7 +584,7 @@ const ManageFamilyPage: React.FC = () => {
               <UserMinus className="h-4 w-4" />
               Leave Family
             </Button>
-            
+
             <p className="text-xs text-gray-500 mt-2">
               As a family member, you can leave this family
             </p>
@@ -656,7 +600,7 @@ const ManageFamilyPage: React.FC = () => {
             <DialogTitle>Leave Family</DialogTitle>
             <DialogDescription>
               Are you sure you want to leave "{currentFamily.name}"?
-              You will lose access to all family resources including children and vehicles. 
+              You will lose access to all family resources including children and vehicles.
               You'll need a new invite code to rejoin.
             </DialogDescription>
           </DialogHeader>
@@ -767,7 +711,7 @@ const ManageFamilyPage: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleSaveFamilyName}
               disabled={!editingFamilyName.trim() || editingFamilyName.trim() === currentFamily.name}
               data-testid="ManageFamilyPage-Button-saveFamilyName"

@@ -10,6 +10,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
 
+  // Track authentication state changes
+  const prevIsAuthenticated = React.useRef<boolean | null>(null);
+  if (prevIsAuthenticated.current !== isAuthenticated) {
+    console.log('🔄 ProtectedRoute: isAuthenticated changed from', prevIsAuthenticated.current, 'to', isAuthenticated);
+    prevIsAuthenticated.current = isAuthenticated;
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -22,10 +29,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    console.log('🚫 ProtectedRoute: User NOT authenticated, navigating to login');
     // Redirect to login page with return url
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  console.log('✅ ProtectedRoute: User authenticated, rendering children');
   return <>{children}</>;
 };
 

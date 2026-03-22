@@ -1,23 +1,34 @@
 /**
- * FAMILY CONTEXT
- * 
- * Purpose: Manages family state for resource ownership system
- * 
- * This context handles family membership and shared resource management.
- * It is independent of the group/scheduling system - a user can be in one family
- * but participate in multiple scheduling groups using family-owned resources.
- * 
+ * FAMILY CONTEXT - React Query Architecture
+ *
+ * Purpose: Manages family state using React Query for optimal cache management
+ *
+ * **Architecture Change from useState to React Query:**
+ *
+ * BEFORE (useState - problematic):
+ * - Manual state management with setState
+ * - refreshFamily() creates new object references
+ * - useEffect dependencies on currentFamily cause cascades
+ * - Unstable references → component unmounts/remounts
+ *
+ * AFTER (React Query - optimal):
+ * - Stable references (objects only change when data actually changes)
+ * - Automatic cache management
+ * - No manual refreshFamily() needed
+ * - Predictable re-renders
+ *
  * Responsibilities:
  * - Track current user's family membership
- * - Manage family member roles and permissions  
+ * - Manage family member roles and permissions
  * - Provide access to family-owned children and vehicles
  * - Handle family invitations and member management
  * - Coordinate with scheduling groups for resource sharing
  */
 
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
   Family,
   FamilyInvitation,
@@ -27,6 +38,8 @@ import type {
   CreateFamilyInvitationRequest,
   UpdateMemberRoleRequest
 } from '../services/familyApiService';
+import { familyApiService } from '../services/familyApiService';
+import { useAuth } from './AuthContext';
 
 // Define types needed for FamilyContext locally
 export type FamilyRole = "ADMIN" | "MEMBER";
@@ -68,16 +81,11 @@ export function createFamilyError(
   return error;
 }
 
-import { familyApiService } from '../services/familyApiService';
-import { useAuth } from './AuthContext';
-import { secureStorage } from '@/utils/secureStorage';
-
 interface FamilyContextType extends FamilyContextState {
   // Family operations
   createFamily: (name: string) => Promise<Family>;
   joinFamily: (inviteCode: string) => Promise<Family>;
   leaveFamily: () => Promise<void>;
-  refreshFamily: () => Promise<void>;
   updateFamilyName: (name: string) => Promise<void>;
 
   // Member operations
@@ -93,10 +101,6 @@ interface FamilyContextType extends FamilyContextState {
   // Utility functions
   clearError: () => void;
   hasFamily: boolean;
-
-  // Mandatory family requirement
-  requiresFamily: boolean;
-  isCheckingFamily: boolean;
 }
 
 const FamilyContext = createContext<FamilyContextType | undefined>(undefined);
@@ -114,192 +118,308 @@ interface FamilyProviderProps {
 }
 
 export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
-  const [state, setState] = useState<FamilyContextState>({
-    currentFamily: null,
-    userPermissions: null,
-    isLoading: false,
-    error: null,
-    requiresFamily: false,
-    isCheckingFamily: false
-  });
-
+  const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
 
-  // Force re-render when state changes to ensure tests can read updated state
-  // This prevents race conditions in tests where setState might not be applied yet
-  useEffect(() => {
-    // Empty effect that triggers on state changes
-  }, [state]);
+  // ============================================================================
+  // QUERIES - Stable data fetching with automatic caching
+  // ============================================================================
 
-  // Initialize family data when user is authenticated
-  useEffect(() => {
-    const loadUserFamily = async () => {
-      if (!user) return;
-
-      // Check if user is marked as new user (for E2E tests) - use secure storage
-      try {
-        const authStorage = await secureStorage.getItem('auth-storage');
-        if (authStorage) {
-          const authData = JSON.parse(authStorage);
-
-          // Check auth storage state for isNewUser flag
-          console.log('Auth storage found:', {
-            isNewUser: authData.state?.isNewUser,
-            userId: authData.state?.user?.id,
-            hasToken: !!authData.state?.token
-          });
-
-          if (authData.state?.isNewUser) {
-            // Always try to clear stale isNewUser flag first, then check if user actually needs onboarding
-            console.warn('Clearing potentially stale isNewUser flag');
-            // Force clear stale isNewUser flag
-            const updatedAuthData = { ...authData, state: { ...authData.state, isNewUser: false } };
-            await secureStorage.setItem('auth-storage', JSON.stringify(updatedAuthData));
-
-            // Only redirect to onboarding if we're sure this is a different user (not just stale data)
-            if (authData.state?.user?.id !== user?.id) {
-              console.log(': Different user detected, may need onboarding');
-              // Don't redirect immediately - let the normal family check logic handle it
-              // This prevents false redirects for existing users with families
-            }
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to parse auth storage for isNewUser check:', error);
-      }
-
-      setState(prev => ({ ...prev, isCheckingFamily: true, error: null }));
-
-      try {
-        const family = await familyApiService.getCurrentFamily();
-
-        if (family) {
-          // User has a family - load permissions
-          const permissions = await familyApiService.getUserPermissions(family.id);
-
-          setState(prev => ({
-            ...prev,
-            currentFamily: family,
-            userPermissions: permissions,
-            requiresFamily: false,  // User has a family
-            isCheckingFamily: false,
-            isLoading: false
-          }));
-        } else {
-          // User doesn't have a family - mandatory to create or join one
-          setState(prev => ({
-            ...prev,
-            currentFamily: null,
-            userPermissions: null,
-            requiresFamily: true,   // MANDATORY: User must create or join a family
-            isCheckingFamily: false,
-            isLoading: false
-          }));
-        }
-      } catch (error) {
-        console.error(' FAMILYCONTEXT: Failed to load user family:', error);
-
-        // Check if this is a network/connection error or server startup issue
-        const isNetworkError = error instanceof Error && (
-          error.message.includes('Failed to fetch') ||
-          error.message.includes('NetworkError') ||
-          error.message.includes('ERR_CONNECTION_REFUSED') ||
-          error.message.includes('ERR_NETWORK') ||
-          error.message.includes('500') ||
-          error.message.includes('502') ||
-          error.message.includes('503') ||
-          error.message.includes('504')
-        );
-
-        console.log(' FAMILYCONTEXT: isNetworkError =', isNetworkError);
-        console.log(' FAMILYCONTEXT: error.message =', error instanceof Error ? error.message : error);
-
-        // Be more conservative - only require family if we're certain it's not a network/server issue
-        // Also check if user previously had a family (in session) to avoid false redirects
-        setState(prev => {
-          const hadPreviousFamily = !!prev.currentFamily;
-          return {
-            ...prev,
-            currentFamily: null,
-            userPermissions: null,
-            requiresFamily: !isNetworkError && !hadPreviousFamily,   // Don't require family on network errors or if user previously had one
-            isCheckingFamily: false,
-            isLoading: false,
-            error: error instanceof Error ? error.message : 'Failed to load family'
-          };
-        });
-      }
-    };
-
-    console.log(' FAMILYCONTEXT: useEffect triggered, isAuthenticated =', isAuthenticated, ', user =', !!user);
-    if (isAuthenticated && user) {
-      console.log(' FAMILYCONTEXT: Calling loadUserFamily()');
-      loadUserFamily();
-    } else {
-      // Clear family data when user logs out
-      setState(prev => ({
-        ...prev,
-        currentFamily: null,
-        userPermissions: null,
-        requiresFamily: false,
-        isCheckingFamily: false,
-        error: null
-      }));
-    }
-  }, [isAuthenticated, user]);
-
-  const createFamily = useCallback(async (name: string): Promise<Family> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const family = await familyApiService.createFamily({ name } as CreateFamilyRequest);
-      const permissions = await familyApiService.getUserPermissions(family.id);
-
-      setState(prev => ({
-        ...prev,
-        currentFamily: family,
-        userPermissions: permissions,
-        requiresFamily: false,  // Family requirement fulfilled
-        isLoading: false
-      }));
-
+  /**
+   * Query 1: Current Family Data
+   * Key: ['current-family']
+   * - Stable reference, only refetches when explicitly invalidated
+   * - 5 minute stale time (data is fresh for 5 minutes)
+   * - Only runs when user is authenticated
+   */
+  const familyQuery = useQuery({
+    queryKey: ['current-family'],
+    queryFn: async () => {
+      console.log('🔄 FamilyContext: Fetching current family...');
+      const family = await familyApiService.getCurrentFamily();
+      console.log('✅ FamilyContext: Family data fetched:', {
+        familyId: family?.id,
+        familyName: family?.name,
+        memberCount: family?.members?.length || 0
+      });
       return family;
+    },
+    staleTime: 5 * 60 * 1000,  // 5 minutes
+    gcTime: 10 * 60 * 1000,    // 10 minutes
+    enabled: isAuthenticated && !!user,  // Only fetch when authenticated
+    retry: (failureCount, error: unknown) => {
+      // Don't retry on network errors (backend might be down)
+      const errorObj = error as { code?: string; message?: string };
+      const isNetworkError = errorObj?.code === 'ECONNREFUSED' ||
+                           errorObj?.message === 'Network Error' ||
+                           typeof errorObj?.message === 'string' && errorObj.message.includes('ERR_NETWORK');
+
+      return !isNetworkError && failureCount < 2;
+    },
+  });
+
+  /**
+   * Query 2: User Permissions for Current Family
+   * Key: ['family-permissions', familyId]
+   * - Depends on family ID (only fetches when family is loaded)
+   * - Separate query allows permissions to update independently
+   */
+  const permissionsQuery = useQuery({
+    queryKey: ['family-permissions', familyQuery.data?.id],
+    queryFn: async () => {
+      if (!familyQuery.data?.id) {
+        return null;
+      }
+      console.log('🔄 FamilyContext: Fetching user permissions...');
+      const permissions = await familyApiService.getUserPermissions(familyQuery.data.id);
+      console.log('✅ FamilyContext: Permissions fetched:', {
+        canManageMembers: permissions?.canManageMembers,
+        canModifyChildren: permissions?.canModifyChildren,
+        canModifyVehicles: permissions?.canModifyVehicles
+      });
+      return permissions;
+    },
+    staleTime: 5 * 60 * 1000,  // 5 minutes
+    gcTime: 10 * 60 * 1000,    // 10 minutes
+    enabled: isAuthenticated && !!user && !!familyQuery.data?.id,
+    retry: false,  // Don't retry permission errors
+  });
+
+  // ============================================================================
+  // MUTATIONS - State updates with automatic cache invalidation
+  // ============================================================================
+
+  /**
+   * Mutation: Create Family
+   * Invalidates: current-family, family-permissions
+   */
+  const createFamilyMutation = useMutation({
+    mutationFn: async (name: string): Promise<Family> => {
+      console.log('🔄 FamilyContext: Creating family...');
+      const family = await familyApiService.createFamily({ name } as CreateFamilyRequest);
+      console.log('✅ FamilyContext: Family created:', family.id);
+      return family;
+    },
+    onSuccess: async () => {
+      // Invalidate and refetch queries
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    },
+  });
+
+  /**
+   * Mutation: Join Family
+   * Invalidates: current-family, family-permissions
+   */
+  const joinFamilyMutation = useMutation({
+    mutationFn: async (inviteCode: string): Promise<Family> => {
+      console.log('🔄 FamilyContext: Joining family with code...');
+      const family = await familyApiService.joinFamily({ inviteCode } as JoinFamilyRequest);
+      console.log('✅ FamilyContext: Family joined:', family.id);
+      return family;
+    },
+    onSuccess: async () => {
+      // Invalidate and refetch queries
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    },
+  });
+
+  /**
+   * Mutation: Leave Family
+   * Invalidates: current-family, family-permissions
+   */
+  const leaveFamilyMutation = useMutation({
+    mutationFn: async (): Promise<void> => {
+      if (!familyQuery.data?.id) {
+        throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+      }
+      console.log('🔄 FamilyContext: Leaving family...');
+      await familyApiService.leaveFamily(familyQuery.data.id);
+      console.log('✅ FamilyContext: Family left');
+    },
+    onSuccess: async () => {
+      // Clear all family-related queries
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    },
+  });
+
+  /**
+   * Mutation: Update Family Name
+   * Invalidates: current-family
+   */
+  const updateFamilyNameMutation = useMutation({
+    mutationFn: async (name: string): Promise<void> => {
+      if (!familyQuery.data?.id) {
+        throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+      }
+      console.log('🔄 FamilyContext: Updating family name...');
+      await familyApiService.updateFamilyName(name);
+      console.log('✅ FamilyContext: Family name updated');
+    },
+    onSuccess: async () => {
+      // Invalidate family data to get updated name
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+    },
+  });
+
+  /**
+   * Mutation: Invite Member
+   * Invalidates: family-invitations (to refresh pending invitations list)
+   *
+   * NOTE: Does NOT invalidate current-family because sending an invitation
+   * doesn't modify the family object. Invitations are separate entities.
+   */
+  const inviteMemberMutation = useMutation({
+    mutationFn: async (data: { email: string; role: string; personalMessage?: string }): Promise<void> => {
+      if (!familyQuery.data?.id) {
+        throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+      }
+      console.log('🔄 FamilyContext: Inviting member:', data.email);
+      await familyApiService.inviteMember(familyQuery.data.id, {
+        familyId: familyQuery.data.id,
+        email: data.email,
+        role: data.role as FamilyRole,
+        personalMessage: data.personalMessage
+      } as CreateFamilyInvitationRequest);
+      console.log('✅ FamilyContext: Member invited');
+    },
+    onSuccess: async () => {
+      // Only invalidate invitations list - family object is unchanged
+      await queryClient.invalidateQueries({ queryKey: ['family-invitations'] });
+    },
+  });
+
+  /**
+   * Mutation: Update Member Role
+   * Invalidates: current-family, family-permissions
+   */
+  const updateMemberRoleMutation = useMutation({
+    mutationFn: async (data: { memberId: string; role: string }): Promise<void> => {
+      if (!familyQuery.data?.id) {
+        throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+      }
+      console.log('🔄 FamilyContext: Updating member role:', data.memberId);
+      await familyApiService.updateMemberRole(data.memberId, { role: data.role as FamilyRole } as UpdateMemberRoleRequest);
+      console.log('✅ FamilyContext: Member role updated');
+    },
+    onSuccess: async () => {
+      // Invalidate family data to get updated roles
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    },
+  });
+
+  /**
+   * Mutation: Remove Member
+   * Invalidates: current-family
+   */
+  const removeMemberMutation = useMutation({
+    mutationFn: async (memberId: string): Promise<void> => {
+      if (!familyQuery.data?.id) {
+        throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+      }
+      console.log('🔄 FamilyContext: Removing member:', memberId);
+      await familyApiService.removeMember(familyQuery.data.id, memberId);
+      console.log('✅ FamilyContext: Member removed');
+    },
+    onSuccess: async () => {
+      // Invalidate family data to get updated member list
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    },
+  });
+
+  /**
+   * Mutation: Cancel Invitation
+   * Invalidates: family-invitations (to refresh pending invitations list)
+   *
+   * NOTE: Does NOT invalidate current-family because cancelling an invitation
+   * doesn't modify the family object. Invitations are separate entities.
+   */
+  const cancelInvitationMutation = useMutation({
+    mutationFn: async (invitationId: string): Promise<void> => {
+      if (!familyQuery.data?.id) {
+        throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+      }
+      console.log('🔄 FamilyContext: Cancelling invitation:', invitationId);
+      await familyApiService.cancelInvitation(familyQuery.data.id, invitationId);
+      console.log('✅ FamilyContext: Invitation cancelled');
+    },
+    onSuccess: async () => {
+      // Only invalidate invitations list - family object is unchanged
+      await queryClient.invalidateQueries({ queryKey: ['family-invitations'] });
+    },
+  });
+
+  // ============================================================================
+  // UTILITY FUNCTIONS - Non-mutating operations
+  // ============================================================================
+
+  /**
+   * Generate Invite Code
+   * Does not invalidate cache (just returns a code)
+   */
+  const generateInviteCode = async (): Promise<string> => {
+    if (!familyQuery.data?.id) {
+      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+    }
+    console.log('🔄 FamilyContext: Generating invite code...');
+    const inviteCode = await familyApiService.generateInviteCode();
+    console.log('✅ FamilyContext: Invite code generated');
+    return inviteCode;
+  };
+
+  /**
+   * Get Pending Invitations
+   * Does not use cache (always fresh data from API)
+   */
+  const getPendingInvitations = async (): Promise<FamilyInvitation[]> => {
+    if (!familyQuery.data?.id) {
+      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
+    }
+    console.log('🔄 FamilyContext: Fetching pending invitations...');
+    const invitations = await familyApiService.getInvitations(familyQuery.data.id);
+    console.log('✅ FamilyContext: Pending invitations fetched:', invitations.length);
+    return invitations;
+  };
+
+  // ============================================================================
+  // DERIVED STATE - Computed from query results
+  // ============================================================================
+
+  const currentFamily = familyQuery.data ?? null;
+  const userPermissions = permissionsQuery.data ?? null;
+  const isLoading = familyQuery.isLoading || permissionsQuery.isLoading;
+  const isCheckingFamily = familyQuery.isLoading || permissionsQuery.isLoading;
+  const hasFamily = !!currentFamily;
+
+  // User requires family if:
+  // - Not currently loading
+  // - Authenticated
+  // - No family data returned
+  const requiresFamily = !isLoading && isAuthenticated && !familyQuery.isError && !currentFamily;
+
+  // ============================================================================
+  // WRAPPER FUNCTIONS - Error handling and type safety
+  // ============================================================================
+
+  const createFamily = async (name: string): Promise<Family> => {
+    try {
+      return await createFamilyMutation.mutateAsync(name);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create family';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
       throw createFamilyError(FAMILY_ERROR_CODES.INVALID_FAMILY_NAME, errorMessage);
     }
-  }, []);
+  };
 
-  const joinFamily = useCallback(async (inviteCode: string): Promise<Family> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  const joinFamily = async (inviteCode: string): Promise<Family> => {
     try {
-      const family = await familyApiService.joinFamily({ inviteCode } as JoinFamilyRequest);
-      const permissions = await familyApiService.getUserPermissions(family.id);
-
-      setState(prev => ({
-        ...prev,
-        currentFamily: family,
-        userPermissions: permissions,
-        requiresFamily: false,  // Family requirement fulfilled
-        isLoading: false
-      }));
-
-      return family;
+      return await joinFamilyMutation.mutateAsync(inviteCode);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to join family';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
 
-      // Determine error code based on message
       let errorCode: string = FAMILY_ERROR_CODES.INVALID_INVITE_CODE;
       if (errorMessage.includes('already in family')) {
         errorCode = FAMILY_ERROR_CODES.USER_ALREADY_IN_FAMILY;
@@ -309,188 +429,40 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
       throw createFamilyError(errorCode, errorMessage);
     }
-  }, []);
+  };
 
-  const leaveFamily = useCallback(async (): Promise<void> => {
-    if (!state.currentFamily) return;
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  const leaveFamily = async (): Promise<void> => {
     try {
-      await familyApiService.leaveFamily(state.currentFamily.id);
-
-      setState(prev => ({
-        ...prev,
-        currentFamily: null,
-        userPermissions: null,
-        requiresFamily: true,  // Must join/create family again
-        isLoading: false
-      }));
+      await leaveFamilyMutation.mutateAsync();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to leave family';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  }, [state.currentFamily]);
+  };
 
-  const refreshFamily = useCallback(async (): Promise<void> => {
+  const updateFamilyName = async (name: string): Promise<void> => {
     try {
-      console.log('🔄 FamilyContext: Refreshing family data...');
-      const family = await familyApiService.getCurrentFamily();
-      if (family) {
-        const permissions = await familyApiService.getUserPermissions(family.id);
-
-        console.log('✅ FamilyContext: Family refresh successful:', {
-          familyId: family.id,
-          familyName: family.name,
-          memberCount: family.members?.length || 0,
-          adminCount: family.members?.filter(m => m.role === 'ADMIN').length || 0,
-          currentUserRole: permissions?.canManageMembers ? 'ADMIN' : 'MEMBER'
-        });
-
-        setState(prev => ({
-          ...prev,
-          currentFamily: family,
-          userPermissions: permissions,
-          requiresFamily: false,
-          error: null // Clear any previous errors
-        }));
-      } else {
-        console.log('📝 FamilyContext: No family found during refresh, user needs to join/create family');
-        setState(prev => ({
-          ...prev,
-          currentFamily: null,
-          userPermissions: null,
-          requiresFamily: true,
-          error: null
-        }));
-      }
+      await updateFamilyNameMutation.mutateAsync(name);
     } catch (error) {
-      console.error('🚨 FamilyContext: Failed to refresh family:', error);
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Failed to refresh family'
-      }));
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update family name';
+      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  }, []);
+  };
 
-  /**
-   * INVITATION MANAGEMENT STRATEGY
-   *
-   * This context provides invitation management functions that follow a specific
-   * refresh pattern to prevent race conditions and unexpected redirects.
-   *
-   * **Architecture Layers:**
-   *
-   * 1. **Context Layer (FamilyContext):**
-   *    - inviteMember(): Only sends invitation API call
-   *    - cancelInvitation(): Only sends cancellation API call
-   *    - NO automatic refresh - prevents race conditions with component state
-   *    - Returns control to caller immediately after API call completes
-   *
-   * 2. **Component Layer (ManageFamilyPage):**
-   *    - handleInviteMember(): Calls context, then orchestrates refreshes
-   *    - refreshFamily(): Updates family members, children, vehicles (full refresh)
-   *    - refreshPendingInvitations(): Updates invitations list only (targeted refresh)
-   *    - Controls timing and sequence of all refresh operations
-   *
-   * **Why This Separation?**
-   *
-   * - Prevents duplicate API calls (context doesn't assume what needs refreshing)
-   * - Predictable refresh timing (component decides when to refresh)
-   * - No race conditions between context and component state updates
-   * - Component can show loading states during refresh
-   * - Component can handle errors specific to each refresh operation
-   *
-   * **Example Flow (Sending an Invitation):**
-   *
-   * ```
-   * // Component (ManageFamilyPage)
-   * const handleInviteMember = async (data) => {
-   *   try {
-   *     // Step 1: Call context (just API call, no refresh)
-   *     await inviteMember(data.email, data.role, data.personalMessage);
-   *
-   *     // Step 2: Refresh invitations list to show new invitation
-   *     await refreshPendingInvitations();
-   *
-   *     // Step 3: Optionally refresh full family if needed
-   *     // (e.g., if invitation affects member count)
-   *   } catch (error) {
-   *     // Handle error
-   *   }
-   * };
-   * ```
-   *
-   * **Important Notes:**
-   *
-   * - NEVER add refreshFamily() to context functions - it breaks this pattern
-   * - Always let components orchestrate their own refresh timing
-   * - Use refreshPendingInvitations() for invitation-specific updates
-   * - Use refreshFamily() only when family data structure changes
-   */
-  const inviteMember = useCallback(async (
-    email: string,
-    role: string,
-    personalMessage?: string
-  ): Promise<void> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  const inviteMember = async (email: string, role: string, personalMessage?: string): Promise<void> => {
     try {
-      await familyApiService.inviteMember(state.currentFamily.id, {
-        familyId: state.currentFamily.id,
-        email,
-        role: role as FamilyRole,
-        personalMessage
-      } as CreateFamilyInvitationRequest);
-
-      // Don't refresh family here - it can cause race conditions and redirects
-      // The component will handle refreshing invitations separately via refreshPendingInvitations()
-
-      setState(prev => ({ ...prev, isLoading: false }));
+      await inviteMemberMutation.mutateAsync({ email, role, personalMessage });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to invite member';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  }, [state.currentFamily]);
+  };
 
-  const updateMemberRole = useCallback(async (
-    memberId: string,
-    role: string
-  ): Promise<void> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  const updateMemberRole = async (memberId: string, role: string): Promise<void> => {
     try {
-      await familyApiService.updateMemberRole(memberId, { role: role as FamilyRole } as UpdateMemberRoleRequest);
-
-      // Refresh family to get updated member roles
-      await refreshFamily();
-
-      setState(prev => ({ ...prev, isLoading: false }));
+      await updateMemberRoleMutation.mutateAsync({ memberId, role });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update member role';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
 
       let errorCode: string = FAMILY_ERROR_CODES.UNAUTHORIZED;
       if (errorMessage.includes('last admin')) {
@@ -501,29 +473,13 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
       throw createFamilyError(errorCode, errorMessage);
     }
-  }, [state.currentFamily, refreshFamily]);
+  };
 
-  const removeMember = useCallback(async (memberId: string): Promise<void> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  const removeMember = async (memberId: string): Promise<void> => {
     try {
-      await familyApiService.removeMember(state.currentFamily.id, memberId);
-
-      // Refresh family to get updated member list
-      await refreshFamily();
-
-      setState(prev => ({ ...prev, isLoading: false }));
+      await removeMemberMutation.mutateAsync(memberId);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to remove member';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
 
       let errorCode: string = FAMILY_ERROR_CODES.UNAUTHORIZED;
       if (errorMessage.includes('cannot remove self')) {
@@ -534,102 +490,39 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
       throw createFamilyError(errorCode, errorMessage);
     }
-  }, [state.currentFamily, refreshFamily]);
+  };
 
-  const generateInviteCode = useCallback(async (): Promise<string> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
+  const cancelInvitation = async (invitationId: string): Promise<void> => {
     try {
-      const inviteCode = await familyApiService.generateInviteCode();
-      return inviteCode;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate invite code';
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
-    }
-  }, [state.currentFamily]);
-
-  const updateFamilyName = useCallback(async (name: string): Promise<void> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const updatedFamily = await familyApiService.updateFamilyName(name);
-
-      setState(prev => ({
-        ...prev,
-        currentFamily: updatedFamily,
-        isLoading: false
-      }));
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update family name';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
-    }
-  }, [state.currentFamily]);
-
-  const getPendingInvitations = useCallback(async (): Promise<FamilyInvitation[]> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
-    try {
-      const invitations = await familyApiService.getInvitations(state.currentFamily.id);
-      return invitations;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch invitations';
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
-    }
-  }, [state.currentFamily]);
-
-  /**
-   * Cancel a pending family invitation
-   *
-   * NOTE: This function only sends the cancellation API call and does NOT refresh
-   * any data. The calling component should handle refreshing the invitations list
-   * via refreshPendingInvitations() to update the UI.
-   *
-   * See: INVITATION MANAGEMENT STRATEGY documentation above
-   */
-  const cancelInvitation = useCallback(async (invitationId: string): Promise<void> => {
-    if (!state.currentFamily) {
-      throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      await familyApiService.cancelInvitation(state.currentFamily.id, invitationId);
-      setState(prev => ({ ...prev, isLoading: false }));
+      await cancelInvitationMutation.mutateAsync(invitationId);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel invitation';
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage
-      }));
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  }, [state.currentFamily]);
+  };
 
-  const clearError = useCallback(() => {
-    setState(prev => ({ ...prev, error: null }));
-  }, []);
+  const clearError = () => {
+    // Clear errors from queries
+    queryClient.resetQueries({ queryKey: ['current-family'] });
+    queryClient.resetQueries({ queryKey: ['family-permissions'] });
+  };
 
-  const value: FamilyContextType = {
-    ...state,
+  // ============================================================================
+  // CONTEXT VALUE - Memoized for stability
+  // ============================================================================
+
+  const value: FamilyContextType = useMemo(() => ({
+    currentFamily,
+    userPermissions,
+    isLoading,
+    isCheckingFamily,
+    requiresFamily,
+    error: (familyQuery.error instanceof Error ? familyQuery.error.message : null) ??
+            (permissionsQuery.error instanceof Error ? permissionsQuery.error.message : null) ??
+            null,
     createFamily,
     joinFamily,
     leaveFamily,
-    refreshFamily,
     updateFamilyName,
     inviteMember,
     updateMemberRole,
@@ -638,8 +531,28 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     getPendingInvitations,
     cancelInvitation,
     clearError,
-    hasFamily: !!state.currentFamily
-  };
+    hasFamily
+  }), [
+    currentFamily,
+    userPermissions,
+    isLoading,
+    isCheckingFamily,
+    requiresFamily,
+    familyQuery.error,
+    permissionsQuery.error,
+    createFamily,
+    joinFamily,
+    leaveFamily,
+    updateFamilyName,
+    inviteMember,
+    updateMemberRole,
+    removeMember,
+    generateInviteCode,
+    getPendingInvitations,
+    cancelInvitation,
+    clearError,
+    hasFamily
+  ]);
 
   return (
     <FamilyContext.Provider value={value}>

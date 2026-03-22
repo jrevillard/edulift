@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useFamily } from '../contexts/FamilyContext';
 import { useAuth } from '../contexts/AuthContext';
 import { FamilyOnboardingWizard } from '../components/family/FamilyOnboardingWizard';
@@ -7,7 +8,9 @@ import { FamilyOnboardingWizard } from '../components/family/FamilyOnboardingWiz
 const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { refreshFamily, hasFamily, isCheckingFamily, isLoading: familyLoading } = useFamily();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const { hasFamily, isCheckingFamily, isLoading: familyLoading } = useFamily();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Redirect authenticated users who already have a family to dashboard
@@ -23,18 +26,24 @@ const OnboardingPage: React.FC = () => {
     }
 
     // If user already has a family, redirect to dashboard
-    if (hasFamily) {
+    // UNLESS they came from /family/manage (prevent false redirects)
+    const fromFamilyManage = location.state?.from?.pathname === '/family/manage';
+    if (hasFamily && !fromFamilyManage) {
       console.log('🔄 OnboardingPage: User already has a family, redirecting to dashboard');
       navigate('/dashboard', { replace: true });
+    } else if (hasFamily && fromFamilyManage) {
+      console.log('⚠️ OnboardingPage: User has family but came from /family/manage, staying on page');
+      // Redirect back to /family/manage
+      navigate('/family/manage', { replace: true });
     }
-  }, [authLoading, isCheckingFamily, familyLoading, isAuthenticated, hasFamily, navigate]);
+  }, [authLoading, isCheckingFamily, familyLoading, isAuthenticated, hasFamily, navigate, location.state]);
 
   const handleComplete = async () => {
     try {
-      // Refresh family data to get updated children and vehicles
-      await refreshFamily();
+      // Invalidate family data to get updated children and vehicles (React Query manages cache)
+      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
     } catch (error) {
-      console.warn('Could not refresh family data after onboarding:', error);
+      console.warn('Could not invalidate family queries after onboarding:', error);
     }
 
     // Check for returnTo parameter (e.g., group invitation after family creation)

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { usePageState } from '../hooks/usePageState';
-import { useFamily } from '../contexts/FamilyContext';
 import type { Vehicle } from '@/types/api';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
 import { Button } from '@/components/ui/button';
@@ -26,7 +25,6 @@ const VehiclesPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string>('');
   const queryClient = useQueryClient();
-  const { refreshFamily } = useFamily();
 
   const vehiclesQuery = useQuery({
     queryKey: ['vehicles'],
@@ -46,7 +44,7 @@ const VehiclesPage: React.FC = () => {
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      await refreshFamily(); // Refresh family context to update ManageFamilyPage
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setIsFormOpen(false);
       setFormData({ name: '', capacity: '' });
       setFormError('');
@@ -78,7 +76,7 @@ const VehiclesPage: React.FC = () => {
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      await refreshFamily(); // Refresh family context to update ManageFamilyPage
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setEditingVehicle(null);
       setFormData({ name: '', capacity: '' });
       setFormError('');
@@ -109,7 +107,7 @@ const VehiclesPage: React.FC = () => {
       // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      await refreshFamily(); // Refresh family context to update ManageFamilyPage
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
     },
   });
 

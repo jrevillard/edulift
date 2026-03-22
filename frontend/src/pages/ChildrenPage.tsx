@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 import { usePageState } from '../hooks/usePageState';
-import { useFamily } from '../contexts/FamilyContext';
 import { ChildGroupManagement } from '../components/ChildGroupManagement';
 import type { Child } from '@/types/api';
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog';
@@ -29,7 +28,6 @@ const ChildrenPage: React.FC = () => {
   const [childToDelete, setChildToDelete] = useState<Child | null>(null);
   const [formError, setFormError] = useState<string>('');
   const queryClient = useQueryClient();
-  const { refreshFamily } = useFamily();
 
   const childrenQuery = useQuery({
     queryKey: ['children'],
@@ -100,7 +98,8 @@ const ChildrenPage: React.FC = () => {
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      await refreshFamily(); // Refresh family context to update ManageFamilyPage
+      // Invalidate family data to update ManageFamilyPage (React Query manages this)
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setIsFormOpen(false);
       setFormData({ name: '', age: '' });
       setAssignedGroups([]);
@@ -145,7 +144,7 @@ const ChildrenPage: React.FC = () => {
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      await refreshFamily(); // Refresh family context to update ManageFamilyPage
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setIsFormOpen(false);
       setEditingChild(null);
       setFormData({ name: '', age: '' });
@@ -181,7 +180,7 @@ const ChildrenPage: React.FC = () => {
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      await refreshFamily(); // Refresh family context to update ManageFamilyPage
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
     },
   });
 

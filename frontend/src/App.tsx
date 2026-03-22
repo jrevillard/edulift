@@ -28,6 +28,22 @@ import ManageGroupPage from './pages/ManageGroupPage';
 import ManageFamilyPage from './pages/ManageFamilyPage';
 import ProfilePage from './pages/ProfilePage';
 import { useTimezoneAutoSync } from './hooks/useTimezoneAutoSync';
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
+// Track all location changes for debugging
+const LocationTracker: React.FC = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log('📍 Location changed:', location.pathname);
+    // Capture stack trace
+    const stack = new Error().stack;
+    console.log('Location change stack:', stack);
+  }, [location]);
+
+  return null;
+};
 
 // Create a client for React Query with enhanced error handling
 const queryClient = new QueryClient({
@@ -79,6 +95,7 @@ function AppContent() {
     <FamilyProvider>
       <SocketProvider>
         <Router>
+          <LocationTracker />
           <BackendConnectionAlert />
           <ConnectionStatusBanner />
           <Routes>
