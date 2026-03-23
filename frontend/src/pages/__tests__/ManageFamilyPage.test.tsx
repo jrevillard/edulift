@@ -1,21 +1,39 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import ManageFamilyPage from '../ManageFamilyPage';
 import { useFamily } from '../../contexts/FamilyContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import type { Family, FamilyPermissions } from '../../types/family';
+import { createMockOpenAPIClient } from '../../test/test-utils';
+import { api } from '../../services/api';
 
 // Mock type definitions
 type MockedFunction<T extends (...args: unknown[]) => unknown> = ReturnType<typeof vi.fn<T>>;
 type MockedUseNavigate = MockedFunction<typeof useNavigate>;
-type MockedUseFamily = MockedFunction<typeof useFamily>;
 type MockedUseAuth = MockedFunction<typeof useAuth>;
 
 // Mock the contexts
 vi.mock('../../contexts/FamilyContext');
 vi.mock('../../contexts/AuthContext');
+vi.mock('../../stores/connectionStore', () => {
+  const mockStore = {
+    apiStatus: 'connected',
+    isConnected: () => true,
+    hasConnectionIssues: () => false,
+    setApiStatus: vi.fn(),
+    setConnected: vi.fn()
+  };
+
+  const mockUseConnectionStore = vi.fn(() => mockStore);
+  mockUseConnectionStore.getState = vi.fn(() => mockStore);
+
+  return {
+    useConnectionStore: mockUseConnectionStore
+  };
+});
 
 // Mock react-router-dom
 vi.mock('react-router-dom', async () => {
@@ -27,6 +45,10 @@ vi.mock('react-router-dom', async () => {
 });
 
 const mockNavigate = vi.fn();
+
+// Mock api
+vi.mock('../../services/api');
+const mockApi = api as unknown;
 
 const mockCurrentUser = {
   id: 'user-1',
@@ -132,7 +154,6 @@ const mockFamilyContext = {
   removeMember: vi.fn(),
   inviteMember: vi.fn(),
   leaveFamily: vi.fn(),
-  refreshFamily: vi.fn(),
   updateFamilyName: vi.fn(),
   createFamily: vi.fn(),
   joinFamily: vi.fn(),
@@ -146,19 +167,52 @@ const mockFamilyContext = {
   error: null,
 };
 
-const renderComponent = () => {
-  return render(
-    <MemoryRouter>
-      <ManageFamilyPage />
-    </MemoryRouter>
+const mockAuthContext = {
+  isAuthenticated: true,
+  isLoading: false,
+  user: mockCurrentUser,
+};
+
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        {children}
+      </MemoryRouter>
+    </QueryClientProvider>
   );
+};
+
+const renderComponent = (overrides?: Partial<typeof mockFamilyContext>) => {
+  // Setup API mocks
+  const comprehensiveMocks = createMockOpenAPIClient();
+  Object.assign(mockApi, comprehensiveMocks);
+
+  // Setup FamilyContext mock with optional overrides
+  const mockUseFamily = vi.mocked(useFamily);
+  mockUseFamily.mockReturnValue({
+    ...mockFamilyContext,
+    ...overrides
+  });
+
+  // Setup AuthContext mock
+  const mockUseAuth = vi.mocked(useAuth);
+  mockUseAuth.mockReturnValue(mockAuthContext);
+
+  return render(<ManageFamilyPage />, { wrapper: TestWrapper });
 };
 
 describe('ManageFamilyPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useNavigate as MockedUseNavigate).mockReturnValue(mockNavigate);
-    (useFamily as MockedUseFamily).mockReturnValue(mockFamilyContext);
     (useAuth as MockedUseAuth).mockReturnValue({
       user: mockCurrentUser,
       login: vi.fn(),
@@ -271,14 +325,10 @@ describe('ManageFamilyPage', () => {
     });
 
     it('should not show action buttons for non-admin users', async () => {
-      (useFamily as MockedUseFamily).mockReturnValue({
-        ...mockFamilyContext,
-        userPermissions: mockMemberPermissions,
-      });
       await act(async () => {
-        renderComponent();
+        renderComponent({ userPermissions: mockMemberPermissions });
       });
-      
+
       expect(screen.queryByTestId('InvitationManagement-Button-inviteMember')).not.toBeInTheDocument();
       // Non-admin users should not see member menu buttons
       expect(screen.queryByTestId('ManageFamilyPage-Button-memberMenu-admin@test.com')).not.toBeInTheDocument();
@@ -395,14 +445,10 @@ describe('ManageFamilyPage', () => {
 
   describe('Leave Family', () => {
     it('should show danger zone for non-admin users', async () => {
-      (useFamily as MockedUseFamily).mockReturnValue({
-        ...mockFamilyContext,
-        userPermissions: mockMemberPermissions,
-      });
       await act(async () => {
-        renderComponent();
+        renderComponent({ userPermissions: mockMemberPermissions });
       });
-      
+
       expect(screen.getByTestId('ManageFamilyPage-Button-leaveFamily')).toBeInTheDocument();
     });
 
@@ -415,36 +461,30 @@ describe('ManageFamilyPage', () => {
     });
 
     it('should open leave family dialog when button is clicked', async () => {
-      (useFamily as MockedUseFamily).mockReturnValue({
-        ...mockFamilyContext,
-        userPermissions: mockMemberPermissions,
-      });
       await act(async () => {
-        renderComponent();
+        renderComponent({ userPermissions: mockMemberPermissions });
       });
-      
+
       fireEvent.click(screen.getByTestId('ManageFamilyPage-Button-leaveFamily'));
-      
+
       expect(screen.getByTestId('ManageFamilyPage-Button-confirmLeaveFamily')).toBeInTheDocument();
     });
 
     it('should leave family when confirmed', async () => {
       const mockLeaveFamily = vi.fn().mockResolvedValue(undefined);
-      (useFamily as MockedUseFamily).mockReturnValue({
-        ...mockFamilyContext,
-        userPermissions: mockMemberPermissions,
-        leaveFamily: mockLeaveFamily,
-      });
       await act(async () => {
-        renderComponent();
+        renderComponent({
+          userPermissions: mockMemberPermissions,
+          leaveFamily: mockLeaveFamily,
+        });
       });
-      
+
       fireEvent.click(screen.getByTestId('ManageFamilyPage-Button-leaveFamily'));
 
       // Find the confirmation button
       const confirmButton = screen.getByTestId('ManageFamilyPage-Button-confirmLeaveFamily');
       fireEvent.click(confirmButton);
-      
+
       // Wait for the async operation to complete
       await waitFor(() => {
         expect(mockLeaveFamily).toHaveBeenCalled();
@@ -501,14 +541,10 @@ describe('ManageFamilyPage', () => {
     });
 
     it('should not show edit button for non-admin users', async () => {
-      (useFamily as MockedUseFamily).mockReturnValue({
-        ...mockFamilyContext,
-        userPermissions: mockParentPermissions,
-      });
       await act(async () => {
-        renderComponent();
+        renderComponent({ userPermissions: mockParentPermissions });
       });
-      
+
       expect(screen.queryByTestId('ManageFamilyPage-Button-editFamily')).not.toBeInTheDocument();
     });
 
@@ -745,17 +781,16 @@ describe('ManageFamilyPage', () => {
 
   describe('Error Handling', () => {
 
-    it('should redirect to dashboard if no family exists', async () => {
-      (useFamily as MockedUseFamily).mockReturnValue({
-        ...mockFamilyContext,
-        currentFamily: null,
-        userPermissions: null,
-      });
+    it('should show loading state if no family exists', async () => {
       await act(async () => {
-        renderComponent();
+        renderComponent({
+          currentFamily: null,
+          userPermissions: null,
+        });
       });
-      
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+
+      // Should show loading state instead of redirecting
+      expect(screen.getByText('Loading family data...')).toBeInTheDocument();
     });
   });
 });

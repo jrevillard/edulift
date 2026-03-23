@@ -26,7 +26,7 @@
  */
 
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type {
@@ -361,7 +361,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
    * Generate Invite Code
    * Does not invalidate cache (just returns a code)
    */
-  const generateInviteCode = async (): Promise<string> => {
+  const generateInviteCode = useCallback(async (): Promise<string> => {
     if (!familyQuery.data?.id) {
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
     }
@@ -369,13 +369,13 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     const inviteCode = await familyApiService.generateInviteCode();
     console.log('✅ FamilyContext: Invite code generated');
     return inviteCode;
-  };
+  }, [familyQuery.data?.id]);
 
   /**
    * Get Pending Invitations
    * Does not use cache (always fresh data from API)
    */
-  const getPendingInvitations = async (): Promise<FamilyInvitation[]> => {
+  const getPendingInvitations = useCallback(async (): Promise<FamilyInvitation[]> => {
     if (!familyQuery.data?.id) {
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
     }
@@ -383,7 +383,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     const invitations = await familyApiService.getInvitations(familyQuery.data.id);
     console.log('✅ FamilyContext: Pending invitations fetched:', invitations.length);
     return invitations;
-  };
+  }, [familyQuery.data?.id]);
 
   // ============================================================================
   // DERIVED STATE - Computed from query results
@@ -405,16 +405,16 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
   // WRAPPER FUNCTIONS - Error handling and type safety
   // ============================================================================
 
-  const createFamily = async (name: string): Promise<Family> => {
+  const createFamily = useCallback(async (name: string): Promise<Family> => {
     try {
       return await createFamilyMutation.mutateAsync(name);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create family';
       throw createFamilyError(FAMILY_ERROR_CODES.INVALID_FAMILY_NAME, errorMessage);
     }
-  };
+  }, [createFamilyMutation]);
 
-  const joinFamily = async (inviteCode: string): Promise<Family> => {
+  const joinFamily = useCallback(async (inviteCode: string): Promise<Family> => {
     try {
       return await joinFamilyMutation.mutateAsync(inviteCode);
     } catch (error) {
@@ -429,36 +429,36 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
       throw createFamilyError(errorCode, errorMessage);
     }
-  };
+  }, [joinFamilyMutation]);
 
-  const leaveFamily = async (): Promise<void> => {
+  const leaveFamily = useCallback(async (): Promise<void> => {
     try {
       await leaveFamilyMutation.mutateAsync();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to leave family';
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  };
+  }, [leaveFamilyMutation]);
 
-  const updateFamilyName = async (name: string): Promise<void> => {
+  const updateFamilyName = useCallback(async (name: string): Promise<void> => {
     try {
       await updateFamilyNameMutation.mutateAsync(name);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update family name';
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  };
+  }, [updateFamilyNameMutation]);
 
-  const inviteMember = async (email: string, role: string, personalMessage?: string): Promise<void> => {
+  const inviteMember = useCallback(async (email: string, role: string, personalMessage?: string): Promise<void> => {
     try {
       await inviteMemberMutation.mutateAsync({ email, role, personalMessage });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to invite member';
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  };
+  }, [inviteMemberMutation]);
 
-  const updateMemberRole = async (memberId: string, role: string): Promise<void> => {
+  const updateMemberRole = useCallback(async (memberId: string, role: string): Promise<void> => {
     try {
       await updateMemberRoleMutation.mutateAsync({ memberId, role });
     } catch (error) {
@@ -473,9 +473,9 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
       throw createFamilyError(errorCode, errorMessage);
     }
-  };
+  }, [updateMemberRoleMutation]);
 
-  const removeMember = async (memberId: string): Promise<void> => {
+  const removeMember = useCallback(async (memberId: string): Promise<void> => {
     try {
       await removeMemberMutation.mutateAsync(memberId);
     } catch (error) {
@@ -490,22 +490,22 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
       throw createFamilyError(errorCode, errorMessage);
     }
-  };
+  }, [removeMemberMutation]);
 
-  const cancelInvitation = async (invitationId: string): Promise<void> => {
+  const cancelInvitation = useCallback(async (invitationId: string): Promise<void> => {
     try {
       await cancelInvitationMutation.mutateAsync(invitationId);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel invitation';
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
-  };
+  }, [cancelInvitationMutation]);
 
-  const clearError = () => {
+  const clearError = useCallback(() => {
     // Clear errors from queries
     queryClient.resetQueries({ queryKey: ['current-family'] });
     queryClient.resetQueries({ queryKey: ['family-permissions'] });
-  };
+  }, [queryClient]);
 
   // ============================================================================
   // CONTEXT VALUE - Memoized for stability

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
@@ -80,10 +81,19 @@ const parentPermissions: FamilyPermissions = {
 };
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  });
+
   return (
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        {children}
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 
@@ -122,8 +132,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -153,8 +162,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -183,8 +191,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -225,8 +232,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -278,8 +284,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -327,8 +332,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -377,8 +381,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -421,8 +424,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 
@@ -461,8 +463,7 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         removeMember: vi.fn(),
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
-        refreshFamily: vi.fn(),
-        getPendingInvitations: vi.fn().mockResolvedValue([]),
+          getPendingInvitations: vi.fn().mockResolvedValue([]),
         cancelInvitation: vi.fn()
       });
 

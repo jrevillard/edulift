@@ -38,7 +38,6 @@ const mockFamilyContext = {
     canModifyChildren: false,
     canViewDetails: true
   },
-  refreshFamily: vi.fn(),
   isLoading: false,
   error: null,
   requiresFamily: false,
@@ -137,9 +136,6 @@ describe('VehiclesPage - Cache Invalidation', () => {
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot'] });
-    
-    // Verify family context was refreshed
-    expect(mockFamilyContext.refreshFamily).toHaveBeenCalled();
   });
 
   it('should invalidate schedule-related queries when vehicle is created', async () => {

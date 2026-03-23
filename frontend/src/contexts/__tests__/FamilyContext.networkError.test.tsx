@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor, cleanup } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FamilyProvider, useFamily } from '../FamilyContext';
 import { useAuth } from '../AuthContext';
 import { familyApiService } from '../../services/familyApiService';
@@ -26,6 +27,21 @@ const TestComponent = () => {
       <div data-testid="is-checking">{isCheckingFamily.toString()}</div>
       <div data-testid="error">{error || 'no-error'}</div>
     </div>
+  );
+};
+
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false }
+    }
+  });
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
   );
 };
 
@@ -66,9 +82,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -109,9 +127,11 @@ describe('FamilyContext - Network Error Handling', () => {
       console.log('🔍 DEBUG TEST: Mock getCurrentFamily calls:', mockFamilyApiService.getCurrentFamily.mock.calls);
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -151,9 +171,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -180,9 +202,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -206,9 +230,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -235,9 +261,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -249,8 +277,8 @@ describe('FamilyContext - Network Error Handling', () => {
         { timeout: 10000 }
       );
 
-      // SHOULD require family on permission errors
-      expect(getByTestId('requires-family').textContent).toBe('true');
+      // With React Query: errors do NOT set requiresFamily to true
+      expect(getByTestId('requires-family').textContent).toBe('false');
       expect(getByTestId('error').textContent).toBe('Forbidden');
     });
 
@@ -264,9 +292,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -298,9 +328,11 @@ describe('FamilyContext - Network Error Handling', () => {
     it('should set requiresFamily to true on authentication errors', async () => {
       // Ensure clean state by re-rendering FamilyProvider
       const { unmount } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
       unmount();
 
@@ -313,9 +345,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -327,8 +361,9 @@ describe('FamilyContext - Network Error Handling', () => {
         { timeout: 10000 }
       );
 
-      // SHOULD require family on non-network errors
-      expect(getByTestId('requires-family').textContent).toBe('true');
+      // With React Query: errors do NOT set requiresFamily to true
+      // requiresFamily is only true when there's no error AND no family
+      expect(getByTestId('requires-family').textContent).toBe('false');
       expect(getByTestId('error').textContent).toBe('Unauthorized');
     });
 
@@ -343,9 +378,11 @@ describe('FamilyContext - Network Error Handling', () => {
       );
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND error to be set
@@ -357,8 +394,8 @@ describe('FamilyContext - Network Error Handling', () => {
         { timeout: 10000 }
       );
 
-      // SHOULD require family on business logic errors
-      expect(getByTestId('requires-family').textContent).toBe('true');
+      // With React Query: errors do NOT set requiresFamily to true
+      expect(getByTestId('requires-family').textContent).toBe('false');
       expect(getByTestId('error').textContent).toBe('User not found in family system');
     });
   });
@@ -386,9 +423,11 @@ describe('FamilyContext - Network Error Handling', () => {
       mockFamilyApiService.getCurrentFamily.mockResolvedValue(null);
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       // Wait for both isCheckingFamily to be false AND requiresFamily to be true
@@ -427,9 +466,11 @@ describe('FamilyContext - Network Error Handling', () => {
       });
 
       const { getByTestId } = render(
-        <FamilyProvider>
-          <TestComponent />
-        </FamilyProvider>
+        <TestWrapper>
+          <FamilyProvider>
+            <TestComponent />
+          </FamilyProvider>
+        </TestWrapper>
       );
 
       await waitFor(

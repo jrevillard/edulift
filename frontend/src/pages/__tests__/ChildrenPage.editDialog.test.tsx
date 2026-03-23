@@ -71,7 +71,6 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     Object.assign(mockApi, comprehensiveMocks);
 
     mockUseFamily.mockReturnValue({
-      refreshFamily: vi.fn().mockResolvedValue(undefined),
       currentFamily: {
         id: 'family-1',
         name: 'Test Family',
@@ -240,9 +239,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
   });
 
   it('should refresh family context after update', async () => {
-    const mockRefreshFamily = vi.fn().mockResolvedValue(undefined);
     mockUseFamily.mockReturnValue({
-      refreshFamily: mockRefreshFamily,
       currentFamily: {
         id: 'family-1',
         name: 'Test Family',
@@ -273,9 +270,9 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     const updateButton = screen.getByTestId('ChildrenPage-Button-submitChild');
     fireEvent.click(updateButton);
 
-    // Verify refreshFamily was called
+    // Verify API call was made (React Query handles cache invalidation automatically)
     await waitFor(() => {
-      expect(mockRefreshFamily).toHaveBeenCalled();
+      expect(mockApi.PATCH).toHaveBeenCalled();
     });
   });
 
@@ -332,11 +329,8 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     // 1. Edit dialog opens correctly (not Add dialog)
     // 2. Data is pre-filled correctly
     // 3. Dialog closes after update (doesn't stay open)
-    // 4. refreshFamily is called to update other pages
-    const mockRefreshFamily = vi.fn().mockResolvedValue(undefined);
-    
+    // 4. React Query automatically invalidates cache to update other pages
     mockUseFamily.mockReturnValue({
-      refreshFamily: mockRefreshFamily,
       currentFamily: {
         id: 'family-1',
         name: 'Test Family',
@@ -371,7 +365,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     // Step 3: Make a change and submit
     const nameInput = screen.getByDisplayValue('Alice Smith');
     fireEvent.change(nameInput, { target: { value: 'Alice Updated' } });
-    
+
     const updateButton = screen.getByTestId('ChildrenPage-Button-submitChild');
     fireEvent.click(updateButton);
 
@@ -379,14 +373,11 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('ChildrenPage-Title-childModalTitle')).not.toBeInTheDocument();
     });
-    
+
     // Verify no "Add New Child" dialog appears (this was the bug)
     expect(screen.queryByText('Add New Child')).not.toBeInTheDocument();
 
-    // Step 5: Verify refreshFamily was called (integration with ManageFamilyPage)
-    expect(mockRefreshFamily).toHaveBeenCalled();
-
-    // Step 6: Verify API was called with correct data
+    // Step 5: Verify API was called with correct data
     expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
       params: { path: { childId: 'child-1' } },
       body: {

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import ManageFamilyPage from '../../pages/ManageFamilyPage';
 import { useFamily } from '../../contexts/FamilyContext';
@@ -121,7 +122,6 @@ describe('ManageFamilyPage - Admin Self-Demotion Prevention', () => {
       removeMember: vi.fn().mockResolvedValue(undefined),
       inviteMember: vi.fn().mockResolvedValue(undefined),
       leaveFamily: vi.fn().mockResolvedValue(undefined),
-      refreshFamily: vi.fn().mockResolvedValue(undefined),
       updateFamilyName: vi.fn().mockResolvedValue(undefined),
       createFamily: vi.fn().mockResolvedValue(undefined),
       joinFamily: vi.fn().mockResolvedValue(undefined),
@@ -138,10 +138,19 @@ describe('ManageFamilyPage - Admin Self-Demotion Prevention', () => {
   });
 
   const renderComponent = () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false }
+      }
+    });
+
     return render(
-      <MemoryRouter>
-        <ManageFamilyPage />
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ManageFamilyPage />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
   };
 

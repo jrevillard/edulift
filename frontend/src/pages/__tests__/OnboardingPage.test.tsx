@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import OnboardingPage from '../OnboardingPage';
 import * as AuthContext from '../../contexts/AuthContext';
@@ -37,6 +38,23 @@ describe('OnboardingPage', () => {
     mockNavigate.mockClear();
   });
 
+  const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false }
+      }
+    });
+
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          {children}
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+  };
+
   it('shows loading state while checking authentication and family status', () => {
     mockUseAuth.mockReturnValue({
       isAuthenticated: false,
@@ -73,9 +91,9 @@ describe('OnboardingPage', () => {
     });
 
     render(
-      <MemoryRouter>
+      <TestWrapper>
         <OnboardingPage />
-      </MemoryRouter>
+      </TestWrapper>
     );
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -126,9 +144,9 @@ describe('OnboardingPage', () => {
     });
 
     render(
-      <MemoryRouter>
+      <TestWrapper>
         <OnboardingPage />
-      </MemoryRouter>
+      </TestWrapper>
     );
 
     await waitFor(() => {
@@ -172,9 +190,9 @@ describe('OnboardingPage', () => {
     });
 
     render(
-      <MemoryRouter>
+      <TestWrapper>
         <OnboardingPage />
-      </MemoryRouter>
+      </TestWrapper>
     );
 
     expect(screen.getByTestId('family-onboarding-wizard')).toBeInTheDocument();
@@ -216,9 +234,9 @@ describe('OnboardingPage', () => {
     });
 
     render(
-      <MemoryRouter>
+      <TestWrapper>
         <OnboardingPage />
-      </MemoryRouter>
+      </TestWrapper>
     );
 
     // Should show the wizard since ProtectedRoute will handle the redirect

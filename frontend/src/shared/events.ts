@@ -89,4 +89,4 @@ export interface CapacityEventData {
 }
 
 // Generic event payload type
-export type EventPayload = any;
+export type EventPayload = Record<string, unknown> | null | undefined;
