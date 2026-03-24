@@ -148,6 +148,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     gcTime: 10 * 60 * 1000,    // 10 minutes
     enabled: isAuthenticated && !!user,  // Only fetch when authenticated
     retry: false,  // Disable retries - a 404 is expected for new users without a family
+    // This prevents continuous refetching that causes component unmounting/remounting
+    // See: /workspace/e2e/tests/family/01-family-creation.spec.ts
   });
 
   /**

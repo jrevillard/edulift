@@ -15,9 +15,22 @@ const OnboardingPage: React.FC = () => {
   
   // Track if we've completed the initial family check
   // This prevents the wizard from unmounting when family query refetches
+  /**
+   * Prevents OnboardingWizard unmount/remount cycles during React Query refetches.
+   *
+   * ISSUE: React Query's retry mechanism on 404 errors causes component cycles,
+   *        resetting wizard form state and blocking user input.
+   * SOLUTION: Once initial family check completes, freeze wizard visibility.
+   *
+   * NOTE: This ref persists for the component lifecycle. It's safe because:
+   * - Users navigating to /onboarding will always need to see the wizard
+   * - The wizard itself handles the "already has family" redirect via useEffect
+   * - Auth changes trigger component remount anyway, resetting the ref
+   */
   const initialCheckComplete = useRef(false);
-  
+
   // Mark initial check as complete once family check finishes
+  // (Either successfully fetched family OR confirmed no family exists)
   if (!isCheckingFamily && !authLoading) {
     initialCheckComplete.current = true;
   }
