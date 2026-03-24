@@ -206,9 +206,15 @@ describe('FamilyOnboardingWizard', () => {
     it('should show loading state during creation', async () => {
       const user = userEvent.setup();
       
+      // Mock createFamily to return a pending promise to simulate loading state
+      const mockCreateFamily = vi.fn().mockReturnValue(
+        new Promise(() => {}) // Never resolves to keep loading state
+      );
+      
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
-        isLoading: true
+        createFamily: mockCreateFamily,
+        isLoading: false  // Query loading state doesn't affect button anymore
       });
       
       // This test needs its own render since it changes the context
@@ -219,6 +225,11 @@ describe('FamilyOnboardingWizard', () => {
       const familyNameInputs = screen.getAllByTestId('FamilyOnboardingWizard-Input-familyName');
       await user.type(familyNameInputs[0], 'Test Family');
 
+      // Submit the form to trigger the loading state
+      const submitButton = screen.getAllByTestId('FamilyOnboardingWizard-Button-createFamily')[0];
+      await user.click(submitButton);
+
+      // Button should show "Creating..." and be disabled during submission
       const creatingButtons = screen.getAllByRole('button', { name: 'Creating...' });
       expect(creatingButtons[0]).toBeInTheDocument();
       expect(creatingButtons[0]).toBeDisabled();

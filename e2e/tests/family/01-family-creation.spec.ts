@@ -54,10 +54,12 @@ test.describe('Family Creation E2E', () => {
         expect(magicLinkUrl).toContain('/auth/verify');
 
         await page.goto(magicLinkUrl);
-        await page.waitForLoadState('networkidle');
 
-        const currentUrl = page.url();
-        expect(currentUrl).toContain('/onboarding');
+        // FamilyRequiredRoute will redirect to /onboarding if user has no family
+        // Wait for this redirect (may take a moment for React Query to fetch family data)
+        await page.waitForURL((url) => url.toString().includes('/onboarding'), {
+          timeout: 15000
+        });
         console.log('✅ Authenticated and redirected to onboarding');
 
         await authHelper.completeOnboarding(familyName);

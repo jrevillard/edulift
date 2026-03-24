@@ -147,15 +147,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     staleTime: 5 * 60 * 1000,  // 5 minutes
     gcTime: 10 * 60 * 1000,    // 10 minutes
     enabled: isAuthenticated && !!user,  // Only fetch when authenticated
-    retry: (failureCount, error: unknown) => {
-      // Don't retry on network errors (backend might be down)
-      const errorObj = error as { code?: string; message?: string };
-      const isNetworkError = errorObj?.code === 'ECONNREFUSED' ||
-                           errorObj?.message === 'Network Error' ||
-                           typeof errorObj?.message === 'string' && errorObj.message.includes('ERR_NETWORK');
-
-      return !isNetworkError && failureCount < 2;
-    },
+    retry: false,  // Disable retries - a 404 is expected for new users without a family
   });
 
   /**

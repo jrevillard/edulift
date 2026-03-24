@@ -40,7 +40,7 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
   onComplete,
   onCancel
 }) => {
-  const { createFamily, joinFamily, isLoading, error, clearError } = useFamily();
+  const { createFamily, joinFamily, error, clearError } = useFamily();
   
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('choice');
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -280,11 +280,11 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting}
             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="FamilyOnboardingWizard-Button-createFamily"
           >
-            {isSubmitting || isLoading ? 'Creating...' : 'Create Family'}
+            {isSubmitting ? 'Creating...' : 'Create Family'}
           </button>
         </div>
       </form>
@@ -354,11 +354,11 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
           </button>
           <button
             type="submit"
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting}
             className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="FamilyOnboardingWizard-Button-joinFamily"
           >
-            {isSubmitting || isLoading ? 'Joining...' : 'Join Family'}
+            {isSubmitting ? 'Joining...' : 'Join Family'}
           </button>
         </div>
       </form>

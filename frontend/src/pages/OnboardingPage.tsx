@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useFamily } from '../contexts/FamilyContext';
@@ -12,11 +12,21 @@ const OnboardingPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { hasFamily, isCheckingFamily, isLoading: familyLoading } = useFamily();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  
+  // Track if we've completed the initial family check
+  // This prevents the wizard from unmounting when family query refetches
+  const initialCheckComplete = useRef(false);
+  
+  // Mark initial check as complete once family check finishes
+  if (!isCheckingFamily && !authLoading) {
+    initialCheckComplete.current = true;
+  }
 
   // Redirect authenticated users who already have a family to dashboard
   useEffect(() => {
-    // Wait for authentication and family checks to complete
-    if (authLoading || isCheckingFamily || familyLoading) {
+    // Wait for authentication and family checks to complete (not family data loading)
+    // We only need to know if the user HAS a family, not wait for the full family data to load
+    if (authLoading || isCheckingFamily) {
       return;
     }
 
@@ -63,8 +73,10 @@ const OnboardingPage: React.FC = () => {
     }
   };
 
-  // Show loading state while checking authentication and family status
-  if (authLoading || isCheckingFamily || familyLoading) {
+  // Show loading state only for the initial authentication and family check
+  // Once the initial check completes, always render the wizard to prevent unmounting
+  // This ensures the wizard's local state (like currentStep) is preserved during query refetches
+  if ((authLoading || isCheckingFamily) && !initialCheckComplete.current) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

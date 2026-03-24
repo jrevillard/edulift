@@ -689,19 +689,139 @@ All tests MUST use automatic prefix detection for consistency.
   ): Promise<void> {
     console.log('Starting family onboarding...');
 
+    // Capture all console messages for debugging
+    this.page.on('console', msg => {
+      const type = msg.type();
+      const text = msg.text();
+
+      // Specifically capture 404 errors with URLs
+      if (type === 'error' && text.includes('404')) {
+        // Extract URL from error message if possible
+        const urlMatch = text.match(/(http[^\s)]+|[\w./-]+\.(js|css|json)[^\s]*)/);
+        if (urlMatch) {
+          console.log(`❌ 404 Error: ${urlMatch[0]}`);
+        }
+      }
+
+      // Capture all warnings and info
+      console.log(`📺 [${type}] ${text}`);
+    });
+
+    // Capture unhandled promise rejections
+    this.page.on('weberror', error => {
+      console.log('💥 Unhandled web error:', error.name, '-', error.message);
+    });
+
+    // Capture dialog/alert
+    this.page.on('dialog', dialog => {
+      console.log('🗨️ Dialog appeared:', dialog.message(), '-', dialog.type());
+    });
+
+    // Capture page errors
+    this.page.on('pageerror', error => {
+      console.log('💥 Page error:', error.message);
+      console.log('💥 Error stack:', error.stack);
+    });
+
+    // Capture failed requests
+    this.page.on('requestfailed', request => {
+      const failure = request.failure();
+      console.log('❌ Request failed:', request.url(), '-', failure?.errorText);
+    });
+
     // Wait for onboarding page
     await this.page.waitForURL('/onboarding', { timeout: 10000 });
 
+    // Debug: Check page state before clicking
+    console.log('📍 Page URL:', this.page.url());
+
+    // Check page HTML structure
+    const scriptTags = await this.page.evaluate(() => {
+      const scripts = document.querySelectorAll('script');
+      return Array.from(scripts).map(s => ({
+        src: s.getAttribute('src'),
+        type: s.getAttribute('type'),
+        text: s.textContent?.substring(0, 100)
+      }));
+    });
+    console.log('📍 Script tags:', JSON.stringify(scriptTags, null, 2));
+
+    // Check full HTML head
+    const headHTML = await this.page.evaluate(() => {
+      return document.head.innerHTML.substring(0, 1000);
+    });
+    console.log('📍 Page head preview:', headHTML);
+
+    // Check if main React bundle is loaded
+    const reactLoaded = await this.page.evaluate(() => {
+      return typeof (window as any).React !== 'undefined';
+    });
+    console.log('📍 React loaded:', reactLoaded);
+
+    // Check for any unhandled errors
+    const hasErrors = await this.page.evaluate(() => {
+      const errors = (window as any).__errors || [];
+      return errors && errors.length > 0;
+    });
+    console.log('📍 Has errors:', hasErrors);
+
+    // Click "Create a New Family" button quickly before next fetch cycle
+    
     // Click "Create a New Family"
     const createFamilyButton = this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamilyChoice"]');
+    
+    console.log('📍 About to click button...');
+    
+    // Wait for button to be ready (not disabled)
+    await createFamilyButton.waitFor({ state: 'visible', timeout: 3000 });
     await createFamilyButton.click();
+    console.log('📍 Button clicked');
 
-    // Wait for family creation form
-    const familyNameInput = this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]');
-    await familyNameInput.waitFor({ state: 'visible', timeout: 5000 });
-
-    // Fill family name
-    await familyNameInput.fill(familyName);
+    // Wait for the input element to appear and be stable
+    console.log('📍 Waiting for family name input...');
+    
+    // Use a retry loop to handle React re-renders during form filling
+    let filledSuccessfully = false;
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (!filledSuccessfully && attempts < maxAttempts) {
+      attempts++;
+      console.log(`📍 Attempt ${attempts}/${maxAttempts}: Getting input element...`);
+      
+      try {
+        // Get a fresh reference to the input each time
+        const familyNameInput = this.page.locator('[data-testid="FamilyOnboardingWizard-Input-familyName"]');
+        
+        // Wait for it to be attached and visible
+        await familyNameInput.waitFor({ state: 'attached', timeout: 3000 });
+        await familyNameInput.waitFor({ state: 'visible', timeout: 3000 });
+        
+        // Fill the input
+        console.log('📍 Filling family name:', familyName);
+        await familyNameInput.fill(familyName, { timeout: 5000 });
+        
+        // Verify the value was set
+        const actualValue = await familyNameInput.inputValue({ timeout: 2000 });
+        if (actualValue === familyName) {
+          console.log('✅ Family name filled successfully');
+          filledSuccessfully = true;
+        } else {
+          console.log(`⚠️ Value mismatch. Expected: ${familyName}, Got: ${actualValue}. Retrying...`);
+          await this.page.waitForTimeout(500);
+        }
+      } catch (error) {
+        console.log(`⚠️ Attempt ${attempts} failed:`, (error as Error).message);
+        if (attempts >= maxAttempts) {
+          throw error;
+        }
+        await this.page.waitForTimeout(500);
+      }
+    }
+    
+    if (!filledSuccessfully) {
+      throw new Error('Failed to fill family name after 10 attempts');
+    }
 
     // Submit family creation
     const submitButton = this.page.locator('[data-testid="FamilyOnboardingWizard-Button-createFamily"]');
