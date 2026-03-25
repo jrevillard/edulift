@@ -577,15 +577,7 @@ test.describe('User Authentication Journey', () => {
         });
         memberPage = await memberContext.newPage();
 
-        // Navigate to login page first to clear any cached authentication state
-        console.log('🔄 Navigating to login page to clear cached state...');
-        await memberPage.goto('/auth/login');
-        await memberPage.evaluate(() => {
-          localStorage.clear();
-          sessionStorage.clear();
-        });
-
-        // Now navigate to invitation page
+        // Navigate to invitation page directly
         console.log('🔄 Navigating to invitation URL...');
         await memberPage.goto(invitationUrl);
         await memberPage.waitForLoadState('networkidle');
@@ -616,8 +608,8 @@ test.describe('User Authentication Journey', () => {
         await expect(submitButton).toBeEnabled({ timeout: 10000 });
         await submitButton.click();
 
-        // Get magic link from email and verify
-        const memberMagicLink = await emailHelper.extractMagicLinkForRecipient(memberEmail, { timeoutMs: 30000 });
+        // Get magic link from email and verify (expect NEW email after form submission)
+        const memberMagicLink = await emailHelper.extractMagicLinkForRecipient(memberEmail, { timeoutMs: 30000, expectNewEmail: true });
         expect(memberMagicLink).toBeTruthy();
         expect(memberMagicLink).toContain('/auth/verify');
 
