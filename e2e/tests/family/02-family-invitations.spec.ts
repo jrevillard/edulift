@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { UniversalAuthHelper } from '../fixtures/universal-auth-helper';
 import { E2EEmailHelper } from '../fixtures/e2e-email-helper';
 
@@ -285,9 +285,7 @@ test.describe('Family Invitations E2E', () => {
         await hackerSubmitButton.click();
         await hackerAuth.waitForAuthenticationStability();
 
-        await hackerPage.waitForTimeout(2000);
-
-        const hackerMagicLink = await emailHelper.extractMagicLinkForRecipient(hackerEmail);
+        const hackerMagicLink = await emailHelper.extractMagicLinkForRecipient(hackerEmail, { timeoutMs: 30000 });
         expect(hackerMagicLink).toBeTruthy();
 
         await hackerPage.goto(hackerMagicLink);
@@ -318,22 +316,29 @@ test.describe('Family Invitations E2E', () => {
       const userAFamily = `User A Family ${timestamp}`;
       const adminName = `Admin Conflict ${timestamp}`;
       const adminFamily = `Admin Conflict Test ${timestamp}`;
-      const userAEmail = authHelper.getFileSpecificEmail(`user.conflict.${timestamp}`);
+      let userAEmail = authHelper.getFileSpecificEmail(`user.conflict.${timestamp}`);
+
+      let userAContext: any;
+      let userAPage: Page;
 
       await test.step('User A creates their own family', async () => {
-        const userAContext = await browserContext.browser().newContext();
-        const userAPage = await userAContext.newPage();
+        userAContext = await browserContext.browser().newContext();
+        userAPage = await userAContext.newPage();
         const userAAuth = new UniversalAuthHelper(userAPage);
 
-        await userAAuth.setupAdminUser(
-          'user.conflict',
+        // Use the SAME authHelper instance to ensure same runId
+        // Pass the already-generated email to avoid creating a new one
+        await authHelper.setupAdminUserWithEmail(
+          userAPage,
+          userAEmail,
           userAName,
           userAFamily
         );
+
         await expect(userAPage.locator('[data-testid="DashboardPage-Text-familyName"]')).toBeVisible();
 
-        await userAContext.close();
-        console.log('✅ User A created their own family');
+        // DON'T close the context - we need it for reconnection test
+        console.log(`✅ User A created with email: ${userAEmail}`);
       });
 
       await test.step('Admin sends invitation to User A', async () => {
@@ -367,9 +372,14 @@ test.describe('Family Invitations E2E', () => {
         const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(userAEmail);
         expect(invitationUrl).toBeTruthy();
 
-        const userAContext = await browserContext.browser().newContext();
-        const userAPage = await userAContext.newPage();
+        // REUSE the existing userAContext instead of creating a new one
         const userAAuth = new UniversalAuthHelper(userAPage);
+
+        // Logout User A from current session
+        await userAPage.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
 
         // User A logs in (already has account from step 1)
         await userAPage.goto('/auth/login');
@@ -385,12 +395,34 @@ test.describe('Family Invitations E2E', () => {
 
         const userASubmitButton = userAPage.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
         await expect(userASubmitButton).toBeVisible({ timeout: 5000 });
-        await userASubmitButton.click();
+
+        // Listen for network response to verify the request succeeds
+        const [magicLinkResponse] = await Promise.all([
+          userAPage.waitForResponse(
+            response =>
+              response.url().includes('/api/v1/auth/magic-link') &&
+              response.request().method() === 'POST',
+            { timeout: 10000 }
+          ),
+          userASubmitButton.click()
+        ]);
+
+        // Verify the backend accepted the request
+        console.log(`Magic link response status: ${magicLinkResponse.status()}`);
+
+        if (magicLinkResponse.status() !== 200) {
+          const responseBody = await magicLinkResponse.text();
+          console.log(`❌ Magic link request failed with status ${magicLinkResponse.status()}`);
+          console.log(`Response body: ${responseBody}`);
+        }
+
+        expect(magicLinkResponse.status()).toBe(200);
+        console.log(`✅ Magic link request succeeded with status ${magicLinkResponse.status()}`);
+
         await userAAuth.waitForAuthenticationStability();
 
-        await userAPage.waitForTimeout(2000);
-
-        const userAMagicLink = await emailHelper.extractMagicLinkForRecipient(userAEmail);
+        // Wait for magic link email (reuse any existing magic link for this email)
+        const userAMagicLink = await emailHelper.extractMagicLinkForRecipient(userAEmail, { timeoutMs: 30000 });
         expect(userAMagicLink).toBeTruthy();
 
         await userAPage.goto(userAMagicLink);
@@ -427,10 +459,11 @@ test.describe('Family Invitations E2E', () => {
       await test.step('Last admin creates family alone', async () => {
         const lastAdminContext = await browserContext.browser().newContext();
         const lastAdminPage = await lastAdminContext.newPage();
-        const lastAdminAuth = new UniversalAuthHelper(lastAdminPage);
 
-        await lastAdminAuth.setupAdminUser(
-          'lastadmin',
+        // Use the SAME authHelper instance to ensure same runId
+        await authHelper.setupAdminUserWithEmail(
+          lastAdminPage,
+          lastAdminEmail,
           lastAdminName,
           lastAdminFamily
         );
@@ -471,12 +504,18 @@ test.describe('Family Invitations E2E', () => {
         const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(lastAdminEmail);
         expect(invitationUrl).toBeTruthy();
 
+        // Create a completely isolated context for last admin
         const lastAdminContext = await browserContext.browser().newContext();
         const lastAdminPage = await lastAdminContext.newPage();
         const lastAdminAuth = new UniversalAuthHelper(lastAdminPage);
 
-        // Last admin logs in
+        // Explicitly clear any stored state
         await lastAdminPage.goto('/auth/login');
+        await lastAdminPage.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+        await lastAdminPage.reload();
         await lastAdminPage.waitForLoadState('networkidle');
 
         const existingUserTab = lastAdminPage.locator('[data-testid="LoginPage-Tab-existingUser"]');
@@ -489,12 +528,26 @@ test.describe('Family Invitations E2E', () => {
 
         const lastAdminSubmitButton = lastAdminPage.locator('[data-testid="LoginPage-Button-sendMagicLink"]');
         await expect(lastAdminSubmitButton).toBeVisible({ timeout: 5000 });
-        await lastAdminSubmitButton.click();
+
+        // Listen for network response to verify the request succeeds
+        const [magicLinkResponse] = await Promise.all([
+          lastAdminPage.waitForResponse(
+            response =>
+              response.url().includes('/api/v1/auth/magic-link') &&
+              response.request().method() === 'POST',
+            { timeout: 10000 }
+          ),
+          lastAdminSubmitButton.click()
+        ]);
+
+        // Verify the backend accepted the request
+        expect(magicLinkResponse.status()).toBe(200);
+        console.log(`✅ Magic link request succeeded with status ${magicLinkResponse.status()}`);
+
         await lastAdminAuth.waitForAuthenticationStability();
 
-        await lastAdminPage.waitForTimeout(2000);
-
-        const lastAdminMagicLink = await emailHelper.extractMagicLinkForRecipient(lastAdminEmail);
+        // Wait for magic link email (reuse any existing magic link for this email)
+        const lastAdminMagicLink = await emailHelper.extractMagicLinkForRecipient(lastAdminEmail, { timeoutMs: 30000 });
         expect(lastAdminMagicLink).toBeTruthy();
 
         await lastAdminPage.goto(lastAdminMagicLink);

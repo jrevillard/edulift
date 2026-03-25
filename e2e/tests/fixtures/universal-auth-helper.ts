@@ -743,6 +743,13 @@ All tests MUST use automatic prefix detection for consistency.
     await this.page.goto(magicLinkUrl);
     await this.page.waitForLoadState('networkidle');
 
+    // Wait for authentication to complete and redirect to happen
+    // The magic link verification will redirect to either /onboarding or /dashboard
+    await this.page.waitForURL(
+      (url) => url.toString().includes('/onboarding') || url.toString().includes('/dashboard'),
+      { timeout: 15000 }
+    );
+
     // Complete onboarding to create family
     const currentUrl = this.page.url();
     if (!currentUrl.includes('/onboarding')) {
@@ -753,6 +760,80 @@ All tests MUST use automatic prefix detection for consistency.
     console.log(`✅ Admin user created: ${email} with family ${finalFamilyName}`);
 
     return { email, name, familyName: finalFamilyName };
+  }
+
+  async setupAdminUserWithEmail(
+    targetPage: Page,
+    email: string,
+    displayName: string,
+    familyName: string
+  ): Promise<{ email: string; name: string; familyName: string }> {
+    const name = displayName || `User ${Date.now()}`;
+    const finalFamilyName = familyName || `Family ${Date.now()}`;
+
+    const emailHelper = new E2EEmailHelper();
+
+    // Use the main helper's instance to ensure consistency
+    const originalPage = this.page;
+    this.page = targetPage;
+
+    try {
+      await this.page.goto('/auth/login');
+      await this.page.waitForLoadState('networkidle');
+
+      const newUserTab = this.page.locator('[data-testid="LoginPage-Tab-newUser"]');
+      await expect(newUserTab).toBeVisible({ timeout: 5000 });
+      await newUserTab.click();
+      await this.waitForAuthenticationStability();
+
+      const nameInput = this.page.locator('[data-testid="LoginPage-Input-name"]');
+      await expect(nameInput).toBeVisible({ timeout: 5000 });
+      const emailInput = this.page.locator('[data-testid="LoginPage-Input-email"]');
+
+      await emailInput.fill(email);
+      await nameInput.fill(name);
+
+      const submitButton = this.page.locator('[data-testid="LoginPage-Button-createAccount"]');
+      await expect(submitButton).toBeVisible({ timeout: 5000 });
+      await expect(submitButton).toBeEnabled({ timeout: 10000 });
+      await submitButton.click();
+      await this.waitForAuthenticationStability();
+
+      // Wait for magic link email
+      const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(email, { timeoutMs: 30000 });
+      if (!magicLinkUrl) {
+        throw new Error(`Magic link not received for ${email}`);
+      }
+
+      await this.page.goto(magicLinkUrl);
+      await this.page.waitForLoadState('networkidle');
+
+      // Wait for authentication to complete and redirect to happen
+      await this.page.waitForURL(
+        (url) => url.toString().includes('/onboarding') || url.toString().includes('/dashboard'),
+        { timeout: 15000 }
+      );
+
+      // Handle both new and existing users
+      const currentUrl = this.page.url();
+      if (currentUrl.includes('/onboarding')) {
+        // New user - complete onboarding to create family
+        await this.completeOnboarding(finalFamilyName);
+        console.log(`✅ Admin user created: ${email} with family ${finalFamilyName}`);
+        return { email, name, familyName: finalFamilyName };
+      } else if (currentUrl.includes('/dashboard')) {
+        // Existing user - already has a family
+        const familyNameElement = await this.page.locator('[data-testid="DashboardPage-Text-familyName"]').textContent();
+        const existingFamilyName = familyNameElement || 'Existing Family';
+        console.log(`✅ Existing admin user logged in: ${email} with existing family ${existingFamilyName}`);
+        return { email, name, familyName: existingFamilyName };
+      } else {
+        throw new Error(`Expected /onboarding or /dashboard but got ${currentUrl}`);
+      }
+    } finally {
+      // Restore original page
+      this.page = originalPage;
+    }
   }
 
   async completeOnboarding(

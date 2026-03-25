@@ -130,9 +130,19 @@ export class E2EEmailHelper {
    */
   async extractMagicLinkForRecipient(
     email: string,
-    options: { timeoutMs?: number; debug?: boolean } = {}
+    options: { timeoutMs?: number; debug?: boolean; expectNewEmail?: boolean } = {}
   ): Promise<string | null> {
-    const { timeoutMs = 0, debug = true } = options;
+    const { timeoutMs = 0, debug = true, expectNewEmail = false } = options;
+
+    // Count emails before waiting if we expect a new one
+    let emailCountBefore = 0;
+    if (expectNewEmail) {
+      const emailsBefore = await this.getEmailsForRecipient(email);
+      emailCountBefore = emailsBefore.length;
+      if (debug) {
+        console.log(`📊 Email count before: ${emailCountBefore}`);
+      }
+    }
 
     // Automatically wait for email if timeout is specified
     if (timeoutMs > 0) {
@@ -158,6 +168,25 @@ export class E2EEmailHelper {
         console.log(`  ❌ No email found for ${email}`);
       }
       return null;
+    }
+
+    // If expecting a new email, verify we got one more than before
+    if (expectNewEmail) {
+      const emailsAfter = await this.getEmailsForRecipient(email);
+      const emailCountAfter = emailsAfter.length;
+      if (debug) {
+        console.log(`📊 Email count after: ${emailCountAfter}`);
+      }
+
+      if (emailCountAfter <= emailCountBefore) {
+        if (debug) {
+          console.log(`  ❌ No new email received (still ${emailCountAfter} emails)`);
+        }
+        return null;
+      }
+      if (debug) {
+        console.log(`  ✅ New email received (${emailCountAfter - emailCountBefore} new)`);
+      }
     }
 
     // Fetch full message content from MailPit
