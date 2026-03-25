@@ -152,6 +152,12 @@ export class FileSpecificTestData {
   /**
    * Create all defined users in the database (excluding invitation users)
    * Call this in your test.beforeAll() hook
+   *
+   * @deprecated ⚠️ DO NOT USE - E2E tests should NOT manipulate the database directly.
+   * This method bypasses the real user flow and creates false confidence in tests.
+   * All users should be created via the UI using real authentication flows.
+   *
+   * @see Migration guide: Create users via the UI with magic link authentication
    */
   async createUsersInDatabase(): Promise<void> {
     const users = this.getAllUsers().filter(user => {
@@ -205,6 +211,12 @@ export class FileSpecificTestData {
   /**
    * Create a family in the database with the specified admin and members
    * Uses proper serialization to prevent parallel execution race conditions
+   *
+   * @deprecated ⚠️ DO NOT USE - E2E tests should NOT manipulate the database directly.
+   * This method bypasses the real user flow and creates false confidence in tests.
+   * All families should be created via the UI using onboarding flow.
+   *
+   * @see Migration guide: Create families via completeOnboarding() helper
    */
   async createFamilyInDatabase(familyKey: string): Promise<void> {
     // Note: Removed skipCleanup parameter - no longer needed

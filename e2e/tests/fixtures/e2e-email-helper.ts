@@ -113,9 +113,40 @@ export class E2EEmailHelper {
   /**
    * Extract magic link from the latest email for a recipient
    * MailPit requires fetching the full message content separately
+   *
+   * @param email - Recipient email address
+   * @param options - Optional parameters
+   * @param options.timeoutMs - Wait timeout in milliseconds (default: 0 = no wait, use waitForEmailForRecipient first)
+   * @param options.debug - Enable debug logging (default: true)
+   *
+   * @example
+   * // With automatic wait (recommended for E2E tests)
+   * const magicLink = await emailHelper.extractMagicLinkForRecipient(email, { timeoutMs: 30000 });
+   *
+   * @example
+   * // With manual wait (backward compatibility)
+   * await emailHelper.waitForEmailForRecipient(email);
+   * const magicLink = await emailHelper.extractMagicLinkForRecipient(email);
    */
-  async extractMagicLinkForRecipient(email: string, options: { debug?: boolean } = {}): Promise<string | null> {
-    const debug = options.debug !== false;
+  async extractMagicLinkForRecipient(
+    email: string,
+    options: { timeoutMs?: number; debug?: boolean } = {}
+  ): Promise<string | null> {
+    const { timeoutMs = 0, debug = true } = options;
+
+    // Automatically wait for email if timeout is specified
+    if (timeoutMs > 0) {
+      if (debug) {
+        console.log(`⏳ Waiting for email to ${email} (timeout: ${timeoutMs}ms)...`);
+      }
+      const emailReceived = await this.waitForEmailForRecipient(email, timeoutMs, 1000, { debug });
+      if (!emailReceived) {
+        if (debug) {
+          console.log(`  ❌ Email not received within timeout`);
+        }
+        return null;
+      }
+    }
 
     if (debug) {
       console.log(`🔍 Looking for magic link in email for ${email}...`);
@@ -193,9 +224,31 @@ export class E2EEmailHelper {
 
   /**
    * Extract invitation URL from the latest email for a recipient
+   *
+   * @param email - Recipient email address
+   * @param options - Optional parameters
+   * @param options.timeoutMs - Wait timeout in milliseconds (default: 0 = no wait)
+   * @param options.debug - Enable debug logging (default: true)
    */
-  async extractInvitationUrlForRecipient(email: string, options: { debug?: boolean } = {}): Promise<string | null> {
-    const debug = options.debug !== false;
+  async extractInvitationUrlForRecipient(
+    email: string,
+    options: { timeoutMs?: number; debug?: boolean } = {}
+  ): Promise<string | null> {
+    const { timeoutMs = 0, debug = true } = options;
+
+    // Automatically wait for email if timeout is specified
+    if (timeoutMs > 0) {
+      if (debug) {
+        console.log(`⏳ Waiting for email to ${email} (timeout: ${timeoutMs}ms)...`);
+      }
+      const emailReceived = await this.waitForEmailForRecipient(email, timeoutMs, 1000, { debug });
+      if (!emailReceived) {
+        if (debug) {
+          console.log(`  ❌ Email not received within timeout`);
+        }
+        return null;
+      }
+    }
 
     if (debug) {
       console.log(`🔍 Looking for invitation URL in email for ${email}...`);

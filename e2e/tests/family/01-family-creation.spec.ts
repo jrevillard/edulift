@@ -18,52 +18,15 @@ test.describe('Family Creation E2E', () => {
   test.describe('New Family Creation', () => {
     test('should create new family for first-time user', async ({ page }) => {
       const timestamp = Date.now();
-      const testEmail = authHelper.getFileSpecificEmail(`family.creation.${timestamp}`);
       const familyName = `TestFamily_${timestamp}`;
 
-      await test.step('Request magic link for new user', async () => {
-        await page.goto('/auth/login');
-        await page.waitForLoadState('networkidle');
-
-        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
-        await expect(newUserTab).toBeVisible({ timeout: 5000 });
-        await newUserTab.click();
-        await authHelper.waitForAuthenticationStability();
-
-        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
-        await expect(nameInput).toBeVisible({ timeout: 5000 });
-
-        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
-        await emailInput.fill(testEmail);
-        await nameInput.fill(`Family Creation User ${timestamp}`);
-
-        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
-        await expect(submitButton).toBeVisible({ timeout: 5000 });
-        await expect(submitButton).toBeEnabled({ timeout: 10000 });
-        await submitButton.click();
-        await authHelper.waitForAuthenticationStability();
-        console.log('✅ Magic link requested for new user');
-      });
-
-      await test.step('Complete authentication and onboarding', async () => {
-        const email = await emailHelper.waitForEmailForRecipient(testEmail);
-        expect(email).not.toBeNull();
-
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
-        expect(magicLinkUrl).toBeTruthy();
-        expect(magicLinkUrl).toContain('/auth/verify');
-
-        await page.goto(magicLinkUrl);
-
-        // FamilyRequiredRoute will redirect to /onboarding if user has no family
-        // Wait for this redirect (may take a moment for React Query to fetch family data)
-        await page.waitForURL((url) => url.toString().includes('/onboarding'), {
-          timeout: 15000
-        });
-        console.log('✅ Authenticated and redirected to onboarding');
-
-        await authHelper.completeOnboarding(familyName);
-        console.log('✅ Family created and redirected to dashboard');
+      await test.step('Create user and family', async () => {
+        const { email: testEmail } = await authHelper.setupAdminUser(
+          'family.creation',
+          `Family Creation User ${timestamp}`,
+          familyName
+        );
+        console.log(`✅ User created and family created: ${testEmail}`);
       });
 
       await test.step('Verify family was created', async () => {
@@ -81,38 +44,16 @@ test.describe('Family Creation E2E', () => {
 
     test('should reuse existing family when reconnecting', async ({ page }) => {
       const timestamp = Date.now();
-      const testEmail = authHelper.getFileSpecificEmail(`family.reuse.${timestamp}`);
       const familyName = `ReuseFamily_${timestamp}`;
+      let testEmail: string;
 
       await test.step('Create family in first session', async () => {
-        await page.goto('/auth/login');
-        await page.waitForLoadState('networkidle');
-
-        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
-        await newUserTab.click();
-        await authHelper.waitForAuthenticationStability();
-
-        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
-        await expect(nameInput).toBeVisible({ timeout: 5000 });
-
-        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
-        await emailInput.fill(testEmail);
-        await nameInput.fill(`Reuse User ${timestamp}`);
-
-        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
-        await submitButton.click();
-
-        const email = await emailHelper.waitForEmailForRecipient(testEmail);
-        expect(email).not.toBeNull();
-
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
-        expect(magicLinkUrl).toBeTruthy();
-        expect(magicLinkUrl).toContain('/auth/verify');
-
-        await page.goto(magicLinkUrl);
-        await page.waitForLoadState('networkidle');
-
-        await authHelper.completeOnboarding(familyName);
+        const result = await authHelper.setupAdminUser(
+          'family.reuse',
+          `Reuse User ${timestamp}`,
+          familyName
+        );
+        testEmail = result.email;
 
         // Wait for dashboard to fully load (family name display indicates ready)
         const familyNameDisplay = page.locator('[data-testid="DashboardPage-Text-familyName"]');
@@ -142,10 +83,7 @@ test.describe('Family Creation E2E', () => {
         await submitButton.click();
 
         // Wait for NEW magic link email to arrive
-        const email = await emailHelper.waitForEmailForRecipient(testEmail);
-        expect(email).not.toBeNull();
-
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
+        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail, { timeoutMs: 30000 });
         expect(magicLinkUrl).toBeTruthy();
         expect(magicLinkUrl).toContain('/auth/verify');
 
@@ -159,8 +97,6 @@ test.describe('Family Creation E2E', () => {
       });
 
       await test.step('Verify existing family is accessible', async () => {
-        // Verify family is still there
-
         // Verify family is still there
         const familyNameDisplay = page.locator('[data-testid="DashboardPage-Text-familyName"]');
         await expect(familyNameDisplay).toBeVisible({ timeout: 10000 });
@@ -176,41 +112,14 @@ test.describe('Family Creation E2E', () => {
   test.describe('Family Information Display', () => {
     test('should display family information correctly', async ({ page }) => {
       const timestamp = Date.now();
-      const testEmail = authHelper.getFileSpecificEmail(`family.info.${timestamp}`);
       const familyName = `InfoTestFamily_${timestamp}`;
 
       await test.step('Setup: authenticate and create family', async () => {
-        await page.goto('/auth/login');
-        await page.waitForLoadState('networkidle');
-
-        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
-        await newUserTab.click();
-        await authHelper.waitForAuthenticationStability();
-
-        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
-        await emailInput.fill(testEmail);
-
-        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
-        await nameInput.fill(`Family Info User ${timestamp}`);
-
-        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
-        await submitButton.click();
-
-        const email = await emailHelper.waitForEmailForRecipient(testEmail);
-        expect(email).not.toBeNull();
-
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
-        expect(magicLinkUrl).toBeTruthy();
-        expect(magicLinkUrl).toContain('/auth/verify');
-
-        await page.goto(magicLinkUrl);
-        await page.waitForLoadState('networkidle');
-
-        await authHelper.completeOnboarding(familyName);
-
-        // Wait for dashboard to fully load
-        const familyNameDisplay = page.locator('[data-testid="DashboardPage-Text-familyName"]');
-        await expect(familyNameDisplay).toBeVisible({ timeout: 10000 });
+        await authHelper.setupAdminUser(
+          'family.info',
+          `Family Info User ${timestamp}`,
+          familyName
+        );
       });
 
       await test.step('Navigate to family management page and verify information', async () => {
@@ -218,9 +127,6 @@ test.describe('Family Creation E2E', () => {
         const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
         await manageButton.waitFor({ state: 'visible', timeout: 5000 });
         await manageButton.click();
-
-        // Wait for navigation to family management page
-        await page.waitForURL('/family/manage', { timeout: 10000 });
 
         // Wait for navigation to family management page
         await page.waitForURL('/family/manage', { timeout: 10000 });
@@ -247,40 +153,14 @@ test.describe('Family Creation E2E', () => {
   test.describe('Family Settings and Configuration', () => {
     test('should edit family name', async ({ page }) => {
       const timestamp = Date.now();
-      const testEmail = authHelper.getFileSpecificEmail(`family.settings.${timestamp}`);
       const familyName = `SettingsTestFamily_${timestamp}`;
 
       await test.step('Setup: authenticate and create family', async () => {
-        await page.goto('/auth/login');
-        await page.waitForLoadState('networkidle');
-
-        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
-        await newUserTab.click();
-
-        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
-        await emailInput.fill(testEmail);
-
-        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
-        await nameInput.fill(`Family Settings User ${timestamp}`);
-
-        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
-        await submitButton.click();
-
-        const email = await emailHelper.waitForEmailForRecipient(testEmail);
-        expect(email).not.toBeNull();
-
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
-        expect(magicLinkUrl).toBeTruthy();
-        expect(magicLinkUrl).toContain('/auth/verify');
-
-        await page.goto(magicLinkUrl);
-        await page.waitForLoadState('networkidle');
-
-        await authHelper.completeOnboarding(familyName);
-
-        // Wait for dashboard to fully load
-        const familyNameDisplay = page.locator('[data-testid="DashboardPage-Text-familyName"]');
-        await expect(familyNameDisplay).toBeVisible({ timeout: 10000 });
+        await authHelper.setupAdminUser(
+          'family.settings',
+          `Family Settings User ${timestamp}`,
+          familyName
+        );
       });
 
       await test.step('Navigate to family management and edit family name', async () => {
@@ -322,40 +202,14 @@ test.describe('Family Creation E2E', () => {
 
     test('should access family management features', async ({ page }) => {
       const timestamp = Date.now();
-      const testEmail = authHelper.getFileSpecificEmail(`family.features.${timestamp}`);
       const familyName = `FeaturesTestFamily_${timestamp}`;
 
       await test.step('Setup: authenticate and create family', async () => {
-        await page.goto('/auth/login');
-        await page.waitForLoadState('networkidle');
-
-        const newUserTab = page.locator('[data-testid="LoginPage-Tab-newUser"]');
-        await newUserTab.click();
-
-        const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
-        await emailInput.fill(testEmail);
-
-        const nameInput = page.locator('[data-testid="LoginPage-Input-name"]');
-        await nameInput.fill(`Family Features User ${timestamp}`);
-
-        const submitButton = page.locator('[data-testid="LoginPage-Button-createAccount"]');
-        await submitButton.click();
-
-        const email = await emailHelper.waitForEmailForRecipient(testEmail);
-        expect(email).not.toBeNull();
-
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
-        expect(magicLinkUrl).toBeTruthy();
-        expect(magicLinkUrl).toContain('/auth/verify');
-
-        await page.goto(magicLinkUrl);
-        await page.waitForLoadState('networkidle');
-
-        await authHelper.completeOnboarding(familyName);
-
-        // Wait for dashboard to fully load
-        const familyNameDisplay = page.locator('[data-testid="DashboardPage-Text-familyName"]');
-        await expect(familyNameDisplay).toBeVisible({ timeout: 10000 });
+        await authHelper.setupAdminUser(
+          'family.features',
+          `Family Features User ${timestamp}`,
+          familyName
+        );
       });
 
       await test.step('Navigate to family management and verify features', async () => {

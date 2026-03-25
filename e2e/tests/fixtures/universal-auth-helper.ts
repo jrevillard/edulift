@@ -682,6 +682,79 @@ All tests MUST use automatic prefix detection for consistency.
    * Complete onboarding flow (for new users who need families)
    * Optimized for speed and reliability
    */
+  /**
+   * Setup a complete admin user with account and family
+   *
+   * Consolidates the common pattern of:
+   * 1. Navigate to login
+   * 2. Create new user account
+   * 3. Verify magic link email
+   * 4. Complete onboarding with family
+   *
+   * @param userKey - Key for generating unique email (e.g., 'admin', 'admin.invite')
+   * @param displayName - Display name for the user
+   * @param familyName - Name for the family to create
+   * @returns Object with created user details
+   *
+   * @example
+   * ```typescript
+   * const { email, name, familyName } = await authHelper.setupAdminUser('admin', 'Admin User', 'Test Family');
+   * ```
+   */
+  async setupAdminUser(
+    userKey: string,
+    displayName: string,
+    familyName: string
+  ): Promise<{ email: string; name: string; familyName: string }> {
+    const timestamp = Date.now();
+    const email = this.getFileSpecificEmail(`${userKey}.${timestamp}`);
+    const name = displayName || `User ${timestamp}`;
+    const finalFamilyName = familyName || `Family ${timestamp}`;
+
+    const emailHelper = new E2EEmailHelper();
+
+    await this.page.goto('/auth/login');
+    await this.page.waitForLoadState('networkidle');
+
+    const newUserTab = this.page.locator('[data-testid="LoginPage-Tab-newUser"]');
+    await expect(newUserTab).toBeVisible({ timeout: 5000 });
+    await newUserTab.click();
+    await this.waitForAuthenticationStability();
+
+    const nameInput = this.page.locator('[data-testid="LoginPage-Input-name"]');
+    await expect(nameInput).toBeVisible({ timeout: 5000 });
+    const emailInput = this.page.locator('[data-testid="LoginPage-Input-email"]');
+
+    await emailInput.fill(email);
+    await nameInput.fill(name);
+
+    const submitButton = this.page.locator('[data-testid="LoginPage-Button-createAccount"]');
+    await expect(submitButton).toBeVisible({ timeout: 5000 });
+    await expect(submitButton).toBeEnabled({ timeout: 10000 });
+    await submitButton.click();
+    await this.waitForAuthenticationStability();
+
+    // Wait for magic link email
+    const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(email, { timeoutMs: 30000 });
+    if (!magicLinkUrl) {
+      throw new Error(`Magic link not received for ${email}`);
+    }
+
+    await this.page.goto(magicLinkUrl);
+    await this.page.waitForLoadState('networkidle');
+
+    // Complete onboarding to create family
+    const currentUrl = this.page.url();
+    if (!currentUrl.includes('/onboarding')) {
+      throw new Error(`Expected /onboarding but got ${currentUrl}`);
+    }
+
+    await this.completeOnboarding(finalFamilyName);
+    console.log(`✅ Admin user created: ${email} with family ${finalFamilyName}`);
+
+    return { email, name, familyName: finalFamilyName };
+  }
+
   async completeOnboarding(
     familyName: string = `Test Family ${this.filePrefix} ${Date.now().toString(36)}`,
     _addChildren: boolean = false,
@@ -1512,138 +1585,77 @@ All tests MUST use automatic prefix detection for consistency.
    * @param userKeyOrEmail - Either a predefined user key or direct email
    */
   async acceptInvitation(invitationUrl: string, userKeyOrEmail: string): Promise<void> {
-    let user: AuthUser;
+    let userEmail: string;
+    let userName: string;
 
     if (userKeyOrEmail.includes('@')) {
-      // It's already an email - check if we have a predefined user with this email
-      const invitationEmail = userKeyOrEmail;
-      try {
-        // Try to find a predefined user with this email
-        const predefinedUser = this.testData.getUserByEmail(invitationEmail);
-        user = {
-          id: predefinedUser.id,
-          email: predefinedUser.email,
-          name: predefinedUser.name
-        };
-      } catch {
-        // If no predefined user found, create a new one
-        const randomId = Math.random().toString(36).substring(2, 8);
-        user = {
-          id: this.testData.getId(`invitation-accepter-${randomId}`),
-          email: invitationEmail,
-          name: 'Invitation Accepter'
-        };
-      }
+      // It's an email address
+      userEmail = userKeyOrEmail;
+      userName = `Invitation Accepter ${Date.now()}`;
     } else {
-      // It's a user key, get the predefined user
+      // It's a user key - get the predefined user
       const predefinedUser = this.testData.getUser(userKeyOrEmail);
-      user = {
-        id: predefinedUser.id,
-        email: predefinedUser.email,
-        name: predefinedUser.name
-      };
+      userEmail = predefinedUser.email;
+      userName = predefinedUser.name;
     }
 
-    // Create user in database to ensure backend validation will work
-    await this.createUserInDatabase(user);
+    console.log(`🔸 acceptInvitation: Starting for ${userEmail}`);
 
-    // Navigate to the app domain first to enable localStorage access
-    const baseURL = (process as any).env.E2E_BASE_URL || 'http://localhost:8001';
-    await this.page.goto(`${baseURL}/login`);
-
-    // Set authentication data directly with the correct email
-    await this.setAuthenticationData(user, { isNewUser: false });
-
-    // Navigate to invitation URL as authenticated user
+    // Step 1: Navigate to invitation URL
     await this.page.goto(invitationUrl);
     await this.page.waitForLoadState('networkidle');
+    console.log('✅ Navigated to invitation URL');
 
-    // Debug: Check what's actually on the page
-    console.log('🔍 Current URL after navigation:', this.page.url());
+    // Step 2: Verify invitation page is displayed
+    const familyNameElement = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Text-familyName"]');
+    await expect(familyNameElement).toBeVisible({ timeout: 10000 });
+    console.log('✅ Invitation page displayed');
 
-    // Wait for page to be ready for invitation acceptance
-    await this.page.waitForLoadState('domcontentloaded');
-    await this.timingHelper.waitForNavigationStable();
+    // Step 3: Check if signup form is already visible or if we need to click "Sign In to Join"
+    const signupNameInput = this.page.locator('[data-testid="SignupForm-Input-name"]');
+    const signInButton = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Button-signInToJoin"]');
+    
+    const needsSignUp = await signupNameInput.isVisible().catch(() => false);
+    const needsSignIn = !needsSignUp && await signInButton.isVisible().catch(() => false);
 
-    // Check what testids are available
-    const allTestIds = await this.page.locator('[data-testid]').evaluateAll(elements =>
-      elements.map(el => el.getAttribute('data-testid'))
-    );
-    console.log('🔍 Available test IDs:', allTestIds);
-
-    // Check for error messages
-    const errorAlert = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-error"]');
-    if (await errorAlert.isVisible()) {
-      const errorText = await errorAlert.textContent();
-      console.log('❌ Error message found:', errorText);
+    if (needsSignIn) {
+      console.log('🔐 User needs to click "Sign In to Join" first');
+      await signInButton.click();
+      
+      // Wait for signup form to appear on the same page (NOT a redirect!)
+      await expect(signupNameInput).toBeVisible({ timeout: 10000 });
+      console.log('✅ Signup form appeared');
     }
 
-    // Check for family name to confirm page loaded correctly
-    const familyName = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Text-familyName"]');
-    if (await familyName.isVisible()) {
-      console.log('✅ Family name element is visible');
-    } else {
-      console.log('❌ Family name element not visible');
+    // Step 4: Fill signup form and request magic link
+    if (needsSignUp || needsSignIn) {
+      // Note: Email is already pre-filled in the signup form on invitation page
+      // We only need to fill the name
+      await signupNameInput.fill(userName);
+
+      const submitButton = this.page.locator('[data-testid="SignupForm-Button-submit"]');
+      await expect(submitButton).toBeVisible({ timeout: 5000 });
+      await expect(submitButton).toBeEnabled({ timeout: 10000 });
+      await submitButton.click();
+
+      await this.waitForAuthenticationStability();
+      console.log('✅ Signup form submitted');
+
+      // Wait for magic link
+      const emailHelper = new E2EEmailHelper();
+      const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail, { timeoutMs: 30000 });
+      expect(magicLinkUrl).toBeTruthy();
+      expect(magicLinkUrl).toContain('/auth/verify');
+
+      // Verify magic link - this should automatically add user to the family
+      await this.page.goto(magicLinkUrl);
+      await this.page.waitForLoadState('networkidle');
+      console.log('✅ Magic link verified - user added to family');
     }
 
-    // Check if the invitation page shows any errors
-    const anyErrorAlert = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-error"]');
-    if (await anyErrorAlert.isVisible({ timeout: 5000 })) {
-      const errorText = await anyErrorAlert.textContent();
-      console.log(`❌ Invitation error: ${errorText}`);
-
-      // Try to get more details about the error
-      const currentUrl = this.page.url();
-      console.log(`❌ Current URL when error occurred: ${currentUrl}`);
-
-      // Check if this is a network error vs validation error
-      if (errorText?.includes('Network error')) {
-        console.log('🔍 Network error detected - this might be a backend connectivity issue');
-        console.log('🔄 Attempting to retry after network error...');
-
-        // Implement robust retry mechanism for network errors
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        while (retryCount < maxRetries) {
-          retryCount++;
-          console.log(`🔄 Retry attempt ${retryCount}/${maxRetries}`);
-
-          // Wait progressively longer for backend to be ready
-          const waitTime = 2000 * retryCount;
-          console.log(`⏳ Waiting ${waitTime}ms for backend to be ready...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-
-          // Refresh the page to retry the invitation validation
-          await this.page.reload();
-          await this.page.waitForLoadState('networkidle');
-
-          // Check if error is still there after refresh
-          const errorAfterRefresh = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-error"]');
-          if (await errorAfterRefresh.isVisible({ timeout: 5000 })) {
-            const errorTextAfterRefresh = await errorAfterRefresh.textContent();
-            console.log(`❌ Error persists after refresh attempt ${retryCount}: ${errorTextAfterRefresh}`);
-
-            if (retryCount >= maxRetries) {
-              throw new Error(`Invitation failed after ${maxRetries} retries: ${errorTextAfterRefresh}`);
-            }
-          } else {
-            console.log(`✅ Network error resolved after ${retryCount} attempts`);
-            break;
-          }
-        }
-      } else {
-        throw new Error(`Invitation failed: ${errorText}`);
-      }
-    }
-
-    // Wait for and click the join family button
-    const joinButton = this.page.locator('[data-testid="UnifiedFamilyInvitationPage-Button-joinFamily"]');
-    await joinButton.waitFor({ state: 'visible', timeout: 15000 });
-    await joinButton.click();
-
-    // Wait for successful redirect to dashboard
-    await this.page.waitForURL('/dashboard', { timeout: 15000 });
+    // Step 5: Wait for redirect to dashboard (should happen automatically after magic link)
+    await this.page.waitForURL('/dashboard', { timeout: 20000 });
+    console.log('✅ Successfully joined family and redirected to dashboard');
   }
 
   /**
