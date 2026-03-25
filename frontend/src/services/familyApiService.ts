@@ -225,7 +225,7 @@ class FamilyApiService {
     }
   }
 
-  async removeMember(familyId: string, memberId: string): Promise<void> {
+  async removeMember(familyId: string, memberId: string): Promise<Family> {
     const { data: response, error } = await api.DELETE('/api/v1/families/{familyId}/members/{memberId}', {
       params: {
         path: { familyId, memberId },
@@ -236,9 +236,11 @@ class FamilyApiService {
       throwApiError(error, 'Failed to remove member');
     }
 
-    if (!response?.success) {
+    if (!response?.success || !response?.data) {
       throw new Error('Failed to remove member');
     }
+
+    return response.data;
   }
 
   async generateInviteCode(): Promise<string> {

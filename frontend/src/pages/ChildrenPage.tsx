@@ -94,12 +94,15 @@ const ChildrenPage: React.FC = () => {
     },
     retry: false, // Disable automatic retries to prevent duplicates
     onSuccess: async () => {
+      // TODO: Backend bug - createChild returns { child } not { family }
+      // When backend is fixed to return Family, use:
+      //   queryClient.setQueryData(['current-family'], family);
+      // For now, must invalidate to get updated family
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      // Invalidate family data to update ManageFamilyPage (React Query manages this)
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setIsFormOpen(false);
       setFormData({ name: '', age: '' });
       setAssignedGroups([]);
@@ -140,11 +143,15 @@ const ChildrenPage: React.FC = () => {
       return child;
     },
     onSuccess: async () => {
+      // TODO: Backend bug - updateChild returns { child } not { family }
+      // When backend is fixed to return Family, use:
+      //   queryClient.setQueryData(['current-family'], family);
+      // For now, must invalidate to get updated family
+      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setIsFormOpen(false);
       setEditingChild(null);
       setFormData({ name: '', age: '' });
@@ -171,16 +178,21 @@ const ChildrenPage: React.FC = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await api.DELETE('/api/v1/children/{childId}', {
+      const result = await api.DELETE('/api/v1/children/{childId}', {
         params: { path: { childId: id } }
       });
+      return result;
     },
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['children'] });
-      // Invalidate schedule-related queries since child data is embedded in schedule slots
+    onSuccess: async (response) => {
+      // Optimistic update: Backend returns complete Family without deleted child
+      if (response.data?.data) {
+        queryClient.setQueryData(['current-family'], response.data.data);
+      }
+      // Invalidate schedule queries (they depend on children but aren't part of Family object)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
+      // Invalidate children list to remove deleted child
+      queryClient.invalidateQueries({ queryKey: ['children'] });
     },
   });
 

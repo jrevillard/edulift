@@ -39,12 +39,17 @@ const VehiclesPage: React.FC = () => {
   const createMutation = useMutation({
     mutationFn: (data: { name: string; capacity: number }) => api.POST('/api/v1/vehicles', { body: data }),
     retry: false, // Disable automatic retries to prevent duplicates
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
+    onSuccess: async (response) => {
+      // Optimistic update: Backend returns complete Family with new vehicle
+      if (response.data?.data) {
+        const family = response.data.data;
+        queryClient.setQueryData(['current-family'], family);
+        // Also update vehicles query for consumers that use ['vehicles'] directly
+        queryClient.setQueryData(['vehicles'], family.vehicles);
+      }
+      // Invalidate schedule queries (they depend on vehicles but aren't part of Family object)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setIsFormOpen(false);
       setFormData({ name: '', capacity: '' });
       setFormError('');
@@ -71,12 +76,17 @@ const VehiclesPage: React.FC = () => {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: { name?: string; capacity?: number } }) =>
       api.PATCH('/api/v1/vehicles/{vehicleId}', { params: { path: { vehicleId: id } }, body: data }),
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
+    onSuccess: async (response) => {
+      // Optimistic update: Backend returns complete Family with updated vehicle
+      if (response.data?.data) {
+        const family = response.data.data;
+        queryClient.setQueryData(['current-family'], family);
+        // Also update vehicles query for consumers that use ['vehicles'] directly
+        queryClient.setQueryData(['vehicles'], family.vehicles);
+      }
+      // Invalidate schedule queries (they depend on vehicles but aren't part of Family object)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
       setEditingVehicle(null);
       setFormData({ name: '', capacity: '' });
       setFormError('');
@@ -102,12 +112,17 @@ const VehiclesPage: React.FC = () => {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.DELETE('/api/v1/vehicles/{vehicleId}', { params: { path: { vehicleId: id } } }),
-    onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] });
-      // Invalidate schedule-related queries since vehicle data is embedded in schedule slots
+    onSuccess: async (response) => {
+      // Optimistic update: Backend returns complete Family without deleted vehicle
+      if (response.data?.data) {
+        const family = response.data.data;
+        queryClient.setQueryData(['current-family'], family);
+        // Also update vehicles query for consumers that use ['vehicles'] directly
+        queryClient.setQueryData(['vehicles'], family.vehicles);
+      }
+      // Invalidate schedule queries (they depend on vehicles but aren't part of Family object)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
     },
   });
 

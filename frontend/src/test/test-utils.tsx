@@ -123,6 +123,17 @@ export const mockFamily = {
   vehicles: []
 }
 
+// Mock family invitation for testing
+export const mockInvitation = {
+  id: 'invitation-1',
+  familyId: 'family-1',
+  email: 'invited@example.com',
+  role: 'MEMBER' as const,
+  status: 'PENDING' as const,
+  createdAt: '2024-01-01T00:00:00Z',
+  expiresAt: '2024-01-08T00:00:00Z'
+}
+
 // Comprehensive OpenAPI client mock factory
 export const createMockOpenAPIClient = () => {
   const mockClient = {
@@ -299,9 +310,9 @@ export const createMockFamilyApiService = () => ({
   joinFamily: vi.fn().mockResolvedValue(mockFamily),
   updateFamilyName: vi.fn().mockResolvedValue(mockFamily),
   leaveFamily: vi.fn().mockResolvedValue(undefined),
-  inviteMember: vi.fn().mockResolvedValue(undefined),
+  inviteMember: vi.fn().mockResolvedValue(mockInvitation),
   updateMemberRole: vi.fn().mockResolvedValue(undefined),
-  removeMember: vi.fn().mockResolvedValue(undefined),
+  removeMember: vi.fn().mockResolvedValue(mockFamily),
   generateInviteCode: vi.fn().mockResolvedValue('FAM123'),
   getPendingInvitations: vi.fn().mockResolvedValue([]),
   cancelInvitation: vi.fn().mockResolvedValue(undefined),
@@ -354,9 +365,9 @@ export const createMockFamilyContext = () => ({
   joinFamily: vi.fn().mockResolvedValue(mockFamily),
   updateFamilyName: vi.fn().mockResolvedValue(mockFamily),
   leaveFamily: vi.fn().mockResolvedValue(undefined),
-  inviteMember: vi.fn().mockResolvedValue(undefined),
+  inviteMember: vi.fn().mockResolvedValue(mockInvitation),
   updateMemberRole: vi.fn().mockResolvedValue(undefined),
-  removeMember: vi.fn().mockResolvedValue(undefined),
+  removeMember: vi.fn().mockResolvedValue(mockFamily),
   generateInviteCode: vi.fn().mockResolvedValue('FAM123'),
   cancelInvitation: vi.fn().mockResolvedValue(undefined),
   getPendingInvitations: vi.fn().mockResolvedValue([]),

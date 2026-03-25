@@ -86,12 +86,12 @@ interface FamilyContextType extends FamilyContextState {
   createFamily: (name: string) => Promise<Family>;
   joinFamily: (inviteCode: string) => Promise<Family>;
   leaveFamily: () => Promise<void>;
-  updateFamilyName: (name: string) => Promise<void>;
+  updateFamilyName: (name: string) => Promise<Family>;
 
   // Member operations
-  inviteMember: (email: string, role: string, personalMessage?: string) => Promise<void>;
+  inviteMember: (email: string, role: string, personalMessage?: string) => Promise<FamilyInvitation>;
   updateMemberRole: (memberId: string, role: string) => Promise<void>;
-  removeMember: (memberId: string) => Promise<void>;
+  removeMember: (memberId: string) => Promise<Family>;
   generateInviteCode: () => Promise<string>;
 
   // Invitation operations
@@ -185,7 +185,8 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
   /**
    * Mutation: Create Family
-   * Invalidates: current-family, family-permissions
+   * Optimistic Update: Backend returns complete Family object
+   * Pattern: setQueryData ONLY (no invalidate to prevent race conditions)
    */
   const createFamilyMutation = useMutation({
     mutationFn: async (name: string): Promise<Family> => {
@@ -194,16 +195,18 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       console.log('✅ FamilyContext: Family created:', family.id);
       return family;
     },
-    onSuccess: async () => {
-      // Invalidate and refetch queries
-      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
-      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    onSuccess: async (family) => {
+      // Optimistic update: cache returned family immediately
+      // NO INVALIDATION - we have the complete data, no need to refetch
+      queryClient.setQueryData(['current-family'], family);
+      // Permissions query will auto-fetch when familyId is available
     },
   });
 
   /**
    * Mutation: Join Family
-   * Invalidates: current-family, family-permissions
+   * Optimistic Update: Backend returns complete Family object
+   * Pattern: setQueryData ONLY (no invalidate to prevent race conditions)
    */
   const joinFamilyMutation = useMutation({
     mutationFn: async (inviteCode: string): Promise<Family> => {
@@ -212,10 +215,11 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       console.log('✅ FamilyContext: Family joined:', family.id);
       return family;
     },
-    onSuccess: async () => {
-      // Invalidate and refetch queries
-      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
-      await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
+    onSuccess: async (family) => {
+      // Optimistic update: cache returned family immediately
+      // NO INVALIDATION - we have the complete data, no need to refetch
+      queryClient.setQueryData(['current-family'], family);
+      // Permissions query will auto-fetch when familyId is available
     },
   });
 
@@ -241,46 +245,47 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
   /**
    * Mutation: Update Family Name
-   * Invalidates: current-family
+   * Optimistic Update: Backend returns complete Family object
+   * Pattern: setQueryData for immediate update
    */
   const updateFamilyNameMutation = useMutation({
-    mutationFn: async (name: string): Promise<void> => {
+    mutationFn: async (name: string): Promise<Family> => {
       if (!familyQuery.data?.id) {
         throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
       }
       console.log('🔄 FamilyContext: Updating family name...');
-      await familyApiService.updateFamilyName(name);
+      const family = await familyApiService.updateFamilyName(name);
       console.log('✅ FamilyContext: Family name updated');
+      return family;
     },
-    onSuccess: async () => {
-      // Invalidate family data to get updated name
-      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+    onSuccess: async (family) => {
+      // Optimistic update: cache returned family immediately
+      queryClient.setQueryData(['current-family'], family);
     },
   });
 
   /**
    * Mutation: Invite Member
-   * Invalidates: family-invitations (to refresh pending invitations list)
-   *
-   * NOTE: Does NOT invalidate current-family because sending an invitation
-   * doesn't modify the family object. Invitations are separate entities.
+   * Optimistic Update: Backend returns FamilyInvitation
+   * Pattern: Return invitation to caller (not cached)
    */
   const inviteMemberMutation = useMutation({
-    mutationFn: async (data: { email: string; role: string; personalMessage?: string }): Promise<void> => {
+    mutationFn: async (data: { email: string; role: string; personalMessage?: string }): Promise<FamilyInvitation> => {
       if (!familyQuery.data?.id) {
         throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
       }
       console.log('🔄 FamilyContext: Inviting member:', data.email);
-      await familyApiService.inviteMember(familyQuery.data.id, {
+      const invitation = await familyApiService.inviteMember(familyQuery.data.id, {
         familyId: familyQuery.data.id,
         email: data.email,
         role: data.role as FamilyRole,
         personalMessage: data.personalMessage
       } as CreateFamilyInvitationRequest);
       console.log('✅ FamilyContext: Member invited');
+      return invitation;
     },
-    onSuccess: async () => {
-      // Only invalidate invitations list - family object is unchanged
+    onSuccess: async (/* invitation */) => {
+      // Invalidate invitations list to show new invitation
       await queryClient.invalidateQueries({ queryKey: ['family-invitations'] });
     },
   });
@@ -307,20 +312,24 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
 
   /**
    * Mutation: Remove Member
-   * Invalidates: current-family
+   * Optimistic Update: Backend returns complete Family object
+   * Pattern: setQueryData ONLY (no invalidate of current-family to prevent race conditions)
    */
   const removeMemberMutation = useMutation({
-    mutationFn: async (memberId: string): Promise<void> => {
+    mutationFn: async (memberId: string): Promise<Family> => {
       if (!familyQuery.data?.id) {
         throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, 'No family selected');
       }
       console.log('🔄 FamilyContext: Removing member:', memberId);
-      await familyApiService.removeMember(familyQuery.data.id, memberId);
+      const updatedFamily = await familyApiService.removeMember(familyQuery.data.id, memberId);
       console.log('✅ FamilyContext: Member removed');
+      return updatedFamily;
     },
-    onSuccess: async () => {
-      // Invalidate family data to get updated member list
-      await queryClient.invalidateQueries({ queryKey: ['current-family'] });
+    onSuccess: async (family) => {
+      // Optimistic update: cache returned family immediately
+      // NO INVALIDATION of current-family - we have the complete data
+      queryClient.setQueryData(['current-family'], family);
+      // Invalidate permissions in case removed member was current user
       await queryClient.invalidateQueries({ queryKey: ['family-permissions'] });
     },
   });
@@ -434,18 +443,18 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   }, [leaveFamilyMutation]);
 
-  const updateFamilyName = useCallback(async (name: string): Promise<void> => {
+  const updateFamilyName = useCallback(async (name: string): Promise<Family> => {
     try {
-      await updateFamilyNameMutation.mutateAsync(name);
+      return await updateFamilyNameMutation.mutateAsync(name);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update family name';
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
     }
   }, [updateFamilyNameMutation]);
 
-  const inviteMember = useCallback(async (email: string, role: string, personalMessage?: string): Promise<void> => {
+  const inviteMember = useCallback(async (email: string, role: string, personalMessage?: string): Promise<FamilyInvitation> => {
     try {
-      await inviteMemberMutation.mutateAsync({ email, role, personalMessage });
+      return await inviteMemberMutation.mutateAsync({ email, role, personalMessage });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to invite member';
       throw createFamilyError(FAMILY_ERROR_CODES.UNAUTHORIZED, errorMessage);
@@ -469,9 +478,9 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     }
   }, [updateMemberRoleMutation]);
 
-  const removeMember = useCallback(async (memberId: string): Promise<void> => {
+  const removeMember = useCallback(async (memberId: string): Promise<Family> => {
     try {
-      await removeMemberMutation.mutateAsync(memberId);
+      return await removeMemberMutation.mutateAsync(memberId);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to remove member';
 

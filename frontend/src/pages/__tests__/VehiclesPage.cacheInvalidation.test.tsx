@@ -77,17 +77,25 @@ describe('VehiclesPage - Cache Invalidation', () => {
       shouldShowError: false,
       shouldShowEmpty: false
     });
-    
+
     // Mock API responses for OpenAPI client
     mockApi.GET.mockResolvedValue({
       data: {
         data: [mockVehicle]
       }
     });
+    // Mock PATCH to return complete Family (rich response pattern)
     mockApi.PATCH.mockResolvedValue({
       data: {
-        ...mockVehicle,
-        name: 'Updated Bus'
+        data: {
+          ...mockFamilyContext.currentFamily,
+          vehicles: [
+            {
+              ...mockVehicle,
+              name: 'Updated Bus'
+            }
+          ]
+        }
       }
     });
   });
@@ -104,7 +112,8 @@ describe('VehiclesPage - Cache Invalidation', () => {
 
   it('should invalidate schedule-related queries when vehicle is updated', async () => {
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
-    
+    const setQueryDataSpy = vi.spyOn(queryClient, 'setQueryData');
+
     renderComponent();
 
     // Wait for initial load
@@ -132,22 +141,40 @@ describe('VehiclesPage - Cache Invalidation', () => {
       });
     });
 
-    // Verify that all necessary queries were invalidated
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] });
+    // Verify setQueryData was called for immediate cache update
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['current-family'], expect.objectContaining({
+      id: 'family-1',
+      vehicles: expect.arrayContaining([
+        expect.objectContaining({ id: 'vehicle-1', name: 'Updated Bus', capacity: 8 })
+      ])
+    }));
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['vehicles'], expect.arrayContaining([
+      expect.objectContaining({ id: 'vehicle-1', name: 'Updated Bus', capacity: 8 })
+    ]));
+    // Verify schedule queries were invalidated (they're not in Family object)
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot'] });
   });
 
   it('should invalidate schedule-related queries when vehicle is created', async () => {
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const setQueryDataSpy = vi.spyOn(queryClient, 'setQueryData');
 
     mockApi.POST.mockResolvedValue({
       data: {
-        id: 'vehicle-2',
-        name: 'New Van',
-        capacity: 6,
-        driverName: 'Jane Driver',
-        familyId: 'family-1'
+        data: {
+          ...mockFamilyContext.currentFamily,
+          vehicles: [
+            mockVehicle,
+            {
+              id: 'vehicle-2',
+              name: 'New Van',
+              capacity: 6,
+              driverName: 'Jane Driver',
+              familyId: 'family-1'
+            }
+          ]
+        }
       }
     });
 
@@ -174,16 +201,34 @@ describe('VehiclesPage - Cache Invalidation', () => {
       });
     });
 
-    // Verify that all necessary queries were invalidated
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] });
+    // Verify setQueryData was called for immediate cache update
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['current-family'], expect.objectContaining({
+      id: 'family-1',
+      vehicles: expect.arrayContaining([
+        expect.objectContaining({ name: 'New Van', capacity: 6 })
+      ])
+    }));
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['vehicles'], expect.arrayContaining([
+      expect.objectContaining({ name: 'New Van', capacity: 6 })
+    ]));
+    // Verify schedule queries were invalidated (they're not in Family object)
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot'] });
   });
 
   it('should invalidate schedule-related queries when vehicle is deleted', async () => {
     const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
+    const setQueryDataSpy = vi.spyOn(queryClient, 'setQueryData');
 
-    mockApi.DELETE.mockResolvedValue({});
+    // Mock DELETE to return Family without the deleted vehicle
+    mockApi.DELETE.mockResolvedValue({
+      data: {
+        data: {
+          ...mockFamilyContext.currentFamily,
+          vehicles: [] // No vehicles after deletion
+        }
+      }
+    });
 
     renderComponent();
 
@@ -207,8 +252,17 @@ describe('VehiclesPage - Cache Invalidation', () => {
       });
     });
 
-    // Verify that all necessary queries were invalidated
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] });
+    // Verify setQueryData was called for immediate cache update
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['current-family'], expect.objectContaining({
+      id: 'family-1',
+      vehicles: expect.not.arrayContaining([
+        expect.objectContaining({ id: 'vehicle-1' })
+      ])
+    }));
+    expect(setQueryDataSpy).toHaveBeenCalledWith(['vehicles'], expect.not.arrayContaining([
+      expect.objectContaining({ id: 'vehicle-1' })
+    ]));
+    // Verify schedule queries were invalidated (they're not in Family object)
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot'] });
   });

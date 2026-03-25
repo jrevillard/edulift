@@ -49,6 +49,8 @@ const GroupsPage: React.FC = () => {
       return result.data;
     },
     onSuccess: () => {
+      // Backend returns only group object, not the list format
+      // Must invalidate to get fresh data
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Group created successfully!');
       setErrorMessage('');
@@ -79,6 +81,8 @@ const GroupsPage: React.FC = () => {
       return result.data;
     },
     onSuccess: () => {
+      // Backend returns membership, not the list format
+      // Must invalidate to get fresh data
       queryClient.invalidateQueries({ queryKey: ['user-groups'] });
       setSuccessMessage('Successfully joined group!');
       setErrorMessage('');
