@@ -752,8 +752,17 @@ test.describe('Family Member Management E2E', () => {
         // Member accepts invitation in isolated context
         const memberContext = await _context.browser()!.newContext();
         const memberPage = await memberContext.newPage();
-        const memberAuth = new UniversalAuthHelper(memberPage);
 
+        // Navigate to login page first to clear any cached authentication state
+        await memberPage.goto('/auth/login');
+        await memberPage.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+        await memberPage.reload();
+        await memberPage.waitForLoadState('networkidle');
+
+        const memberAuth = new UniversalAuthHelper(memberPage);
         await memberAuth.acceptInvitation(invitationUrl!, memberEmail);
 
         // Verify member can access vehicles
