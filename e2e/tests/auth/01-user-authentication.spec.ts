@@ -577,7 +577,15 @@ test.describe('User Authentication Journey', () => {
         });
         memberPage = await memberContext.newPage();
 
-        // Navigate to invitation page
+        // Navigate to login page first to clear any cached authentication state
+        console.log('🔄 Navigating to login page to clear cached state...');
+        await memberPage.goto('/auth/login');
+        await memberPage.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+
+        // Now navigate to invitation page
         console.log('🔄 Navigating to invitation URL...');
         await memberPage.goto(invitationUrl);
         await memberPage.waitForLoadState('networkidle');
