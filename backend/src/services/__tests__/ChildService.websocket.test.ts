@@ -74,11 +74,23 @@ describe('ChildService WebSocket Events', () => {
         familyId: 'family-123',
       };
 
+      const mockFamily = {
+        id: 'family-123',
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockCreatedChild],
+        vehicles: [],
+      };
+
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
 
       const result = await childService.createChild(childData, 'system');
 
-      expect(result).toMatchObject(mockCreatedChild);
+      expect(result).toMatchObject(mockFamily);
+      expect(result.children).toContainEqual(mockCreatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         'system', // userId for child creation
         'family-123', // familyId
@@ -104,7 +116,18 @@ describe('ChildService WebSocket Events', () => {
         familyId: 'family-789',
       };
 
+      const mockFamily = {
+        id: 'family-789',
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockCreatedChild],
+        vehicles: [],
+      };
+
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
 
       await childService.createChild(childData, 'system');
 
@@ -184,9 +207,22 @@ describe('ChildService WebSocket Events', () => {
       // Mock update
       mockPrisma.child.update.mockResolvedValue(mockUpdatedChild);
 
+      const mockFamily = {
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockUpdatedChild],
+        vehicles: [],
+      };
+
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
+
       const result = await childService.updateChild(childId, userId, updateData);
 
-      expect(result).toMatchObject(mockUpdatedChild);
+      expect(result).toMatchObject(mockFamily);
+      expect(result.children).toContainEqual(mockUpdatedChild);
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalledWith(
         userId,
         familyId,
@@ -234,6 +270,18 @@ describe('ChildService WebSocket Events', () => {
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
       mockPrisma.child.update.mockResolvedValue(mockUpdatedChild);
+
+      const mockFamily = {
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockUpdatedChild],
+        vehicles: [],
+      };
+
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
 
       await childService.updateChild(childId, userId, updateData);
 
@@ -399,6 +447,15 @@ describe('ChildService WebSocket Events', () => {
       };
 
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
+      mockPrisma.family.findUnique.mockResolvedValue({
+        id: 'family-123',
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockCreatedChild],
+        vehicles: [],
+      });
 
       await childService.createChild(childData, 'system');
 
@@ -445,6 +502,15 @@ describe('ChildService WebSocket Events', () => {
       jest.spyOn(childService, 'canUserModifyFamilyChildren').mockResolvedValue(true);
       jest.spyOn(childService, 'getChildById').mockResolvedValue(mockExistingChild);
       mockPrisma.child.update.mockResolvedValue(mockUpdatedChild);
+      mockPrisma.family.findUnique.mockResolvedValue({
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockUpdatedChild],
+        vehicles: [],
+      });
 
       await childService.updateChild(childId, userId, updateData);
 
@@ -523,11 +589,22 @@ describe('ChildService WebSocket Events', () => {
         familyId: 'family-123',
       };
 
+      const mockFamily = {
+        id: 'family-123',
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [mockCreatedChild],
+        vehicles: [],
+      };
+
       mockPrisma.child.create.mockResolvedValue(mockCreatedChild);
+      mockPrisma.family.findUnique.mockResolvedValue(mockFamily);
 
       // Should not throw error even without socket handler
       const result = await childService.createChild(childData, 'system');
-      expect(result).toMatchObject(mockCreatedChild);
+      expect(result).toMatchObject(mockFamily);
 
       // SocketEmitter should still be called (it handles null socket handler internally)
       expect(mockSocketEmitter.broadcastChildUpdate).toHaveBeenCalled();

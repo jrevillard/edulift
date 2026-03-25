@@ -54,7 +54,18 @@ describe('ChildService', () => {
         updatedAt: new Date(),
       };
 
+      const expectedFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [expectedChild],
+        vehicles: [],
+      };
+
       (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue(expectedFamily);
 
       const result = await childService.createChild(childData, userId);
 
@@ -65,7 +76,8 @@ describe('ChildService', () => {
           familyId: TEST_IDS.FAMILY,
         },
       });
-      expect(result).toMatchObject(expectedChild);
+      expect(result).toMatchObject(expectedFamily);
+      expect(result.children).toContainEqual(expectedChild);
     });
 
     it('should create child with undefined age as null', async () => {
@@ -83,9 +95,20 @@ describe('ChildService', () => {
         updatedAt: new Date(),
       };
 
-      (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
+      const expectedFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [expectedChild],
+        vehicles: [],
+      };
 
-      await childService.createChild(childData, TEST_IDS.USER);
+      (mockPrisma.child.create as jest.Mock).mockResolvedValue(expectedChild);
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue(expectedFamily);
+
+      const result = await childService.createChild(childData, TEST_IDS.USER);
 
       expect(mockPrisma.child.create).toHaveBeenCalledWith({
         data: {
@@ -94,6 +117,8 @@ describe('ChildService', () => {
           familyId: TEST_IDS.FAMILY,
         },
       });
+      expect(result).toMatchObject(expectedFamily);
+      expect(result.children).toContainEqual(expectedChild);
     });
 
     it('should throw error when creation fails', async () => {
@@ -283,6 +308,18 @@ describe('ChildService', () => {
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
       (mockPrisma.child.update as jest.Mock).mockResolvedValue(expectedChild);
 
+      const expectedFamily = {
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [expectedChild],
+        vehicles: [],
+      };
+
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue(expectedFamily);
+
       const result = await childService.updateChild(childId, userId, updateData);
 
       expect(mockPrisma.child.update).toHaveBeenCalledWith({
@@ -292,7 +329,8 @@ describe('ChildService', () => {
           age: 9,
         },
       });
-      expect(result).toMatchObject(expectedChild);
+      expect(result).toMatchObject(expectedFamily);
+      expect(result.children).toContainEqual(expectedChild);
     });
 
     it('should update only age when only age is provided', async () => {
@@ -339,6 +377,18 @@ describe('ChildService', () => {
       (mockPrisma.child.findFirst as jest.Mock).mockResolvedValue(existingChild);
       (mockPrisma.child.update as jest.Mock).mockResolvedValue(expectedChild);
 
+      const expectedFamily = {
+        id: familyId,
+        name: 'Test Family',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        members: [],
+        children: [expectedChild],
+        vehicles: [],
+      };
+
+      (mockPrisma.family.findUnique as jest.Mock).mockResolvedValue(expectedFamily);
+
       const result = await childService.updateChild(childId, userId, updateData);
 
       expect(mockPrisma.child.update).toHaveBeenCalledWith({
@@ -347,7 +397,8 @@ describe('ChildService', () => {
           age: 10, // Only age should be updated
         },
       });
-      expect(result).toMatchObject(expectedChild);
+      expect(result).toMatchObject(expectedFamily);
+      expect(result.children).toContainEqual(expectedChild);
     });
 
     it('should throw error when update fails', async () => {

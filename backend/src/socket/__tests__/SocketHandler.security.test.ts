@@ -47,6 +47,9 @@ beforeAll(() => {
   console.warn = jest.fn();
 });
 
+// Track all client sockets for cleanup
+const activeSockets: any[] = [];
+
 afterAll(() => {
   console.log = originalConsole.log;
   console.error = originalConsole.error;
@@ -124,6 +127,14 @@ describe('SocketHandler Security', () => {
 
   afterEach(async () => {
     try {
+      // Disconnect all active client sockets first
+      activeSockets.forEach(socket => {
+        if (socket && socket.connected) {
+          socket.disconnect();
+        }
+      });
+      activeSockets.length = 0; // Clear array
+
       // First cleanup SocketHandler
       if (socketHandler) {
         await socketHandler.cleanup();
@@ -171,12 +182,13 @@ describe('SocketHandler Security', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(false);
-      
+
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
-      
+      activeSockets.push(clientSocket);
+
       let testCompleted = false;
 
       clientSocket.on('connect', () => {
@@ -220,6 +232,7 @@ describe('SocketHandler Security', () => {
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
+      activeSockets.push(clientSocket);
 
       let joinedSuccessfully = false;
 
@@ -253,12 +266,13 @@ describe('SocketHandler Security', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(false);
-      
+
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
-      
+      activeSockets.push(clientSocket);
+
       clientSocket.on('connect', () => {
         // Try to join unauthorized schedule slot
         clientSocket.emit(SOCKET_EVENTS.SCHEDULE_SLOT_JOIN, { 
@@ -283,12 +297,13 @@ describe('SocketHandler Security', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessGroup = jest.fn().mockResolvedValue(false);
-      
+
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
-      
+      activeSockets.push(clientSocket);
+
       let testCompleted = false;
 
       clientSocket.on('connect', () => {
@@ -327,12 +342,13 @@ describe('SocketHandler Security', () => {
       const mockAuthService = socketHandler['authorizationService'];
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue([]);
       mockAuthService.canUserAccessScheduleSlot = jest.fn().mockResolvedValue(false);
-      
+
       const token = jwt.sign({ userId: UNAUTHORIZED_USER_ID }, JWT_ACCESS_SECRET);
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
-      
+      activeSockets.push(clientSocket);
+
       clientSocket.on('connect', () => {
         // Try to start typing in unauthorized schedule slot
         clientSocket.emit('typing:start', { 
@@ -352,7 +368,8 @@ describe('SocketHandler Security', () => {
   describe('Authentication Security', () => {
     it('should reject connections without authentication token', (done) => {
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`);
-      
+      activeSockets.push(clientSocket);
+
       clientSocket.on('connect_error', (error) => {
         expect(error.message).toBe('Authentication failed');
         done();
@@ -367,7 +384,8 @@ describe('SocketHandler Security', () => {
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token: 'invalid-token' },
       });
-      
+      activeSockets.push(clientSocket);
+
       clientSocket.on('connect_error', (error) => {
         expect(error.message).toBe('Authentication failed');
         done();
@@ -383,7 +401,8 @@ describe('SocketHandler Security', () => {
       const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
         auth: { token },
       });
-      
+      activeSockets.push(clientSocket);
+
       clientSocket.on('connect_error', (error) => {
         expect(error.message).toBe('Authentication failed');
         done();
@@ -422,7 +441,8 @@ describe('SocketHandler Security', () => {
           timeout: 500,
           forceNew: true,
         });
-        
+
+        activeSockets.push(clientSocket);
         connections.push(clientSocket);
         
         clientSocket.on('connect', () => {
@@ -466,11 +486,12 @@ describe('SocketHandler Security', () => {
       mockAuthService.getUserAccessibleGroupIds = jest.fn().mockResolvedValue(authorizedGroups);
       
       const token = jwt.sign({ userId: TEST_USER_ID }, JWT_ACCESS_SECRET);
-      
+
       return new Promise<void>((resolve, reject) => {
         const clientSocket = Client(`http://localhost:${(httpServer.address() as AddressInfo)?.port}`, {
           auth: { token },
         });
+        activeSockets.push(clientSocket);
 
         clientSocket.on(SOCKET_EVENTS.CONNECTED, (data) => {
           expect(data.userId).toBe(TEST_USER_ID);

@@ -203,20 +203,23 @@ describe('ChildController Test Suite', () => {
       const mockFamily = {
         id: TEST_IDS.FAMILY,
         name: 'Test Family',
-      };
-
-      const mockChild = {
-        id: TEST_IDS.CHILD,
-        name: 'Test Child',
-        age: 8,
-        familyId: TEST_IDS.FAMILY,
         createdAt: new Date('2025-12-13T00:00:00.000Z'),
         updatedAt: new Date('2025-12-13T00:00:00.000Z'),
+        members: [],
+        children: [{
+          id: TEST_IDS.CHILD,
+          name: 'Test Child',
+          age: 8,
+          familyId: TEST_IDS.FAMILY,
+          createdAt: new Date('2025-12-13T00:00:00.000Z'),
+          updatedAt: new Date('2025-12-13T00:00:00.000Z'),
+        }],
+        vehicles: [],
       };
 
       mockChildService.getUserFamily.mockResolvedValue(mockFamily as any);
       mockChildService.canUserModifyFamilyChildren.mockResolvedValue(true);
-      mockChildService.createChild.mockResolvedValue(mockChild as any);
+      mockChildService.createChild.mockResolvedValue(mockFamily as any);
 
       const response = await makeAuthenticatedRequest(app, '/', {
         method: 'POST',
@@ -228,10 +231,16 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse.success).toBe(true);
       expect(jsonResponse.data).toMatchObject({
-        id: TEST_IDS.CHILD,
-        name: 'Test Child',
-        age: 8,
-        familyId: TEST_IDS.FAMILY,
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        children: expect.arrayContaining([
+          expect.objectContaining({
+            id: TEST_IDS.CHILD,
+            name: 'Test Child',
+            age: 8,
+            familyId: TEST_IDS.FAMILY,
+          }),
+        ]),
       });
 
       expect(mockChildService.getUserFamily).toHaveBeenCalledWith(mockUserId);
@@ -251,20 +260,23 @@ describe('ChildController Test Suite', () => {
       const mockFamily = {
         id: TEST_IDS.FAMILY,
         name: 'Test Family',
-      };
-
-      const mockChild = {
-        id: TEST_IDS.CHILD,
-        name: 'Test Child',
-        age: null,
-        familyId: TEST_IDS.FAMILY,
         createdAt: new Date('2025-12-13T00:00:00.000Z'),
         updatedAt: new Date('2025-12-13T00:00:00.000Z'),
+        members: [],
+        children: [{
+          id: TEST_IDS.CHILD,
+          name: 'Test Child',
+          age: null,
+          familyId: TEST_IDS.FAMILY,
+          createdAt: new Date('2025-12-13T00:00:00.000Z'),
+          updatedAt: new Date('2025-12-13T00:00:00.000Z'),
+        }],
+        vehicles: [],
       };
 
       mockChildService.getUserFamily.mockResolvedValue(mockFamily as any);
       mockChildService.canUserModifyFamilyChildren.mockResolvedValue(true);
-      mockChildService.createChild.mockResolvedValue(mockChild as any);
+      mockChildService.createChild.mockResolvedValue(mockFamily as any);
 
       const response = await makeAuthenticatedRequest(app, '/', {
         method: 'POST',
@@ -275,7 +287,18 @@ describe('ChildController Test Suite', () => {
       expect(response.status).toBe(201);
       const jsonResponse = await responseJson(response);
       expect(jsonResponse.success).toBe(true);
-      expect(jsonResponse.data.name).toBe('Test Child');
+      expect(jsonResponse.data).toMatchObject({
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        children: expect.arrayContaining([
+          expect.objectContaining({
+            id: TEST_IDS.CHILD,
+            name: 'Test Child',
+            age: null,
+            familyId: TEST_IDS.FAMILY,
+          }),
+        ]),
+      });
     });
 
     it('should return 403 when user has no family', async () => {
@@ -691,16 +714,24 @@ describe('ChildController Test Suite', () => {
         name: 'Updated Child Name',
       };
 
-      const mockChild = {
-        id: childId,
-        name: 'Updated Child Name',
-        age: 8,
-        familyId: TEST_IDS.FAMILY,
+      const mockFamily = {
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
         createdAt: new Date('2025-12-13T00:00:00.000Z'),
         updatedAt: new Date('2025-12-13T00:00:00.000Z'),
+        members: [],
+        children: [{
+          id: childId,
+          name: 'Updated Child Name',
+          age: 8,
+          familyId: TEST_IDS.FAMILY,
+          createdAt: new Date('2025-12-13T00:00:00.000Z'),
+          updatedAt: new Date('2025-12-13T00:00:00.000Z'),
+        }],
+        vehicles: [],
       };
 
-      mockChildService.updateChild.mockResolvedValue(mockChild as any);
+      mockChildService.updateChild.mockResolvedValue(mockFamily as any);
 
       const response = await makeAuthenticatedRequest(app, `/${childId}`, {
         method: 'PATCH',
@@ -712,8 +743,15 @@ describe('ChildController Test Suite', () => {
       const jsonResponse = await responseJson(response);
       expect(jsonResponse.success).toBe(true);
       expect(jsonResponse.data).toMatchObject({
-        id: childId,
-        name: 'Updated Child Name',
+        id: TEST_IDS.FAMILY,
+        name: 'Test Family',
+        children: expect.arrayContaining([
+          expect.objectContaining({
+            id: childId,
+            name: 'Updated Child Name',
+            age: 8,
+          }),
+        ]),
       });
 
       expect(mockChildService.updateChild).toHaveBeenCalledWith(
