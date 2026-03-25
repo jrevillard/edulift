@@ -93,12 +93,13 @@ const ChildrenPage: React.FC = () => {
       return child;
     },
     retry: false, // Disable automatic retries to prevent duplicates
-    onSuccess: async () => {
-      // TODO: Backend bug - createChild returns { child } not { family }
-      // When backend is fixed to return Family, use:
-      //   queryClient.setQueryData(['current-family'], family);
-      // For now, must invalidate to get updated family
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
+    onSuccess: async (response) => {
+      // Backend now returns complete Family (rich response pattern)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const family = (response as any).data?.data;
+      if (family) {
+        queryClient.setQueryData(['current-family'], family);
+      }
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
@@ -142,12 +143,13 @@ const ChildrenPage: React.FC = () => {
 
       return child;
     },
-    onSuccess: async () => {
-      // TODO: Backend bug - updateChild returns { child } not { family }
-      // When backend is fixed to return Family, use:
-      //   queryClient.setQueryData(['current-family'], family);
-      // For now, must invalidate to get updated family
-      queryClient.invalidateQueries({ queryKey: ['current-family'] });
+    onSuccess: async (response) => {
+      // Backend now returns complete Family (rich response pattern)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const family = (response as any).data?.data;
+      if (family) {
+        queryClient.setQueryData(['current-family'], family);
+      }
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });

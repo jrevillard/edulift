@@ -98,10 +98,10 @@ const createChildRoute = createRoute({
     201: {
     content: {
     'application/json': {
-    schema: createSuccessSchema(ChildResponseSchema),
+    schema: createSuccessSchema(FamilyResponseSchema),
     },
     },
-    description: 'Child created successfully',
+    description: 'Child created successfully - Returns complete Family',
     },
     400: {
     content: {
@@ -225,10 +225,10 @@ const updateChildRoute = createRoute({
     200: {
     content: {
     'application/json': {
-    schema: createSuccessSchema(ChildResponseSchema),
+    schema: createSuccessSchema(FamilyResponseSchema),
     },
     },
-    description: 'Child updated successfully',
+    description: 'Child updated successfully - Returns complete Family',
     },
     400: {
     content: {
@@ -289,10 +289,10 @@ const patchChildRoute = createRoute({
     200: {
     content: {
     'application/json': {
-    schema: createSuccessSchema(ChildResponseSchema),
+    schema: createSuccessSchema(FamilyResponseSchema),
     },
     },
-    description: 'Child updated successfully',
+    description: 'Child updated successfully - Returns complete Family',
     },
     400: {
     content: {
@@ -595,14 +595,17 @@ const getChildGroupsRoute = createRoute({
     childData.age = input.age;
     }
 
-    const child = await childServiceInstance.createChild(childData, userId);
+    const updatedFamily = await childServiceInstance.createChild(childData, userId);
 
-    childLogger.logSuccess('createChild', c, { userId, childId: child.id });
-    loggerInstance.info('createChild: child created', { userId, childId: child.id });
+    // Get the created child from the family (last one in the array)
+    const createdChild = updatedFamily.children[updatedFamily.children.length - 1];
+
+    childLogger.logSuccess('createChild', c, { userId, childId: createdChild.id });
+    loggerInstance.info('createChild: child created', { userId, childId: createdChild.id, name: createdChild.name });
 
     return c.json({
     success: true,
-    data: child,
+    data: transformFamilyForResponse(updatedFamily),
     }, 201);
     } catch (error: unknown) {
     childLogger.logError('createChild', c, error as Error | string);
@@ -781,18 +784,21 @@ const getChildGroupsRoute = createRoute({
     }, 400);
     }
 
-    const updatedChild = await childServiceInstance.updateChild(childId, userId, updateDataFiltered);
+    const updatedFamily = await childServiceInstance.updateChild(childId, userId, updateDataFiltered);
+
+    // Get the updated child from the family
+    const updatedChild = updatedFamily.children.find(c => c.id === childId);
 
     childLogger.logSuccess('patchChild', c, { userId, childId });
     loggerInstance.info('updateChild: child updated', {
     userId,
     childId,
-    newName: updatedChild.name,
+    newName: updatedChild?.name,
     });
 
     return c.json({
     success: true,
-    data: updatedChild,
+    data: transformFamilyForResponse(updatedFamily),
     }, 200);
     } catch (error: unknown) {
     childLogger.logError('patchChild', c, error as Error | string);

@@ -3614,7 +3614,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Child created successfully */
+                /** @description Child created successfully - Returns complete Family */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -3623,59 +3623,129 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * Child Response
-                             * @description Complete child information with optional group memberships
+                             * Family Response
+                             * @description Complete family information with optional related data
                              */
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Unique child identifier (CUID format)
+                                 * @description Unique family identifier (CUID format)
                                  * @example cl123456789012345678901234
                                  */
                                 id: string;
                                 /**
-                                 * @description Child full name
-                                 * @example Emma Johnson
+                                 * @description Family display name
+                                 * @example Johnson Family
                                  */
                                 name: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Family identifier the child belongs to
-                                 * @example cl123456789012345678901233
-                                 */
-                                familyId: string;
-                                /**
                                  * Format: date-time
-                                 * @description When the child record was created
+                                 * @description When the family was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
                                 createdAt: string;
                                 /**
                                  * Format: date-time
-                                 * @description When the child record was last updated
+                                 * @description When the family was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /**
-                                 * @description Child age (null if not specified)
-                                 * @example 8
-                                 */
-                                age: number | null;
-                                /** @description Group memberships (included when fetching all children) */
-                                groupMemberships?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
-                                    childId: string;
+                                    id: string;
                                     /** Format: cuid */
-                                    groupId: string;
+                                    userId: string;
                                     /** Format: cuid */
-                                    addedBy: string;
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
                                     /** Format: date-time */
-                                    addedAt: string;
-                                    group: {
-                                        /** Format: cuid */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
                                         id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
                                         name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
                                     };
+                                }[];
+                                /** @description Family vehicles */
+                                vehicles: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children */
+                                children: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
                                 }[];
                             };
                         };
@@ -4022,7 +4092,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Child updated successfully */
+                /** @description Child updated successfully - Returns complete Family */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4031,59 +4101,129 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * Child Response
-                             * @description Complete child information with optional group memberships
+                             * Family Response
+                             * @description Complete family information with optional related data
                              */
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Unique child identifier (CUID format)
+                                 * @description Unique family identifier (CUID format)
                                  * @example cl123456789012345678901234
                                  */
                                 id: string;
                                 /**
-                                 * @description Child full name
-                                 * @example Emma Johnson
+                                 * @description Family display name
+                                 * @example Johnson Family
                                  */
                                 name: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Family identifier the child belongs to
-                                 * @example cl123456789012345678901233
-                                 */
-                                familyId: string;
-                                /**
                                  * Format: date-time
-                                 * @description When the child record was created
+                                 * @description When the family was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
                                 createdAt: string;
                                 /**
                                  * Format: date-time
-                                 * @description When the child record was last updated
+                                 * @description When the family was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /**
-                                 * @description Child age (null if not specified)
-                                 * @example 8
-                                 */
-                                age: number | null;
-                                /** @description Group memberships (included when fetching all children) */
-                                groupMemberships?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
-                                    childId: string;
+                                    id: string;
                                     /** Format: cuid */
-                                    groupId: string;
+                                    userId: string;
                                     /** Format: cuid */
-                                    addedBy: string;
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
                                     /** Format: date-time */
-                                    addedAt: string;
-                                    group: {
-                                        /** Format: cuid */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
                                         id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
                                         name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
                                     };
+                                }[];
+                                /** @description Family vehicles */
+                                vehicles: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children */
+                                children: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
                                 }[];
                             };
                         };
@@ -4574,7 +4714,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Child updated successfully */
+                /** @description Child updated successfully - Returns complete Family */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -4583,59 +4723,129 @@ export interface paths {
                         "application/json": {
                             success: boolean;
                             /**
-                             * Child Response
-                             * @description Complete child information with optional group memberships
+                             * Family Response
+                             * @description Complete family information with optional related data
                              */
                             data: {
                                 /**
                                  * Format: cuid
-                                 * @description Unique child identifier (CUID format)
+                                 * @description Unique family identifier (CUID format)
                                  * @example cl123456789012345678901234
                                  */
                                 id: string;
                                 /**
-                                 * @description Child full name
-                                 * @example Emma Johnson
+                                 * @description Family display name
+                                 * @example Johnson Family
                                  */
                                 name: string;
                                 /**
-                                 * Format: cuid
-                                 * @description Family identifier the child belongs to
-                                 * @example cl123456789012345678901233
-                                 */
-                                familyId: string;
-                                /**
                                  * Format: date-time
-                                 * @description When the child record was created
+                                 * @description When the family was created
                                  * @example 2023-01-01T00:00:00.000Z
                                  */
                                 createdAt: string;
                                 /**
                                  * Format: date-time
-                                 * @description When the child record was last updated
+                                 * @description When the family was last updated
                                  * @example 2023-01-15T10:30:00.000Z
                                  */
                                 updatedAt: string;
-                                /**
-                                 * @description Child age (null if not specified)
-                                 * @example 8
-                                 */
-                                age: number | null;
-                                /** @description Group memberships (included when fetching all children) */
-                                groupMemberships?: {
+                                /** @description Family members */
+                                members: {
                                     /** Format: cuid */
-                                    childId: string;
+                                    id: string;
                                     /** Format: cuid */
-                                    groupId: string;
+                                    userId: string;
                                     /** Format: cuid */
-                                    addedBy: string;
+                                    familyId: string;
+                                    /**
+                                     * @description Family member role with different permission levels
+                                     * @example ADMIN
+                                     * @enum {string}
+                                     */
+                                    role: "ADMIN" | "MEMBER" | "VIEWER";
                                     /** Format: date-time */
-                                    addedAt: string;
-                                    group: {
-                                        /** Format: cuid */
+                                    joinedAt: string;
+                                    user?: {
+                                        /**
+                                         * Format: cuid
+                                         * @description Unique user identifier (CUID format)
+                                         * @example cl123456789012345678901237
+                                         */
                                         id: string;
+                                        /**
+                                         * Format: email
+                                         * @description User email address
+                                         * @example user@example.com
+                                         */
+                                        email: string;
+                                        /**
+                                         * @description User display name
+                                         * @example John Doe
+                                         */
                                         name: string;
+                                        /**
+                                         * @description User timezone
+                                         * @example America/New_York
+                                         */
+                                        timezone?: string;
                                     };
+                                }[];
+                                /** @description Family vehicles */
+                                vehicles: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Vehicle unique identifier
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Vehicle name
+                                     * @example Family Minivan
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Vehicle seating capacity
+                                     * @example 7
+                                     */
+                                    capacity: number;
+                                    /**
+                                     * Format: cuid
+                                     * @description Family ID that owns the vehicle
+                                     * @example cl123456789012345678901234
+                                     */
+                                    familyId: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle creation timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    createdAt: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Vehicle last update timestamp
+                                     * @example 2024-01-15T10:30:00Z
+                                     */
+                                    updatedAt: string;
+                                }[];
+                                /** @description Family children */
+                                children: {
+                                    /**
+                                     * Format: cuid
+                                     * @description Unique child identifier (CUID format)
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Child full name
+                                     * @example Emma Johnson
+                                     */
+                                    name: string;
+                                    /**
+                                     * @description Child age (nullable)
+                                     * @example 8
+                                     */
+                                    age?: number | null;
                                 }[];
                             };
                         };
@@ -17245,345 +17455,7 @@ export interface paths {
          * Get rolling 7-day schedule dashboard
          * @description Retrieve complete dashboard for a rolling 7-day period with detailed schedules and summary statistics. The period starts from the provided startDate (or today) and spans 7 days forward.
          */
-        get: {
-            parameters: {
-                query?: {
-                    /** @description Optional start date for the rolling 7-day period (ISO 8601 format). If not provided, uses today. The period spans 7 days from the start date. */
-                    startDate?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description 7-day dashboard retrieved successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            success: boolean;
-                            data: {
-                                /**
-                                 * @description Period start date (first day of the rolling 7-day period)
-                                 * @example 2024-01-15
-                                 */
-                                weekStart: string;
-                                /**
-                                 * @description Period end date (last day of the rolling 7-day period)
-                                 * @example 2024-01-21
-                                 */
-                                weekEnd: string;
-                                weeklyStats: {
-                                    /**
-                                     * @description Total trips this week
-                                     * @example 24
-                                     */
-                                    totalTrips: number;
-                                    /**
-                                     * @description Total children involved
-                                     * @example 8
-                                     */
-                                    totalChildren: number;
-                                    /**
-                                     * @description Total vehicles used
-                                     * @example 4
-                                     */
-                                    totalVehicles: number;
-                                    /**
-                                     * @description Number of active groups
-                                     * @example 3
-                                     */
-                                    activeGroups: number;
-                                };
-                                /** @description Daily breakdown of the 7-day rolling schedule */
-                                dailySchedules: {
-                                    /**
-                                     * @description Date in ISO format
-                                     * @example 2024-01-15
-                                     */
-                                    date: string;
-                                    /**
-                                     * @description Day of the week name
-                                     * @example Monday
-                                     */
-                                    dayOfWeek: string;
-                                    /** @description Trips scheduled for this day */
-                                    trips: {
-                                        /**
-                                         * @description Trip schedule ID
-                                         * @example cl123456789012345678901234
-                                         */
-                                        id: string;
-                                        /**
-                                         * @description Scheduled departure time (HH:MM format)
-                                         * @example 08:30
-                                         */
-                                        time: string;
-                                        /**
-                                         * Format: date-time
-                                         * @description Full datetime in ISO 8601 format for timezone conversion
-                                         * @example 2024-01-15T08:30:00Z
-                                         */
-                                        datetime: string;
-                                        /**
-                                         * @description Date description (e.g., "Today" or day of week)
-                                         * @example Today
-                                         */
-                                        date: string;
-                                        /** @description Children assigned to this trip */
-                                        children: {
-                                            /**
-                                             * @description Child ID
-                                             * @example cl123456789012345678901234
-                                             */
-                                            id: string;
-                                            /**
-                                             * @description Child name
-                                             * @example John Doe
-                                             */
-                                            name: string;
-                                        }[];
-                                        /** @description Vehicle assigned to this trip */
-                                        vehicle?: {
-                                            /**
-                                             * @description Vehicle ID
-                                             * @example cl123456789012345678901235
-                                             */
-                                            id: string;
-                                            /**
-                                             * @description Vehicle name
-                                             * @example Toyota Sienna
-                                             */
-                                            name: string;
-                                            /**
-                                             * @description Vehicle capacity
-                                             * @example 6
-                                             */
-                                            capacity: number;
-                                            /**
-                                             * @description ID of the family that owns this vehicle.
-                                             * @example cl123456789012345678901236
-                                             */
-                                            familyId: string;
-                                        };
-                                        /** @description Driver assigned to this trip */
-                                        driver?: {
-                                            /**
-                                             * @description Driver ID
-                                             * @example cl123456789012345678901236
-                                             */
-                                            id: string;
-                                            /**
-                                             * @description Driver name
-                                             * @example Jane Smith
-                                             */
-                                            name: string;
-                                        };
-                                        group: {
-                                            /**
-                                             * @description Group ID
-                                             * @example cl123456789012345678901237
-                                             */
-                                            id: string;
-                                            /**
-                                             * @description Group name
-                                             * @example School Commute Group
-                                             */
-                                            name: string;
-                                        };
-                                    }[];
-                                    summary: {
-                                        /**
-                                         * @description Total number of trips
-                                         * @example 4
-                                         */
-                                        totalTrips: number;
-                                        /**
-                                         * @description Number of completed trips
-                                         * @example 2
-                                         */
-                                        completedTrips: number;
-                                        /**
-                                         * @description Number of active/in-progress trips
-                                         * @example 1
-                                         */
-                                        activeTrips: number;
-                                    };
-                                }[];
-                                /** @description Trend indicators for the 7-day period */
-                                trends?: {
-                                    tripTrend: {
-                                        /**
-                                         * @description Trend value as string
-                                         * @example +12%
-                                         */
-                                        value: string;
-                                        /**
-                                         * @description Direction of a trend indicator
-                                         * @example up
-                                         * @enum {string}
-                                         */
-                                        direction: "up" | "down" | "neutral";
-                                        /**
-                                         * @description Time period for the trend
-                                         * @example last 7 days
-                                         */
-                                        period: string;
-                                    };
-                                    efficiencyTrend: {
-                                        /**
-                                         * @description Trend value as string
-                                         * @example +12%
-                                         */
-                                        value: string;
-                                        /**
-                                         * @description Direction of a trend indicator
-                                         * @example up
-                                         * @enum {string}
-                                         */
-                                        direction: "up" | "down" | "neutral";
-                                        /**
-                                         * @description Time period for the trend
-                                         * @example last 7 days
-                                         */
-                                        period: string;
-                                    };
-                                };
-                            };
-                        };
-                    };
-                };
-                /** @description Bad request - Invalid query parameters */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Human-readable error message
-                             * @example Validation failed
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example ERROR_CODE
-                             */
-                            code?: string;
-                            /**
-                             * @description Whether the request can be retried
-                             * @example true
-                             */
-                            retryable?: boolean;
-                            /**
-                             * @description Detailed validation errors (when applicable)
-                             * @example [
-                             *       {
-                             *         "field": "email",
-                             *         "message": "Invalid email format",
-                             *         "code": "invalid_string"
-                             *       }
-                             *     ]
-                             */
-                            validationErrors?: {
-                                field: string;
-                                message: string;
-                                code: string;
-                            }[];
-                        };
-                    };
-                };
-                /** @description Authentication required */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Human-readable error message
-                             * @example Validation failed
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example ERROR_CODE
-                             */
-                            code?: string;
-                            /**
-                             * @description Whether the request can be retried
-                             * @example true
-                             */
-                            retryable?: boolean;
-                            /**
-                             * @description Detailed validation errors (when applicable)
-                             * @example [
-                             *       {
-                             *         "field": "email",
-                             *         "message": "Invalid email format",
-                             *         "code": "invalid_string"
-                             *       }
-                             *     ]
-                             */
-                            validationErrors?: {
-                                field: string;
-                                message: string;
-                                code: string;
-                            }[];
-                        };
-                    };
-                };
-                /** @description Internal server error */
-                500: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            success: false;
-                            /**
-                             * @description Human-readable error message
-                             * @example Validation failed
-                             */
-                            error: string;
-                            /**
-                             * @description Error code for programmatic handling
-                             * @example ERROR_CODE
-                             */
-                            code?: string;
-                            /**
-                             * @description Whether the request can be retried
-                             * @example true
-                             */
-                            retryable?: boolean;
-                            /**
-                             * @description Detailed validation errors (when applicable)
-                             * @example [
-                             *       {
-                             *         "field": "email",
-                             *         "message": "Invalid email format",
-                             *         "code": "invalid_string"
-                             *       }
-                             *     ]
-                             */
-                            validationErrors?: {
-                                field: string;
-                                message: string;
-                                code: string;
-                            }[];
-                        };
-                    };
-                };
-            };
-        };
+        get: operations["getDashboard7daySchedule"];
         put?: never;
         post?: never;
         delete?: never;
@@ -22467,6 +22339,345 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    getDashboard7daySchedule: {
+        parameters: {
+            query?: {
+                /** @description Optional start date for the rolling 7-day period (ISO 8601 format). If not provided, uses today. The period spans 7 days from the start date. */
+                startDate?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 7-day dashboard retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success: boolean;
+                        data: {
+                            /**
+                             * @description Period start date (first day of the rolling 7-day period)
+                             * @example 2024-01-15
+                             */
+                            weekStart: string;
+                            /**
+                             * @description Period end date (last day of the rolling 7-day period)
+                             * @example 2024-01-21
+                             */
+                            weekEnd: string;
+                            weeklyStats: {
+                                /**
+                                 * @description Total trips this week
+                                 * @example 24
+                                 */
+                                totalTrips: number;
+                                /**
+                                 * @description Total children involved
+                                 * @example 8
+                                 */
+                                totalChildren: number;
+                                /**
+                                 * @description Total vehicles used
+                                 * @example 4
+                                 */
+                                totalVehicles: number;
+                                /**
+                                 * @description Number of active groups
+                                 * @example 3
+                                 */
+                                activeGroups: number;
+                            };
+                            /** @description Daily breakdown of the 7-day rolling schedule */
+                            dailySchedules: {
+                                /**
+                                 * @description Date in ISO format
+                                 * @example 2024-01-15
+                                 */
+                                date: string;
+                                /**
+                                 * @description Day of the week name
+                                 * @example Monday
+                                 */
+                                dayOfWeek: string;
+                                /** @description Trips scheduled for this day */
+                                trips: {
+                                    /**
+                                     * @description Trip schedule ID
+                                     * @example cl123456789012345678901234
+                                     */
+                                    id: string;
+                                    /**
+                                     * @description Scheduled departure time (HH:MM format)
+                                     * @example 08:30
+                                     */
+                                    time: string;
+                                    /**
+                                     * Format: date-time
+                                     * @description Full datetime in ISO 8601 format for timezone conversion
+                                     * @example 2024-01-15T08:30:00Z
+                                     */
+                                    datetime: string;
+                                    /**
+                                     * @description Date description (e.g., "Today" or day of week)
+                                     * @example Today
+                                     */
+                                    date: string;
+                                    /** @description Children assigned to this trip */
+                                    children: {
+                                        /**
+                                         * @description Child ID
+                                         * @example cl123456789012345678901234
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Child name
+                                         * @example John Doe
+                                         */
+                                        name: string;
+                                    }[];
+                                    /** @description Vehicle assigned to this trip */
+                                    vehicle?: {
+                                        /**
+                                         * @description Vehicle ID
+                                         * @example cl123456789012345678901235
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Vehicle name
+                                         * @example Toyota Sienna
+                                         */
+                                        name: string;
+                                        /**
+                                         * @description Vehicle capacity
+                                         * @example 6
+                                         */
+                                        capacity: number;
+                                        /**
+                                         * @description ID of the family that owns this vehicle.
+                                         * @example cl123456789012345678901236
+                                         */
+                                        familyId: string;
+                                    };
+                                    /** @description Driver assigned to this trip */
+                                    driver?: {
+                                        /**
+                                         * @description Driver ID
+                                         * @example cl123456789012345678901236
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Driver name
+                                         * @example Jane Smith
+                                         */
+                                        name: string;
+                                    };
+                                    group: {
+                                        /**
+                                         * @description Group ID
+                                         * @example cl123456789012345678901237
+                                         */
+                                        id: string;
+                                        /**
+                                         * @description Group name
+                                         * @example School Commute Group
+                                         */
+                                        name: string;
+                                    };
+                                }[];
+                                summary: {
+                                    /**
+                                     * @description Total number of trips
+                                     * @example 4
+                                     */
+                                    totalTrips: number;
+                                    /**
+                                     * @description Number of completed trips
+                                     * @example 2
+                                     */
+                                    completedTrips: number;
+                                    /**
+                                     * @description Number of active/in-progress trips
+                                     * @example 1
+                                     */
+                                    activeTrips: number;
+                                };
+                            }[];
+                            /** @description Trend indicators for the 7-day period */
+                            trends?: {
+                                tripTrend: {
+                                    /**
+                                     * @description Trend value as string
+                                     * @example +12%
+                                     */
+                                    value: string;
+                                    /**
+                                     * @description Direction of a trend indicator
+                                     * @example up
+                                     * @enum {string}
+                                     */
+                                    direction: "up" | "down" | "neutral";
+                                    /**
+                                     * @description Time period for the trend
+                                     * @example last 7 days
+                                     */
+                                    period: string;
+                                };
+                                efficiencyTrend: {
+                                    /**
+                                     * @description Trend value as string
+                                     * @example +12%
+                                     */
+                                    value: string;
+                                    /**
+                                     * @description Direction of a trend indicator
+                                     * @example up
+                                     * @enum {string}
+                                     */
+                                    direction: "up" | "down" | "neutral";
+                                    /**
+                                     * @description Time period for the trend
+                                     * @example last 7 days
+                                     */
+                                    period: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Bad request - Invalid query parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Authentication required */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        success: false;
+                        /**
+                         * @description Human-readable error message
+                         * @example Validation failed
+                         */
+                        error: string;
+                        /**
+                         * @description Error code for programmatic handling
+                         * @example ERROR_CODE
+                         */
+                        code?: string;
+                        /**
+                         * @description Whether the request can be retried
+                         * @example true
+                         */
+                        retryable?: boolean;
+                        /**
+                         * @description Detailed validation errors (when applicable)
+                         * @example [
+                         *       {
+                         *         "field": "email",
+                         *         "message": "Invalid email format",
+                         *         "code": "invalid_string"
+                         *       }
+                         *     ]
+                         */
+                        validationErrors?: {
+                            field: string;
+                            message: string;
+                            code: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
     patchVehicleAssignment: {
         parameters: {
             query?: never;

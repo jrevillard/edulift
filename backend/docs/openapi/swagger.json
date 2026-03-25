@@ -5387,7 +5387,7 @@
         },
         "responses": {
           "201": {
-            "description": "Child created successfully",
+            "description": "Child created successfully - Returns complete Family",
             "content": {
               "application/json": {
                 "schema": {
@@ -5403,98 +5403,195 @@
                           "type": "string",
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Unique child identifier (CUID format)"
+                          "description": "Unique family identifier (CUID format)"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Emma Johnson",
-                          "description": "Child full name"
-                        },
-                        "familyId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901233",
-                          "description": "Family identifier the child belongs to"
+                          "example": "Johnson Family",
+                          "description": "Family display name"
                         },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "When the child record was created"
+                          "description": "When the family was created"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
-                          "description": "When the child record was last updated"
+                          "description": "When the family was last updated"
                         },
-                        "age": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
-                          "example": 8,
-                          "description": "Child age (null if not specified)"
-                        },
-                        "groupMemberships": {
+                        "members": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "childId": {
+                              "id": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "groupId": {
+                              "userId": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "addedBy": {
+                              "familyId": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "addedAt": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "ADMIN",
+                                  "MEMBER",
+                                  "VIEWER"
+                                ],
+                                "example": "ADMIN",
+                                "description": "Family member role with different permission levels"
+                              },
+                              "joinedAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
-                              "group": {
+                              "user": {
                                 "type": "object",
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "format": "cuid"
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901237",
+                                    "description": "Unique user identifier (CUID format)"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email",
+                                    "example": "user@example.com",
+                                    "description": "User email address"
                                   },
                                   "name": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "example": "John Doe",
+                                    "description": "User display name"
+                                  },
+                                  "timezone": {
+                                    "type": "string",
+                                    "example": "America/New_York",
+                                    "description": "User timezone"
                                   }
                                 },
                                 "required": [
                                   "id",
+                                  "email",
                                   "name"
                                 ]
                               }
                             },
                             "required": [
-                              "childId",
-                              "groupId",
-                              "addedBy",
-                              "addedAt",
-                              "group"
+                              "id",
+                              "userId",
+                              "familyId",
+                              "role",
+                              "joinedAt"
                             ]
                           },
-                          "description": "Group memberships (included when fetching all children)"
+                          "description": "Family members"
+                        },
+                        "vehicles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
+                              },
+                              "capacity": {
+                                "type": "integer",
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
+                          },
+                          "description": "Family vehicles"
+                        },
+                        "children": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Unique child identifier (CUID format)"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Emma Johnson",
+                                "description": "Child full name"
+                              },
+                              "age": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 8,
+                                "description": "Child age (nullable)"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          "description": "Family children"
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "familyId",
                         "createdAt",
                         "updatedAt",
-                        "age"
+                        "members",
+                        "vehicles",
+                        "children"
                       ],
-                      "title": "Child Response",
-                      "description": "Complete child information with optional group memberships"
+                      "title": "Family Response",
+                      "description": "Complete family information with optional related data"
                     }
                   },
                   "required": [
@@ -6260,7 +6357,7 @@
         },
         "responses": {
           "200": {
-            "description": "Child updated successfully",
+            "description": "Child updated successfully - Returns complete Family",
             "content": {
               "application/json": {
                 "schema": {
@@ -6276,98 +6373,195 @@
                           "type": "string",
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Unique child identifier (CUID format)"
+                          "description": "Unique family identifier (CUID format)"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Emma Johnson",
-                          "description": "Child full name"
-                        },
-                        "familyId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901233",
-                          "description": "Family identifier the child belongs to"
+                          "example": "Johnson Family",
+                          "description": "Family display name"
                         },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "When the child record was created"
+                          "description": "When the family was created"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
-                          "description": "When the child record was last updated"
+                          "description": "When the family was last updated"
                         },
-                        "age": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
-                          "example": 8,
-                          "description": "Child age (null if not specified)"
-                        },
-                        "groupMemberships": {
+                        "members": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "childId": {
+                              "id": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "groupId": {
+                              "userId": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "addedBy": {
+                              "familyId": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "addedAt": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "ADMIN",
+                                  "MEMBER",
+                                  "VIEWER"
+                                ],
+                                "example": "ADMIN",
+                                "description": "Family member role with different permission levels"
+                              },
+                              "joinedAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
-                              "group": {
+                              "user": {
                                 "type": "object",
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "format": "cuid"
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901237",
+                                    "description": "Unique user identifier (CUID format)"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email",
+                                    "example": "user@example.com",
+                                    "description": "User email address"
                                   },
                                   "name": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "example": "John Doe",
+                                    "description": "User display name"
+                                  },
+                                  "timezone": {
+                                    "type": "string",
+                                    "example": "America/New_York",
+                                    "description": "User timezone"
                                   }
                                 },
                                 "required": [
                                   "id",
+                                  "email",
                                   "name"
                                 ]
                               }
                             },
                             "required": [
-                              "childId",
-                              "groupId",
-                              "addedBy",
-                              "addedAt",
-                              "group"
+                              "id",
+                              "userId",
+                              "familyId",
+                              "role",
+                              "joinedAt"
                             ]
                           },
-                          "description": "Group memberships (included when fetching all children)"
+                          "description": "Family members"
+                        },
+                        "vehicles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
+                              },
+                              "capacity": {
+                                "type": "integer",
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
+                          },
+                          "description": "Family vehicles"
+                        },
+                        "children": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Unique child identifier (CUID format)"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Emma Johnson",
+                                "description": "Child full name"
+                              },
+                              "age": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 8,
+                                "description": "Child age (nullable)"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          "description": "Family children"
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "familyId",
                         "createdAt",
                         "updatedAt",
-                        "age"
+                        "members",
+                        "vehicles",
+                        "children"
                       ],
-                      "title": "Child Response",
-                      "description": "Complete child information with optional group memberships"
+                      "title": "Family Response",
+                      "description": "Complete family information with optional related data"
                     }
                   },
                   "required": [
@@ -6710,7 +6904,7 @@
         },
         "responses": {
           "200": {
-            "description": "Child updated successfully",
+            "description": "Child updated successfully - Returns complete Family",
             "content": {
               "application/json": {
                 "schema": {
@@ -6726,98 +6920,195 @@
                           "type": "string",
                           "format": "cuid",
                           "example": "cl123456789012345678901234",
-                          "description": "Unique child identifier (CUID format)"
+                          "description": "Unique family identifier (CUID format)"
                         },
                         "name": {
                           "type": "string",
-                          "example": "Emma Johnson",
-                          "description": "Child full name"
-                        },
-                        "familyId": {
-                          "type": "string",
-                          "format": "cuid",
-                          "example": "cl123456789012345678901233",
-                          "description": "Family identifier the child belongs to"
+                          "example": "Johnson Family",
+                          "description": "Family display name"
                         },
                         "createdAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-01T00:00:00.000Z",
-                          "description": "When the child record was created"
+                          "description": "When the family was created"
                         },
                         "updatedAt": {
                           "type": "string",
                           "format": "date-time",
                           "example": "2023-01-15T10:30:00.000Z",
-                          "description": "When the child record was last updated"
+                          "description": "When the family was last updated"
                         },
-                        "age": {
-                          "type": [
-                            "number",
-                            "null"
-                          ],
-                          "example": 8,
-                          "description": "Child age (null if not specified)"
-                        },
-                        "groupMemberships": {
+                        "members": {
                           "type": "array",
                           "items": {
                             "type": "object",
                             "properties": {
-                              "childId": {
+                              "id": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "groupId": {
+                              "userId": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "addedBy": {
+                              "familyId": {
                                 "type": "string",
                                 "format": "cuid"
                               },
-                              "addedAt": {
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "ADMIN",
+                                  "MEMBER",
+                                  "VIEWER"
+                                ],
+                                "example": "ADMIN",
+                                "description": "Family member role with different permission levels"
+                              },
+                              "joinedAt": {
                                 "type": "string",
                                 "format": "date-time"
                               },
-                              "group": {
+                              "user": {
                                 "type": "object",
                                 "properties": {
                                   "id": {
                                     "type": "string",
-                                    "format": "cuid"
+                                    "format": "cuid",
+                                    "example": "cl123456789012345678901237",
+                                    "description": "Unique user identifier (CUID format)"
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "format": "email",
+                                    "example": "user@example.com",
+                                    "description": "User email address"
                                   },
                                   "name": {
-                                    "type": "string"
+                                    "type": "string",
+                                    "example": "John Doe",
+                                    "description": "User display name"
+                                  },
+                                  "timezone": {
+                                    "type": "string",
+                                    "example": "America/New_York",
+                                    "description": "User timezone"
                                   }
                                 },
                                 "required": [
                                   "id",
+                                  "email",
                                   "name"
                                 ]
                               }
                             },
                             "required": [
-                              "childId",
-                              "groupId",
-                              "addedBy",
-                              "addedAt",
-                              "group"
+                              "id",
+                              "userId",
+                              "familyId",
+                              "role",
+                              "joinedAt"
                             ]
                           },
-                          "description": "Group memberships (included when fetching all children)"
+                          "description": "Family members"
+                        },
+                        "vehicles": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Vehicle unique identifier"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Family Minivan",
+                                "description": "Vehicle name"
+                              },
+                              "capacity": {
+                                "type": "integer",
+                                "example": 7,
+                                "description": "Vehicle seating capacity"
+                              },
+                              "familyId": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Family ID that owns the vehicle"
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle creation timestamp"
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2024-01-15T10:30:00Z",
+                                "description": "Vehicle last update timestamp"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "capacity",
+                              "familyId",
+                              "createdAt",
+                              "updatedAt"
+                            ],
+                            "description": "Vehicle response data"
+                          },
+                          "description": "Family vehicles"
+                        },
+                        "children": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "cuid",
+                                "example": "cl123456789012345678901234",
+                                "description": "Unique child identifier (CUID format)"
+                              },
+                              "name": {
+                                "type": "string",
+                                "example": "Emma Johnson",
+                                "description": "Child full name"
+                              },
+                              "age": {
+                                "type": [
+                                  "number",
+                                  "null"
+                                ],
+                                "example": 8,
+                                "description": "Child age (nullable)"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name"
+                            ]
+                          },
+                          "description": "Family children"
                         }
                       },
                       "required": [
                         "id",
                         "name",
-                        "familyId",
                         "createdAt",
                         "updatedAt",
-                        "age"
+                        "members",
+                        "vehicles",
+                        "children"
                       ],
-                      "title": "Child Response",
-                      "description": "Complete child information with optional group memberships"
+                      "title": "Family Response",
+                      "description": "Complete family information with optional related data"
                     }
                   },
                   "required": [

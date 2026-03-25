@@ -59,7 +59,17 @@ export class ChildService {
         familyId: data.familyId,
       });
 
-      return child;
+      // Fetch and return complete updated Family
+      const updatedFamily = await this.prisma.family.findUnique({
+        where: { id: data.familyId },
+        include: ChildService.FAMILY_INCLUDE,
+      });
+
+      if (!updatedFamily) {
+        throw new AppError('Failed to retrieve updated family', 500);
+      }
+
+      return updatedFamily;
     } catch (error) {
       this.logger.error('Create child error:', { error: error instanceof Error ? error.message : String(error) });
       throw new AppError('Failed to create child', 500);
@@ -206,7 +216,17 @@ export class ChildService {
         familyId: userFamily.id,
       });
 
-      return updatedChild;
+      // Fetch and return complete updated Family
+      const updatedFamily = await this.prisma.family.findUnique({
+        where: { id: userFamily.id },
+        include: ChildService.FAMILY_INCLUDE,
+      });
+
+      if (!updatedFamily) {
+        throw new AppError('Failed to retrieve updated family', 500);
+      }
+
+      return updatedFamily;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
