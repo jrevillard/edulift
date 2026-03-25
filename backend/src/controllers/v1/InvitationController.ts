@@ -585,11 +585,12 @@ export const createInvitationControllerRoutes = function(dependencies: {
     const currentUserId = c.get('userId');
 
     invitationLogger.logStart('validateFamilyInvitation', c, {
-      businessContext: { code, hasAuth: !!currentUserId },
+      businessContext: { code, hasAuth: !!currentUserId, currentUserId },
     });
 
     try {
       const validation = await invitationServiceInstance.validateFamilyInvitation(code, currentUserId);
+      
 
       if (validation.valid) {
         invitationLogger.logSuccess('validateFamilyInvitation', c, { code, valid: true });
@@ -607,6 +608,9 @@ export const createInvitationControllerRoutes = function(dependencies: {
           personalMessage: validation.personalMessage ?? undefined,
           ...(validation.inviterName && { inviterName: validation.inviterName }),
           ...(validation.existingUser !== undefined && { existingUser: validation.existingUser }),
+          ...(validation.userCurrentFamily !== undefined && { userCurrentFamily: validation.userCurrentFamily }),
+          ...(validation.canLeaveCurrentFamily !== undefined && { canLeaveCurrentFamily: validation.canLeaveCurrentFamily }),
+          ...(validation.cannotLeaveReason !== undefined && { cannotLeaveReason: validation.cannotLeaveReason }),
         }, 200);
       } else {
         invitationLogger.logWarning('validateFamilyInvitation', c, 'Invalid family invitation', {

@@ -15,6 +15,14 @@ import type {
 export type FamilyRole = components['schemas']['CreateFamilyInvitationRequest']['role'];
 export type GroupRole = components['schemas']['CreateGroupInvitationRequest']['role'];
 
+// Type for conditional fields sent by backend but not in OpenAPI spec
+// NestJS doesn't expose conditional spread fields in OpenAPI
+type ConditionalFamilyValidationFields = {
+  userCurrentFamily?: { id: string; name: string };
+  canLeaveCurrentFamily?: boolean;
+  cannotLeaveReason?: string;
+};
+
 // Type aliases for generated types to maintain compatibility
 interface FamilyInvitationValidation {
   valid: boolean;
@@ -95,15 +103,21 @@ class UnifiedInvitationService {
       }
 
       // The OpenAPI spec has a different structure, we need to adapt it
+      // Cast to access conditional fields sent by backend but not in OpenAPI spec
+      const extendedData = validationData as typeof validationData & ConditionalFamilyValidationFields;
+
       return {
         valid: validationData.valid,
         familyName: validationData.family?.name,
         email: validationData.email,
         role: validationData.role as FamilyRole,
         personalMessage: validationData.personalMessage || undefined,
-        // Note: Some fields like existingUser, userCurrentFamily, etc.
-        // might not be in the OpenAPI response, need to verify the actual API
-        existingUser: false, // Default value, adjust based on actual API response
+        existingUser: validationData.existingUser ?? false,
+        // These fields are sent by the backend but not in OpenAPI spec (conditional fields)
+        userCurrentFamily: extendedData.userCurrentFamily,
+        canLeaveCurrentFamily: extendedData.canLeaveCurrentFamily,
+        cannotLeaveReason: extendedData.cannotLeaveReason,
+        errorCode: validationData.errorCode,
       };
     } catch (error) {
       console.error('Error validating family invitation:', error);

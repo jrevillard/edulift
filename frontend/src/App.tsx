@@ -27,6 +27,7 @@ import SchedulePage from './pages/SchedulePage';
 import ManageGroupPage from './pages/ManageGroupPage';
 import ManageFamilyPage from './pages/ManageFamilyPage';
 import ProfilePage from './pages/ProfilePage';
+import NotFoundPage from './pages/NotFoundPage';
 import { useTimezoneAutoSync } from './hooks/useTimezoneAutoSync';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
@@ -197,7 +198,8 @@ function AppContent() {
             
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* 404 catch-all - must be last route */}
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Router>
       </SocketProvider>

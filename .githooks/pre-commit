@@ -7,6 +7,9 @@ set -e
 
 echo "🔍 Running pre-commit checks..."
 
+# Get git workspace root to return here after directory changes
+GIT_ROOT=$(git rev-parse --show-toplevel)
+
 # Get list of staged files
 STAGED_FILES=$(git diff --cached --name-only)
 
@@ -120,13 +123,14 @@ if [ "$BACKEND_CHANGED" = true ]; then
     fi
 
     # Linting
-    echo "🔍 Running ESLint..."
-    if npm run lint; then
-        print_success "Linting passed"
+    echo "🔍 Running ESLint (errors only, warnings ignored)..."
+    if npm run lint:ci; then
+        print_success "Linting passed (no errors)"
     else
-        print_error "Linting failed"
-        echo "Please fix the linting errors before committing."
-        echo "You can run 'npm run lint:fix' to automatically fix some errors."
+        print_error "ESLint found errors"
+        echo "Please fix the ESLint errors before committing."
+        echo "You can run 'npm run lint:fix' to automatically fix some issues."
+        echo "Note: To see warnings, run 'npm run lint' locally."
         exit 1
     fi
 
@@ -141,6 +145,8 @@ if [ "$BACKEND_CHANGED" = true ]; then
         exit 1
     fi
 
+    # Return to workspace root before proceeding to frontend
+    cd "$GIT_ROOT"
 fi
 
 # Frontend checks
@@ -164,13 +170,14 @@ if [ "$FRONTEND_CHANGED" = true ]; then
     fi
 
     # Linting
-    echo "🔍 Running ESLint..."
-    if npm run lint; then
-        print_success "Linting passed"
+    echo "🔍 Running ESLint (errors only, warnings ignored)..."
+    if npm run lint:ci; then
+        print_success "Linting passed (no errors)"
     else
-        print_error "Linting failed"
-        echo "Please fix the linting errors before committing."
-        echo "You can run 'npm run lint:fix' to automatically fix some errors."
+        print_error "ESLint found errors"
+        echo "Please fix the ESLint errors before committing."
+        echo "You can run 'npm run lint:fix' to automatically fix some issues."
+        echo "Note: To see warnings, run 'npm run lint' locally."
         exit 1
     fi
 

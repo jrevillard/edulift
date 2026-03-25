@@ -27,29 +27,50 @@ If any check fails, the commit is blocked until issues are fixed.
 
 ## Installation
 
-### Option 1: Using the Installation Script (Recommended)
+### Step 1: Configure Git to Use .githooks Directory
 
-Run the installation script from the project root:
+Run this command once to configure Git to use hooks from the `.githooks/` directory:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This tells Git to look for hooks in the `.githooks/` directory instead of `.git/hooks/`.
+
+**Why this approach?**
+- ✅ Hooks are versioned in the repository (in `.githooks/`)
+- ✅ No need to copy files after each pull
+- ✅ Team-wide consistency (everyone uses the same hooks)
+- ✅ Updates to hooks are automatically shared with the team
+
+### Step 2: Verify Installation
+
+```bash
+# Verify the configuration
+git config --get core.hooksPath
+# Should output: .githooks
+
+# Test that hooks are working
+git commit --allow-empty -m "test: verify hooks are configured"
+```
+
+### Step 3: Make Hooks Executable (Linux/Mac only)
+
+Ensure hooks are executable:
+
+```bash
+chmod +x .githooks/pre-commit
+```
+
+### Installation Script (Optional)
+
+If you prefer to use the installation script (note: this is NOT recommended anymore):
 
 ```bash
 bash scripts/install-hooks.sh
 ```
 
-This script will:
-- Verify you're in a Git repository
-- Copy hooks from `.githooks/` to `.git/hooks/`
-- Set proper permissions
-- Validate hook syntax
-
-### Option 2: Manual Installation
-
-```bash
-# Copy the pre-commit hook
-cp .githooks/pre-commit .git/hooks/pre-commit
-
-# Make it executable
-chmod +x .git/hooks/pre-commit
-```
+This script will copy hooks from `.githooks/` to `.git/hooks/`, but **using `git config core.hooksPath .githooks` is preferred**.
 
 ## Usage
 
@@ -122,24 +143,37 @@ Please fix the TypeScript errors before committing.
 
 ### Hook Not Running
 ```bash
-# Verify hooks are installed
-ls -la .git/hooks/pre-commit
+# Verify hooksPath is configured
+git config --get core.hooksPath
+# Should output: .githooks
 
-# Reinstall if needed
-bash scripts/install-hooks.sh
+# If not configured, run:
+git config core.hooksPath .githooks
+
+# Verify hook file exists and is executable
+ls -la .githooks/pre-commit
+# Should show: -rwxr-xr-x (executable)
 ```
 
 ### Permission Issues
 ```bash
 # Make sure hook is executable
-chmod +x .git/hooks/pre-commit
+chmod +x .githooks/pre-commit
 ```
 
 ### Hook Syntax Errors
-The installation script validates hook syntax automatically. If you modify hooks manually, test with:
+Test hook syntax before committing:
 
 ```bash
 bash -n .githooks/pre-commit
+```
+
+### Reverting to Default Git Hooks
+If you need to revert to Git's default hooks location:
+
+```bash
+git config --unset core.hooksPath
+# Hooks will now be read from .git/hooks/ again
 ```
 
 ## Customization
@@ -148,7 +182,10 @@ To add new checks or modify existing ones:
 
 1. Edit the hook file in `.githooks/pre-commit`
 2. Test your changes: `bash -n .githooks/pre-commit`
-3. Reinstall: `bash scripts/install-hooks.sh`
+3. Make sure it's executable: `chmod +x .githooks/pre-commit`
+4. Commit your changes: `git add .githooks/pre-commit && git commit -m "Update hooks"`
+
+**Note**: Since hooks are read directly from `.githooks/`, there's no need to reinstall or copy files after making changes.
 
 ### Adding New Check Types
 

@@ -280,7 +280,7 @@ test.describe('Family Invitations E2E', () => {
   });
 
   test.describe('Security and Edge Cases', () => {
-    test.skip('Use Case 3A: Security - Wrong User Cannot Access Invitation', async ({ page, context: browserContext }) => {
+    test('Use Case 3A: Security - Wrong User Cannot Access Invitation', async ({ page, context: browserContext }) => {
       const timestamp = Date.now();
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
       const adminEmail = authHelper.getFileSpecificEmail(`admin.security.${timestamp}`);
@@ -392,8 +392,8 @@ test.describe('Family Invitations E2E', () => {
         // Hacker tries to access invitation URL
         await hackerPage.goto(invitationUrl);
 
-        // Verify security alert appears
-        const securityAlert = hackerPage.locator('[data-testid="InvitationError-Alert-security"]');
+        // Verify security alert appears (email mismatch error)
+        const securityAlert = hackerPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-emailMismatch"]');
         await expect(securityAlert).toBeVisible({ timeout: 20000 });
 
         await hackerContext.close();
@@ -548,11 +548,12 @@ test.describe('Family Invitations E2E', () => {
         await userAPage.goto(invitationUrl);
 
         // Verify conflict UI appears
-        const existingFamilyAlert = userAPage.locator('[data-testid="InvitationConflict-Alert-existingFamily"]');
+        const existingFamilyAlert = userAPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-alreadyInFamily"]');
         await expect(existingFamilyAlert).toBeVisible({ timeout: 25000 });
 
-        const leaveAndJoinButton = userAPage.locator('[data-testid="InvitationConflict-Button-leaveAndJoin"]');
-        await expect(leaveAndJoinButton).toBeVisible({ timeout: 25000 });
+        // Since User A is alone in their family (last admin), they should see the "cannot leave" alert
+        const cannotLeaveAlert = userAPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-cannotLeave"]');
+        await expect(cannotLeaveAlert).toBeVisible({ timeout: 25000 });
 
         await userAContext.close();
         console.log('✅ Conflict UI displayed correctly for user with existing family');
@@ -705,7 +706,7 @@ test.describe('Family Invitations E2E', () => {
         await lastAdminPage.goto(invitationUrl);
 
         // Verify last admin protection alert appears
-        const lastAdminAlert = lastAdminPage.locator('[data-testid="InvitationConflict-Alert-lastAdmin"]');
+        const lastAdminAlert = lastAdminPage.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-cannotLeave"]');
         await expect(lastAdminAlert).toBeVisible({ timeout: 25000 });
 
         await lastAdminContext.close();
@@ -829,7 +830,11 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Verify pending invitation appears in UI', async () => {
-        // The component refreshes the invitations list after sending
+        // Navigate back to family management page (user was redirected to dashboard after sending invitation)
+        await page.goto('/family/manage');
+        await page.waitForLoadState('networkidle');
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
         // Wait for React Query to stabilize and component to update
         await authHelper.waitForReactQueryStable();
         await page.waitForTimeout(3000);
@@ -913,7 +918,11 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Cancel the pending invitation', async () => {
-        // The component refreshes the invitations list after sending
+        // Navigate back to family management page (user was redirected to dashboard after sending invitation)
+        await page.goto('/family/manage');
+        await page.waitForLoadState('networkidle');
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+
         // Wait for React Query to stabilize and component to update
         await authHelper.waitForReactQueryStable();
         await page.waitForTimeout(2000);
@@ -1082,8 +1091,10 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Extract and validate invitation URL', async () => {
-        await page.reload();
+        // Navigate back to family management page (user was redirected to dashboard after sending invitation)
+        await page.goto('/family/manage');
         await page.waitForLoadState('networkidle');
+        await page.waitForURL('/family/manage', { timeout: 10000 });
 
         await authHelper.waitForFamilyPageReady();
         await expect(page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]')).toBeVisible({ timeout: 25000 });

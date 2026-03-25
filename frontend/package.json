@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
+    "lint:ci": "eslint . --quiet",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
