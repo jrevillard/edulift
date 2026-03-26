@@ -1,6 +1,6 @@
 # EduLift E2E Tests - Project-Specific Guide
 
-**Last updated:** 2026-03-20
+**Last updated:** 2026-03-26
 **Project:** EduLift - Collaborative School Transportation Management
 
 ---
@@ -384,21 +384,127 @@ npx playwright test --grep "test name"
 
 ---
 
+## ⚠️ Deterministic Testing Requirements
+
+**CRITICAL:** All E2E tests must be deterministic and verifiable.
+
+### Tests MUST Have Expectations
+
+Every test must verify specific behavior with assertions:
+
+```typescript
+// ✅ CORRECT - Verifies specific outcome
+test('user can login', async ({ page }) => {
+  await page.fill('[data-testid="LoginPage-Input-email"]', 'user@example.com');
+  await page.click('[data-testid="LoginPage-Button-sendMagicLink"]');
+
+  const currentUrl = page.url();
+  expect(currentUrl).toContain('/dashboard');  // Specific expectation
+});
+
+// ❌ WRONG - No expectations
+test('user can login', async ({ page }) => {
+  await page.fill('[data-testid="LoginPage-Input-email"]', 'user@example.com');
+  await page.click('[data-testid="LoginPage-Button-sendMagicLink"]');
+  console.log('✅ Login completed');  // Not an assertion!
+});
+```
+
+### No Logical OR in Expectations
+
+Tests must verify ONE specific behavior, not multiple possibilities:
+
+```typescript
+// ❌ WRONG - Non-deterministic (which condition succeeded?)
+expect(condition1 || condition2).toBeTruthy();
+
+// ❌ WRONG - Still non-deterministic
+expect(url.includes('/login') || url.includes('/dashboard')).toBeTruthy();
+
+// ✅ CORRECT - Single, specific expectation
+expect(url).toContain('/dashboard');
+
+// ✅ CORRECT - Alternative: test exact scenario
+if (scenario === 'authenticated') {
+  expect(url).toContain('/dashboard');
+} else {
+  expect(url).toContain('/login');
+}
+```
+
+### Browser Context Isolation
+
+New browser contexts inherit authentication state. Always clean before creating:
+
+```typescript
+// Create fresh context with proper isolation
+const memberContext = await browserContext.browser().newContext();
+const memberPage = await memberContext.newPage();
+
+// CRITICAL: Clear inherited state
+await memberPage.goto('/auth/login');
+await memberPage.evaluate(() => {
+  localStorage.clear();
+  sessionStorage.clear();
+});
+await memberPage.reload();
+await memberPage.waitForLoadState('networkidle');
+```
+
+### Test Step Variable Scope
+
+Variables declared with `const` in test steps are LOCAL to that step:
+
+```typescript
+// ❌ WRONG - memberContext not accessible in other steps
+await test.step('Setup context', async () => {
+  const memberContext = await browserContext.newContext();  // Local to this step
+});
+
+await test.step('Use context', async () => {
+  await memberContext.close();  // ERROR: memberContext is undefined!
+});
+
+// ✅ CORRECT - Declare at test level
+test('should manage members', async ({ page, context: browserContext }) => {
+  let memberContext: import('playwright').BrowserContext;  // Test-level declaration
+
+  await test.step('Setup context', async () => {
+    memberContext = await browserContext.newContext();  // Assign to test-level variable
+  });
+
+  await test.step('Use context', async () => {
+    await memberContext.close();  // Works!
+  });
+});
+```
+
+### Architecture-Appropriate Testing
+
+Don't test scenarios that don't apply to the application architecture:
+
+- ❌ **localStorage unavailable** - Always available in modern browsers (100% support)
+- ❌ **cookies disabled** - App doesn't use cookies for auth (uses localStorage/sessionStorage)
+- ❌ **concurrent auth conflicts** - Tests undefined behavior (multiple valid outcomes possible)
+
+**Rule:** Only test scenarios that are BOTH possible AND have a defined expected behavior.
+
+### Checking for Missing Expectations
+
+Scan test files for tests without assertions:
+
+```bash
+# Quick check for tests without expect/assert
+grep -r "test(" tests/ --include="*.spec.ts" -A 20 | grep -v "expect\|assert"
+```
+
+---
+
 ## 📚 Related Documentation
 
 - **[E2E Testing Patterns](.claude/rules/e2e-testing-patterns.md)** - Reusable patterns (PKCE, MailPit, etc.)
 - **[METHODOLOGY.md](METHODOLOGY.md)** - Testing methodology
 - **[Test Status Report](../docs/E2E-Testing-Status-Report.md)** - Current test coverage
-
----
-
-## 🔄 Recent Changes
-
-- **2026-03-20**: Fixed PKCE verification path (/api/v1/auth/verify)
-- **2026-03-20**: Improved error handling for nested error structures
-- **2026-03-20**: Updated MailPit API endpoints to use /api/v1/ prefix
-- **2026-03-20**: Implemented two-click authentication flow
-- **2026-03-20**: Added deterministic onboarding handling
 
 ---
 
@@ -409,6 +515,8 @@ npx playwright test --grep "test name"
 - ✅ Use real MailPit for email retrieval
 - ✅ Create test data via UI (not database)
 - ✅ Use unique identifiers (timestamps, UUIDs)
-- ✅ Be deterministic (same result every run)
+- ✅ Be **deterministic** (same result every run, no logical OR in expectations)
+- ✅ Have **explicit expectations** (every test must have `expect()` or `assert()`)
 - ✅ Be runnable independently (no execution order dependency)
 - ✅ Use stable selectors (data-testid attributes)
+- ✅ Clean browser state between tests (localStorage/sessionStorage clearing)

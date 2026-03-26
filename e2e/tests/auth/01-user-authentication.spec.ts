@@ -531,6 +531,7 @@ test.describe('User Authentication Journey', () => {
       const memberEmail = authHelper.getFileSpecificEmail(`family.member.${timestamp}`);
       const memberName = `Family Member User ${timestamp}`;
       let memberPage: Page;
+      let memberContext: import('playwright').BrowserContext;
 
       await test.step('Setup: Create admin user and family', async () => {
         await authHelper.setupAdminUser(
@@ -571,7 +572,7 @@ test.describe('User Authentication Journey', () => {
         console.log('📧 Invitation URL:', invitationUrl);
 
         // Create fresh browser context with proper isolation
-        const memberContext = await browserContext.browser()!.newContext();
+        memberContext = await browserContext.browser()!.newContext();
         memberPage = await memberContext.newPage();
 
         // Navigate to login page first to clear any cached authentication state
@@ -977,14 +978,25 @@ test.describe('User Authentication Journey', () => {
     });
 
     test('prevents access without proper authentication', async ({ page }) => {
+      await test.step('Clean browser state', async () => {
+        // Ensure browser is in clean state before testing unauthenticated access
+        await page.goto('/auth/login');
+        await page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+        await page.reload();
+        await page.waitForLoadState('networkidle');
+      });
+
       await test.step('Try to access protected page without authentication', async () => {
         await page.goto('/family/manage');
         await SharedTestPatterns.waitForPageLoad(page);
-        
+
         // Unauthenticated access MUST be redirected to login
         const currentUrl = page.url();
         const redirectedToLogin = currentUrl.includes('/login') || currentUrl.includes('/auth');
-        
+
         expect(redirectedToLogin).toBeTruthy();
         console.log('✅ Unauthenticated access properly redirected to login');
       });

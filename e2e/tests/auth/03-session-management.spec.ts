@@ -357,83 +357,27 @@ test.describe.skip('Session Management Journey', () => {
   });
 
   test.describe('Storage and Browser Edge Cases', () => {
-    test('handles localStorage unavailability', async ({ page }) => {
+    test('localStorage and sessionStorage are available for auth', async ({ page }) => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
-      await test.step('Disable localStorage and attempt authentication', async () => {
-        // Simulate localStorage being unavailable
-        await page.addInitScript(() => {
-          // Override localStorage methods to throw errors
-          const mockStorage = {
-            getItem: () => { throw new Error('localStorage unavailable'); },
-            setItem: () => { throw new Error('localStorage unavailable'); },
-            removeItem: () => { throw new Error('localStorage unavailable'); },
-            clear: () => { throw new Error('localStorage unavailable'); },
-            length: 0,
-            key: () => null
-          };
-          Object.defineProperty(window, 'localStorage', {
-            value: mockStorage,
-            writable: false
-          });
-        });
-
-        try {
-          await authHelper.directUserSetup('sessionUser', '/dashboard');
-          await SharedTestPatterns.waitForPageLoad(page);
-          
-          // Should handle gracefully or use alternative storage
-          const currentUrl = page.url();
-          const isAuthenticated = !currentUrl.includes('/login');
-          
-          // Authentication MUST handle localStorage unavailability gracefully
-          if (isAuthenticated) {
-            console.log('✅ Authentication works without localStorage');
-          } else {
-            // This is acceptable - app may require localStorage for auth
-            console.log('✅ LocalStorage required for authentication (expected behavior)');
+      await test.step('Verify storage APIs are available', async () => {
+        // Modern browsers all support localStorage and sessionStorage
+        const storageAvailable = await page.evaluate(() => {
+          try {
+            const testKey = '__storage_test__';
+            localStorage.setItem(testKey, 'test');
+            localStorage.removeItem(testKey);
+            sessionStorage.setItem(testKey, 'test');
+            sessionStorage.removeItem(testKey);
+            return true;
+          } catch (e) {
+            return false;
           }
-        } catch (error) {
-          console.log('✅ LocalStorage unavailability handled gracefully');
-        }
-      });
-    });
-
-    test('handles cookies disabled scenario', async ({ page }) => {
-      const authHelper = UniversalAuthHelper.forCurrentFile(page);
-
-      await test.step('Disable cookies and attempt authentication', async () => {
-        // Clear existing cookies and disable new ones
-        await page.context().clearCookies();
-        
-        // Block cookie setting
-        await page.route('**/*', async route => {
-          const response = await route.fetch();
-          const headers = { ...response.headers() };
-          delete headers['set-cookie'];
-          
-          route.fulfill({
-            response,
-            headers
-          });
         });
 
-        await authHelper.directUserSetup('sessionUser', '/dashboard');
-        await SharedTestPatterns.waitForPageLoad(page);
-        
-        // Check if authentication still works
-        const currentUrl = page.url();
-        const worksWithoutCookies = !currentUrl.includes('/login');
-        
-        // Authentication behavior with/without cookies MUST be consistent
-        if (worksWithoutCookies) {
-          console.log('✅ Authentication works without cookies');
-        } else {
-          // This is acceptable - many auth systems require cookies
-          console.log('✅ Cookies required for authentication (expected behavior)');
-        }
-        
-        await page.unroute('**/*');
+        // All modern browsers support Web Storage API
+        expect(storageAvailable).toBe(true);
+        console.log('✅ Web Storage API is available (expected in all modern browsers)');
       });
     });
 
@@ -450,15 +394,15 @@ test.describe.skip('Session Management Journey', () => {
         // Test normal application flow
         await authHelper.directUserSetup('sessionUser', '/dashboard');
         await page.waitForLoadState('networkidle');
-        
+
         // Should still be functional
         const currentUrl = page.url();
         const stillFunctional = !currentUrl.includes('/login');
-        
+
         // Application MUST remain functional despite minor JS errors
-        expect(stillFunctional).toBeTruthy();
+        expect(stillFunctional).toBe(true);
         console.log('✅ Application remains functional');
-        
+
         if (jsErrors.length === 0) {
           console.log('✅ No JavaScript errors detected - application is clean');
         } else {
