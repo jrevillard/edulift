@@ -479,6 +479,36 @@ test('should manage members', async ({ page, context: browserContext }) => {
 });
 ```
 
+### UI Navigation Over `page.goto()`
+
+**`page.goto()` must be avoided for in-app navigation.** Tests should use the UI (buttons, links, menus) to navigate, just like a real user would.
+
+**Exceptions where `page.goto()` is acceptable:**
+- Browser context isolation setup: `page.goto('/auth/login')` followed by `localStorage.clear()` / `sessionStorage.clear()`
+- Navigating to external URLs (invitation links, magic links from emails)
+- Initial page load at the start of a test
+
+```typescript
+// ❌ WRONG - Using page.goto for in-app navigation
+await page.goto('/family/manage');
+
+// ✅ CORRECT - Using UI navigation
+const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
+await manageButton.click();
+await page.waitForURL('/family/manage', { timeout: 10000 });
+```
+
+**Exception — `page.reload()` for cache busting:**
+React Query has a 5-minute `staleTime` on family data. After cross-context operations (e.g., invitation accepted in another browser context), use `page.reload()` to clear the in-memory cache:
+```typescript
+// Navigate to page via UI first
+await manageButton.click();
+await page.waitForURL('/family/manage', { timeout: 10000 });
+// Then reload to bust React Query cache
+await page.reload();
+await page.waitForLoadState('networkidle');
+```
+
 ### Architecture-Appropriate Testing
 
 Don't test scenarios that don't apply to the application architecture:

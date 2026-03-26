@@ -842,12 +842,20 @@ app.openapi(verifyMagicLinkRoute, async (c) => {
             // For family invitations via magic link, if user already has a family,
             // we assume they want to leave it (since they clicked the "leave and join" button)
             const options = { leaveCurrentFamily: true };
-            await unifiedInvitationServiceInstance.acceptFamilyInvitation(inviteCode, authResult.user.id, options);
-            invitationResult = {
-              processed: true,
-              invitationType: 'FAMILY',
-              redirectUrl: '/dashboard',
-            };
+            const acceptResult = await unifiedInvitationServiceInstance.acceptFamilyInvitation(inviteCode, authResult.user.id, options);
+
+            if (acceptResult.success) {
+              invitationResult = {
+                processed: true,
+                invitationType: 'FAMILY',
+                redirectUrl: '/dashboard',
+              };
+            } else {
+              invitationResult = {
+                processed: false,
+                reason: acceptResult.error || 'Failed to accept family invitation',
+              };
+            }
           }
         } else if (groupValidation.valid) {
           loggerInstance.debug('Processing group invitation', { userId: authResult.user.id });

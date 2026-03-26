@@ -380,6 +380,163 @@ describe('AuthController Test Suite', () => {
       );
       expect(mockAuthService.verifyMagicLink).toHaveBeenCalledWith(token, invalidCodeVerifier);
     });
+
+    it('should process family invitation successfully when acceptFamilyInvitation succeeds', async () => {
+      const token = 'valid-token';
+      const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const inviteCode = 'FAMILY-CODE-123';
+
+      const mockResult = {
+        user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
+        accessToken: 'jwt-access-token',
+        refreshToken: 'jwt-refresh-token',
+        expiresIn: 900,
+        tokenType: 'Bearer',
+        token: 'jwt-access-token',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      };
+
+      mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
+      mockUnifiedInvitationService.validateFamilyInvitation.mockResolvedValue({ valid: true } as any);
+      mockUnifiedInvitationService.validateGroupInvitation.mockResolvedValue({ valid: false } as any);
+      mockUnifiedInvitationService.acceptFamilyInvitation.mockResolvedValue({ success: true });
+
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier, inviteCode }),
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      const data = unwrapResponse(jsonResponse);
+
+      expect(data.invitationResult).toEqual({
+        processed: true,
+        invitationType: 'FAMILY',
+        redirectUrl: '/dashboard',
+      });
+      expect(mockUnifiedInvitationService.acceptFamilyInvitation).toHaveBeenCalledWith(
+        inviteCode,
+        TEST_IDS.USER,
+        { leaveCurrentFamily: true },
+      );
+    });
+
+    it('should return processed false when acceptFamilyInvitation fails', async () => {
+      const token = 'valid-token';
+      const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const inviteCode = 'FAMILY-CODE-123';
+
+      const mockResult = {
+        user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
+        accessToken: 'jwt-access-token',
+        refreshToken: 'jwt-refresh-token',
+        expiresIn: 900,
+        tokenType: 'Bearer',
+        token: 'jwt-access-token',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      };
+
+      mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
+      mockUnifiedInvitationService.validateFamilyInvitation.mockResolvedValue({ valid: true } as any);
+      mockUnifiedInvitationService.validateGroupInvitation.mockResolvedValue({ valid: false } as any);
+      mockUnifiedInvitationService.acceptFamilyInvitation.mockResolvedValue({
+        success: false,
+        error: 'This invitation was sent to a different email address',
+      });
+
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier, inviteCode }),
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      const data = unwrapResponse(jsonResponse);
+
+      expect(data.invitationResult).toEqual({
+        processed: false,
+        reason: 'This invitation was sent to a different email address',
+      });
+    });
+
+    it('should process group invitation successfully when acceptGroupInvitation succeeds', async () => {
+      const token = 'valid-token';
+      const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const inviteCode = 'GROUP-CODE-456';
+
+      const mockResult = {
+        user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
+        accessToken: 'jwt-access-token',
+        refreshToken: 'jwt-refresh-token',
+        expiresIn: 900,
+        tokenType: 'Bearer',
+        token: 'jwt-access-token',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      };
+
+      mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
+      mockUnifiedInvitationService.validateFamilyInvitation.mockResolvedValue({ valid: false } as any);
+      mockUnifiedInvitationService.validateGroupInvitation.mockResolvedValue({ valid: true } as any);
+      mockUnifiedInvitationService.acceptGroupInvitation.mockResolvedValue({ success: true } as any);
+
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier, inviteCode }),
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      const data = unwrapResponse(jsonResponse);
+
+      expect(data.invitationResult).toEqual({
+        processed: true,
+        invitationType: 'GROUP',
+        redirectUrl: '/dashboard',
+      });
+    });
+
+    it('should return processed false when acceptGroupInvitation fails', async () => {
+      const token = 'valid-token';
+      const codeVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
+      const inviteCode = 'GROUP-CODE-456';
+
+      const mockResult = {
+        user: { id: TEST_IDS.USER, email: 'test@example.com', name: 'Test User', timezone: 'UTC', createdAt: new Date(), updatedAt: new Date() },
+        accessToken: 'jwt-access-token',
+        refreshToken: 'jwt-refresh-token',
+        expiresIn: 900,
+        tokenType: 'Bearer',
+        token: 'jwt-access-token',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      };
+
+      mockAuthService.verifyMagicLink.mockResolvedValue(mockResult);
+      mockUnifiedInvitationService.validateFamilyInvitation.mockResolvedValue({ valid: false } as any);
+      mockUnifiedInvitationService.validateGroupInvitation.mockResolvedValue({ valid: true } as any);
+      mockUnifiedInvitationService.acceptGroupInvitation.mockResolvedValue({
+        success: false,
+        message: 'User already belongs to a group',
+      } as any);
+
+      const response = await app.request('/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, code_verifier: codeVerifier, inviteCode }),
+      });
+
+      expect(response.status).toBe(200);
+      const jsonResponse = await responseJson(response);
+      const data = unwrapResponse(jsonResponse);
+
+      expect(data.invitationResult).toEqual({
+        processed: false,
+        reason: 'User already belongs to a group',
+      });
+    });
   });
 
   describe('POST /auth/refresh', () => {
