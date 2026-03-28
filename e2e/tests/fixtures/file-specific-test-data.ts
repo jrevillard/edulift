@@ -201,7 +201,7 @@ export class FileSpecificTestData {
           stdio: 'inherit'
         });
       } catch (error) {
-        console.log(`User creation error for ${user.email}:`, error.message);
+        console.log(`User creation error for ${user.email}:`, (error as Error).message);
         // Don't fail the entire test setup if user creation fails
         // The individual tests will handle missing users gracefully
       }
@@ -354,10 +354,10 @@ export class FileSpecificTestData {
         
         } catch (error) {
           retryCount++;
-          console.log(`Family creation error for ${family.name} (attempt ${retryCount}/${maxRetries}):`, error.message);
-        
+          console.log(`Family creation error for ${family.name} (attempt ${retryCount}/${maxRetries}):`, (error as Error).message);
+
           if (retryCount >= maxRetries) {
-            throw new Error(`Failed to create family '${family.name}' after ${maxRetries} attempts: ${error.message}`);
+            throw new Error(`Failed to create family '${family.name}' after ${maxRetries} attempts: ${(error as Error).message}`);
           }
         
           // Wait before retrying
@@ -440,8 +440,8 @@ export class FileSpecificTestData {
             })();
           "`, { encoding: 'utf8', timeout: 10000, stdio: 'inherit' });
           } catch (apiError) {
-            console.error(`❌ Backend API cannot find family for ${family.name}:`, apiError.message);
-            throw new Error(`Backend API family verification failed for '${family.name}': ${apiError.message}`);
+            console.error(`❌ Backend API cannot find family for ${family.name}:`, (apiError as Error).message);
+            throw new Error(`Backend API family verification failed for '${family.name}': ${(apiError as Error).message}`);
           }
         
           // Wait for database transaction to be fully committed and visible
@@ -453,10 +453,10 @@ export class FileSpecificTestData {
         
         } catch (verifyError) {
           verifyRetryCount++;
-          console.error(`❌ Family verification failed for ${family.name} (attempt ${verifyRetryCount}/${maxVerifyRetries}):`, verifyError.message);
-        
+          console.error(`❌ Family verification failed for ${family.name} (attempt ${verifyRetryCount}/${maxVerifyRetries}):`, (verifyError as Error).message);
+
           if (verifyRetryCount >= maxVerifyRetries) {
-            throw new Error(`Family creation verification failed for '${family.name}' after ${maxVerifyRetries} attempts: ${verifyError.message}`);
+            throw new Error(`Family creation verification failed for '${family.name}' after ${maxVerifyRetries} attempts: ${(verifyError as Error).message}`);
           }
         
           // Wait before retrying with exponential backoff

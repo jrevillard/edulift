@@ -330,7 +330,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
           .first();
         
         if (await driverSelect.isVisible({ timeout: 5000 })) {
-          await driverSelect.selectOption({ label: /Driver 1/ });
+          await driverSelect.selectOption('Driver 1');
           console.log('✅ Driver selected from dropdown');
         } else {
           const driverFamily = page.locator('[data-testid="SchedulePage-Text-driverFamily"]')
@@ -397,7 +397,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
         
         const driverSelect = page.locator('[data-testid="ScheduleForm-Select-driver"]').first();
         if (await driverSelect.isVisible()) {
-          await driverSelect.selectOption({ label: /Driver 1/ });
+          await driverSelect.selectOption('Driver 1');
         }
       });
 
@@ -413,7 +413,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
       await test.step('Resolve conflict with alternative driver', async () => {
         const driverSelect = page.locator('[data-testid="ScheduleForm-Select-driver"]').first();
         if (await driverSelect.isVisible()) {
-          await driverSelect.selectOption({ label: /Driver 2/ });
+          await driverSelect.selectOption('Driver 2');
           await SharedTestPatterns.clickSaveButton(page);
           
           const success = await SharedTestPatterns.verifySuccessMessage(page, 'conflict resolution');
@@ -456,9 +456,9 @@ test.describe('Schedule Creation and Assignments Journey', () => {
           // Select driver
           const driverSelect = page.locator('[data-testid="ScheduleForm-Select-driver"]').first();
           if (await driverSelect.isVisible()) {
-            await driverSelect.selectOption({ label: /Driver 1/ });
+            await driverSelect.selectOption('Driver 1');
           }
-          
+
           // Select or add vehicle
           const vehicleInput = page.locator('[data-testid="VehicleForm-Input-vehicleName"]')
             .first();
@@ -545,7 +545,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
           
           const rotationPattern = page.locator('[data-testid="RotationForm-Select-pattern"]');
           if (await rotationPattern.isVisible()) {
-            await rotationPattern.selectOption({ label: /weekly/i });
+            await rotationPattern.selectOption('weekly');
             console.log('✅ Vehicle rotation pattern set');
           }
         }
@@ -588,7 +588,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
           // Select driver/schedule
           const driverSelect = page.locator('[data-testid="ScheduleForm-Select-driver"]').nth(1);
           if (await driverSelect.isVisible()) {
-            await driverSelect.selectOption({ label: /Driver 1/ });
+            await driverSelect.selectOption('Driver 1');
             console.log('✅ Driver selected for child');
           }
         }
@@ -641,7 +641,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
         // Try to assign to full vehicle
         const vehicleSelect = page.locator('[data-testid="ChildAssignment-Select-vehicle"]');
         if (await vehicleSelect.isVisible()) {
-          await vehicleSelect.selectOption({ label: /Honda/ });
+          await vehicleSelect.selectOption('Honda');
           await SharedTestPatterns.clickSaveButton(page);
           
           const hasCapacityWarning = await SharedTestPatterns.verifyErrorMessage(page, 'capacity');

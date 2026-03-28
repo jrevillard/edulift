@@ -31,7 +31,7 @@ export class FamilyTestHelper {
     const vehicles = includeVehicles ? [TEST_VEHICLES.HONDA_CRV] : [];
 
     // Step 1: Login the user (this will create the user if needed)
-    await this.authHelper.login(userType);
+    await this._authHelper!.login(userType);
 
     // Wait a bit for authentication to be fully processed
     await this._page.waitForTimeout(1000);

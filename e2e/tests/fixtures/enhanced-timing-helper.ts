@@ -170,7 +170,7 @@ export class EnhancedTimingHelper {
           return;
         }
       } catch (error) {
-        console.log(`Database verification attempt ${retryCount + 1} failed for ${operation}:`, error.message);
+        console.log(`Database verification attempt ${retryCount + 1} failed for ${operation}:`, (error as Error).message);
       }
 
       retryCount++;
@@ -241,10 +241,10 @@ export class EnhancedTimingHelper {
    * With: API-backed family verification
    */
   async waitForFamilyCreation(userId: string): Promise<void> {
-    await this.waitForDatabaseTransaction(async () => {
+    await this.waitForDatabaseTransaction(async (): Promise<boolean> => {
       // Use the actual API endpoint to verify family exists
-      const response = await this.page.evaluate(async () => {
-        return await fetch('/api/user/family-status', {
+      return await this.page.evaluate(async () => {
+        const res = await fetch('/api/user/family-status', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -252,11 +252,11 @@ export class EnhancedTimingHelper {
           }
         });
 
-        if (!response.ok) {
+        if (!res.ok) {
           return false;
         }
 
-        const data = await response.json();
+        const data = await res.json();
         return data.familyId !== null && data.familyId !== undefined;
       });
     }, `family creation for user ${userId}`);
@@ -320,7 +320,7 @@ export class EnhancedTimingHelper {
         return await operation();
       } catch (error) {
         lastError = error as Error;
-        console.log(`${operationName} attempt ${attempt + 1}/${maxRetries} failed:`, error.message);
+        console.log(`${operationName} attempt ${attempt + 1}/${maxRetries} failed:`, (error as Error).message);
         
         if (attempt === maxRetries - 1) {
           break; // Don't wait after the last attempt
@@ -352,7 +352,7 @@ export class EnhancedTimingHelper {
       
       const isEnabled = !element.hasAttribute('disabled') && 
                        !element.getAttribute('aria-disabled');
-      const isVisible = element.offsetWidth > 0 && element.offsetHeight > 0;
+      const isVisible = (element as HTMLElement).offsetWidth > 0 && (element as HTMLElement).offsetHeight > 0;
       
       return isEnabled && isVisible;
     }, await locator.getAttribute('data-testid') ? 

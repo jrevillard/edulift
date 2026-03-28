@@ -94,13 +94,7 @@ test.describe('Family Member Management E2E', () => {
 
       await test.step('Member accepts invitation and joins', async () => {
         // Wait for invitation email and extract URL
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail, { timeoutMs: 30000 });
-        expect(invitationUrl).not.toBeNull();
-
-        if (!invitationUrl) {
-          // Fallback to the original method
-          invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
-        }
+        let invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail, { timeoutMs: 30000 });
         const invitationEmail = recipientEmail;
         
         // Use isolated browser context to prevent auth contamination
@@ -210,7 +204,7 @@ test.describe('Family Member Management E2E', () => {
         await sendButton.click();
 
         // Wait for invitation email
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(memberEmail, { timeoutMs: 30000 });
+        invitationUrl = await emailHelper.requireInvitationUrlForRecipient(memberEmail, { timeoutMs: 30000 });
         expect(invitationUrl).toBeTruthy();
 
         // Member joins family using isolated browser context to prevent auth contamination
@@ -468,7 +462,7 @@ test.describe('Family Member Management E2E', () => {
         await page.click('[data-testid="InvitationManagement-Button-sendInvitation"]');
 
         // Wait for invitation email
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(secondAdminEmail, { timeoutMs: 30000 });
+        invitationUrl = await emailHelper.requireInvitationUrlForRecipient(secondAdminEmail, { timeoutMs: 30000 });
         expect(invitationUrl).toBeTruthy();
 
         // Second admin joins using isolated browser context to prevent auth contamination
@@ -545,7 +539,7 @@ test.describe('Family Member Management E2E', () => {
         if (memberCount >= 1) {
           // Check that admin card has role management actions (even if they can't be used on themselves)
           const adminCard = memberCards.filter({ hasText: 'ADMIN' }).first();
-          await expect(adminMemberCard).toBeVisible();
+          await expect(adminCard).toBeVisible();
 
           const actionsButton = adminCard.locator('[data-testid^="ManageFamilyPage-Button-memberMenu-"]');
           await expect(actionsButton).toBeVisible({ timeout: 5000 });
@@ -614,7 +608,7 @@ test.describe('Family Member Management E2E', () => {
 
         // Debug: log current URL and page content
         console.log('Current URL:', page.url());
-        const pageContent = await page.textContent('body');
+        const pageContent = await page.textContent('body') ?? '';
         console.log('Page contains "E2E Test Child":', pageContent.includes('E2E Test Child'));
 
         // Use the specific test ID - child name in card
@@ -761,7 +755,7 @@ test.describe('Family Member Management E2E', () => {
         await page.click('[data-testid="InvitationManagement-Button-sendInvitation"]');
 
         // Wait for invitation email
-        invitationUrl = await emailHelper.extractInvitationUrlForRecipient(memberEmail, { timeoutMs: 30000 });
+        invitationUrl = await emailHelper.requireInvitationUrlForRecipient(memberEmail, { timeoutMs: 30000 });
         expect(invitationUrl).toBeTruthy();
 
         console.log('✅ Member invited with MEMBER role');

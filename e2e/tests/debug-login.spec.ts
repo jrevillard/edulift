@@ -38,6 +38,6 @@ test('debug login form interaction', async ({ page }) => {
     await submitButton.click({ timeout: 5000 });
     console.log('Button clicked successfully');
   } catch (e) {
-    console.log('Button click failed:', e.message);
+    console.log('Button click failed:', (e as Error).message);
   }
 });

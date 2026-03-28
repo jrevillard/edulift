@@ -14,7 +14,7 @@ test.describe('User Authentication Journey', () => {
   let cleanupHelper: TestCleanupHelper;
 
   test.beforeAll(async () => {
-    const authHelper = new UniversalAuthHelper(null as any, 'userAuthentication');
+    const authHelper = new UniversalAuthHelper(null as any);
 
     // Define users for NEW USER authentication (working path)
     authHelper.defineUser(STANDARD_USER_ROLES.NEW_USER, 'new-user', 'New User', true);
@@ -93,7 +93,7 @@ test.describe('User Authentication Journey', () => {
         expect(email).not.toBeNull();
         expect(email).toBeTruthy();
         
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
+        const magicLinkUrl = await emailHelper.requireMagicLinkForRecipient(testEmail);
         
         // Magic link URL MUST exist for email verification to work
         expect(magicLinkUrl).toBeTruthy();
@@ -186,7 +186,7 @@ test.describe('User Authentication Journey', () => {
         expect(email).not.toBeNull();
         expect(email).toBeTruthy();
         
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail);
+        const magicLinkUrl = await emailHelper.requireMagicLinkForRecipient(testEmail);
         expect(magicLinkUrl).toBeTruthy();
         expect(magicLinkUrl).toContain('/auth/verify');
         
@@ -264,7 +264,7 @@ test.describe('User Authentication Journey', () => {
               break;
             }
           } catch (error) {
-            console.log(`⚠️ Request ${i + 1} failed (expected with rate limiting): ${error.message}`);
+            console.log(`⚠️ Request ${i + 1} failed (expected with rate limiting): ${(error as Error).message}`);
             break;
           }
           await authHelper.waitForAuthenticationStability();
@@ -329,7 +329,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(returningUserEmail);
         expect(email).not.toBeNull();
 
-        magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(returningUserEmail);
+        magicLinkUrl = await emailHelper.requireMagicLinkForRecipient(returningUserEmail);
         expect(magicLinkUrl).toBeTruthy();
         expect(magicLinkUrl).toContain('/auth/verify');
 
@@ -379,7 +379,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(returningUserEmail);
         expect(email).not.toBeNull();
 
-        const newMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(returningUserEmail);
+        const newMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(returningUserEmail);
         expect(newMagicLinkUrl).toBeTruthy();
         expect(newMagicLinkUrl).toContain('/auth/verify');
 
@@ -436,7 +436,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(familyAdminEmail);
         expect(email).not.toBeNull();
 
-        firstMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(familyAdminEmail);
+        firstMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(familyAdminEmail);
         expect(firstMagicLinkUrl).toBeTruthy();
         expect(firstMagicLinkUrl).toContain('/auth/verify');
 
@@ -478,7 +478,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(familyAdminEmail);
         expect(email).not.toBeNull();
 
-        const newMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(familyAdminEmail);
+        const newMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(familyAdminEmail);
         expect(newMagicLinkUrl).toBeTruthy();
         expect(newMagicLinkUrl).toContain('/auth/verify');
 
@@ -561,8 +561,7 @@ test.describe('User Authentication Journey', () => {
 
       await test.step('Member accepts invitation via magic link', async () => {
         // Get invitation URL from email
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(memberEmail);
-        expect(invitationUrl).toBeTruthy();
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(memberEmail);
         expect(invitationUrl).toContain('/families/join?code=');
 
         console.log('📧 Invitation URL:', invitationUrl);
@@ -636,7 +635,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
-        firstMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail);
+        firstMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(userEmail);
         expect(firstMagicLinkUrl).toBeTruthy();
         expect(firstMagicLinkUrl).toContain('/auth/verify');
 
@@ -678,7 +677,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
-        const newMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail);
+        const newMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(userEmail);
         expect(newMagicLinkUrl).toBeTruthy();
         expect(newMagicLinkUrl).toContain('/auth/verify');
 
@@ -740,7 +739,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
-        firstMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail);
+        firstMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(userEmail);
         expect(firstMagicLinkUrl).toBeTruthy();
         expect(firstMagicLinkUrl).toContain('/auth/verify');
 
@@ -782,7 +781,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
-        const newMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail);
+        const newMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(userEmail);
         expect(newMagicLinkUrl).toBeTruthy();
         expect(newMagicLinkUrl).toContain('/auth/verify');
 
@@ -842,7 +841,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
-        firstMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail);
+        firstMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(userEmail);
         expect(firstMagicLinkUrl).toBeTruthy();
         expect(firstMagicLinkUrl).toContain('/auth/verify');
 
@@ -909,7 +908,7 @@ test.describe('User Authentication Journey', () => {
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
-        firstMagicLinkUrl = await emailHelper.extractMagicLinkForRecipient(userEmail);
+        firstMagicLinkUrl = await emailHelper.requireMagicLinkForRecipient(userEmail);
         expect(firstMagicLinkUrl).toBeTruthy();
         expect(firstMagicLinkUrl).toContain('/auth/verify');
 

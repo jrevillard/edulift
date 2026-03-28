@@ -50,11 +50,11 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('New user accepts invitation', async () => {
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
         expect(invitationUrl).toContain('/families/join?code=');
 
-        const recipientContext = await browserContext.browser().newContext();
+        const recipientContext = await browserContext.browser()!.newContext();
         const recipientPage = await recipientContext.newPage();
         const recipientAuth = UniversalAuthHelper.forCurrentFile(recipientPage);
 
@@ -92,7 +92,7 @@ test.describe('Family Invitations E2E', () => {
 
         // Wait for email then extract magic link
         await emailHelper.waitForEmailForRecipient(recipientEmail);
-        const recipientMagicLink = await emailHelper.extractMagicLinkForRecipient(recipientEmail);
+        const recipientMagicLink = await emailHelper.requireMagicLinkForRecipient(recipientEmail);
         expect(recipientMagicLink).toBeTruthy();
         expect(recipientMagicLink).toContain('/auth/verify');
 
@@ -156,11 +156,11 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('User with no family accepts invitation', async () => {
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
         expect(invitationUrl).toContain('/families/join?code=');
 
-        const recipientContext = await browserContext.browser().newContext();
+        const recipientContext = await browserContext.browser()!.newContext();
         const recipientPage = await recipientContext.newPage();
         const recipientAuth = UniversalAuthHelper.forCurrentFile(recipientPage);
 
@@ -198,7 +198,7 @@ test.describe('Family Invitations E2E', () => {
 
         // Wait for email then extract magic link
         await emailHelper.waitForEmailForRecipient(recipientEmail);
-        const recipientMagicLink = await emailHelper.extractMagicLinkForRecipient(recipientEmail);
+        const recipientMagicLink = await emailHelper.requireMagicLinkForRecipient(recipientEmail);
         expect(recipientMagicLink).toBeTruthy();
         expect(recipientMagicLink).toContain('/auth/verify');
 
@@ -252,11 +252,11 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Hacker tries to access invitation URL', async () => {
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
 
         // Hacker creates their own account with family
-        const hackerContext = await browserContext.browser().newContext();
+        const hackerContext = await browserContext.browser()!.newContext();
         const hackerPage = await hackerContext.newPage();
         const hackerAuth = new UniversalAuthHelper(hackerPage);
         const hackerEmail = authHelper.getFileSpecificEmail(`hacker.${timestamp}`);
@@ -285,7 +285,7 @@ test.describe('Family Invitations E2E', () => {
         await hackerSubmitButton.click();
         await hackerAuth.waitForAuthenticationStability();
 
-        const hackerMagicLink = await emailHelper.extractMagicLinkForRecipient(hackerEmail, { timeoutMs: 30000 });
+        const hackerMagicLink = await emailHelper.requireMagicLinkForRecipient(hackerEmail, { timeoutMs: 30000 });
         expect(hackerMagicLink).toBeTruthy();
 
         await hackerPage.goto(hackerMagicLink);
@@ -322,7 +322,7 @@ test.describe('Family Invitations E2E', () => {
       let userAPage: Page;
 
       await test.step('User A creates their own family', async () => {
-        userAContext = await browserContext.browser().newContext();
+        userAContext = await browserContext.browser()!.newContext();
         userAPage = await userAContext.newPage();
         const userAAuth = new UniversalAuthHelper(userAPage);
 
@@ -369,7 +369,7 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('User A navigates to invitation and sees conflict options', async () => {
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(userAEmail);
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(userAEmail);
         expect(invitationUrl).toBeTruthy();
 
         // REUSE the existing userAContext instead of creating a new one
@@ -422,7 +422,7 @@ test.describe('Family Invitations E2E', () => {
         await userAAuth.waitForAuthenticationStability();
 
         // Wait for magic link email (reuse any existing magic link for this email)
-        const userAMagicLink = await emailHelper.extractMagicLinkForRecipient(userAEmail, { timeoutMs: 30000 });
+        const userAMagicLink = await emailHelper.requireMagicLinkForRecipient(userAEmail, { timeoutMs: 30000 });
         expect(userAMagicLink).toBeTruthy();
 
         await userAPage.goto(userAMagicLink);
@@ -457,7 +457,7 @@ test.describe('Family Invitations E2E', () => {
       const lastAdminEmail = authHelper.getFileSpecificEmail(`lastadmin.${timestamp}`);
 
       await test.step('Last admin creates family alone', async () => {
-        const lastAdminContext = await browserContext.browser().newContext();
+        const lastAdminContext = await browserContext.browser()!.newContext();
         const lastAdminPage = await lastAdminContext.newPage();
 
         // Use the SAME authHelper instance to ensure same runId
@@ -501,11 +501,11 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Last admin tries to accept invitation but cannot leave', async () => {
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(lastAdminEmail);
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(lastAdminEmail);
         expect(invitationUrl).toBeTruthy();
 
         // Create a completely isolated context for last admin
-        const lastAdminContext = await browserContext.browser().newContext();
+        const lastAdminContext = await browserContext.browser()!.newContext();
         const lastAdminPage = await lastAdminContext.newPage();
         const lastAdminAuth = new UniversalAuthHelper(lastAdminPage);
 
@@ -547,7 +547,7 @@ test.describe('Family Invitations E2E', () => {
         await lastAdminAuth.waitForAuthenticationStability();
 
         // Wait for magic link email (reuse any existing magic link for this email)
-        const lastAdminMagicLink = await emailHelper.extractMagicLinkForRecipient(lastAdminEmail, { timeoutMs: 30000 });
+        const lastAdminMagicLink = await emailHelper.requireMagicLinkForRecipient(lastAdminEmail, { timeoutMs: 30000 });
         expect(lastAdminMagicLink).toBeTruthy();
 
         await lastAdminPage.goto(lastAdminMagicLink);
@@ -787,7 +787,7 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Verify email was received', async () => {
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail, { timeoutMs: 30000 });
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail, { timeoutMs: 30000 });
         expect(invitationUrl).toBeTruthy();
         expect(invitationUrl).toContain('/families/join?code=');
 
@@ -838,7 +838,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.waitForFamilyPageReady();
         await expect(page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]')).toBeVisible({ timeout: 25000 });
 
-        const invitationUrl = await emailHelper.extractInvitationUrlForRecipient(recipientEmail);
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail);
         expect(invitationUrl).toBeTruthy();
         expect(invitationUrl).toContain('/families/join?code=');
 

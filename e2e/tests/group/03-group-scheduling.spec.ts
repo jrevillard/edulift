@@ -142,7 +142,7 @@ test.describe('Group Scheduling Journey', () => {
             
             // Wait for the button to be enabled
             await page.waitForFunction(() => {
-              const btn = document.querySelector('[data-testid="ManageGroupPage-Button-saveGroup"]');
+              const btn = document.querySelector('[data-testid="ManageGroupPage-Button-saveGroup"]') as HTMLButtonElement | null;
               return btn && !btn.disabled;
             }, { timeout: 10000 });
             

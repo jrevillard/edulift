@@ -554,6 +554,36 @@ export class E2EEmailHelper {
   }
 
   /**
+   * Extract magic link, throwing if not found.
+   * Use in test steps where the link MUST exist.
+   */
+  async requireMagicLinkForRecipient(
+    email: string,
+    options: { timeoutMs?: number; debug?: boolean; expectNewEmail?: boolean } = {}
+  ): Promise<string> {
+    const link = await this.extractMagicLinkForRecipient(email, options);
+    if (!link) {
+      throw new Error(`Magic link not found for ${email}`);
+    }
+    return link;
+  }
+
+  /**
+   * Extract invitation URL, throwing if not found.
+   * Use in test steps where the invitation MUST exist.
+   */
+  async requireInvitationUrlForRecipient(
+    email: string,
+    options: { timeoutMs?: number; debug?: boolean } = {}
+  ): Promise<string> {
+    const url = await this.extractInvitationUrlForRecipient(email, options);
+    if (!url) {
+      throw new Error(`Invitation URL not found for ${email}`);
+    }
+    return url;
+  }
+
+  /**
    * Wait for an email to arrive for a specific user (alternative interface)
    * Returns object with found status and email data
    */

@@ -42,10 +42,10 @@ test.describe('Group Coordination Journey', () => {
 
   test.describe('Multi-Family Transportation Coordination', () => {
     test('coordinates carpool assignments across families', async ({ page }) => {
-      const authHelper = UniversalAuthHelper.forCurrentFile(page);
+      const coordAuthHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Create group and navigate to coordination', async () => {
-        await authHelper.directUserSetup('groupAdmin', '/groups');
+        await coordAuthHelper.directUserSetup('groupAdmin', '/groups');
         await page.waitForLoadState('networkidle');
         
         // Create group if not exists - coordination MUST have a group to work with
@@ -64,21 +64,19 @@ test.describe('Group Coordination Journey', () => {
           await groupNameInput.fill('Coordination Test Group');
           
           const submitButton = page.locator('[data-testid="CreateGroupModal-Button-submit"]');
-          
-          const authHelper = UniversalAuthHelper.forCurrentFile(page);
+
           await expect(submitButton).toBeVisible({ timeout: 5000 });
           await submitButton.click();
-          await authHelper.waitForAuthenticationStability();
+          await coordAuthHelper.waitForAuthenticationStability();
           console.log('✅ Created coordination test group');
         }
         
         // Now navigate to the group - MUST exist after creation
         const groupCard = page.locator('[data-testid="GroupCard-Card-groupCard"]').first();
-        const authHelper = UniversalAuthHelper.forCurrentFile(page);
-        
+
         await expect(groupCard).toBeVisible({ timeout: 10000 });
         await groupCard.click();
-        await authHelper.waitForAuthenticationStability();
+        await coordAuthHelper.waitForAuthenticationStability();
         console.log('✅ Navigated to coordination group');
       });
 
@@ -89,7 +87,7 @@ test.describe('Group Coordination Journey', () => {
         // Schedule access MUST be available in group interface
         await expect(viewScheduleButton).toBeVisible({ timeout: 10000 });
         await viewScheduleButton.click();
-        await authHelper.waitForAuthenticationStability();
+        await coordAuthHelper.waitForAuthenticationStability();
         console.log('✅ Accessed schedule interface for coordination');
       });
 
@@ -101,9 +99,9 @@ test.describe('Group Coordination Journey', () => {
         const hasCreateButton = await createAssignmentButton.first().isVisible({ timeout: 5000 });
         if (hasCreateButton) {
           await createAssignmentButton.first().click();
-          await authHelper.waitForAuthenticationStability();
+          await coordAuthHelper.waitForAuthenticationStability();
         }
-        
+
         // Assignment form MUST be available after clicking create
         const assignmentForm = page.locator('form, [role="dialog"], main').first();
         
@@ -146,7 +144,7 @@ test.describe('Group Coordination Journey', () => {
         
         await expect(saveButton).toBeVisible({ timeout: 5000 });
         await saveButton.click();
-        await authHelper.waitForAuthenticationStability();
+        await coordAuthHelper.waitForAuthenticationStability();
         
         // Success confirmation MUST be shown after saving coordination plan
         const successMessage = page.locator('[data-testid="ManageGroupPage-Alert-successMessage"]');

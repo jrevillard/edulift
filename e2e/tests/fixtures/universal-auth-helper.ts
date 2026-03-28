@@ -147,7 +147,7 @@ export class UniversalAuthHelper {
         const fileName = match[1];
         const basePrefix = fileName
           .replace(/^\d+-/, '') // Remove leading numbers like "01-"
-          .replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())
+          .replace(/-([a-z])/g, (_: string, letter: string) => letter.toUpperCase())
           .replace(/[^a-zA-Z]/g, ''); // Remove any remaining non-letters
         const workerId = UniversalAuthHelper.getWorkerId();
         const prefix = `${basePrefix}W${workerId}`;
@@ -284,7 +284,7 @@ All tests MUST use automatic prefix detection for consistency.
 
       execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', timeout: 20000, stdio: 'inherit' });
     } catch (error) {
-      console.log(`Family membership cleanup for ${userId}:`, error.message);
+      console.log(`Family membership cleanup for ${userId}:`, (error as Error).message);
     }
   }
 
@@ -334,12 +334,12 @@ All tests MUST use automatic prefix detection for consistency.
       execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', timeout: 300000, stdio: 'inherit' });
     } catch (error) {
       // Handle cases where user creation fails due to existing users
-      if (error.message.includes('Unique constraint failed') ||
-        error.message.includes('already exists')) {
+      if ((error as Error).message.includes('Unique constraint failed') ||
+        (error as Error).message.includes('already exists')) {
         console.log(`E2E User ${user.email} already exists, proceeding with authentication`);
       } else {
         console.error('Failed to create user in database:', error);
-        throw new Error(`Failed to create user ${user.email} in database: ${error.message}`);
+        throw new Error(`Failed to create user ${user.email} in database: ${(error as Error).message}`);
       }
     }
   }
@@ -374,7 +374,7 @@ All tests MUST use automatic prefix detection for consistency.
       `;
       execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', stdio: 'pipe', timeout: 10000 });
     } catch (error) {
-      throw new Error(`User verification failed for ID ${userId}: ${error.message}`);
+      throw new Error(`User verification failed for ID ${userId}: ${(error as Error).message}`);
     }
   }
 
@@ -434,7 +434,7 @@ All tests MUST use automatic prefix detection for consistency.
       await this.setAuthenticationData(user, options);
     } catch (error) {
       // If we get a security error, navigate to login first
-      if (error.message.includes('insecure') || error.message.includes('SecurityError')) {
+      if ((error as Error).message.includes('insecure') || (error as Error).message.includes('SecurityError')) {
         await this.page.goto('/login');
         await this.setAuthenticationData(user, options);
       } else {
@@ -547,7 +547,7 @@ All tests MUST use automatic prefix detection for consistency.
         }
       );
     } catch (error) {
-      throw new Error(`Failed to set authentication data: ${error.message}`);
+      throw new Error(`Failed to set authentication data: ${(error as Error).message}`);
     }
   }
 
@@ -616,7 +616,7 @@ All tests MUST use automatic prefix detection for consistency.
       );
     } catch (error) {
       // If we get a security error, we're already on the right page, continue
-      if (!error.message.includes('insecure') && !error.message.includes('SecurityError')) {
+      if (!(error as Error).message.includes('insecure') && !(error as Error).message.includes('SecurityError')) {
         throw error;
       }
     }
@@ -862,7 +862,7 @@ All tests MUST use automatic prefix detection for consistency.
     });
 
     // Capture unhandled promise rejections
-    this.page.on('weberror', error => {
+    (this.page as any).on('weberror', (error: any) => {
       console.log('💥 Unhandled web error:', error.name, '-', error.message);
     });
 
@@ -1199,7 +1199,7 @@ All tests MUST use automatic prefix detection for consistency.
           const checkResult = execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', stdio: 'pipe' });
           console.log('🔍 Database check result:', checkResult);
         } catch (e) {
-          console.error('Database check failed:', e.message);
+          console.error('Database check failed:', (e as Error).message);
         }
 
         throw new Error(`Test setup error: User ${user.email} (ID: ${user.id}) should have family but was redirected to onboarding. Check family definitions and database setup in beforeAll().`);
@@ -1729,7 +1729,7 @@ All tests MUST use automatic prefix detection for consistency.
       expect(magicLinkUrl).toContain('/auth/verify');
 
       // Verify magic link - this should automatically add user to the family
-      await this.page.goto(magicLinkUrl);
+      await this.page.goto(magicLinkUrl!);
       await this.page.waitForLoadState('networkidle');
       console.log('✅ Magic link verified - user added to family');
     }
@@ -1771,10 +1771,10 @@ All tests MUST use automatic prefix detection for consistency.
 
       } catch (error) {
         retryCount++;
-        console.log(`⚠️ Navigation retry ${retryCount}/${maxRetries} for ${path}: ${error.message}`);
+        console.log(`⚠️ Navigation retry ${retryCount}/${maxRetries} for ${path}: ${(error as Error).message}`);
 
         if (retryCount >= maxRetries) {
-          throw new Error(`Navigation failed after ${maxRetries} attempts to ${path}: ${error.message}`);
+          throw new Error(`Navigation failed after ${maxRetries} attempts to ${path}: ${(error as Error).message}`);
         }
 
         // Use timing helper for exponential backoff
@@ -1921,7 +1921,7 @@ All tests MUST use automatic prefix detection for consistency.
           const queries = queryCache.getAll();
 
           // Check if any queries are still fetching
-          const isFetching = queries.some(query => query.state.isFetching);
+          const isFetching = queries.some((query: any) => query.state.isFetching);
           if (isFetching) {
             return false;
           }
@@ -2408,9 +2408,9 @@ All tests MUST use automatic prefix detection for consistency.
 
         // Use robust concurrent condition handling
         const conditions = [
-          () => this.page.locator('[data-testid="FamilyOnboardingWizard-Alert-familyCreated"]').isVisible(),
-          () => !this.page.url().includes('/onboarding'),
-          () => this.page.url().includes('/dashboard')
+          async () => this.page.locator('[data-testid="FamilyOnboardingWizard-Alert-familyCreated"]').isVisible(),
+          async () => !this.page.url().includes('/onboarding'),
+          async () => this.page.url().includes('/dashboard')
         ];
 
         await this.timingHelper.waitForAnyCondition(conditions, {
@@ -2453,10 +2453,10 @@ All tests MUST use automatic prefix detection for consistency.
 
       } catch (error) {
         retryCount++;
-        console.log(`⚠️ Onboarding attempt ${retryCount} failed: ${error.message}`);
+        console.log(`⚠️ Onboarding attempt ${retryCount} failed: ${(error as Error).message}`);
 
         if (retryCount > maxRetries) {
-          throw new Error(`Onboarding failed after ${maxRetries + 1} attempts: ${error.message}`);
+          throw new Error(`Onboarding failed after ${maxRetries + 1} attempts: ${(error as Error).message}`);
         }
 
         // Wait before retry with exponential backoff
@@ -2490,7 +2490,7 @@ All tests MUST use automatic prefix detection for consistency.
         const queryClient = reactQueryDevtools.queryClient;
         if (queryClient) {
           const queries = queryClient.getQueryCache().getAll();
-          const isFetching = queries.some(query => query.state.isFetching);
+          const isFetching = queries.some((query: any) => query.state.isFetching);
           if (isFetching) {
             return false;
           }
@@ -2537,13 +2537,13 @@ All tests MUST use automatic prefix detection for consistency.
    * @returns Promise<Record<string, string>> - PKCE data from window.__E2E_PKCE_DATA__
    */
   async saveSecurityContext(): Promise<Record<string, string>> {
-    const pkceData = await this.page.evaluate(() => {
+    const pkceData = await this.page.evaluate((): Record<string, string> => {
       // Read from global variable set by storePKCEPair()
       const e2eData = (window as any).__E2E_PKCE_DATA__;
 
       if (!e2eData || !e2eData.code_verifier || !e2eData.code_challenge || !e2eData.email) {
         console.error('E2E PKCE data not found in window.__E2E_PKCE_DATA__');
-        return {};
+        return {} as Record<string, string>;
       }
 
       // Return flat structure with just the values we need

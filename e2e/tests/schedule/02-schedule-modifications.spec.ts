@@ -228,7 +228,7 @@ test.describe('Schedule Modifications Journey', () => {
         const swapPartnerSelect = page.locator('[data-testid="SchedulePage-Select-swapPartner"]');
         
         if (await swapPartnerSelect.isVisible({ timeout: 5000 })) {
-          await swapPartnerSelect.selectOption({ label: /Editor 2/ });
+          await swapPartnerSelect.selectOption('Editor 2');
           console.log('✅ Swap partner selected');
         }
         
@@ -423,7 +423,7 @@ test.describe('Schedule Modifications Journey', () => {
         const timeSlotSelect = page.locator('[data-testid="SchedulePage-Select-timeSlot"]');
         
         if (await timeSlotSelect.isVisible({ timeout: 3000 })) {
-          await timeSlotSelect.selectOption({ label: /07:45/ });
+          await timeSlotSelect.selectOption('07:45');
           console.log('✅ Time slot selected for cancellation');
         }
       });
@@ -502,7 +502,7 @@ test.describe('Schedule Modifications Journey', () => {
         const prioritySelect = page.locator('[data-testid="SchedulePage-Select-priority"]');
         
         if (await prioritySelect.isVisible({ timeout: 3000 })) {
-          await prioritySelect.selectOption({ label: /high|urgent/i });
+          await prioritySelect.selectOption('high');
           console.log('✅ Emergency priority set');
         }
       });
@@ -560,7 +560,7 @@ test.describe('Schedule Modifications Journey', () => {
         const scopeSelect = page.locator('[data-testid="SchedulePage-Select-scope"]');
         
         if (await scopeSelect.isVisible({ timeout: 5000 })) {
-          await scopeSelect.selectOption({ label: /future/i });
+          await scopeSelect.selectOption('future');
           console.log('✅ Modification scope selected');
         }
         

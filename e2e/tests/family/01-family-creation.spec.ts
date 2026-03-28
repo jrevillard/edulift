@@ -83,11 +83,11 @@ test.describe('Family Creation E2E', () => {
         await submitButton.click();
 
         // Wait for NEW magic link email to arrive
-        const magicLinkUrl = await emailHelper.extractMagicLinkForRecipient(testEmail, { timeoutMs: 30000 });
+        const magicLinkUrl = await emailHelper.requireMagicLinkForRecipient(testEmail, { timeoutMs: 30000 });
         expect(magicLinkUrl).toBeTruthy();
         expect(magicLinkUrl).toContain('/auth/verify');
 
-        await page.goto(magicLinkUrl);
+        await page.goto(magicLinkUrl!);
         await page.waitForLoadState('networkidle');
 
         // Wait for dashboard to load after reconnection

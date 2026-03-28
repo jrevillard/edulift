@@ -16,6 +16,7 @@ STAGED_FILES=$(git diff --cached --name-only)
 # Check if backend files are modified
 BACKEND_CHANGED=false
 FRONTEND_CHANGED=false
+E2E_CHANGED=false
 
 # Detect if we're in a worktree or main repo
 # Track the actual directories where commands should run
@@ -40,6 +41,9 @@ else
         if [[ $file == frontend/* ]]; then
             FRONTEND_CHANGED=true
             FRONTEND_DIR="frontend"
+        fi
+        if [[ $file == e2e/* ]]; then
+            E2E_CHANGED=true
         fi
     done
 fi
@@ -194,8 +198,28 @@ if [ "$FRONTEND_CHANGED" = true ]; then
 
 fi
 
+# E2E checks
+if [ "$E2E_CHANGED" = true ]; then
+    echo ""
+    print_info "E2E files modified. Running E2E checks..."
+
+    cd "$GIT_ROOT/e2e"
+
+    # TypeScript type checking
+    echo "🔎 Running TypeScript type checking..."
+    if npx tsc --noEmit; then
+        print_success "TypeScript type checking passed"
+    else
+        print_error "TypeScript type checking failed"
+        echo "Please fix the TypeScript errors before committing."
+        exit 1
+    fi
+
+    cd "$GIT_ROOT"
+fi
+
 # If no code files were changed
-if [ "$BACKEND_CHANGED" = false ] && [ "$FRONTEND_CHANGED" = false ]; then
+if [ "$BACKEND_CHANGED" = false ] && [ "$FRONTEND_CHANGED" = false ] && [ "$E2E_CHANGED" = false ]; then
     print_info "No code files modified, skipping checks"
 fi
 
