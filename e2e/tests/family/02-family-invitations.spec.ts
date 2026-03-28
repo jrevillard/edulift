@@ -87,11 +87,11 @@ test.describe('Family Invitations E2E', () => {
         await submitButton.click();
 
         await recipientAuth.waitForAuthenticationStability();
-        await recipientPage.waitForTimeout(2000);
 
         console.log('✅ New user requested magic link from invitation page');
 
-        // Get magic link from email
+        // Wait for email then extract magic link
+        await emailHelper.waitForEmailForRecipient(recipientEmail);
         const recipientMagicLink = await emailHelper.extractMagicLinkForRecipient(recipientEmail);
         expect(recipientMagicLink).toBeTruthy();
         expect(recipientMagicLink).toContain('/auth/verify');
@@ -193,11 +193,11 @@ test.describe('Family Invitations E2E', () => {
         await submitButton.click();
 
         await recipientAuth.waitForAuthenticationStability();
-        await recipientPage.waitForTimeout(2000);
 
         console.log('✅ New user requested magic link from invitation page');
 
-        // Get magic link from email
+        // Wait for email then extract magic link
+        await emailHelper.waitForEmailForRecipient(recipientEmail);
         const recipientMagicLink = await emailHelper.extractMagicLinkForRecipient(recipientEmail);
         expect(recipientMagicLink).toBeTruthy();
         expect(recipientMagicLink).toContain('/auth/verify');
@@ -656,14 +656,13 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Verify pending invitation appears in UI', async () => {
-        // Navigate back to family management page (user was redirected to dashboard after sending invitation)
-        await page.goto('/family/manage');
-        await page.waitForLoadState('networkidle');
+        // Navigate back to family management page via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
         await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Wait for React Query to stabilize and component to update
         await authHelper.waitForReactQueryStable();
-        await page.waitForTimeout(3000);
 
         // Log current URL to debug
         console.log('📍 Current URL:', page.url());
@@ -717,14 +716,13 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Cancel the pending invitation', async () => {
-        // Navigate back to family management page (user was redirected to dashboard after sending invitation)
-        await page.goto('/family/manage');
-        await page.waitForLoadState('networkidle');
+        // Navigate back to family management page via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
         await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Wait for React Query to stabilize and component to update
         await authHelper.waitForReactQueryStable();
-        await page.waitForTimeout(2000);
 
         // Find the invitation by email, then click its cancel button
         const invitationEmail = page.locator(`[data-testid="InvitationManagement-Text-pendingInvitationEmail"]`, { hasText: cancelEmail });
@@ -743,7 +741,6 @@ test.describe('Family Invitations E2E', () => {
       await test.step('Verify invitation removed from UI', async () => {
         // Wait for React Query to stabilize after cancellation
         await authHelper.waitForReactQueryStable();
-        await page.waitForTimeout(2000);
 
         // Verify invitation no longer appears
         const pendingInvitationEmail = page.locator('[data-testid="InvitationManagement-Text-pendingInvitationEmail"]', { hasText: cancelEmail });
@@ -833,10 +830,10 @@ test.describe('Family Invitations E2E', () => {
       });
 
       await test.step('Extract and validate invitation URL', async () => {
-        // Navigate back to family management page (user was redirected to dashboard after sending invitation)
-        await page.goto('/family/manage');
-        await page.waitForLoadState('networkidle');
+        // Navigate back to family management page via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
         await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         await authHelper.waitForFamilyPageReady();
         await expect(page.locator('[data-testid="ManageFamilyPage-Container-familyInformation"]')).toBeVisible({ timeout: 25000 });

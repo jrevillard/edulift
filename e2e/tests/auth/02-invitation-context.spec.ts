@@ -197,9 +197,10 @@ test.describe.skip('Invitation Context and Edge Cases Journey', () => {
         expect(isAuthenticated).toBeTruthy();
         
         // Test that redirect parameters are preserved in real scenarios
-        // Navigate to a protected page to test redirect preservation  
-        await page.goto('/family/manage');
-        await page.waitForLoadState('networkidle', { timeout: 30000 });
+        // Navigate to a protected page via BottomNav to test redirect preservation
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
         await authHelper.waitForAuthenticationStability(35000);
         
         const familyUrl = page.url();

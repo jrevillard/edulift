@@ -376,9 +376,6 @@ test.describe('User Authentication Journey', () => {
         await submitButton.click();
 
         // Get NEW magic link (not the old one used during setup)
-        // Wait a bit for email to arrive
-        await page.waitForTimeout(3000);
-
         const email = await emailHelper.waitForEmailForRecipient(returningUserEmail);
         expect(email).not.toBeNull();
 
@@ -478,9 +475,6 @@ test.describe('User Authentication Journey', () => {
 
         await submitButton.click();
 
-        // Wait for new magic link (rate limiting disabled in E2E environment)
-        await page.waitForTimeout(3000);
-
         const email = await emailHelper.waitForEmailForRecipient(familyAdminEmail);
         expect(email).not.toBeNull();
 
@@ -499,9 +493,10 @@ test.describe('User Authentication Journey', () => {
         const onboardingHelper = new OnboardingFlowHelper(page);
         await onboardingHelper.completeOnboardingIfNeeded();
 
-        // Now navigate to family management
-        await page.goto('/family/manage');
-        await SharedTestPatterns.waitForPageLoad(page);
+        // Navigate to family management via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Verify we're on family management page OR dashboard (both are valid authenticated states)
         const currentUrl = page.url();
@@ -512,9 +507,10 @@ test.describe('User Authentication Journey', () => {
       });
 
       await test.step('Verify admin permissions', async () => {
-        // Navigate to family management page first
-        await page.goto('/family/manage');
-        await SharedTestPatterns.waitForPageLoad(page);
+        // Navigate to family management via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Family admin MUST be able to access family management page
         const currentUrl = page.url();
@@ -679,9 +675,6 @@ test.describe('User Authentication Journey', () => {
 
         await submitButton.click();
 
-        // Wait for new magic link (rate limiting disabled in E2E environment)
-        await page.waitForTimeout(3000);
-
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();
 
@@ -696,9 +689,10 @@ test.describe('User Authentication Journey', () => {
         await page.goto(newMagicLinkUrl);
         await SharedTestPatterns.waitForPageLoad(page);
 
-        // Navigate to dashboard
-        await page.goto('/dashboard');
-        await SharedTestPatterns.waitForPageLoad(page);
+        // Navigate to dashboard via BottomNav
+        await page.getByRole('link', { name: 'Dashboard' }).click();
+        await page.waitForURL('**/dashboard', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Verify we're authenticated and can access dashboard
         const currentUrl = page.url();
@@ -784,9 +778,6 @@ test.describe('User Authentication Journey', () => {
         await cleanupHelper.deleteAllEmails();
 
         await submitButton.click();
-
-        // Wait for new magic link (rate limiting disabled in E2E environment)
-        await page.waitForTimeout(3000);
 
         const email = await emailHelper.waitForEmailForRecipient(userEmail);
         expect(email).not.toBeNull();

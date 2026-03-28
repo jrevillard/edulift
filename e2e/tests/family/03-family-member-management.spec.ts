@@ -223,9 +223,12 @@ test.describe('Family Member Management E2E', () => {
       });
 
       await test.step('Admin removes the member', async () => {
-        // Navigate to family management page first
-        await page.goto('/family/manage');
+        // Navigate to family management via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
         await page.waitForLoadState('networkidle');
+        // Full page reload to clear React Query cache (staleTime: 5min — client-side nav via DesktopNav does not bust cache)
+        await page.reload();
         console.log('✅ Navigated to family management page');
 
         // Wait for page to refresh and show updated member list
@@ -481,9 +484,12 @@ test.describe('Family Member Management E2E', () => {
       });
 
       await test.step('Verify two admins can manage each other', async () => {
-        // Navigate to family management page first
-        await page.goto('/family/manage');
+        // Navigate to family management via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
         await page.waitForLoadState('networkidle');
+        // Full page reload to clear React Query cache (staleTime: 5min — client-side nav via DesktopNav does not bust cache)
+        await page.reload();
         console.log('✅ Navigated to family management page');
 
         // Wait for family page to be fully loaded
@@ -571,8 +577,14 @@ test.describe('Family Member Management E2E', () => {
       });
 
       await test.step('Add child to family', async () => {
-        // Navigate to children page
-        await page.goto('/children');
+        // Navigate to children page via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        // Full page reload to ensure fresh family data (staleTime: 5min — client-side nav may serve cached data)
+        await page.reload();
+        await page.locator('[data-testid="ManageFamilyPage-Button-manageChildren"]').click();
+        await page.waitForURL('/children', { timeout: 10000 });
         await page.waitForLoadState('networkidle');
 
         // Wait for children page to be ready
@@ -632,8 +644,12 @@ test.describe('Family Member Management E2E', () => {
       });
 
       await test.step('Add vehicle to family', async () => {
-        // Navigate to vehicles page
-        await page.goto('/vehicles');
+        // Navigate to vehicles page via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        await page.locator('[data-testid="ManageFamilyPage-Button-manageVehicles"]').click();
+        await page.waitForURL('/vehicles', { timeout: 10000 });
         await page.waitForLoadState('networkidle');
 
         // Wait for vehicles page to be ready
@@ -669,7 +685,11 @@ test.describe('Family Member Management E2E', () => {
 
       await test.step('Admin can view vehicles', async () => {
         // Verify admin (who is also a family member) can access vehicles
-        await page.goto('/vehicles');
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        await page.locator('[data-testid="ManageFamilyPage-Button-manageVehicles"]').click();
+        await page.waitForURL('/vehicles', { timeout: 10000 });
         await page.waitForLoadState('networkidle');
 
         // Verify vehicles are accessible
@@ -700,7 +720,11 @@ test.describe('Family Member Management E2E', () => {
         );
 
         // Add a vehicle
-        await page.goto('/vehicles');
+        await page.getByRole('link', { name: 'Manage Family' }).click();
+        await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
+        await page.locator('[data-testid="ManageFamilyPage-Button-manageVehicles"]').click();
+        await page.waitForURL('/vehicles', { timeout: 10000 });
         await page.waitForLoadState('networkidle');
 
         await page.click('[data-testid="VehiclesPage-Button-addVehicle"]');
@@ -718,15 +742,10 @@ test.describe('Family Member Management E2E', () => {
       });
 
       await test.step('Admin invites member with MEMBER role', async () => {
-        // Navigate to dashboard first
-        await page.goto('/dashboard');
-        await page.waitForLoadState('networkidle');
-
-        // Navigate to family management
-        const manageButton = page.getByRole('button', { name: 'Manage Family', exact: true });
-        await manageButton.waitFor({ state: 'visible', timeout: 5000 });
-        await manageButton.click();
+        // Navigate to family management via BottomNav
+        await page.getByRole('link', { name: 'Manage Family' }).click();
         await page.waitForURL('/family/manage', { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Invite member with MEMBER role
         await page.click('[data-testid="InvitationManagement-Button-inviteMember"]');
@@ -766,7 +785,11 @@ test.describe('Family Member Management E2E', () => {
         await memberAuth.acceptInvitation(invitationUrl!, memberEmail);
 
         // Verify member can access vehicles
-        await memberPage.goto('/vehicles');
+        await memberPage.getByRole('link', { name: 'Manage Family' }).click();
+        await memberPage.waitForURL('/family/manage', { timeout: 10000 });
+        await memberPage.waitForLoadState('networkidle');
+        await memberPage.locator('[data-testid="ManageFamilyPage-Button-manageVehicles"]').click();
+        await memberPage.waitForURL('/vehicles', { timeout: 10000 });
         await memberPage.waitForLoadState('networkidle');
 
         // Verify vehicles page is accessible
