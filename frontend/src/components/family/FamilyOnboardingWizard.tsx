@@ -12,7 +12,7 @@
  * - Loading states and success feedback
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useFamily } from '../../contexts/FamilyContext';
 import { 
   validateFamilyName, 
@@ -45,6 +45,17 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('choice');
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const completeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear any pending completion timer on unmount
+  useEffect(() => {
+    return () => {
+      if (completeTimerRef.current) {
+        clearTimeout(completeTimerRef.current);
+        completeTimerRef.current = null;
+      }
+    };
+  }, []);
   
   // Form data
   const [createFormData, setCreateFormData] = useState<CreateFamilyFormData>({
@@ -83,13 +94,14 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
       setCurrentStep('success');
       
       // Complete onboarding after brief success display
-      setTimeout(() => {
+      if (completeTimerRef.current) clearTimeout(completeTimerRef.current);
+      completeTimerRef.current = setTimeout(() => {
         onComplete();
       }, 2000);
     } catch (err) {
       console.error('Failed to create family:', err);
-      setFormErrors({ 
-        general: err instanceof Error ? err.message : 'Failed to create family', 
+      setFormErrors({
+        general: err instanceof Error ? err.message : 'Failed to create family',
       });
     } finally {
       setIsSubmitting(false);
@@ -114,7 +126,8 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
       setCurrentStep('success');
       
       // Complete onboarding after brief success display
-      setTimeout(() => {
+      if (completeTimerRef.current) clearTimeout(completeTimerRef.current);
+      completeTimerRef.current = setTimeout(() => {
         onComplete();
       }, 2000);
     } catch (err) {

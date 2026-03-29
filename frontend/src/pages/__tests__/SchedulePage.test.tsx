@@ -171,11 +171,11 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
 
         // Verify conversion: 06:00 UTC → 07:00 CET, 13:00 UTC → 14:00 CET
         expect(localScheduleHours.MONDAY).toEqual(['07:00', '14:00']);
-        // Days without time slots are not created by convertScheduleHoursToLocal
-        expect(localScheduleHours.TUESDAY).toBeUndefined();
-        expect(localScheduleHours.WEDNESDAY).toBeUndefined();
-        expect(localScheduleHours.THURSDAY).toBeUndefined();
-        expect(localScheduleHours.FRIDAY).toBeUndefined();
+        // Days without time slots are present but empty (backend requires all 5 weekdays)
+        expect(localScheduleHours.TUESDAY).toEqual([]);
+        expect(localScheduleHours.WEDNESDAY).toEqual([]);
+        expect(localScheduleHours.THURSDAY).toEqual([]);
+        expect(localScheduleHours.FRIDAY).toEqual([]);
       });
 
       it('should ensure frontend weekday keys match schedule conversion keys', () => {
@@ -237,8 +237,10 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
 
         const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');
 
-        // The keys returned by convertScheduleHoursToLocal should be English
-        expect(Object.keys(localScheduleHours)).toEqual(['MONDAY', 'TUESDAY']);
+        // The keys returned by convertScheduleHoursToLocal should be English; all 5 weekdays present
+        expect(Object.keys(localScheduleHours)).toEqual(
+          expect.arrayContaining(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+        );
 
         // Frontend should generate matching English keys
         const frontendWeekdayKeys = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];

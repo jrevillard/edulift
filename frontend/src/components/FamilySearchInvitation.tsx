@@ -240,7 +240,7 @@ export function FamilySearchInvitation({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} data-testid="FamilySearchInvitation-Button-cancel">
             Cancel
           </Button>
         </DialogFooter>

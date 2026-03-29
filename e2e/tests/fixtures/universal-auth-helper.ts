@@ -713,7 +713,7 @@ All tests MUST use automatic prefix detection for consistency.
 
     const emailHelper = new E2EEmailHelper();
 
-    await this.page.goto('/auth/login');
+    await this.page.goto('/login');
     await this.page.waitForLoadState('networkidle');
 
     const newUserTab = this.page.locator('[data-testid="LoginPage-Tab-newUser"]');
@@ -778,7 +778,7 @@ All tests MUST use automatic prefix detection for consistency.
     this.page = targetPage;
 
     try {
-      await this.page.goto('/auth/login');
+      await this.page.goto('/login');
       await this.page.waitForLoadState('networkidle');
 
       const newUserTab = this.page.locator('[data-testid="LoginPage-Tab-newUser"]');

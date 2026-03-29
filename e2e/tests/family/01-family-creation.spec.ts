@@ -73,7 +73,7 @@ test.describe('Family Creation E2E', () => {
         await emailHelper.deleteAllEmails();
 
         // Login again with SAME email
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');

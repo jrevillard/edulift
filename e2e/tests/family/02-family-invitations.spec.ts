@@ -264,7 +264,7 @@ test.describe('Family Invitations E2E', () => {
         const hackerFamily = `Hacker Family ${timestamp}`;
 
         // Hacker creates account via magic link
-        await hackerPage.goto('/auth/login');
+        await hackerPage.goto('/login');
         await hackerPage.waitForLoadState('networkidle');
 
         const hackerNewUserTab = hackerPage.locator('[data-testid="LoginPage-Tab-newUser"]');
@@ -382,7 +382,7 @@ test.describe('Family Invitations E2E', () => {
         });
 
         // User A logs in (already has account from step 1)
-        await userAPage.goto('/auth/login');
+        await userAPage.goto('/login');
         await userAPage.waitForLoadState('networkidle');
 
         const existingUserTab = userAPage.locator('[data-testid="LoginPage-Tab-existingUser"]');
@@ -510,7 +510,7 @@ test.describe('Family Invitations E2E', () => {
         const lastAdminAuth = new UniversalAuthHelper(lastAdminPage);
 
         // Explicitly clear any stored state
-        await lastAdminPage.goto('/auth/login');
+        await lastAdminPage.goto('/login');
         await lastAdminPage.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();

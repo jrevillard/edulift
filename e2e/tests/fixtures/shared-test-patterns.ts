@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 export interface ScheduleData {
   name: string;
@@ -310,5 +310,19 @@ export class SharedTestPatterns {
 
   static async restoreNetwork(page: Page): Promise<void> {
     await page.unroute('**/*');
+  }
+
+  /**
+   * Close the FamilySearchInvitation dialog by clicking the Cancel button.
+   * Asserts the dialog is actually closed.
+   */
+  static async closeFamilySearchInvitationDialog(page: Page): Promise<void> {
+    const cancelButton = page.locator('[data-testid="FamilySearchInvitation-Button-cancel"]');
+    await expect(cancelButton).toBeVisible({ timeout: 5000 });
+    await cancelButton.click();
+    await page.waitForLoadState('networkidle');
+
+    const dialogTitle = page.locator('[data-testid="FamilySearchInvitation-Title-inviteFamilyModalTitle"]');
+    await expect(dialogTitle).not.toBeVisible({ timeout: 5000 });
   }
 }

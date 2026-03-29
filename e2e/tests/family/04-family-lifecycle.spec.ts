@@ -58,7 +58,7 @@ test.describe('Family Lifecycle E2E', () => {
         memberContext = await _context.browser()!.newContext();
         const memberPage = await memberContext.newPage();
 
-        await memberPage.goto('/auth/login');
+        await memberPage.goto('/login');
         await memberPage.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();
@@ -197,7 +197,7 @@ test.describe('Family Lifecycle E2E', () => {
         memberContext = await _context.browser()!.newContext();
         const memberPage = await memberContext.newPage();
 
-        await memberPage.goto('/auth/login');
+        await memberPage.goto('/login');
         await memberPage.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();
@@ -218,7 +218,7 @@ test.describe('Family Lifecycle E2E', () => {
         memberContext = await _context.browser()!.newContext();
         const secondAdminPage = await memberContext.newPage();
 
-        await secondAdminPage.goto('/auth/login');
+        await secondAdminPage.goto('/login');
         await secondAdminPage.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();

@@ -65,7 +65,13 @@ describe('timezoneUtils', () => {
       const localSchedule = {};
       const utcSchedule = convertScheduleHoursToUtc(localSchedule, 'Europe/Paris');
 
-      expect(utcSchedule).toEqual({});
+      // Backend requires all 5 weekdays to be present
+      expect(utcSchedule).toHaveProperty('MONDAY');
+      expect(utcSchedule).toHaveProperty('TUESDAY');
+      expect(utcSchedule).toHaveProperty('WEDNESDAY');
+      expect(utcSchedule).toHaveProperty('THURSDAY');
+      expect(utcSchedule).toHaveProperty('FRIDAY');
+      expect(utcSchedule.MONDAY).toEqual([]);
     });
   });
 
@@ -81,6 +87,9 @@ describe('timezoneUtils', () => {
       expect(local).toEqual({
         MONDAY: ['07:00', '08:00'],
         TUESDAY: ['15:00'],
+        WEDNESDAY: [],
+        THURSDAY: [],
+        FRIDAY: [],
       });
     });
 
@@ -92,13 +101,22 @@ describe('timezoneUtils', () => {
       const utc = convertScheduleHoursToUtc(original, 'Europe/Paris');
       const roundTrip = convertScheduleHoursToLocal(utc, 'Europe/Paris');
 
-      expect(roundTrip).toEqual(original);
+      // 00:30 Paris (UTC+1) = 23:30 UTC Sunday → filtered out (backend only supports MON-FRI)
+      // 07:00 and 17:00 round-trip correctly
+      expect(roundTrip.MONDAY).toEqual(['07:00', '17:00']);
+      // All 5 weekdays are always present (backend requirement)
+      expect(roundTrip).toHaveProperty('TUESDAY');
+      expect(roundTrip).toHaveProperty('WEDNESDAY');
+      expect(roundTrip).toHaveProperty('THURSDAY');
+      expect(roundTrip).toHaveProperty('FRIDAY');
     });
 
     test('should handle empty schedule', () => {
       const utc = {};
       const local = convertScheduleHoursToLocal(utc, 'Europe/Paris');
-      expect(local).toEqual({});
+      // Backend requires all 5 weekdays to be present
+      expect(Object.keys(local)).toHaveLength(5);
+      expect(local.MONDAY).toEqual([]);
     });
 
     test('should sort times after conversion', () => {
@@ -139,8 +157,10 @@ describe('Key Consistency Bug Prevention Tests', () => {
 
     const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');
 
-    // Keys should be in English, not French
-    expect(Object.keys(localScheduleHours)).toEqual(['MONDAY', 'TUESDAY', 'WEDNESDAY']);
+    // Keys should be in English, not French; all 5 weekdays always present
+    expect(Object.keys(localScheduleHours)).toEqual(
+      expect.arrayContaining(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']),
+    );
     expect(localScheduleHours).toHaveProperty('MONDAY');
     expect(localScheduleHours).toHaveProperty('TUESDAY');
     expect(localScheduleHours).toHaveProperty('WEDNESDAY');
@@ -168,11 +188,11 @@ describe('Key Consistency Bug Prevention Tests', () => {
     expect(localScheduleHours.MONDAY).toEqual(['07:00', '14:00']);
     expect(localScheduleHours.MONDAY).toHaveLength(2);
 
-    // Other days should not be present (convertScheduleHoursToLocal only creates days that have time slots)
-    expect(localScheduleHours.TUESDAY).toBeUndefined();
-    expect(localScheduleHours.WEDNESDAY).toBeUndefined();
-    expect(localScheduleHours.THURSDAY).toBeUndefined();
-    expect(localScheduleHours.FRIDAY).toBeUndefined();
+    // Other days should be present but empty (backend requires all 5 weekdays)
+    expect(localScheduleHours.TUESDAY).toEqual([]);
+    expect(localScheduleHours.WEDNESDAY).toEqual([]);
+    expect(localScheduleHours.THURSDAY).toEqual([]);
+    expect(localScheduleHours.FRIDAY).toEqual([]);
   });
 
   test('should ensure time slot availability logic works with converted keys', () => {
@@ -212,9 +232,11 @@ describe('Key Consistency Bug Prevention Tests', () => {
     const localScheduleHoursUS = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');
 
     // All should have the same English keys regardless of browser locale simulation
-    expect(Object.keys(localScheduleHoursFR)).toEqual(['FRIDAY']);
-    expect(Object.keys(localScheduleHoursDE)).toEqual(['FRIDAY']);
-    expect(Object.keys(localScheduleHoursUS)).toEqual(['FRIDAY']);
+    // All 5 weekdays are always present (backend requirement)
+    expect(localScheduleHoursFR).toHaveProperty('FRIDAY');
+    expect(localScheduleHoursDE).toHaveProperty('FRIDAY');
+    expect(localScheduleHoursUS).toHaveProperty('FRIDAY');
+    expect(Object.keys(localScheduleHoursFR)).toHaveLength(5);
 
     // Time conversions should be identical
     expect(localScheduleHoursFR.FRIDAY).toEqual(['16:00', '17:00']);

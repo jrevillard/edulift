@@ -43,7 +43,7 @@ test.describe('User Authentication Journey', () => {
       const testEmail = authHelper.getFileSpecificEmail('newuser.registration');
 
       await test.step('Request magic link for new user', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         
         // EXPLICIT: Click the "New user" tab to ensure we're in new user mode
@@ -135,7 +135,7 @@ test.describe('User Authentication Journey', () => {
 
       await test.step('Navigate to login page', async () => {
         // Navigate to regular login page (no fake invitation code)
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await SharedTestPatterns.waitForPageLoad(page);
         
         // EXPLICIT: Click the "New user" tab to ensure we're in new user mode
@@ -196,7 +196,7 @@ test.describe('User Authentication Journey', () => {
         
         // EXPLICIT ASSERTION: Verify successful authentication
         const currentUrl = page.url();
-        expect(currentUrl).not.toContain('/auth/login');
+        expect(currentUrl).not.toContain('/login');
         
         // SUCCESS: User is authenticated (redirected away from login)
         console.log('✅ New user registration completed successfully');
@@ -207,7 +207,7 @@ test.describe('User Authentication Journey', () => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
 
       await test.step('Test invalid email format validation', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         
         await SharedTestPatterns.validateFormInput(
@@ -238,7 +238,7 @@ test.describe('User Authentication Journey', () => {
       const testEmail = authHelper.getFileSpecificEmail('ratelimit.test');
 
       await test.step('Trigger rate limiting with multiple requests', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         
         const emailInput = page.locator('[data-testid="LoginPage-Input-email"]');
@@ -299,7 +299,7 @@ test.describe('User Authentication Journey', () => {
       let magicLinkUrl: string | null = null;
 
       await test.step('Setup: Create returning user via new user flow', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         // Click new user tab
@@ -352,7 +352,7 @@ test.describe('User Authentication Journey', () => {
         });
 
         // Verify logged out
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         const currentUrl = page.url();
@@ -406,7 +406,7 @@ test.describe('User Authentication Journey', () => {
       let firstMagicLinkUrl: string | null = null;
 
       await test.step('Setup: Create family admin via new user flow', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         // Click new user tab
@@ -456,7 +456,7 @@ test.describe('User Authentication Journey', () => {
           sessionStorage.clear();
         });
 
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         console.log('✅ User logged out');
       });
@@ -570,7 +570,7 @@ test.describe('User Authentication Journey', () => {
         memberPage = await memberContext.newPage();
 
         // Navigate to login page first to clear any cached authentication state
-        await memberPage.goto('/auth/login');
+        await memberPage.goto('/login');
         await memberPage.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();
@@ -605,7 +605,7 @@ test.describe('User Authentication Journey', () => {
       let firstMagicLinkUrl: string | null = null;
 
       await test.step('Setup: Create user via new user flow', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         // Click new user tab
@@ -655,7 +655,7 @@ test.describe('User Authentication Journey', () => {
           sessionStorage.clear();
         });
 
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         console.log('✅ User logged out');
       });
@@ -709,7 +709,7 @@ test.describe('User Authentication Journey', () => {
       let firstMagicLinkUrl: string | null = null;
 
       await test.step('Setup: Create user with family via new user flow', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         // Click new user tab
@@ -759,7 +759,7 @@ test.describe('User Authentication Journey', () => {
           sessionStorage.clear();
         });
 
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
         console.log('✅ User logged out');
       });
@@ -811,7 +811,7 @@ test.describe('User Authentication Journey', () => {
       let firstMagicLinkUrl: string | null = null;
 
       await test.step('Setup: Create user and authenticate', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         // Click new user tab
@@ -878,7 +878,7 @@ test.describe('User Authentication Journey', () => {
       let firstMagicLinkUrl: string | null = null;
 
       await test.step('Setup: Create user and authenticate', async () => {
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.waitForLoadState('networkidle');
 
         // Click new user tab
@@ -969,7 +969,7 @@ test.describe('User Authentication Journey', () => {
     test('prevents access without proper authentication', async ({ page }) => {
       await test.step('Clean browser state', async () => {
         // Ensure browser is in clean state before testing unauthenticated access
-        await page.goto('/auth/login');
+        await page.goto('/login');
         await page.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();

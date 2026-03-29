@@ -129,19 +129,17 @@ const ManageGroupPage: React.FC = () => {
   // No need for duplicate event listeners here
 
   // Get group info from user groups query (already cached from GroupsPage)
-  const { data: userGroupsData = [] } = useQuery({
+  const { data: userGroupsResponse } = useQuery({
     queryKey: ['user-groups'],
-    // MIGRATED: Use OpenAPI client to get user groups
+    // Returns the same response wrapper shape as GroupsPage since both
+    // share the ['user-groups'] query cache key
     queryFn: async () => {
-      const { data: response, error } = await api.GET('/api/v1/groups/my-groups', {});
-      if (error || !response?.success || !response?.data) {
-        throw new Error('Failed to fetch user groups');
-      }
-      return response.data;
+      const result = await api.GET('/api/v1/groups/my-groups', {});
+      return result.data;
     },
   });
 
-  const userGroups = userGroupsData || [];
+  const userGroups = userGroupsResponse?.data || [];
 
   const currentGroup = userGroups.find((group: typeof userGroups[0]) => group.id === groupId);
   const isAdmin = currentGroup?.userRole === 'ADMIN';

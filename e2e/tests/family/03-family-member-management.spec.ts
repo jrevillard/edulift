@@ -767,7 +767,7 @@ test.describe('Family Member Management E2E', () => {
         const memberPage = await memberContext.newPage();
 
         // Navigate to login page first to clear any cached authentication state
-        await memberPage.goto('/auth/login');
+        await memberPage.goto('/login');
         await memberPage.evaluate(() => {
           localStorage.clear();
           sessionStorage.clear();

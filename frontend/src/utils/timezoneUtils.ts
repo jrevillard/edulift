@@ -6,6 +6,15 @@
 import { format, parseISO } from 'date-fns';
 import { formatInTimeZone, toZonedTime, toDate } from 'date-fns-tz';
 
+/** Weekday keys matching the backend Zod schema (MONDAY-FRIDAY only) */
+const WEEKDAY_KEYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'] as const;
+
+const WEEKDAY_MAP: Record<string, number> = {
+  MONDAY: 0, TUESDAY: 1, WEDNESDAY: 2, THURSDAY: 3, FRIDAY: 4, SATURDAY: 5, SUNDAY: 6,
+};
+
+const WEEKDAY_NAMES = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'] as const;
+
 /**
  * Storage keys used across the application
  */
@@ -340,23 +349,16 @@ export function convertScheduleHoursToUtc(
   localScheduleHours: Record<string, string[]>,
   userTimezone: string,
 ): Record<string, string[]> {
+  // Initialize all 5 weekdays with empty arrays — backend requires all days to be present
   const utcScheduleHours: Record<string, string[]> = {};
-
-  const weekdayMap: Record<string, number> = {
-    'MONDAY': 0,
-    'TUESDAY': 1,
-    'WEDNESDAY': 2,
-    'THURSDAY': 3,
-    'FRIDAY': 4,
-    'SATURDAY': 5,
-    'SUNDAY': 6,
-  };
-
-  const weekdayNames = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+  for (const day of WEEKDAY_KEYS) {
+    utcScheduleHours[day] = [];
+  }
 
   // Process each weekday and its time slots
   Object.entries(localScheduleHours).forEach(([weekday, timeSlots]) => {
-    const dayOffset = weekdayMap[weekday.toUpperCase()];
+    const dayOffset = WEEKDAY_MAP[weekday.toUpperCase()];
+    if (dayOffset === undefined) return;
 
     timeSlots.forEach(timeSlot => {
       // Create an ISO datetime string for this specific day and time
@@ -371,16 +373,14 @@ export function convertScheduleHoursToUtc(
       // Get the weekday in UTC (might be different due to timezone shift!)
       const utcDayOfWeek = utcDate.getUTCDay(); // 0 = Sunday, 1 = Monday, etc.
       const utcWeekdayIndex = utcDayOfWeek === 0 ? 6 : utcDayOfWeek - 1; // Convert to 0 = Monday
-      const utcWeekday = weekdayNames[utcWeekdayIndex];
+      const utcWeekday = WEEKDAY_NAMES[utcWeekdayIndex];
 
-      // Get the time in UTC
-      const utcTime = formatInTimeZone(utcDate, 'UTC', 'HH:mm');
-
-      // Add to the appropriate weekday bucket in UTC
-      if (!utcScheduleHours[utcWeekday]) {
-        utcScheduleHours[utcWeekday] = [];
+      // Only add if it maps to a valid weekday (MONDAY-FRIDAY)
+      if (utcScheduleHours[utcWeekday] !== undefined) {
+        // Get the time in UTC
+        const utcTime = formatInTimeZone(utcDate, 'UTC', 'HH:mm');
+        utcScheduleHours[utcWeekday].push(utcTime);
       }
-      utcScheduleHours[utcWeekday].push(utcTime);
     });
   });
 
@@ -413,27 +413,21 @@ export function convertScheduleHoursToLocal(
   utcScheduleHours: Record<string, string[]>,
   userTimezone: string,
 ): Record<string, string[]> {
+  // Initialize all 5 weekdays with empty arrays — backend requires all days to be present
+  const WEEKDAY_KEYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'];
   const localScheduleHours: Record<string, string[]> = {};
+  for (const day of WEEKDAY_KEYS) {
+    localScheduleHours[day] = [];
+  }
 
   // Use a reference week to properly calculate day boundaries
   // Start with a Monday (2025-01-06 is a Monday)
   const referenceMonday = new Date('2025-01-06T00:00:00Z');
 
-  const weekdayMap: Record<string, number> = {
-    'MONDAY': 0,
-    'TUESDAY': 1,
-    'WEDNESDAY': 2,
-    'THURSDAY': 3,
-    'FRIDAY': 4,
-    'SATURDAY': 5,
-    'SUNDAY': 6,
-  };
-
-  const weekdayNames = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
-
   // Process each weekday and its time slots
   Object.entries(utcScheduleHours).forEach(([weekday, timeSlots]) => {
-    const dayOffset = weekdayMap[weekday.toUpperCase()];
+    const dayOffset = WEEKDAY_MAP[weekday.toUpperCase()];
+    if (dayOffset === undefined) return;
 
     timeSlots.forEach(timeSlot => {
       const [hours, minutes] = timeSlot.split(':').map(Number);
@@ -449,16 +443,14 @@ export function convertScheduleHoursToLocal(
       // Get the weekday in user's timezone (might be different!)
       const localDayOfWeek = localDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
       const localWeekdayIndex = localDayOfWeek === 0 ? 6 : localDayOfWeek - 1; // Convert to 0 = Monday
-      const localWeekday = weekdayNames[localWeekdayIndex];
+      const localWeekday = WEEKDAY_NAMES[localWeekdayIndex];
 
-      // Get the time in user's timezone
-      const localTime = format(localDate, 'HH:mm');
-
-      // Add to the appropriate weekday bucket in local timezone
-      if (!localScheduleHours[localWeekday]) {
-        localScheduleHours[localWeekday] = [];
+      // Only add if it maps to a valid weekday (MONDAY-FRIDAY)
+      if (localScheduleHours[localWeekday] !== undefined) {
+        // Get the time in user's timezone
+        const localTime = format(localDate, 'HH:mm');
+        localScheduleHours[localWeekday].push(localTime);
       }
-      localScheduleHours[localWeekday].push(localTime);
     });
   });
 
