@@ -18,14 +18,14 @@ vi.mock('../../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
   
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
   
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 
@@ -33,7 +33,7 @@ vi.mock('../../../stores/connectionStore', () => {
 vi.mock('../../../components/ConnectionIndicator', () => ({
   ConnectionIndicator: ({ className }: { className?: string }) => (
     <div data-testid="connection-indicator" className={className} />
-  )
+  ),
 }));
 
 const mockNavigate = vi.fn();
@@ -43,7 +43,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => mockNavigate
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -51,7 +51,7 @@ const renderBottomNav = (pathname = '/dashboard') => {
   return render(
     <MemoryRouter initialEntries={[pathname]}>
       <BottomNav />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 
@@ -68,7 +68,7 @@ describe('BottomNav', () => {
       family: null,
       login: vi.fn(),
       verifyMagicLink: vi.fn(),
-      refreshToken: vi.fn()
+      refreshToken: vi.fn(),
     });
   });
 
@@ -263,7 +263,7 @@ describe('BottomNav', () => {
         screen.getByTestId('BottomNav-Button-home'),
         screen.getByTestId('BottomNav-Button-family'),
         screen.getByTestId('BottomNav-Button-schedule'),
-        screen.getByTestId('BottomNav-Button-logout')
+        screen.getByTestId('BottomNav-Button-logout'),
       ];
 
       tabs.forEach(tab => {

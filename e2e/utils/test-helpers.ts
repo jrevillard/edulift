@@ -1,4 +1,4 @@
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 import { UniversalAuthHelper } from '../tests/fixtures/universal-auth-helper';
 
 export interface CreateUserOptions {
@@ -32,8 +32,8 @@ export async function clearDatabase(): Promise<void> {
     const response = await fetch(`${baseURL}/api/test/clear-database`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
-      }
+        'Content-Type': 'application/json',
+      },
     });
     
     if (!response.ok) {
@@ -49,9 +49,9 @@ export async function clearDatabase(): Promise<void> {
  */
 export async function createMagicLinkUser(
   page: Page, 
-  options: CreateUserOptions
+  options: CreateUserOptions,
 ): Promise<TestUser> {
-  const { email, name, createFamily, skipFamilyCreation } = options;
+  const { email, name: _name, createFamily, skipFamilyCreation } = options;
 
   const authHelper = new UniversalAuthHelper(page);
   
@@ -60,7 +60,7 @@ export async function createMagicLinkUser(
   
   let user;
   let familyInfo = undefined;
-  let inviteCode = undefined;
+  const inviteCode = undefined;
 
   if (createFamily && !skipFamilyCreation) {
     // Create user with family through onboarding
@@ -74,7 +74,7 @@ export async function createMagicLinkUser(
     // For now, tests will need to handle real invite code generation
     familyInfo = {
       id: `family-${user.id}`,
-      name: createFamily
+      name: createFamily,
     };
   } else if (skipFamilyCreation) {
     // Create user without family (for joining families)
@@ -85,7 +85,7 @@ export async function createMagicLinkUser(
     user = await authHelper.quickExistingUserSetup(baseName, '/dashboard');
     familyInfo = {
       id: `family-${user.id}`,
-      name: 'Default Family'
+      name: 'Default Family',
     };
   }
 
@@ -93,8 +93,8 @@ export async function createMagicLinkUser(
     user: {
       id: user.id,
       email: user.email,
-      name: user.name
-    }
+      name: user.name,
+    },
   };
 
   if (familyInfo) {

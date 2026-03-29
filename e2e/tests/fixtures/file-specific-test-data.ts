@@ -74,7 +74,7 @@ export class FileSpecificTestData {
     const user: TestUser = {
       id: this.getId(baseName),
       email: this.getEmail(baseName),
-      name: displayName
+      name: displayName,
     };
     this.testUsers[key] = user;
     
@@ -99,8 +99,8 @@ export class FileSpecificTestData {
       adminUserId: adminUser.id,
       members: members?.map(m => ({
         userId: this.testUsers[m.userKey]?.id || '',
-        role: m.role
-      }))
+        role: m.role,
+      })),
     };
     this.testFamilies[key] = family;
     return family;
@@ -198,7 +198,7 @@ export class FileSpecificTestData {
         "`, { 
           encoding: 'utf8', 
           timeout: 25000, // Increased for parallel execution
-          stdio: 'inherit'
+          stdio: 'inherit',
         });
       } catch (error) {
         console.log(`User creation error for ${user.email}:`, (error as Error).message);
@@ -346,7 +346,7 @@ export class FileSpecificTestData {
       "`, { 
             encoding: 'utf8', 
             timeout: 15000, // Restored efficient timeout
-            stdio: 'inherit'
+            stdio: 'inherit',
           });
       
           // If we get here, the operation succeeded
@@ -407,7 +407,7 @@ export class FileSpecificTestData {
       "`, { 
             encoding: 'utf8', 
             timeout: 10000, // Restored efficient timeout
-            stdio: 'inherit'
+            stdio: 'inherit',
           });
       
           console.log(`✅ Family verification complete for ${family.name}`);
@@ -488,14 +488,14 @@ export class FileSpecificTestData {
       try {
         // Try to create lock file atomically using Docker
         execSync(`docker exec edulift-backend-e2e sh -c 'mkdir -p /tmp/test-locks && (set -C; echo $$ > /tmp/test-locks/${lockName}) 2>/dev/null'`, { 
-          stdio: 'pipe' 
+          stdio: 'pipe', 
         });
         
         // If we get here, we successfully acquired the lock
         console.log(`🔒 Successfully acquired lock: ${lockName}`);
         return;
         
-      } catch (error) {
+      } catch (_error) {
         // Lock file exists, wait and retry
         await new Promise(resolve => setTimeout(resolve, pollInterval));
       }
@@ -510,9 +510,9 @@ export class FileSpecificTestData {
   private async releaseDistributedLock(lockName: string): Promise<void> {
     try {
       execSync(`docker exec edulift-backend-e2e rm -f /tmp/test-locks/${lockName}`, { 
-        stdio: 'pipe' 
+        stdio: 'pipe', 
       });
-    } catch (error) {
+    } catch (_error) {
       // Lock file might not exist or already removed - that's okay
       console.log(`ℹ️ Lock ${lockName} was already released or didn't exist`);
     }

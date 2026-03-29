@@ -20,14 +20,14 @@ vi.mock('../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
   
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
   
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 
@@ -55,7 +55,7 @@ describe('ProtectedRoute 401 Redirect', () => {
       isLoading: false,
       login: vi.fn(),
       logout: vi.fn(),
-      verifyMagicLink: vi.fn()
+      verifyMagicLink: vi.fn(),
     });
   });
 
@@ -69,7 +69,7 @@ describe('ProtectedRoute 401 Redirect', () => {
         <ProtectedRoute>
           <div data-testid="protected-content">Protected Content</div>
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -94,7 +94,7 @@ describe('ProtectedRoute 401 Redirect', () => {
     it('should not log redirect messages', () => {
       renderProtectedRoute();
       expect(consoleLogSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('ProtectedRoute: User not authenticated')
+        expect.stringContaining('ProtectedRoute: User not authenticated'),
       );
     });
   });
@@ -121,10 +121,10 @@ describe('ProtectedRoute 401 Redirect', () => {
       renderProtectedRoute(['/schedule']);
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🛡️ ProtectedRoute: User not authenticated, redirecting to login'
+        '🛡️ ProtectedRoute: User not authenticated, redirecting to login',
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🛡️ ProtectedRoute: Current location:', '/schedule'
+        '🛡️ ProtectedRoute: Current location:', '/schedule',
       );
     });
 
@@ -136,7 +136,7 @@ describe('ProtectedRoute 401 Redirect', () => {
         renderProtectedRoute([route]);
         
         expect(consoleLogSpy).toHaveBeenCalledWith(
-          '🛡️ ProtectedRoute: Current location:', route
+          '🛡️ ProtectedRoute: Current location:', route,
         );
       });
     });
@@ -164,7 +164,7 @@ describe('ProtectedRoute 401 Redirect', () => {
     it('should not log redirect messages during loading', () => {
       renderProtectedRoute();
       expect(consoleLogSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('ProtectedRoute: User not authenticated')
+        expect.stringContaining('ProtectedRoute: User not authenticated'),
       );
     });
   });
@@ -201,13 +201,13 @@ describe('ProtectedRoute 401 Redirect', () => {
           <ProtectedRoute>
             <div data-testid="protected-content">Protected Content</div>
           </ProtectedRoute>
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
       // Should now redirect
       expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🛡️ ProtectedRoute: User not authenticated, redirecting to login'
+        '🛡️ ProtectedRoute: User not authenticated, redirecting to login',
       );
     });
 
@@ -242,14 +242,14 @@ describe('ProtectedRoute 401 Redirect', () => {
           <ProtectedRoute>
             <div data-testid="protected-content">Protected Content</div>
           </ProtectedRoute>
-        </MemoryRouter>
+        </MemoryRouter>,
       );
 
       // Should redirect
       expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument();
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🛡️ ProtectedRoute: User not authenticated, redirecting to login'
+        '🛡️ ProtectedRoute: User not authenticated, redirecting to login',
       );
     });
   });

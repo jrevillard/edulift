@@ -82,7 +82,7 @@ describe('Vehicle Capacity - Max Capacity Tests', () => {
     await waitFor(() => {
       expect(onSubmit).not.toHaveBeenCalled();
       expect(screen.getByTestId('error-message')).toHaveTextContent(
-        `Capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`
+        `Capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
       );
     });
   });
@@ -100,7 +100,7 @@ describe('Vehicle Capacity - Max Capacity Tests', () => {
     await waitFor(() => {
       expect(onSubmit).not.toHaveBeenCalled();
       expect(screen.getByTestId('error-message')).toHaveTextContent(
-        `Capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`
+        `Capacity must be between ${VEHICLE_CONSTRAINTS.MIN_CAPACITY} and ${VEHICLE_CONSTRAINTS.MAX_CAPACITY}`,
       );
     });
   });

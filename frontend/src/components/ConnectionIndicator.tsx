@@ -11,7 +11,7 @@ import {
 
 export const ConnectionIndicator: React.FC<{ className?: string; showLabel?: boolean }> = ({ 
   className, 
-  showLabel = false 
+  showLabel = false, 
 }) => {
   const { wsStatus, apiStatus, hasConnectionIssues } = useConnectionStore();
   
@@ -21,7 +21,7 @@ export const ConnectionIndicator: React.FC<{ className?: string; showLabel?: boo
         icon: Wifi,
         color: 'text-green-500',
         label: 'Connected',
-        message: 'All systems connected and working properly'
+        message: 'All systems connected and working properly',
       };
     }
     
@@ -30,7 +30,7 @@ export const ConnectionIndicator: React.FC<{ className?: string; showLabel?: boo
         icon: WifiOff,
         color: 'text-red-500',
         label: 'Offline',
-        message: 'Cannot connect to server. Please check your connection.'
+        message: 'Cannot connect to server. Please check your connection.',
       };
     }
     
@@ -39,7 +39,7 @@ export const ConnectionIndicator: React.FC<{ className?: string; showLabel?: boo
         icon: AlertCircle,
         color: 'text-amber-500',
         label: 'Limited',
-        message: 'Connected but real-time updates unavailable. Some features may be limited.'
+        message: 'Connected but real-time updates unavailable. Some features may be limited.',
       };
     }
     
@@ -48,7 +48,7 @@ export const ConnectionIndicator: React.FC<{ className?: string; showLabel?: boo
         icon: Wifi,
         color: 'text-blue-500',
         label: 'Connecting',
-        message: 'Connecting to server...'
+        message: 'Connecting to server...',
       };
     }
     
@@ -56,7 +56,7 @@ export const ConnectionIndicator: React.FC<{ className?: string; showLabel?: boo
       icon: Wifi,
       color: 'text-green-500',
       label: 'Connected',
-      message: 'All systems connected and working properly'
+      message: 'All systems connected and working properly',
     };
   };
   

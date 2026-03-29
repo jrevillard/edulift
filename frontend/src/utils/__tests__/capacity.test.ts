@@ -11,10 +11,10 @@ const createMockVehicleAssignment = (overrides: Partial<ScheduleSlotVehicle> = {
   vehicle: {
     id: 'vehicle-1',
     name: 'Test Vehicle',
-    capacity: 20
+    capacity: 20,
   },
   driver: undefined,
-  ...overrides
+  ...overrides,
 });
 
 describe('capacity utils', () => {
@@ -22,7 +22,7 @@ describe('capacity utils', () => {
     it('should return seat override when present', () => {
       const assignment = createMockVehicleAssignment({
         seatOverride: 15,
-        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 }
+        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 },
       });
 
       expect(getEffectiveCapacity(assignment)).toBe(15);
@@ -31,7 +31,7 @@ describe('capacity utils', () => {
     it('should return vehicle capacity when no seat override', () => {
       const assignment = createMockVehicleAssignment({
         seatOverride: undefined,
-        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 }
+        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 },
       });
 
       expect(getEffectiveCapacity(assignment)).toBe(20);
@@ -40,7 +40,7 @@ describe('capacity utils', () => {
     it('should return vehicle capacity when seat override is null', () => {
       const assignment = createMockVehicleAssignment({
         seatOverride: undefined,
-        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 }
+        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 },
       });
 
       expect(getEffectiveCapacity(assignment)).toBe(20);
@@ -49,7 +49,7 @@ describe('capacity utils', () => {
     it('should handle zero seat override', () => {
       const assignment = createMockVehicleAssignment({
         seatOverride: 0,
-        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 }
+        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 },
       });
 
       expect(getEffectiveCapacity(assignment)).toBe(0);
@@ -58,7 +58,7 @@ describe('capacity utils', () => {
     it('should handle seat override larger than vehicle capacity', () => {
       const assignment = createMockVehicleAssignment({
         seatOverride: 30,
-        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 }
+        vehicle: { id: 'vehicle-1', name: 'Test Vehicle', capacity: 20 },
       });
 
       expect(getEffectiveCapacity(assignment)).toBe(30);
@@ -68,7 +68,7 @@ describe('capacity utils', () => {
   describe('hasSeatOverride', () => {
     it('should return true when seat override is present', () => {
       const assignment = createMockVehicleAssignment({
-        seatOverride: 15
+        seatOverride: 15,
       });
 
       expect(hasSeatOverride(assignment)).toBe(true);
@@ -76,7 +76,7 @@ describe('capacity utils', () => {
 
     it('should return true when seat override is zero', () => {
       const assignment = createMockVehicleAssignment({
-        seatOverride: 0
+        seatOverride: 0,
       });
 
       expect(hasSeatOverride(assignment)).toBe(true);
@@ -84,7 +84,7 @@ describe('capacity utils', () => {
 
     it('should return false when seat override is undefined', () => {
       const assignment = createMockVehicleAssignment({
-        seatOverride: undefined
+        seatOverride: undefined,
       });
 
       expect(hasSeatOverride(assignment)).toBe(false);
@@ -92,7 +92,7 @@ describe('capacity utils', () => {
 
     it('should return false when seat override is null', () => {
       const assignment = createMockVehicleAssignment({
-        seatOverride: undefined
+        seatOverride: undefined,
       });
 
       expect(hasSeatOverride(assignment)).toBe(false);
@@ -103,8 +103,8 @@ describe('capacity utils', () => {
     it('should calculate total capacity for single vehicle without override', () => {
       const assignments = [
         createMockVehicleAssignment({
-          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 }
-        })
+          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 },
+        }),
       ];
 
       expect(calculateTotalCapacity(assignments)).toBe(20);
@@ -114,8 +114,8 @@ describe('capacity utils', () => {
       const assignments = [
         createMockVehicleAssignment({
           seatOverride: 15,
-          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 }
-        })
+          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 },
+        }),
       ];
 
       expect(calculateTotalCapacity(assignments)).toBe(15);
@@ -125,12 +125,12 @@ describe('capacity utils', () => {
       const assignments = [
         createMockVehicleAssignment({
           id: 'assignment-1',
-          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 }
+          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 },
         }),
         createMockVehicleAssignment({
           id: 'assignment-2',
-          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 15 }
-        })
+          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 15 },
+        }),
       ];
 
       expect(calculateTotalCapacity(assignments)).toBe(35);
@@ -141,13 +141,13 @@ describe('capacity utils', () => {
         createMockVehicleAssignment({
           id: 'assignment-1',
           seatOverride: 10,
-          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 }
+          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 },
         }),
         createMockVehicleAssignment({
           id: 'assignment-2',
           seatOverride: undefined,
-          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 15 }
-        })
+          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 15 },
+        }),
       ];
 
       expect(calculateTotalCapacity(assignments)).toBe(25); // 10 (override) + 15 (default)
@@ -161,11 +161,11 @@ describe('capacity utils', () => {
       const assignments = [
         createMockVehicleAssignment({
           seatOverride: 0,
-          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 }
+          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 },
         }),
         createMockVehicleAssignment({
-          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 0 }
-        })
+          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 0 },
+        }),
       ];
 
       expect(calculateTotalCapacity(assignments)).toBe(0);
@@ -176,18 +176,18 @@ describe('capacity utils', () => {
         createMockVehicleAssignment({
           id: 'assignment-1',
           seatOverride: 5,
-          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 }
+          vehicle: { id: 'vehicle-1', name: 'Vehicle 1', capacity: 20 },
         }),
         createMockVehicleAssignment({
           id: 'assignment-2',
           seatOverride: 8,
-          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 15 }
+          vehicle: { id: 'vehicle-2', name: 'Vehicle 2', capacity: 15 },
         }),
         createMockVehicleAssignment({
           id: 'assignment-3',
           seatOverride: 12,
-          vehicle: { id: 'vehicle-3', name: 'Vehicle 3', capacity: 10 }
-        })
+          vehicle: { id: 'vehicle-3', name: 'Vehicle 3', capacity: 10 },
+        }),
       ];
 
       expect(calculateTotalCapacity(assignments)).toBe(25); // 5 + 8 + 12

@@ -181,7 +181,7 @@ class UnifiedInvitationService {
    */
   async acceptFamilyInvitation(
     inviteCode: string,
-    options?: { leaveCurrentFamily?: boolean }
+    options?: { leaveCurrentFamily?: boolean },
   ): Promise<AcceptFamilyResult> {
     try {
       const { data, error } = await api.POST('/api/v1/invitations/family/{code}/accept', {

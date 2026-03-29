@@ -157,7 +157,7 @@ const generateBrowserFingerprint = async (): Promise<string> => {
   const fingerprintData = {
     userAgent: navigator.userAgent,
     language: navigator.language,
-    screen: screen.width + 'x' + screen.height,
+    screen: `${screen.width  }x${  screen.height}`,
     timezone: new Date().getTimezoneOffset().toString(),
     hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
     deviceMemory: ((navigator as Navigator & { deviceMemory?: number }).deviceMemory as number) || 'unknown',
@@ -184,7 +184,7 @@ const getEncryptionKey = async (): Promise<CryptoKey> => {
       fingerprintBytes,
       { name: 'PBKDF2' },
       false,
-      ['deriveKey']
+      ['deriveKey'],
     );
 
     // Derive a secure key using PBKDF2
@@ -193,12 +193,12 @@ const getEncryptionKey = async (): Promise<CryptoKey> => {
         name: 'PBKDF2',
         salt: fingerprintBytes,
         iterations: 100000,
-        hash: 'SHA-256'
+        hash: 'SHA-256',
       },
       baseKey,
       { name: 'AES-GCM', length: 256 },
       false,
-      ['encrypt', 'decrypt']
+      ['encrypt', 'decrypt'],
     );
 
     return key;
@@ -222,13 +222,13 @@ const encryptData = async (data: string): Promise<{ encrypted: string; iv: strin
     const encrypted = await crypto.subtle.encrypt(
       { name: 'AES-GCM', iv },
       key,
-      dataBytes
+      dataBytes,
     );
 
     // Return both encrypted data and IV
     return {
       encrypted: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
-      iv: btoa(String.fromCharCode(...iv))
+      iv: btoa(String.fromCharCode(...iv)),
     };
   } catch (error) {
     console.error('Failed to encrypt data:', error);
@@ -279,7 +279,7 @@ const decryptData = async (encryptedData: string, iv: string): Promise<string> =
     const decrypted = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: ivBytes },
       key,
-      encryptedBytes
+      encryptedBytes,
     );
 
     // Convert back to string
@@ -312,7 +312,7 @@ class SecureStorage {
         encrypted,
         iv,
         timestamp: Date.now(),
-        keyVersion: KEY_VERSION
+        keyVersion: KEY_VERSION,
       };
 
       const serialized = JSON.stringify(dataToStore);
@@ -370,7 +370,7 @@ class SecureStorage {
         // Accept v0 and v1 for backward compatibility - the fingerprint itself provides uniqueness
         if (storedVersion > KEY_VERSION) {
           console.warn(`Encryption key version too new (stored: v${storedVersion}, current: v${KEY_VERSION})`);
-          console.warn(`This app needs to be updated to support newer encryption`);
+          console.warn('This app needs to be updated to support newer encryption');
           this.removeItem(key);
           return null;
         }

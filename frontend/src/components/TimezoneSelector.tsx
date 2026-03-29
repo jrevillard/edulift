@@ -7,7 +7,7 @@ import {
   getBrowserTimezone,
   safeLocalStorageGet,
   safeLocalStorageSet,
-  STORAGE_KEYS
+  STORAGE_KEYS,
 } from '../utils/timezoneUtils';
 import { toast } from 'sonner';
 import { Globe } from 'lucide-react';
@@ -21,7 +21,7 @@ interface TimezoneSelectorProps {
 export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
   currentTimezone,
   onTimezoneChange,
-  className = ''
+  className = '',
 }) => {
   const { updateUser } = useAuth();
   const [selectedTimezone, setSelectedTimezone] = useState(currentTimezone || 'UTC');
@@ -75,7 +75,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
     // Validate timezone
     if (!isValidTimezone(timezone)) {
       toast.error('Invalid timezone selected', {
-        description: 'Please select a valid timezone from the list'
+        description: 'Please select a valid timezone from the list',
       });
       return;
     }
@@ -96,7 +96,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
       }
 
       toast.success('Timezone updated successfully', {
-        description: `All times will now display in ${COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone}`
+        description: `All times will now display in ${COMMON_TIMEZONES.find(tz => tz.value === timezone)?.label || timezone}`,
       });
 
     } catch (error) {
@@ -105,7 +105,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
 
       const errorMessage = error instanceof Error ? error.message : 'Failed to update timezone';
       toast.error('Failed to update timezone', {
-        description: errorMessage
+        description: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -131,7 +131,7 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
     const success = safeLocalStorageSet(STORAGE_KEYS.AUTO_SYNC_TIMEZONE, enabled.toString());
     if (!success) {
       toast.error('Failed to save preference', {
-        description: 'Your browser may have storage disabled'
+        description: 'Your browser may have storage disabled',
       });
       return;
     }
@@ -150,22 +150,22 @@ export const TimezoneSelector: React.FC<TimezoneSelectorProps> = ({
 
           // Only show success toast AFTER timezone sync completes
           toast.success('Auto-sync enabled', {
-            description: `Timezone updated to ${browserTz}`
+            description: `Timezone updated to ${browserTz}`,
           });
         } catch {
           toast.error('Auto-sync enabled but timezone update failed', {
-            description: 'Will retry automatically'
+            description: 'Will retry automatically',
           });
         }
       } else {
         toast.success('Auto-sync enabled', {
-          description: 'Timezone already matches browser'
+          description: 'Timezone already matches browser',
         });
       }
     } else {
       // Disabled - immediate feedback OK
       toast.success('Auto-sync disabled', {
-        description: 'Timezone will remain fixed'
+        description: 'Timezone will remain fixed',
       });
     }
   };

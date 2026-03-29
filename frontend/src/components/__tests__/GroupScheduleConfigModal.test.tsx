@@ -15,8 +15,8 @@ vi.mock('sonner');
 // Mock the AuthContext
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' }
-  }))
+    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' },
+  })),
 }));
 
 // Mock the toast function
@@ -58,11 +58,11 @@ describe('GroupScheduleConfigModal', () => {
       'TUESDAY': ['08:00', '08:30'],
       'WEDNESDAY': [],
       'THURSDAY': ['15:00', '15:30'],
-      'FRIDAY': ['16:00']
+      'FRIDAY': ['16:00'],
     },
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
-    isDefault: false
+    isDefault: false,
   };
 
   const defaultProps = {
@@ -71,7 +71,7 @@ describe('GroupScheduleConfigModal', () => {
     groupId: 'group-1',
     groupName: 'Test Group',
     currentConfig: mockCurrentConfig,
-    isAdmin: true
+    isAdmin: true,
   };
 
   beforeEach(() => {
@@ -87,7 +87,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           isOpen={false}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Total time slots: 3 + 2 + 0 + 2 + 1 = 8
@@ -136,7 +136,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Check badges showing time slot counts
@@ -157,7 +157,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Initially on Monday
@@ -177,7 +177,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Monday time slots should be visible
@@ -193,7 +193,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Select a time slot that's not already added
@@ -217,13 +217,13 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Find and click remove button for 07:00
     const removeButtons = screen.getAllByRole('button');
     const removeButton = removeButtons.find(btn => 
-      btn.closest('[data-testid*="07:00"]') !== null
+      btn.closest('[data-testid*="07:00"]') !== null,
     );
     
     if (removeButton) {
@@ -241,7 +241,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // The select element shows only available time slots (filters out existing ones)
@@ -269,7 +269,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Add a new time slot to create changes
@@ -287,8 +287,8 @@ describe('GroupScheduleConfigModal', () => {
       expect(scheduleConfigService.updateGroupScheduleConfig).toHaveBeenCalledWith(
         'group-1',
         expect.objectContaining({
-          'MONDAY': expect.arrayContaining(['07:00', '07:30', '08:00', '09:00'])
-        })
+          'MONDAY': expect.arrayContaining(['07:00', '07:30', '08:00', '09:00']),
+        }),
       );
     });
 
@@ -306,7 +306,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Add a new time slot and save
@@ -323,8 +323,8 @@ describe('GroupScheduleConfigModal', () => {
       expect(mockToast.error).toHaveBeenCalledWith(
         'Failed to update schedule configuration',
         expect.objectContaining({
-          description: 'Network error'
-        })
+          description: 'Network error',
+        }),
       );
     });
   });
@@ -342,7 +342,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const resetButton = screen.getByRole('button', { name: /Reset to Default/i });
@@ -366,7 +366,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           isAdmin={false}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByText('Read-only mode')).toBeInTheDocument();
@@ -383,7 +383,7 @@ describe('GroupScheduleConfigModal', () => {
     
     const defaultConfig = {
       ...mockCurrentConfig,
-      isDefault: true
+      isDefault: true,
     };
     
     render(
@@ -392,7 +392,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           currentConfig={defaultConfig}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByText('Using Default Configuration')).toBeInTheDocument();
@@ -408,8 +408,8 @@ describe('GroupScheduleConfigModal', () => {
         'TUESDAY': [],
         'WEDNESDAY': [],
         'THURSDAY': [],
-        'FRIDAY': []
-      }
+        'FRIDAY': [],
+      },
     };
     
     render(
@@ -418,7 +418,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           currentConfig={configWithCloseSlots}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Should show validation error
@@ -441,7 +441,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           onClose={mockOnClose}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     const cancelButton = screen.getByRole('button', { name: /Cancel/i });
@@ -461,7 +461,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           onClose={mockOnClose}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Make changes
@@ -484,7 +484,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Switch to Wednesday (which has no time slots)
@@ -501,7 +501,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Switch to Wednesday (empty day)
@@ -532,7 +532,7 @@ describe('GroupScheduleConfigModal', () => {
     render(
       <TestWrapper>
         <GroupScheduleConfigModal {...defaultProps} />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // On Monday (has slots), try to copy from Tuesday
@@ -557,7 +557,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           isAdmin={false}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Copy controls should not be visible
@@ -570,7 +570,7 @@ describe('GroupScheduleConfigModal', () => {
     
     // Create config with 20 time slots (maximum)
     const fullSchedule = Array.from({ length: 20 }, (_, i) => 
-      `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+      `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
     );
     
     const configWithMaxSlots = {
@@ -580,8 +580,8 @@ describe('GroupScheduleConfigModal', () => {
         'TUESDAY': [],
         'WEDNESDAY': [],
         'THURSDAY': [],
-        'FRIDAY': []
-      }
+        'FRIDAY': [],
+      },
     };
     
     render(
@@ -590,7 +590,7 @@ describe('GroupScheduleConfigModal', () => {
           {...defaultProps}
           currentConfig={configWithMaxSlots}
         />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Add button should be disabled when at maximum

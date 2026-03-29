@@ -46,7 +46,7 @@ export class TestCleanupHelper {
       cookies.forEach(cookie => {
         const eqPos = cookie.indexOf('=');
         const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        document.cookie = `${name  }=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
       });
     });
     console.log('🗑️ Browser storage cleared');
@@ -97,7 +97,7 @@ export class TestCleanupHelper {
   async getStorageSize(page: Page): Promise<{ localStorage: number; sessionStorage: number }> {
     const sizes = await page.evaluate(() => ({
       localStorage: JSON.stringify(localStorage).length,
-      sessionStorage: JSON.stringify(sessionStorage).length
+      sessionStorage: JSON.stringify(sessionStorage).length,
     }));
     return sizes;
   }
@@ -107,7 +107,7 @@ export class TestCleanupHelper {
     const storage = await page.evaluate(() => ({
       localStorageKeys: Object.keys(localStorage),
       sessionStorageKeys: Object.keys(sessionStorage),
-      cookies: document.cookie
+      cookies: document.cookie,
     }));
     console.log('📊 Current storage state:', storage);
   }

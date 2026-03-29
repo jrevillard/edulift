@@ -42,8 +42,8 @@ describe('OnboardingPage', () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
 
     return (
@@ -93,7 +93,7 @@ describe('OnboardingPage', () => {
     render(
       <TestWrapper>
         <OnboardingPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
@@ -146,7 +146,7 @@ describe('OnboardingPage', () => {
     render(
       <TestWrapper>
         <OnboardingPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -192,7 +192,7 @@ describe('OnboardingPage', () => {
     render(
       <TestWrapper>
         <OnboardingPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     expect(screen.getByTestId('family-onboarding-wizard')).toBeInTheDocument();
@@ -236,7 +236,7 @@ describe('OnboardingPage', () => {
     render(
       <TestWrapper>
         <OnboardingPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Should show the wizard since ProtectedRoute will handle the redirect

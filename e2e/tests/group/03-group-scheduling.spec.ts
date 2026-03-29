@@ -17,7 +17,7 @@ test.describe('Group Scheduling Journey', () => {
     // Define families for scheduling tests
     authHelper.defineFamily('groupAdminFamily', 'Group Admin Family', 'groupAdmin');
     authHelper.defineFamily('schedulingFamily1', 'Scheduling Family 1', 'familyAdmin1', [
-      { userKey: 'familyMember1', role: 'MEMBER' }
+      { userKey: 'familyMember1', role: 'MEMBER' },
     ]);
     authHelper.defineFamily('schedulingFamily2', 'Scheduling Family 2', 'familyAdmin2');
     

@@ -19,7 +19,7 @@ vi.mock('@/utils/secureStorage', () => ({
     clear: vi.fn(),
     hasItem: vi.fn(),
     getKeys: vi.fn(),
-  }
+  },
 }));
 
 // Mock connection store
@@ -29,14 +29,14 @@ vi.mock('@/stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
 
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
 
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 

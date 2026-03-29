@@ -28,7 +28,7 @@ const mockVehicles = [
     capacity: 20,
     familyId: 'family-1',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
+    updatedAt: '2024-01-01T00:00:00Z',
   },
   {
     id: 'vehicle-2',
@@ -36,8 +36,8 @@ const mockVehicles = [
     capacity: 8,
     familyId: 'family-1',
     createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z'
-  }
+    updatedAt: '2024-01-01T00:00:00Z',
+  },
 ];
 
 const mockScheduleSlot = {
@@ -51,7 +51,7 @@ const mockScheduleSlot = {
   totalCapacity: 0,
   availableSeats: 0,
   createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z'
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const createWrapper = () => {
@@ -79,12 +79,12 @@ describe('VehicleSelectionModal - Seat Override', () => {
       logout: vi.fn(),
       isAuthenticated: true,
       isLoading: false,
-      checkAuth: vi.fn()
+      checkAuth: vi.fn(),
     });
 
     vi.mocked(useSocket).mockReturnValue({
       socket: null,
-      isConnected: false
+      isConnected: false,
     });
 
     // Mock the new OpenAPI API calls
@@ -118,7 +118,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load and select one to show seat override input
@@ -153,7 +153,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load and select one
@@ -196,7 +196,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load
@@ -230,9 +230,9 @@ describe('VehicleSelectionModal - Seat Override', () => {
             datetime: '2024-01T08:00:00',
             vehicleId: 'vehicle-1',
             driverId: 'user-1',
-            seatOverride: 15
-          }
-        })
+            seatOverride: 15,
+          },
+        }),
       );
     });
   });
@@ -240,7 +240,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
   it('should pass seat override when assigning vehicle to existing slot', async () => {
     const existingSlot = {
       ...mockScheduleSlot,
-      id: 'existing-slot-1'
+      id: 'existing-slot-1',
     };
 
     const assignSpy = vi.fn().mockResolvedValue({ data: { data: {
@@ -250,7 +250,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
       driverId: 'user-1',
       seatOverride: 15,
       vehicle: mockVehicles[0],
-      driver: { id: 'user-1', name: 'Test User' }
+      driver: { id: 'user-1', name: 'Test User' },
     } }, error: undefined });
 
     vi.mocked(api.POST).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
@@ -263,7 +263,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
           driverId: 'user-1',
           seatOverride: 15,
           vehicle: mockVehicles[0],
-          driver: { id: 'user-1', name: 'Test User' }
+          driver: { id: 'user-1', name: 'Test User' },
         } }, error: undefined });
       }
       return Promise.resolve({ data: undefined, error: undefined });
@@ -281,7 +281,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load
@@ -314,9 +314,9 @@ describe('VehicleSelectionModal - Seat Override', () => {
           body: {
             vehicleId: 'vehicle-1',
             driverId: 'user-1',
-            seatOverride: 12
-          }
-        })
+            seatOverride: 12,
+          },
+        }),
       );
     });
   });
@@ -342,7 +342,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load
@@ -376,9 +376,9 @@ describe('VehicleSelectionModal - Seat Override', () => {
             datetime: '2024-01T08:00:00',
             vehicleId: 'vehicle-1',
             driverId: 'user-1',
-            seatOverride: undefined
-          }
-        })
+            seatOverride: undefined,
+          },
+        }),
       );
     });
   });
@@ -394,7 +394,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
           driverId: 'user-1',
           seatOverride: 15,
           vehicle: mockVehicles[0],
-          driver: { id: 'user-1', name: 'Test User' }
+          driver: { id: 'user-1', name: 'Test User' },
         },
         {
           id: 'assignment-2',
@@ -403,9 +403,9 @@ describe('VehicleSelectionModal - Seat Override', () => {
           driverId: 'user-1',
           seatOverride: undefined,
           vehicle: mockVehicles[1],
-          driver: { id: 'user-1', name: 'Test User' }
-        }
-      ]
+          driver: { id: 'user-1', name: 'Test User' },
+        },
+      ],
     };
 
     vi.mocked(api.GET).mockImplementation((path: string, options?: RequestOptions<unknown>) => {
@@ -429,7 +429,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: createWrapper() }
+      { wrapper: createWrapper() },
     );
 
     await waitFor(() => {
@@ -457,7 +457,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load and select one
@@ -488,7 +488,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     rerender(
@@ -501,7 +501,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         time="08:00"
         week="2024-01"
       />,
-      { wrapper: Wrapper }
+      { wrapper: Wrapper },
     );
 
     // Wait for vehicles to load again and select vehicle

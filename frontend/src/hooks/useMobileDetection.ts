@@ -26,7 +26,7 @@ export const useMobileDetection = (): MobileDetectionResult => {
     isAndroid: false,
     isTablet: false,
     deviceType: 'unknown',
-    deviceInfo: {}
+    deviceInfo: {},
   });
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export const useMobileDetection = (): MobileDetectionResult => {
           isAndroid,
           isTablet,
           deviceType,
-          deviceInfo
+          deviceInfo,
         });
       } catch (error) {
         console.error('Error in enhanced device detection:', error);
@@ -147,7 +147,7 @@ export const useMobileDetection = (): MobileDetectionResult => {
           isAndroid: false,
           isTablet: false,
           deviceType: 'unknown',
-          deviceInfo: {}
+          deviceInfo: {},
         });
       }
     };

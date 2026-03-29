@@ -1,15 +1,15 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { LogOut, User, Users, Home, Calendar, UserCheck } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { ConnectionIndicator } from "@/components/ConnectionIndicator";
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { LogOut, User, Users, Home, Calendar, UserCheck } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { ConnectionIndicator } from '@/components/ConnectionIndicator';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 
 export const DesktopNav = () => {
   const { user, logout } = useAuth();

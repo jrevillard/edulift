@@ -19,10 +19,10 @@ test.describe('Group Coordination Journey', () => {
     // Define families for coordination scenarios
     authHelper.defineFamily('groupAdminFamily', 'Group Admin Family', 'groupAdmin');
     authHelper.defineFamily('coordinationFamily1', 'Coordination Family 1', 'familyAdmin1', [
-      { userKey: 'familyMember1', role: 'MEMBER' }
+      { userKey: 'familyMember1', role: 'MEMBER' },
     ]);
     authHelper.defineFamily('coordinationFamily2', 'Coordination Family 2', 'familyAdmin2', [
-      { userKey: 'familyMember2', role: 'MEMBER' }
+      { userKey: 'familyMember2', role: 'MEMBER' },
     ]);
     authHelper.defineFamily('coordinationFamily3', 'Coordination Family 3', 'familyAdmin3');
     

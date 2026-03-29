@@ -15,10 +15,10 @@ const mockUserGroup: UserGroup = {
   joinedAt: '2024-01-01T00:00:00Z',
   ownerFamily: {
     id: 'family-1',
-    name: 'Smith Family'
+    name: 'Smith Family',
   },
   familyCount: 3,
-  scheduleCount: 2
+  scheduleCount: 2,
 };
 
 const mockAdminUserGroup: UserGroup = {
@@ -32,10 +32,10 @@ const mockAdminUserGroup: UserGroup = {
   joinedAt: '2024-01-01T00:00:00Z',
   ownerFamily: {
     id: 'family-2',
-    name: 'Johnson Family'
+    name: 'Johnson Family',
   },
   familyCount: 2,
-  scheduleCount: 1
+  scheduleCount: 1,
 };
 
 describe('GroupCard', () => {
@@ -53,7 +53,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     expect(screen.getByTestId('GroupCard-Heading-groupName')).toHaveTextContent('Test Group');
@@ -65,7 +65,7 @@ describe('GroupCard', () => {
   it('handles singular member count correctly', () => {
     const singleMemberGroup = {
       ...mockUserGroup,
-      familyCount: 1
+      familyCount: 1,
     };
 
     render(
@@ -73,7 +73,7 @@ describe('GroupCard', () => {
         group={singleMemberGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     expect(screen.getByTestId('GroupCard-Text-familyCount')).toHaveTextContent('1 family');
@@ -85,7 +85,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     expect(screen.getByTestId('GroupCard-Button-viewSchedule')).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe('GroupCard', () => {
         group={mockAdminUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     // For admin users, both buttons should be present
@@ -111,7 +111,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     // For non-admin users, only view button should be present
@@ -127,7 +127,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     await user.click(screen.getByTestId('GroupCard-Button-viewSchedule'));
@@ -142,7 +142,7 @@ describe('GroupCard', () => {
         group={mockAdminUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     await user.click(screen.getByTestId('GroupCard-Button-manageGroup'));
@@ -155,7 +155,7 @@ describe('GroupCard', () => {
         group={mockAdminUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     expect(screen.getByTestId('GroupCard-Badge-groupRole')).toHaveTextContent('ADMIN');
@@ -167,7 +167,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     expect(screen.getByTestId('GroupCard-Badge-groupRole')).toHaveTextContent('MEMBER');
@@ -179,7 +179,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     // Should have proper heading structure
@@ -193,7 +193,7 @@ describe('GroupCard', () => {
         group={mockUserGroup}
         onSelect={mockOnSelect}
         onManage={mockOnManage}
-      />
+      />,
     );
 
     const card = screen.getByTestId('GroupCard-Card-groupCard');

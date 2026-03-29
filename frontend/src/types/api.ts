@@ -222,10 +222,10 @@ type ExtractGroupInvitationFromResponse = {
   groupId?: string;
   targetFamilyId?: string | null;
   email?: string | null;
-  role: "MEMBER" | "ADMIN";
+  role: 'MEMBER' | 'ADMIN';
   personalMessage?: string | null;
   invitedBy?: string;
-  status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
+  status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED';
   inviteCode?: string;
   expiresAt?: string;
   acceptedAt?: string | null;

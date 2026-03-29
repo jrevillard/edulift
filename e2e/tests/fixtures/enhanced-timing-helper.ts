@@ -28,7 +28,7 @@ export class EnhancedTimingHelper {
       retryInterval: 500,
       maxRetries: 30,
       exponentialBackoff: true,
-      ...config
+      ...config,
     };
   }
 
@@ -118,7 +118,7 @@ export class EnhancedTimingHelper {
    */
   async waitForAnyCondition<T>(
     conditions: Array<() => Promise<T>>,
-    options: { timeout?: number; requireSuccess?: boolean } = {}
+    options: { timeout?: number; requireSuccess?: boolean } = {},
   ): Promise<T> {
     const timeout = options.timeout || this.config.defaultTimeout;
     const requireSuccess = options.requireSuccess ?? true;
@@ -128,10 +128,10 @@ export class EnhancedTimingHelper {
         Promise.race([
           condition(),
           new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('Condition timeout')), timeout)
-          )
-        ])
-      )
+            setTimeout(() => reject(new Error('Condition timeout')), timeout),
+          ),
+        ]),
+      ),
     );
 
     // Find first successful result
@@ -158,7 +158,7 @@ export class EnhancedTimingHelper {
    */
   async waitForDatabaseTransaction(
     verificationFn: () => Promise<boolean>,
-    operation: string
+    operation: string,
   ): Promise<void> {
     let retryCount = 0;
     const maxRetries = 10;
@@ -191,7 +191,7 @@ export class EnhancedTimingHelper {
    * With: Event-driven session state monitoring
    */
   async waitForSessionStateChange(
-    expectedState: 'authenticated' | 'unauthenticated'
+    expectedState: 'authenticated' | 'unauthenticated',
   ): Promise<void> {
     // First, trigger any pending storage events to complete
     await this.page.evaluate(() => {
@@ -248,8 +248,8 @@ export class EnhancedTimingHelper {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-            'Content-Type': 'application/json'
-          }
+            'Content-Type': 'application/json',
+          },
         });
 
         if (!res.ok) {
@@ -287,7 +287,7 @@ export class EnhancedTimingHelper {
       async () => {
         await this.page.waitForURL('/dashboard', { timeout: 30000 });
         return 'dashboard-direct';
-      }
+      },
     ], { timeout: 45000, requireSuccess: false });
 
     // Additional verification: ensure user actually has family access
@@ -311,7 +311,7 @@ export class EnhancedTimingHelper {
   async retryOperation<T>(
     operation: () => Promise<T>,
     operationName: string,
-    maxRetries: number = this.config.maxRetries
+    maxRetries: number = this.config.maxRetries,
   ): Promise<T> {
     let lastError: Error | null = null;
     

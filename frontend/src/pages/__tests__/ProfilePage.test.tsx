@@ -16,8 +16,8 @@ const mockUseAuth = useAuth as vi.MockedFunction<typeof useAuth>;
 // Mock the auth service
 vi.mock('../../services/authService', () => ({
   authService: {
-    updateProfile: vi.fn()
-  }
+    updateProfile: vi.fn(),
+  },
 }));
 
 // Mock react-router-dom useNavigate
@@ -26,7 +26,7 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    useNavigate: () => mockNavigate
+    useNavigate: () => mockNavigate,
   };
 });
 
@@ -34,7 +34,7 @@ const renderProfilePage = () => {
   return render(
     <MemoryRouter>
       <ProfilePage />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 
@@ -60,7 +60,7 @@ describe('ProfilePage', () => {
       login: vi.fn(),
       verifyMagicLink: vi.fn(),
       refreshToken: mockRefreshToken,
-      updateUser: mockUpdateUser
+      updateUser: mockUpdateUser,
     });
   });
 
@@ -162,7 +162,7 @@ describe('ProfilePage', () => {
       vi.mocked(authService.updateProfile).mockResolvedValue({
         id: 'test-user-id',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       renderProfilePage();
 
@@ -186,7 +186,7 @@ describe('ProfilePage', () => {
       await waitFor(() => {
         expect(authService.updateProfile).toHaveBeenCalledWith({
           name: 'Updated Name',
-          email: 'updated@example.com'
+          email: 'updated@example.com',
         });
       });
     });
@@ -196,7 +196,7 @@ describe('ProfilePage', () => {
       vi.mocked(authService.updateProfile).mockResolvedValue({
         id: 'test-user-id',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       renderProfilePage();
 
@@ -218,7 +218,7 @@ describe('ProfilePage', () => {
       vi.mocked(authService.updateProfile).mockResolvedValue({
         id: 'test-user-id',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       renderProfilePage();
 
@@ -240,7 +240,7 @@ describe('ProfilePage', () => {
       vi.mocked(authService.updateProfile).mockResolvedValue({
         id: 'test-user-id',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       renderProfilePage();
 
@@ -342,7 +342,7 @@ describe('ProfilePage', () => {
       vi.mocked(authService.updateProfile).mockResolvedValue({
         id: 'test-user-id',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       renderProfilePage();
 
@@ -366,7 +366,7 @@ describe('ProfilePage', () => {
       await waitFor(() => {
         expect(authService.updateProfile).toHaveBeenCalledWith({
           name: 'Trimmed Name',
-          email: 'trimmed@example.com'
+          email: 'trimmed@example.com',
         });
       });
     });
@@ -428,9 +428,9 @@ describe('ProfilePage', () => {
           success: false,
           error: 'Invalid input data',
           validationErrors: [
-            { field: 'email', message: 'Valid email required' }
-          ]
-        }
+            { field: 'email', message: 'Valid email required' },
+          ],
+        },
       };
       vi.mocked(authService.updateProfile).mockRejectedValue(axiosError);
       renderProfilePage();
@@ -459,8 +459,8 @@ describe('ProfilePage', () => {
         status: 400,
         data: {
           success: false,
-          error: 'Email is already in use by another account'
-        }
+          error: 'Email is already in use by another account',
+        },
       };
       vi.mocked(authService.updateProfile).mockRejectedValue(axiosError);
       renderProfilePage();
@@ -575,7 +575,7 @@ describe('ProfilePage', () => {
         login: vi.fn(),
         verifyMagicLink: vi.fn(),
         refreshToken: vi.fn(),
-        updateUser: vi.fn()
+        updateUser: vi.fn(),
       });
 
       renderProfilePage();
@@ -594,7 +594,7 @@ describe('ProfilePage', () => {
         login: vi.fn(),
         verifyMagicLink: vi.fn(),
         refreshToken: vi.fn(),
-        updateUser: vi.fn()
+        updateUser: vi.fn(),
       });
 
       renderProfilePage();
@@ -680,7 +680,7 @@ describe('ProfilePage', () => {
       vi.mocked(authService.updateProfile).mockResolvedValue({
         id: 'test-user-id',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       renderProfilePage();
 

@@ -22,7 +22,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.invite1',
           adminName,
-          familyName
+          familyName,
         );
         console.log('✅ Admin created and family setup complete');
       });
@@ -132,7 +132,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.invite2',
           adminName,
-          familyName
+          familyName,
         );
 
         // Navigate to family management page via Manage Family button
@@ -228,7 +228,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.security',
           adminName,
-          familyName
+          familyName,
         );
 
         // Navigate to family management page via Manage Family button
@@ -316,7 +316,7 @@ test.describe('Family Invitations E2E', () => {
       const userAFamily = `User A Family ${timestamp}`;
       const adminName = `Admin Conflict ${timestamp}`;
       const adminFamily = `Admin Conflict Test ${timestamp}`;
-      let userAEmail = authHelper.getFileSpecificEmail(`user.conflict.${timestamp}`);
+      const userAEmail = authHelper.getFileSpecificEmail(`user.conflict.${timestamp}`);
 
       let userAContext: any;
       let userAPage: Page;
@@ -324,7 +324,7 @@ test.describe('Family Invitations E2E', () => {
       await test.step('User A creates their own family', async () => {
         userAContext = await browserContext.browser()!.newContext();
         userAPage = await userAContext.newPage();
-        const userAAuth = new UniversalAuthHelper(userAPage);
+        const _userAAuth = new UniversalAuthHelper(userAPage);
 
         // Use the SAME authHelper instance to ensure same runId
         // Pass the already-generated email to avoid creating a new one
@@ -332,7 +332,7 @@ test.describe('Family Invitations E2E', () => {
           userAPage,
           userAEmail,
           userAName,
-          userAFamily
+          userAFamily,
         );
 
         await expect(userAPage.locator('[data-testid="DashboardPage-Text-familyName"]')).toBeVisible();
@@ -345,7 +345,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.conflict',
           adminName,
-          adminFamily
+          adminFamily,
         );
 
         // Navigate to family management page via Manage Family button
@@ -373,7 +373,7 @@ test.describe('Family Invitations E2E', () => {
         expect(invitationUrl).toBeTruthy();
 
         // REUSE the existing userAContext instead of creating a new one
-        const userAAuth = new UniversalAuthHelper(userAPage);
+        const _userAAuth = new UniversalAuthHelper(userAPage);
 
         // Logout User A from current session
         await userAPage.evaluate(() => {
@@ -388,7 +388,7 @@ test.describe('Family Invitations E2E', () => {
         const existingUserTab = userAPage.locator('[data-testid="LoginPage-Tab-existingUser"]');
         await expect(existingUserTab).toBeVisible({ timeout: 5000 });
         await existingUserTab.click();
-        await userAAuth.waitForAuthenticationStability();
+        await _userAAuth.waitForAuthenticationStability();
 
         const userAEmailInput = userAPage.locator('[data-testid="LoginPage-Input-email"]');
         await userAEmailInput.fill(userAEmail);
@@ -402,9 +402,9 @@ test.describe('Family Invitations E2E', () => {
             response =>
               response.url().includes('/api/v1/auth/magic-link') &&
               response.request().method() === 'POST',
-            { timeout: 10000 }
+            { timeout: 10000 },
           ),
-          userASubmitButton.click()
+          userASubmitButton.click(),
         ]);
 
         // Verify the backend accepted the request
@@ -419,7 +419,7 @@ test.describe('Family Invitations E2E', () => {
         expect(magicLinkResponse.status()).toBe(200);
         console.log(`✅ Magic link request succeeded with status ${magicLinkResponse.status()}`);
 
-        await userAAuth.waitForAuthenticationStability();
+        await _userAAuth.waitForAuthenticationStability();
 
         // Wait for magic link email (reuse any existing magic link for this email)
         const userAMagicLink = await emailHelper.requireMagicLinkForRecipient(userAEmail, { timeoutMs: 30000 });
@@ -465,7 +465,7 @@ test.describe('Family Invitations E2E', () => {
           lastAdminPage,
           lastAdminEmail,
           lastAdminName,
-          lastAdminFamily
+          lastAdminFamily,
         );
         await expect(lastAdminPage.locator('[data-testid="DashboardPage-Text-familyName"]')).toBeVisible();
 
@@ -477,7 +477,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.lastadmin',
           adminName,
-          adminFamily
+          adminFamily,
         );
 
         // Navigate to family management page via Manage Family button
@@ -535,9 +535,9 @@ test.describe('Family Invitations E2E', () => {
             response =>
               response.url().includes('/api/v1/auth/magic-link') &&
               response.request().method() === 'POST',
-            { timeout: 10000 }
+            { timeout: 10000 },
           ),
-          lastAdminSubmitButton.click()
+          lastAdminSubmitButton.click(),
         ]);
 
         // Verify the backend accepted the request
@@ -580,7 +580,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.pending',
           adminName,
-          familyName
+          familyName,
         );
 
         // Navigate to family management page via Manage Family button
@@ -608,7 +608,7 @@ test.describe('Family Invitations E2E', () => {
         page.on('console', msg => {
           const text = msg.text();
           // Capture all emoji-prefixed logs for debugging
-          if (text.match(/^[🔍✅❌⚠️🔄🚨]/) || text.includes('Redirecting') || text.includes('checking redirect')) {
+          if (/^\p{Emoji}/u.test(text) || text.includes('Redirecting') || text.includes('checking redirect')) {
             console.log(`🖥️  Frontend: ${text}`);
           }
         });
@@ -623,7 +623,7 @@ test.describe('Family Invitations E2E', () => {
             if (url.includes('/invitations')) {
               try {
                 const body = await response.json();
-                console.log(`📄 Response body:`, JSON.stringify(body, null, 2));
+                console.log('📄 Response body:', JSON.stringify(body, null, 2));
               } catch {
                 // Not JSON
               }
@@ -686,7 +686,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.cancel',
           adminName,
-          familyName
+          familyName,
         );
 
         // Navigate to family management page via Manage Family button
@@ -725,7 +725,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.waitForReactQueryStable();
 
         // Find the invitation by email, then click its cancel button
-        const invitationEmail = page.locator(`[data-testid="InvitationManagement-Text-pendingInvitationEmail"]`, { hasText: cancelEmail });
+        const invitationEmail = page.locator('[data-testid="InvitationManagement-Text-pendingInvitationEmail"]', { hasText: cancelEmail });
 
         // Navigate to the parent container to find the cancel button
         const invitationRow = invitationEmail.locator('xpath=../../../../..');
@@ -763,7 +763,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.emailcontent',
           adminName,
-          familyName
+          familyName,
         );
 
         // Navigate to family management page via Manage Family button
@@ -806,7 +806,7 @@ test.describe('Family Invitations E2E', () => {
         await authHelper.setupAdminUser(
           'admin.urlextract',
           adminName,
-          familyName
+          familyName,
         );
 
         // Navigate to family management page via Manage Family button

@@ -9,7 +9,7 @@ export function useDateFormatting() {
 
   const format = useCallback((
     isoDateTime: string,
-    context: DateContext = 'FULL'
+    context: DateContext = 'FULL',
   ): string => {
     return formatDate(isoDateTime, userLocale, context);
   }, [userLocale]);
@@ -26,14 +26,14 @@ export function useDateFormatting() {
     format,
     formatRelative,
     formatError,
-    locale: userLocale
+    locale: userLocale,
   };
 }
 
 /**
  * Hook specifically for relative time that updates periodically
  */
-export function useRelativeTime(isoDateTime: string, /* _updateInterval: number = 60000 */) {
+export function useRelativeTime(isoDateTime: string /* _updateInterval: number = 60000 */) {
   const { formatRelative } = useDateFormatting();
   
   // For now, just return the formatted time

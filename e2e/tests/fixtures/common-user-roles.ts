@@ -27,7 +27,7 @@ export const STANDARD_USER_ROLES = {
   // Edge case roles
   TIMEZONE_USER: 'timezoneUser',
   NETWORK_TEST_USER: 'networkTestUser',
-  LOAD_TEST_USER: 'loadTestUser'
+  LOAD_TEST_USER: 'loadTestUser',
 } as const;
 
 export type StandardUserRole = typeof STANDARD_USER_ROLES[keyof typeof STANDARD_USER_ROLES];
@@ -39,27 +39,27 @@ export const USER_CONFIGURATIONS = {
   BASIC_ADMIN: {
     role: STANDARD_USER_ROLES.ADMIN,
     permissions: ['create', 'read', 'update', 'delete'],
-    hasFamily: true
+    hasFamily: true,
   },
   
   BASIC_MEMBER: {
     role: STANDARD_USER_ROLES.MEMBER,
     permissions: ['read'],
-    hasFamily: true
+    hasFamily: true,
   },
   
   GROUP_CREATOR: {
     role: STANDARD_USER_ROLES.GROUP_ADMIN,
     permissions: ['create', 'read', 'update', 'delete', 'invite'],
     hasFamily: true,
-    canCreateGroups: true
+    canCreateGroups: true,
   },
   
   SCHEDULE_MANAGER: {
     role: STANDARD_USER_ROLES.SCHEDULE_ADMIN,
     permissions: ['create', 'read', 'update', 'delete', 'assign'],
     hasFamily: true,
-    canManageSchedules: true
+    canManageSchedules: true,
   },
   
   NEW_USER_WITH_INVITATION: {
@@ -67,8 +67,8 @@ export const USER_CONFIGURATIONS = {
     permissions: [],
     hasFamily: false,
     willReceiveInvitation: true,
-    shouldNotBePreCreated: true
-  }
+    shouldNotBePreCreated: true,
+  },
 } as const;
 
 /**
@@ -78,26 +78,26 @@ export const FAMILY_TEMPLATES = {
   SINGLE_ADMIN: {
     adminCount: 1,
     memberCount: 0,
-    structure: 'simple'
+    structure: 'simple',
   },
   
   ADMIN_WITH_MEMBERS: {
     adminCount: 1,
     memberCount: 2,
-    structure: 'typical'
+    structure: 'typical',
   },
   
   MULTI_ADMIN: {
     adminCount: 2,
     memberCount: 1,
-    structure: 'shared_admin'
+    structure: 'shared_admin',
   },
   
   LARGE_FAMILY: {
     adminCount: 1,
     memberCount: 4,
-    structure: 'large'
-  }
+    structure: 'large',
+  },
 } as const;
 
 /**
@@ -107,19 +107,19 @@ export const GROUP_TEMPLATES = {
   SMALL_GROUP: {
     adminFamilyCount: 1,
     memberFamilyCount: 2,
-    totalFamilies: 3
+    totalFamilies: 3,
   },
   
   MEDIUM_GROUP: {
     adminFamilyCount: 1,
     memberFamilyCount: 4,
-    totalFamilies: 5
+    totalFamilies: 5,
   },
   
   LARGE_GROUP: {
     adminFamilyCount: 2,
     memberFamilyCount: 6,
-    totalFamilies: 8
+    totalFamilies: 8,
   },
   
   COORDINATION_GROUP: {
@@ -127,8 +127,8 @@ export const GROUP_TEMPLATES = {
     memberFamilyCount: 3,
     totalFamilies: 4,
     hasScheduleCoordination: true,
-    hasResourceSharing: true
-  }
+    hasResourceSharing: true,
+  },
 } as const;
 
 /**

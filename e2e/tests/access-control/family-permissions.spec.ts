@@ -16,7 +16,7 @@ test.describe('Family Access Control and Permissions', () => {
     
     // Define families with proper roles - familyMember should be MEMBER of adminFamily
     authHelper.defineFamily('adminFamily', 'Admin Test Family', 'familyAdmin', [
-      { userKey: 'familyMember', role: 'MEMBER' }
+      { userKey: 'familyMember', role: 'MEMBER' },
     ]);
     authHelper.defineFamily('testFamily', 'Test Family', 'adminUser');
     

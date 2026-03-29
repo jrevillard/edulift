@@ -20,7 +20,7 @@ test.describe('Family Member Management E2E', () => {
         const { email: adminEmail, familyName } = await testAuthHelper.setupAdminUser(
           'admin.invite',
           `Admin Invite ${timestamp}`,
-          `Invite Family ${timestamp}`
+          `Invite Family ${timestamp}`,
         );
         console.log(`✅ Admin created: ${adminEmail} with family ${familyName}`);
       });
@@ -48,7 +48,7 @@ test.describe('Family Member Management E2E', () => {
         // Monitor network requests to see if invitation POST is sent
         const responsePromise = page.waitForResponse(response => 
           response.url().includes('/invite') && response.request().method() === 'POST', 
-        { timeout: 10000 }
+        { timeout: 10000 },
         ).catch(() => null);
         
         console.log('🔄 Clicking send invitation button...');
@@ -94,7 +94,7 @@ test.describe('Family Member Management E2E', () => {
 
       await test.step('Member accepts invitation and joins', async () => {
         // Wait for invitation email and extract URL
-        let invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail, { timeoutMs: 30000 });
+        const invitationUrl = await emailHelper.requireInvitationUrlForRecipient(recipientEmail, { timeoutMs: 30000 });
         const invitationEmail = recipientEmail;
         
         // Use isolated browser context to prevent auth contamination
@@ -118,7 +118,7 @@ test.describe('Family Member Management E2E', () => {
         const { email: adminEmail, familyName } = await testAuthHelper.setupAdminUser(
           'admin.enforce',
           `Admin Enforce ${timestamp}`,
-          `Enforce Family ${timestamp}`
+          `Enforce Family ${timestamp}`,
         );
         console.log(`✅ Admin created: ${adminEmail} with family ${familyName}`);
       });
@@ -142,7 +142,7 @@ test.describe('Family Member Management E2E', () => {
           
           console.log('Admin permission elements check:', {
             inviteButtonVisible: !!inviteButton,
-            memberCardCount: memberCards.length
+            memberCardCount: memberCards.length,
           });
           
           // Admin should see invite button and at least one member card (themselves)
@@ -174,7 +174,7 @@ test.describe('Family Member Management E2E', () => {
         const result = await testAuthHelper.setupAdminUser(
           'admin.remove',
           `Admin Remove ${timestamp}`,
-          `Remove Family ${timestamp}`
+          `Remove Family ${timestamp}`,
         );
         adminEmail = result.email;
       });
@@ -252,7 +252,7 @@ test.describe('Family Member Management E2E', () => {
         // Admin menu buttons should be visible since we are the admin
         const memberMenuButton = page.locator('[data-testid^="ManageFamilyPage-Button-memberMenu-"]').first();
         await expect(memberMenuButton).toBeVisible({
-          timeout: 15000
+          timeout: 15000,
         });
         console.log('✅ Admin permission controls loaded successfully');
 
@@ -338,7 +338,7 @@ test.describe('Family Member Management E2E', () => {
         await testAuthHelper.setupAdminUser(
           'soleadmin',
           `Sole Admin ${timestamp}`,
-          `Sole Admin Family ${timestamp}`
+          `Sole Admin Family ${timestamp}`,
         );
 
         // Navigate to family management
@@ -436,7 +436,7 @@ test.describe('Family Member Management E2E', () => {
         await testAuthHelper.setupAdminUser(
           'admin.multi',
           `Multi Admin ${timestamp}`,
-          `Multi Admin Family ${timestamp}`
+          `Multi Admin Family ${timestamp}`,
         );
       });
 
@@ -521,7 +521,7 @@ test.describe('Family Member Management E2E', () => {
         await testAuthHelper.setupAdminUser(
           'admin.role',
           `Admin Role ${timestamp}`,
-          `Role Family ${timestamp}`
+          `Role Family ${timestamp}`,
         );
       });
 
@@ -566,7 +566,7 @@ test.describe('Family Member Management E2E', () => {
         await testAuthHelper.setupAdminUser(
           'admin.child',
           `Admin Child ${timestamp}`,
-          `Child Family ${timestamp}`
+          `Child Family ${timestamp}`,
         );
       });
 
@@ -633,7 +633,7 @@ test.describe('Family Member Management E2E', () => {
         await testAuthHelper.setupAdminUser(
           'admin.vehicle',
           `Admin Vehicle ${timestamp}`,
-          `Vehicle Family ${timestamp}`
+          `Vehicle Family ${timestamp}`,
         );
       });
 
@@ -710,7 +710,7 @@ test.describe('Family Member Management E2E', () => {
         await testAuthHelper.setupAdminUser(
           'admin.member.vehicle',
           `Admin Member Vehicle ${timestamp}`,
-          `Member Vehicle Family ${timestamp}`
+          `Member Vehicle Family ${timestamp}`,
         );
 
         // Add a vehicle

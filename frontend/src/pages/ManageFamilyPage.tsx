@@ -65,7 +65,7 @@ const ManageFamilyPage: React.FC = () => {
     leaveFamily,
     updateFamilyName,
     getPendingInvitations,
-    cancelInvitation
+    cancelInvitation,
   } = useFamily();
 
   // Query for pending invitations (React Query manages caching and loading)
@@ -276,9 +276,9 @@ const ManageFamilyPage: React.FC = () => {
         <Alert
           className="border-green-200 bg-green-50 text-green-800"
           data-testid={
-            successMessage.includes('copied') ? "ManageFamilyPage-Alert-copySuccess" :
-              successMessage.includes('Family name updated') ? "ManageFamilyPage-Alert-familyNameUpdatedSuccess" :
-                "ManageFamilyPage-Alert-invitationSentSuccess"
+            successMessage.includes('copied') ? 'ManageFamilyPage-Alert-copySuccess' :
+              successMessage.includes('Family name updated') ? 'ManageFamilyPage-Alert-familyNameUpdatedSuccess' :
+                'ManageFamilyPage-Alert-invitationSentSuccess'
           }
         >
           <AlertCircle className="h-4 w-4" />
@@ -291,8 +291,8 @@ const ManageFamilyPage: React.FC = () => {
           className="border-red-200 bg-red-50 text-red-800"
           data-testid={
             errorMessage.toLowerCase().includes('last admin') || errorMessage.toLowerCase().includes('only admin')
-              ? "ManageFamilyPage-Alert-lastAdminError"
-              : "ManageFamilyPage-Alert-errorMessage"
+              ? 'ManageFamilyPage-Alert-lastAdminError'
+              : 'ManageFamilyPage-Alert-errorMessage'
           }
         >
           <AlertCircle className="h-4 w-4" />
@@ -340,7 +340,7 @@ const ManageFamilyPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label>Your Role</Label>
-              <Badge variant={isAdmin ? "default" : canManageChildren ? "secondary" : "outline"} data-testid="ManageFamilyPage-Badge-userRole">
+              <Badge variant={isAdmin ? 'default' : canManageChildren ? 'secondary' : 'outline'} data-testid="ManageFamilyPage-Badge-userRole">
                 {isAdmin ? 'ADMIN' : 'MEMBER'}
               </Badge>
             </div>
@@ -379,8 +379,8 @@ const ManageFamilyPage: React.FC = () => {
                   user: {
                     id: member.user?.id || '',
                     name: member.user?.name || 'Unknown',
-                    email: member.user?.email || 'No email'
-                  }
+                    email: member.user?.email || 'No email',
+                  },
                 })) || []}
                 pendingInvitations={pendingInvitations?.map(invitation => ({
                   id: invitation.id,
@@ -396,7 +396,7 @@ const ManageFamilyPage: React.FC = () => {
                 entityType="family"
                 roleOptions={[
                   { value: 'MEMBER', label: 'Member' },
-                  { value: 'ADMIN', label: 'Admin' }
+                  { value: 'ADMIN', label: 'Admin' },
                 ]}
                 onInviteMember={handleInviteMember}
                 onCancelInvitation={handleCancelInvitation}
@@ -422,7 +422,7 @@ const ManageFamilyPage: React.FC = () => {
 
                     <div className="flex items-center gap-2">
                       <Badge variant={
-                        member.role === 'ADMIN' ? "default" : "outline"
+                        member.role === 'ADMIN' ? 'default' : 'outline'
                       }>
                         {member.role}
                       </Badge>

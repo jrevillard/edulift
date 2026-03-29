@@ -277,7 +277,7 @@ describe('InvitationManagement', () => {
         {...defaultProps}
         members={[]}
         pendingInvitations={[]}
-      />
+      />,
     );
 
     expect(screen.getByTestId('InvitationManagement-Text-noMembers')).toBeInTheDocument();
@@ -312,7 +312,7 @@ describe('InvitationManagement', () => {
       <InvitationManagement
         {...defaultProps}
         pendingInvitations={[invitationWithoutMessage]}
-      />
+      />,
     );
 
     expect(screen.queryByText('"Welcome to our family!"')).not.toBeInTheDocument();

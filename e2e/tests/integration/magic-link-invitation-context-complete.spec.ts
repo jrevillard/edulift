@@ -37,7 +37,7 @@ test.describe('Magic Link Invitation Context Preservation - Complete E2E', () =>
       () => authHelper.createFamilyInDatabase('groupFamily'),
       () => authHelper.createFamilyInDatabase('invalidFamily'),
       () => authHelper.createFamilyInDatabase('multiFamily'),
-      () => authHelper.createFamilyInDatabase('persistenceFamily')
+      () => authHelper.createFamilyInDatabase('persistenceFamily'),
     ];
     
     await authHelper.createMultipleEntitiesInSequence(familyOperations, 1000);
@@ -53,7 +53,7 @@ test.describe('Magic Link Invitation Context Preservation - Complete E2E', () =>
   test.setTimeout(120000); // Increased timeout for parallel execution
 
   test('should handle invalid invitation codes in magic link flow', async ({ page, context: _context }) => {
-    const newUserEmail = `magiclink.family.${Date.now()}@example.com`;
+    const _newUserEmail = `magiclink.family.${Date.now()}@example.com`;
 
     await test.step('1. Unauthenticated user visits invalid family invitation link', async () => {
       await page.goto(`/families/join?code=${testFamilyInviteCode}`);

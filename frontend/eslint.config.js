@@ -33,11 +33,37 @@ export default tseslint.config(
         'warn',
         {
           'ignoreRestArgs': true,
-          'fixToUnknown': false
-        }
+          'fixToUnknown': false,
+        },
       ],
       // Prevent navigate() calls to API routes
       'edulift-custom/no-api-routes-in-navigate': 'error',
+
+      // TypeScript strictness (aligned with backend)
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-var-requires': 'error',
+      '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+
+      // Strict patterns (aligned with backend)
+      'no-debugger': 'error',
+      'no-alert': 'off', // Browser app uses confirm() for user interactions
+      'no-eval': 'error',
+      'no-implied-eval': 'error',
+      'no-throw-literal': 'error',
+
+      // Code style (aligned with backend)
+      'prefer-const': 'error',
+      'no-var': 'error',
+      'object-shorthand': 'error',
+      'prefer-arrow-callback': 'error',
+      'prefer-template': 'error',
+      'quotes': ['error', 'single'],
+      'semi': ['error', 'always'],
+      'comma-dangle': ['error', 'always-multiline'],
     },
   },
 )

@@ -1,8 +1,8 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { chromium as _chromium, FullConfig } from '@playwright/test';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup(_config: FullConfig) {
   console.log('🚀 Starting E2E environment setup...');
 
   // Check if running inside a container (no Docker available)
@@ -22,9 +22,9 @@ async function globalSetup(config: FullConfig) {
     try {
       execSync('docker compose -f docker-compose.yml down -v', {
         stdio: 'inherit',
-        timeout: 60000
+        timeout: 60000,
       });
-    } catch (cleanupError) {
+    } catch (_cleanupError) {
       console.log('No existing containers to clean up (this is normal)');
     }
     
@@ -32,7 +32,7 @@ async function globalSetup(config: FullConfig) {
     console.log('📦 Starting Docker containers...');
     execSync('docker compose -f docker-compose.yml up -d --build', {
       stdio: 'inherit',
-      timeout: 180000 // 3 minutes
+      timeout: 180000, // 3 minutes
     });
     
     // Wait for services to be ready
@@ -65,14 +65,14 @@ async function waitForDockerHealth(containerName: string, timeout: number): Prom
     try {
       const result = execSync(`docker inspect ${containerName} --format='{{.State.Health.Status}}'`, { 
         encoding: 'utf8',
-        timeout: 5000 
+        timeout: 5000, 
       }).trim();
       
       if (result === 'healthy') {
         console.log(`✅ Container ${containerName} is healthy`);
         return;
       }
-    } catch (error) {
+    } catch (_error) {
       // Container not ready yet
     }
     

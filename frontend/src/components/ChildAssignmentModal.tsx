@@ -102,7 +102,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   isOpen,
   onClose,
   scheduleSlot,
-  preSelectedVehicleAssignmentId
+  preSelectedVehicleAssignmentId,
 }) => {
   const { user } = useAuth(); // Get user for timezone
   const { socket } = useSocket();
@@ -136,7 +136,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     queryFn: async () => {
       try {
         const result = await api.GET('/api/v1/schedule-slots/{scheduleSlotId}', {
-          params: { path: { scheduleSlotId: currentScheduleSlotId! } }
+          params: { path: { scheduleSlotId: currentScheduleSlotId! } },
         });
         // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
         return result.data?.data;
@@ -190,7 +190,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     mutationFn: async ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) => {
       const { data } = await api.PATCH('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
         params: { path: { scheduleSlotId, vehicleAssignmentId } },
-        body: { addChildIds: [childId] }
+        body: { addChildIds: [childId] },
       });
       // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
       return data?.data;
@@ -242,7 +242,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     mutationFn: async ({ scheduleSlotId, childId, vehicleAssignmentId }: { scheduleSlotId: string; childId: string; vehicleAssignmentId: string }) => {
       const { data } = await api.PATCH('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
         params: { path: { scheduleSlotId, vehicleAssignmentId } },
-        body: { removeChildIds: [childId] }
+        body: { removeChildIds: [childId] },
       });
       // openapi-fetch response: { data: { success: true, data: ScheduleSlot } }
       return data?.data;
@@ -276,7 +276,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
       const assignmentData = {
         scheduleSlotId: currentScheduleSlotId,
         childId: selectedChild,
-        vehicleAssignmentId: selectedVehicleAssignment
+        vehicleAssignmentId: selectedVehicleAssignment,
       };
 
       await assignChildMutation.mutateAsync(assignmentData);
@@ -326,7 +326,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
     
     // Filter children who are members of the current group
     const groupChildren = children.filter((child: Child) => 
-      child.groupMemberships?.some((membership: GroupChildMembership) => membership.groupId === scheduleSlot.groupId)
+      child.groupMemberships?.some((membership: GroupChildMembership) => membership.groupId === scheduleSlot.groupId),
     );
     
     // Filter out children already assigned to this schedule slot
@@ -343,14 +343,14 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
   if (preSelectedVehicleAssignmentId && currentSlot) {
     // Vehicle-specific mode: show capacity for the selected vehicle only
     const selectedVehicleAssignment = currentSlot.vehicleAssignments?.find(
-      (va) => va.id === preSelectedVehicleAssignmentId
+      (va) => va.id === preSelectedVehicleAssignmentId,
     );
 
     if (selectedVehicleAssignment) {
       totalCapacity = selectedVehicleAssignment.vehicle?.capacity || 0;
       // Count only children assigned to this specific vehicle
       currentOccupancy = currentSlot.childAssignments?.filter(
-        (ca) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId
+        (ca) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId,
       ).length || 0;
     }
   } else {
@@ -408,7 +408,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
             <label className="block text-xs font-medium text-gray-700 mb-1" data-testid="ChildAssignmentModal-Label-addingToVehicle">Adding to Vehicle</label>
             {(() => {
               const selectedVehicle = currentSlot.vehicleAssignments?.find((va) =>
-                va.id === preSelectedVehicleAssignmentId
+                va.id === preSelectedVehicleAssignmentId,
               );
               if (!selectedVehicle) return null;
               
@@ -488,7 +488,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
               // Filter children based on whether we're in vehicle-specific mode
               const displayedChildAssignments = preSelectedVehicleAssignmentId && currentSlot
                 ? currentSlot.childAssignments?.filter(
-                    (ca) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId
+                    (ca) => ca.vehicleAssignmentId === preSelectedVehicleAssignmentId,
                   ) || []
                 : currentSlot?.childAssignments || [];
 
@@ -562,7 +562,7 @@ const ChildAssignmentModal: React.FC<ChildAssignmentModalProps> = ({
                         <option value="">Choose a vehicle...</option>
                         {currentSlot.vehicleAssignments.map((vehicleAssignment) => {
                           const vehicleChildren = currentSlot.childAssignments?.filter((ca) =>
-                            ca.vehicleAssignmentId === vehicleAssignment.id
+                            ca.vehicleAssignmentId === vehicleAssignment.id,
                           ) || [];
                           const availableSeats = (vehicleAssignment.vehicle?.capacity || 0) - vehicleChildren.length;
                           const isVehicleFull = availableSeats <= 0;

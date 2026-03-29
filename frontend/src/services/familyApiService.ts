@@ -131,7 +131,7 @@ class FamilyApiService {
         familyId: familyData.id,
         familyName: familyData.name,
         memberCount: familyData.members?.length || 0,
-        adminCount: familyData.members?.filter(m => m.role === 'ADMIN').length || 0
+        adminCount: familyData.members?.filter(m => m.role === 'ADMIN').length || 0,
       });
     } else {
       console.log('📝 FamilyApiService: No current family found');
@@ -335,7 +335,7 @@ class FamilyApiService {
 
     try {
       const { data, error } = await api.GET('/api/v1/invitations/family/{code}/validate', {
-        params: { path: { code: inviteCode } }
+        params: { path: { code: inviteCode } },
       });
 
       if (error) {

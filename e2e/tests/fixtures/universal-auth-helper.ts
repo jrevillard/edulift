@@ -94,8 +94,8 @@ export class UniversalAuthHelper {
   }
 
   constructor(
-    private page: Page, // eslint-disable-line no-unused-vars
-    testDataInstance?: FileSpecificTestData
+    private page: Page,  
+    testDataInstance?: FileSpecificTestData,
   ) {
     if (testDataInstance instanceof FileSpecificTestData) {
       // Use existing test data instance
@@ -142,7 +142,7 @@ export class UniversalAuthHelper {
     // First try to get from process.env if available (more reliable for CI)
     const testFile = (process as any).env.PLAYWRIGHT_TEST_FILE;
     if (testFile) {
-      const match = testFile.match(/\/([^\/]+)\.spec\.ts/);
+      const match = testFile.match(/\/([^/]+)\.spec\.ts/);
       if (match) {
         const fileName = match[1];
         const basePrefix = fileName
@@ -158,7 +158,7 @@ export class UniversalAuthHelper {
 
     // Try stack trace method
     const stack = new Error().stack;
-    const testFileMatch = stack?.match(/\/([^\/]+)\.spec\.ts/);
+    const testFileMatch = stack?.match(/\/([^/]+)\.spec\.ts/);
 
     if (testFileMatch) {
       const fileName = testFileMatch[1];
@@ -282,7 +282,7 @@ All tests MUST use automatic prefix detection for consistency.
         (async () => { await cleanupFamilyMemberships(); })();
       `;
 
-      execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', timeout: 20000, stdio: 'inherit' });
+      execSync('docker exec -i edulift-backend-e2e node', { input: script, encoding: 'utf8', timeout: 20000, stdio: 'inherit' });
     } catch (error) {
       console.log(`Family membership cleanup for ${userId}:`, (error as Error).message);
     }
@@ -331,7 +331,7 @@ All tests MUST use automatic prefix detection for consistency.
         (async () => { await createUser(); })();
       `;
 
-      execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', timeout: 300000, stdio: 'inherit' });
+      execSync('docker exec -i edulift-backend-e2e node', { input: script, encoding: 'utf8', timeout: 300000, stdio: 'inherit' });
     } catch (error) {
       // Handle cases where user creation fails due to existing users
       if ((error as Error).message.includes('Unique constraint failed') ||
@@ -372,7 +372,7 @@ All tests MUST use automatic prefix detection for consistency.
           }
         })();
       `;
-      execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', stdio: 'pipe', timeout: 10000 });
+      execSync('docker exec -i edulift-backend-e2e node', { input: script, encoding: 'utf8', stdio: 'pipe', timeout: 10000 });
     } catch (error) {
       throw new Error(`User verification failed for ID ${userId}: ${(error as Error).message}`);
     }
@@ -386,10 +386,10 @@ All tests MUST use automatic prefix detection for consistency.
 
     const header = { alg: 'HS256', typ: 'JWT' };
     const payload = {
-      userId: userId,
-      email: email,
+      userId,
+      email,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours for E2E tests
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours for E2E tests
     };
 
     const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
@@ -412,7 +412,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async authenticateUniqueUser(
     baseName: string = 'testuser',
-    options: AuthOptions = {}
+    options: AuthOptions = {},
   ): Promise<AuthUser> {
     const randomId = Math.random().toString(36).substring(2, 8);
 
@@ -423,7 +423,7 @@ All tests MUST use automatic prefix detection for consistency.
     const user: AuthUser = {
       id: uniqueId,
       email: uniqueEmail,
-      name: `${baseName.charAt(0).toUpperCase() + baseName.slice(1)} User`
+      name: `${baseName.charAt(0).toUpperCase() + baseName.slice(1)} User`,
     };
 
     // Create the user in the database first so JWT validation will work
@@ -449,7 +449,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async authenticateSpecificUser(
     user: AuthUser,
-    options: AuthOptions = {}
+    options: AuthOptions = {},
   ): Promise<void> {
     await this.setAuthenticationData(user, options);
   }
@@ -459,7 +459,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   private async setAuthenticationData(
     user: AuthUser,
-    options: AuthOptions
+    options: AuthOptions,
   ): Promise<void> {
     const jwtToken = this.createValidJWT(user.id, user.email);
 
@@ -468,7 +468,7 @@ All tests MUST use automatic prefix detection for consistency.
 
     try {
       await this.page.evaluate(
-        ({ token, userData, opts, testOverrideIv }) => {
+        ({ token, userData, opts: _opts, testOverrideIv }) => {
           // Clear any existing auth data first to avoid conflicts
           // 🔧 FIX: Also clear secure_* keys
           localStorage.removeItem('authToken');
@@ -491,21 +491,21 @@ All tests MUST use automatic prefix detection for consistency.
           localStorage.setItem('secure_authToken', JSON.stringify({
             encrypted: encodeBase64(token),
             iv: e2eTestIv,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
 
           // Store userData in secure_userData
           localStorage.setItem('secure_userData', JSON.stringify({
             encrypted: encodeBase64(JSON.stringify(userData)),
             iv: e2eTestIv,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
 
           // Store refreshToken in secure_refreshToken
           localStorage.setItem('secure_refreshToken', JSON.stringify({
             encrypted: encodeBase64('test-refresh-token'),
             iv: e2eTestIv,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
 
           // Force authService to re-read localStorage by triggering a storage event
@@ -515,10 +515,10 @@ All tests MUST use automatic prefix detection for consistency.
             newValue: JSON.stringify({
               encrypted: btoa(token),
               iv: btoa(testOverrideIv),
-              timestamp: Date.now()
+              timestamp: Date.now(),
             }),
             oldValue: null,
-            storageArea: localStorage
+            storageArea: localStorage,
           });
           window.dispatchEvent(storageEvent);
 
@@ -543,8 +543,8 @@ All tests MUST use automatic prefix detection for consistency.
           token: jwtToken,
           userData: user,
           opts: options,
-          testOverrideIv: E2E_TEST_OVERRIDE_IV
-        }
+          testOverrideIv: E2E_TEST_OVERRIDE_IV,
+        },
       );
     } catch (error) {
       throw new Error(`Failed to set authentication data: ${(error as Error).message}`);
@@ -561,7 +561,7 @@ All tests MUST use automatic prefix detection for consistency.
   async goToPageAsUser(
     user: AuthUser,
     targetPath: string,
-    options: AuthOptions = {}
+    options: AuthOptions = {},
   ): Promise<void> {
     // NO API MOCKING - Let real backend calls flow through
 
@@ -576,7 +576,7 @@ All tests MUST use automatic prefix detection for consistency.
 
     try {
       await this.page.evaluate(
-        ({ token, userData, opts, testOverrideIv }) => {
+        ({ token, userData, opts: _opts, testOverrideIv }) => {
           // 🔧 FIX: Store in secure_* format to match secureStorage keys
           // Format: { encrypted: base64(data), iv: base64(iv), timestamp: number }
           const encodeBase64 = (str: string) => btoa(str);
@@ -590,29 +590,29 @@ All tests MUST use automatic prefix detection for consistency.
           localStorage.setItem('secure_authToken', JSON.stringify({
             encrypted: encodeBase64(token),
             iv: e2eTestIv,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
 
           // Store userData in secure_userData
           localStorage.setItem('secure_userData', JSON.stringify({
             encrypted: encodeBase64(JSON.stringify(userData)),
             iv: e2eTestIv,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
 
           // Store refreshToken in secure_refreshToken
           localStorage.setItem('secure_refreshToken', JSON.stringify({
             encrypted: encodeBase64('test-refresh-token'),
             iv: e2eTestIv,
-            timestamp: Date.now()
+            timestamp: Date.now(),
           }));
         },
         {
           token: jwtToken,
           userData: user,
           opts: options,
-          testOverrideIv: E2E_TEST_OVERRIDE_IV
-        }
+          testOverrideIv: E2E_TEST_OVERRIDE_IV,
+        },
       );
     } catch (error) {
       // If we get a security error, we're already on the right page, continue
@@ -643,7 +643,7 @@ All tests MUST use automatic prefix detection for consistency.
     try {
       await this.page.waitForSelector('[data-testid="connection-alert"]', {
         state: 'hidden',
-        timeout: 25000
+        timeout: 25000,
       });
     } catch {
       // If no connection alert exists, that's fine
@@ -704,7 +704,7 @@ All tests MUST use automatic prefix detection for consistency.
   async setupAdminUser(
     userKey: string,
     displayName: string,
-    familyName: string
+    familyName: string,
   ): Promise<{ email: string; name: string; familyName: string }> {
     const timestamp = Date.now();
     const email = this.getFileSpecificEmail(`${userKey}.${timestamp}`);
@@ -747,7 +747,7 @@ All tests MUST use automatic prefix detection for consistency.
     // The magic link verification will redirect to either /onboarding or /dashboard
     await this.page.waitForURL(
       (url) => url.toString().includes('/onboarding') || url.toString().includes('/dashboard'),
-      { timeout: 15000 }
+      { timeout: 15000 },
     );
 
     // Complete onboarding to create family
@@ -766,7 +766,7 @@ All tests MUST use automatic prefix detection for consistency.
     targetPage: Page,
     email: string,
     displayName: string,
-    familyName: string
+    familyName: string,
   ): Promise<{ email: string; name: string; familyName: string }> {
     const name = displayName || `User ${Date.now()}`;
     const finalFamilyName = familyName || `Family ${Date.now()}`;
@@ -811,7 +811,7 @@ All tests MUST use automatic prefix detection for consistency.
       // Wait for authentication to complete and redirect to happen
       await this.page.waitForURL(
         (url) => url.toString().includes('/onboarding') || url.toString().includes('/dashboard'),
-        { timeout: 15000 }
+        { timeout: 15000 },
       );
 
       // Handle both new and existing users
@@ -839,7 +839,7 @@ All tests MUST use automatic prefix detection for consistency.
   async completeOnboarding(
     familyName: string = `Test Family ${this.filePrefix} ${Date.now().toString(36)}`,
     _addChildren: boolean = false,
-    _addVehicles: boolean = false
+    _addVehicles: boolean = false,
   ): Promise<void> {
     console.log('Starting family onboarding...');
 
@@ -895,7 +895,7 @@ All tests MUST use automatic prefix detection for consistency.
       return Array.from(scripts).map(s => ({
         src: s.getAttribute('src'),
         type: s.getAttribute('type'),
-        text: s.textContent?.substring(0, 100)
+        text: s.textContent?.substring(0, 100),
       }));
     });
     console.log('📍 Script tags:', JSON.stringify(scriptTags, null, 2));
@@ -984,7 +984,7 @@ All tests MUST use automatic prefix detection for consistency.
     // Wait for navigation to dashboard
     await this.page.waitForURL(
       (url) => url.toString().includes('/dashboard'),
-      { timeout: 15000 }
+      { timeout: 15000 },
     );
 
     console.log('Family onboarding completed successfully');
@@ -995,13 +995,13 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async quickFamilySetup(
     _baseName: string = 'testuser',
-    targetPath: string = '/dashboard'
+    targetPath: string = '/dashboard',
   ): Promise<AuthUser> {
     // Use a predefined user without family to ensure family creation works
     const noFamilyUser: AuthUser = {
       id: 'test-nofamily',
       email: 'nofamily@example.com',
-      name: 'No Family User'
+      name: 'No Family User',
     };
 
     // Ensure user exists in database
@@ -1037,7 +1037,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async quickExistingUserSetup(
     baseNameOrEmail: string = 'testuser',
-    targetPath: string = '/dashboard'
+    targetPath: string = '/dashboard',
   ): Promise<AuthUser> {
     let user: AuthUser;
 
@@ -1046,7 +1046,7 @@ All tests MUST use automatic prefix detection for consistency.
       // Extract name from email for display
       const emailParts = baseNameOrEmail.split('@')[0];
       const displayName = emailParts.split('.').map(part =>
-        part.charAt(0).toUpperCase() + part.slice(1)
+        part.charAt(0).toUpperCase() + part.slice(1),
       ).join(' ');
 
       // Use consistent ID format for test users
@@ -1070,7 +1070,7 @@ All tests MUST use automatic prefix detection for consistency.
       user = {
         id: userId,
         email: baseNameOrEmail,
-        name: displayName
+        name: displayName,
       };
 
       // For predefined test users, ensure they exist in database and try direct navigation
@@ -1085,7 +1085,7 @@ All tests MUST use automatic prefix detection for consistency.
     } else {
       // For generated user names, always create new unique users
       user = await this.authenticateUniqueUser(baseNameOrEmail, {
-        isNewUser: false
+        isNewUser: false,
       });
     }
 
@@ -1113,7 +1113,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async directUserSetup(
     userKey: string,
-    targetPath: string = '/dashboard'
+    targetPath: string = '/dashboard',
   ): Promise<TestUser> {
     // Get the predefined user - this enforces using FileSpecificTestData
     const user = this.testData.getUser(userKey);
@@ -1127,7 +1127,7 @@ All tests MUST use automatic prefix detection for consistency.
     await this.page.goto('/login');
     try {
       await this.page.waitForLoadState('networkidle', { timeout: 25000 });
-    } catch (error) {
+    } catch (_error) {
       // If networkidle times out, wait for DOM to be ready instead
       await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
       await this.timingHelper.waitForNavigationStable();
@@ -1147,16 +1147,16 @@ All tests MUST use automatic prefix detection for consistency.
             isAuthenticated: true,
             isNewUser: false,
             accessToken: token,
-            refreshToken: 'test-refresh-token'
+            refreshToken: 'test-refresh-token',
           },
-          version: 0
+          version: 0,
         };
         localStorage.setItem('auth-storage', JSON.stringify(_authData));
       },
       {
         token: jwtToken,
-        userData: user
-      }
+        userData: user,
+      },
     );
 
     // Navigate directly to target with retry mechanism for CPU-intensive environments
@@ -1196,7 +1196,7 @@ All tests MUST use automatic prefix detection for consistency.
               }
             })();
           `;
-          const checkResult = execSync(`docker exec -i edulift-backend-e2e node`, { input: script, encoding: 'utf8', stdio: 'pipe' });
+          const checkResult = execSync('docker exec -i edulift-backend-e2e node', { input: script, encoding: 'utf8', stdio: 'pipe' });
           console.log('🔍 Database check result:', checkResult);
         } catch (e) {
           console.error('Database check failed:', (e as Error).message);
@@ -1292,7 +1292,7 @@ All tests MUST use automatic prefix detection for consistency.
       const errorText = await response.text();
       throw new Error(
         `Failed to request magic link: ${response.status} ${response.statusText}\n` +
-        `Response: ${errorText}`
+        `Response: ${errorText}`,
       );
     }
 
@@ -1302,7 +1302,7 @@ All tests MUST use automatic prefix detection for consistency.
 
     return {
       success: data.success,
-      userExists: data.data?.userExists ?? true
+      userExists: data.data?.userExists ?? true,
     };
   }
 
@@ -1332,7 +1332,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async realUserSetup(
     userKey: string,
-    targetPath: string = '/dashboard'
+    targetPath: string = '/dashboard',
   ): Promise<TestUser> {
     const authStartTime = Date.now();
     const emailHelper = new E2EEmailHelper();
@@ -1378,9 +1378,9 @@ All tests MUST use automatic prefix detection for consistency.
       if (url.includes('/api/')) {
         const postData = request.postData();
         apiRequests.push({
-          url: url,
+          url,
           method: request.method(),
-          body: postData ? (() => { try { return JSON.parse(postData); } catch { return postData; }})() : undefined
+          body: postData ? (() => { try { return JSON.parse(postData); } catch { return postData; }})() : undefined,
         });
         console.log(`📤 API Request: ${request.method()} ${url}`);
       }
@@ -1399,7 +1399,7 @@ All tests MUST use automatic prefix detection for consistency.
         // Try to get response body
         try {
           const body = await response.text();
-          console.log(`   Body:`, body.substring(0, 300));
+          console.log('   Body:', body.substring(0, 300));
         } catch (e) {
           console.log(`   Body: (unable to read: ${e})`);
         }
@@ -1457,11 +1457,11 @@ All tests MUST use automatic prefix detection for consistency.
     if (!magicLink) {
       throw new Error(
         `❌ No magic link email received for ${user.email} within timeout. ` +
-        `Possible issues:\n` +
-        `  - Backend not sending emails (check MailPit: http://mailpit-e2e:8025 from container, or http://localhost:8025 from host)\n` +
-        `  - Email service not configured\n` +
+        'Possible issues:\n' +
+        '  - Backend not sending emails (check MailPit: http://mailpit-e2e:8025 from container, or http://localhost:8025 from host)\n' +
+        '  - Email service not configured\n' +
         `  - User ${user.email} not properly created in database\n` +
-        `  - Network connectivity issues between frontend and backend`
+        '  - Network connectivity issues between frontend and backend',
       );
     }
 
@@ -1472,12 +1472,12 @@ All tests MUST use automatic prefix detection for consistency.
     await this.page.goto(magicLink);
 
     // Wait for authentication to complete and navigation to target
-    console.log(`⏳ Waiting for authentication to complete...`);
+    console.log('⏳ Waiting for authentication to complete...');
 
     // Wait for URL to change from auth/verify to target or dashboard
     await this.page.waitForURL(
       url => !url.toString().includes('/auth/verify'),
-      { timeout: UniversalAuthHelper.TIMEOUTS.AUTH_VERIFICATION }
+      { timeout: UniversalAuthHelper.TIMEOUTS.AUTH_VERIFICATION },
     );
 
     console.log('✅ Authentication successful - token verified by backend');
@@ -1508,18 +1508,18 @@ All tests MUST use automatic prefix detection for consistency.
     if (finalUrl.includes('/login')) {
       throw new Error(
         `❌ Authentication failed for user ${user.email}. ` +
-        `User was redirected back to login page after clicking magic link. ` +
-        `This may indicate:\n` +
-        `  - Invalid or expired magic link\n` +
+        'User was redirected back to login page after clicking magic link. ' +
+        'This may indicate:\n' +
+        '  - Invalid or expired magic link\n' +
         `  - User ${user.email} does not exist in database\n` +
-        `  - Backend authentication service issues\n` +
-        `  - JWT token validation failure`
+        '  - Backend authentication service issues\n' +
+        '  - JWT token validation failure',
       );
     }
 
     const authDuration = Date.now() - authStartTime;
     console.log(`⏱️ Authentication completed in ${authDuration}ms`);
-    console.log(`✅ Real authentication flow completed successfully`);
+    console.log('✅ Real authentication flow completed successfully');
     console.log(`📍 Final URL: ${finalUrl}`);
 
     return user;
@@ -1530,7 +1530,7 @@ All tests MUST use automatic prefix detection for consistency.
    */
   async directUserSetupWithUser(
     user: AuthUser,
-    targetPath: string = '/dashboard'
+    targetPath: string = '/dashboard',
   ): Promise<AuthUser> {
     // CRITICAL: Ensure user exists in database first so JWT validation will work
     await this.createUserInDatabase(user);
@@ -1541,7 +1541,7 @@ All tests MUST use automatic prefix detection for consistency.
     await this.page.goto('/login');
     try {
       await this.page.waitForLoadState('networkidle', { timeout: 25000 });
-    } catch (error) {
+    } catch (_error) {
       // If networkidle times out, wait for DOM to be ready instead
       await this.page.waitForLoadState('domcontentloaded', { timeout: 15000 });
       await this.timingHelper.waitForNavigationStable();
@@ -1561,23 +1561,23 @@ All tests MUST use automatic prefix detection for consistency.
             isAuthenticated: true,
             isNewUser: false,
             accessToken: token,
-            refreshToken: 'test-refresh-token'
+            refreshToken: 'test-refresh-token',
           },
-          version: 0
+          version: 0,
         };
         localStorage.setItem('auth-storage', JSON.stringify(_authData));
       },
       {
         token: jwtToken,
-        userData: user
-      }
+        userData: user,
+      },
     );
 
     // Navigate directly to target with optimized timing
     await this.page.goto(targetPath);
     try {
       await this.page.waitForLoadState('networkidle', { timeout: 15000 });
-    } catch (error) {
+    } catch (_error) {
       // If networkidle times out, wait for DOM to be ready instead
       await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
     }
@@ -1635,7 +1635,7 @@ All tests MUST use automatic prefix detection for consistency.
             return true;
           },
           selector,
-          { timeout: Math.floor(timeout / maxAttempts) }
+          { timeout: Math.floor(timeout / maxAttempts) },
         );
 
         // Element is ready, try to click
@@ -1752,7 +1752,7 @@ All tests MUST use automatic prefix detection for consistency.
         // Try networkidle first, fallback to domcontentloaded with timeout
         try {
           await this.page.waitForLoadState('networkidle', { timeout: 15000 });
-        } catch (networkIdleError) {
+        } catch (_networkIdleError) {
           console.log(`⚠️ NetworkIdle timeout, falling back to domcontentloaded for ${path}`);
           await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
           // Wait for JavaScript to be ready instead of static timeout
@@ -1798,7 +1798,7 @@ All tests MUST use automatic prefix detection for consistency.
       // For authenticated pages, use a more lenient approach
       try {
         await this.timingHelper.waitForAuthenticationReady();
-      } catch (error) {
+      } catch (_error) {
         // If authentication ready times out, continue with page-level checks
         console.log('Authentication ready timeout, continuing with page checks...');
       }
@@ -1814,7 +1814,7 @@ All tests MUST use automatic prefix detection for consistency.
 
       // Debug logging to help diagnose authentication state
       const allKeys = Object.keys(localStorage);
-      const authKeys = allKeys.filter(k => k.startsWith('secure_') || k.startsWith('auth'));
+      const _authKeys = allKeys.filter(k => k.startsWith('secure_') || k.startsWith('auth'));
 
       // Check authentication consistency
       const hasAuth = authToken && userData;
@@ -1930,7 +1930,7 @@ All tests MUST use automatic prefix detection for consistency.
 
       // Fallback: Check for common loading indicators
       const loadingIndicators = document.querySelectorAll(
-        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]'
+        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]',
       );
       if (loadingIndicators.length > 0) {
         return false;
@@ -1978,7 +1978,7 @@ All tests MUST use automatic prefix detection for consistency.
 
       // Check for loading states
       const loadingIndicators = document.querySelectorAll(
-        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]'
+        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]',
       );
       if (loadingIndicators.length > 0) {
         return false;
@@ -2037,7 +2037,7 @@ All tests MUST use automatic prefix detection for consistency.
 
       // Check for loading states within modal
       const loadingIndicators = modalElement.querySelectorAll(
-        '[data-loading="true"], .loading, [class*="loading"]'
+        '[data-loading="true"], .loading, [class*="loading"]',
       );
       if (loadingIndicators.length > 0) {
         return false;
@@ -2061,12 +2061,12 @@ All tests MUST use automatic prefix detection for consistency.
     // Wait for any loading states to clear
     await this.page.waitForFunction(() => {
       const loadingIndicators = document.querySelectorAll(
-        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]'
+        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]',
       );
 
       // Check for form submission states
       const submittingButtons = document.querySelectorAll(
-        'button[disabled][data-testid*="submit"], button[disabled][data-testid*="create"]'
+        'button[disabled][data-testid*="submit"], button[disabled][data-testid*="create"]',
       );
 
       return loadingIndicators.length === 0 && submittingButtons.length === 0;
@@ -2081,11 +2081,11 @@ All tests MUST use automatic prefix detection for consistency.
     // Wait for any success notifications to appear
     await this.page.waitForFunction(() => {
       const successIndicators = document.querySelectorAll(
-        '[data-testid*="success"], [data-testid*="created"], [class*="success"]'
+        '[data-testid*="success"], [data-testid*="created"], [class*="success"]',
       );
 
       const errorIndicators = document.querySelectorAll(
-        '[data-testid*="error"], [class*="error"], [role="alert"]'
+        '[data-testid*="error"], [class*="error"], [role="alert"]',
       );
 
       // Either success indicators should be present, or we should be on a new page
@@ -2189,7 +2189,7 @@ All tests MUST use automatic prefix detection for consistency.
         key: 'auth-storage',
         oldValue: 'cleared',
         newValue: null,
-        url: window.location.href
+        url: window.location.href,
       });
       window.dispatchEvent(storageEvent);
     });
@@ -2295,7 +2295,7 @@ All tests MUST use automatic prefix detection for consistency.
       }
     }
 
-    throw lastError!;
+    throw new Error(lastError?.message ?? 'Operation failed after retries');
   }
 
   /**
@@ -2410,12 +2410,12 @@ All tests MUST use automatic prefix detection for consistency.
         const conditions = [
           async () => this.page.locator('[data-testid="FamilyOnboardingWizard-Alert-familyCreated"]').isVisible(),
           async () => !this.page.url().includes('/onboarding'),
-          async () => this.page.url().includes('/dashboard')
+          async () => this.page.url().includes('/dashboard'),
         ];
 
         await this.timingHelper.waitForAnyCondition(conditions, {
           timeout: 30000,
-          requireSuccess: false
+          requireSuccess: false,
         });
 
         // Verify user actually has family access now with improved validation
@@ -2445,7 +2445,7 @@ All tests MUST use automatic prefix detection for consistency.
           }
 
           console.log('✅ Onboarding completed successfully with family management access verified');
-        } catch (error) {
+        } catch (_error) {
           console.log('⚠️ Family management verification failed, but localStorage indicates family creation succeeded');
         }
 
@@ -2499,7 +2499,7 @@ All tests MUST use automatic prefix detection for consistency.
 
       // Check for loading indicators
       const loadingIndicators = document.querySelectorAll(
-        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]'
+        '[data-loading="true"], .loading, [class*="loading"], [data-testid*="loading"]',
       );
       if (loadingIndicators.length > 0) {
         return false;
@@ -2512,8 +2512,8 @@ All tests MUST use automatic prefix detection for consistency.
       }
 
       // Check if family conflict alert or related elements are present
-      const conflictAlerts = document.querySelectorAll(
-        '[data-testid*="Alert-existingFamily"], [data-testid*="Alert-cannotLeave"], [data-testid*="Button-leaveAndJoin"]'
+      const _conflictAlerts = document.querySelectorAll(
+        '[data-testid*="Alert-existingFamily"], [data-testid*="Alert-cannotLeave"], [data-testid*="Button-leaveAndJoin"]',
       );
 
       // Page is ready when either:
@@ -2550,7 +2550,7 @@ All tests MUST use automatic prefix detection for consistency.
       return {
         code_verifier: e2eData.code_verifier,
         code_challenge: e2eData.code_challenge,
-        email: e2eData.email
+        email: e2eData.email,
       };
     });
 
@@ -2580,7 +2580,7 @@ All tests MUST use automatic prefix detection for consistency.
       const mapping: Record<string, string> = {
         'code_verifier': 'pkce_code_verifier',
         'code_challenge': 'pkce_code_challenge',
-        'email': 'pkce_email'
+        'email': 'pkce_email',
       };
 
       Object.entries(data).forEach(([subKey, value]) => {
@@ -2591,7 +2591,7 @@ All tests MUST use automatic prefix detection for consistency.
           const storageData = {
             encrypted: btoa(value), // Base64 encode (not encrypted)
             iv: btoa(testOverrideIv), // Special IV for test data (passed as arg)
-            timestamp: Date.now()
+            timestamp: Date.now(),
           };
 
           localStorage.setItem(fullKey, JSON.stringify(storageData));

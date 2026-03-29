@@ -158,7 +158,7 @@ test.describe('Basic Application Connectivity', () => {
         
         if (await familyNameInput.isVisible()) {
           const originalValue = await familyNameInput.inputValue();
-          await familyNameInput.fill(originalValue + ' Updated');
+          await familyNameInput.fill(`${originalValue  } Updated`);
           
           // Save changes to test database write
           const saveButton = page.locator('[data-testid="FamilyForm-Button-save"]')
@@ -197,7 +197,7 @@ test.describe('Basic Application Connectivity', () => {
         { path: '/family/manage', testId: 'ManageFamilyPage-Heading-pageTitle' },
         { path: '/groups', testId: 'GroupsPage-Title-pageTitle' },
         { path: '/children', testId: 'ChildrenPage-Title-pageTitle' },
-        { path: '/vehicles', testId: 'VehiclesPage-Title-pageTitle' }
+        { path: '/vehicles', testId: 'VehiclesPage-Title-pageTitle' },
       ];
       
       for (const section of sections) {

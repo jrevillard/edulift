@@ -14,7 +14,7 @@ test.describe('Logout Journey', () => {
     await authHelper.createUsersInDatabase();
 
     await authHelper.createMultipleEntitiesInSequence([
-      () => authHelper.createFamilyInDatabase('logoutFamily')
+      () => authHelper.createFamilyInDatabase('logoutFamily'),
     ]);
   });
 

@@ -15,8 +15,8 @@ vi.mock('sonner');
 // Mock the AuthContext
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' }
-  }))
+    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' },
+  })),
 }));
 
 // Mock the toast function
@@ -58,11 +58,11 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       'TUESDAY': ['08:00', '08:30'],
       'WEDNESDAY': [],
       'THURSDAY': ['15:00', '15:30'],
-      'FRIDAY': ['16:00']
+      'FRIDAY': ['16:00'],
     },
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
-    isDefault: false
+    isDefault: false,
   };
 
   const defaultProps = {
@@ -71,7 +71,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
     groupId: 'group-1',
     groupName: 'Test Group',
     currentConfig: mockCurrentConfig,
-    isAdmin: true
+    isAdmin: true,
   };
 
   beforeEach(() => {
@@ -85,7 +85,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Main modal elements
@@ -99,7 +99,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       
       const defaultConfig = {
         ...mockCurrentConfig,
-        isDefault: true
+        isDefault: true,
       };
       
       render(
@@ -108,7 +108,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             currentConfig={defaultConfig}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       expect(screen.getByTestId('GroupScheduleConfigModal-Badge-defaultConfig')).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             isAdmin={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       expect(screen.getByTestId('GroupScheduleConfigModal-Alert-readOnlyMode')).toBeInTheDocument();
@@ -137,7 +137,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Summary card
@@ -163,7 +163,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Total time slots: 3 + 2 + 0 + 2 + 1 = 8
@@ -187,7 +187,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Tabs container
@@ -214,7 +214,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Check badge contents
@@ -232,7 +232,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Initially on Monday tab
@@ -254,7 +254,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Time slot controls should be visible for admin
@@ -271,7 +271,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             isAdmin={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Time slot controls should not be visible for non-admin
@@ -286,7 +286,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Select a time slot
@@ -309,7 +309,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       
       // Create config with 20 time slots (maximum)
       const fullSchedule = Array.from({ length: 20 }, (_, i) => 
-        `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+        `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
       );
       
       const configWithMaxSlots = {
@@ -319,8 +319,8 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
           'TUESDAY': [],
           'WEDNESDAY': [],
           'THURSDAY': [],
-          'FRIDAY': []
-        }
+          'FRIDAY': [],
+        },
       };
       
       render(
@@ -329,7 +329,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             currentConfig={configWithMaxSlots}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Add button should be disabled when at maximum
@@ -344,7 +344,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Admin buttons should be visible
@@ -362,7 +362,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             isAdmin={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Admin buttons should not be visible
@@ -384,7 +384,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             onClose={mockOnClose}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       const closeButton = screen.getByTestId('GroupScheduleConfigModal-Button-close');
@@ -403,7 +403,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // First make a change to enable save button
@@ -421,8 +421,8 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
         expect(scheduleConfigService.updateGroupScheduleConfig).toHaveBeenCalledWith(
           'group-1',
           expect.objectContaining({
-            'MONDAY': expect.arrayContaining(['07:00', '07:30', '08:00', '09:00'])
-          })
+            'MONDAY': expect.arrayContaining(['07:00', '07:30', '08:00', '09:00']),
+          }),
         );
       });
 
@@ -442,7 +442,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       const resetButton = screen.getByTestId('GroupScheduleConfigModal-Button-resetToDefault');
@@ -463,7 +463,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Save button should be disabled when no changes
@@ -478,7 +478,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Copy controls should be visible for admin
@@ -495,7 +495,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps}
             isAdmin={false}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Copy controls should not be visible for non-admin
@@ -509,7 +509,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       const selectElement = screen.getByTestId('GroupScheduleConfigModal-Select-copyFromDay');
@@ -534,7 +534,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Switch to Wednesday (empty day)
@@ -566,7 +566,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // On Monday (has 3 slots), copy from Tuesday
@@ -595,7 +595,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // On Monday (has 3 slots), copy from Tuesday
@@ -620,7 +620,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Manually set the copy from day to same as active day (shouldn't be possible via UI but test edge case)
@@ -639,8 +639,8 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
         ...mockCurrentConfig,
         scheduleHours: {
           ...mockCurrentConfig.scheduleHours,
-          'WEDNESDAY': ['10:00'] // Add one slot to Wednesday
-        }
+          'WEDNESDAY': ['10:00'], // Add one slot to Wednesday
+        },
       };
       
       render(
@@ -649,7 +649,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
             {...defaultProps} 
             currentConfig={configWithWednesdaySlots}
           />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Switch to Friday
@@ -669,7 +669,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       const copyButton = screen.getByTestId('GroupScheduleConfigModal-Button-copyFromDay');
@@ -683,7 +683,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Switch to Wednesday (empty day)
@@ -709,7 +709,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // Reset button should have responsive text
@@ -730,7 +730,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       const { rerender } = render(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} isAdmin={true} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       expect(screen.getByTestId('GroupScheduleConfigModal-Button-close')).toHaveTextContent('Cancel');
@@ -739,7 +739,7 @@ describe('GroupScheduleConfigModal - Data Test ID Tests', () => {
       rerender(
         <TestWrapper>
           <GroupScheduleConfigModal {...defaultProps} isAdmin={false} />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       expect(screen.getByTestId('GroupScheduleConfigModal-Button-close')).toHaveTextContent('Close');

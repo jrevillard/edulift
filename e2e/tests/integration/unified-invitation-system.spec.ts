@@ -28,7 +28,7 @@ test.describe('Unified Invitation System E2E', () => {
       () => authHelper.createFamilyInDatabase('adminFamily'),
       () => authHelper.createFamilyInDatabase('inviteeFamily'),
       () => authHelper.createFamilyInDatabase('groupFamily'),
-      () => authHelper.createFamilyInDatabase('compatibilityFamily')
+      () => authHelper.createFamilyInDatabase('compatibilityFamily'),
     ], 1000);
     
     // Add a longer wait to ensure database consistency before tests run
@@ -126,7 +126,7 @@ test.describe('Unified Invitation System E2E', () => {
       // Should show appropriate error for invalid code
       const errorSelectors = [
         page.locator('[data-testid="UnifiedFamilyInvitationPage-Alert-error"]'),
-        page.locator('[data-testid="UnifiedFamilyInvitationPage-Text-notFound"]')
+        page.locator('[data-testid="UnifiedFamilyInvitationPage-Text-notFound"]'),
       ];
       
       let foundError = false;
@@ -165,7 +165,7 @@ test.describe('Unified Invitation System E2E', () => {
       // Should show appropriate error for invalid code
       const errorSelectors = [
         page.locator('[data-testid="UnifiedGroupInvitationPage-Alert-error"]'),
-        page.locator('[data-testid="UnifiedGroupInvitationPage-Text-notFound"]')
+        page.locator('[data-testid="UnifiedGroupInvitationPage-Text-notFound"]'),
       ];
       
       let foundError = false;
@@ -191,7 +191,7 @@ test.describe('Unified Invitation System E2E', () => {
       // Test that existing URLs still work
       const testUrls = [
         '/families/join?code=TEST-123',
-        '/groups/join?code=TEST-456'
+        '/groups/join?code=TEST-456',
       ];
       
       for (const url of testUrls) {

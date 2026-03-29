@@ -306,7 +306,7 @@ describe('API Client Tests', () => {
 
         expect(sessionStorageSpy).toHaveBeenCalledWith(
           'redirectAfterLogin',
-          '/profile/settings?section=security'
+          '/profile/settings?section=security',
         );
 
         consoleSpy.mockRestore();
@@ -546,7 +546,7 @@ describe('API Client Tests', () => {
       // Simulate multiple concurrent 401 responses
       // They should all wait for the same refresh attempt
       const promises = Array(5).fill(null).map(() =>
-        import('../api').then(() => Promise.resolve())
+        import('../api').then(() => Promise.resolve()),
       );
 
       await Promise.all(promises);

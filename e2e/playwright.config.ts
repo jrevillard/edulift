@@ -23,10 +23,10 @@ export default defineConfig({
     ['html', { 
       outputFolder: 'playwright-report',
       host: '0.0.0.0',  // Listen on all interfaces for Docker access
-      port: 9323        // Fixed port for consistency
+      port: 9323,        // Fixed port for consistency
     }],
     ['json', { outputFile: 'test-results.json' }],
-    ['junit', { outputFile: 'test-results.xml' }]
+    ['junit', { outputFile: 'test-results.xml' }],
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

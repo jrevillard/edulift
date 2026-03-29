@@ -59,11 +59,11 @@ export function verifyE2EConstants(): void {
   const computedBase64 = btoa(E2E_TEST_OVERRIDE_IV);
   if (computedBase64 !== E2E_TEST_OVERRIDE_IV_BASE64) {
     throw new Error(
-      `E2E_TEST_OVERRIDE_IV_BASE64 mismatch!\n` +
+      'E2E_TEST_OVERRIDE_IV_BASE64 mismatch!\n' +
       `E2E_TEST_OVERRIDE_IV = '${E2E_TEST_OVERRIDE_IV}'\n` +
       `btoa(E2E_TEST_OVERRIDE_IV) = '${computedBase64}'\n` +
       `E2E_TEST_OVERRIDE_IV_BASE64 = '${E2E_TEST_OVERRIDE_IV_BASE64}'\n\n` +
-      `FIX: Update E2E_TEST_OVERRIDE_IV_BASE64 to match btoa(E2E_TEST_OVERRIDE_IV)`
+      'FIX: Update E2E_TEST_OVERRIDE_IV_BASE64 to match btoa(E2E_TEST_OVERRIDE_IV)',
     );
   }
 

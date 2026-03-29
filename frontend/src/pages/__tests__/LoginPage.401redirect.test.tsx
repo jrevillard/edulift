@@ -67,7 +67,7 @@ describe('LoginPage 401 Redirect Handling', () => {
         <MemoryRouter initialEntries={[{ pathname: '/login', state: locationState }]}>
           <LoginPage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 
@@ -359,7 +359,7 @@ describe('LoginPage 401 Redirect Handling', () => {
           <MemoryRouter initialEntries={['/login']}>
             <LoginPage />
           </MemoryRouter>
-        </QueryClientProvider>
+        </QueryClientProvider>,
       );
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -380,7 +380,7 @@ describe('LoginPage 401 Redirect Handling', () => {
           <MemoryRouter initialEntries={['/login']}>
             <LoginPage />
           </MemoryRouter>
-        </QueryClientProvider>
+        </QueryClientProvider>,
       );
 
       await waitFor(() => {

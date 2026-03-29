@@ -27,57 +27,57 @@ export interface TestVehicle {
 export const TEST_USERS: Record<string, TestUser> = {
   ADMIN: {
     email: 'admin.test@edulift.com',
-    name: 'Admin Test User'
+    name: 'Admin Test User',
   },
   PARENT1: {
     email: 'parent1.test@edulift.com', 
-    name: 'Parent One'
+    name: 'Parent One',
   },
   PARENT2: {
     email: 'parent2.test@edulift.com',
-    name: 'Parent Two'
+    name: 'Parent Two',
   },
   MEMBER: {
     email: 'member.test@edulift.com',
-    name: 'Family Member'
-  }
+    name: 'Family Member',
+  },
 };
 
 export const TEST_FAMILIES: Record<string, TestFamily> = {
   SMITH: {
-    name: 'The Smith Family'
+    name: 'The Smith Family',
   },
   JOHNSON: {
-    name: 'Johnson Family'
-  }
+    name: 'Johnson Family',
+  },
 };
 
 export const TEST_CHILDREN: Record<string, TestChild> = {
   EMMA: {
     name: 'Emma Smith',
-    age: 8
+    age: 8,
   },
   NOAH: {
     name: 'Noah Smith', 
-    age: 10
+    age: 10,
   },
   OLIVIA: {
     name: 'Olivia Johnson',
-    age: 7
-  }
+    age: 7,
+  },
 };
 
 export const TEST_VEHICLES: Record<string, TestVehicle> = {
   HONDA_CRV: {
     name: 'Honda CR-V',
-    capacity: 7
+    capacity: 7,
   },
   TOYOTA_SIENNA: {
     name: 'Toyota Sienna',
-    capacity: 8
+    capacity: 8,
   },
   VOLKSWAGEN_ATLAS: {
     name: 'Volkswagen Atlas',
-    capacity: 7
-  }
+    capacity: 7,
+  },
 };

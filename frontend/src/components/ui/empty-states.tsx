@@ -9,7 +9,7 @@ import {
   Plus,
   Search,
   AlertCircle,
-  WifiOff
+  WifiOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -41,9 +41,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   action,
   secondaryAction,
   className,
-  'data-testid': dataTestId
+  'data-testid': dataTestId,
 }) => (
-  <Card className={cn("border-dashed", className)} data-testid={dataTestId}>
+  <Card className={cn('border-dashed', className)} data-testid={dataTestId}>
     <CardContent className="flex flex-col items-center justify-center text-center py-12 px-6">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/50 mb-4">
         <Icon className="h-10 w-10 text-muted-foreground" />
@@ -91,15 +91,15 @@ export const EmptyGroups: React.FC<{
     title="No groups yet"
     description="Get started by creating your first transport group or join an existing one to coordinate with other parents."
     action={{
-      label: "Create Group",
+      label: 'Create Group',
       onClick: onCreateGroup,
-      'data-testid': "EmptyGroups-Button-createGroup"
+      'data-testid': 'EmptyGroups-Button-createGroup',
     }}
     secondaryAction={{
-      label: "Join Group",
+      label: 'Join Group',
       onClick: onJoinGroup,
-      variant: "outline",
-      'data-testid': "EmptyGroups-Button-joinGroup"
+      variant: 'outline',
+      'data-testid': 'EmptyGroups-Button-joinGroup',
     }}
     data-testid="EmptyGroups-Container-state"
   />
@@ -114,10 +114,10 @@ export const EmptyChildren: React.FC<{
     title="No children added"
     description="Add your children to start managing their school transport schedules and coordinate with other families."
     action={{
-      label: "Add Child",
-      onClick: onAddChild
+      label: 'Add Child',
+      onClick: onAddChild,
     }}
-    data-testid={dataTestId || "EmptyChildren-Container-state"}
+    data-testid={dataTestId || 'EmptyChildren-Container-state'}
   />
 );
 
@@ -131,8 +131,8 @@ export const EmptyVehicles: React.FC<{
       title="No vehicles registered"
       description="Register your vehicle to offer rides and participate in your transport groups' scheduling."
       action={{
-        label: "Add Vehicle",
-        onClick: onAddVehicle
+        label: 'Add Vehicle',
+        onClick: onAddVehicle,
       }}
       data-testid="EmptyVehicles-content"
     />
@@ -147,8 +147,8 @@ export const EmptySchedule: React.FC<{
     title="No trips scheduled"
     description="Your schedule is empty. Create your first trip or join a group to see scheduled activities."
     action={{
-      label: "Create Trip",
-      onClick: onCreateTrip
+      label: 'Create Trip',
+      onClick: onCreateTrip,
     }}
   />
 );
@@ -162,9 +162,9 @@ export const EmptySearchResults: React.FC<{
     title="No results found"
     description={`We couldn't find anything matching "${searchTerm}". Try adjusting your search terms or browse all items.`}
     action={{
-      label: "Clear Search",
+      label: 'Clear Search',
       onClick: onClearSearch,
-      variant: "outline"
+      variant: 'outline',
     }}
   />
 );
@@ -175,9 +175,9 @@ export const ErrorState: React.FC<{
   description?: string;
   onRetry?: () => void;
 }> = ({ 
-  title = "Something went wrong",
-  description = "We encountered an error while loading this content. Please try again.",
-  onRetry
+  title = 'Something went wrong',
+  description = 'We encountered an error while loading this content. Please try again.',
+  onRetry,
 }) => (
   <div data-testid="ErrorState-Container-error">
     <EmptyState
@@ -185,9 +185,9 @@ export const ErrorState: React.FC<{
       title={title}
       description={description}
       action={onRetry ? {
-        label: "Try Again",
+        label: 'Try Again',
         onClick: onRetry,
-        variant: "outline"
+        variant: 'outline',
       } : undefined}
       className="border-destructive/20"
     />
@@ -202,9 +202,9 @@ export const OfflineState: React.FC<{
     title="You're offline"
     description="Please check your internet connection and try again. Some features may not be available while offline."
     action={onRetry ? {
-      label: "Retry",
+      label: 'Retry',
       onClick: onRetry,
-      variant: "outline"
+      variant: 'outline',
     } : undefined}
     className="border-yellow-200"
   />
@@ -216,11 +216,11 @@ export const LoadingState: React.FC<{
   description?: string;
   'data-testid'?: string;
 }> = ({ 
-  title = "Loading...",
-  description = "Please wait while we fetch your data.",
-  'data-testid': dataTestId
+  title = 'Loading...',
+  description = 'Please wait while we fetch your data.',
+  'data-testid': dataTestId,
 }) => (
-  <Card className="border-dashed" data-testid={dataTestId || "LoadingState-Container-loading"}>
+  <Card className="border-dashed" data-testid={dataTestId || 'LoadingState-Container-loading'}>
     <CardContent className="flex flex-col items-center justify-center text-center py-12 px-6">
       <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mb-4">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />

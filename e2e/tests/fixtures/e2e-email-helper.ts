@@ -81,7 +81,7 @@ export class E2EEmailHelper {
   async getEmailsForRecipient(email: string): Promise<MailpitMessage[]> {
     const allEmails = await this.getAllEmails();
     return allEmails.filter(msg =>
-      msg.To.some(to => to.Address.toLowerCase() === email.toLowerCase())
+      msg.To.some(to => to.Address.toLowerCase() === email.toLowerCase()),
     );
   }
 
@@ -130,7 +130,7 @@ export class E2EEmailHelper {
    */
   async extractMagicLinkForRecipient(
     email: string,
-    options: { timeoutMs?: number; debug?: boolean; expectNewEmail?: boolean } = {}
+    options: { timeoutMs?: number; debug?: boolean; expectNewEmail?: boolean } = {},
   ): Promise<string | null> {
     const { timeoutMs = 0, debug = true, expectNewEmail = false } = options;
 
@@ -152,7 +152,7 @@ export class E2EEmailHelper {
       const emailReceived = await this.waitForEmailForRecipient(email, timeoutMs, 1000, { debug });
       if (!emailReceived) {
         if (debug) {
-          console.log(`  ❌ Email not received within timeout`);
+          console.log('  ❌ Email not received within timeout');
         }
         return null;
       }
@@ -219,14 +219,14 @@ export class E2EEmailHelper {
     }
 
     if (debug) {
-      console.log(`  ❌ No magic link found in email body`);
+      console.log('  ❌ No magic link found in email body');
       // Show parts of body that contain relevant keywords
       const authIndex = body.toLowerCase().indexOf('auth');
       if (authIndex >= 0) {
         console.log(`  📄 Found 'auth' at position ${authIndex}, showing context:`);
         console.log(`     ${body.substring(Math.max(0, authIndex - 50), Math.min(body.length, authIndex + 150))}`);
       } else {
-        console.log(`  📄 Email body preview (first 300 chars):`);
+        console.log('  📄 Email body preview (first 300 chars):');
         console.log(`     ${body.substring(0, 300)}`);
       }
     }
@@ -261,7 +261,7 @@ export class E2EEmailHelper {
    */
   async extractInvitationUrlForRecipient(
     email: string,
-    options: { timeoutMs?: number; debug?: boolean } = {}
+    options: { timeoutMs?: number; debug?: boolean } = {},
   ): Promise<string | null> {
     const { timeoutMs = 0, debug = true } = options;
 
@@ -273,7 +273,7 @@ export class E2EEmailHelper {
       const emailReceived = await this.waitForEmailForRecipient(email, timeoutMs, 1000, { debug });
       if (!emailReceived) {
         if (debug) {
-          console.log(`  ❌ Email not received within timeout`);
+          console.log('  ❌ Email not received within timeout');
         }
         return null;
       }
@@ -327,7 +327,7 @@ export class E2EEmailHelper {
     }
 
     if (debug) {
-      console.log(`  ❌ No invitation URL found in email body`);
+      console.log('  ❌ No invitation URL found in email body');
     }
     return null;
   }
@@ -378,7 +378,7 @@ export class E2EEmailHelper {
     }
 
     if (debug) {
-      console.log(`  ❌ No token found in email body`);
+      console.log('  ❌ No token found in email body');
     }
     return null;
   }
@@ -458,7 +458,7 @@ export class E2EEmailHelper {
     }
 
     if (debug) {
-      console.log(`  ❌ No invitation code found in email body`);
+      console.log('  ❌ No invitation code found in email body');
     }
     return null;
   }
@@ -470,7 +470,7 @@ export class E2EEmailHelper {
     email: string,
     timeoutMs: number = 30000,
     checkIntervalMs: number = 1000,
-    options: { debug?: boolean } = {}
+    options: { debug?: boolean } = {},
   ): Promise<MailpitMessage | null> {
     const startTime = Date.now();
     const debug = options.debug !== false; // Debug enabled by default
@@ -512,7 +512,7 @@ export class E2EEmailHelper {
   async deleteAllEmails(): Promise<boolean> {
     try {
       const response = await fetch(`${this.mailpitUrl}/api/v1/messages`, {
-        method: 'DELETE'
+        method: 'DELETE',
       });
       if (!response.ok) {
         throw new Error(`MailPit API error: ${response.status}`);
@@ -559,7 +559,7 @@ export class E2EEmailHelper {
    */
   async requireMagicLinkForRecipient(
     email: string,
-    options: { timeoutMs?: number; debug?: boolean; expectNewEmail?: boolean } = {}
+    options: { timeoutMs?: number; debug?: boolean; expectNewEmail?: boolean } = {},
   ): Promise<string> {
     const link = await this.extractMagicLinkForRecipient(email, options);
     if (!link) {
@@ -574,7 +574,7 @@ export class E2EEmailHelper {
    */
   async requireInvitationUrlForRecipient(
     email: string,
-    options: { timeoutMs?: number; debug?: boolean } = {}
+    options: { timeoutMs?: number; debug?: boolean } = {},
   ): Promise<string> {
     const url = await this.extractInvitationUrlForRecipient(email, options);
     if (!url) {
@@ -590,7 +590,7 @@ export class E2EEmailHelper {
   async waitForEmailToUser(
     email: string,
     timeoutMs: number = 30000,
-    options: { debug?: boolean } = {}
+    options: { debug?: boolean } = {},
   ): Promise<{ found: boolean; email?: { body: string; subject: string; to: string; from: string } }> {
     const debug = options.debug !== false;
 
@@ -626,11 +626,11 @@ export class E2EEmailHelper {
     return {
       found: true,
       email: {
-        body: body,
+        body,
         subject: mailpitEmail.Subject || 'No Subject',
         to: mailpitEmail.To.map(t => t.Address).join(', '),
-        from: mailpitEmail.From.Address
-      }
+        from: mailpitEmail.From.Address,
+      },
     };
   }
 }

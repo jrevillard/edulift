@@ -105,12 +105,12 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
               console.log('📱 Mobile app not detected, continuing on web. Reason:', reason);
               setMobileState(prev => ({
                 ...prev,
-                showMobileFallback: true
+                showMobileFallback: true,
               }));
               // Only validate invitation when mobile app is not detected
               validateInvitation();
-            }
-          }
+            },
+          },
         );
       }
       // If mobile redirect already attempted, don't do anything (fallback already called validateInvitation)
@@ -150,7 +150,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
       await authService.requestMagicLink(invitation.email, {
         inviteCode,
         userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Redirect to standard magic link sent page with invitation context
@@ -170,7 +170,7 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
         inviteCode,
         name: signupData.name,
         userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Redirect to standard magic link sent page with invitation context
@@ -263,8 +263,8 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription data-testid={
-                (invitation?.errorCode === 'EMAIL_MISMATCH') ? "UnifiedGroupInvitationPage-Alert-emailMismatch" :
-                  "UnifiedGroupInvitationPage-Alert-error"
+                (invitation?.errorCode === 'EMAIL_MISMATCH') ? 'UnifiedGroupInvitationPage-Alert-emailMismatch' :
+                  'UnifiedGroupInvitationPage-Alert-error'
               }>
                 {error || invitation?.error || 'Invalid invitation code'}
               </AlertDescription>
@@ -397,8 +397,8 @@ export const UnifiedGroupInvitationPage: React.FC = () => {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription data-testid={
-                (invitation?.errorCode === 'EMAIL_MISMATCH') ? "GroupInvitationPage-Alert-emailMismatch" :
-                  "GroupInvitationPage-Alert-error"
+                (invitation?.errorCode === 'EMAIL_MISMATCH') ? 'GroupInvitationPage-Alert-emailMismatch' :
+                  'GroupInvitationPage-Alert-error'
               }>
                 {error}
               </AlertDescription>

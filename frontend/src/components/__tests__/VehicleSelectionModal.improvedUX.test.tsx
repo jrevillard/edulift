@@ -109,7 +109,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
   const mockVehicles = [
     { id: 'vehicle-1', name: 'Toyota Camry', capacity: 5 },
     { id: 'vehicle-2', name: 'Honda CR-V', capacity: 7 },
-    { id: 'vehicle-3', name: 'Ford Transit', capacity: 9 }
+    { id: 'vehicle-3', name: 'Ford Transit', capacity: 9 },
   ];
 
   const mockOnVehicleSelect = vi.fn();
@@ -123,7 +123,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     // Should show vehicle info clearly
@@ -142,7 +142,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     // Select a vehicle
@@ -161,7 +161,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     // Click customize for first vehicle
@@ -179,7 +179,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     // Open customization
@@ -202,7 +202,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     // Open customization
@@ -221,7 +221,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('customize-vehicle-1'));
@@ -235,7 +235,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('customize-vehicle-1'));
@@ -252,7 +252,7 @@ describe('VehicleSelectionModal - Improved UX', () => {
       <MockImprovedVehicleSelectionModal
         vehicles={mockVehicles}
         onVehicleSelect={mockOnVehicleSelect}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('customize-vehicle-1'));

@@ -17,7 +17,7 @@ export type GroupFamily = paths['/api/v1/groups/{groupId}/families']['get']['res
  * @returns Transformed GroupFamily object compatible with the frontend interface
  */
 export const transformGroupFamily = (
-  openApiFamily: GroupFamily
+  openApiFamily: GroupFamily,
 ): GroupFamily => {
   // The OpenAPI response already provides all the needed properties
   // No transformation needed for this endpoint since it returns the exact structure we need

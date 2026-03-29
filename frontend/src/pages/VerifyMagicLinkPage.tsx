@@ -161,7 +161,7 @@ const VerifyMagicLinkPage: React.FC = () => {
             setMobileState(prev => ({
               ...prev,
               hasAttemptedRedirect: true,
-              isRedirecting: false
+              isRedirecting: false,
             }));
           },
           onFallback: (reason) => {
@@ -170,12 +170,12 @@ const VerifyMagicLinkPage: React.FC = () => {
               ...prev,
               mobileAppDetected: false,
               showMobileFallback: true,
-              isRedirecting: false
+              isRedirecting: false,
             }));
             // IMPORTANT: Only run verification on fallback
             runVerification();
-          }
-        }
+          },
+        },
       );
     }
   }, [authLoading, mobileDetection, mobileState.hasAttemptedRedirect, runVerification, searchParams]);
@@ -193,7 +193,7 @@ const VerifyMagicLinkPage: React.FC = () => {
       console.error('Failed to join family via invitation:', error);
       setInvitationState(prev => ({
         ...prev,
-        joinError: error instanceof Error ? error.message : 'Failed to join family'
+        joinError: error instanceof Error ? error.message : 'Failed to join family',
       }));
     }
   };
@@ -203,7 +203,7 @@ const VerifyMagicLinkPage: React.FC = () => {
     setInvitationState({
       showProposal: false,
       pendingInvitation: null,
-      joinError: null
+      joinError: null,
     });
     navigate('/onboarding', { replace: true });
   };

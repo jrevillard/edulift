@@ -23,7 +23,7 @@ test.describe.skip('Group Invitations User Journeys (All 5 Cases from Proposal)'
     // Define families for the invitation scenarios
     authHelper.defineFamily('groupAdminFamily', 'Group Admin Family', 'groupAdmin');
     authHelper.defineFamily('invitedFamily', 'Invited Family', 'familyAdmin', [
-      { userKey: 'familyMember', role: 'MEMBER' }
+      { userKey: 'familyMember', role: 'MEMBER' },
     ]);
     authHelper.defineFamily('alreadyInGroupFamily', 'Already Member Family', 'alreadyInGroupAdmin');
     authHelper.defineFamily('existingUserFamily', 'Existing User Family', 'existingUserWithEmail');
@@ -108,7 +108,7 @@ test.describe.skip('Group Invitations User Journeys (All 5 Cases from Proposal)'
         
         // Extract group ID from URL for later use
         const currentUrl = page.url();
-        const match = currentUrl.match(/\/groups\/([^\/]+)/);
+        const match = currentUrl.match(/\/groups\/([^/]+)/);
         if (match) {
           testGroupId = match[1];
           console.log('✅ Group ID extracted:', testGroupId);
@@ -435,7 +435,7 @@ test.describe.skip('Group Invitations User Journeys (All 5 Cases from Proposal)'
         const malformedUrls = [
           '/groups/invalid-group-id/manage',
           '/groups/join?inviteCode=',
-          '/groups/join'
+          '/groups/join',
         ];
         
         for (const url of malformedUrls) {

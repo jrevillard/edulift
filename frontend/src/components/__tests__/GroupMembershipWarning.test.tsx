@@ -25,7 +25,7 @@ vi.mock('../ui/onboarding-banner', () => ({
     onDismiss, 
     children: bannerChildren,
     progress,
-    type
+    type,
   }: {
     title: string;
     description: string;
@@ -68,16 +68,16 @@ const createMockChild = (id: string, name: string, hasGroups: boolean = false): 
     role: 'MEMBER' as const, 
     group: { 
       id: `group-${id}`, 
-      name: 'Test Group' 
-    } 
-  }] : []
+      name: 'Test Group', 
+    }, 
+  }] : [],
 });
 
 const renderWithRouter = (ui: React.ReactElement) => {
   return render(
     <BrowserRouter>
       {ui}
-    </BrowserRouter>
+    </BrowserRouter>,
   );
 };
 
@@ -89,11 +89,11 @@ describe('GroupMembershipWarning', () => {
   it('does not render when all children have groups', () => {
     const childrenWithGroups = [
       createMockChild('1', 'Alice', true),
-      createMockChild('2', 'Bob', true)
+      createMockChild('2', 'Bob', true),
     ];
 
     const { container } = renderWithRouter(
-      <GroupMembershipWarning children={childrenWithGroups} />
+      <GroupMembershipWarning children={childrenWithGroups} />,
     );
 
     expect(container.firstChild).toBeNull();
@@ -101,7 +101,7 @@ describe('GroupMembershipWarning', () => {
 
   it('does not render when no children provided', () => {
     const { container } = renderWithRouter(
-      <GroupMembershipWarning children={[]} />
+      <GroupMembershipWarning children={[]} />,
     );
 
     expect(container.firstChild).toBeNull();
@@ -110,11 +110,11 @@ describe('GroupMembershipWarning', () => {
   it('renders warning for single child without group', () => {
     const children = [
       createMockChild('1', 'Alice', false),
-      createMockChild('2', 'Bob', true)
+      createMockChild('2', 'Bob', true),
     ];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="dashboard" />
+      <GroupMembershipWarning children={children} variant="dashboard" />,
     );
 
     expect(screen.getByTestId('onboarding-banner')).toHaveTextContent('Alice needs a group');
@@ -125,11 +125,11 @@ describe('GroupMembershipWarning', () => {
     const children = [
       createMockChild('1', 'Alice', false),
       createMockChild('2', 'Bob', false),
-      createMockChild('3', 'Charlie', true)
+      createMockChild('3', 'Charlie', true),
     ];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="dashboard" />
+      <GroupMembershipWarning children={children} variant="dashboard" />,
     );
 
     expect(screen.getByTestId('onboarding-banner')).toHaveTextContent('2 children need groups');
@@ -140,11 +140,11 @@ describe('GroupMembershipWarning', () => {
     const children = [
       createMockChild('1', 'Alice', false),
       createMockChild('2', 'Bob', true),
-      createMockChild('3', 'Charlie', true)
+      createMockChild('3', 'Charlie', true),
     ];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} />
+      <GroupMembershipWarning children={children} />,
     );
 
     expect(screen.getByTestId('progress')).toHaveTextContent('2/3');
@@ -154,7 +154,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="dashboard" />
+      <GroupMembershipWarning children={children} variant="dashboard" />,
     );
 
     fireEvent.click(screen.getByTestId('action-button'));
@@ -165,7 +165,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="children-page" />
+      <GroupMembershipWarning children={children} variant="children-page" />,
     );
 
     expect(screen.queryByTestId('action-button')).not.toBeInTheDocument();
@@ -175,7 +175,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="dashboard" />
+      <GroupMembershipWarning children={children} variant="dashboard" />,
     );
 
     expect(screen.getByTestId('action-button')).toHaveTextContent('Add to group');
@@ -184,11 +184,11 @@ describe('GroupMembershipWarning', () => {
   it('shows correct action text for dashboard variant with multiple children', () => {
     const children = [
       createMockChild('1', 'Alice', false),
-      createMockChild('2', 'Bob', false)
+      createMockChild('2', 'Bob', false),
     ];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="dashboard" />
+      <GroupMembershipWarning children={children} variant="dashboard" />,
     );
 
     expect(screen.getByTestId('action-button')).toHaveTextContent('Manage children');
@@ -198,7 +198,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="children-page" />
+      <GroupMembershipWarning children={children} variant="children-page" />,
     );
 
     // Should not have any action button or text since users are already on the right page
@@ -209,7 +209,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} showDismiss={true} />
+      <GroupMembershipWarning children={children} showDismiss={true} />,
     );
 
     expect(screen.getByTestId('dismiss-button')).toBeInTheDocument();
@@ -222,7 +222,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} showDismiss={false} />
+      <GroupMembershipWarning children={children} showDismiss={false} />,
     );
 
     expect(screen.queryByTestId('dismiss-button')).not.toBeInTheDocument();
@@ -232,11 +232,11 @@ describe('GroupMembershipWarning', () => {
     const children = [
       createMockChild('1', 'Alice', false),
       createMockChild('2', 'Bob', false),
-      createMockChild('3', 'Charlie', true)
+      createMockChild('3', 'Charlie', true),
     ];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="children-page" />
+      <GroupMembershipWarning children={children} variant="children-page" />,
     );
 
     expect(screen.getByTestId('GroupMembershipWarning-Label-childrenWithoutGroups')).toBeInTheDocument();
@@ -251,11 +251,11 @@ describe('GroupMembershipWarning', () => {
       createMockChild('2', 'Bob', false),
       createMockChild('3', 'Charlie', false),
       createMockChild('4', 'David', false),
-      createMockChild('5', 'Eve', true)
+      createMockChild('5', 'Eve', true),
     ];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} variant="children-page" />
+      <GroupMembershipWarning children={children} variant="children-page" />,
     );
 
     expect(screen.queryByTestId('GroupMembershipWarning-Label-childrenWithoutGroups')).not.toBeInTheDocument();
@@ -266,7 +266,7 @@ describe('GroupMembershipWarning', () => {
     const children = [createMockChild('1', 'Alice', false)];
 
     renderWithRouter(
-      <GroupMembershipWarning children={children} />
+      <GroupMembershipWarning children={children} />,
     );
 
     expect(screen.getByTestId('onboarding-banner')).toHaveAttribute('data-type', 'incomplete-setup');
@@ -277,11 +277,11 @@ describe('GroupMembershipWarning', () => {
       id: '1',
       name: 'Alice',
       age: 8,
-      groupMemberships: undefined
+      groupMemberships: undefined,
     } as Child;
 
     renderWithRouter(
-      <GroupMembershipWarning children={[childWithUndefinedGroups]} />
+      <GroupMembershipWarning children={[childWithUndefinedGroups]} />,
     );
 
     expect(screen.getByTestId('onboarding-banner')).toHaveTextContent('Alice needs a group');
@@ -292,11 +292,11 @@ describe('GroupMembershipWarning', () => {
       id: '1',
       name: 'Alice',
       age: 8,
-      groupMemberships: null
+      groupMemberships: null,
     } as unknown as Child;
 
     renderWithRouter(
-      <GroupMembershipWarning children={[childWithNullGroups]} />
+      <GroupMembershipWarning children={[childWithNullGroups]} />,
     );
 
     expect(screen.getByTestId('onboarding-banner')).toHaveTextContent('Alice needs a group');

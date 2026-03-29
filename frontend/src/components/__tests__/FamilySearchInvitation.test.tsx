@@ -9,7 +9,7 @@ vi.mock('../../services/groupApiService', () => ({
   groupApiService: {
     searchFamiliesForInvitation: vi.fn(),
     inviteFamilyToGroup: vi.fn(),
-  }
+  },
 }));
 
 // Get the mocked functions

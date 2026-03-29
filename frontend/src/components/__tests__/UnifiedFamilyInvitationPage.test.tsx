@@ -14,13 +14,13 @@ vi.mock('../../services/unifiedInvitationService', () => ({
     validateFamilyInvitation: vi.fn(),
     acceptFamilyInvitation: vi.fn(),
     storePendingInvitation: vi.fn(),
-  }
+  },
 }));
 
 vi.mock('../../services/authService', () => ({
   authService: {
     requestMagicLink: vi.fn(),
-  }
+  },
 }));
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -126,7 +126,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       isIOS: false,
       isAndroid: false,
       deviceType: 'desktop',
-      deviceInfo: { osVersion: undefined, model: undefined }
+      deviceInfo: { osVersion: undefined, model: undefined },
     });
 
     // Configure mobile redirection mocks
@@ -154,7 +154,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -193,7 +193,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -217,7 +217,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -247,7 +247,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -272,7 +272,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -307,7 +307,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -319,7 +319,7 @@ describe('UnifiedFamilyInvitationPage', () => {
   describe('Error Handling', () => {
     it('should show loading during validation', () => {
       mockValidateFamilyInvitation.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve(mockInvitationExistingUser), 100))
+        () => new Promise(resolve => setTimeout(() => resolve(mockInvitationExistingUser), 100)),
       );
 
       // Configure auth mock to avoid undefined errors
@@ -337,7 +337,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       expect(screen.getByTestId('UnifiedFamilyInvitationPage-Loading-validation')).toBeInTheDocument();
@@ -363,7 +363,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -391,7 +391,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -420,7 +420,7 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -437,13 +437,13 @@ describe('UnifiedFamilyInvitationPage', () => {
         isIOS: false,
         isAndroid: false,
         deviceType: 'desktop',
-        deviceInfo: { osVersion: undefined, model: undefined }
+        deviceInfo: { osVersion: undefined, model: undefined },
       });
 
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -462,7 +462,7 @@ describe('UnifiedFamilyInvitationPage', () => {
         isIOS: true,
         isAndroid: false,
         deviceType: 'ios',
-        deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+        deviceInfo: { osVersion: '15.0', model: 'iPhone' },
       });
 
       // Mock parseSearchParams to return expected parameters
@@ -471,12 +471,12 @@ describe('UnifiedFamilyInvitationPage', () => {
       render(
         <TestWrapper>
           <UnifiedFamilyInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
         expect(mockParseSearchParams).toHaveBeenCalledWith(
-          expect.any(URLSearchParams)
+          expect.any(URLSearchParams),
         );
       });
 
@@ -489,14 +489,14 @@ describe('UnifiedFamilyInvitationPage', () => {
           isIOS: true,
           isAndroid: false,
           deviceType: 'ios',
-          deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+          deviceInfo: { osVersion: '15.0', model: 'iPhone' },
         }),
         expect.objectContaining({          // options object with required properties
           fallbackDelay: 2500,
           preferUniversalLinks: true,
           onAttempt: expect.any(Function),   // callback functions exist
-          onFallback: expect.any(Function)   // callback functions exist
-        })
+          onFallback: expect.any(Function),   // callback functions exist
+        }),
       );
     });
   });

@@ -34,7 +34,7 @@ test.describe('Family Management - Bug Regression', () => {
       if (msg.type() === 'error') {
         consoleErrors.push({
           text: msg.text(),
-          location: msg.location()
+          location: msg.location(),
         });
       }
     });
@@ -60,7 +60,7 @@ test.describe('Family Management - Bug Regression', () => {
     // Verify NO TypeError in console
     const typeErrors = consoleErrors.filter(e =>
       e.text.includes('TypeError') &&
-      e.text.includes('.map is not a function')
+      e.text.includes('.map is not a function'),
     );
 
     expect(typeErrors).toHaveLength(0);
@@ -91,7 +91,7 @@ test.describe('Family Management - Bug Regression', () => {
     // At least one should be visible
     const hasContent = await Promise.all([
       emptyState.isVisible().catch(() => false),
-      childrenList.isVisible().catch(() => false)
+      childrenList.isVisible().catch(() => false),
     ]);
 
     expect(hasContent.some(Boolean)).toBeTruthy();
@@ -119,7 +119,7 @@ test.describe('Family Management - Bug Regression', () => {
     // Verify NO TypeError
     const typeErrors = consoleErrors.filter(e =>
       e.includes('TypeError') &&
-      e.includes('.map is not a function')
+      e.includes('.map is not a function'),
     );
 
     expect(typeErrors).toHaveLength(0);
@@ -151,7 +151,7 @@ test.describe('Family Management - Bug Regression', () => {
     // Verify NO TypeError
     const typeErrors = consoleErrors.filter(e =>
       e.includes('TypeError') &&
-      e.includes('.map is not a function')
+      e.includes('.map is not a function'),
     );
 
     expect(typeErrors).toHaveLength(0);
@@ -215,7 +215,7 @@ test.describe('Smoke Tests - Critical Paths', () => {
       '/children',
       '/vehicles',
       '/family/manage',
-      '/groups'
+      '/groups',
     ];
 
     for (const pagePath of pages) {
@@ -227,7 +227,7 @@ test.describe('Smoke Tests - Critical Paths', () => {
     // Verify NO TypeError during navigation
     const typeErrors = consoleErrors.filter(e =>
       e.includes('TypeError') &&
-      e.includes('.map is not a function')
+      e.includes('.map is not a function'),
     );
 
     expect(typeErrors).toHaveLength(0);

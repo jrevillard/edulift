@@ -13,14 +13,14 @@ interface GroupMembershipWarningProps {
 export const GroupMembershipWarning: React.FC<GroupMembershipWarningProps> = ({
   children,
   showDismiss = true,
-  variant = 'dashboard'
+  variant = 'dashboard',
 }) => {
   const [dismissed, setDismissed] = useState(false);
   const navigate = useNavigate();
 
   // Filter children without group memberships
   const childrenWithoutGroups = children.filter(
-    child => !child.groupMemberships || child.groupMemberships.length === 0
+    child => !child.groupMemberships || child.groupMemberships.length === 0,
   );
 
   // Don't show if no children need groups or if dismissed
@@ -43,7 +43,7 @@ export const GroupMembershipWarning: React.FC<GroupMembershipWarningProps> = ({
     if (childrenWithoutGroups.length === 1) {
       return `Add ${childrenWithoutGroups[0].name} to a group to include them in trip planning and coordination.`;
     }
-    return `Add your children to groups to include them in trip planning and coordination with other families.`;
+    return 'Add your children to groups to include them in trip planning and coordination with other families.';
   };
 
   const getActionText = () => {
@@ -71,7 +71,7 @@ export const GroupMembershipWarning: React.FC<GroupMembershipWarningProps> = ({
       dismissible={showDismiss}
       progress={{
         completed: children.length - childrenWithoutGroups.length,
-        total: children.length
+        total: children.length,
       }}
     >
       {/* Quick actions for children page */}

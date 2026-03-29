@@ -48,7 +48,7 @@ describe('OnboardingBanner', () => {
         {...defaultProps} 
         actionText="Take Action" 
         onAction={mockOnAction} 
-      />
+      />,
     );
     
     const actionButton = screen.getByTestId('OnboardingBanner-Button-actionButton');
@@ -72,7 +72,7 @@ describe('OnboardingBanner', () => {
         {...defaultProps} 
         dismissible={true} 
         onDismiss={mockOnDismiss} 
-      />
+      />,
     );
     
     const buttons = screen.getAllByRole('button');
@@ -91,7 +91,7 @@ describe('OnboardingBanner', () => {
         {...defaultProps} 
         dismissible={false} 
         onDismiss={mockOnDismiss} 
-      />
+      />,
     );
     
     const buttons = screen.queryAllByRole('button');
@@ -104,7 +104,7 @@ describe('OnboardingBanner', () => {
       <OnboardingBanner 
         {...defaultProps} 
         progress={{ completed: 2, total: 5 }} 
-      />
+      />,
     );
     
     const banner = screen.getByTestId('card');
@@ -115,7 +115,7 @@ describe('OnboardingBanner', () => {
     render(
       <OnboardingBanner {...defaultProps}>
         <div data-testid="custom-content">Custom Content</div>
-      </OnboardingBanner>
+      </OnboardingBanner>,
     );
     
     expect(screen.getByTestId('custom-content')).toBeInTheDocument();
@@ -148,7 +148,7 @@ describe('OnboardingBanner', () => {
       <OnboardingBanner 
         {...defaultProps} 
         progress={{ completed: 3, total: 10 }} 
-      />
+      />,
     );
     
     // The progress bar should have width: 30%
@@ -161,7 +161,7 @@ describe('OnboardingBanner', () => {
       <OnboardingBanner 
         {...defaultProps} 
         progress={{ completed: 0, total: 5 }} 
-      />
+      />,
     );
     
     const progressBar = container.querySelector('[style*="width: 0%"]');
@@ -174,7 +174,7 @@ describe('OnboardingBanner', () => {
       <OnboardingBanner 
         {...defaultProps} 
         progress={{ completed: 5, total: 5 }} 
-      />
+      />,
     );
     
     const progressBar = container.querySelector('[style*="width: 100%"]');
@@ -189,7 +189,7 @@ describe('OnboardingBanner', () => {
       <OnboardingBanner 
         {...defaultProps} 
         onDismiss={mockOnDismiss} 
-      />
+      />,
     );
     
     // Should render dismiss button when dismissible defaults to true

@@ -22,7 +22,7 @@ export const useFamilyRequirement = (): FamilyRequirementState => {
     requiresFamily, 
     isCheckingFamily, 
     hasFamily, 
-    isLoading: familyLoading 
+    isLoading: familyLoading, 
   } = useFamily();
   const { hasConnectionIssues, getConnectionMessage } = useConnectionStore();
 
@@ -40,7 +40,7 @@ export const useFamilyRequirement = (): FamilyRequirementState => {
   if (hasConnectionIssues()) {
     return { 
       type: 'connection_error', 
-      message: getConnectionMessage() || 'Unable to connect to server' 
+      message: getConnectionMessage() || 'Unable to connect to server', 
     };
   }
 

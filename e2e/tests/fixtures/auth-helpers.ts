@@ -10,10 +10,10 @@ export class AuthHelper {
     
     const header = { alg: 'HS256', typ: 'JWT' };
     const payload = {
-      userId: userId,
-      email: email,
+      userId,
+      email,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (60 * 60) // 1 hour from now
+      exp: Math.floor(Date.now() / 1000) + (60 * 60), // 1 hour from now
     };
     
     const encodedHeader = Buffer.from(JSON.stringify(header)).toString('base64url');
@@ -63,7 +63,7 @@ export class AuthHelper {
       const user = {
         id: `test-${userData.email.split('@')[0].replace('.', '')}`,
         email: userData.email,
-        name: userData.name
+        name: userData.name,
       };
       
       localStorage.setItem('authToken', token);
@@ -71,13 +71,13 @@ export class AuthHelper {
       
       const _authData = {
         state: {
-          user: user,
+          user,
           isAuthenticated: true,
           isNewUser: userData.isNewUser || false,
           accessToken: token,
-          refreshToken: 'test-refresh-token'
+          refreshToken: 'test-refresh-token',
         },
-        version: 0
+        version: 0,
       };
       localStorage.setItem('auth-storage', JSON.stringify(_authData));
     }, { token: jwtToken, userData: user });

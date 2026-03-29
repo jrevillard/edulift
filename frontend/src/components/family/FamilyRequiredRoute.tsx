@@ -28,14 +28,14 @@ interface FamilyRequiredRouteProps {
 
 export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
   children,
-  fallback
+  fallback,
 }) => {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const {
     requiresFamily,
     isCheckingFamily,
     hasFamily,
-    isLoading: familyLoading
+    isLoading: familyLoading,
   } = useFamily();
   const apiStatus = useConnectionStore((state) => state.apiStatus);
 
@@ -89,7 +89,7 @@ export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
       isAuthenticated,
       authLoading,
       isCheckingFamily,
-      familyLoading
+      familyLoading,
     });
     return <Navigate to="/onboarding" replace />;
   }
@@ -98,7 +98,7 @@ export const FamilyRequiredRoute: React.FC<FamilyRequiredRouteProps> = ({
   console.log('✅ FamilyRequiredRoute: User has family, rendering children:', {
     hasFamily,
     requiresFamily,
-    apiStatus
+    apiStatus,
   });
 
   // User has a family - render the protected content

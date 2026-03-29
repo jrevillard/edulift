@@ -39,7 +39,7 @@ test.describe('Multiple Pending Invitations Handling E2E', () => {
       () => authHelper.createFamilyInDatabase('multiFamily'),
       () => authHelper.createFamilyInDatabase('groupFamily'),
       () => authHelper.createFamilyInDatabase('mixedFamily'),
-      () => authHelper.createFamilyInDatabase('pendingFamily')
+      () => authHelper.createFamilyInDatabase('pendingFamily'),
     ]);
     
     // Generate real invitation codes for multiple invitation scenarios

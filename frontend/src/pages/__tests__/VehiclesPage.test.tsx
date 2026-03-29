@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import { render, mockVehicle, createMockOpenAPIClient, createMockFamilyContext } from '../../test/test-utils'
-import VehiclesPage from '../VehiclesPage'
-import { api } from '../../services/api'
-import * as usePageStateModule from '../../hooks/usePageState'
-import { useFamily } from '../../contexts/FamilyContext'
-import '@testing-library/jest-dom'
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { render, mockVehicle, createMockOpenAPIClient, createMockFamilyContext } from '../../test/test-utils';
+import VehiclesPage from '../VehiclesPage';
+import { api } from '../../services/api';
+import * as usePageStateModule from '../../hooks/usePageState';
+import { useFamily } from '../../contexts/FamilyContext';
+import '@testing-library/jest-dom';
 
 // Mock the API service
-vi.mock('../../services/api')
+vi.mock('../../services/api');
 const mockApi = api as unknown;
 
 // Mock the connection store
@@ -19,7 +19,7 @@ vi.mock('../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
   
   // Create a function that acts like both a hook and has getState
@@ -27,30 +27,30 @@ vi.mock('../../stores/connectionStore', () => {
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
   
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
-})
+});
 
 // Mock the shared hook
 vi.mock('../../hooks/usePageState', () => ({
   usePageState: vi.fn(),
-}))
+}));
 
 // Mock the FamilyContext to prevent real API calls
 vi.mock('../../contexts/FamilyContext', async (importOriginal) => {
-  const actual = await importOriginal()
+  const actual = await importOriginal();
   return {
     ...actual,
     useFamily: vi.fn(),
-  }
-})
+  };
+});
 
-const mockUsePageState = vi.mocked(usePageStateModule.usePageState)
-const mockUseFamily = vi.mocked(useFamily)
+const mockUsePageState = vi.mocked(usePageStateModule.usePageState);
+const mockUseFamily = vi.mocked(useFamily);
 
 describe('VehiclesPage', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.clearAllMocks();
     
     // Apply comprehensive OpenAPI client mocks
     const comprehensiveMocks = createMockOpenAPIClient();
@@ -68,20 +68,20 @@ describe('VehiclesPage', () => {
       shouldShowLoading: false,
       shouldShowError: false,
       shouldShowEmpty: true,
-    })
-  })
+    });
+  });
 
   it('renders vehicles page correctly', async () => {
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId('VehiclesPage-Title-pageTitle')).toBeInTheDocument()
-    })
+      expect(screen.getByTestId('VehiclesPage-Title-pageTitle')).toBeInTheDocument();
+    });
     
-    expect(screen.getByTestId('VehiclesPage-Title-pageTitle-title')).toBeInTheDocument()
+    expect(screen.getByTestId('VehiclesPage-Title-pageTitle-title')).toBeInTheDocument();
     // Should have Add Vehicle button in header
-    expect(screen.getByTestId('VehiclesPage-Button-addVehicle')).toBeInTheDocument()
-  })
+    expect(screen.getByTestId('VehiclesPage-Button-addVehicle')).toBeInTheDocument();
+  });
 
   it('displays loading state', () => {
     mockUsePageState.mockReturnValue({
@@ -92,27 +92,27 @@ describe('VehiclesPage', () => {
       shouldShowLoading: true,
       shouldShowError: false,
       shouldShowEmpty: false,
-    })
+    });
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
-    expect(screen.getByTestId('VehiclesPage-Container-loading')).toBeInTheDocument()
-  })
+    expect(screen.getByTestId('VehiclesPage-Container-loading')).toBeInTheDocument();
+  });
 
   it('displays empty state when no vehicles', async () => {
     // Default mock already returns shouldShowEmpty: true
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId('EmptyVehicles-content')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByTestId('EmptyVehicles-content')).toBeInTheDocument();
+    });
+  });
 
   it('displays vehicles list when vehicles exist', async () => {
     const vehicles = [
       { ...mockVehicle, id: '1', name: 'Car 1', capacity: 5 },
       { ...mockVehicle, id: '2', name: 'Car 2', capacity: 7 },
-    ]
+    ];
     
     mockUsePageState.mockReturnValue({
       data: vehicles,
@@ -122,77 +122,77 @@ describe('VehiclesPage', () => {
       shouldShowLoading: false,
       shouldShowError: false,
       shouldShowEmpty: false,
-    })
+    });
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId('VehiclesPage-Text-vehicleName-1')).toBeInTheDocument()
-      expect(screen.getByTestId('VehiclesPage-Text-vehicleName-2')).toBeInTheDocument()
-      expect(screen.getByTestId('VehiclesPage-Text-vehicleCapacity-1')).toBeInTheDocument()
-      expect(screen.getByTestId('VehiclesPage-Text-vehicleCapacity-2')).toBeInTheDocument()
-    })
-  })
+      expect(screen.getByTestId('VehiclesPage-Text-vehicleName-1')).toBeInTheDocument();
+      expect(screen.getByTestId('VehiclesPage-Text-vehicleName-2')).toBeInTheDocument();
+      expect(screen.getByTestId('VehiclesPage-Text-vehicleCapacity-1')).toBeInTheDocument();
+      expect(screen.getByTestId('VehiclesPage-Text-vehicleCapacity-2')).toBeInTheDocument();
+    });
+  });
 
   it('opens add vehicle modal when add button is clicked', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     // Get the Add Vehicle button from header
-    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle')
-    await user.click(addButton)
+    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle');
+    await user.click(addButton);
     
-    expect(screen.getByTestId('VehiclesPage-Title-vehicleModalTitle')).toBeInTheDocument()
-    expect(screen.getByTestId('VehiclesPage-Input-vehicleName')).toBeInTheDocument()
-    expect(screen.getByTestId('VehiclesPage-Input-vehicleCapacity')).toBeInTheDocument()
-  })
+    expect(screen.getByTestId('VehiclesPage-Title-vehicleModalTitle')).toBeInTheDocument();
+    expect(screen.getByTestId('VehiclesPage-Input-vehicleName')).toBeInTheDocument();
+    expect(screen.getByTestId('VehiclesPage-Input-vehicleCapacity')).toBeInTheDocument();
+  });
 
   it('creates a new vehicle successfully', async () => {
-    const user = userEvent.setup()
-    mockApi.POST.mockResolvedValueOnce({ data: mockVehicle })
+    const user = userEvent.setup();
+    mockApi.POST.mockResolvedValueOnce({ data: mockVehicle });
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
-    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle')
-    await user.click(addButton)
+    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle');
+    await user.click(addButton);
     
-    const nameInput = screen.getByTestId('VehiclesPage-Input-vehicleName')
-    const capacityInput = screen.getByTestId('VehiclesPage-Input-vehicleCapacity')
-    const submitButton = screen.getByTestId('VehiclesPage-Button-submitVehicle')
+    const nameInput = screen.getByTestId('VehiclesPage-Input-vehicleName');
+    const capacityInput = screen.getByTestId('VehiclesPage-Input-vehicleCapacity');
+    const submitButton = screen.getByTestId('VehiclesPage-Button-submitVehicle');
     
-    await user.type(nameInput, 'Test Vehicle')
-    await user.clear(capacityInput)
-    await user.type(capacityInput, '5')
-    await user.click(submitButton)
+    await user.type(nameInput, 'Test Vehicle');
+    await user.clear(capacityInput);
+    await user.type(capacityInput, '5');
+    await user.click(submitButton);
     
     await waitFor(() => {
-      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', { body: { name: 'Test Vehicle', capacity: 5 } })
-    })
-  })
+      expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', { body: { name: 'Test Vehicle', capacity: 5 } });
+    });
+  });
 
   it('validates vehicle form inputs', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
-    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle')
-    await user.click(addButton)
+    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle');
+    await user.click(addButton);
     
-    const submitButton = screen.getByTestId('VehiclesPage-Button-submitVehicle')
-    await user.click(submitButton)
+    const submitButton = screen.getByTestId('VehiclesPage-Button-submitVehicle');
+    await user.click(submitButton);
     
     // Form should require name and capacity
-    const nameInput = screen.getByTestId('VehiclesPage-Input-vehicleName')
-    const capacityInput = screen.getByTestId('VehiclesPage-Input-vehicleCapacity')
+    const nameInput = screen.getByTestId('VehiclesPage-Input-vehicleName');
+    const capacityInput = screen.getByTestId('VehiclesPage-Input-vehicleCapacity');
     
-    expect(nameInput).toBeRequired()
-    expect(capacityInput).toBeRequired()
-  })
+    expect(nameInput).toBeRequired();
+    expect(capacityInput).toBeRequired();
+  });
 
   it('opens edit modal when edit button is clicked', async () => {
-    const user = userEvent.setup()
-    const vehicles = [mockVehicle]
+    const user = userEvent.setup();
+    const vehicles = [mockVehicle];
     
     mockUsePageState.mockReturnValue({
       data: vehicles,
@@ -202,25 +202,25 @@ describe('VehiclesPage', () => {
       shouldShowLoading: false,
       shouldShowError: false,
       shouldShowEmpty: false,
-    })
+    });
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument()
-    })
+      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument();
+    });
     
-    const editButton = screen.getByTestId(`VehiclesPage-Button-editVehicle-${mockVehicle.id}`)
-    await user.click(editButton)
+    const editButton = screen.getByTestId(`VehiclesPage-Button-editVehicle-${mockVehicle.id}`);
+    await user.click(editButton);
     
-    expect(screen.getByTestId('VehiclesPage-Title-vehicleModalTitle')).toBeInTheDocument()
-    expect(screen.getByTestId('VehiclesPage-Input-vehicleName')).toHaveValue(mockVehicle.name)
-    expect(screen.getByTestId('VehiclesPage-Input-vehicleCapacity')).toHaveValue(mockVehicle.capacity)
-  })
+    expect(screen.getByTestId('VehiclesPage-Title-vehicleModalTitle')).toBeInTheDocument();
+    expect(screen.getByTestId('VehiclesPage-Input-vehicleName')).toHaveValue(mockVehicle.name);
+    expect(screen.getByTestId('VehiclesPage-Input-vehicleCapacity')).toHaveValue(mockVehicle.capacity);
+  });
 
   it('updates vehicle successfully', async () => {
-    const user = userEvent.setup()
-    const vehicles = [mockVehicle]
+    const user = userEvent.setup();
+    const vehicles = [mockVehicle];
     
     mockUsePageState.mockReturnValue({
       data: vehicles,
@@ -230,40 +230,40 @@ describe('VehiclesPage', () => {
       shouldShowLoading: false,
       shouldShowError: false,
       shouldShowEmpty: false,
-    })
+    });
     
-    mockApi.PATCH.mockResolvedValueOnce({ data: { ...mockVehicle, name: 'Updated Vehicle' } })
+    mockApi.PATCH.mockResolvedValueOnce({ data: { ...mockVehicle, name: 'Updated Vehicle' } });
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument()
-    })
+      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument();
+    });
     
-    const editButton = screen.getByTestId(`VehiclesPage-Button-editVehicle-${mockVehicle.id}`)
-    await user.click(editButton)
+    const editButton = screen.getByTestId(`VehiclesPage-Button-editVehicle-${mockVehicle.id}`);
+    await user.click(editButton);
     
-    const nameInput = screen.getByTestId('VehiclesPage-Input-vehicleName')
-    const updateButton = screen.getByTestId('VehiclesPage-Button-submitVehicle')
+    const nameInput = screen.getByTestId('VehiclesPage-Input-vehicleName');
+    const updateButton = screen.getByTestId('VehiclesPage-Button-submitVehicle');
     
-    await user.clear(nameInput)
-    await user.type(nameInput, 'Updated Vehicle')
-    await user.click(updateButton)
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Updated Vehicle');
+    await user.click(updateButton);
     
     await waitFor(() => {
       expect(mockApi.PATCH).toHaveBeenCalledWith(
         '/api/v1/vehicles/{vehicleId}',
         {
           params: { path: { vehicleId: mockVehicle.id } },
-          body: { name: 'Updated Vehicle', capacity: mockVehicle.capacity }
-        }
-      )
-    })
-  })
+          body: { name: 'Updated Vehicle', capacity: mockVehicle.capacity },
+        },
+      );
+    });
+  });
 
   it('deletes vehicle with confirmation', async () => {
-    const user = userEvent.setup()
-    const vehicles = [mockVehicle]
+    const user = userEvent.setup();
+    const vehicles = [mockVehicle];
     
     mockUsePageState.mockReturnValue({
       data: vehicles,
@@ -273,39 +273,39 @@ describe('VehiclesPage', () => {
       shouldShowLoading: false,
       shouldShowError: false,
       shouldShowEmpty: false,
-    })
+    });
     
-    mockApi.DELETE.mockResolvedValueOnce({})
+    mockApi.DELETE.mockResolvedValueOnce({});
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument()
-    })
+      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument();
+    });
     
-    const deleteButton = screen.getByTestId(`VehiclesPage-Button-deleteVehicle-${mockVehicle.id}`)
-    await user.click(deleteButton)
+    const deleteButton = screen.getByTestId(`VehiclesPage-Button-deleteVehicle-${mockVehicle.id}`);
+    await user.click(deleteButton);
     
     // Confirm dialog should appear
     await waitFor(() => {
-      expect(screen.getByTestId('ConfirmationDialog-Title-dialog')).toHaveTextContent('Delete Vehicle')
-      expect(screen.getByTestId('ConfirmationDialog-Description-dialog')).toHaveTextContent(`Are you sure you want to delete ${mockVehicle.name}? This action cannot be undone.`)
-    })
+      expect(screen.getByTestId('ConfirmationDialog-Title-dialog')).toHaveTextContent('Delete Vehicle');
+      expect(screen.getByTestId('ConfirmationDialog-Description-dialog')).toHaveTextContent(`Are you sure you want to delete ${mockVehicle.name}? This action cannot be undone.`);
+    });
     
     // Click confirm button
-    const confirmButton = screen.getByTestId('ConfirmationDialog-Button-confirm')
-    await user.click(confirmButton)
+    const confirmButton = screen.getByTestId('ConfirmationDialog-Button-confirm');
+    await user.click(confirmButton);
     
     await waitFor(() => {
       expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
-      params: { path: { vehicleId: mockVehicle.id } }
-    })
-    })
-  })
+      params: { path: { vehicleId: mockVehicle.id } },
+    });
+    });
+  });
 
   it('cancels delete when user declines confirmation', async () => {
-    const user = userEvent.setup()
-    const vehicles = [mockVehicle]
+    const user = userEvent.setup();
+    const vehicles = [mockVehicle];
     
     mockUsePageState.mockReturnValue({
       data: vehicles,
@@ -315,46 +315,46 @@ describe('VehiclesPage', () => {
       shouldShowLoading: false,
       shouldShowError: false,
       shouldShowEmpty: false,
-    })
+    });
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
     await waitFor(() => {
-      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument()
-    })
+      expect(screen.getByTestId(`VehiclesPage-Text-vehicleName-${mockVehicle.id}`)).toBeInTheDocument();
+    });
     
-    const deleteButton = screen.getByTestId(`VehiclesPage-Button-deleteVehicle-${mockVehicle.id}`)
-    await user.click(deleteButton)
+    const deleteButton = screen.getByTestId(`VehiclesPage-Button-deleteVehicle-${mockVehicle.id}`);
+    await user.click(deleteButton);
     
     // Confirm dialog should appear
     await waitFor(() => {
-      expect(screen.getByTestId('ConfirmationDialog-Title-dialog')).toHaveTextContent('Delete Vehicle')
-    })
+      expect(screen.getByTestId('ConfirmationDialog-Title-dialog')).toHaveTextContent('Delete Vehicle');
+    });
     
     // Click cancel button
-    const cancelButton = screen.getByTestId('ConfirmationDialog-Button-cancel')
-    await user.click(cancelButton)
+    const cancelButton = screen.getByTestId('ConfirmationDialog-Button-cancel');
+    await user.click(cancelButton);
     
     // Dialog should disappear and delete should not be called
     await waitFor(() => {
-      expect(screen.queryByTestId('ConfirmationDialog-Title-dialog')).not.toBeInTheDocument()
-    })
-    expect(mockApi.DELETE).not.toHaveBeenCalled()
-  })
+      expect(screen.queryByTestId('ConfirmationDialog-Title-dialog')).not.toBeInTheDocument();
+    });
+    expect(mockApi.DELETE).not.toHaveBeenCalled();
+  });
 
   it('closes modal when cancel button is clicked', async () => {
-    const user = userEvent.setup()
+    const user = userEvent.setup();
     
-    render(<VehiclesPage />)
+    render(<VehiclesPage />);
     
-    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle')
-    await user.click(addButton)
+    const addButton = screen.getByTestId('VehiclesPage-Button-addVehicle');
+    await user.click(addButton);
     
-    expect(screen.getByTestId('VehiclesPage-Title-vehicleModalTitle')).toBeInTheDocument()
+    expect(screen.getByTestId('VehiclesPage-Title-vehicleModalTitle')).toBeInTheDocument();
     
-    const cancelButton = screen.getByTestId('VehiclesPage-Button-cancelVehicle')
-    await user.click(cancelButton)
+    const cancelButton = screen.getByTestId('VehiclesPage-Button-cancelVehicle');
+    await user.click(cancelButton);
     
-    expect(screen.queryByTestId('vehicle-modal-title')).not.toBeInTheDocument()
-  })
-})
+    expect(screen.queryByTestId('vehicle-modal-title')).not.toBeInTheDocument();
+  });
+});

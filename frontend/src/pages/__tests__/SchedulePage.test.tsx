@@ -162,7 +162,7 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
           TUESDAY: [],
           WEDNESDAY: [],
           THURSDAY: [],
-          FRIDAY: []
+          FRIDAY: [],
         };
 
         // Convert to user timezone (Europe/Paris = UTC+1 in November)
@@ -200,7 +200,7 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
       it('should handle timezone conversion correctly for schedule slot availability', () => {
         // Test the specific case that was failing: Monday 06:00/13:00 UTC → 07:00/14:00 local
         const utcScheduleHours = {
-          MONDAY: ['06:00', '13:00'] // Monday slots in UTC
+          MONDAY: ['06:00', '13:00'], // Monday slots in UTC
         };
 
         const userTimezone = 'Europe/Paris'; // UTC+1 in November
@@ -232,7 +232,7 @@ describe('SchedulePage - Timezone Date Comparisons', () => {
 
         const utcScheduleHours = {
           MONDAY: ['08:00', '16:00'],
-          TUESDAY: ['08:00', '16:00']
+          TUESDAY: ['08:00', '16:00'],
         };
 
         const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');

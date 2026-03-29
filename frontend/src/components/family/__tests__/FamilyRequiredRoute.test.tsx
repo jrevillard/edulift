@@ -16,7 +16,7 @@ vi.mock('../FamilyOnboardingWizard', () => ({
       <p>Family Onboarding Wizard</p>
       <button onClick={onComplete}>Complete Onboarding</button>
     </div>
-  )
+  ),
 }));
 
 const mockUseFamily = vi.mocked(useFamily);
@@ -31,7 +31,7 @@ describe('FamilyRequiredRoute', () => {
     return render(
       <MemoryRouter>
         {component}
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -42,7 +42,7 @@ describe('FamilyRequiredRoute', () => {
     login: vi.fn(),
     verifyMagicLink: vi.fn(),
     logout: vi.fn(),
-    refreshToken: vi.fn()
+    refreshToken: vi.fn(),
   };
 
   const defaultFamilyContextValue = {
@@ -61,7 +61,7 @@ describe('FamilyRequiredRoute', () => {
     updateMemberRole: vi.fn(),
     removeMember: vi.fn(),
     generateInviteCode: vi.fn(),
-    clearError: vi.fn()
+    clearError: vi.fn(),
   };
 
   beforeEach(() => {
@@ -70,7 +70,7 @@ describe('FamilyRequiredRoute', () => {
     mockUseFamily.mockReturnValue(defaultFamilyContextValue);
     mockUseSocket.mockReturnValue({
       socket: null,
-      isConnected: true
+      isConnected: true,
     });
   });
 
@@ -78,13 +78,13 @@ describe('FamilyRequiredRoute', () => {
     it('should show loading when auth is loading', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthContextValue,
-        isLoading: true
+        isLoading: true,
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('FamilyRequiredRoute-Text-familyStatusLoading')).toBeInTheDocument();
@@ -94,13 +94,13 @@ describe('FamilyRequiredRoute', () => {
     it('should show loading when family is being checked', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
-        isCheckingFamily: true
+        isCheckingFamily: true,
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('FamilyRequiredRoute-Text-familyStatusLoading')).toBeInTheDocument();
@@ -110,13 +110,13 @@ describe('FamilyRequiredRoute', () => {
     it('should show loading when family context is loading', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
-        isLoading: true
+        isLoading: true,
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('FamilyRequiredRoute-Text-familyStatusLoading')).toBeInTheDocument();
@@ -129,13 +129,13 @@ describe('FamilyRequiredRoute', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthContextValue,
         isAuthenticated: false,
-        user: null
+        user: null,
       });
 
       const { container } = renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(container.firstChild).toBeNull();
@@ -146,13 +146,13 @@ describe('FamilyRequiredRoute', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthContextValue,
         isAuthenticated: false,
-        user: null
+        user: null,
       });
 
       renderWithRouter(
         <FamilyRequiredRoute fallback={<FallbackComponent />}>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('fallback-content')).toBeInTheDocument();
@@ -165,13 +165,13 @@ describe('FamilyRequiredRoute', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { container } = renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       // Component should navigate away, so content should be empty
@@ -183,13 +183,13 @@ describe('FamilyRequiredRoute', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
         requiresFamily: false,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { container } = renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       // Component should navigate away, so content should be empty
@@ -210,14 +210,14 @@ describe('FamilyRequiredRoute', () => {
           updatedAt: '2024-01-01T00:00:00Z',
           members: [],
           children: [],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -231,13 +231,13 @@ describe('FamilyRequiredRoute', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { container } = renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       // Component should navigate to onboarding
@@ -250,19 +250,19 @@ describe('FamilyRequiredRoute', () => {
     it('should prioritize loading states over family requirements', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthContextValue,
-        isLoading: true
+        isLoading: true,
       });
       
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('FamilyRequiredRoute-Text-familyStatusLoading')).toBeInTheDocument();
@@ -282,15 +282,15 @@ describe('FamilyRequiredRoute', () => {
           updatedAt: '2024-01-01T00:00:00Z',
           members: [],
           children: [],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
           <div data-testid="second-component">Second Component</div>
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       expect(screen.getByTestId('protected-content')).toBeInTheDocument();
@@ -302,13 +302,13 @@ describe('FamilyRequiredRoute', () => {
     it('should render loading spinner and text', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyContextValue,
-        isCheckingFamily: true
+        isCheckingFamily: true,
       });
 
       renderWithRouter(
         <FamilyRequiredRoute>
           <TestComponent />
-        </FamilyRequiredRoute>
+        </FamilyRequiredRoute>,
       );
 
       // Check for loading elements without being too specific about CSS classes

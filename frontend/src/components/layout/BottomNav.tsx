@@ -1,8 +1,8 @@
-import { Home, Users, Calendar, LogOut } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
-import { ConnectionIndicator } from "@/components/ConnectionIndicator";
+import { Home, Users, Calendar, LogOut } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { ConnectionIndicator } from '@/components/ConnectionIndicator';
 
 export const BottomNav = () => {
   const location = useLocation();
@@ -18,10 +18,10 @@ export const BottomNav = () => {
   };
 
   const tabs = [
-    { icon: Home, label: "Home", path: "/dashboard" },
-    { icon: Users, label: "Family", path: "/family/manage" },
-    { icon: Calendar, label: "Schedule", path: "/schedule" },
-    { icon: LogOut, label: "Logout", path: null, action: handleLogout },
+    { icon: Home, label: 'Home', path: '/dashboard' },
+    { icon: Users, label: 'Family', path: '/family/manage' },
+    { icon: Calendar, label: 'Schedule', path: '/schedule' },
+    { icon: LogOut, label: 'Logout', path: null, action: handleLogout },
   ];
 
   return (
@@ -38,10 +38,10 @@ export const BottomNav = () => {
               key={path || `action-${index}`}
               onClick={() => path ? navigate(path) : action?.()}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-xs min-h-[44px]",
+                'flex flex-col items-center justify-center gap-1 text-xs min-h-[44px]',
                 path && location.pathname === path
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
               )}
               data-testid={path ? `BottomNav-Button-${label.toLowerCase()}` : `BottomNav-Button-${label.toLowerCase()}`}
             >

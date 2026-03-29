@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { 
   isDateInPast, 
   getDateValidationMessage,
-  formatDateForComparison 
+  formatDateForComparison, 
 } from '../dateValidation';
 
 // Mock current date for consistent testing

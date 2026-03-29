@@ -197,7 +197,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     verifyMagicLink,
     logout,
     refreshToken,
-    updateUser
+    updateUser,
   };
 
   return (

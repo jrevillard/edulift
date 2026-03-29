@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom'
-import { cleanup } from '@testing-library/react'
-import { afterEach } from 'vitest'
+import '@testing-library/jest-dom';
+import { cleanup } from '@testing-library/react';
+import { afterEach } from 'vitest';
 
 // Interface for test environment window extension
 interface TestWindow extends Window {
@@ -9,13 +9,13 @@ interface TestWindow extends Window {
 
 // Set global test environment flag to prevent navigation redirects in API client
 if (typeof window !== 'undefined') {
-  (window as TestWindow).__TEST_ENVIRONMENT__ = true
+  (window as TestWindow).__TEST_ENVIRONMENT__ = true;
 }
 
 // Automatic cleanup after each test
 afterEach(() => {
-  cleanup()
-})
+  cleanup();
+});
 
 // Mock window.matchMedia (required for some components)
 if (typeof window !== 'undefined') {
@@ -31,28 +31,28 @@ if (typeof window !== 'undefined') {
       removeEventListener: () => { },
       dispatchEvent: () => { },
     }),
-  })
+  });
 }
 
 // Mock IntersectionObserver
 (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver = class IntersectionObserver {
   constructor() { }
   observe() {
-    return null
+    return null;
   }
   disconnect() {
-    return null
+    return null;
   }
   unobserve() {
-    return null
+    return null;
   }
-}
+};
 
 // Mock scrollIntoView (required for Radix UI components)
 if (typeof Element !== 'undefined') {
   Element.prototype.scrollIntoView = function () {
     // Mock implementation - do nothing
-  }
+  };
 }
 
 // Mock getBoundingClientRect
@@ -67,19 +67,19 @@ if (typeof Element !== 'undefined') {
       height: 0,
       x: 0,
       y: 0,
-      toJSON: () => { }
-    }
-  }
+      toJSON: () => { },
+    };
+  };
 }
 
 // Mock console.error to clean up test output
-const originalError = console.error
+const originalError = console.error;
 console.error = (...args) => {
   if (
     typeof args[0] === 'string' &&
     args[0].includes('Warning: ReactDOM.render is deprecated')
   ) {
-    return
+    return;
   }
-  originalError.call(console, ...args)
-}
+  originalError.call(console, ...args);
+};

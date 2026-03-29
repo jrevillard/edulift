@@ -39,7 +39,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
     queryKey: ['child-groups', child.id],
     queryFn: async () => {
       const result = await api.GET('/api/v1/children/{childId}/groups', {
-        params: { path: { childId: child.id } }
+        params: { path: { childId: child.id } },
       });
       return result.data;
     },
@@ -62,14 +62,14 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
 
   // Filter out groups child is already a member of
   const availableGroups = userGroups.filter(
-    (userGroup: UserGroup) => !childGroups.some((childGroup: GroupChildMembership) => childGroup.groupId === userGroup.id)
+    (userGroup: UserGroup) => !childGroups.some((childGroup: GroupChildMembership) => childGroup.groupId === userGroup.id),
   );
 
   // Mutations
   const addToGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
       const result = await api.POST('/api/v1/children/{childId}/groups/{groupId}', {
-        params: { path: { childId: child.id, groupId } }
+        params: { path: { childId: child.id, groupId } },
       });
       return result;
     },
@@ -83,7 +83,7 @@ export const ChildGroupManagement: React.FC<ChildGroupManagementProps> = ({ chil
   const removeFromGroupMutation = useMutation({
     mutationFn: async (groupId: string) => {
       const result = await api.DELETE('/api/v1/children/{childId}/groups/{groupId}', {
-        params: { path: { childId: child.id, groupId } }
+        params: { path: { childId: child.id, groupId } },
       });
       return result;
     },

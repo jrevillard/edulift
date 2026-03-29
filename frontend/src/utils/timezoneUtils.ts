@@ -10,7 +10,7 @@ import { formatInTimeZone, toZonedTime, toDate } from 'date-fns-tz';
  * Storage keys used across the application
  */
 export const STORAGE_KEYS = {
-  AUTO_SYNC_TIMEZONE: 'autoSyncTimezone'
+  AUTO_SYNC_TIMEZONE: 'autoSyncTimezone',
 } as const;
 
 /**
@@ -74,13 +74,13 @@ export function getBrowserTimezone(): string {
  */
 export function convertUtcToLocal(
   utcDatetime: string | Date,
-  timezone?: string
+  timezone?: string,
 ): Date {
   const tz = timezone || getUserTimezone();
   const date = typeof utcDatetime === 'string' ? parseISO(utcDatetime) : utcDatetime;
 
   // Use formatInTimeZone and parse back to get proper Date in timezone
-  const localDateStr = formatInTimeZone(date, tz, "yyyy-MM-dd'T'HH:mm:ss.SSSxxx");
+  const localDateStr = formatInTimeZone(date, tz, 'yyyy-MM-dd\'T\'HH:mm:ss.SSSxxx');
   return new Date(localDateStr);
 }
 
@@ -92,7 +92,7 @@ export function convertUtcToLocal(
  */
 export function getWeekdayInTimezone(
   utcDatetime: string | Date,
-  timezone?: string
+  timezone?: string,
 ): string {
   const tz = timezone || getUserTimezone();
   const date = typeof utcDatetime === 'string' ? parseISO(utcDatetime) : utcDatetime;
@@ -108,7 +108,7 @@ export function getWeekdayInTimezone(
  */
 export function getTimeInTimezone(
   utcDatetime: string | Date,
-  timezone?: string
+  timezone?: string,
 ): string {
   const tz = timezone || getUserTimezone();
   const date = typeof utcDatetime === 'string' ? parseISO(utcDatetime) : utcDatetime;
@@ -125,7 +125,7 @@ export function getTimeInTimezone(
 export function formatDatetimeInTimezone(
   utcDatetime: string | Date,
   formatStr: string,
-  timezone?: string
+  timezone?: string,
 ): string {
   const tz = timezone || getUserTimezone();
   const date = typeof utcDatetime === 'string' ? parseISO(utcDatetime) : utcDatetime;
@@ -179,7 +179,7 @@ export function getTimezoneOffset(timezone: string): string {
  */
 export function formatTimeWithOffset(
   utcDatetime: string | Date,
-  timezone?: string
+  timezone?: string,
 ): string {
   const tz = timezone || getUserTimezone();
   const time = getTimeInTimezone(utcDatetime, tz);
@@ -236,7 +236,7 @@ export const COMMON_TIMEZONES = [
 export function createUtcDatetime(
   localDate: Date | string,
   localTime: string,
-  timezone?: string
+  timezone?: string,
 ): string {
   const tz = timezone || getUserTimezone();
 
@@ -254,7 +254,7 @@ export function createUtcDatetime(
 
   // Parse in the specified timezone and convert to UTC
   // This correctly handles DST transitions
-  const utcDate = new Date(localDatetimeStr + ' GMT' + formatInTimeZone(new Date(), tz, 'xxx'));
+  const utcDate = new Date(`${localDatetimeStr  } GMT${  formatInTimeZone(new Date(), tz, 'xxx')}`);
 
   return utcDate.toISOString();
 }
@@ -338,7 +338,7 @@ export function convertUtcToLocalTimeString(utcTime: string, userTimezone: strin
  */
 export function convertScheduleHoursToUtc(
   localScheduleHours: Record<string, string[]>,
-  userTimezone: string
+  userTimezone: string,
 ): Record<string, string[]> {
   const utcScheduleHours: Record<string, string[]> = {};
 
@@ -349,7 +349,7 @@ export function convertScheduleHoursToUtc(
     'THURSDAY': 3,
     'FRIDAY': 4,
     'SATURDAY': 5,
-    'SUNDAY': 6
+    'SUNDAY': 6,
   };
 
   const weekdayNames = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -411,7 +411,7 @@ export function convertScheduleHoursToUtc(
  */
 export function convertScheduleHoursToLocal(
   utcScheduleHours: Record<string, string[]>,
-  userTimezone: string
+  userTimezone: string,
 ): Record<string, string[]> {
   const localScheduleHours: Record<string, string[]> = {};
 
@@ -426,7 +426,7 @@ export function convertScheduleHoursToLocal(
     'THURSDAY': 3,
     'FRIDAY': 4,
     'SATURDAY': 5,
-    'SUNDAY': 6
+    'SUNDAY': 6,
   };
 
   const weekdayNames = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
@@ -481,10 +481,10 @@ export function getUtcWeekday(localDate: Date, userTimezone: string): string {
   const weekdayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
   // Format the date in the user's timezone to get ISO string
-  const localDateStr = formatInTimeZone(localDate, userTimezone, "yyyy-MM-dd'T'HH:mm:ss");
+  const localDateStr = formatInTimeZone(localDate, userTimezone, 'yyyy-MM-dd\'T\'HH:mm:ss');
 
   // Parse as UTC to get the UTC representation
-  const utcDate = parseISO(localDateStr + 'Z');
+  const utcDate = parseISO(`${localDateStr  }Z`);
 
   // Get UTC weekday
   const utcDayOfWeek = utcDate.getUTCDay(); // 0 = Sunday, 1 = Monday, etc.
@@ -503,7 +503,7 @@ export function getLocalWeekday(utcDate: Date, userTimezone: string): string {
   const weekdayNames = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
   // Convert UTC date to user's timezone
-  const localDatetimeStr = formatInTimeZone(utcDate, userTimezone, "yyyy-MM-dd'T'HH:mm:ss");
+  const localDatetimeStr = formatInTimeZone(utcDate, userTimezone, 'yyyy-MM-dd\'T\'HH:mm:ss');
   const localDate = parseISO(localDatetimeStr);
 
   // Get local weekday

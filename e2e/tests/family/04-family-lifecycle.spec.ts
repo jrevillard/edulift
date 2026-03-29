@@ -23,7 +23,7 @@ test.describe('Family Lifecycle E2E', () => {
         await authHelper.setupAdminUser(
           'admin.leave',
           `Admin Leave ${timestamp}`,
-          `Leave Test Family ${timestamp}`
+          `Leave Test Family ${timestamp}`,
         );
 
         await page.waitForURL('/dashboard', { timeout: 15000 });
@@ -123,7 +123,7 @@ test.describe('Family Lifecycle E2E', () => {
         await authHelper.setupAdminUser(
           'admin.sole',
           `Sole Admin ${timestamp}`,
-          `Sole Admin Family ${timestamp}`
+          `Sole Admin Family ${timestamp}`,
         );
 
         await page.waitForURL('/dashboard', { timeout: 15000 });
@@ -163,7 +163,7 @@ test.describe('Family Lifecycle E2E', () => {
         await authHelper.setupAdminUser(
           'admin.transition',
           `Transition Admin ${timestamp}`,
-          `First Family ${timestamp}`
+          `First Family ${timestamp}`,
         );
 
         await page.waitForURL('/dashboard', { timeout: 15000 });
@@ -231,7 +231,7 @@ test.describe('Family Lifecycle E2E', () => {
           secondAdminPage,
           secondAdminEmail,
           `Second Admin ${timestamp}`,
-          `Second Family ${timestamp}`
+          `Second Family ${timestamp}`,
         );
 
         await secondAdminPage.waitForURL('/dashboard', { timeout: 15000 });
@@ -276,7 +276,7 @@ test.describe('Family Lifecycle E2E', () => {
         await authHelper.setupAdminUser(
           'admin.multi',
           `Multi Admin ${timestamp}`,
-          `Multi Admin Family ${timestamp}`
+          `Multi Admin Family ${timestamp}`,
         );
 
         await page.waitForURL('/dashboard', { timeout: 15000 });
@@ -347,7 +347,7 @@ test.describe('Family Lifecycle E2E', () => {
         await authHelper.setupAdminUser(
           'admin.consistency',
           `Consistency Admin ${timestamp}`,
-          `Consistency Family ${timestamp}`
+          `Consistency Family ${timestamp}`,
         );
 
         await page.waitForURL('/dashboard', { timeout: 15000 });

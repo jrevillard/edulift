@@ -18,13 +18,13 @@ vi.mock('../../services/unifiedInvitationService', () => ({
   unifiedInvitationService: {
     validateGroupInvitation: vi.fn(),
     acceptGroupInvitation: vi.fn(),
-  }
+  },
 }));
 
 vi.mock('../../services/authService', () => ({
   authService: {
     requestMagicLink: vi.fn(),
-  }
+  },
 }));
 
 vi.mock('../../contexts/AuthContext', () => ({
@@ -127,7 +127,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       isIOS: false,
       isAndroid: false,
       deviceType: 'desktop',
-      deviceInfo: { osVersion: undefined, model: undefined }
+      deviceInfo: { osVersion: undefined, model: undefined },
     });
 
     // Configure mobile redirection mocks
@@ -154,7 +154,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -169,7 +169,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -196,7 +196,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // First click the button to show signup form
@@ -273,7 +273,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -297,7 +297,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -315,13 +315,13 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
 
     it('should show loading state during acceptance', async () => {
       mockAcceptGroupInvitation.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve({ success: true, familyJoined: true }), 100))
+        () => new Promise(resolve => setTimeout(() => resolve({ success: true, familyJoined: true }), 100)),
       );
 
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -343,7 +343,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -412,7 +412,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -443,7 +443,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -505,7 +505,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -531,13 +531,13 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
         isIOS: false,
         isAndroid: false,
         deviceType: 'desktop',
-        deviceInfo: { osVersion: undefined, model: undefined }
+        deviceInfo: { osVersion: undefined, model: undefined },
       });
 
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
@@ -556,7 +556,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
         isIOS: true,
         isAndroid: false,
         deviceType: 'ios',
-        deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+        deviceInfo: { osVersion: '15.0', model: 'iPhone' },
       });
 
       // Mock parseSearchParams to return expected parameters
@@ -565,13 +565,13 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       await waitFor(() => {
         // Verify that the component attempts mobile redirection
         expect(mockParseSearchParams).toHaveBeenCalledWith(
-          expect.any(URLSearchParams)
+          expect.any(URLSearchParams),
         );
       });
 
@@ -584,14 +584,14 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
           isIOS: true,
           isAndroid: false,
           deviceType: 'ios',
-          deviceInfo: { osVersion: '15.0', model: 'iPhone' }
+          deviceInfo: { osVersion: '15.0', model: 'iPhone' },
         }),
         expect.objectContaining({          // options object with required properties
           fallbackDelay: 2500,
           preferUniversalLinks: true,
           onAttempt: expect.any(Function),   // callback functions exist
-          onFallback: expect.any(Function)   // callback functions exist
-        })
+          onFallback: expect.any(Function),   // callback functions exist
+        }),
       );
     });
   });
@@ -603,7 +603,7 @@ describe('UnifiedGroupInvitationPage - TDD Tests', () => {
       render(
         <TestWrapper>
           <UnifiedGroupInvitationPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
 
       // The component catches network errors and shows a generic message

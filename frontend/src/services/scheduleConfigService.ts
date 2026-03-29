@@ -15,7 +15,7 @@ class ScheduleConfigService {
    */
   async getGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
     const { data, error } = await api.GET('/api/v1/groups/{groupId}/schedule-config', {
-      params: { path: { groupId } }
+      params: { path: { groupId } },
     });
 
     if (error) {
@@ -37,7 +37,7 @@ class ScheduleConfigService {
   async updateGroupScheduleConfig(groupId: string, scheduleHours: ScheduleHours): Promise<GroupScheduleConfig> {
     const { data, error } = await api.PUT('/api/v1/groups/{groupId}/schedule-config', {
       params: { path: { groupId } },
-      body: { scheduleHours }
+      body: { scheduleHours },
     });
 
     if (error) {
@@ -57,7 +57,7 @@ class ScheduleConfigService {
    */
   async resetGroupScheduleConfig(groupId: string): Promise<GroupScheduleConfig> {
     const { data, error } = await api.POST('/api/v1/groups/{groupId}/schedule-config/reset', {
-      params: { path: { groupId } }
+      params: { path: { groupId } },
     });
 
     if (error) {

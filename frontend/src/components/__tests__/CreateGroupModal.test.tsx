@@ -17,7 +17,7 @@ describe('CreateGroupModal', () => {
         isOpen={false}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -29,7 +29,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.getByTestId('CreateGroupModal-Title-modalTitle')).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.getByTestId('CreateGroupModal-Input-groupName')).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');
@@ -83,7 +83,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const submitButton = screen.getByTestId('CreateGroupModal-Button-submit');
@@ -107,7 +107,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');
@@ -133,7 +133,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');
@@ -164,7 +164,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');
@@ -186,7 +186,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const cancelButton = screen.getByTestId('CreateGroupModal-Button-cancel');
@@ -204,7 +204,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');
@@ -224,7 +224,7 @@ describe('CreateGroupModal', () => {
         isOpen={false}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     // Open modal, should not show error initially
@@ -233,7 +233,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
@@ -252,7 +252,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');
@@ -281,7 +281,7 @@ describe('CreateGroupModal', () => {
         isOpen={true}
         onClose={mockOnClose}
         onSubmit={mockOnSubmit}
-      />
+      />,
     );
 
     const input = screen.getByTestId('CreateGroupModal-Input-groupName');

@@ -52,7 +52,7 @@ describe('timezoneUtils', () => {
     test('should convert local schedule to UTC schedule', () => {
       const localSchedule = {
         MONDAY: ['09:00', '17:00'],
-        FRIDAY: ['15:00']
+        FRIDAY: ['15:00'],
       };
 
       const utcSchedule = convertScheduleHoursToUtc(localSchedule, 'Europe/Paris');
@@ -73,20 +73,20 @@ describe('timezoneUtils', () => {
     test('should convert UTC schedule to local', () => {
       const utc = {
         MONDAY: ['06:00', '07:00'],
-        TUESDAY: ['14:00']
+        TUESDAY: ['14:00'],
       };
 
       const local = convertScheduleHoursToLocal(utc, 'Europe/Paris');
 
       expect(local).toEqual({
         MONDAY: ['07:00', '08:00'],
-        TUESDAY: ['15:00']
+        TUESDAY: ['15:00'],
       });
     });
 
     test('CRITICAL: round-trip should preserve user intent', () => {
       const original = {
-        MONDAY: ['00:30', '07:00', '17:00']
+        MONDAY: ['00:30', '07:00', '17:00'],
       };
 
       const utc = convertScheduleHoursToUtc(original, 'Europe/Paris');
@@ -103,7 +103,7 @@ describe('timezoneUtils', () => {
 
     test('should sort times after conversion', () => {
       const utc = {
-        MONDAY: ['16:00', '06:00', '11:00']
+        MONDAY: ['16:00', '06:00', '11:00'],
       };
 
       const local = convertScheduleHoursToLocal(utc, 'Europe/Paris');
@@ -134,7 +134,7 @@ describe('Key Consistency Bug Prevention Tests', () => {
     const utcScheduleHours = {
       MONDAY: ['06:00', '13:00'],
       TUESDAY: ['08:00', '16:00'],
-      WEDNESDAY: ['09:00', '17:00']
+      WEDNESDAY: ['09:00', '17:00'],
     };
 
     const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');
@@ -158,7 +158,7 @@ describe('Key Consistency Bug Prevention Tests', () => {
       TUESDAY: [],
       WEDNESDAY: [],
       THURSDAY: [],
-      FRIDAY: []
+      FRIDAY: [],
     };
 
     const userTimezone = 'Europe/Paris'; // UTC+1 in November
@@ -178,7 +178,7 @@ describe('Key Consistency Bug Prevention Tests', () => {
   test('should ensure time slot availability logic works with converted keys', () => {
     // Simulate the renderTimeSlot logic that was failing
     const utcScheduleHours = {
-      MONDAY: ['06:00', '13:00']
+      MONDAY: ['06:00', '13:00'],
     };
 
     const userTimezone = 'Europe/Paris';
@@ -204,7 +204,7 @@ describe('Key Consistency Bug Prevention Tests', () => {
   test('should prevent locale-dependent key generation', () => {
     // Ensure that different browser locales don't affect the keys
     const utcScheduleHours = {
-      FRIDAY: ['15:00', '16:00']
+      FRIDAY: ['15:00', '16:00'],
     };
 
     const localScheduleHoursFR = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');

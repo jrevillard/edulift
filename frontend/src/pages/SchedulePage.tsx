@@ -43,12 +43,12 @@ import { SOCKET_EVENTS } from '../shared/events';
 import {
   getISOWeekNumber,
   getISOWeekYear,
-  getDateFromISOWeek
+  getDateFromISOWeek,
 } from '../utils/weekCalculations';
 import {
   getWeekdayInTimezone,
   getTimeInTimezone,
-  convertScheduleHoursToLocal
+  convertScheduleHoursToLocal,
 } from '../utils/timezoneUtils';
 import { getErrorMessage } from '../utils/errorUtils';
 
@@ -154,7 +154,7 @@ const SchedulePage: React.FC = () => {
     data: groups,
     shouldShowLoading,
     shouldShowError,
-    shouldShowEmpty
+    shouldShowEmpty,
   } = usePageState(groupsQuery);
 
   // Fetch weekly schedule
@@ -165,14 +165,14 @@ const SchedulePage: React.FC = () => {
       const { data: response, error } = await api.GET('/api/v1/groups/{groupId}/schedule', {
         params: {
           path: {
-            groupId: selectedGroup
-          }
-        }
+            groupId: selectedGroup,
+          },
+        },
       });
       if (error || !response?.success || !response?.data) {
         throw new Error('Failed to fetch schedule');
       }
-      console.log(`🔍 DEBUG: Schedule API response:`, response);
+      console.log('🔍 DEBUG: Schedule API response:', response);
       return response.data;
     },
     enabled: !!selectedGroup && !!currentWeek,
@@ -201,10 +201,10 @@ const SchedulePage: React.FC = () => {
         key: weekdayKeys[currentDayIndex], // Always use English keys
         label: date.toLocaleDateString(locale, { weekday: 'long' }),
         shortLabel: date.toLocaleDateString(locale, { weekday: 'short' }),
-        date: date,
+        date,
         dayOfMonth: date.getUTCDate(),
         month: date.getUTCMonth(),
-        dateString: date.toISOString().split('T')[0] // YYYY-MM-DD
+        dateString: date.toISOString().split('T')[0], // YYYY-MM-DD
       });
     }
 
@@ -230,10 +230,10 @@ const SchedulePage: React.FC = () => {
   // Debug schedule config loading
   useEffect(() => {
     console.log('🔍 DEBUG: ScheduleConfig changed:', {
-      scheduleConfig: scheduleConfig,
+      scheduleConfig,
       error: scheduleConfigError,
       isLoading: scheduleConfigLoading,
-      selectedGroup
+      selectedGroup,
     });
   }, [scheduleConfig, scheduleConfigError, scheduleConfigLoading, selectedGroup]);
 
@@ -245,7 +245,7 @@ const SchedulePage: React.FC = () => {
     // Convert UTC scheduleHours to local timezone
     const localScheduleHours = convertScheduleHoursToLocal(
       scheduleConfig.scheduleHours,
-      user.timezone
+      user.timezone,
     );
     console.log('🔍 DEBUG: localScheduleHours after conversion:', localScheduleHours);
 
@@ -262,9 +262,9 @@ const SchedulePage: React.FC = () => {
 
   // Transform schedule data to group by day
   const scheduleByDay = useMemo(() => {
-    console.log(`🔍 DEBUG: Processing schedule data:`, schedule);
+    console.log('🔍 DEBUG: Processing schedule data:', schedule);
     if (!schedule?.scheduleSlots) {
-      console.log(`🔍 DEBUG: No schedule slots found in response`);
+      console.log('🔍 DEBUG: No schedule slots found in response');
       return {};
     }
 
@@ -278,7 +278,7 @@ const SchedulePage: React.FC = () => {
       const slotDate = new Date(slot.datetime);
       const dayKey = slotDate.toLocaleDateString('en-US', {
         weekday: 'long',
-        timeZone: 'UTC'
+        timeZone: 'UTC',
       }).toUpperCase();
 
       console.log(`🔍 DEBUG: Slot datetime: ${slot.datetime}, parsed as: ${slotDate.toISOString()}, dayKey: ${dayKey} (UTC)`);
@@ -293,9 +293,9 @@ const SchedulePage: React.FC = () => {
         vehicle: va.vehicle,
         driver: va.driver ? {
           id: va.driver.id,
-          name: va.driver.name
+          name: va.driver.name,
         } : null,
-        seatOverride: va.seatOverride ?? null
+        seatOverride: va.seatOverride ?? null,
       })) || [];
 
       const childAssignments = slot.childAssignments?.map((ca) => ({
@@ -304,7 +304,7 @@ const SchedulePage: React.FC = () => {
         childId: ca.childId,
         vehicleAssignmentId: ca.vehicleAssignmentId,
         assignedAt: ca.assignedAt,
-        child: ca.child
+        child: ca.child,
       })) || [];
 
       const totalCapacity = slot.vehicleAssignments?.reduce((sum: number, va: ScheduleSlotVehicle) => sum + (va.vehicle?.capacity || 0), 0) || 0;
@@ -318,7 +318,7 @@ const SchedulePage: React.FC = () => {
         totalCapacity,
         availableSeats: Math.max(0, totalCapacity - childAssignments.length),
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       if (!grouped[dayKey]) {
@@ -327,7 +327,7 @@ const SchedulePage: React.FC = () => {
       grouped[dayKey].push(transformedSlot);
     });
 
-    console.log(`🔍 DEBUG: Grouped schedule by day:`, grouped);
+    console.log('🔍 DEBUG: Grouped schedule by day:', grouped);
     return grouped;
   }, [schedule, selectedGroup]);
 
@@ -361,7 +361,7 @@ const SchedulePage: React.FC = () => {
       // Map day names to offsets
       const dayOffsets: Record<string, number> = {
         'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
-        'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6
+        'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6,
       };
 
       const dayOffset = dayOffsets[data.day.toUpperCase()];
@@ -389,14 +389,14 @@ const SchedulePage: React.FC = () => {
       const { data: result, error } = await api.POST('/api/v1/groups/{groupId}/schedule-slots', {
         params: {
           path: {
-            groupId: selectedGroup
-          }
+            groupId: selectedGroup,
+          },
         },
         body: {
           datetime: utcDateTime,
           vehicleId: data.vehicleId,
-          driverId: data.driverId
-        }
+          driverId: data.driverId,
+        },
       });
 
       if (error) {
@@ -417,7 +417,7 @@ const SchedulePage: React.FC = () => {
         totalCapacity: 0,
         availableSeats: 0,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
 
       return createdSlot;
@@ -517,7 +517,7 @@ const SchedulePage: React.FC = () => {
     const formatOptions: Intl.DateTimeFormatOptions = {
       weekday: 'short',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     };
 
     return `${monday.toLocaleDateString(navigator.language || 'fr-FR', formatOptions)} - ${friday.toLocaleDateString(navigator.language || 'fr-FR', formatOptions)}`;
@@ -560,18 +560,18 @@ const SchedulePage: React.FC = () => {
           day,
           time,
           vehicleId,
-          driverId: user!.id
+          driverId: user!.id,
         });
       } else {
         // TODO: Check if this vehicle is already assigned to this schedule slot
         // FIXME: Null safety required because vehicle can be undefined in legacy format
         const isVehicleAlreadyAssigned = scheduleSlot.vehicleAssignments?.some(
-          (va: ScheduleSlotVehicle) => va.vehicle?.id === vehicleId
+          (va: ScheduleSlotVehicle) => va.vehicle?.id === vehicleId,
         );
 
         if (isVehicleAlreadyAssigned) {
-          toast.error("Vehicle already assigned", {
-            description: "This vehicle is already assigned to this time slot"
+          toast.error('Vehicle already assigned', {
+            description: 'This vehicle is already assigned to this time slot',
           });
           return;
         }
@@ -594,8 +594,8 @@ const SchedulePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Failed to attach vehicle:', error);
-      toast.error("Failed to attach vehicle", {
-        description: getErrorMessage(error)
+      toast.error('Failed to attach vehicle', {
+        description: getErrorMessage(error),
       });
     }
   }, [scheduleByDay, selectedGroup, currentWeek, user, socket, queryClient, createScheduleSlotWithVehicleMutation]);
@@ -619,7 +619,7 @@ const SchedulePage: React.FC = () => {
 
     const localScheduleHours = convertScheduleHoursToLocal(
       scheduleConfig.scheduleHours,
-      user.timezone
+      user.timezone,
     );
     const weekdayTimeSlots = localScheduleHours[weekday.key] || [];
     const isTimeSlotAvailable = weekdayTimeSlots.includes(time);
@@ -701,8 +701,8 @@ const SchedulePage: React.FC = () => {
         onDrop={(e) => {
           if (isInPast) {
             e.preventDefault();
-            toast.error("Cannot modify past trips", {
-              description: "This time slot has already passed"
+            toast.error('Cannot modify past trips', {
+              description: 'This time slot has already passed',
             });
             return;
           }
@@ -714,8 +714,8 @@ const SchedulePage: React.FC = () => {
           if (vehicleId) {
             handleVehicleDrop(weekday.key, time, vehicleId);
           } else {
-            toast.error("No vehicle data found", {
-              description: "Make sure you drag from the vehicle sidebar"
+            toast.error('No vehicle data found', {
+              description: 'Make sure you drag from the vehicle sidebar',
             });
           }
         }}
@@ -726,7 +726,7 @@ const SchedulePage: React.FC = () => {
             {scheduleSlot.vehicleAssignments?.map((vehicleAssignment: ScheduleSlotVehicle) => {
               // Calculate children assigned to this specific vehicle
               const vehicleChildren = scheduleSlot.childAssignments?.filter((ca) =>
-                ca.vehicleAssignmentId === vehicleAssignment.id
+                ca.vehicleAssignmentId === vehicleAssignment.id,
               ) || [];
 
 
@@ -877,7 +877,7 @@ const SchedulePage: React.FC = () => {
                       weekStart.setDate(jan4.getDate() - jan4DayOfWeek + (weekNum - 1) * 7);
 
                       const dayOffsets: Record<string, number> = {
-                        'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4
+                        'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4,
                       };
                       const dayOffset = dayOffsets[weekday.key] || 0;
                       const targetDate = new Date(weekStart);
@@ -898,7 +898,7 @@ const SchedulePage: React.FC = () => {
                         totalCapacity: 0,
                         availableSeats: 0,
                         createdAt: '',
-                        updatedAt: ''
+                        updatedAt: '',
                       } as ScheduleSlot);
                       setIsVehicleModalOpen(true);
                     }}
@@ -966,8 +966,8 @@ const SchedulePage: React.FC = () => {
           title="No Transport Groups"
           description="You need to join or create a transport group to view schedules. Groups help you coordinate school transport with other families."
           action={{
-            label: "Go to Groups Page",
-            onClick: () => window.location.href = '/api/v1/groups'
+            label: 'Go to Groups Page',
+            onClick: () => window.location.href = '/api/v1/groups',
           }}
           data-testid="SchedulePage-EmptyState-noGroups"
         />

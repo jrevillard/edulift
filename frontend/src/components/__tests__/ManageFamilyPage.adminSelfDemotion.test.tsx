@@ -32,7 +32,7 @@ const mockCurrentUser = {
   name: 'Admin User',
   timezone: 'UTC',
   createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z'
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const mockOtherUser = {
@@ -41,7 +41,7 @@ const mockOtherUser = {
   name: 'Member User',
   timezone: 'UTC',
   createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z'
+  updatedAt: '2024-01-01T00:00:00Z',
 };
 
 const mockFamily = {
@@ -57,7 +57,7 @@ const mockFamily = {
       userId: 'admin-user-1',
       role: 'ADMIN' as const,
       joinedAt: '2024-01-01T00:00:00Z',
-      user: mockCurrentUser
+      user: mockCurrentUser,
     },
     {
       id: 'member-2',
@@ -65,8 +65,8 @@ const mockFamily = {
       userId: 'other-user-1',
       role: 'MEMBER' as const,
       joinedAt: '2024-01-01T00:00:00Z',
-      user: mockOtherUser
-    }
+      user: mockOtherUser,
+    },
   ],
   children: [
     {
@@ -75,8 +75,8 @@ const mockFamily = {
       age: 8,
       familyId: 'family-1',
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
-    }
+      updatedAt: '2024-01-01T00:00:00Z',
+    },
   ],
   vehicles: [
     {
@@ -85,9 +85,9 @@ const mockFamily = {
       capacity: 8,
       familyId: 'family-1',
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
-    }
-  ]
+      updatedAt: '2024-01-01T00:00:00Z',
+    },
+  ],
 };
 
 describe('ManageFamilyPage - Admin Self-Demotion Prevention', () => {
@@ -141,8 +141,8 @@ describe('ManageFamilyPage - Admin Self-Demotion Prevention', () => {
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
 
     return render(
@@ -150,7 +150,7 @@ describe('ManageFamilyPage - Admin Self-Demotion Prevention', () => {
         <MemoryRouter>
           <ManageFamilyPage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 

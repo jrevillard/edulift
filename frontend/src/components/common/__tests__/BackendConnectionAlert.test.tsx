@@ -29,12 +29,12 @@ describe('BackendConnectionAlert', () => {
     login: vi.fn(),
     verifyMagicLink: vi.fn(),
     logout: vi.fn(),
-    refreshToken: vi.fn()
+    refreshToken: vi.fn(),
   };
 
   const defaultSocketState = {
     socket: null,
-    isConnected: true
+    isConnected: true,
   };
 
   const defaultConnectionStore = {
@@ -48,7 +48,7 @@ describe('BackendConnectionAlert', () => {
     clearErrors: vi.fn(),
     isConnected: vi.fn(() => true),
     hasConnectionIssues: vi.fn(() => false),
-    getConnectionMessage: vi.fn(() => null)
+    getConnectionMessage: vi.fn(() => null),
   };
 
   beforeEach(() => {
@@ -67,13 +67,13 @@ describe('BackendConnectionAlert', () => {
     it('should show alert when user is authenticated but WebSocket is disconnected', () => {
       mockUseSocket.mockReturnValue({
         socket: null,
-        isConnected: false
+        isConnected: false,
       });
 
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         wsStatus: 'error' as const,
-        getConnectionMessage: vi.fn(() => 'WebSocket connection failed')
+        getConnectionMessage: vi.fn(() => 'WebSocket connection failed'),
       });
 
       render(<BackendConnectionAlert />);
@@ -85,7 +85,7 @@ describe('BackendConnectionAlert', () => {
     it('should show retry button and handle click', () => {
       mockUseSocket.mockReturnValue({
         socket: null,
-        isConnected: false
+        isConnected: false,
       });
 
       render(<BackendConnectionAlert />);
@@ -103,7 +103,7 @@ describe('BackendConnectionAlert', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
         isAuthenticated: false,
-        user: null
+        user: null,
       });
     });
 
@@ -115,13 +115,13 @@ describe('BackendConnectionAlert', () => {
     it('should not show alert when user is unauthenticated and WebSocket is disconnected (normal)', () => {
       mockUseSocket.mockReturnValue({
         socket: null,
-        isConnected: false
+        isConnected: false,
       });
 
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         wsStatus: 'disconnected' as const,
-        apiStatus: 'connected' as const
+        apiStatus: 'connected' as const,
       });
 
       const { container } = render(<BackendConnectionAlert />);
@@ -132,7 +132,7 @@ describe('BackendConnectionAlert', () => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         apiStatus: 'error' as const,
-        getConnectionMessage: vi.fn(() => 'Cannot connect to server. Please ensure the backend is running.')
+        getConnectionMessage: vi.fn(() => 'Cannot connect to server. Please ensure the backend is running.'),
       });
 
       const { container } = render(<BackendConnectionAlert />);
@@ -144,7 +144,7 @@ describe('BackendConnectionAlert', () => {
         ...defaultConnectionStore,
         wsStatus: 'disconnected' as const,
         apiStatus: 'error' as const,
-        getConnectionMessage: vi.fn(() => null)
+        getConnectionMessage: vi.fn(() => null),
       });
 
       const { container } = render(<BackendConnectionAlert />);
@@ -156,7 +156,7 @@ describe('BackendConnectionAlert', () => {
     beforeEach(() => {
       mockUseSocket.mockReturnValue({
         socket: null,
-        isConnected: false
+        isConnected: false,
       });
     });
 
@@ -164,7 +164,7 @@ describe('BackendConnectionAlert', () => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         wsStatus: 'error' as const,
-        getConnectionMessage: vi.fn(() => 'Specific connection error message')
+        getConnectionMessage: vi.fn(() => 'Specific connection error message'),
       });
 
       render(<BackendConnectionAlert />);
@@ -176,7 +176,7 @@ describe('BackendConnectionAlert', () => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         wsStatus: 'connecting' as const,
-        getConnectionMessage: vi.fn(() => null)
+        getConnectionMessage: vi.fn(() => null),
       });
 
       render(<BackendConnectionAlert />);
@@ -189,7 +189,7 @@ describe('BackendConnectionAlert', () => {
     beforeEach(() => {
       mockUseSocket.mockReturnValue({
         socket: null,
-        isConnected: false
+        isConnected: false,
       });
     });
 

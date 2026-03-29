@@ -36,13 +36,13 @@ import type {
   CreateFamilyRequest,
   JoinFamilyRequest,
   CreateFamilyInvitationRequest,
-  UpdateMemberRoleRequest
+  UpdateMemberRoleRequest,
 } from '../services/familyApiService';
 import { familyApiService } from '../services/familyApiService';
 import { useAuth } from './AuthContext';
 
 // Define types needed for FamilyContext locally
-export type FamilyRole = "ADMIN" | "MEMBER";
+export type FamilyRole = 'ADMIN' | 'MEMBER';
 
 export interface FamilyContextState {
   currentFamily: Family | null;
@@ -73,7 +73,7 @@ export const FAMILY_ERROR_CODES = {
 export function createFamilyError(
   code: string,
   message: string,
-  statusCode: number = 400
+  statusCode: number = 400,
 ): FamilyError {
   const error = new Error(message) as FamilyError;
   error.code = code;
@@ -140,7 +140,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       console.log('✅ FamilyContext: Family data fetched:', {
         familyId: family?.id,
         familyName: family?.name,
-        memberCount: family?.members?.length || 0
+        memberCount: family?.members?.length || 0,
       });
       return family;
     },
@@ -169,7 +169,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
       console.log('✅ FamilyContext: Permissions fetched:', {
         canManageMembers: permissions?.canManageMembers,
         canModifyChildren: permissions?.canModifyChildren,
-        canModifyVehicles: permissions?.canModifyVehicles
+        canModifyVehicles: permissions?.canModifyVehicles,
       });
       return permissions;
     },
@@ -279,7 +279,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
         familyId: familyQuery.data.id,
         email: data.email,
         role: data.role as FamilyRole,
-        personalMessage: data.personalMessage
+        personalMessage: data.personalMessage,
       } as CreateFamilyInvitationRequest);
       console.log('✅ FamilyContext: Member invited');
       return invitation;
@@ -534,7 +534,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     getPendingInvitations,
     cancelInvitation,
     clearError,
-    hasFamily
+    hasFamily,
   }), [
     currentFamily,
     userPermissions,
@@ -554,7 +554,7 @@ export const FamilyProvider: React.FC<FamilyProviderProps> = ({ children }) => {
     getPendingInvitations,
     cancelInvitation,
     clearError,
-    hasFamily
+    hasFamily,
   ]);
 
   return (

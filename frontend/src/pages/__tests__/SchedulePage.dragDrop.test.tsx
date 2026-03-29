@@ -6,14 +6,14 @@ describe('SchedulePage - Drag & Drop with Timezone Handling', () => {
     const utcDate = new Date('2025-07-02T07:00:00.000Z');
     const dayKey = utcDate.toLocaleDateString('en-US', { 
       weekday: 'long',
-      timeZone: 'UTC'
+      timeZone: 'UTC',
     }).toUpperCase();
     
     expect(dayKey).toBe('WEDNESDAY');
     
     // Test UTC time extraction
-    const utcTime = utcDate.getUTCHours().toString().padStart(2, '0') + ':' + 
-                   utcDate.getUTCMinutes().toString().padStart(2, '0');
+    const utcTime = `${utcDate.getUTCHours().toString().padStart(2, '0')  }:${  
+                   utcDate.getUTCMinutes().toString().padStart(2, '0')}`;
     
     expect(utcTime).toBe('07:00');
   });
@@ -31,7 +31,7 @@ describe('SchedulePage - Drag & Drop with Timezone Handling', () => {
       const date = new Date(utc);
       const dayKey = date.toLocaleDateString('en-US', { 
         weekday: 'long',
-        timeZone: 'UTC'
+        timeZone: 'UTC',
       }).toUpperCase();
       
       expect(dayKey).toBe(expectedDay);
@@ -44,10 +44,10 @@ describe('SchedulePage - Drag & Drop with Timezone Handling', () => {
     const slot2DateTime = '2025-07-02T08:30:00.000Z';
     
     // Test UTC time string extraction (as used in renderTimeSlot)
-    const slot1Time = new Date(slot1DateTime).getUTCHours().toString().padStart(2, '0') + ':' + 
-                     new Date(slot1DateTime).getUTCMinutes().toString().padStart(2, '0');
-    const slot2Time = new Date(slot2DateTime).getUTCHours().toString().padStart(2, '0') + ':' + 
-                     new Date(slot2DateTime).getUTCMinutes().toString().padStart(2, '0');
+    const slot1Time = `${new Date(slot1DateTime).getUTCHours().toString().padStart(2, '0')  }:${  
+                     new Date(slot1DateTime).getUTCMinutes().toString().padStart(2, '0')}`;
+    const slot2Time = `${new Date(slot2DateTime).getUTCHours().toString().padStart(2, '0')  }:${  
+                     new Date(slot2DateTime).getUTCMinutes().toString().padStart(2, '0')}`;
     
     expect(slot1Time).toBe('07:00');
     expect(slot2Time).toBe('08:30');
@@ -57,7 +57,7 @@ describe('SchedulePage - Drag & Drop with Timezone Handling', () => {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-      timeZone: 'UTC'
+      timeZone: 'UTC',
     });
     
     expect(slot1LocaleTime).toBe('07:00');

@@ -12,8 +12,8 @@ setup('authenticate', async ({ page, request }) => {
     const response = await request.post('/api/v1/auth/magic-link', {
       data: {
         email: TEST_USERS.ADMIN.email,
-        name: TEST_USERS.ADMIN.name
-      }
+        name: TEST_USERS.ADMIN.name,
+      },
     });
 
     expect(response.ok()).toBeTruthy();
@@ -31,13 +31,13 @@ setup('authenticate', async ({ page, request }) => {
           user: {
             id: 'test-admin-id',
             email: userData.email,
-            name: userData.name
+            name: userData.name,
           },
           isAuthenticated: true,
           accessToken: 'test-jwt-token',
-          refreshToken: 'test-refresh-token'
+          refreshToken: 'test-refresh-token',
         },
-        version: 0
+        version: 0,
       };
       localStorage.setItem('auth-storage', JSON.stringify(_authData));
     }, TEST_USERS.ADMIN);

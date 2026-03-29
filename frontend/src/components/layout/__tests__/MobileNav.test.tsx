@@ -24,7 +24,7 @@ vi.mock('react-router-dom', async () => {
 vi.mock('../../../components/ui/sheet', () => ({
   SheetClose: ({ children, asChild }: { children: React.ReactNode; asChild?: boolean }) => {
     return asChild ? children : <div>{children}</div>;
-  }
+  },
 }));
 
 const mockOnNavigate = vi.fn();
@@ -33,7 +33,7 @@ const renderMobileNav = () => {
   return render(
     <MemoryRouter>
       <MobileNav onNavigate={mockOnNavigate} />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 
@@ -65,7 +65,7 @@ describe('MobileNav', () => {
         'Manage Family',
         'Groups',
         'Schedule',
-        'Profile'
+        'Profile',
       ]);
     });
 

@@ -7,7 +7,7 @@ import {
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
-  SelectValue 
+  SelectValue, 
 } from '@/components/ui/select';
 import { Check, Settings } from 'lucide-react';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
@@ -24,7 +24,7 @@ interface InlineSeatAdjusterProps {
 
 export const InlineSeatAdjuster: React.FC<InlineSeatAdjusterProps> = ({
   vehicle,
-  onConfirm
+  onConfirm,
 }) => {
   const [isAdjusting, setIsAdjusting] = useState(false);
   const [adjustedCapacity, setAdjustedCapacity] = useState(vehicle.capacity);

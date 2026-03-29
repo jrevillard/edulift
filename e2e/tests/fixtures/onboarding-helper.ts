@@ -81,7 +81,7 @@ export class OnboardingFlowHelper {
     // Step 5: Wait for redirect to family/dashboard
     await this.page.waitForURL(
       url => url.href.includes('/family') || url.href.includes('/dashboard'),
-      { timeout: 15000 }
+      { timeout: 15000 },
     );
 
     console.log('✅ Onboarding completed successfully');

@@ -1,4 +1,4 @@
-import { ResponsiveLayout } from "./layout/ResponsiveLayout";
+import { ResponsiveLayout } from './layout/ResponsiveLayout';
 
 interface LayoutProps {
   children: React.ReactNode;

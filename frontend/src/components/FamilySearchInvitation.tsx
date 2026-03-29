@@ -21,7 +21,7 @@ import {
   Users, 
   Mail, 
   AlertCircle,
-  Check
+  Check,
 } from 'lucide-react';
 import { groupApiService } from '../services/groupApiService';
 import type { FamilySearchResult } from '@/types/api';
@@ -37,7 +37,7 @@ export function FamilySearchInvitation({
   groupId, 
   onInvitationSent, 
   isOpen, 
-  onClose 
+  onClose, 
 }: FamilySearchInvitationProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<FamilySearchResult[]>([]);
@@ -72,7 +72,7 @@ export function FamilySearchInvitation({
         groupId, 
         familyId, 
         role,
-        personalMessage.trim() || undefined
+        personalMessage.trim() || undefined,
       );
       
       onInvitationSent();

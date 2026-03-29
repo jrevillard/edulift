@@ -5,7 +5,7 @@ import {
   getBrowserTimezone,
   isValidTimezone,
   safeLocalStorageGet,
-  STORAGE_KEYS
+  STORAGE_KEYS,
 } from '../utils/timezoneUtils';
 import { toast } from 'sonner';
 
@@ -54,7 +54,7 @@ export function useTimezoneAutoSync(): void {
     // Also listen for custom event from same tab
     const handleLocalChange = () => {
       setAutoSyncEnabled(
-        safeLocalStorageGet(STORAGE_KEYS.AUTO_SYNC_TIMEZONE) === 'true'
+        safeLocalStorageGet(STORAGE_KEYS.AUTO_SYNC_TIMEZONE) === 'true',
       );
     };
 
@@ -126,7 +126,7 @@ export function useTimezoneAutoSync(): void {
 
         // Always show error toast so user knows there's a problem
         toast.error('Failed to auto-sync timezone', {
-          description: 'Please check your connection and try again'
+          description: 'Please check your connection and try again',
         });
 
         // Don't set lastSyncedTimezone on error, allowing retry

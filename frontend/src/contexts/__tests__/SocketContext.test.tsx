@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act, waitFor } from '@testing-library/react'
-import React from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { SocketProvider, useSocket } from '../SocketContext'
-import { AuthProvider } from '../AuthContext'
-import { SOCKET_EVENTS } from '../../shared/events'
-import { mockUser } from '../../test/test-utils'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, act, waitFor } from '@testing-library/react';
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SocketProvider, useSocket } from '../SocketContext';
+import { AuthProvider } from '../AuthContext';
+import { SOCKET_EVENTS } from '../../shared/events';
+import { mockUser } from '../../test/test-utils';
 
 // Mock socket.io-client
 const mockSocket = {
@@ -24,11 +24,11 @@ const mockSocket = {
   disconnect: vi.fn(),
   connected: false,
   id: 'mock-socket-id',
-}
+};
 
 vi.mock('socket.io-client', () => ({
   io: vi.fn(() => mockSocket),
-}))
+}));
 
 // Mock secureStorage
 vi.mock('@/utils/secureStorage', () => ({
@@ -37,13 +37,13 @@ vi.mock('@/utils/secureStorage', () => ({
     setItem: vi.fn(),
     removeItem: vi.fn(),
   },
-}))
+}));
 
 // Mock the authentication context
 vi.mock('../AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   useAuth: vi.fn(),
-}))
+}));
 
 // Mock authService
 vi.mock('@/services/authService', () => ({
@@ -54,36 +54,36 @@ vi.mock('@/services/authService', () => ({
     verifyMagicLink: vi.fn(),
     refreshToken: vi.fn(),
   },
-}))
+}));
 
 // Mock the connection store
 vi.mock('@/stores/connectionStore', () => ({
   useConnectionStore: vi.fn(() => ({
     setWsStatus: vi.fn(),
   })),
-}))
+}));
 
 // Import the mocked functions
-import { useAuth } from '../AuthContext'
-import { useConnectionStore } from '@/stores/connectionStore'
-import { io } from 'socket.io-client'
-import { secureStorage } from '@/utils/secureStorage'
-import { authService } from '@/services/authService'
+import { useAuth } from '../AuthContext';
+import { useConnectionStore } from '@/stores/connectionStore';
+import { io } from 'socket.io-client';
+import { secureStorage } from '@/utils/secureStorage';
+import { authService } from '@/services/authService';
 
-const mockUseAuth = vi.mocked(useAuth)
-const mockUseConnectionStore = vi.mocked(useConnectionStore)
-const mockIo = vi.mocked(io)
-const mockSecureStorage = vi.mocked(secureStorage)
-const mockAuthService = vi.mocked(authService)
+const mockUseAuth = vi.mocked(useAuth);
+const mockUseConnectionStore = vi.mocked(useConnectionStore);
+const mockIo = vi.mocked(io);
+const mockSecureStorage = vi.mocked(secureStorage);
+const mockAuthService = vi.mocked(authService);
 
 describe('SocketContext', () => {
-  let queryClient: QueryClient
-  let mockSetWsStatus: unknown
-  let eventHandlers: Record<string, (...args: unknown[]) => void>
+  let queryClient: QueryClient;
+  let mockSetWsStatus: unknown;
+  let eventHandlers: Record<string, (...args: unknown[]) => void>;
 
   beforeEach(() => {
     // Reset all mocks first
-    vi.resetAllMocks()
+    vi.resetAllMocks();
 
     // Create a new QueryClient for each test
     queryClient = new QueryClient({
@@ -96,36 +96,36 @@ describe('SocketContext', () => {
           retry: false,
         },
       },
-    })
+    });
 
     // Mock the connection store
-    mockSetWsStatus = vi.fn()
+    mockSetWsStatus = vi.fn();
     mockUseConnectionStore.mockReturnValue({
       setWsStatus: mockSetWsStatus,
-    })
+    });
 
     // Mock authService to return token for authentication (default to true)
-    mockAuthService.getToken.mockReturnValue('mock-token')
+    mockAuthService.getToken.mockReturnValue('mock-token');
 
     // Mock secureStorage to return token for authentication
     mockSecureStorage.getItem.mockImplementation((key: string) => {
-      if (key === 'authToken') return Promise.resolve('mock-token')
-      return Promise.resolve(null)
-    })
+      if (key === 'authToken') return Promise.resolve('mock-token');
+      return Promise.resolve(null);
+    });
 
     // Reset event handlers
-    eventHandlers = {}
+    eventHandlers = {};
     mockSocket.connected = false;
     mockSocket.on.mockImplementation((event: string, handler: unknown) => {
-      eventHandlers[event] = handler
-    })
+      eventHandlers[event] = handler;
+    });
 
-    mockIo.mockReturnValue(mockSocket)
-  })
+    mockIo.mockReturnValue(mockSocket);
+  });
 
   afterEach(() => {
-    vi.clearAllMocks()
-  })
+    vi.clearAllMocks();
+  });
 
   const createWrapper = ({ authenticated = true } = {}) => {
     // Configure mockUseAuth based on authentication status
@@ -138,10 +138,10 @@ describe('SocketContext', () => {
       verifyMagicLink: vi.fn(),
       refreshToken: vi.fn(),
       getToken: () => authenticated ? 'mock-token' : null,
-    })
+    });
 
     // Configure mockAuthService based on authentication status
-    mockAuthService.getToken.mockReturnValue(authenticated ? 'mock-token' : null)
+    mockAuthService.getToken.mockReturnValue(authenticated ? 'mock-token' : null);
 
     return ({ children }: { children: React.ReactNode }) => (
       <QueryClientProvider client={queryClient}>
@@ -149,433 +149,433 @@ describe('SocketContext', () => {
           <SocketProvider>{children}</SocketProvider>
         </AuthProvider>
       </QueryClientProvider>
-    )
-  }
+    );
+  };
 
   it('should initialize with no socket when user is not authenticated', () => {
-    const wrapper = createWrapper({ authenticated: false })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: false });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
-    expect(result.current.socket).toBeNull()
-    expect(result.current.isConnected).toBe(false)
-  })
+    expect(result.current.socket).toBeNull();
+    expect(result.current.isConnected).toBe(false);
+  });
 
   it('should throw error when used outside provider', () => {
     expect(() => {
-      renderHook(() => useSocket())
-    }).toThrow('useSocket must be used within a SocketProvider')
-  })
+      renderHook(() => useSocket());
+    }).toThrow('useSocket must be used within a SocketProvider');
+  });
 
   it('should create socket connection when user is authenticated', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('connecting')
-    expect(mockIo).toHaveBeenCalled()
-  })
+    expect(mockSetWsStatus).toHaveBeenCalledWith('connecting');
+    expect(mockIo).toHaveBeenCalled();
+  });
 
   it('should handle socket connection events', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
-      eventHandlers.connect?.()
-    })
+      eventHandlers.connect?.();
+    });
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('connected')
-    expect(result.current.isConnected).toBe(true)
-  })
+    expect(mockSetWsStatus).toHaveBeenCalledWith('connected');
+    expect(result.current.isConnected).toBe(true);
+  });
 
   it('should handle socket disconnection events', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
-      eventHandlers.disconnect?.('io server disconnect')
-    })
+      eventHandlers.disconnect?.('io server disconnect');
+    });
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('disconnected', 'Server disconnected the connection')
-    expect(result.current.isConnected).toBe(false)
-  })
+    expect(mockSetWsStatus).toHaveBeenCalledWith('disconnected', 'Server disconnected the connection');
+    expect(result.current.isConnected).toBe(false);
+  });
 
   it('should handle different disconnect reasons', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     // Client disconnect
     await act(async () => {
-      eventHandlers.disconnect?.('io client disconnect')
-    })
-    expect(mockSetWsStatus).toHaveBeenCalledWith('disconnected')
+      eventHandlers.disconnect?.('io client disconnect');
+    });
+    expect(mockSetWsStatus).toHaveBeenCalledWith('disconnected');
 
     // Connection lost
     await act(async () => {
-      eventHandlers.disconnect?.('transport close')
-    })
-    expect(mockSetWsStatus).toHaveBeenCalledWith('disconnected', 'Connection lost. Attempting to reconnect...')
-  })
+      eventHandlers.disconnect?.('transport close');
+    });
+    expect(mockSetWsStatus).toHaveBeenCalledWith('disconnected', 'Connection lost. Attempting to reconnect...');
+  });
 
   it('should handle socket connection errors', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
-      eventHandlers.connect_error?.(new Error('Connection failed'))
-    })
+      eventHandlers.connect_error?.(new Error('Connection failed'));
+    });
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time updates unavailable. Application will work normally.')
-  })
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time updates unavailable. Application will work normally.');
+  });
 
   it('should handle authentication errors', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
-      eventHandlers.connect_error?.(new Error('Unauthorized'))
-    })
+      eventHandlers.connect_error?.(new Error('Unauthorized'));
+    });
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Session expired for real-time updates. Please refresh if needed.')
-  })
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Session expired for real-time updates. Please refresh if needed.');
+  });
 
   it('should handle timeout errors', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
-      eventHandlers.connect_error?.(new Error('timeout'))
-    })
+      eventHandlers.connect_error?.(new Error('timeout'));
+    });
 
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time connection timeout. Application continues to work normally.')
-  })
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time connection timeout. Application continues to work normally.');
+  });
 
   it('should handle reconnection events', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     // Reconnection attempt
     await act(async () => {
-      eventHandlers.reconnect_attempt?.(2)
-    })
-    expect(mockSetWsStatus).toHaveBeenCalledWith('connecting', 'Reconnecting... (attempt 2)')
+      eventHandlers.reconnect_attempt?.(2);
+    });
+    expect(mockSetWsStatus).toHaveBeenCalledWith('connecting', 'Reconnecting... (attempt 2)');
 
     // Successful reconnection
     await act(async () => {
-      eventHandlers.reconnect?.(3)
-    })
-    expect(mockSetWsStatus).toHaveBeenCalledWith('connected')
+      eventHandlers.reconnect?.(3);
+    });
+    expect(mockSetWsStatus).toHaveBeenCalledWith('connected');
 
     // Reconnection failure
     await act(async () => {
-      eventHandlers.reconnect_failed?.()
-    })
-    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time features temporarily disabled. Application continues to work normally.')
-  })
+      eventHandlers.reconnect_failed?.();
+    });
+    expect(mockSetWsStatus).toHaveBeenCalledWith('error', 'Real-time features temporarily disabled. Application continues to work normally.');
+  });
 
   it('should invalidate queries on schedule events', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
-      eventHandlers[SOCKET_EVENTS.SCHEDULE_UPDATED]?.({ groupId: 'group-1' })
-    })
+      eventHandlers[SOCKET_EVENTS.SCHEDULE_UPDATED]?.({ groupId: 'group-1' });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['timeslots', 'group-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['timeslots', 'group-1'] });
+  });
 
   it('should invalidate queries on schedule slot events', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.SCHEDULE_SLOT_UPDATED]?.({ 
         groupId: 'group-1', 
-        scheduleSlotId: 'slot-1' 
-      })
-    })
+        scheduleSlotId: 'slot-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot', 'slot-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot', 'slot-1'] });
+  });
 
   it('should remove queries on schedule slot deleted events', async () => {
-    const removeQueriesSpy = vi.spyOn(queryClient, 'removeQueries')
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const removeQueriesSpy = vi.spyOn(queryClient, 'removeQueries');
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.SCHEDULE_SLOT_DELETED]?.({ 
         groupId: 'group-1', 
-        scheduleSlotId: 'slot-1' 
-      })
-    })
+        scheduleSlotId: 'slot-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] })
-    expect(removeQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot', 'slot-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] });
+    expect(removeQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule-slot', 'slot-1'] });
+  });
 
   it('should handle child management events for current user', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.CHILD_ADDED]?.({ 
         userId: mockUser.id, 
-        familyId: 'family-1' 
-      })
-    })
+        familyId: 'family-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['children'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['children'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] });
+  });
 
   it('should not handle child management events for other users', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.CHILD_ADDED]?.({ 
         userId: 'other-user-id', 
-        familyId: 'family-1' 
-      })
-    })
+        familyId: 'family-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).not.toHaveBeenCalled()
-  })
+    expect(invalidateQueriesSpy).not.toHaveBeenCalled();
+  });
 
   it('should handle vehicle management events for current user', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.VEHICLE_UPDATED]?.({ 
         userId: mockUser.id, 
-        familyId: 'family-1' 
-      })
-    })
+        familyId: 'family-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['vehicles'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] });
+  });
 
   it('should handle group management events', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.GROUP_UPDATED]?.({ 
         groupId: 'group-1', 
-        familyId: 'family-1' 
-      })
-    })
+        familyId: 'family-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['groups'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['user-groups'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['group', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['groups'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['user-groups'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['group', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] });
+  });
 
   it('should handle family management events', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.FAMILY_MEMBER_JOINED]?.({ 
-        familyId: 'family-1' 
-      })
-    })
+        familyId: 'family-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['families'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['recent-activity', 'family-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['families'] });
+  });
 
   it('should handle legacy event support', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.SCHEDULE_UPDATED]?.({ 
-        groupId: 'group-1' 
-      })
-    })
+        groupId: 'group-1', 
+      });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule', 'group-1'] })
-  })
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule', 'group-1'] });
+  });
 
   it('should handle notification events', async () => {
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.NOTIFICATION]?.({ 
-        message: 'Test notification' 
-      })
-    })
+        message: 'Test notification', 
+      });
+    });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('🔔 NOTIFICATION:', { message: 'Test notification' })
+    expect(consoleLogSpy).toHaveBeenCalledWith('🔔 NOTIFICATION:', { message: 'Test notification' });
     
-    consoleLogSpy.mockRestore()
-  })
+    consoleLogSpy.mockRestore();
+  });
 
   it('should handle conflict detection events', async () => {
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.CONFLICT_DETECTED]?.({ 
-        conflict: 'Test conflict' 
-      })
-    })
+        conflict: 'Test conflict', 
+      });
+    });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('⚠️ CONFLICT_DETECTED:', { conflict: 'Test conflict' })
+    expect(consoleLogSpy).toHaveBeenCalledWith('⚠️ CONFLICT_DETECTED:', { conflict: 'Test conflict' });
     
-    consoleLogSpy.mockRestore()
-  })
+    consoleLogSpy.mockRestore();
+  });
 
   it('should handle capacity warning events', async () => {
-    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     await act(async () => {
       eventHandlers[SOCKET_EVENTS.SCHEDULE_SLOT_CAPACITY_WARNING]?.({ 
-        scheduleSlotId: 'slot-1' 
-      })
-    })
+        scheduleSlotId: 'slot-1', 
+      });
+    });
 
-    expect(consoleLogSpy).toHaveBeenCalledWith('⚠️ CAPACITY_WARNING:', { scheduleSlotId: 'slot-1' })
+    expect(consoleLogSpy).toHaveBeenCalledWith('⚠️ CAPACITY_WARNING:', { scheduleSlotId: 'slot-1' });
     
-    consoleLogSpy.mockRestore()
-  })
+    consoleLogSpy.mockRestore();
+  });
 
   it('should cleanup socket on unmount', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result, unmount } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result, unmount } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
-    unmount()
+    unmount();
 
-    expect(mockSocket.close).toHaveBeenCalled()
-  })
+    expect(mockSocket.close).toHaveBeenCalled();
+  });
 
   it('should cleanup socket when user becomes unauthenticated', async () => {
-    const wrapper = createWrapper({ authenticated: true })
-    const { result, rerender } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result, rerender } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     // Change auth state to unauthenticated
     mockUseAuth.mockReturnValue({
@@ -587,33 +587,33 @@ describe('SocketContext', () => {
       verifyMagicLink: vi.fn(),
       refreshToken: vi.fn(),
       getToken: () => null,
-    })
+    });
 
-    rerender()
+    rerender();
 
     await waitFor(() => {
-      expect(mockSocket.close).toHaveBeenCalled()
-    })
-  })
+      expect(mockSocket.close).toHaveBeenCalled();
+    });
+  });
 
   it('should handle multiple event types correctly', async () => {
-    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries')
+    const invalidateQueriesSpy = vi.spyOn(queryClient, 'invalidateQueries');
     
-    const wrapper = createWrapper({ authenticated: true })
-    const { result } = renderHook(() => useSocket(), { wrapper })
+    const wrapper = createWrapper({ authenticated: true });
+    const { result } = renderHook(() => useSocket(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.socket).not.toBeNull()
-    })
+      expect(result.current.socket).not.toBeNull();
+    });
 
     // Test multiple events
     await act(async () => {
-      eventHandlers[SOCKET_EVENTS.SCHEDULE_SLOT_CREATED]?.({ groupId: 'group-1' })
-      eventHandlers[SOCKET_EVENTS.MEMBER_JOINED]?.({ groupId: 'group-1', familyId: 'family-1' })
-    })
+      eventHandlers[SOCKET_EVENTS.SCHEDULE_SLOT_CREATED]?.({ groupId: 'group-1' });
+      eventHandlers[SOCKET_EVENTS.MEMBER_JOINED]?.({ groupId: 'group-1', familyId: 'family-1' });
+    });
 
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['groups'] })
-    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['user-groups'] })
-  })
-})
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['schedule', 'group-1'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['groups'] });
+    expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['user-groups'] });
+  });
+});

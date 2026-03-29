@@ -34,7 +34,7 @@ test.describe('Schedule Modifications Journey', () => {
       () => authHelper.createFamilyInDatabase('editor2Family'),
       () => authHelper.createFamilyInDatabase('coordinatorFamily'),
       () => authHelper.createFamilyInDatabase('emergencyFamily'),
-      () => authHelper.createFamilyInDatabase('memberFamily')
+      () => authHelper.createFamilyInDatabase('memberFamily'),
     ]);
     
     // Add a longer wait to ensure database consistency before tests run

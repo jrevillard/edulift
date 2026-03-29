@@ -70,8 +70,8 @@ class AuthService {
       await Promise.race([
         this.initializationPromise,
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Auth initialization timeout')), timeoutMs)
-        )
+          setTimeout(() => reject(new Error('Auth initialization timeout')), timeoutMs),
+        ),
       ]);
     }
     // Note: isInitialized is set by initializeFromSecureStorage() or setAuth()
@@ -159,7 +159,7 @@ class AuthService {
         name: context?.name,
         inviteCode: context?.inviteCode,
         code_challenge: codeChallenge, // Add PKCE challenge
-        ...context
+        ...context,
       };
 
       // Make the API call using OpenAPI client
@@ -197,7 +197,7 @@ class AuthService {
       return {
         success: true,
         userExists: data.data?.userExists,
-        message: data.data?.message
+        message: data.data?.message,
       };
     } catch (error) {
       // Mark API as connected (we got a response)
@@ -265,7 +265,7 @@ class AuthService {
       const requestBody = {
         token,
         code_verifier: codeVerifier, // Add PKCE verifier
-        ...(inviteCode && { inviteCode }) // Add inviteCode to body only if provided
+        ...(inviteCode && { inviteCode }), // Add inviteCode to body only if provided
       };
 
       // Use OpenAPI client for verification
@@ -308,7 +308,7 @@ class AuthService {
         token: authData.accessToken,
         refreshToken: authData.refreshToken,
         expiresAt: authData.expiresAt || new Date(Date.now() + authData.expiresIn * 1000).toISOString(),
-        invitationResult: authData.invitationResult ?? undefined
+        invitationResult: authData.invitationResult ?? undefined,
       };
     } catch (error) {
       // Mark API as connected (we got a response)
@@ -381,7 +381,7 @@ class AuthService {
 
       const { data, error } = await api.POST('/api/v1/auth/refresh', {
         body: {
-          refreshToken: this._refreshToken as string
+          refreshToken: this._refreshToken as string,
         },
       });
 
@@ -619,7 +619,7 @@ class AuthService {
       // Convert null values to undefined for API request
       const sanitizedData = {
         ...userData,
-        timezone: userData.timezone ?? undefined
+        timezone: userData.timezone ?? undefined,
       };
 
       const { data, error } = await api.PUT('/api/v1/auth/profile', {

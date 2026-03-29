@@ -69,7 +69,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         try {
           return io(SOCKET_URL, {
             auth: {
-              token: authToken
+              token: authToken,
             },
             autoConnect: true,
             reconnection: true,
@@ -79,7 +79,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
             timeout: 10000,             // 10 second connection timeout
             transports: transportOnly || (import.meta.env.VITE_SOCKET_FORCE_POLLING === 'true'
               ? ['polling']
-              : ['websocket', 'polling'])
+              : ['websocket', 'polling']),
           });
         } catch (error) {
           console.error('Failed to create socket with transports', transportOnly, ':', error);
@@ -391,7 +391,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   const value: SocketContextType = {
     socket,
-    isConnected
+    isConnected,
   };
 
   return (

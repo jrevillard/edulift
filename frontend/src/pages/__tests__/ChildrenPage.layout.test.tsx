@@ -21,8 +21,8 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
@@ -49,20 +49,20 @@ describe('ChildrenPage - Layout and Spacing', () => {
         name: 'Test Family',
         children: [],
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: [], success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: [], success: true },
-        error: undefined
+        error: undefined,
       });
     });
   });
@@ -79,20 +79,20 @@ describe('ChildrenPage - Layout and Spacing', () => {
         familyId: 'family-1',
         groupMemberships: [], // No groups - will trigger warning
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: childrenWithoutGroups, success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: [], success: true },
-        error: undefined
+        error: undefined,
       });
     });
 
@@ -103,14 +103,14 @@ describe('ChildrenPage - Layout and Spacing', () => {
         name: 'Test Family',
         children: childrenWithoutGroups,
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     const { container } = render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Wait for warning to appear and verify spacing structure
@@ -140,24 +140,24 @@ describe('ChildrenPage - Layout and Spacing', () => {
             groupId: 'group-1',
             group: { id: 'group-1', name: 'School Group A' },
             addedBy: 'user-1',
-            addedAt: new Date()
-          }
+            addedAt: new Date(),
+          },
         ],
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: childrenWithGroups, success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: [], success: true },
-        error: undefined
+        error: undefined,
       });
     });
     mockUseFamily.mockReturnValue({
@@ -167,14 +167,14 @@ describe('ChildrenPage - Layout and Spacing', () => {
         name: 'Test Family',
         children: childrenWithGroups,
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Should not show warning when all children have groups
@@ -194,11 +194,11 @@ describe('ChildrenPage - Layout and Spacing', () => {
             groupId: 'group-1',
             group: { id: 'group-1', name: 'School Group A' },
             addedBy: 'user-1',
-            addedAt: new Date()
-          }
+            addedAt: new Date(),
+          },
         ],
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         id: 'child-2',
@@ -211,24 +211,24 @@ describe('ChildrenPage - Layout and Spacing', () => {
             groupId: 'group-1',
             group: { id: 'group-1', name: 'School Group A' },
             addedBy: 'user-1',
-            addedAt: new Date()
-          }
+            addedAt: new Date(),
+          },
         ],
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: mockChildren, success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: [], success: true },
-        error: undefined
+        error: undefined,
       });
     });
     mockUseFamily.mockReturnValue({
@@ -238,14 +238,14 @@ describe('ChildrenPage - Layout and Spacing', () => {
         name: 'Test Family',
         children: mockChildren,
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     const { container } = render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Wait for children to render
@@ -262,13 +262,13 @@ describe('ChildrenPage - Layout and Spacing', () => {
   it('should show empty state when no children exist', async () => {
     vi.mocked(mockApi.GET).mockResolvedValue({
       data: { data: [], success: true },
-      error: undefined
+      error: undefined,
     });
 
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Should show empty state component (wait for loading to complete)

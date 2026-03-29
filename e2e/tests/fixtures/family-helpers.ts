@@ -18,7 +18,7 @@ export class FamilyTestHelper {
     userType: keyof typeof TEST_USERS,
     familyType: keyof typeof TEST_FAMILIES = 'SMITH',
     includeChildren: boolean = true,
-    includeVehicles: boolean = true
+    includeVehicles: boolean = true,
   ): Promise<{
     user: TestUser;
     family: TestFamily;
@@ -74,7 +74,7 @@ export class FamilyTestHelper {
   private async completeOnboardingFlow(
     family: TestFamily,
     children: TestChild[],
-    vehicles: TestVehicle[]
+    vehicles: TestVehicle[],
   ): Promise<void> {
     // Wait for onboarding page to load
     await expect(this._page.getByRole('heading', { name: 'Create Your Family' })).toBeVisible();
@@ -121,7 +121,7 @@ export class FamilyTestHelper {
   private async ensureFamilyHasRequiredData(
     _family: TestFamily,
     _children: TestChild[],
-    _vehicles: TestVehicle[]
+    _vehicles: TestVehicle[],
   ): Promise<void> {
     // For now, just verify the family exists on dashboard
     // In the future, we could add logic to create missing children/vehicles
@@ -192,7 +192,7 @@ export class FamilyTestHelper {
     // Wait for navigation to dashboard
     await this._page.waitForURL(
       (url) => url.toString().includes('/dashboard'),
-      { timeout: 15000 }
+      { timeout: 15000 },
     );
   }
 

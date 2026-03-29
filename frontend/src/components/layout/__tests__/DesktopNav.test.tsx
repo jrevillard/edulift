@@ -18,20 +18,20 @@ vi.mock('../../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
   
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
   
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 
 // Mock ConnectionIndicator component
 vi.mock('../../../components/ConnectionIndicator', () => ({
-  ConnectionIndicator: () => <div data-testid="connection-indicator" />
+  ConnectionIndicator: () => <div data-testid="connection-indicator" />,
 }));
 
 const mockNavigate = vi.fn();
@@ -54,7 +54,7 @@ const renderDesktopNav = () => {
   return render(
     <MemoryRouter>
       <DesktopNav />
-    </MemoryRouter>
+    </MemoryRouter>,
   );
 };
 
@@ -78,7 +78,7 @@ describe('DesktopNav', () => {
       family: null,
       login: vi.fn(),
       verifyMagicLink: vi.fn(),
-      refreshToken: vi.fn()
+      refreshToken: vi.fn(),
     });
   });
 
@@ -101,7 +101,7 @@ describe('DesktopNav', () => {
         link.textContent?.includes('Dashboard') ||
         link.textContent?.includes('Manage Family') ||
         link.textContent?.includes('Groups') ||
-        link.textContent?.includes('Schedule')
+        link.textContent?.includes('Schedule'),
       );
 
       expect(navLinks[0]).toHaveTextContent('Dashboard');
@@ -206,7 +206,7 @@ describe('DesktopNav', () => {
         family: null,
         login: vi.fn(),
         verifyMagicLink: vi.fn(),
-        refreshToken: vi.fn()
+        refreshToken: vi.fn(),
       });
 
       renderDesktopNav();

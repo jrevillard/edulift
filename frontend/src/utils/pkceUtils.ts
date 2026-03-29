@@ -130,7 +130,7 @@ export async function storePKCEPair(pair: PKCEPair, email: string): Promise<void
         code_verifier: pair.code_verifier,
         code_challenge: pair.code_challenge,
         email: normalizedEmail,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     }
 
@@ -258,7 +258,7 @@ export async function hasPKCEData(): Promise<boolean> {
         hasEmail: !!email,
         e2eTestMode: typeof window !== 'undefined' &&
                      ((window as E2EWindow).__E2E_TEST_MODE__ === true ||
-                      localStorage.getItem('__E2E_TEST_MODE__') === 'true')
+                      localStorage.getItem('__E2E_TEST_MODE__') === 'true'),
       });
     }
 
@@ -325,7 +325,7 @@ export async function restorePKCEData(pkceData: Record<string, string>): Promise
     const storageData = {
       encrypted: btoa(pkceData.code_verifier), // Simple base64 encoding (not encryption)
       iv: btoa(E2E_TEST_OVERRIDE_IV), // Special IV to indicate this is test data
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     localStorage.setItem(`secure_${STORAGE_KEYS.CODE_VERIFIER}`, JSON.stringify(storageData));
@@ -334,7 +334,7 @@ export async function restorePKCEData(pkceData: Record<string, string>): Promise
     const challengeData = {
       encrypted: btoa(pkceData.code_challenge),
       iv: btoa(E2E_TEST_OVERRIDE_IV),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     localStorage.setItem(`secure_${STORAGE_KEYS.CODE_CHALLENGE}`, JSON.stringify(challengeData));
@@ -343,7 +343,7 @@ export async function restorePKCEData(pkceData: Record<string, string>): Promise
     const emailData = {
       encrypted: btoa(pkceData.email),
       iv: btoa(E2E_TEST_OVERRIDE_IV),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     localStorage.setItem(`secure_${STORAGE_KEYS.EMAIL}`, JSON.stringify(emailData));

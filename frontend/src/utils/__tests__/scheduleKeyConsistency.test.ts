@@ -9,7 +9,7 @@ describe('Schedule Key Consistency Bug Prevention Tests', () => {
     const utcScheduleHours = {
       MONDAY: ['06:00', '13:00'],
       TUESDAY: ['08:00', '16:00'],
-      WEDNESDAY: ['09:00', '17:00']
+      WEDNESDAY: ['09:00', '17:00'],
     };
 
     const localScheduleHours = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');
@@ -33,7 +33,7 @@ describe('Schedule Key Consistency Bug Prevention Tests', () => {
       TUESDAY: [],
       WEDNESDAY: [],
       THURSDAY: [],
-      FRIDAY: []
+      FRIDAY: [],
     };
 
     const userTimezone = 'Europe/Paris'; // UTC+1 in November
@@ -53,7 +53,7 @@ describe('Schedule Key Consistency Bug Prevention Tests', () => {
   test('should ensure time slot availability logic works with converted keys', () => {
     // Simulate the renderTimeSlot logic that was failing
     const utcScheduleHours = {
-      MONDAY: ['06:00', '13:00']
+      MONDAY: ['06:00', '13:00'],
     };
 
     const userTimezone = 'Europe/Paris';
@@ -79,7 +79,7 @@ describe('Schedule Key Consistency Bug Prevention Tests', () => {
   test('should prevent locale-dependent key generation', () => {
     // Ensure that different browser locales don't affect the keys
     const utcScheduleHours = {
-      FRIDAY: ['15:00', '16:00']
+      FRIDAY: ['15:00', '16:00'],
     };
 
     const localScheduleHoursFR = convertScheduleHoursToLocal(utcScheduleHours, 'Europe/Paris');

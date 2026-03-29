@@ -142,7 +142,7 @@ const VehiclesPage: React.FC = () => {
       if (editingVehicle) {
         await updateMutation.mutateAsync({
           id: editingVehicle.id,
-          data: { name: formData.name, capacity }
+          data: { name: formData.name, capacity },
         });
       } else {
         await createMutation.mutateAsync({ name: formData.name, capacity });

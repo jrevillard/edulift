@@ -25,7 +25,7 @@ export function getApiError(error: unknown): ApiError {
     return {
       message: error.message,
       status: undefined, // Error instances don't typically have status
-      code: undefined
+      code: undefined,
     };
   }
 
@@ -43,7 +43,7 @@ export function getApiError(error: unknown): ApiError {
     return {
       message,
       status: err.status as number | undefined,
-      code: err.code as string | undefined
+      code: err.code as string | undefined,
     };
   }
 

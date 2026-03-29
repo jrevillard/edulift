@@ -27,7 +27,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({
   onDismiss,
   dismissible = true,
   progress,
-  children
+  children,
 }) => {
   const getTypeStyles = () => {
     switch (type) {
@@ -37,7 +37,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({
           title: 'text-blue-900',
           description: 'text-blue-700',
           icon: 'text-blue-600',
-          accent: 'bg-blue-500'
+          accent: 'bg-blue-500',
         };
       case 'warning':
         return {
@@ -45,7 +45,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({
           title: 'text-amber-900',
           description: 'text-amber-700',
           icon: 'text-amber-600',
-          accent: 'bg-amber-500'
+          accent: 'bg-amber-500',
         };
       case 'info':
         return {
@@ -53,7 +53,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({
           title: 'text-gray-900',
           description: 'text-gray-700',
           icon: 'text-gray-600',
-          accent: 'bg-gray-500'
+          accent: 'bg-gray-500',
         };
     }
   };

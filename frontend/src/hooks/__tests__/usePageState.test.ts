@@ -6,7 +6,7 @@ describe('usePageState', () => {
     const query = {
       data: undefined,
       isLoading: true,
-      error: null
+      error: null,
     };
 
     const result = usePageState(query);
@@ -27,7 +27,7 @@ describe('usePageState', () => {
     const query = {
       data: undefined,
       isLoading: false,
-      error
+      error,
     };
 
     const result = usePageState(query);
@@ -47,7 +47,7 @@ describe('usePageState', () => {
     const query = {
       data: [],
       isLoading: false,
-      error: null
+      error: null,
     };
 
     const result = usePageState(query);
@@ -68,7 +68,7 @@ describe('usePageState', () => {
     const query = {
       data,
       isLoading: false,
-      error: null
+      error: null,
     };
 
     const result = usePageState(query);
@@ -88,7 +88,7 @@ describe('usePageState', () => {
     const query = {
       data: undefined,
       isLoading: false,
-      error: null
+      error: null,
     };
 
     const result = usePageState(query);

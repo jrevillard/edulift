@@ -10,14 +10,14 @@ import type { Child, ScheduleSlot } from '../../types/api';
 // Mock the contexts
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' }
-  }))
+    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' },
+  })),
 }));
 
 vi.mock('../../contexts/SocketContext', () => ({
   useSocket: vi.fn(() => ({
-    socket: { emit: vi.fn() }
-  }))
+    socket: { emit: vi.fn() },
+  })),
 }));
 
 // Mock the OpenAPI client
@@ -30,8 +30,8 @@ vi.mock('@tanstack/react-query', async () => {
   return {
     ...actual,
     useQueryClient: vi.fn(() => ({
-      invalidateQueries: vi.fn()
-    }))
+      invalidateQueries: vi.fn(),
+    })),
   };
 });
 
@@ -46,15 +46,15 @@ describe('ChildAssignmentModal', () => {
     childAssignments: [],
     vehicleAssignments: [],
     totalCapacity: 0,
-    availableSeats: 0
+    availableSeats: 0,
   };
 
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
     vi.clearAllMocks();
     
@@ -76,35 +76,35 @@ describe('ChildAssignmentModal', () => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: overrides.children || [], success: true },
-          error: undefined
+          error: undefined,
         });
       }
       if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: overrides.scheduleSlot || mockScheduleSlot, success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: null, success: false },
-        error: { message: 'Not implemented in test mock' }
+        error: { message: 'Not implemented in test mock' },
       });
     });
 
     // Setup POST/PATCH/DELETE mocks for mutations
     vi.mocked(mockApi.POST).mockResolvedValue({
       data: { data: null, success: true },
-      error: undefined
+      error: undefined,
     });
 
     vi.mocked(mockApi.PATCH).mockResolvedValue({
       data: { data: null, success: true },
-      error: undefined
+      error: undefined,
     });
 
     vi.mocked(mockApi.DELETE).mockResolvedValue({
       data: { data: null, success: true },
-      error: undefined
+      error: undefined,
     });
   };
 
@@ -113,13 +113,13 @@ describe('ChildAssignmentModal', () => {
       isOpen: true,
       onClose: mockOnClose,
       scheduleSlot: mockScheduleSlot,
-      ...props
+      ...props,
     };
 
     return render(
       <QueryClientProvider client={queryClient}>
         <ChildAssignmentModal {...defaultProps} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 
@@ -170,7 +170,7 @@ describe('ChildAssignmentModal', () => {
           vehicleId: 'vehicle-1',
           driverId: 'driver-1',
           vehicle: { id: 'vehicle-1', name: 'Bus #1', capacity: 8 },
-          driver: { id: 'driver-1', name: 'John Driver' }
+          driver: { id: 'driver-1', name: 'John Driver' },
         },
         {
           id: 'vehicle-assignment-2',
@@ -178,32 +178,32 @@ describe('ChildAssignmentModal', () => {
           vehicleId: 'vehicle-2',
           driverId: 'driver-2',
           vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4 },
-          driver: { id: 'driver-2', name: 'Jane Driver' }
-        }
+          driver: { id: 'driver-2', name: 'Jane Driver' },
+        },
       ],
       childAssignments: [
         {
           child: { 
             id: 'child-1', 
             name: 'Alice', 
-            parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } 
-          }
+            parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' }, 
+          },
         },
         {
           child: { 
             id: 'child-2', 
             name: 'Bob', 
-            parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } 
-          }
+            parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' }, 
+          },
         },
         {
           child: { 
             id: 'child-3', 
             name: 'Charlie', 
-            parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' } 
-          }
-        }
-      ]
+            parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' }, 
+          },
+        },
+      ],
     };
 
     const mockAvailableChildren: Child[] = [
@@ -214,7 +214,7 @@ describe('ChildAssignmentModal', () => {
         userId: 'user-1',
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        groupMemberships: [{ groupId: 'group-1', childId: 'child-4', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }]
+        groupMemberships: [{ groupId: 'group-1', childId: 'child-4', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }],
       },
       {
         id: 'child-5',
@@ -223,27 +223,27 @@ describe('ChildAssignmentModal', () => {
         userId: 'user-1',
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        groupMemberships: [{ groupId: 'group-1', childId: 'child-5', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }]
-      }
+        groupMemberships: [{ groupId: 'group-1', childId: 'child-5', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }],
+      },
     ];
 
     beforeEach(() => {
       // Mock API responses for vehicle-specific tests
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
     });
 
     it('should display vehicle name for single vehicle', async () => {
       const singleVehicleSlot = {
         ...mockScheduleSlotWithVehicles,
-        vehicleAssignments: [mockScheduleSlotWithVehicles.vehicleAssignments[0]]
+        vehicleAssignments: [mockScheduleSlotWithVehicles.vehicleAssignments[0]],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: singleVehicleSlot
+        scheduleSlot: singleVehicleSlot,
       });
       renderModal({ scheduleSlot: singleVehicleSlot });
 
@@ -296,13 +296,13 @@ describe('ChildAssignmentModal', () => {
           userId: 'user-2',
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
-          groupMemberships: [{ groupId: 'different-group', childId: 'child-outside', addedBy: 'user-2', addedAt: '2024-01-01T00:00:00Z', group: { id: 'different-group', name: 'Other Group' } }] // Different group
-        }
+          groupMemberships: [{ groupId: 'different-group', childId: 'child-outside', addedBy: 'user-2', addedAt: '2024-01-01T00:00:00Z', group: { id: 'different-group', name: 'Other Group' } }], // Different group
+        },
       ];
 
       setupOpenAPIMocks({
         children: [...mockAvailableChildren, ...childrenNotInGroup],
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
@@ -331,7 +331,7 @@ describe('ChildAssignmentModal', () => {
           userId: 'user-1',
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
-          groupMemberships: [{ groupId: 'group-1', childId: 'child-1', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }] 
+          groupMemberships: [{ groupId: 'group-1', childId: 'child-1', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }], 
         }, // Already assigned
         { 
           id: 'child-2', 
@@ -339,13 +339,13 @@ describe('ChildAssignmentModal', () => {
           userId: 'user-1',
           createdAt: '2024-01-01T00:00:00Z',
           updatedAt: '2024-01-01T00:00:00Z',
-          groupMemberships: [{ groupId: 'group-1', childId: 'child-2', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }] 
-        }     // Already assigned
+          groupMemberships: [{ groupId: 'group-1', childId: 'child-2', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }], 
+        },     // Already assigned
       ];
 
       setupOpenAPIMocks({
         children: allChildren,
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
 
       renderModal({ scheduleSlot: mockScheduleSlotWithVehicles });
@@ -371,7 +371,7 @@ describe('ChildAssignmentModal', () => {
         ...mockScheduleSlotWithVehicles,
         vehicleAssignments: [],
         childAssignments: [],
-        totalCapacity: 0
+        totalCapacity: 0,
       };
 
       renderModal({ scheduleSlot: emptySlot });
@@ -388,12 +388,12 @@ describe('ChildAssignmentModal', () => {
     it('should handle vehicle with no assigned children', async () => {
       const slotWithEmptyVehicle = {
         ...mockScheduleSlotWithVehicles,
-        childAssignments: [] // No children assigned to any vehicle
+        childAssignments: [], // No children assigned to any vehicle
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: slotWithEmptyVehicle
+        scheduleSlot: slotWithEmptyVehicle,
       });
 
       renderModal({ scheduleSlot: slotWithEmptyVehicle });
@@ -418,16 +418,16 @@ describe('ChildAssignmentModal', () => {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
             vehicle: {
               ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle,
-              capacity: 2 // Bus #1 with capacity 2
-            }
+              capacity: 2, // Bus #1 with capacity 2
+            },
           },
           {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[1],
             vehicle: {
               ...mockScheduleSlotWithVehicles.vehicleAssignments[1].vehicle,
-              capacity: 1 // Van #1 with capacity 1
-            }
-          }
+              capacity: 1, // Van #1 with capacity 1
+            },
+          },
         ],
         // Assign 2 children to Bus #1 and 1 child to Van #1 (total capacity = 3)
         childAssignments: [
@@ -436,31 +436,31 @@ describe('ChildAssignmentModal', () => {
             child: {
               id: 'child-1',
               name: 'Alice',
-              parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' }
-            }
+              parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' },
+            },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
             child: {
               id: 'child-2',
               name: 'Bob',
-              parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' }
-            }
+              parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' },
+            },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
             child: {
               id: 'child-3',
               name: 'Charlie',
-              parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' }
-            }
-          }
-        ]
+              parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' },
+            },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren, // child-4 and child-5 are still available
-        scheduleSlot: fullCapacitySlot
+        scheduleSlot: fullCapacitySlot,
       });
 
       renderModal({ scheduleSlot: fullCapacitySlot });
@@ -477,22 +477,22 @@ describe('ChildAssignmentModal', () => {
         childAssignments: [
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: mockScheduleSlotWithVehicles.childAssignments[0].child
+            child: mockScheduleSlotWithVehicles.childAssignments[0].child,
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: mockScheduleSlotWithVehicles.childAssignments[1].child
+            child: mockScheduleSlotWithVehicles.childAssignments[1].child,
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
-            child: mockScheduleSlotWithVehicles.childAssignments[2].child
-          }
-        ]
+            child: mockScheduleSlotWithVehicles.childAssignments[2].child,
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: slotWithVehicleAssignments
+        scheduleSlot: slotWithVehicleAssignments,
       });
 
       // Clear previous calls to get clean spy
@@ -516,7 +516,7 @@ describe('ChildAssignmentModal', () => {
       await waitFor(() => {
         expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
           params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
-          body: { removeChildIds: ['child-1'] }
+          body: { removeChildIds: ['child-1'] },
         });
       });
     });
@@ -531,31 +531,31 @@ describe('ChildAssignmentModal', () => {
             child: { 
               id: 'child-1', 
               name: 'Alice', 
-              parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } 
-            }
+              parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' }, 
+            },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-1', 
             child: { 
               id: 'child-2', 
               name: 'Bob', 
-              parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } 
-            }
+              parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' }, 
+            },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
             child: { 
               id: 'child-3', 
               name: 'Charlie', 
-              parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' } 
-            }
-          }
-        ]
+              parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' }, 
+            },
+          },
+        ],
       };
       
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: slotWithVehicleAssignments
+        scheduleSlot: slotWithVehicleAssignments,
       });
       
       renderModal({ scheduleSlot: slotWithVehicleAssignments });
@@ -580,25 +580,25 @@ describe('ChildAssignmentModal', () => {
         vehicleAssignments: [
           {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
-            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 2 } // Reduce capacity to make it full
-          }
+            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 2 }, // Reduce capacity to make it full
+          },
         ],
         childAssignments: [
           // 2 children assigned to a 2-capacity vehicle (full)
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: mockScheduleSlotWithVehicles.childAssignments[0].child
+            child: mockScheduleSlotWithVehicles.childAssignments[0].child,
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: mockScheduleSlotWithVehicles.childAssignments[1].child
-          }
-        ]
+            child: mockScheduleSlotWithVehicles.childAssignments[1].child,
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: fullVehicleSlot
+        scheduleSlot: fullVehicleSlot,
       });
       
       renderModal({ scheduleSlot: fullVehicleSlot });
@@ -620,7 +620,7 @@ describe('ChildAssignmentModal', () => {
     it('should handle add child to specific vehicle functionality', async () => {
       const mockAddChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
@@ -644,8 +644,8 @@ describe('ChildAssignmentModal', () => {
         expect(mockAddChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
           params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
           body: {
-            addChildIds: ['child-4']
-          }
+            addChildIds: ['child-4'],
+          },
         });
       });
     });
@@ -674,7 +674,7 @@ describe('ChildAssignmentModal', () => {
     it('should refresh data after child operations', async () => {
       const mockInvalidateQueries = vi.fn();
       const mockQueryClient = {
-        invalidateQueries: mockInvalidateQueries
+        invalidateQueries: mockInvalidateQueries,
       };
 
       // Mock useQueryClient hook
@@ -682,7 +682,7 @@ describe('ChildAssignmentModal', () => {
 
       const mockAddChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
@@ -726,16 +726,16 @@ describe('ChildAssignmentModal', () => {
           vehicleId: 'vehicle-1',
           driverId: 'driver-1',
           vehicle: { id: 'vehicle-1', name: 'School Bus', capacity: 8 },
-          driver: { id: 'driver-1', name: 'John Driver' }
+          driver: { id: 'driver-1', name: 'John Driver' },
         },
         {
           id: 'vehicle-assignment-2',
           scheduleSlotId: 'slot-1',
           vehicleId: 'vehicle-2',
-          vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4 }
-        }
+          vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 4 },
+        },
       ],
-      childAssignments: []
+      childAssignments: [],
     };
 
     const mockAvailableChildren: Child[] = [
@@ -746,14 +746,14 @@ describe('ChildAssignmentModal', () => {
         userId: 'user-1',
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        groupMemberships: [{ groupId: 'group-1', childId: 'child-4', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }]
-      }
+        groupMemberships: [{ groupId: 'group-1', childId: 'child-4', addedBy: 'user-1', addedAt: '2024-01-01T00:00:00Z', group: { id: 'group-1', name: 'Test Group' } }],
+      },
     ];
 
     beforeEach(() => {
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
     });
 
@@ -762,7 +762,7 @@ describe('ChildAssignmentModal', () => {
       
       renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId 
+        preSelectedVehicleAssignmentId: preSelectedVehicleId, 
       });
 
       // Wait for component to load
@@ -795,7 +795,7 @@ describe('ChildAssignmentModal', () => {
       
       renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId 
+        preSelectedVehicleAssignmentId: preSelectedVehicleId, 
       });
 
       await waitFor(() => {
@@ -807,13 +807,13 @@ describe('ChildAssignmentModal', () => {
       const preSelectedVehicleId = 'vehicle-assignment-1';
       const mockAssignChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
 
       renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId
+        preSelectedVehicleAssignmentId: preSelectedVehicleId,
       });
 
       await waitFor(() => {
@@ -835,8 +835,8 @@ describe('ChildAssignmentModal', () => {
         expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
           params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: preSelectedVehicleId } },
           body: {
-            addChildIds: ['child-4']
-          }
+            addChildIds: ['child-4'],
+          },
         });
       });
     });
@@ -844,7 +844,7 @@ describe('ChildAssignmentModal', () => {
     it('uses vehicleAssignmentId not vehicleId for child assignment', async () => {
       const mockAssignChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
 
@@ -869,14 +869,14 @@ describe('ChildAssignmentModal', () => {
         expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
           params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
           body: {
-            addChildIds: ['child-4']
-          }
+            addChildIds: ['child-4'],
+          },
         });
         expect(mockAssignChild).not.toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
           params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-1' } },
           body: {
-            addChildIds: ['child-4']
-          }
+            addChildIds: ['child-4'],
+          },
         });
       });
     });
@@ -886,7 +886,7 @@ describe('ChildAssignmentModal', () => {
       
       renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId 
+        preSelectedVehicleAssignmentId: preSelectedVehicleId, 
       });
 
       await waitFor(() => {
@@ -903,12 +903,12 @@ describe('ChildAssignmentModal', () => {
       
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
       
       renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: invalidVehicleId 
+        preSelectedVehicleAssignmentId: invalidVehicleId, 
       });
 
       await waitFor(() => {
@@ -929,34 +929,34 @@ describe('ChildAssignmentModal', () => {
             id: 'vehicle-assignment-1',
             scheduleSlotId: 'slot-1',
             vehicleId: 'vehicle-1',
-            vehicle: { id: 'vehicle-1', name: 'School Bus', capacity: 8 }
+            vehicle: { id: 'vehicle-1', name: 'School Bus', capacity: 8 },
           },
           {
             id: 'vehicle-assignment-2',
             scheduleSlotId: 'slot-1',
             vehicleId: 'vehicle-2',
-            vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 12 }
-          }
+            vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 12 },
+          },
         ],
         childAssignments: [
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } }
+            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
-            child: { id: 'child-2', name: 'Bob', parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } }
-          }
-        ]
+            child: { id: 'child-2', name: 'Bob', parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: multiVehicleSlot
+        scheduleSlot: multiVehicleSlot,
       });
       
       renderModal({ 
-        scheduleSlot: multiVehicleSlot
+        scheduleSlot: multiVehicleSlot,
         // NO preSelectedVehicleAssignmentId - general mode
       });
 
@@ -981,49 +981,49 @@ describe('ChildAssignmentModal', () => {
             id: 'vehicle-assignment-1',
             scheduleSlotId: 'slot-1',
             vehicleId: 'vehicle-1',
-            vehicle: { id: 'vehicle-1', name: 'School Bus', capacity: 8 }
+            vehicle: { id: 'vehicle-1', name: 'School Bus', capacity: 8 },
           },
           {
             id: 'vehicle-assignment-2',
             scheduleSlotId: 'slot-1',
             vehicleId: 'vehicle-2',
-            vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 12 }
-          }
+            vehicle: { id: 'vehicle-2', name: 'Van #1', capacity: 12 },
+          },
         ],
         childAssignments: [
           // 2 children in School Bus
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } }
+            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-2', name: 'Bob', parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } }
+            child: { id: 'child-2', name: 'Bob', parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } },
           },
           // 3 children in Van
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
-            child: { id: 'child-3', name: 'Charlie', parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' } }
+            child: { id: 'child-3', name: 'Charlie', parent: { id: 'parent-3', name: 'Charlie Parent', email: 'charlie@example.com' } },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
-            child: { id: 'child-4', name: 'David', parent: { id: 'parent-4', name: 'David Parent', email: 'david@example.com' } }
+            child: { id: 'child-4', name: 'David', parent: { id: 'parent-4', name: 'David Parent', email: 'david@example.com' } },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-2',
-            child: { id: 'child-5', name: 'Eve', parent: { id: 'parent-5', name: 'Eve Parent', email: 'eve@example.com' } }
-          }
-        ]
+            child: { id: 'child-5', name: 'Eve', parent: { id: 'parent-5', name: 'Eve Parent', email: 'eve@example.com' } },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: multiVehicleSlot
+        scheduleSlot: multiVehicleSlot,
       });
       
       renderModal({ 
         scheduleSlot: multiVehicleSlot,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1' // Select School Bus
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1', // Select School Bus
       });
 
       await waitFor(() => {
@@ -1050,7 +1050,7 @@ describe('ChildAssignmentModal', () => {
       
       renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: preSelectedVehicleId 
+        preSelectedVehicleAssignmentId: preSelectedVehicleId, 
       });
 
       await waitFor(() => {
@@ -1086,20 +1086,20 @@ describe('ChildAssignmentModal', () => {
     it('refreshes vehicle cards when child is assigned', async () => {
       const mockInvalidateQueries = vi.fn();
       const mockQueryClient = {
-        invalidateQueries: mockInvalidateQueries
+        invalidateQueries: mockInvalidateQueries,
       };
 
       vi.mocked(useQueryClient).mockReturnValue(mockQueryClient as unknown as ReturnType<typeof useQueryClient>);
 
       const mockAddChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       vi.mocked(mockApi.PATCH).mockImplementation(mockAddChild);
 
       renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {
@@ -1118,7 +1118,7 @@ describe('ChildAssignmentModal', () => {
       await waitFor(() => {
         // Should invalidate weekly schedule with group ID
         expect(mockInvalidateQueries).toHaveBeenCalledWith({
-          queryKey: ['weekly-schedule', 'group-1']
+          queryKey: ['weekly-schedule', 'group-1'],
         });
       });
     });
@@ -1129,25 +1129,25 @@ describe('ChildAssignmentModal', () => {
         vehicleAssignments: [
           {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
-            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 1 }
-          }
+            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 1 },
+          },
         ],
         childAssignments: [
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } }
-          }
-        ]
+            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: fullVehicleSlot
+        scheduleSlot: fullVehicleSlot,
       });
 
       renderModal({ 
         scheduleSlot: fullVehicleSlot,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {
@@ -1173,32 +1173,32 @@ describe('ChildAssignmentModal', () => {
         vehicleAssignments: [
           {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
-            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 3 }
-          }
+            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 3 },
+          },
         ],
         childAssignments: [
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } }
-          }
-        ]
+            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: vehicleWithCapacity
+        scheduleSlot: vehicleWithCapacity,
       });
 
       // Set up the specific PATCH mock for assignment after the general setup
       const mockAssignChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       mockApi.PATCH.mockImplementation(mockAssignChild);
 
       renderModal({
         scheduleSlot: vehicleWithCapacity,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {
@@ -1221,8 +1221,8 @@ describe('ChildAssignmentModal', () => {
         expect(mockAssignChild).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
           params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
           body: {
-            addChildIds: ['child-4']
-          }
+            addChildIds: ['child-4'],
+          },
         });
       });
 
@@ -1236,17 +1236,17 @@ describe('ChildAssignmentModal', () => {
     it('preserves vehicle selection in vehicle-specific mode after child assignment', async () => {
       const mockAssignChild = vi.fn().mockResolvedValue({
         data: { data: null, success: true },
-        error: undefined
+        error: undefined,
       });
       vi.mocked(mockApi.PATCH).mockImplementation(mockAssignChild);
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
 
       renderModal({
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {
@@ -1274,29 +1274,29 @@ describe('ChildAssignmentModal', () => {
         vehicleAssignments: [
           {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
-            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 2 }
-          }
+            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 2 },
+          },
         ],
         childAssignments: [
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } }
+            child: { id: 'child-1', name: 'Alice', parent: { id: 'parent-1', name: 'Alice Parent', email: 'alice@example.com' } },
           },
           {
             vehicleAssignmentId: 'vehicle-assignment-1',
-            child: { id: 'child-2', name: 'Bob', parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } }
-          }
-        ]
+            child: { id: 'child-2', name: 'Bob', parent: { id: 'parent-2', name: 'Bob Parent', email: 'bob@example.com' } },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: fullCapacitySlot
+        scheduleSlot: fullCapacitySlot,
       });
       
       renderModal({ 
         scheduleSlot: fullCapacitySlot,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {
@@ -1317,12 +1317,12 @@ describe('ChildAssignmentModal', () => {
     it('updates selected vehicle when preSelectedVehicleAssignmentId changes', async () => {
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: mockScheduleSlotWithVehicles
+        scheduleSlot: mockScheduleSlotWithVehicles,
       });
       
       const { rerender } = renderModal({ 
         scheduleSlot: mockScheduleSlotWithVehicles,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {
@@ -1338,7 +1338,7 @@ describe('ChildAssignmentModal', () => {
             scheduleSlot={mockScheduleSlotWithVehicles}
             preSelectedVehicleAssignmentId="vehicle-assignment-2"
           />
-        </QueryClientProvider>
+        </QueryClientProvider>,
       );
 
       await waitFor(() => {
@@ -1353,19 +1353,19 @@ describe('ChildAssignmentModal', () => {
         vehicleAssignments: [
           {
             ...mockScheduleSlotWithVehicles.vehicleAssignments[0],
-            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 0 }
-          }
-        ]
+            vehicle: { ...mockScheduleSlotWithVehicles.vehicleAssignments[0].vehicle, capacity: 0 },
+          },
+        ],
       };
 
       setupOpenAPIMocks({
         children: mockAvailableChildren,
-        scheduleSlot: noCapacitySlot
+        scheduleSlot: noCapacitySlot,
       });
       
       renderModal({ 
         scheduleSlot: noCapacitySlot,
-        preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+        preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
       });
 
       await waitFor(() => {

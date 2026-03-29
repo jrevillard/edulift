@@ -67,7 +67,7 @@ const validateParams = (params: Record<string, string>): Record<string, string> 
  */
 export const buildCustomSchemeUrl = (
   path: SupportedPath,
-  params: Record<string, string> = {}
+  params: Record<string, string> = {},
 ): string => {
   // Validate parameters
   const sanitizedParams = validateParams(params);
@@ -77,7 +77,7 @@ export const buildCustomSchemeUrl = (
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join('&');
 
-  return `${CUSTOM_SCHEME}://${path}${queryString ? '?' + queryString : ''}`;
+  return `${CUSTOM_SCHEME}://${path}${queryString ? `?${  queryString}` : ''}`;
 };
 
 /**
@@ -85,7 +85,7 @@ export const buildCustomSchemeUrl = (
  */
 const buildUniversalLinkUrl = (
   path: SupportedPath,
-  params: Record<string, string> = {}
+  params: Record<string, string> = {},
 ): string => {
   // Validate parameters
   const sanitizedParams = validateParams(params);
@@ -97,7 +97,7 @@ const buildUniversalLinkUrl = (
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join('&');
 
-  return `${baseURL}${path}${queryString ? '?' + queryString : ''}`;
+  return `${baseURL}${path}${queryString ? `?${  queryString}` : ''}`;
 };
 
 /**
@@ -105,7 +105,7 @@ const buildUniversalLinkUrl = (
  */
 const buildAppLinkUrl = (
   path: SupportedPath,
-  params: Record<string, string> = {}
+  params: Record<string, string> = {},
 ): string => {
   // Validate parameters
   const sanitizedParams = validateParams(params);
@@ -117,7 +117,7 @@ const buildAppLinkUrl = (
     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
     .join('&');
 
-  return `${baseURL}${path}${queryString ? '?' + queryString : ''}`;
+  return `${baseURL}${path}${queryString ? `?${  queryString}` : ''}`;
 };
 
 /**
@@ -125,7 +125,7 @@ const buildAppLinkUrl = (
  */
 const getOptimalRedirectMethod = (
   deviceType: string,
-  deviceInfo: MobileDetectionResult['deviceInfo']
+  deviceInfo: MobileDetectionResult['deviceInfo'],
 ): 'universal_link' | 'app_link' | 'custom_scheme' => {
   const { osVersion } = deviceInfo;
 
@@ -152,7 +152,7 @@ const buildOptimalUrl = (
   path: SupportedPath,
   params: Record<string, string>,
   mobileDetection: MobileDetectionResult,
-  options: MobileRedirectionOptions
+  options: MobileRedirectionOptions,
 ): { url: string; method: 'universal_link' | 'app_link' | 'custom_scheme' } => {
   const { deviceType, deviceInfo } = mobileDetection;
   const { preferUniversalLinks = false } = options;
@@ -191,7 +191,7 @@ export const attemptMobileAppOpen = (
   path: SupportedPath,
   params: Record<string, string> = {},
   mobileDetection: MobileDetectionResult,
-  options: MobileRedirectionOptions = {}
+  options: MobileRedirectionOptions = {},
 ): boolean => {
   const { isMobile, deviceType } = mobileDetection;
   const { fallbackDelay = 1500, onAttempt, onFallback } = options;
@@ -307,7 +307,7 @@ const ROUTE_MAPPING: RouteMapping = {
   '/auth/verify': DEEP_LINK_PATHS.AUTH_VERIFY,
   '/families/join': DEEP_LINK_PATHS.FAMILIES_JOIN,
   '/groups/join': DEEP_LINK_PATHS.GROUPS_JOIN,
-  '/dashboard': DEEP_LINK_PATHS.DASHBOARD
+  '/dashboard': DEEP_LINK_PATHS.DASHBOARD,
 };
 
 /**

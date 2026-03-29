@@ -19,7 +19,7 @@ async function globalTeardown() {
     // Stop E2E Docker containers
     execSync('docker compose -f docker-compose.yml stop', {
       stdio: 'inherit',
-      timeout: 60000
+      timeout: 60000,
     });
 
     console.log('✅ E2E environment stopped successfully');

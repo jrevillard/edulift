@@ -152,7 +152,7 @@ const ManageGroupPage: React.FC = () => {
     queryFn: async () => {
       if (!groupId) return Promise.resolve(undefined);
       const { data: response, error } = await api.GET('/api/v1/groups/{groupId}/families', {
-        params: { path: { groupId } }
+        params: { path: { groupId } },
       });
       if (error || !response?.success || !response?.data) {
         throw new Error('Failed to fetch group families');
@@ -163,7 +163,7 @@ const ManageGroupPage: React.FC = () => {
   });
 
   const families = familiesData?.map((family: GroupFamily) =>
-    transformGroupFamily(family)
+    transformGroupFamily(family),
   ).filter(Boolean) || [];
 
   // Fetch schedule configuration
@@ -240,9 +240,9 @@ const ManageGroupPage: React.FC = () => {
 
       const { data: response, error } = await api.PATCH('/api/v1/groups/{groupId}/families/{familyId}/role', {
         params: {
-          path: { groupId, familyId }
+          path: { groupId, familyId },
         },
-        body: { role }
+        body: { role },
       });
       if (error || !response?.success) {
         throw new Error('Failed to update family role');
@@ -267,8 +267,8 @@ const ManageGroupPage: React.FC = () => {
 
       const { data: response, error } = await api.DELETE('/api/v1/groups/{groupId}/families/{familyId}', {
         params: {
-          path: { groupId, familyId }
-        }
+          path: { groupId, familyId },
+        },
       });
       if (error || !response?.success) {
         throw new Error('Failed to remove family');
@@ -293,8 +293,8 @@ const ManageGroupPage: React.FC = () => {
 
       const { data: response, error } = await api.DELETE('/api/v1/groups/{groupId}', {
         params: {
-          path: { groupId }
-        }
+          path: { groupId },
+        },
       });
       if (error || !response?.success) {
         throw new Error('Failed to delete group');
@@ -320,8 +320,8 @@ const ManageGroupPage: React.FC = () => {
 
       const { data: response, error } = await api.POST('/api/v1/groups/{groupId}/leave', {
         params: {
-          path: { groupId }
-        }
+          path: { groupId },
+        },
       });
       if (error || !response?.success) {
         throw new Error('Failed to leave group');
@@ -356,9 +356,9 @@ const ManageGroupPage: React.FC = () => {
 
       const { data: response, error } = await api.PATCH('/api/v1/groups/{groupId}', {
         params: {
-          path: { groupId }
+          path: { groupId },
         },
-        body
+        body,
       });
       if (error || !response?.success) {
         throw new Error('Failed to update group');
@@ -568,7 +568,7 @@ const ManageGroupPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label>Your Role</Label>
-              <Badge variant={isAdmin ? "default" : "secondary"}>
+              <Badge variant={isAdmin ? 'default' : 'secondary'}>
                 {currentGroup.userRole}
               </Badge>
             </div>

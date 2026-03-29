@@ -18,7 +18,7 @@ import {
   validateFamilyName, 
   validateInviteCode,
   type CreateFamilyFormData,
-  type JoinFamilyFormData 
+  type JoinFamilyFormData, 
 } from '../../types/family';
 import { Alert, AlertDescription } from '../ui/alert';
 import { AlertCircle, CheckCircle } from 'lucide-react';
@@ -38,7 +38,7 @@ interface FormErrors {
 
 export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
   onComplete,
-  onCancel
+  onCancel,
 }) => {
   const { createFamily, joinFamily, error, clearError } = useFamily();
   
@@ -49,10 +49,10 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
   // Form data
   const [createFormData, setCreateFormData] = useState<CreateFamilyFormData>({
     name: '',
-    description: ''
+    description: '',
   });
   const [joinFormData, setJoinFormData] = useState<JoinFamilyFormData>({
-    inviteCode: ''
+    inviteCode: '',
   });
 
   const clearErrors = useCallback(() => {
@@ -89,7 +89,7 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
     } catch (err) {
       console.error('Failed to create family:', err);
       setFormErrors({ 
-        general: err instanceof Error ? err.message : 'Failed to create family' 
+        general: err instanceof Error ? err.message : 'Failed to create family', 
       });
     } finally {
       setIsSubmitting(false);
@@ -120,7 +120,7 @@ export const FamilyOnboardingWizard: React.FC<FamilyOnboardingWizardProps> = ({
     } catch (err) {
       console.error('Failed to join family:', err);
       setFormErrors({ 
-        general: err instanceof Error ? err.message : 'Failed to join family' 
+        general: err instanceof Error ? err.message : 'Failed to join family', 
       });
     } finally {
       setIsSubmitting(false);

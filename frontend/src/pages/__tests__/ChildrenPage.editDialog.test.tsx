@@ -28,11 +28,11 @@ const mockChildren: Child[] = [
         groupId: 'group-1',
         group: { id: 'group-1', name: 'School Group A' },
         addedBy: 'user-1',
-        addedAt: new Date()
-      }
+        addedAt: new Date(),
+      },
     ],
     createdAt: new Date(),
-    updatedAt: new Date()
+    updatedAt: new Date(),
   },
   {
     id: 'child-2',
@@ -41,16 +41,16 @@ const mockChildren: Child[] = [
     familyId: 'family-1',
     groupMemberships: [],
     createdAt: new Date(),
-    updatedAt: new Date()
-  }
+    updatedAt: new Date(),
+  },
 ];
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
@@ -76,26 +76,26 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         name: 'Test Family',
         children: mockChildren,
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: mockChildren, success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: [], success: true },
-        error: undefined
+        error: undefined,
       });
     });
 
     vi.mocked(mockApi.PATCH).mockResolvedValue({
       data: { data: mockChildren[0], success: true },
-      error: undefined
+      error: undefined,
     });
   });
 
@@ -103,7 +103,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Wait for children to load
@@ -138,7 +138,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -171,8 +171,8 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         params: { path: { childId: 'child-1' } },
         body: {
           name: 'Alice Updated',
-          age: 9
-        }
+          age: 9,
+        },
       });
     });
   });
@@ -181,7 +181,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -210,7 +210,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -245,14 +245,14 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         name: 'Test Family',
         children: mockChildren,
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -279,13 +279,13 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
   it('should prevent duplicate submissions during update', async () => {
     // Mock a slow API response
     vi.mocked(mockApi.PATCH).mockImplementation(() =>
-      new Promise(resolve => setTimeout(() => resolve({ data: { data: mockChildren[0], success: true }, error: undefined }), 1000))
+      new Promise(resolve => setTimeout(() => resolve({ data: { data: mockChildren[0], success: true }, error: undefined }), 1000)),
     );
 
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     await waitFor(() => {
@@ -336,14 +336,14 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         name: 'Test Family',
         children: mockChildren,
         members: [],
-        vehicles: []
-      }
+        vehicles: [],
+      },
     });
 
     render(
       <TestWrapper>
         <ChildrenPage />
-      </TestWrapper>
+      </TestWrapper>,
     );
 
     // Wait for children to load
@@ -382,8 +382,8 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
       params: { path: { childId: 'child-1' } },
       body: {
         name: 'Alice Updated',
-        age: 8
-      }
+        age: 8,
+      },
     });
   });
 });

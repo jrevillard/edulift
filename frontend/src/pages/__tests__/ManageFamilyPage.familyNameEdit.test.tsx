@@ -26,9 +26,9 @@ const mockFamily: Family = {
       user: {
         id: 'user-1',
         name: 'John Admin',
-        email: 'john@example.com'
+        email: 'john@example.com',
       },
-      joinedAt: new Date()
+      joinedAt: new Date(),
     },
     {
       id: 'member-2',
@@ -36,10 +36,10 @@ const mockFamily: Family = {
       user: {
         id: 'user-2',
         name: 'Jane Parent',
-        email: 'jane@example.com'
+        email: 'jane@example.com',
       },
-      joinedAt: new Date()
-    }
+      joinedAt: new Date(),
+    },
   ],
   children: [
     {
@@ -49,8 +49,8 @@ const mockFamily: Family = {
       familyId: 'family-1',
       groupMemberships: [],
       createdAt: new Date(),
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   ],
   vehicles: [
     {
@@ -59,33 +59,33 @@ const mockFamily: Family = {
       capacity: 5,
       familyId: 'family-1',
       createdAt: new Date(),
-      updatedAt: new Date()
-    }
+      updatedAt: new Date(),
+    },
   ],
   createdAt: new Date(),
-  updatedAt: new Date()
+  updatedAt: new Date(),
 };
 
 const adminPermissions: FamilyPermissions = {
   canManageMembers: true,
   canModifyChildren: true,
   canModifyVehicles: true,
-  canGenerateInvites: true
+  canGenerateInvites: true,
 };
 
 const parentPermissions: FamilyPermissions = {
   canManageMembers: false,
   canModifyChildren: true,
   canModifyVehicles: true,
-  canGenerateInvites: false
+  canGenerateInvites: false,
 };
 
 const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
@@ -110,14 +110,14 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
       user: {
         id: 'user-1',
         email: 'john@example.com',
-        name: 'John Admin'
+        name: 'John Admin',
       },
       login: vi.fn(),
       logout: vi.fn(),
       isAuthenticated: true,
       isLoading: false,
       verifyMagicLink: vi.fn(),
-      refreshToken: vi.fn()
+      refreshToken: vi.fn(),
     });
   });
 
@@ -133,13 +133,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -163,13 +163,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -192,13 +192,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -233,13 +233,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -285,13 +285,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -333,13 +333,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -382,13 +382,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -425,13 +425,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 
@@ -464,13 +464,13 @@ describe('ManageFamilyPage - Family Name Edit Functionality', () => {
         inviteMember: vi.fn(),
         leaveFamily: vi.fn(),
           getPendingInvitations: vi.fn().mockResolvedValue([]),
-        cancelInvitation: vi.fn()
+        cancelInvitation: vi.fn(),
       });
 
       render(
         <TestWrapper>
           <ManageFamilyPage />
-        </TestWrapper>
+        </TestWrapper>,
       );
     });
 

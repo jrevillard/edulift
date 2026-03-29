@@ -48,8 +48,8 @@ const ChildrenPage: React.FC = () => {
           groupId: membership.groupId,
           addedBy: '', // This field is not available in the API response
           addedAt: membership.addedAt, // Use addedAt directly
-          group: membership.group
-        }))
+          group: membership.group,
+        })),
       }));
     },
   });
@@ -71,7 +71,7 @@ const ChildrenPage: React.FC = () => {
     mutationFn: async (data: { name: string; age?: number; groupIds: string[] }) => {
       // First create the child
       const createResult = await api.POST('/api/v1/children', {
-        body: { name: data.name, age: data.age }
+        body: { name: data.name, age: data.age },
       });
       const child = createResult.data?.data;
 
@@ -84,9 +84,9 @@ const ChildrenPage: React.FC = () => {
         await Promise.all(
           data.groupIds.map(groupId =>
             api.POST('/api/v1/children/{childId}/groups/{groupId}', {
-              params: { path: { childId: child.id, groupId } }
-            })
-          )
+              params: { path: { childId: child.id, groupId } },
+            }),
+          ),
         );
       }
 
@@ -133,7 +133,7 @@ const ChildrenPage: React.FC = () => {
     mutationFn: async ({ id, data }: { id: string; data: { name?: string; age?: number } }) => {
       const result = await api.PATCH('/api/v1/children/{childId}', {
         params: { path: { childId: id } },
-        body: data
+        body: data,
       });
       const child = result.data?.data;
 
@@ -181,7 +181,7 @@ const ChildrenPage: React.FC = () => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const result = await api.DELETE('/api/v1/children/{childId}', {
-        params: { path: { childId: id } }
+        params: { path: { childId: id } },
       });
       return result;
     },
@@ -211,13 +211,13 @@ const ChildrenPage: React.FC = () => {
     if (editingChild) {
       await updateMutation.mutateAsync({
         id: editingChild.id,
-        data: { name: formData.name, age }
+        data: { name: formData.name, age },
       });
     } else {
       await createMutation.mutateAsync({ 
         name: formData.name, 
         age, 
-        groupIds: assignedGroups // All assigned groups
+        groupIds: assignedGroups, // All assigned groups
       });
     }
   };
@@ -226,7 +226,7 @@ const ChildrenPage: React.FC = () => {
     setEditingChild(child);
     setFormData({ 
       name: child.name, 
-      age: (child.age ?? '').toString()
+      age: (child.age ?? '').toString(),
     });
     setIsFormOpen(true);
   };

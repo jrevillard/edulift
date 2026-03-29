@@ -15,12 +15,12 @@ import {
   generateAndStorePKCEPair,
   isPKCESupported,
   PKCEError,
-  PKCEPair
+  PKCEPair,
 } from '../pkceUtils';
 
 // Mock pkce-challenge library
 vi.mock('pkce-challenge', () => ({
-  default: vi.fn()
+  default: vi.fn(),
 }));
 
 // Mock secureStorage
@@ -28,14 +28,14 @@ vi.mock('../secureStorage', () => ({
   secureStorage: {
     setItem: vi.fn(),
     getItem: vi.fn(),
-    removeItem: vi.fn()
-  }
+    removeItem: vi.fn(),
+  },
 }));
 
 describe('PKCE Utils', () => {
   const mockPkcePair: PKCEPair = {
     code_verifier: 'test-verifier-12345678901234567890123456789012',
-    code_challenge: 'test-challenge-hash'
+    code_challenge: 'test-challenge-hash',
   };
 
   const testEmail = 'test@example.com';
@@ -72,7 +72,7 @@ describe('PKCE Utils', () => {
 
     it('should throw error for invalid length', async () => {
       await expect(generatePKCEPair(42)).rejects.toThrow(
-        'PKCE code verifier length must be between 43 and 128 characters'
+        'PKCE code verifier length must be between 43 and 128 characters',
       );
     });
   });
@@ -97,13 +97,13 @@ describe('PKCE Utils', () => {
       const invalidPair = { code_verifier: '', code_challenge: 'test-challenge' };
 
       await expect(storePKCEPair(invalidPair, testEmail)).rejects.toThrow(
-        'Failed to store PKCE pair: Invalid PKCE pair - missing verifier or challenge'
+        'Failed to store PKCE pair: Invalid PKCE pair - missing verifier or challenge',
       );
     });
 
     it('should throw error for empty email', async () => {
       await expect(storePKCEPair(mockPkcePair, '')).rejects.toThrow(
-        'Failed to store PKCE pair: Email is required for PKCE storage'
+        'Failed to store PKCE pair: Email is required for PKCE storage',
       );
     });
   });
@@ -223,9 +223,9 @@ describe('PKCE Utils', () => {
       Object.defineProperty(window, 'crypto', {
         value: {
           subtle: {},
-          getRandomValues: vi.fn()
+          getRandomValues: vi.fn(),
         },
-        writable: true
+        writable: true,
       });
 
       expect(isPKCESupported()).toBe(true);

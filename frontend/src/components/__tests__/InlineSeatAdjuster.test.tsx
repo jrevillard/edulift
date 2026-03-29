@@ -79,7 +79,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
   const mockVehicle = {
     id: 'vehicle-1',
     name: 'Toyota Camry',
-    capacity: 5
+    capacity: 5,
   };
 
   const mockOnConfirm = vi.fn();
@@ -95,7 +95,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     // Should show vehicle info in context
@@ -112,7 +112,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('use-normal-capacity'));
@@ -128,7 +128,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('adjust-for-trip'));
@@ -146,7 +146,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     // Open adjustment editor
@@ -174,7 +174,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     // Open adjustment editor
@@ -182,7 +182,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
 
     // Change value
     fireEvent.change(screen.getByTestId('seat-adjustment-input'), { 
-      target: { value: '3' } 
+      target: { value: '3' }, 
     });
 
     // Cancel
@@ -200,7 +200,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('adjust-for-trip'));
@@ -218,7 +218,7 @@ describe('InlineSeatAdjuster - Improved UX', () => {
         vehicle={mockVehicle}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTestId('adjust-for-trip'));

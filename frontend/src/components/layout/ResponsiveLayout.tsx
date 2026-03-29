@@ -1,13 +1,13 @@
-import { useState } from "react";
-import { Menu } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { MobileNav } from "@/components/layout/MobileNav";
-import { DesktopNav } from "@/components/layout/DesktopNav";
-import { BottomNav } from "@/components/layout/BottomNav";
-import { ConnectionIndicator } from "@/components/ConnectionIndicator";
+import { useState } from 'react';
+import { Menu } from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { MobileNav } from '@/components/layout/MobileNav';
+import { DesktopNav } from '@/components/layout/DesktopNav';
+import { BottomNav } from '@/components/layout/BottomNav';
+import { ConnectionIndicator } from '@/components/ConnectionIndicator';
 
 export const ResponsiveLayout: React.FC<{ 
   children: React.ReactNode;
@@ -17,7 +17,7 @@ export const ResponsiveLayout: React.FC<{
   fullWidth = false,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   return (
     <div className="min-h-screen bg-background">
@@ -55,8 +55,8 @@ export const ResponsiveLayout: React.FC<{
       {/* Main Content */}
       <main
         className={cn(
-          fullWidth ? "w-full" : "container mx-auto",
-          isMobile ? "px-4 py-4" : "px-8 py-6"
+          fullWidth ? 'w-full' : 'container mx-auto',
+          isMobile ? 'px-4 py-4' : 'px-8 py-6',
         )}
       >
         {children}

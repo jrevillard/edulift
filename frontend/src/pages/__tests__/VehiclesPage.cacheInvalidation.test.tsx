@@ -21,7 +21,7 @@ const mockVehicle = {
   name: 'Original Bus',
   capacity: 8,
   driverName: 'John Driver',
-  familyId: 'family-1'
+  familyId: 'family-1',
 };
 
 const mockFamilyContext = {
@@ -30,13 +30,13 @@ const mockFamilyContext = {
     name: 'Test Family',
     members: [],
     children: [],
-    vehicles: [mockVehicle]
+    vehicles: [mockVehicle],
   },
   userPermissions: {
     canModifyVehicles: true,
     canManageMembers: false,
     canModifyChildren: false,
-    canViewDetails: true
+    canViewDetails: true,
   },
   isLoading: false,
   error: null,
@@ -53,7 +53,7 @@ const mockFamilyContext = {
   generateInviteCode: vi.fn(),
   getPendingInvitations: vi.fn(),
   cancelInvitation: vi.fn(),
-  clearError: vi.fn()
+  clearError: vi.fn(),
 };
 
 describe('VehiclesPage - Cache Invalidation', () => {
@@ -64,8 +64,8 @@ describe('VehiclesPage - Cache Invalidation', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
 
     mockUseFamily.mockReturnValue(mockFamilyContext);
@@ -75,14 +75,14 @@ describe('VehiclesPage - Cache Invalidation', () => {
       data: [mockVehicle],
       shouldShowLoading: false,
       shouldShowError: false,
-      shouldShowEmpty: false
+      shouldShowEmpty: false,
     });
 
     // Mock API responses for OpenAPI client
     mockApi.GET.mockResolvedValue({
       data: {
-        data: [mockVehicle]
-      }
+        data: [mockVehicle],
+      },
     });
     // Mock PATCH to return complete Family (rich response pattern)
     mockApi.PATCH.mockResolvedValue({
@@ -92,11 +92,11 @@ describe('VehiclesPage - Cache Invalidation', () => {
           vehicles: [
             {
               ...mockVehicle,
-              name: 'Updated Bus'
-            }
-          ]
-        }
-      }
+              name: 'Updated Bus',
+            },
+          ],
+        },
+      },
     });
   });
 
@@ -106,7 +106,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
         <MemoryRouter>
           <VehiclesPage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 
@@ -137,7 +137,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
     await waitFor(() => {
       expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
         params: { path: { vehicleId: 'vehicle-1' } },
-        body: { name: 'Updated Bus', capacity: 8 }
+        body: { name: 'Updated Bus', capacity: 8 },
       });
     });
 
@@ -145,11 +145,11 @@ describe('VehiclesPage - Cache Invalidation', () => {
     expect(setQueryDataSpy).toHaveBeenCalledWith(['current-family'], expect.objectContaining({
       id: 'family-1',
       vehicles: expect.arrayContaining([
-        expect.objectContaining({ id: 'vehicle-1', name: 'Updated Bus', capacity: 8 })
-      ])
+        expect.objectContaining({ id: 'vehicle-1', name: 'Updated Bus', capacity: 8 }),
+      ]),
     }));
     expect(setQueryDataSpy).toHaveBeenCalledWith(['vehicles'], expect.arrayContaining([
-      expect.objectContaining({ id: 'vehicle-1', name: 'Updated Bus', capacity: 8 })
+      expect.objectContaining({ id: 'vehicle-1', name: 'Updated Bus', capacity: 8 }),
     ]));
     // Verify schedule queries were invalidated (they're not in Family object)
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
@@ -171,11 +171,11 @@ describe('VehiclesPage - Cache Invalidation', () => {
               name: 'New Van',
               capacity: 6,
               driverName: 'Jane Driver',
-              familyId: 'family-1'
-            }
-          ]
-        }
-      }
+              familyId: 'family-1',
+            },
+          ],
+        },
+      },
     });
 
     renderComponent();
@@ -197,7 +197,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
     // Wait for mutation to complete
     await waitFor(() => {
       expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/vehicles', {
-        body: { name: 'New Van', capacity: 6 }
+        body: { name: 'New Van', capacity: 6 },
       });
     });
 
@@ -205,11 +205,11 @@ describe('VehiclesPage - Cache Invalidation', () => {
     expect(setQueryDataSpy).toHaveBeenCalledWith(['current-family'], expect.objectContaining({
       id: 'family-1',
       vehicles: expect.arrayContaining([
-        expect.objectContaining({ name: 'New Van', capacity: 6 })
-      ])
+        expect.objectContaining({ name: 'New Van', capacity: 6 }),
+      ]),
     }));
     expect(setQueryDataSpy).toHaveBeenCalledWith(['vehicles'], expect.arrayContaining([
-      expect.objectContaining({ name: 'New Van', capacity: 6 })
+      expect.objectContaining({ name: 'New Van', capacity: 6 }),
     ]));
     // Verify schedule queries were invalidated (they're not in Family object)
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });
@@ -225,9 +225,9 @@ describe('VehiclesPage - Cache Invalidation', () => {
       data: {
         data: {
           ...mockFamilyContext.currentFamily,
-          vehicles: [] // No vehicles after deletion
-        }
-      }
+          vehicles: [], // No vehicles after deletion
+        },
+      },
     });
 
     renderComponent();
@@ -248,7 +248,7 @@ describe('VehiclesPage - Cache Invalidation', () => {
     // Wait for mutation to complete
     await waitFor(() => {
       expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/vehicles/{vehicleId}', {
-        params: { path: { vehicleId: 'vehicle-1' } }
+        params: { path: { vehicleId: 'vehicle-1' } },
       });
     });
 
@@ -256,11 +256,11 @@ describe('VehiclesPage - Cache Invalidation', () => {
     expect(setQueryDataSpy).toHaveBeenCalledWith(['current-family'], expect.objectContaining({
       id: 'family-1',
       vehicles: expect.not.arrayContaining([
-        expect.objectContaining({ id: 'vehicle-1' })
-      ])
+        expect.objectContaining({ id: 'vehicle-1' }),
+      ]),
     }));
     expect(setQueryDataSpy).toHaveBeenCalledWith(['vehicles'], expect.not.arrayContaining([
-      expect.objectContaining({ id: 'vehicle-1' })
+      expect.objectContaining({ id: 'vehicle-1' }),
     ]));
     // Verify schedule queries were invalidated (they're not in Family object)
     expect(invalidateQueriesSpy).toHaveBeenCalledWith({ queryKey: ['weekly-schedule'] });

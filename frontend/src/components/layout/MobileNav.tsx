@@ -1,7 +1,7 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { SheetClose } from "@/components/ui/sheet";
-import { Users, Home, Calendar, UserCheck, User } from "lucide-react";
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { SheetClose } from '@/components/ui/sheet';
+import { Users, Home, Calendar, UserCheck, User } from 'lucide-react';
 
 export const MobileNav = ({ onNavigate }: { onNavigate: () => void }) => {
   return (

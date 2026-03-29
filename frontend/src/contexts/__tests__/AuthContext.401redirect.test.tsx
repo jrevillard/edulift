@@ -63,7 +63,7 @@ describe('AuthContext 401 Redirect Integration', () => {
     return render(
       <AuthProvider>
         <TestComponent />
-      </AuthProvider>
+      </AuthProvider>,
     );
   };
 
@@ -86,7 +86,7 @@ describe('AuthContext 401 Redirect Integration', () => {
       mockAuthService.getUser.mockReturnValue({
         id: '1',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       
       renderAuthProvider();
@@ -133,7 +133,7 @@ describe('AuthContext 401 Redirect Integration', () => {
       mockAuthService.getUser.mockReturnValue({
         id: '1',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       
       act(() => {
@@ -169,7 +169,7 @@ describe('AuthContext 401 Redirect Integration', () => {
       mockAuthService.getUser.mockReturnValue({
         id: '1',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       
       renderAuthProvider();
@@ -188,7 +188,7 @@ describe('AuthContext 401 Redirect Integration', () => {
       mockAuthService.getUser.mockReturnValue({
         id: '1',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       });
       
       renderAuthProvider();
@@ -215,7 +215,7 @@ describe('AuthContext 401 Redirect Integration', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Token refresh failed:',
-        expect.any(Error)
+        expect.any(Error),
       );
 
       consoleSpy.mockRestore();
@@ -267,7 +267,7 @@ describe('AuthContext 401 Redirect Integration', () => {
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Auth initialization error:',
-        expect.any(Error)
+        expect.any(Error),
       );
 
       consoleSpy.mockRestore();

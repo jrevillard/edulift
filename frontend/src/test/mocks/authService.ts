@@ -20,5 +20,5 @@ export const mockAuthService = {
 
 // Common authService mock for tests
 export const createAuthServiceMock = () => ({
-  authService: mockAuthService
+  authService: mockAuthService,
 });

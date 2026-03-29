@@ -10,20 +10,20 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
 } from '@/components/ui/tabs';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from '@/components/ui/card';
 import {
   Plus,
@@ -33,7 +33,7 @@ import {
   Save,
   AlertTriangle,
   Info,
-  Copy
+  Copy,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { convertScheduleHoursToLocal, convertScheduleHoursToUtc } from '@/utils/timezoneUtils';
@@ -53,14 +53,14 @@ const WEEKDAYS = [
   { key: 'TUESDAY', label: 'Tuesday', shortLabel: 'Tue' },
   { key: 'WEDNESDAY', label: 'Wednesday', shortLabel: 'Wed' },
   { key: 'THURSDAY', label: 'Thursday', shortLabel: 'Thu' },
-  { key: 'FRIDAY', label: 'Friday', shortLabel: 'Fri' }
+  { key: 'FRIDAY', label: 'Friday', shortLabel: 'Fri' },
 ];
 
 const DEFAULT_TIME_SLOTS = [
   '06:00', '06:30', '07:00', '07:30', '08:00', '08:30', '09:00', '09:30',
   '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
   '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
-  '18:00', '18:30', '19:00', '19:30', '20:00'
+  '18:00', '18:30', '19:00', '19:30', '20:00',
 ];
 
 export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> = ({
@@ -69,7 +69,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
   groupId,
   groupName,
   currentConfig,
-  isAdmin
+  isAdmin,
 }) => {
   const [scheduleHours, setScheduleHours] = useState<ScheduleHours>({});
   const [activeWeekday, setActiveWeekday] = useState<string>('MONDAY');
@@ -89,7 +89,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
       // Convert UTC scheduleHours to local timezone for display
       const localScheduleHours = convertScheduleHoursToLocal(
         currentConfig.scheduleHours,
-        userTimezone
+        userTimezone,
       );
       setScheduleHours(localScheduleHours);
       setHasChanges(false);
@@ -103,7 +103,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
       // Convert local scheduleHours to UTC for backend
       const utcScheduleHours = convertScheduleHoursToUtc(
         localScheduleHours,
-        userTimezone
+        userTimezone,
       );
       return scheduleConfigService.updateGroupScheduleConfig(groupId, utcScheduleHours);
     },
@@ -116,9 +116,9 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
     },
     onError: (error: Error) => {
       toast.error('Failed to update schedule configuration', {
-        description: getErrorMessage(error)
+        description: getErrorMessage(error),
       });
-    }
+    },
   });
 
   // Reset to default configuration mutation
@@ -133,9 +133,9 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
     },
     onError: (error: Error) => {
       toast.error('Failed to reset schedule configuration', {
-        description: getErrorMessage(error)
+        description: getErrorMessage(error),
       });
-    }
+    },
   });
 
   const handleAddTimeSlot = () => {
@@ -159,13 +159,13 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
     
     setScheduleHours(prev => ({
       ...prev,
-      [activeWeekday]: updatedSlots
+      [activeWeekday]: updatedSlots,
     }));
     setHasChanges(true);
     
     // Reset to next available time slot
     const nextSlot = DEFAULT_TIME_SLOTS.find(slot => 
-      !updatedSlots.includes(slot) && slot > newTimeSlot
+      !updatedSlots.includes(slot) && slot > newTimeSlot,
     );
     if (nextSlot) {
       setNewTimeSlot(nextSlot);
@@ -178,7 +178,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
     
     setScheduleHours(prev => ({
       ...prev,
-      [weekday]: updatedSlots
+      [weekday]: updatedSlots,
     }));
     setHasChanges(true);
   };
@@ -216,7 +216,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
 
     setScheduleHours(prev => ({
       ...prev,
-      [activeWeekday]: [...sourceSlots]
+      [activeWeekday]: [...sourceSlots],
     }));
     setHasChanges(true);
     setCopyFromDay('');
@@ -358,7 +358,7 @@ export const GroupScheduleConfigModal: React.FC<GroupScheduleConfigModalProps> =
                       <span className="truncate">{weekday.shortLabel}</span>
                       <div className="flex items-center justify-center gap-1">
                         <Badge 
-                          variant={hasErrors ? "destructive" : slotCount > 0 ? "default" : "secondary"}
+                          variant={hasErrors ? 'destructive' : slotCount > 0 ? 'default' : 'secondary'}
                           className="text-xs px-1 py-0 min-w-[20px] justify-center"
                           data-testid={`GroupScheduleConfigModal-Badge-${weekday.key.toLowerCase()}SlotCount`}
                         >

@@ -16,9 +16,9 @@ describe('OpenAPI Group Family Transformation', () => {
     admins: [
       {
         name: 'Test Admin',
-        email: 'admin@example.com'
-      }
-    ]
+        email: 'admin@example.com',
+      },
+    ],
   };
 
   it('should transform OpenAPI family to GroupFamily interface correctly', () => {
@@ -33,9 +33,9 @@ describe('OpenAPI Group Family Transformation', () => {
       admins: [
         {
           name: 'Test Admin',
-          email: 'admin@example.com'
-        }
-      ]
+          email: 'admin@example.com',
+        },
+      ],
     });
   });
 
@@ -44,7 +44,7 @@ describe('OpenAPI Group Family Transformation', () => {
       ...mockOpenApiFamily,
       role: 'OWNER',
       isMyFamily: true,
-      canManage: false // Owners cannot manage their own family in the group context
+      canManage: false, // Owners cannot manage their own family in the group context
     };
 
     const result = transformGroupFamily(ownerFamily);
@@ -58,7 +58,7 @@ describe('OpenAPI Group Family Transformation', () => {
     const myFamily: GroupFamily = {
       ...mockOpenApiFamily,
       isMyFamily: true,
-      canManage: false // Cannot manage own family
+      canManage: false, // Cannot manage own family
     };
 
     const result = transformGroupFamily(myFamily);
@@ -72,7 +72,7 @@ describe('OpenAPI Group Family Transformation', () => {
       ...mockOpenApiFamily,
       role: 'MEMBER',
       isMyFamily: false,
-      canManage: false
+      canManage: false,
     };
 
     const result = transformGroupFamily(memberFamily);
@@ -87,7 +87,7 @@ describe('OpenAPI Group Family Transformation', () => {
       role: 'MEMBER',
       isMyFamily: false,
       canManage: false,
-      admins: []
+      admins: [],
     };
 
     const result = transformGroupFamily(familyWithoutName);
@@ -102,7 +102,7 @@ describe('OpenAPI Group Family Transformation', () => {
       role: 'MEMBER',
       isMyFamily: false,
       canManage: false,
-      admins: undefined
+      admins: undefined,
     };
 
     const result = transformGroupFamily(familyWithoutAdmins);

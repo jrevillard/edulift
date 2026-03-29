@@ -11,7 +11,7 @@ export function formatDate(
   isoDateTime: string,
   timezone: string,
   locale: string = 'en-US',
-  context: DateContext = 'FULL'
+  context: DateContext = 'FULL',
 ): string {
   try {
     const date = new Date(isoDateTime);
@@ -27,7 +27,7 @@ export function formatDate(
         return new Intl.DateTimeFormat(userLocale, {
           dateStyle: 'medium',
           timeStyle: 'short',
-          timeZone: timezone
+          timeZone: timezone,
         }).format(date);
 
       case 'SCHEDULE':
@@ -37,7 +37,7 @@ export function formatDate(
           day: 'numeric',
           hour: 'numeric',
           minute: '2-digit',
-          timeZone: timezone
+          timeZone: timezone,
         }).format(date);
 
       case 'FORM':
@@ -47,7 +47,7 @@ export function formatDate(
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
-          timeZone: timezone
+          timeZone: timezone,
         }).format(date);
 
       case 'RELATIVE':
@@ -58,7 +58,7 @@ export function formatDate(
         return new Intl.DateTimeFormat(userLocale, {
           dateStyle: 'full',
           timeStyle: 'medium',
-          timeZone: timezone
+          timeZone: timezone,
         }).format(date);
     }
   } catch {
@@ -71,7 +71,7 @@ export function formatDate(
  */
 export function formatRelativeTime(
   isoDateTime: string,
-  locale: string = 'en-US'
+  locale: string = 'en-US',
 ): string {
   try {
     const date = new Date(isoDateTime);
@@ -110,7 +110,7 @@ export function formatRelativeTime(
 export function formatErrorDate(
   isoDateTime: string,
   timezone: string,
-  locale: string = 'en-US'
+  locale: string = 'en-US',
 ): string {
   return formatDate(isoDateTime, timezone, locale, 'ERROR');
 }

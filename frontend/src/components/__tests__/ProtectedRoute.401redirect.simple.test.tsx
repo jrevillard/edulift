@@ -17,14 +17,14 @@ vi.mock('../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
   
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
   
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 
@@ -52,7 +52,7 @@ describe('ProtectedRoute 401 Redirect - Simple Test', () => {
         <ProtectedRoute>
           <div data-testid="protected-content">Protected Content</div>
         </ProtectedRoute>
-      </MemoryRouter>
+      </MemoryRouter>,
     );
   };
 
@@ -77,7 +77,7 @@ describe('ProtectedRoute 401 Redirect - Simple Test', () => {
     it('should not log redirect messages', () => {
       renderProtectedRoute();
       expect(consoleLogSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('ProtectedRoute: User not authenticated')
+        expect.stringContaining('ProtectedRoute: User not authenticated'),
       );
     });
   });
@@ -104,10 +104,10 @@ describe('ProtectedRoute 401 Redirect - Simple Test', () => {
       renderProtectedRoute(['/schedule']);
       
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🛡️ ProtectedRoute: User not authenticated, redirecting to login'
+        '🛡️ ProtectedRoute: User not authenticated, redirecting to login',
       );
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        '🛡️ ProtectedRoute: Current location:', '/schedule'
+        '🛡️ ProtectedRoute: Current location:', '/schedule',
       );
     });
 
@@ -119,7 +119,7 @@ describe('ProtectedRoute 401 Redirect - Simple Test', () => {
         renderProtectedRoute([route]);
         
         expect(consoleLogSpy).toHaveBeenCalledWith(
-          '🛡️ ProtectedRoute: Current location:', route
+          '🛡️ ProtectedRoute: Current location:', route,
         );
       });
     });
@@ -147,7 +147,7 @@ describe('ProtectedRoute 401 Redirect - Simple Test', () => {
     it('should not log redirect messages during loading', () => {
       renderProtectedRoute();
       expect(consoleLogSpy).not.toHaveBeenCalledWith(
-        expect.stringContaining('ProtectedRoute: User not authenticated')
+        expect.stringContaining('ProtectedRoute: User not authenticated'),
       );
     });
   });

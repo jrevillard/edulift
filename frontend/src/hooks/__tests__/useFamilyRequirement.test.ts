@@ -22,7 +22,7 @@ describe('useFamilyRequirement', () => {
     login: vi.fn(),
     verifyMagicLink: vi.fn(),
     logout: vi.fn(),
-    refreshToken: vi.fn()
+    refreshToken: vi.fn(),
   };
 
   const defaultFamilyState = {
@@ -44,7 +44,7 @@ describe('useFamilyRequirement', () => {
     generateInviteCode: vi.fn(),
     getPendingInvitations: vi.fn(),
     cancelInvitation: vi.fn(),
-    clearError: vi.fn()
+    clearError: vi.fn(),
   };
 
   const defaultConnectionStore = {
@@ -58,7 +58,7 @@ describe('useFamilyRequirement', () => {
     clearErrors: vi.fn(),
     isConnected: vi.fn(() => true),
     hasConnectionIssues: vi.fn(() => false),
-    getConnectionMessage: vi.fn(() => null)
+    getConnectionMessage: vi.fn(() => null),
   };
 
   beforeEach(() => {
@@ -72,7 +72,7 @@ describe('useFamilyRequirement', () => {
     it('should return loading when auth is loading', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
-        isLoading: true
+        isLoading: true,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -82,7 +82,7 @@ describe('useFamilyRequirement', () => {
     it('should return loading when family is checking', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
-        isCheckingFamily: true
+        isCheckingFamily: true,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -92,7 +92,7 @@ describe('useFamilyRequirement', () => {
     it('should return loading when family is loading', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
-        isLoading: true
+        isLoading: true,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -103,13 +103,13 @@ describe('useFamilyRequirement', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
         isAuthenticated: false,
-        isLoading: true
+        isLoading: true,
       });
 
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -122,7 +122,7 @@ describe('useFamilyRequirement', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
         isAuthenticated: false,
-        user: null
+        user: null,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -133,13 +133,13 @@ describe('useFamilyRequirement', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
         isAuthenticated: false,
-        user: null
+        user: null,
       });
 
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -151,7 +151,7 @@ describe('useFamilyRequirement', () => {
     beforeEach(() => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
-        hasConnectionIssues: vi.fn(() => true)
+        hasConnectionIssues: vi.fn(() => true),
       });
     });
 
@@ -159,13 +159,13 @@ describe('useFamilyRequirement', () => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         hasConnectionIssues: vi.fn(() => true),
-        getConnectionMessage: vi.fn(() => 'Cannot connect to server')
+        getConnectionMessage: vi.fn(() => 'Cannot connect to server'),
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
       expect(result.current).toEqual({ 
         type: 'connection_error', 
-        message: 'Cannot connect to server' 
+        message: 'Cannot connect to server', 
       });
     });
 
@@ -173,13 +173,13 @@ describe('useFamilyRequirement', () => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         hasConnectionIssues: vi.fn(() => true),
-        getConnectionMessage: vi.fn(() => null)
+        getConnectionMessage: vi.fn(() => null),
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
       expect(result.current).toEqual({ 
         type: 'connection_error', 
-        message: 'Unable to connect to server' 
+        message: 'Unable to connect to server', 
       });
     });
 
@@ -187,19 +187,19 @@ describe('useFamilyRequirement', () => {
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
         hasConnectionIssues: vi.fn(() => true),
-        getConnectionMessage: vi.fn(() => 'Network error')
+        getConnectionMessage: vi.fn(() => 'Network error'),
       });
 
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
       expect(result.current).toEqual({ 
         type: 'connection_error', 
-        message: 'Network error' 
+        message: 'Network error', 
       });
     });
   });
@@ -209,7 +209,7 @@ describe('useFamilyRequirement', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -220,7 +220,7 @@ describe('useFamilyRequirement', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: false,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -231,7 +231,7 @@ describe('useFamilyRequirement', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: true,
-        hasFamily: false
+        hasFamily: false,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -244,7 +244,7 @@ describe('useFamilyRequirement', () => {
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: false,
-        hasFamily: true
+        hasFamily: true,
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -264,8 +264,8 @@ describe('useFamilyRequirement', () => {
           updatedAt: '2024-01-01T00:00:00Z',
           members: [],
           children: [],
-          vehicles: []
-        }
+          vehicles: [],
+        },
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -279,19 +279,19 @@ describe('useFamilyRequirement', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
         isLoading: true,
-        isAuthenticated: false
+        isAuthenticated: false,
       });
 
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: true,
         hasFamily: false,
-        isCheckingFamily: true
+        isCheckingFamily: true,
       });
 
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
-        hasConnectionIssues: vi.fn(() => true)
+        hasConnectionIssues: vi.fn(() => true),
       });
 
       const { result } = renderHook(() => useFamilyRequirement());
@@ -301,18 +301,18 @@ describe('useFamilyRequirement', () => {
     it('should handle edge case where all non-loading conditions are met', () => {
       mockUseAuth.mockReturnValue({
         ...defaultAuthState,
-        isAuthenticated: true
+        isAuthenticated: true,
       });
 
       mockUseFamily.mockReturnValue({
         ...defaultFamilyState,
         requiresFamily: false,
-        hasFamily: true
+        hasFamily: true,
       });
 
       mockUseConnectionStore.mockReturnValue({
         ...defaultConnectionStore,
-        hasConnectionIssues: vi.fn(() => false)
+        hasConnectionIssues: vi.fn(() => false),
       });
 
       const { result } = renderHook(() => useFamilyRequirement());

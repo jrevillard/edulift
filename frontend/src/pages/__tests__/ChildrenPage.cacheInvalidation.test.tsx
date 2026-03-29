@@ -18,14 +18,14 @@ vi.mock('../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
 
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
 
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 
@@ -37,7 +37,7 @@ const testChild = {
   name: 'Original Name',
   age: 8,
   familyId: 'family-1',
-  groupMemberships: []
+  groupMemberships: [],
 };
 
 const mockFamilyContext = {
@@ -46,13 +46,13 @@ const mockFamilyContext = {
     name: 'Test Family',
     members: [],
     children: [testChild],
-    vehicles: []
+    vehicles: [],
   },
   userPermissions: {
     canModifyChildren: true,
     canManageMembers: false,
     canModifyVehicles: false,
-    canViewDetails: true
+    canViewDetails: true,
   },
   isLoading: false,
   error: null,
@@ -69,7 +69,7 @@ const mockFamilyContext = {
   generateInviteCode: vi.fn(),
   getPendingInvitations: vi.fn(),
   cancelInvitation: vi.fn(),
-  clearError: vi.fn()
+  clearError: vi.fn(),
 };
 
 describe('ChildrenPage - Cache Invalidation', () => {
@@ -80,8 +80,8 @@ describe('ChildrenPage - Cache Invalidation', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
 
     mockUseFamily.mockReturnValue(mockFamilyContext);
@@ -95,28 +95,28 @@ describe('ChildrenPage - Cache Invalidation', () => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: [testChild], success: true },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: [], success: true },
-        error: undefined
+        error: undefined,
       });
     });
 
     vi.mocked(mockApi.PATCH).mockResolvedValue({
       data: { data: { ...testChild, name: 'Updated Name' }, success: true },
-      error: undefined
+      error: undefined,
     });
 
     vi.mocked(mockApi.POST).mockResolvedValue({
       data: { data: testChild, success: true },
-      error: undefined
+      error: undefined,
     });
 
     vi.mocked(mockApi.DELETE).mockResolvedValue({
       data: { data: null, success: true },
-      error: undefined
+      error: undefined,
     });
   });
 
@@ -126,7 +126,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
         <MemoryRouter>
           <ChildrenPage />
         </MemoryRouter>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 
@@ -158,8 +158,8 @@ describe('ChildrenPage - Cache Invalidation', () => {
         params: { path: { childId: 'child-1' } },
         body: {
           name: 'Updated Name',
-          age: 8
-        }
+          age: 8,
+        },
       });
     });
 
@@ -199,7 +199,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
     // Wait for mutation to complete
     await waitFor(() => {
       expect(mockApi.POST).toHaveBeenCalledWith('/api/v1/children', {
-        body: { name: 'New Child', age: 6 }
+        body: { name: 'New Child', age: 6 },
       });
     });
 
@@ -230,7 +230,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
     // Wait for mutation to complete
     await waitFor(() => {
       expect(mockApi.DELETE).toHaveBeenCalledWith('/api/v1/children/{childId}', {
-        params: { path: { childId: 'child-1' } }
+        params: { path: { childId: 'child-1' } },
       });
     });
 

@@ -27,7 +27,7 @@ describe('AuthService PKCE Integration', () => {
   const testToken = 'magic-link-token-123';
   const mockPkcePair = {
     code_verifier: 'test-verifier-123456789012345678901234567890',
-    code_challenge: 'test-challenge-hash-xyz'
+    code_challenge: 'test-challenge-hash-xyz',
   };
 
   beforeEach(() => {
@@ -56,7 +56,7 @@ describe('AuthService PKCE Integration', () => {
       // Mock successful API response
       mockClient.POST.mockResolvedValue({
         data: { success: true, data: { userExists: true } },
-        error: null
+        error: null,
       });
 
       await authService.requestMagicLink(testEmail);
@@ -73,9 +73,9 @@ describe('AuthService PKCE Integration', () => {
         expect.objectContaining({
           body: expect.objectContaining({
             email: testEmail,
-            code_challenge: mockPkcePair.code_challenge
-          })
-        })
+            code_challenge: mockPkcePair.code_challenge,
+          }),
+        }),
       );
     });
 
@@ -83,12 +83,12 @@ describe('AuthService PKCE Integration', () => {
       const context = {
         name: 'John Doe',
         inviteCode: 'invite-123',
-        customField: 'custom-value'
+        customField: 'custom-value',
       };
 
       mockClient.POST.mockResolvedValue({
         data: { success: true, data: { userExists: false } },
-        error: null
+        error: null,
       });
 
       await authService.requestMagicLink(testEmail, context);
@@ -100,9 +100,9 @@ describe('AuthService PKCE Integration', () => {
             email: testEmail,
             name: context.name,
             inviteCode: context.inviteCode,
-            code_challenge: mockPkcePair.code_challenge
-          })
-        })
+            code_challenge: mockPkcePair.code_challenge,
+          }),
+        }),
       );
     });
 
@@ -110,7 +110,7 @@ describe('AuthService PKCE Integration', () => {
       mockedPkceUtils.isPKCESupported.mockReturnValue(false);
 
       await expect(authService.requestMagicLink(testEmail)).rejects.toThrow(
-        'Your browser does not support the required security features for authentication'
+        'Your browser does not support the required security features for authentication',
       );
 
       // Verify no API call was made
@@ -122,13 +122,13 @@ describe('AuthService PKCE Integration', () => {
       const pkceError = {
         name: 'PKCEError',
         message: 'Crypto API failed',
-        code: 'CRYPTO_ERROR'
+        code: 'CRYPTO_ERROR',
       };
       Object.setPrototypeOf(pkceError, pkceUtils.PKCEError.prototype);
       mockedPkceUtils.generateAndStorePKCEPair.mockRejectedValue(pkceError);
 
       await expect(authService.requestMagicLink(testEmail)).rejects.toThrow(
-        'Security setup failed: Crypto API failed'
+        'Security setup failed: Crypto API failed',
       );
 
       // Verify PKCE data was cleared
@@ -144,12 +144,12 @@ describe('AuthService PKCE Integration', () => {
         name: 'Test User',
         timezone: 'UTC',
         createdAt: '2024-01-01T00:00:00.000Z',
-        updatedAt: '2024-01-01T00:00:00.000Z'
+        updatedAt: '2024-01-01T00:00:00.000Z',
       },
       accessToken: 'new-access-token',
       refreshToken: 'new-refresh-token',
       expiresIn: 3600,
-      tokenType: 'Bearer'
+      tokenType: 'Bearer',
     };
 
     beforeEach(() => {
@@ -161,7 +161,7 @@ describe('AuthService PKCE Integration', () => {
     it('should verify magic link with PKCE verifier', async () => {
       mockClient.POST.mockResolvedValue({
         data: { success: true, data: mockAuthResponse },
-        error: null
+        error: null,
       });
 
       const result = await authService.verifyMagicLink(testToken);
@@ -176,9 +176,9 @@ describe('AuthService PKCE Integration', () => {
         expect.objectContaining({
           body: expect.objectContaining({
             token: testToken,
-            code_verifier: mockPkcePair.code_verifier
-          })
-        })
+            code_verifier: mockPkcePair.code_verifier,
+          }),
+        }),
       );
 
       // Verify PKCE data was cleared after successful verification
@@ -192,7 +192,7 @@ describe('AuthService PKCE Integration', () => {
       mockedPkceUtils.hasPKCEData.mockReturnValue(false);
 
       await expect(authService.verifyMagicLink(testToken)).rejects.toThrow(
-        'This magic link must be opened in the same browser/app where it was requested'
+        'This magic link must be opened in the same browser/app where it was requested',
       );
 
       // Verify no API call was made
@@ -202,7 +202,7 @@ describe('AuthService PKCE Integration', () => {
     it('should clear PKCE data on verification error', async () => {
       mockClient.POST.mockResolvedValue({
         data: null,
-        error: { message: 'Invalid token' }
+        error: { message: 'Invalid token' },
       });
 
       await expect(authService.verifyMagicLink(testToken)).rejects.toThrow();
@@ -217,7 +217,7 @@ describe('AuthService PKCE Integration', () => {
       // Mock logout endpoint
       mockClient.POST.mockResolvedValue({
         data: { success: true },
-        error: null
+        error: null,
       });
 
       await authService.logout();
@@ -232,7 +232,7 @@ describe('AuthService PKCE Integration', () => {
       // Simulate auth clear by calling clearAuth through logout
       mockClient.POST.mockResolvedValue({
         data: { success: true },
-        error: null
+        error: null,
       });
 
       await authService.logout();
@@ -248,7 +248,7 @@ describe('AuthService PKCE Integration', () => {
     it('should clear PKCE data on network error', async () => {
       mockClient.POST.mockResolvedValue({
         data: null,
-        error: { code: 'ECONNREFUSED' }
+        error: { code: 'ECONNREFUSED' },
       });
 
       await expect(authService.requestMagicLink(testEmail)).rejects.toThrow();
@@ -262,9 +262,9 @@ describe('AuthService PKCE Integration', () => {
         error: {
           response: {
             status: 422,
-            data: { error: 'Invalid email format' }
-          }
-        }
+            data: { error: 'Invalid email format' },
+          },
+        },
       });
 
       await expect(authService.requestMagicLink(testEmail)).rejects.toThrow('Invalid email format');
@@ -275,7 +275,7 @@ describe('AuthService PKCE Integration', () => {
     it('should handle API errors gracefully', async () => {
       mockClient.POST.mockResolvedValue({
         data: null,
-        error: { message: 'API error' }
+        error: { message: 'API error' },
       });
 
       await expect(authService.requestMagicLink(testEmail)).rejects.toThrow();
@@ -288,7 +288,7 @@ describe('AuthService PKCE Integration', () => {
     it('should send PKCE challenge in expected format', async () => {
       mockClient.POST.mockResolvedValue({
         data: { success: true, data: { userExists: true } },
-        error: null
+        error: null,
       });
 
       await authService.requestMagicLink(testEmail, { name: 'Test User' });
@@ -300,9 +300,9 @@ describe('AuthService PKCE Integration', () => {
           body: expect.objectContaining({
             email: testEmail,
             name: 'Test User',
-            code_challenge: mockPkcePair.code_challenge
-          })
-        })
+            code_challenge: mockPkcePair.code_challenge,
+          }),
+        }),
       );
     });
 
@@ -315,17 +315,17 @@ describe('AuthService PKCE Integration', () => {
           name: 'Test User',
           timezone: 'UTC',
           createdAt: '2024-01-01T00:00:00.000Z',
-          updatedAt: '2024-01-01T00:00:00.000Z'
+          updatedAt: '2024-01-01T00:00:00.000Z',
         },
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
         expiresIn: 3600,
-        tokenType: 'Bearer'
+        tokenType: 'Bearer',
       };
 
       mockClient.POST.mockResolvedValue({
         data: { success: true, data: localAuthResponse },
-        error: null
+        error: null,
       });
 
       await authService.verifyMagicLink(testToken);
@@ -335,9 +335,9 @@ describe('AuthService PKCE Integration', () => {
         expect.objectContaining({
           body: expect.objectContaining({
             token: testToken,
-            code_verifier: mockPkcePair.code_verifier
-          })
-        })
+            code_verifier: mockPkcePair.code_verifier,
+          }),
+        }),
       );
     });
   });
@@ -346,14 +346,14 @@ describe('AuthService PKCE Integration', () => {
     it('should handle multiple simultaneous magic link requests', async () => {
       mockClient.POST.mockResolvedValue({
         data: { success: true, data: { userExists: true } },
-        error: null
+        error: null,
       });
 
       // Simulate multiple concurrent requests
       const requests = [
         authService.requestMagicLink('user1@example.com'),
         authService.requestMagicLink('user2@example.com'),
-        authService.requestMagicLink('user3@example.com')
+        authService.requestMagicLink('user3@example.com'),
       ];
 
       await expect(Promise.all(requests)).resolves.toBeDefined();

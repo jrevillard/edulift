@@ -28,7 +28,7 @@ import {
   Clock,
   ArrowRight,
   Sparkles,
-  User
+  User,
 } from 'lucide-react';
 
 // Types for transformed trip data
@@ -69,7 +69,7 @@ interface TransformedTrip {
 
 // Helper function to transform WeeklyDashboardResponse format to TransformedTrip format
 const transformWeeklyDashboardToTrips = (
-  weeklyDashboard: WeeklyDashboardResponse | undefined
+  weeklyDashboard: WeeklyDashboardResponse | undefined,
 ): TransformedTrip[] => {
   if (!weeklyDashboard?.data?.dailySchedules) return [];
 
@@ -88,26 +88,26 @@ const transformWeeklyDashboardToTrips = (
         vehicle: trip.vehicle ? {
           id: trip.vehicle.id || 'unknown-vehicle',
           name: trip.vehicle.name || 'Unknown Vehicle',
-          capacity: trip.vehicle.capacity || 0
+          capacity: trip.vehicle.capacity || 0,
         } : {
           id: 'unknown-vehicle',
           name: 'No Vehicle',
-          capacity: 0
+          capacity: 0,
         },
         driver: trip.driver ? {
           id: trip.driver.id || 'unknown-driver',
-          name: trip.driver.name
+          name: trip.driver.name,
         } : undefined,
         children: trip.children?.map((child) => ({
           id: child.id,
           name: child.name,
           familyId: '', // Not available in the new response structure
-          isFamilyChild: false // Cannot determine without familyId in response
+          isFamilyChild: false, // Cannot determine without familyId in response
         })) || [],
         group: {
           id: trip.group?.id || 'unknown-group',
-          name: trip.group?.name || 'Unknown Group'
-        }
+          name: trip.group?.name || 'Unknown Group',
+        },
       });
     });
   });
@@ -128,7 +128,7 @@ const DashboardPage: React.FC = () => {
       const result = await api.GET('/api/v1/children', {});
       return result.data;
     },
-    enabled: !!user
+    enabled: !!user,
   });
 
   const children = childrenData?.data || [];
@@ -175,21 +175,21 @@ const DashboardPage: React.FC = () => {
       variant: 'default' as const,
       icon: Users,
       description: 'Connect with other families',
-      onClick: () => navigate('/groups')
+      onClick: () => navigate('/groups'),
     },
     {
       label: 'Add Child',
       variant: 'secondary' as const,
       icon: UserPlus,
       description: 'Register for transport',
-      onClick: () => navigate('/children')
+      onClick: () => navigate('/children'),
     },
     {
       label: 'Add Vehicle',
       variant: 'outline' as const,
       icon: Car,
       description: 'Offer rides to others',
-      onClick: () => navigate('/vehicles')
+      onClick: () => navigate('/vehicles'),
     },
   ];
 

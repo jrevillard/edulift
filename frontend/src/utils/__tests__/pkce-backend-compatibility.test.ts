@@ -10,8 +10,8 @@ import { generatePKCEPair } from '../pkceUtils';
 vi.mock('pkce-challenge', () => ({
   default: vi.fn().mockResolvedValue({
     code_verifier: 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk',
-    code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM'
-  })
+    code_challenge: 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+  }),
 }));
 
 describe('PKCE Backend Compatibility', () => {
@@ -59,7 +59,7 @@ describe('PKCE Backend Compatibility', () => {
         name: 'Test User',
         inviteCode: 'optional-invite-code',
         platform: 'web',
-        code_challenge: pkcePair.code_challenge // Required by backend
+        code_challenge: pkcePair.code_challenge, // Required by backend
       };
 
       // Validate structure matches backend expectations
@@ -76,7 +76,7 @@ describe('PKCE Backend Compatibility', () => {
       // This is what we send to POST /auth/verify
       const requestBody = {
         token: 'magic-link-token-from-email',
-        code_verifier: pkcePair.code_verifier // Required by backend
+        code_verifier: pkcePair.code_verifier, // Required by backend
       };
 
       // Validate structure matches backend expectations
@@ -115,7 +115,7 @@ describe('PKCE Backend Compatibility', () => {
       await Promise.all([
         generatePKCEPair(),
         generatePKCEPair(),
-        generatePKCEPair()
+        generatePKCEPair(),
       ]);
 
       // Verify the library was called 3 times (would generate unique pairs in real usage)

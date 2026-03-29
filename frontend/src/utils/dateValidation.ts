@@ -24,8 +24,8 @@ export function isDateInPast(date: DateInput, userTimezone: string): boolean {
   }
 
   // Use timezone-aware comparison
-  const nowInUserTz = new Date(new Date().toLocaleString("en-US", { timeZone: userTimezone }));
-  const checkDateInUserTz = new Date((typeof date === 'string' ? new Date(date) : date).toLocaleString("en-US", { timeZone: userTimezone }));
+  const nowInUserTz = new Date(new Date().toLocaleString('en-US', { timeZone: userTimezone }));
+  const checkDateInUserTz = new Date((typeof date === 'string' ? new Date(date) : date).toLocaleString('en-US', { timeZone: userTimezone }));
   return checkDateInUserTz < nowInUserTz;
 }
 

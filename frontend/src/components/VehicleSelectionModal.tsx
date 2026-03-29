@@ -114,7 +114,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
   groupId,
   day,
   time,
-  week
+  week,
 }) => {
   const { user } = useAuth();
   const { socket } = useSocket();
@@ -141,7 +141,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
     queryKey: ['schedule-slot', currentScheduleSlotId],
     queryFn: async () => {
       const result = await api.GET('/api/v1/schedule-slots/{scheduleSlotId}', {
-        params: { path: { scheduleSlotId: currentScheduleSlotId! } }
+        params: { path: { scheduleSlotId: currentScheduleSlotId! } },
       });
       return result.data?.data;
     },
@@ -187,8 +187,8 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
           datetime: `${week}T${time}:00`,
           vehicleId,
           driverId: user!.id,
-          seatOverride
-        }
+          seatOverride,
+        },
       }),
     onSuccess: async () => {
       // Invalidate and refetch ALL weekly schedule queries for this group
@@ -213,8 +213,8 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
         body: {
           vehicleId,
           driverId: user!.id,
-          seatOverride
-        }
+          seatOverride,
+        },
       }),
     onSuccess: () => {
       // Invalidate ALL weekly schedule queries for this group
@@ -234,7 +234,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
     mutationFn: ({ scheduleSlotId, vehicleId }: { scheduleSlotId: string; vehicleId: string }) =>
       api.DELETE('/api/v1/schedule-slots/{scheduleSlotId}/vehicles', {
         params: { path: { scheduleSlotId } },
-        body: { vehicleId }
+        body: { vehicleId },
       }),
     onSuccess: (_, { scheduleSlotId }) => {
       // Invalidate ALL weekly schedule queries for this group
@@ -268,14 +268,14 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
         // Create new schedule slot with vehicle
         await createScheduleSlotWithVehicleMutation.mutateAsync({ 
           vehicleId: selectedVehicle,
-          seatOverride: seatOverrideValue
+          seatOverride: seatOverrideValue,
         });
       } else {
         // Add vehicle to existing schedule slot
         await assignVehicleMutation.mutateAsync({ 
           scheduleSlotId: currentScheduleSlotId, 
           vehicleId: selectedVehicle,
-          seatOverride: seatOverrideValue
+          seatOverride: seatOverrideValue,
         });
       }
     } catch (error) {
@@ -420,7 +420,7 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
                   </div>
                   <div className="text-xs text-blue-600 mt-1">
                     {currentSlot.childAssignments?.slice(0, 3).map((assignment: ChildAssignment) =>
-                      getChildName(assignment.child)
+                      getChildName(assignment.child),
                     ).join(', ')}
                     {(currentSlot.childAssignments?.length || 0) > 3 && ` +${(currentSlot.childAssignments?.length || 0) - 3} more`}
                   </div>

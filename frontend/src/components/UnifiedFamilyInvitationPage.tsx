@@ -96,12 +96,12 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
                 console.log('📱 Mobile app not detected, continuing on web. Reason:', reason);
                 setMobileState(prev => ({
                   ...prev,
-                  showMobileFallback: true
+                  showMobileFallback: true,
                 }));
                 // Only validate invitation when mobile app is not detected
                 validateInvitation();
-              }
-            }
+              },
+            },
           );
       }
       // If mobile redirect already attempted, don't do anything (fallback already called validateInvitation)
@@ -142,7 +142,7 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
       await authService.requestMagicLink(invitation.email, {
         inviteCode,
         userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       
       // Redirect to standard magic link sent page with invitation context
@@ -162,7 +162,7 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
         inviteCode,
         name: signupData.name,
         userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
       
       // Redirect to standard magic link sent page with invitation context
@@ -305,9 +305,9 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription data-testid={
-                (invitation?.errorCode === 'CANCELLED') ? "UnifiedFamilyInvitationPage-Alert-cancelled" :
-                (invitation?.errorCode === 'EMAIL_MISMATCH') ? "UnifiedFamilyInvitationPage-Alert-emailMismatch" :
-                "UnifiedFamilyInvitationPage-Alert-error"
+                (invitation?.errorCode === 'CANCELLED') ? 'UnifiedFamilyInvitationPage-Alert-cancelled' :
+                (invitation?.errorCode === 'EMAIL_MISMATCH') ? 'UnifiedFamilyInvitationPage-Alert-emailMismatch' :
+                'UnifiedFamilyInvitationPage-Alert-error'
               }>
                 {error || invitation?.error || 'Invalid invitation code'}
               </AlertDescription>
@@ -448,9 +448,9 @@ export const UnifiedFamilyInvitationPage: React.FC = () => {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription data-testid={
-                (invitation?.errorCode === 'CANCELLED') ? "UnifiedFamilyInvitationPage-Alert-cancelled" :
-                (invitation?.errorCode === 'EMAIL_MISMATCH') ? "UnifiedFamilyInvitationPage-Alert-emailMismatch" :
-                "UnifiedFamilyInvitationPage-Alert-error"
+                (invitation?.errorCode === 'CANCELLED') ? 'UnifiedFamilyInvitationPage-Alert-cancelled' :
+                (invitation?.errorCode === 'EMAIL_MISMATCH') ? 'UnifiedFamilyInvitationPage-Alert-emailMismatch' :
+                'UnifiedFamilyInvitationPage-Alert-error'
               }>
                 {error}
               </AlertDescription>

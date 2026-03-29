@@ -21,7 +21,7 @@ test.describe('Group Lifecycle Journey', () => {
     authHelper.defineFamily('groupAdminFamily', 'Group Admin Family', 'groupAdmin');
     authHelper.defineFamily('coAdminFamily', 'Co-Admin Family', 'groupCoAdmin');
     authHelper.defineFamily('lifecycleFamily1', 'Lifecycle Family 1', 'familyAdmin1', [
-      { userKey: 'familyMember1', role: 'MEMBER' }
+      { userKey: 'familyMember1', role: 'MEMBER' },
     ]);
     authHelper.defineFamily('lifecycleFamily2', 'Lifecycle Family 2', 'familyAdmin2');
     authHelper.defineFamily('archiveFamily', 'Archive Family', 'archiveAdmin');

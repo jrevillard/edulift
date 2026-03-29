@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Mail,
   Sparkles,
@@ -11,28 +11,28 @@ import {
   Shield,
   Zap,
   Target,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { DEEP_LINK_PATHS } from "../utils/mobileRedirection";
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { DEEP_LINK_PATHS } from '../utils/mobileRedirection';
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [isNewUser, setIsNewUser] = useState(false);
 
   const { login, verifyMagicLink, isAuthenticated } = useAuth();
@@ -42,14 +42,14 @@ const LoginPage: React.FC = () => {
 
   const handleMagicLinkVerification = useCallback(async (token: string) => {
     setIsLoading(true);
-    setError("");
+    setError('');
 
     try {
       await verifyMagicLink(token);
       // Will be redirected by useEffect above
     } catch (error) {
-      console.error("Magic link verification failed:", error);
-      setError(error instanceof Error ? error.message : "Verification failed");
+      console.error('Magic link verification failed:', error);
+      setError(error instanceof Error ? error.message : 'Verification failed');
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +57,7 @@ const LoginPage: React.FC = () => {
 
   // Check for magic link token in URL
   useEffect(() => {
-    const token = searchParams.get("token");
+    const token = searchParams.get('token');
     if (token) {
       handleMagicLinkVerification(token);
     }
@@ -65,9 +65,9 @@ const LoginPage: React.FC = () => {
 
   // Check for success state from URL (e.g., after magic link was sent)
   useEffect(() => {
-    const success = searchParams.get("success");
-    const emailParam = searchParams.get("email");
-    if (success === "true" && emailParam) {
+    const success = searchParams.get('success');
+    const emailParam = searchParams.get('email');
+    if (success === 'true' && emailParam) {
       setIsSuccess(true);
       setEmail(emailParam);
     }
@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
         console.error('Error accessing sessionStorage:', error);
       }
       
-      const from = redirectTo || redirectPath || location.state?.from?.pathname || "/dashboard";
+      const from = redirectTo || redirectPath || location.state?.from?.pathname || '/dashboard';
       
       // Clear the stored redirect path
       if (redirectPath) {
@@ -107,12 +107,12 @@ const LoginPage: React.FC = () => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      setError("Please enter a valid email");
+      setError('Please enter a valid email');
       return;
     }
 
     setIsLoading(true);
-    setError("");
+    setError('');
 
     // Store redirectTo in localStorage so it persists after the magic link login
     const redirectTo = searchParams.get('returnTo');
@@ -167,19 +167,19 @@ const LoginPage: React.FC = () => {
       await login(email.trim(), isNewUser ? name.trim() : undefined, inviteCode);
       setIsSuccess(true);
     } catch (err) {
-      console.error("Login error:", err);
+      console.error('Login error:', err);
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to send magic link";
+        err instanceof Error ? err.message : 'Failed to send magic link';
 
       // If the error is about name being required for new users, automatically switch to new user mode
-      if (errorMessage.includes("Name is required for new users")) {
+      if (errorMessage.includes('Name is required for new users')) {
         if (!isNewUser) {
           setIsNewUser(true);
           setError(
-            "Welcome! This appears to be your first time using EduLift. Please provide your name to create your account."
+            'Welcome! This appears to be your first time using EduLift. Please provide your name to create your account.',
           );
         } else {
-          setError("Please provide your full name to create your account.");
+          setError('Please provide your full name to create your account.');
         }
       } else {
         setError(errorMessage);
@@ -190,7 +190,7 @@ const LoginPage: React.FC = () => {
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && email) {
+    if (e.key === 'Enter' && email) {
       handleSubmit();
     }
   };
@@ -226,8 +226,8 @@ const LoginPage: React.FC = () => {
                 <button
                   onClick={() => {
                     setIsSuccess(false);
-                    setEmail("");
-                    setName("");
+                    setEmail('');
+                    setName('');
                   }}
                   className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
@@ -344,8 +344,8 @@ const LoginPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Tabs
-                value={isNewUser ? "new" : "existing"}
-                onValueChange={(value) => setIsNewUser(value === "new")}
+                value={isNewUser ? 'new' : 'existing'}
+                onValueChange={(value) => setIsNewUser(value === 'new')}
                 className="w-full"
                 data-testid="LoginPage-Form-loginForm"
               >
@@ -434,7 +434,7 @@ const LoginPage: React.FC = () => {
                   className="w-full"
                   size="lg"
                   disabled={isLoading || !email || (isNewUser && !name)}
-                  data-testid={isNewUser ? "LoginPage-Button-createAccount" : "LoginPage-Button-sendMagicLink"}
+                  data-testid={isNewUser ? 'LoginPage-Button-createAccount' : 'LoginPage-Button-sendMagicLink'}
                 >
                   {isLoading ? (
                     <>
@@ -443,7 +443,7 @@ const LoginPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      {isNewUser ? "Create Account" : "Send Magic Link"}
+                      {isNewUser ? 'Create Account' : 'Send Magic Link'}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}
@@ -491,14 +491,14 @@ const LoginPage: React.FC = () => {
           </Card>
 
           <p className="text-center text-sm text-muted-foreground">
-            By continuing, you agree to our{" "}
+            By continuing, you agree to our{' '}
             <a
               href="/terms-of-service"
               className="font-medium text-primary hover:text-primary/80 hover:underline"
             >
               terms of service
-            </a>{" "}
-            and{" "}
+            </a>{' '}
+            and{' '}
             <a
               href="/privacy-policy"
               className="font-medium text-primary hover:text-primary/80 hover:underline"

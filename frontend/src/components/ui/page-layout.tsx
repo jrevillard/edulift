@@ -13,13 +13,13 @@ export const PageLayout: React.FC<PageLayoutProps> = ({
   variant = 'default',
   ...props
 }) => {
-  const baseClasses = "min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800";
+  const baseClasses = 'min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800';
   
   const containerClasses = {
-    default: "container mx-auto px-4 py-6 sm:py-8 max-w-7xl",
-    centered: "container mx-auto px-4 py-8 sm:py-12 max-w-4xl",
-    'full-width': "px-4 py-6 sm:py-8",
-    schedule: "px-2 sm:px-4 py-6 sm:py-8"
+    default: 'container mx-auto px-4 py-6 sm:py-8 max-w-7xl',
+    centered: 'container mx-auto px-4 py-8 sm:py-12 max-w-4xl',
+    'full-width': 'px-4 py-6 sm:py-8',
+    schedule: 'px-2 sm:px-4 py-6 sm:py-8',
   };
 
   return (
@@ -46,10 +46,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   children,
   className,
   'data-testid': dataTestId,
-  'subtitle-testid': subtitleTestId
+  'subtitle-testid': subtitleTestId,
 }) => {
   return (
-    <header className={cn("mb-8 md:mb-12", className)} data-testid={dataTestId}>
+    <header className={cn('mb-8 md:mb-12', className)} data-testid={dataTestId}>
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6">
         <div className="flex items-center space-y-2 lg:space-y-0 lg:space-x-4">
           {/* EduLift Logo */}
@@ -91,15 +91,15 @@ export const ModernCard: React.FC<ModernCardProps> = ({
   children,
   className,
   hover = true,
-  onClick
+  onClick,
 }) => {
   return (
     <div 
       className={cn(
-        "border-0 shadow-lg bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-xl overflow-hidden",
-        hover && "hover:shadow-xl transition-all duration-300 hover:-translate-y-1",
-        onClick && "cursor-pointer",
-        className
+        'border-0 shadow-lg bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-xl overflow-hidden',
+        hover && 'hover:shadow-xl transition-all duration-300 hover:-translate-y-1',
+        onClick && 'cursor-pointer',
+        className,
       )}
       onClick={onClick}
     >
@@ -128,18 +128,18 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
   disabled = false,
   ...props
 }) => {
-  const baseClasses = "group inline-flex items-center gap-3 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseClasses = 'group inline-flex items-center gap-3 font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
   
   const variantClasses = {
-    primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl",
-    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-    ghost: "hover:bg-primary/5 hover:border-primary/20 border border-transparent"
+    primary: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl',
+    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+    ghost: 'hover:bg-primary/5 hover:border-primary/20 border border-transparent',
   };
   
   const sizeClasses = {
-    sm: "px-4 py-2 text-sm",
-    md: "px-6 py-3 text-base",
-    lg: "px-8 py-4 text-lg"
+    sm: 'px-4 py-2 text-sm',
+    md: 'px-6 py-3 text-base',
+    lg: 'px-8 py-4 text-lg',
   };
 
   return (
@@ -161,7 +161,7 @@ export const ModernButton: React.FC<ModernButtonProps> = ({
 
 export const LoadingState: React.FC<{ className?: string }> = ({ className }) => {
   return (
-    <div className={cn("space-y-6", className)}>
+    <div className={cn('space-y-6', className)}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
         <div className="h-12 sm:h-16 w-12 sm:w-16 bg-muted animate-pulse rounded-full" />
         <div className="space-y-2 flex-1">

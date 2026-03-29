@@ -32,7 +32,7 @@ export const FamilyInvitationProposal: React.FC<FamilyInvitationProposalProps> =
   inviterName,
   onAccept,
   onDecline,
-  error
+  error,
 }) => {
   const [isJoining, setIsJoining] = useState(false);
 

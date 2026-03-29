@@ -16,7 +16,7 @@ import {
   formatWeekRange,
   getCurrentWeek,
   generateWeekdays,
-  navigateWeek
+  navigateWeek,
 } from '../weekCalculations';
 
 // Helper function to create timezone-independent UTC dates
@@ -26,7 +26,7 @@ const createUTCDate = (year: number, month: number, day: number): Date => {
 
 // Helper function to create UTC date from ISO string (timezone-independent)
 const createUTCDateFromISO = (isoString: string): Date => {
-  return new Date(isoString + 'T00:00:00.000Z');
+  return new Date(`${isoString  }T00:00:00.000Z`);
 };
 
 // Extend dayjs with required plugins

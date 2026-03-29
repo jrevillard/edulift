@@ -24,14 +24,14 @@ vi.mock('../../stores/connectionStore', () => {
     isConnected: () => true,
     hasConnectionIssues: () => false,
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
+    setConnected: vi.fn(),
   };
 
   const mockUseConnectionStore = vi.fn(() => mockStore);
   mockUseConnectionStore.getState = vi.fn(() => mockStore);
 
   return {
-    useConnectionStore: mockUseConnectionStore
+    useConnectionStore: mockUseConnectionStore,
   };
 });
 
@@ -177,8 +177,8 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
-      mutations: { retry: false }
-    }
+      mutations: { retry: false },
+    },
   });
 
   return (
@@ -199,7 +199,7 @@ const renderComponent = (overrides?: Partial<typeof mockFamilyContext>) => {
   const mockUseFamily = vi.mocked(useFamily);
   mockUseFamily.mockReturnValue({
     ...mockFamilyContext,
-    ...overrides
+    ...overrides,
   });
 
   // Setup AuthContext mock
@@ -220,7 +220,7 @@ describe('ManageFamilyPage', () => {
       isAuthenticated: true,
       isLoading: false,
       verifyMagicLink: vi.fn(),
-      refreshToken: vi.fn()
+      refreshToken: vi.fn(),
     });
   });
 
@@ -319,7 +319,7 @@ describe('ManageFamilyPage', () => {
         expect(mockFamilyContext.inviteMember).toHaveBeenCalledWith(
           'newuser@test.com',
           'MEMBER',
-          undefined
+          undefined,
         );
       });
     });

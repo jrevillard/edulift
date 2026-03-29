@@ -69,7 +69,7 @@ const mockFamilies: GroupFamily[] = [
     isMyFamily: true,
     canManage: false,
     adminName: 'John Doe',
-    adminEmail: 'john@test.com'
+    adminEmail: 'john@test.com',
   },
   {
     id: 'family-2',
@@ -78,7 +78,7 @@ const mockFamilies: GroupFamily[] = [
     isMyFamily: false,
     canManage: true,
     adminName: 'Jane Smith',
-    adminEmail: 'jane@test.com'
+    adminEmail: 'jane@test.com',
   },
 ];
 

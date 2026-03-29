@@ -42,7 +42,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
       () => authHelper.createFamilyInDatabase('passenger1Family'),
       () => authHelper.createFamilyInDatabase('passenger2Family'),
       () => authHelper.createFamilyInDatabase('templateFamily'),
-      () => authHelper.createFamilyInDatabase('groupSchedulerFamily')
+      () => authHelper.createFamilyInDatabase('groupSchedulerFamily'),
     ];
     
     await authHelper.createMultipleEntitiesInSequence(familyOperations, 1000);
@@ -212,7 +212,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
         
         const scheduleData: ScheduleData = {
           name: 'Complex Recurring Schedule',
-          recurrence: 'weekly'
+          recurrence: 'weekly',
         };
         
         await SharedTestPatterns.fillScheduleForm(page, scheduleData);
@@ -698,7 +698,7 @@ test.describe('Schedule Creation and Assignments Journey', () => {
         
         const scheduleData: ScheduleData = {
           name: 'Group Transportation Schedule',
-          description: 'Coordinated transportation schedule for all families in the group'
+          description: 'Coordinated transportation schedule for all families in the group',
         };
         
         await SharedTestPatterns.fillScheduleForm(page, scheduleData);

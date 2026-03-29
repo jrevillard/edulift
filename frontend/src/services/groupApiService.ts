@@ -24,7 +24,7 @@ export class GroupApiService {
   async validateGroupInviteCode(inviteCode: string): Promise<GroupValidationResponse> {
     try {
       const { data } = await api.GET('/api/v1/invitations/group/{code}/validate', {
-        params: { path: { code: inviteCode } }
+        params: { path: { code: inviteCode } },
       });
 
       if (data) {
@@ -34,7 +34,7 @@ export class GroupApiService {
         return {
           valid: false,
           type: 'GROUP',
-          group: undefined
+          group: undefined,
         };
       }
     } catch (error: unknown) {
@@ -44,7 +44,7 @@ export class GroupApiService {
       return {
         valid: false,
         type: 'GROUP',
-        group: undefined
+        group: undefined,
       };
     }
   }
@@ -61,7 +61,7 @@ export class GroupApiService {
   async joinGroupByInviteCode(inviteCode: string) {
     try {
       const { data } = await api.POST('/api/v1/groups/join', {
-        body: { inviteCode }
+        body: { inviteCode },
       });
 
       if (!data?.success || !data?.data) {
@@ -79,7 +79,7 @@ export class GroupApiService {
     try {
       const { data } = await api.POST('/api/v1/groups/{groupId}/search-families', {
         params: { path: { groupId } },
-        body: { searchTerm }
+        body: { searchTerm },
       });
 
       if (!data?.success) {
@@ -97,7 +97,7 @@ export class GroupApiService {
     try {
       const { data } = await api.POST('/api/v1/groups/{groupId}/invite', {
         params: { path: { groupId } },
-        body: { familyId, role, personalMessage }
+        body: { familyId, role, personalMessage },
       });
 
       if (!data?.success) {
@@ -150,7 +150,7 @@ export class GroupApiService {
   async createGroup(name: string) {
     try {
       const { data } = await api.POST('/api/v1/groups', {
-        body: { name }
+        body: { name },
       });
 
       if (!data?.success) {
@@ -166,7 +166,7 @@ export class GroupApiService {
   async deleteGroup(groupId: string) {
     try {
       const { data } = await api.DELETE('/api/v1/groups/{groupId}', {
-        params: { path: { groupId } }
+        params: { path: { groupId } },
       });
 
       if (!data?.success) {
@@ -183,7 +183,7 @@ export class GroupApiService {
   async getGroupFamilies(groupId: string): Promise<GroupFamily[]> {
     try {
       const { data } = await api.GET('/api/v1/groups/{groupId}/families', {
-        params: { path: { groupId } }
+        params: { path: { groupId } },
       });
 
       if (!data?.success) {
@@ -200,7 +200,7 @@ export class GroupApiService {
   async cancelGroupInvitation(invitationId: string) {
     try {
       const { error } = await api.DELETE('/api/v1/invitations/group/{invitationId}', {
-        params: { path: { invitationId } }
+        params: { path: { invitationId } },
       });
 
       if (error) {

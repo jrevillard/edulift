@@ -44,7 +44,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       newErrors.push({
         type: 'websocket',
         message: error,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       // Keep only last 5 errors
       if (newErrors.length > 5) newErrors.shift();
@@ -53,7 +53,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     return {
       wsStatus: status,
       wsError: error || null,
-      recentErrors: newErrors
+      recentErrors: newErrors,
     };
   }),
   
@@ -63,7 +63,7 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
       newErrors.push({
         type: 'api',
         message: error,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
       // Keep only last 5 errors
       if (newErrors.length > 5) newErrors.shift();
@@ -72,14 +72,14 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     return {
       apiStatus: status,
       apiError: error || null,
-      recentErrors: newErrors
+      recentErrors: newErrors,
     };
   }),
   
   clearErrors: () => set({
     wsError: null,
     apiError: null,
-    recentErrors: []
+    recentErrors: [],
   }),
   
   isConnected: () => {
@@ -110,5 +110,5 @@ export const useConnectionStore = create<ConnectionStore>((set, get) => ({
     }
     
     return null;
-  }
+  },
 }));

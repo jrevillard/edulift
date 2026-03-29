@@ -24,7 +24,7 @@ test.describe('Family Creation E2E', () => {
         const { email: testEmail } = await authHelper.setupAdminUser(
           'family.creation',
           `Family Creation User ${timestamp}`,
-          familyName
+          familyName,
         );
         console.log(`✅ User created and family created: ${testEmail}`);
       });
@@ -51,7 +51,7 @@ test.describe('Family Creation E2E', () => {
         const result = await authHelper.setupAdminUser(
           'family.reuse',
           `Reuse User ${timestamp}`,
-          familyName
+          familyName,
         );
         testEmail = result.email;
 
@@ -118,7 +118,7 @@ test.describe('Family Creation E2E', () => {
         await authHelper.setupAdminUser(
           'family.info',
           `Family Info User ${timestamp}`,
-          familyName
+          familyName,
         );
       });
 
@@ -159,7 +159,7 @@ test.describe('Family Creation E2E', () => {
         await authHelper.setupAdminUser(
           'family.settings',
           `Family Settings User ${timestamp}`,
-          familyName
+          familyName,
         );
       });
 
@@ -208,7 +208,7 @@ test.describe('Family Creation E2E', () => {
         await authHelper.setupAdminUser(
           'family.features',
           `Family Features User ${timestamp}`,
-          familyName
+          familyName,
         );
       });
 

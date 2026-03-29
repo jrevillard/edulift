@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/api/v1/auth/magic-link": {
+    '/api/v1/auth/magic-link': {
         parameters: {
             query?: never;
             header?: never;
@@ -26,7 +26,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: email
                          * @description User email address for authentication
@@ -63,7 +63,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -78,7 +78,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -120,7 +120,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -162,7 +162,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -204,7 +204,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -246,7 +246,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -259,7 +259,7 @@ export interface paths {
                              * @example EMAIL_SERVICE_UNAVAILABLE
                              * @enum {string}
                              */
-                            code: "EMAIL_SERVICE_UNAVAILABLE";
+                            code: 'EMAIL_SERVICE_UNAVAILABLE';
                             /**
                              * @description Whether the request can be retried
                              * @example true
@@ -276,7 +276,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/verify": {
+    '/api/v1/auth/verify': {
         parameters: {
             query?: never;
             header?: never;
@@ -298,7 +298,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Magic link token received in email
                          * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -324,7 +324,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -376,7 +376,7 @@ export interface paths {
                                 invitationResult?: {
                                     processed: boolean;
                                     /** @enum {string} */
-                                    invitationType?: "FAMILY" | "GROUP";
+                                    invitationType?: 'FAMILY' | 'GROUP';
                                     redirectUrl?: string;
                                     requiresFamilyOnboarding?: boolean;
                                     reason?: string;
@@ -391,7 +391,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -433,7 +433,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -475,7 +475,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -519,7 +519,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/refresh": {
+    '/api/v1/auth/refresh': {
         parameters: {
             query?: never;
             header?: never;
@@ -541,7 +541,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Valid refresh token for token rotation
                          * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -557,7 +557,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 accessToken: string;
@@ -574,7 +574,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -616,7 +616,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -658,7 +658,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -702,7 +702,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/logout": {
+    '/api/v1/auth/logout': {
         parameters: {
             query?: never;
             header?: never;
@@ -730,7 +730,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -744,7 +744,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -786,7 +786,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -830,7 +830,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/profile": {
+    '/api/v1/auth/profile': {
         parameters: {
             query?: never;
             header?: never;
@@ -856,7 +856,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * User Response
@@ -907,7 +907,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -949,7 +949,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -991,7 +991,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1042,7 +1042,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description User display name
                          * @example John Doe
@@ -1069,7 +1069,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * User Response
@@ -1120,7 +1120,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1162,7 +1162,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1204,7 +1204,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1249,7 +1249,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/profile/timezone": {
+    '/api/v1/auth/profile/timezone': {
         parameters: {
             query?: never;
             header?: never;
@@ -1275,7 +1275,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Valid IANA timezone (e.g., America/New_York, Europe/Paris)
                          * @example America/New_York
@@ -1291,7 +1291,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * User Response
@@ -1342,7 +1342,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1384,7 +1384,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1426,7 +1426,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1466,7 +1466,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/auth/profile/delete-request": {
+    '/api/v1/auth/profile/delete-request': {
         parameters: {
             query?: never;
             header?: never;
@@ -1488,7 +1488,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description PKCE code challenge for secure account deletion confirmation email (required)
                          * @example aB3dE5fG7hJ9kLmNoPqRsTuVwXyZ1234567890ABCDEFG
@@ -1504,7 +1504,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -1518,7 +1518,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1560,7 +1560,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1602,7 +1602,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1644,7 +1644,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1686,7 +1686,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1699,7 +1699,7 @@ export interface paths {
                              * @example EMAIL_SERVICE_UNAVAILABLE
                              * @enum {string}
                              */
-                            code: "EMAIL_SERVICE_UNAVAILABLE";
+                            code: 'EMAIL_SERVICE_UNAVAILABLE';
                             /**
                              * @description Whether the request can be retried
                              * @example true
@@ -1716,7 +1716,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/auth/profile/delete-confirm": {
+    '/api/v1/auth/profile/delete-confirm': {
         parameters: {
             query?: never;
             header?: never;
@@ -1738,7 +1738,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Deletion confirmation token received in email
                          * @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -1759,7 +1759,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -1774,7 +1774,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1816,7 +1816,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1858,7 +1858,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1900,7 +1900,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -1944,7 +1944,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/vehicles": {
+    '/api/v1/vehicles': {
         parameters: {
             query?: never;
             header?: never;
@@ -1970,7 +1970,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -2017,7 +2017,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2069,7 +2069,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Vehicle name
                          * @example Family Minivan
@@ -2090,7 +2090,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -2133,7 +2133,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -2227,7 +2227,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2269,7 +2269,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2311,7 +2311,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2355,7 +2355,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/vehicles/available/{groupId}/{timeSlotId}": {
+    '/api/v1/vehicles/available/{groupId}/{timeSlotId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2386,7 +2386,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -2430,7 +2430,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2472,7 +2472,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2514,7 +2514,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2560,7 +2560,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/vehicles/{vehicleId}": {
+    '/api/v1/vehicles/{vehicleId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -2589,7 +2589,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /** @description Vehicle response data */
                             data: {
@@ -2637,7 +2637,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2679,7 +2679,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2741,7 +2741,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -2784,7 +2784,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -2878,7 +2878,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2920,7 +2920,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -2976,7 +2976,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Updated vehicle name
                          * @example Updated Family Minivan
@@ -2997,7 +2997,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -3040,7 +3040,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -3134,7 +3134,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3176,7 +3176,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3218,7 +3218,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3258,7 +3258,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/vehicles/{vehicleId}/schedule": {
+    '/api/v1/vehicles/{vehicleId}/schedule': {
         parameters: {
             query?: never;
             header?: never;
@@ -3290,7 +3290,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /** @description Vehicle schedule information */
                             data: {
@@ -3370,7 +3370,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3412,7 +3412,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3458,7 +3458,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/children": {
+    '/api/v1/children': {
         parameters: {
             query?: never;
             header?: never;
@@ -3484,7 +3484,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -3547,7 +3547,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3599,7 +3599,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Child full name
                          * @example Emma Johnson
@@ -3620,7 +3620,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -3663,7 +3663,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -3757,7 +3757,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3799,7 +3799,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3841,7 +3841,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -3885,7 +3885,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/children/{childId}": {
+    '/api/v1/children/{childId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -3914,7 +3914,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Child Response
@@ -3981,7 +3981,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4023,7 +4023,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4077,7 +4077,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Updated child full name
                          * @example Emma Johnson-Smith
@@ -4098,7 +4098,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -4141,7 +4141,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -4235,7 +4235,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4277,7 +4277,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4319,7 +4319,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4361,7 +4361,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4422,7 +4422,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -4465,7 +4465,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -4559,7 +4559,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4601,7 +4601,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4643,7 +4643,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4699,7 +4699,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Updated child full name
                          * @example Emma Johnson-Smith
@@ -4720,7 +4720,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -4763,7 +4763,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -4857,7 +4857,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4899,7 +4899,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4941,7 +4941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -4983,7 +4983,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5023,7 +5023,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/children/{childId}/groups/{groupId}": {
+    '/api/v1/children/{childId}/groups/{groupId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -5056,7 +5056,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Child Group Membership
@@ -5148,7 +5148,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5190,7 +5190,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5232,7 +5232,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5274,7 +5274,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5316,7 +5316,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5378,7 +5378,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -5392,7 +5392,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5434,7 +5434,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5476,7 +5476,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5519,7 +5519,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/children/{childId}/groups": {
+    '/api/v1/children/{childId}/groups': {
         parameters: {
             query?: never;
             header?: never;
@@ -5548,7 +5548,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -5636,7 +5636,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5678,7 +5678,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5724,7 +5724,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families": {
+    '/api/v1/families': {
         parameters: {
             query?: never;
             header?: never;
@@ -5746,7 +5746,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Family display name
                          * @example Johnson Family
@@ -5762,7 +5762,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -5805,7 +5805,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -5899,7 +5899,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5941,7 +5941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -5983,7 +5983,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6025,7 +6025,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6069,7 +6069,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/join": {
+    '/api/v1/families/join': {
         parameters: {
             query?: never;
             header?: never;
@@ -6091,7 +6091,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Family invitation code
                          * @example ABC123XYZ
@@ -6107,7 +6107,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -6150,7 +6150,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -6244,7 +6244,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6286,7 +6286,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6328,7 +6328,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6370,7 +6370,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6412,7 +6412,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6456,7 +6456,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/current": {
+    '/api/v1/families/current': {
         parameters: {
             query?: never;
             header?: never;
@@ -6482,7 +6482,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -6525,7 +6525,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -6619,7 +6619,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6661,7 +6661,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6703,7 +6703,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6749,7 +6749,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/{familyId}/permissions": {
+    '/api/v1/families/{familyId}/permissions': {
         parameters: {
             query?: never;
             header?: never;
@@ -6778,7 +6778,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Permissions
@@ -6815,7 +6815,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6857,7 +6857,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6899,7 +6899,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6941,7 +6941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -6983,7 +6983,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7029,7 +7029,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/members/{memberId}/role": {
+    '/api/v1/families/members/{memberId}/role': {
         parameters: {
             query?: never;
             header?: never;
@@ -7053,13 +7053,13 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description New role for the family member
                          * @example ADMIN
                          * @enum {string}
                          */
-                        role: "ADMIN" | "MEMBER" | "VIEWER";
+                        role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                     };
                 };
             };
@@ -7070,7 +7070,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * @description Success message
@@ -7086,7 +7086,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7128,7 +7128,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7170,7 +7170,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7212,7 +7212,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7254,7 +7254,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7299,7 +7299,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/{familyId}/invite": {
+    '/api/v1/families/{familyId}/invite': {
         parameters: {
             query?: never;
             header?: never;
@@ -7324,7 +7324,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: email
                          * @description Email address of the person to invite
@@ -7337,7 +7337,7 @@ export interface paths {
                          * @example MEMBER
                          * @enum {string}
                          */
-                        role?: "ADMIN" | "MEMBER" | "VIEWER";
+                        role?: 'ADMIN' | 'MEMBER' | 'VIEWER';
                         /**
                          * @description Optional personal message for the invitation
                          * @example Welcome to our family!
@@ -7353,7 +7353,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Invitation
@@ -7381,13 +7381,13 @@ export interface paths {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "ADMIN" | "MEMBER" | "VIEWER";
+                                role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                 /**
                                  * @description Invitation status
                                  * @example PENDING
                                  * @enum {string}
                                  */
-                                status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+                                status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
                                 /**
                                  * @description Personal invitation message
                                  * @example Welcome to our family!
@@ -7461,7 +7461,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7503,7 +7503,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7545,7 +7545,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7587,7 +7587,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7629,7 +7629,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7671,7 +7671,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7715,7 +7715,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/{familyId}/invitations": {
+    '/api/v1/families/{familyId}/invitations': {
         parameters: {
             query?: never;
             header?: never;
@@ -7744,7 +7744,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -7768,13 +7768,13 @@ export interface paths {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "ADMIN" | "MEMBER" | "VIEWER";
+                                role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                 /**
                                  * @description Invitation status
                                  * @example PENDING
                                  * @enum {string}
                                  */
-                                status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+                                status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
                                 /**
                                  * @description Personal invitation message
                                  * @example Welcome to our family!
@@ -7848,7 +7848,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7890,7 +7890,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7932,7 +7932,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -7974,7 +7974,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8016,7 +8016,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8062,7 +8062,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/{familyId}/invitations/{invitationId}": {
+    '/api/v1/families/{familyId}/invitations/{invitationId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -8096,7 +8096,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * @description Success message
@@ -8112,7 +8112,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8154,7 +8154,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8196,7 +8196,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8238,7 +8238,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8280,7 +8280,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8323,7 +8323,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/name": {
+    '/api/v1/families/name': {
         parameters: {
             query?: never;
             header?: never;
@@ -8344,7 +8344,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Updated family name
                          * @example Updated Johnson Family
@@ -8360,7 +8360,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -8403,7 +8403,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -8497,7 +8497,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8539,7 +8539,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8581,7 +8581,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8623,7 +8623,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8668,7 +8668,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/{familyId}/members/{memberId}": {
+    '/api/v1/families/{familyId}/members/{memberId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -8702,7 +8702,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Family Response
@@ -8745,7 +8745,7 @@ export interface paths {
                                      * @example ADMIN
                                      * @enum {string}
                                      */
-                                    role: "ADMIN" | "MEMBER" | "VIEWER";
+                                    role: 'ADMIN' | 'MEMBER' | 'VIEWER';
                                     /** Format: date-time */
                                     joinedAt: string;
                                     user?: {
@@ -8839,7 +8839,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8881,7 +8881,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8923,7 +8923,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -8965,7 +8965,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9007,7 +9007,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9050,7 +9050,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/families/{familyId}/leave": {
+    '/api/v1/families/{familyId}/leave': {
         parameters: {
             query?: never;
             header?: never;
@@ -9081,7 +9081,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * @description Success message
@@ -9097,7 +9097,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9139,7 +9139,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9181,7 +9181,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9223,7 +9223,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9265,7 +9265,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9309,7 +9309,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups": {
+    '/api/v1/groups': {
         parameters: {
             query?: never;
             header?: never;
@@ -9331,7 +9331,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Group display name
                          * @example Morning School Run
@@ -9352,7 +9352,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Response
@@ -9385,7 +9385,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
+                                userRole?: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -9445,7 +9445,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9487,7 +9487,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9529,7 +9529,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9571,7 +9571,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9615,7 +9615,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/join": {
+    '/api/v1/groups/join': {
         parameters: {
             query?: never;
             header?: never;
@@ -9637,7 +9637,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Group invitation code
                          * @example ABC123XYZ
@@ -9653,7 +9653,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Response
@@ -9686,7 +9686,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
+                                userRole?: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -9746,7 +9746,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9788,7 +9788,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9830,7 +9830,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9872,7 +9872,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9914,7 +9914,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -9958,7 +9958,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/my-groups": {
+    '/api/v1/groups/my-groups': {
         parameters: {
             query?: never;
             header?: never;
@@ -9984,7 +9984,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -10013,7 +10013,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
+                                userRole?: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -10073,7 +10073,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10115,7 +10115,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10161,7 +10161,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/families": {
+    '/api/v1/groups/{groupId}/families': {
         parameters: {
             query?: never;
             header?: never;
@@ -10190,7 +10190,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -10209,7 +10209,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                role: "ADMIN" | "MEMBER" | "OWNER";
+                                role: 'ADMIN' | 'MEMBER' | 'OWNER';
                                 /**
                                  * @description Whether this is the requester's family
                                  * @example false
@@ -10251,7 +10251,7 @@ export interface paths {
                                  * @example PENDING
                                  * @enum {string}
                                  */
-                                status?: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "CANCELLED";
+                                status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'CANCELLED';
                                 /**
                                  * Format: cuid
                                  * @description Invitation ID (only for families with pending invitations)
@@ -10285,7 +10285,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10327,7 +10327,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10369,7 +10369,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10411,7 +10411,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10453,7 +10453,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10499,7 +10499,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/families/{familyId}/role": {
+    '/api/v1/groups/{groupId}/families/{familyId}/role': {
         parameters: {
             query?: never;
             header?: never;
@@ -10530,13 +10530,13 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description New role for the family in the group
                          * @example ADMIN
                          * @enum {string}
                          */
-                        role: "OWNER" | "ADMIN" | "MEMBER";
+                        role: 'OWNER' | 'ADMIN' | 'MEMBER';
                     };
                 };
             };
@@ -10547,7 +10547,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Update Family Role Response
@@ -10571,7 +10571,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                role: "OWNER" | "ADMIN" | "MEMBER";
+                                role: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /**
                                  * Format: date-time
                                  * @description When the family joined the group (ISO 8601 format)
@@ -10620,7 +10620,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10662,7 +10662,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10704,7 +10704,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10746,7 +10746,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10788,7 +10788,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -10828,7 +10828,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/invite": {
+    '/api/v1/groups/{groupId}/invite': {
         parameters: {
             query?: never;
             header?: never;
@@ -10853,7 +10853,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: cuid
                          * @description Family ID to invite
@@ -10866,7 +10866,7 @@ export interface paths {
                          * @example MEMBER
                          * @enum {string}
                          */
-                        role?: "OWNER" | "ADMIN" | "MEMBER";
+                        role?: 'OWNER' | 'ADMIN' | 'MEMBER';
                         /**
                          * @description Optional personal message for the invitation
                          * @example Welcome to our carpool group!
@@ -10882,7 +10882,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Invitation
@@ -10909,13 +10909,13 @@ export interface paths {
                                  * @example MEMBER
                                  * @enum {string}
                                  */
-                                role: "OWNER" | "ADMIN" | "MEMBER";
+                                role: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /**
                                  * @description Invitation status
                                  * @example PENDING
                                  * @enum {string}
                                  */
-                                status: "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "CANCELLED";
+                                status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED' | 'CANCELLED';
                                 /**
                                  * @description Personal invitation message
                                  * @example Welcome to our carpool group!
@@ -10971,7 +10971,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11013,7 +11013,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11055,7 +11055,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11097,7 +11097,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11139,7 +11139,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11181,7 +11181,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11225,7 +11225,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/search-families": {
+    '/api/v1/groups/{groupId}/search-families': {
         parameters: {
             query?: never;
             header?: never;
@@ -11250,7 +11250,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Search term to filter families by name
                          * @example Smith
@@ -11266,7 +11266,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -11326,7 +11326,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11368,7 +11368,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11410,7 +11410,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11452,7 +11452,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11494,7 +11494,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11538,7 +11538,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/families/{familyId}": {
+    '/api/v1/groups/{groupId}/families/{familyId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -11572,7 +11572,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Response
@@ -11605,7 +11605,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
+                                userRole?: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -11665,7 +11665,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11707,7 +11707,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11749,7 +11749,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11791,7 +11791,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11833,7 +11833,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11876,7 +11876,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}": {
+    '/api/v1/groups/{groupId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -11908,7 +11908,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * @description Success message
@@ -11924,7 +11924,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -11966,7 +11966,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12008,7 +12008,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12050,7 +12050,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12092,7 +12092,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12148,7 +12148,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Updated group name
                          * @example Updated Morning School Run
@@ -12169,7 +12169,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Response
@@ -12202,7 +12202,7 @@ export interface paths {
                                  * @example ADMIN
                                  * @enum {string}
                                  */
-                                userRole?: "OWNER" | "ADMIN" | "MEMBER";
+                                userRole?: 'OWNER' | 'ADMIN' | 'MEMBER';
                                 /** @description Owner family information */
                                 ownerFamily?: {
                                     /**
@@ -12262,7 +12262,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12304,7 +12304,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12346,7 +12346,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12388,7 +12388,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12430,7 +12430,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12470,7 +12470,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/leave": {
+    '/api/v1/groups/{groupId}/leave': {
         parameters: {
             query?: never;
             header?: never;
@@ -12501,7 +12501,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * @description Success message
@@ -12517,7 +12517,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12559,7 +12559,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12601,7 +12601,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12643,7 +12643,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12685,7 +12685,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12729,7 +12729,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/schedule-config": {
+    '/api/v1/groups/{groupId}/schedule-config': {
         parameters: {
             query?: never;
             header?: never;
@@ -12758,7 +12758,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Schedule Config Response
@@ -12857,7 +12857,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12899,7 +12899,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12941,7 +12941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -12983,7 +12983,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13025,7 +13025,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13079,7 +13079,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Schedule hours configuration
                          * @example {
@@ -13142,7 +13142,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Schedule Config Response
@@ -13241,7 +13241,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13283,7 +13283,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13325,7 +13325,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13367,7 +13367,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13409,7 +13409,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13454,7 +13454,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/schedule-config/reset": {
+    '/api/v1/groups/{groupId}/schedule-config/reset': {
         parameters: {
             query?: never;
             header?: never;
@@ -13485,7 +13485,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Group Schedule Config Response
@@ -13584,7 +13584,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13626,7 +13626,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13668,7 +13668,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13710,7 +13710,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13752,7 +13752,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13796,7 +13796,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/family": {
+    '/api/v1/invitations/family': {
         parameters: {
             query?: never;
             header?: never;
@@ -13818,7 +13818,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: cuid
                          * @description Family identifier to invite to
@@ -13836,7 +13836,7 @@ export interface paths {
                          * @example MEMBER
                          * @enum {string}
                          */
-                        role: "ADMIN" | "MEMBER";
+                        role: 'ADMIN' | 'MEMBER';
                         /**
                          * @description Optional personal message for the invitation
                          * @example Welcome to our family!
@@ -13852,7 +13852,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * Format: cuid
                              * @description Invitation identifier
@@ -13876,13 +13876,13 @@ export interface paths {
                              * @example MEMBER
                              * @enum {string}
                              */
-                            role: "ADMIN" | "MEMBER";
+                            role: 'ADMIN' | 'MEMBER';
                             /**
                              * @description Invitation status
                              * @example PENDING
                              * @enum {string}
                              */
-                            status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
+                            status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED';
                             /**
                              * @description Personal message from inviter
                              * @example Welcome to our family!
@@ -13938,7 +13938,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -13980,7 +13980,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14022,7 +14022,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14064,7 +14064,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14106,7 +14106,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14150,7 +14150,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/family/{code}/validate": {
+    '/api/v1/invitations/family/{code}/validate': {
         parameters: {
             query?: never;
             header?: never;
@@ -14179,7 +14179,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * @description Whether the family invitation code is valid
                              * @example true
@@ -14189,7 +14189,7 @@ export interface paths {
                              * @description Type of invitation - always FAMILY for this endpoint
                              * @enum {string}
                              */
-                            type: "FAMILY";
+                            type: 'FAMILY';
                             /**
                              * Base Family
                              * @description Family information (if valid)
@@ -14230,7 +14230,7 @@ export interface paths {
                              * @example MEMBER
                              * @enum {string}
                              */
-                            role?: "ADMIN" | "MEMBER";
+                            role?: 'ADMIN' | 'MEMBER';
                             /**
                              * @description Personal message from inviter (if valid)
                              * @example Welcome to our family!
@@ -14251,7 +14251,7 @@ export interface paths {
                              * @example EMAIL_MISMATCH
                              * @enum {string}
                              */
-                            errorCode?: "EMAIL_MISMATCH" | "ALREADY_MEMBER" | "EXPIRED" | "INVALID_CODE";
+                            errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED' | 'INVALID_CODE';
                         };
                     };
                 };
@@ -14261,7 +14261,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14303,7 +14303,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14349,7 +14349,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/family/{code}/accept": {
+    '/api/v1/invitations/family/{code}/accept': {
         parameters: {
             query?: never;
             header?: never;
@@ -14374,7 +14374,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Whether to leave current family when accepting invitation
                          * @default false
@@ -14391,7 +14391,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * @description Whether the invitation was accepted successfully
                              * @example true
@@ -14411,7 +14411,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14453,7 +14453,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14497,7 +14497,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/group": {
+    '/api/v1/invitations/group': {
         parameters: {
             query?: never;
             header?: never;
@@ -14519,7 +14519,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: cuid
                          * @description Group identifier to invite to
@@ -14543,7 +14543,7 @@ export interface paths {
                          * @example MEMBER
                          * @enum {string}
                          */
-                        role: "OWNER" | "ADMIN" | "MEMBER";
+                        role: 'OWNER' | 'ADMIN' | 'MEMBER';
                         /**
                          * @description Optional personal message for the invitation
                          * @example Welcome to our group!
@@ -14559,7 +14559,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * Format: cuid
                              * @description Invitation identifier
@@ -14589,13 +14589,13 @@ export interface paths {
                              * @example MEMBER
                              * @enum {string}
                              */
-                            role: "OWNER" | "ADMIN" | "MEMBER";
+                            role: 'OWNER' | 'ADMIN' | 'MEMBER';
                             /**
                              * @description Invitation status
                              * @example PENDING
                              * @enum {string}
                              */
-                            status: "PENDING" | "ACCEPTED" | "EXPIRED" | "CANCELLED";
+                            status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'CANCELLED';
                             /**
                              * @description Personal message from inviter
                              * @example Welcome to our group!
@@ -14677,7 +14677,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14719,7 +14719,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14761,7 +14761,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14803,7 +14803,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14845,7 +14845,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14887,7 +14887,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -14931,7 +14931,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/group/{code}/validate": {
+    '/api/v1/invitations/group/{code}/validate': {
         parameters: {
             query?: never;
             header?: never;
@@ -14960,7 +14960,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * @description Whether the group invitation code is valid
                              * @example true
@@ -14970,7 +14970,7 @@ export interface paths {
                              * @description Type of invitation - always GROUP for this endpoint
                              * @enum {string}
                              */
-                            type: "GROUP";
+                            type: 'GROUP';
                             /**
                              * Base Group
                              * @description Group information (if valid)
@@ -15031,7 +15031,7 @@ export interface paths {
                              * @example EMAIL_MISMATCH
                              * @enum {string}
                              */
-                            errorCode?: "EMAIL_MISMATCH" | "ALREADY_MEMBER" | "EXPIRED" | "INVALID_CODE";
+                            errorCode?: 'EMAIL_MISMATCH' | 'ALREADY_MEMBER' | 'EXPIRED' | 'INVALID_CODE';
                         };
                     };
                 };
@@ -15041,7 +15041,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15083,7 +15083,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15129,7 +15129,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/group/{code}/accept": {
+    '/api/v1/invitations/group/{code}/accept': {
         parameters: {
             query?: never;
             header?: never;
@@ -15160,7 +15160,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * @description Whether the invitation was accepted successfully
                              * @example true
@@ -15180,7 +15180,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15222,7 +15222,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15266,7 +15266,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/family/{invitationId}": {
+    '/api/v1/invitations/family/{invitationId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -15298,7 +15298,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * @description Success message
                              * @example Invitation cancelled successfully
@@ -15313,7 +15313,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15355,7 +15355,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15397,7 +15397,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15440,7 +15440,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/invitations/group/{invitationId}": {
+    '/api/v1/invitations/group/{invitationId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -15472,7 +15472,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /**
                              * @description Success message
                              * @example Invitation cancelled successfully
@@ -15487,7 +15487,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15529,7 +15529,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15571,7 +15571,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15614,7 +15614,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens": {
+    '/api/v1/fcm-tokens': {
         parameters: {
             query?: never;
             header?: never;
@@ -15640,7 +15640,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 tokens: {
@@ -15654,7 +15654,7 @@ export interface paths {
                                      * @example android
                                      * @enum {string}
                                      */
-                                    fcmPlatform: "android" | "ios" | "web";
+                                    fcmPlatform: 'android' | 'ios' | 'web';
                                     /**
                                      * @description Device identifier
                                      * @example device_12345
@@ -15688,7 +15688,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15740,7 +15740,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description FCM registration token from device
                          * @example fcm_token_string_here
@@ -15756,7 +15756,7 @@ export interface paths {
                          * @example android
                          * @enum {string}
                          */
-                        fcmPlatform: "android" | "ios" | "web";
+                        fcmPlatform: 'android' | 'ios' | 'web';
                     };
                 };
             };
@@ -15767,7 +15767,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * FCM Token Response
@@ -15784,7 +15784,7 @@ export interface paths {
                                  * @example android
                                  * @enum {string}
                                  */
-                                fcmPlatform: "android" | "ios" | "web";
+                                fcmPlatform: 'android' | 'ios' | 'web';
                                 /**
                                  * @description Device identifier
                                  * @example device_12345
@@ -15817,7 +15817,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15859,7 +15859,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15903,7 +15903,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/cleanup-inactive": {
+    '/api/v1/fcm-tokens/cleanup-inactive': {
         parameters: {
             query?: never;
             header?: never;
@@ -15932,7 +15932,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -15947,7 +15947,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -15990,7 +15990,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/{tokenId}": {
+    '/api/v1/fcm-tokens/{tokenId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -16022,7 +16022,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -16036,7 +16036,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16078,7 +16078,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16121,7 +16121,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/validate": {
+    '/api/v1/fcm-tokens/validate': {
         parameters: {
             query?: never;
             header?: never;
@@ -16143,7 +16143,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description FCM token to validate
                          * @example fcm_token_string_here
@@ -16159,7 +16159,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * FCM Token Validation Response
@@ -16191,7 +16191,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16235,7 +16235,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/subscribe-topic": {
+    '/api/v1/fcm-tokens/subscribe-topic': {
         parameters: {
             query?: never;
             header?: never;
@@ -16257,7 +16257,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description FCM token to subscribe/unsubscribe
                          * @example fcm_token_string_here
@@ -16278,7 +16278,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Topic Subscription Response
@@ -16310,7 +16310,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16352,7 +16352,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16396,7 +16396,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/unsubscribe-topic": {
+    '/api/v1/fcm-tokens/unsubscribe-topic': {
         parameters: {
             query?: never;
             header?: never;
@@ -16418,7 +16418,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description FCM token to subscribe/unsubscribe
                          * @example fcm_token_string_here
@@ -16439,7 +16439,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Topic Subscription Response
@@ -16471,7 +16471,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16513,7 +16513,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16557,7 +16557,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/test-notification": {
+    '/api/v1/fcm-tokens/test-notification': {
         parameters: {
             query?: never;
             header?: never;
@@ -16579,7 +16579,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description Notification title
                          * @example Test Notification
@@ -16604,7 +16604,7 @@ export interface paths {
                          * @example normal
                          * @enum {string}
                          */
-                        priority?: "high" | "normal";
+                        priority?: 'high' | 'normal';
                     };
                 };
             };
@@ -16615,7 +16615,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Test Notification Response
@@ -16652,7 +16652,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16694,7 +16694,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16738,7 +16738,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/fcm-tokens/stats": {
+    '/api/v1/fcm-tokens/stats': {
         parameters: {
             query?: never;
             header?: never;
@@ -16764,7 +16764,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * FCM Token Statistics Response
@@ -16801,7 +16801,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -16847,7 +16847,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/dashboard/stats": {
+    '/api/v1/dashboard/stats': {
         parameters: {
             query?: never;
             header?: never;
@@ -16873,7 +16873,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -16908,7 +16908,7 @@ export interface paths {
                                          * @example up
                                          * @enum {string}
                                          */
-                                        direction: "up" | "down" | "neutral";
+                                        direction: 'up' | 'down' | 'neutral';
                                         /**
                                          * @description Time period for the trend
                                          * @example last 7 days
@@ -16926,7 +16926,7 @@ export interface paths {
                                          * @example up
                                          * @enum {string}
                                          */
-                                        direction: "up" | "down" | "neutral";
+                                        direction: 'up' | 'down' | 'neutral';
                                         /**
                                          * @description Time period for the trend
                                          * @example last 7 days
@@ -16944,7 +16944,7 @@ export interface paths {
                                          * @example up
                                          * @enum {string}
                                          */
-                                        direction: "up" | "down" | "neutral";
+                                        direction: 'up' | 'down' | 'neutral';
                                         /**
                                          * @description Time period for the trend
                                          * @example last 7 days
@@ -16962,7 +16962,7 @@ export interface paths {
                                          * @example up
                                          * @enum {string}
                                          */
-                                        direction: "up" | "down" | "neutral";
+                                        direction: 'up' | 'down' | 'neutral';
                                         /**
                                          * @description Time period for the trend
                                          * @example last 7 days
@@ -16980,7 +16980,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17022,7 +17022,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17068,7 +17068,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/dashboard/today-schedule": {
+    '/api/v1/dashboard/today-schedule': {
         parameters: {
             query?: never;
             header?: never;
@@ -17094,7 +17094,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /** @description List of upcoming trips */
@@ -17192,7 +17192,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17234,7 +17234,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17280,7 +17280,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/dashboard/recent-activity": {
+    '/api/v1/dashboard/recent-activity': {
         parameters: {
             query?: never;
             header?: never;
@@ -17306,7 +17306,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /** @description List of recent activities */
@@ -17321,7 +17321,7 @@ export interface paths {
                                      * @example vehicle
                                      * @enum {string}
                                      */
-                                    type: "group" | "vehicle" | "child" | "schedule";
+                                    type: 'group' | 'vehicle' | 'child' | 'schedule';
                                     /**
                                      * @description Activity description
                                      * @example Vehicle Toyota Sienna added to family
@@ -17356,7 +17356,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17398,7 +17398,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17444,7 +17444,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/dashboard/7day-schedule": {
+    '/api/v1/dashboard/7day-schedule': {
         parameters: {
             query?: never;
             header?: never;
@@ -17455,7 +17455,7 @@ export interface paths {
          * Get rolling 7-day schedule dashboard
          * @description Retrieve complete dashboard for a rolling 7-day period with detailed schedules and summary statistics. The period starts from the provided startDate (or today) and spans 7 days forward.
          */
-        get: operations["getDashboard7daySchedule"];
+        get: operations['getDashboard7daySchedule'];
         put?: never;
         post?: never;
         delete?: never;
@@ -17464,7 +17464,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/schedule-slots": {
+    '/api/v1/groups/{groupId}/schedule-slots': {
         parameters: {
             query?: never;
             header?: never;
@@ -17489,7 +17489,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: date-time
                          * @description Schedule slot datetime (ISO 8601 UTC format)
@@ -17523,7 +17523,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Schedule Slot
@@ -17951,7 +17951,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -17993,7 +17993,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18035,7 +18035,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18077,7 +18077,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18121,7 +18121,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles": {
+    '/api/v1/schedule-slots/{scheduleSlotId}/vehicles': {
         parameters: {
             query?: never;
             header?: never;
@@ -18146,7 +18146,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: cuid
                          * @description Vehicle identifier to assign
@@ -18182,7 +18182,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Schedule Slot
@@ -18610,7 +18610,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18652,7 +18652,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18694,7 +18694,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18736,7 +18736,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -18790,7 +18790,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: cuid
                          * @description Vehicle identifier to remove
@@ -18807,7 +18807,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 message: string;
@@ -19234,7 +19234,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -19276,7 +19276,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -19318,7 +19318,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -19360,7 +19360,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -19403,7 +19403,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}": {
+    '/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -19420,10 +19420,10 @@ export interface paths {
          * Update vehicle assignment
          * @description Update driver, seat capacity, or add/remove children in an existing vehicle assignment. All fields are optional. Returns the complete updated ScheduleSlot.
          */
-        patch: operations["patchVehicleAssignment"];
+        patch: operations['patchVehicleAssignment'];
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver": {
+    '/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/driver': {
         parameters: {
             query?: never;
             header?: never;
@@ -19454,7 +19454,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * Format: cuid
                          * @description New driver identifier (null to remove driver)
@@ -19471,7 +19471,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Schedule Slot
@@ -19899,7 +19899,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -19941,7 +19941,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -19983,7 +19983,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -20025,7 +20025,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -20065,7 +20065,7 @@ export interface paths {
         };
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}": {
+    '/api/v1/schedule-slots/{scheduleSlotId}': {
         parameters: {
             query?: never;
             header?: never;
@@ -20094,7 +20094,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Schedule Slot
@@ -20522,7 +20522,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -20564,7 +20564,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -20606,7 +20606,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -20652,7 +20652,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/groups/{groupId}/schedule": {
+    '/api/v1/groups/{groupId}/schedule': {
         parameters: {
             query?: never;
             header?: never;
@@ -20686,7 +20686,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Schedule Response
@@ -21132,7 +21132,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21174,7 +21174,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21216,7 +21216,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21262,7 +21262,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}/conflicts": {
+    '/api/v1/schedule-slots/{scheduleSlotId}/conflicts': {
         parameters: {
             query?: never;
             header?: never;
@@ -21291,7 +21291,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 conflicts: string[];
@@ -21305,7 +21305,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21347,7 +21347,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21389,7 +21389,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21435,7 +21435,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}/children/available": {
+    '/api/v1/schedule-slots/{scheduleSlotId}/children/available': {
         parameters: {
             query?: never;
             header?: never;
@@ -21464,7 +21464,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             data: {
                                 /**
@@ -21514,7 +21514,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21556,7 +21556,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21598,7 +21598,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21640,7 +21640,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -21686,7 +21686,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/seat-override": {
+    '/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleId}/seat-override': {
         parameters: {
             query?: never;
             header?: never;
@@ -21717,7 +21717,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /**
                          * @description New seat capacity override
                          * @example 6
@@ -21733,7 +21733,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             success: boolean;
                             /**
                              * Schedule Slot
@@ -22161,7 +22161,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -22203,7 +22203,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -22245,7 +22245,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -22287,7 +22287,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
+                        'application/json': {
                             /** @enum {boolean} */
                             success: false;
                             /**
@@ -22357,7 +22357,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                         data: {
                             /**
@@ -22520,7 +22520,7 @@ export interface operations {
                                      * @example up
                                      * @enum {string}
                                      */
-                                    direction: "up" | "down" | "neutral";
+                                    direction: 'up' | 'down' | 'neutral';
                                     /**
                                      * @description Time period for the trend
                                      * @example last 7 days
@@ -22538,7 +22538,7 @@ export interface operations {
                                      * @example up
                                      * @enum {string}
                                      */
-                                    direction: "up" | "down" | "neutral";
+                                    direction: 'up' | 'down' | 'neutral';
                                     /**
                                      * @description Time period for the trend
                                      * @example last 7 days
@@ -22556,7 +22556,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**
@@ -22598,7 +22598,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**
@@ -22640,7 +22640,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**
@@ -22690,7 +22690,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": {
+                'application/json': {
                     /**
                      * Format: cuid
                      * @description Optional new driver identifier to replace current driver
@@ -22727,7 +22727,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         success: boolean;
                         /**
                          * Schedule Slot
@@ -23155,7 +23155,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**
@@ -23197,7 +23197,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**
@@ -23239,7 +23239,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**
@@ -23281,7 +23281,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
+                    'application/json': {
                         /** @enum {boolean} */
                         success: false;
                         /**

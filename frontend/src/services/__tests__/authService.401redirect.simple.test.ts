@@ -76,7 +76,7 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       // Should store the current path
       expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
         'redirectAfterLogin',
-        '/schedule?test=1'
+        '/schedule?test=1',
       );
     });
 
@@ -90,7 +90,7 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       // Should not store root path
       expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith(
         'redirectAfterLogin',
-        expect.any(String)
+        expect.any(String),
       );
     });
 
@@ -104,7 +104,7 @@ describe('AuthService 401 Redirect - Simple Test', () => {
       // Should not store login path
       expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith(
         'redirectAfterLogin',
-        expect.any(String)
+        expect.any(String),
       );
     });
   });
@@ -153,12 +153,12 @@ describe('AuthService 401 Redirect - Simple Test', () => {
         if (shouldStore) {
           expect(sessionStorageMock.setItem).toHaveBeenCalledWith(
             'redirectAfterLogin',
-            expected
+            expected,
           );
         } else {
           expect(sessionStorageMock.setItem).not.toHaveBeenCalledWith(
             'redirectAfterLogin',
-            expect.any(String)
+            expect.any(String),
           );
         }
       });

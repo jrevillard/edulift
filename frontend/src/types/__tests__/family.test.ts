@@ -10,7 +10,7 @@ import {
   isFamilyAdmin,
   canManageMembers,
   canModifyChildren,
-  canModifyVehicles
+  canModifyVehicles,
 } from '../family';
 import type { FamilyMember, FamilyPermissions } from '../family';
 
@@ -102,14 +102,14 @@ describe('Family Types and Utilities', () => {
         email: 'admin@example.com',
         name: 'Admin User',
         createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z'
-      }
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
     };
 
 
     const mockMember: FamilyMember = {
       ...mockAdminMember,
-      role: FamilyRole.MEMBER
+      role: FamilyRole.MEMBER,
     };
 
     describe('isFamilyAdmin', () => {
@@ -124,7 +124,7 @@ describe('Family Types and Utilities', () => {
         canManageMembers: true,
         canModifyChildren: true,
         canModifyVehicles: true,
-        canViewFamily: true
+        canViewFamily: true,
       };
 
 
@@ -132,7 +132,7 @@ describe('Family Types and Utilities', () => {
         canManageMembers: false,
         canModifyChildren: false,
         canModifyVehicles: false,
-        canViewFamily: true
+        canViewFamily: true,
       };
 
       it('should correctly check admin permissions', () => {

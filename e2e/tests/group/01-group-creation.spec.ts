@@ -55,7 +55,7 @@ test.describe('Group Creation Journey', () => {
         
         // Should open create group modal/form
         await expect(
-          page.locator('[data-testid="CreateGroupModal-Input-groupName"]')
+          page.locator('[data-testid="CreateGroupModal-Input-groupName"]'),
         ).toBeVisible({ timeout: 10000 });
         
         console.log('✅ Group creation form opened');
@@ -408,12 +408,12 @@ test.describe('Group Creation Journey', () => {
         
         await Promise.all([
           createButton1.click(),
-          createButton2.click()
+          createButton2.click(),
         ]);
         
         await Promise.all([
           authHelper.waitForAuthenticationStability(),
-          authHelper.waitForAuthenticationStability()
+          authHelper.waitForAuthenticationStability(),
         ]);
         
         console.log('✅ Opened create group modals in multiple tabs');
@@ -429,12 +429,12 @@ test.describe('Group Creation Journey', () => {
         // Submit both forms simultaneously
         await Promise.all([
           tabs[0].locator('[data-testid="CreateGroupModal-Button-submit"]').click(),
-          tabs[1].locator('[data-testid="CreateGroupModal-Button-submit"]').click()
+          tabs[1].locator('[data-testid="CreateGroupModal-Button-submit"]').click(),
         ]);
         
         await Promise.all([
           authHelper.waitForAuthenticationStability(),
-          authHelper.waitForAuthenticationStability()
+          authHelper.waitForAuthenticationStability(),
         ]);
         
         console.log('✅ Concurrent group creation attempted');

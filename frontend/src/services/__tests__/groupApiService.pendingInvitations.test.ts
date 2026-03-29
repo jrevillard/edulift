@@ -26,15 +26,15 @@ describe('GroupApiService - Pending Invitations', () => {
         groupMembership: {
           familyId: 'family-123',
           groupId: 'group-123',
-          role: 'MEMBER'
+          role: 'MEMBER',
         },
-        message: 'Family successfully joined the group'
+        message: 'Family successfully joined the group',
       };
 
       mockedApi.POST.mockResolvedValue({
         data: { success: true, data: mockResponseData },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act
@@ -42,11 +42,11 @@ describe('GroupApiService - Pending Invitations', () => {
 
       // Assert
       expect(console.warn).toHaveBeenCalledWith(
-        'joinGroupWithFamily: Using join group endpoint as no family-specific join endpoint found'
+        'joinGroupWithFamily: Using join group endpoint as no family-specific join endpoint found',
       );
       expect(mockedApi.POST).toHaveBeenCalledWith(
         '/api/v1/groups/join',
-        { body: { inviteCode } }
+        { body: { inviteCode } },
       );
       expect(result).toEqual(mockResponseData);
     });
@@ -61,12 +61,12 @@ describe('GroupApiService - Pending Invitations', () => {
 
       // Act & Assert
       await expect(
-        groupApiService.joinGroupWithFamily(groupId, inviteCode)
+        groupApiService.joinGroupWithFamily(groupId, inviteCode),
       ).rejects.toThrow('Authentication required');
 
       expect(mockedApi.POST).toHaveBeenCalledWith(
         '/api/v1/groups/join',
-        { body: { inviteCode } }
+        { body: { inviteCode } },
       );
     });
   });

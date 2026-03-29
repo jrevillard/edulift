@@ -122,7 +122,7 @@ export class TestDataGenerator {
 
     const names = [
       'Emma', 'Liam', 'Olivia', 'Noah', 'Ava',
-      'Ethan', 'Sophia', 'Mason', 'Isabella', 'William'
+      'Ethan', 'Sophia', 'Mason', 'Isabella', 'William',
     ];
 
     const name = names[timestamp % names.length];
@@ -151,7 +151,7 @@ export class TestDataGenerator {
     const vehicles = [
       'Honda Civic', 'Toyota Camry', 'Ford Focus',
       'Nissan Sentra', 'Hyundai Elantra', 'Mazda 3',
-      'Kia Forte', 'Chevrolet Cruze'
+      'Kia Forte', 'Chevrolet Cruze',
     ];
 
     const vehicle = vehicles[timestamp % vehicles.length];
@@ -220,7 +220,7 @@ export class TestDataGenerator {
 
     return {
       email,
-      name: this.generateUniqueName()
+      name: this.generateUniqueName(),
     };
   }
 
@@ -240,7 +240,7 @@ export class TestDataGenerator {
     return {
       familyName: this.generateUniqueFamilyName(),
       admin: adminProfile,
-      invitationCode: this.generateUniqueInvitationCode()
+      invitationCode: this.generateUniqueInvitationCode(),
     };
   }
 
@@ -280,7 +280,7 @@ Milliseconds: ${now.getTime()}
   static generateChildData(userPrefix: string): { name: string; age: number } {
     return {
       name: this.generateUniqueChildName(userPrefix),
-      age: 10 // Fixed age for consistency
+      age: 10, // Fixed age for consistency
     };
   }
 
@@ -305,7 +305,7 @@ Milliseconds: ${now.getTime()}
   static generateVehicleData(userPrefix: string): { name: string; capacity: number } {
     return {
       name: this.generateUniqueVehicleName(userPrefix),
-      capacity: 6 // Default 6 seats
+      capacity: 6, // Default 6 seats
     };
   }
 
@@ -353,7 +353,7 @@ Milliseconds: ${now.getTime()}
       endTime: '17:00', // 17:00
       defaultCapacity: 5,
       timezone: 'UTC', // Important for consistency
-      enabled: true
+      enabled: true,
     };
   }
 
@@ -396,7 +396,7 @@ Milliseconds: ${now.getTime()}
       dayOfWeek,
       hour,
       minute,
-      durationMinutes = 30
+      durationMinutes = 30,
     } = params;
 
     const now = new Date();
@@ -430,7 +430,7 @@ Milliseconds: ${now.getTime()}
       endTime: slotEndTime,
       durationMinutes,
       timezone: 'UTC', // Critical for consistency
-      capacity: 5 // Default capacity
+      capacity: 5, // Default capacity
     };
   }
 

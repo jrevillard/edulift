@@ -26,7 +26,7 @@ export type { User, Child, Vehicle };
 // Family role enum matching backend Prisma enum
 export const FamilyRole = {
   ADMIN: 'ADMIN',
-  MEMBER: 'MEMBER'
+  MEMBER: 'MEMBER',
 } as const;
 
 export type FamilyRole = typeof FamilyRole[keyof typeof FamilyRole];
@@ -190,7 +190,7 @@ export interface FamilyError extends Error {
 export function createFamilyError(
   code: string,
   message: string,
-  statusCode: number = 400
+  statusCode: number = 400,
 ): FamilyError {
   const error = new Error(message) as FamilyError;
   error.name = 'FamilyError';
@@ -209,7 +209,7 @@ export const FAMILY_ERROR_CODES = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   LAST_ADMIN: 'LAST_ADMIN',
   CANNOT_REMOVE_SELF: 'CANNOT_REMOVE_SELF',
-  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS'
+  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
 } as const;
 
 export type FamilyErrorCode = typeof FAMILY_ERROR_CODES[keyof typeof FAMILY_ERROR_CODES];

@@ -34,7 +34,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
       () => authHelper.createFamilyInDatabase('familyBGroup'),
       () => authHelper.createFamilyInDatabase('permissionFamily'),
       () => authHelper.createFamilyInDatabase('dataFamily'),
-      () => authHelper.createFamilyInDatabase('deletionFamily')
+      () => authHelper.createFamilyInDatabase('deletionFamily'),
     ], 1000);
     
     // Add a longer wait to ensure database consistency before tests run
@@ -136,7 +136,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
         
         try {
           await expect(childrenPageIndicator).toBeVisible({ timeout: 15000 });
-        } catch (error) {
+        } catch (_error) {
           throw new Error('Phase 2 failed: Children page not loading - family context issue');
         }
         
@@ -257,7 +257,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
         // Wait for groups page to load - use actual test ID from GroupsPage component
         try {
           await expect(page.locator('[data-testid="GroupsPage-Title-pageTitle"]')).toBeVisible({ timeout: 10000 });
-        } catch (error) {
+        } catch (_error) {
           throw new Error('Phase 3 failed: Groups page not accessible - family context issue');
         }
         
@@ -282,7 +282,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
               try {
                 await page.waitForSelector('[data-testid="GroupsPage-Alert-groupCreatedSuccess"]', { timeout: 10000 });
                 console.log('✅ Group created successfully');
-              } catch (error) {
+              } catch (_error) {
                 throw new Error('Group creation failed: Expected success message did not appear');
               }
             } else {
@@ -349,7 +349,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
       await test.step('Phase 4: Create Schedule for Group', async () => {
         // Get the group ID from the current URL (we're on /groups/{groupId}/manage)
         const currentUrl = page.url();
-        const groupIdMatch = currentUrl.match(/\/groups\/([^\/]+)\/manage/);
+        const groupIdMatch = currentUrl.match(/\/groups\/([^/]+)\/manage/);
         if (!groupIdMatch) {
           throw new Error('Phase 4 failed: Could not extract group ID from URL');
         }
@@ -368,7 +368,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
         try {
           await expect(page.locator('[data-testid="SchedulePage-Title-weeklySchedule"]')).toBeVisible({ timeout: 10000 });
           console.log('✅ Schedule page loaded successfully');
-        } catch (error) {
+        } catch (_error) {
           console.log('❌ Schedule page failed to load, current URL:', page.url());
           throw new Error('Phase 4 failed: Schedule page not accessible - family context issue');
         }
@@ -442,7 +442,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
         const summaryVisible = await Promise.all([
           familyCard.isVisible().catch(() => false),
           groupCard.isVisible().catch(() => false),
-          scheduleCard.isVisible().catch(() => false)
+          scheduleCard.isVisible().catch(() => false),
         ]);
         
         if (summaryVisible.some(visible => visible)) {
@@ -460,7 +460,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
         
         try {
           await expect(page.locator('[data-testid="ManageFamilyPage-Heading-pageTitle"]')).toContainText('Family Management', { timeout: 5000 });
-        } catch (error) {
+        } catch (_error) {
           console.log('ℹ️ Family management page structure different, continuing integration verification');
         }
         
@@ -624,7 +624,7 @@ test.describe('Cross-Feature Integration Tests - Family → Group → Schedule F
           scheduleTitle: canSeeScheduleTitle,
           scheduleHeader: canSeeScheduleHeader,
           groupSelection: canSeeGroupSelection,
-          vehicles: canSeeVehicles
+          vehicles: canSeeVehicles,
         });
         
         if (canSeeScheduleTitle || canSeeScheduleHeader || canSeeGroupSelection || canSeeVehicles) {

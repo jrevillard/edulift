@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -51,8 +51,8 @@ window.__ENV__ = {
         target: process.env.VITE_BACKEND_TARGET || 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
-      }
-    } : undefined
+      },
+    } : undefined,
   },
   resolve: {
     alias: {
@@ -60,4 +60,4 @@ window.__ENV__ = {
       '@shared-types': path.resolve(__dirname, '../shared-types'),
     },
   },
-})
+});

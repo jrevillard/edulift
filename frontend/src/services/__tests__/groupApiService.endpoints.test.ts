@@ -31,13 +31,13 @@ describe('GroupApiService - Restored Endpoints', () => {
           adminContacts: [{ name: 'Sophie Martin', email: 'sophie@martin.fr' }],
           memberCount: 3,
           canInvite: true,
-        }
+        },
       ];
 
       mockedApi.POST.mockResolvedValue({
         data: { success: true, data: mockFamilies },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act
@@ -48,8 +48,8 @@ describe('GroupApiService - Restored Endpoints', () => {
         '/api/v1/groups/{groupId}/search-families',
         {
           params: { path: { groupId } },
-          body: { searchTerm }
-        }
+          body: { searchTerm },
+        },
       );
       expect(result).toEqual(mockFamilies);
     });
@@ -64,7 +64,7 @@ describe('GroupApiService - Restored Endpoints', () => {
 
       // Act & Assert
       await expect(
-        groupApiService.searchFamiliesForInvitation(groupId, searchTerm)
+        groupApiService.searchFamiliesForInvitation(groupId, searchTerm),
       ).rejects.toThrow('API Error');
     });
 
@@ -76,12 +76,12 @@ describe('GroupApiService - Restored Endpoints', () => {
       mockedApi.POST.mockResolvedValue({
         data: { success: false, error: 'Search failed' },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act & Assert
       await expect(
-        groupApiService.searchFamiliesForInvitation(groupId, searchTerm)
+        groupApiService.searchFamiliesForInvitation(groupId, searchTerm),
       ).rejects.toThrow('Failed to search families');
     });
 
@@ -93,7 +93,7 @@ describe('GroupApiService - Restored Endpoints', () => {
       mockedApi.POST.mockResolvedValue({
         data: { success: true, data: [] },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act
@@ -120,15 +120,15 @@ describe('GroupApiService - Restored Endpoints', () => {
           role: 'MEMBER',
           personalMessage: 'Welcome to our group!',
           status: 'PENDING',
-          createdAt: '2024-01-01T00:00:00Z'
+          createdAt: '2024-01-01T00:00:00Z',
         },
-        message: 'Family invitation sent successfully'
+        message: 'Family invitation sent successfully',
       };
 
       mockedApi.POST.mockResolvedValue({
         data: { success: true, data: mockResponse },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act
@@ -139,8 +139,8 @@ describe('GroupApiService - Restored Endpoints', () => {
         '/api/v1/groups/{groupId}/invite',
         {
           params: { path: { groupId } },
-          body: { familyId, role, personalMessage }
-        }
+          body: { familyId, role, personalMessage },
+        },
       );
       expect(result).toEqual(mockResponse);
     });
@@ -153,7 +153,7 @@ describe('GroupApiService - Restored Endpoints', () => {
       mockedApi.POST.mockResolvedValue({
         data: { success: true, data: { message: 'Invitation sent' } },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act
@@ -164,8 +164,8 @@ describe('GroupApiService - Restored Endpoints', () => {
         '/api/v1/groups/{groupId}/invite',
         {
           params: { path: { groupId } },
-          body: { familyId, role: 'MEMBER', personalMessage: undefined }
-        }
+          body: { familyId, role: 'MEMBER', personalMessage: undefined },
+        },
       );
     });
 
@@ -177,7 +177,7 @@ describe('GroupApiService - Restored Endpoints', () => {
       mockedApi.POST.mockResolvedValue({
         data: { success: true, data: { message: 'Invitation sent' } },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act
@@ -188,8 +188,8 @@ describe('GroupApiService - Restored Endpoints', () => {
         '/api/v1/groups/{groupId}/invite',
         {
           params: { path: { groupId } },
-          body: { familyId, role: 'ADMIN', personalMessage: undefined }
-        }
+          body: { familyId, role: 'ADMIN', personalMessage: undefined },
+        },
       );
     });
 
@@ -203,7 +203,7 @@ describe('GroupApiService - Restored Endpoints', () => {
 
       // Act & Assert
       await expect(
-        groupApiService.inviteFamilyToGroup(groupId, familyId, 'MEMBER')
+        groupApiService.inviteFamilyToGroup(groupId, familyId, 'MEMBER'),
       ).rejects.toThrow('Network Error');
     });
 
@@ -215,12 +215,12 @@ describe('GroupApiService - Restored Endpoints', () => {
       mockedApi.POST.mockResolvedValue({
         data: { success: false, error: 'Invitation failed' },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Act & Assert
       await expect(
-        groupApiService.inviteFamilyToGroup(groupId, familyId, 'MEMBER')
+        groupApiService.inviteFamilyToGroup(groupId, familyId, 'MEMBER'),
       ).rejects.toThrow('Failed to invite family to group');
     });
   });

@@ -50,7 +50,7 @@ vi.mock('../../services/familyApiService', () => ({
       inviteCode: 'FAM123',
       members: [],
       children: [],
-      vehicles: []
+      vehicles: [],
     }),
     getUserPermissions: vi.fn().mockResolvedValue({
       canManageFamily: true,
@@ -81,7 +81,7 @@ vi.mock('../../contexts/FamilyContext', async (importOriginal) => {
       currentFamily: {
         id: 'family-1',
         name: 'Test Family',
-      }
+      },
     }),
   };
 });

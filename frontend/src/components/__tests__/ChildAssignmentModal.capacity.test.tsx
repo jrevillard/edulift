@@ -9,14 +9,14 @@ import { mockClient } from '../../services/__tests__/setup';
 // Mock the contexts
 vi.mock('../../contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' }
-  }))
+    user: { id: 'user-1', name: 'Test User', email: 'test@example.com', timezone: 'UTC' },
+  })),
 }));
 
 vi.mock('../../contexts/SocketContext', () => ({
   useSocket: vi.fn(() => ({
-    socket: { emit: vi.fn() }
-  }))
+    socket: { emit: vi.fn() },
+  })),
 }));
 
 describe('ChildAssignmentModal Capacity Tests', () => {
@@ -27,8 +27,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
-        mutations: { retry: false }
-      }
+        mutations: { retry: false },
+      },
     });
     vi.clearAllMocks();
   });
@@ -44,15 +44,15 @@ describe('ChildAssignmentModal Capacity Tests', () => {
         childAssignments: [],
         vehicleAssignments: [],
         totalCapacity: 0,
-        availableSeats: 0
+        availableSeats: 0,
       },
-      ...props
+      ...props,
     };
 
     return render(
       <QueryClientProvider client={queryClient}>
         <ChildAssignmentModal {...defaultProps} />
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   };
 
@@ -62,7 +62,7 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       id: 'vehicle-assignment-1',
       scheduleSlotId: 'slot-1',
       vehicleId: 'vehicle-1',
-      vehicle: { id: 'vehicle-1', name: 'Small Bus', capacity: 2 }
+      vehicle: { id: 'vehicle-1', name: 'Small Bus', capacity: 2 },
     };
 
     const fullCapacitySlot = {
@@ -75,15 +75,15 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       childAssignments: [
         {
           vehicleAssignmentId: 'vehicle-assignment-1',
-          child: { id: 'child-1', name: 'Alice' }
+          child: { id: 'child-1', name: 'Alice' },
         },
         {
           vehicleAssignmentId: 'vehicle-assignment-1',
-          child: { id: 'child-2', name: 'Bob' }
-        }
+          child: { id: 'child-2', name: 'Bob' },
+        },
       ],
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      updatedAt: '2024-01-01T00:00:00Z',
     };
 
     const allChildren = [
@@ -99,8 +99,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-1', 
           addedBy: 'user-1', 
           addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
-        }]
+          group: { id: 'group-1', name: 'Test Group' }, 
+        }],
       },
       {
         id: 'child-2',
@@ -114,8 +114,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-2', 
           addedBy: 'user-1', 
           addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
-        }]
+          group: { id: 'group-1', name: 'Test Group' }, 
+        }],
       },
       {
         id: 'child-3',
@@ -129,33 +129,33 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-3', 
           addedBy: 'user-1', 
           addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
-        }]
-      }
+          group: { id: 'group-1', name: 'Test Group' }, 
+        }],
+      },
     ];
 
     mockClient.GET.mockImplementation((path) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: allChildren },
-          error: undefined
+          error: undefined,
         });
       }
       if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: fullCapacitySlot },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: null },
-        error: { message: `Not implemented: ${path}` }
+        error: { message: `Not implemented: ${path}` },
       });
     });
 
     renderModal({ 
       scheduleSlot: fullCapacitySlot,
-      preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+      preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
     });
 
     await waitFor(() => {
@@ -181,7 +181,7 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       id: 'vehicle-assignment-1',
       scheduleSlotId: 'slot-1', 
       vehicleId: 'vehicle-1',
-      vehicle: { id: 'vehicle-1', name: 'Large Bus', capacity: 5 }
+      vehicle: { id: 'vehicle-1', name: 'Large Bus', capacity: 5 },
     };
 
     const partialCapacitySlot = {
@@ -194,15 +194,15 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       childAssignments: [
         {
           vehicleAssignmentId: 'vehicle-assignment-1',
-          child: { id: 'child-1', name: 'Alice' }
+          child: { id: 'child-1', name: 'Alice' },
         },
         {
           vehicleAssignmentId: 'vehicle-assignment-1',
-          child: { id: 'child-2', name: 'Bob' }
-        }
+          child: { id: 'child-2', name: 'Bob' },
+        },
       ],
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      updatedAt: '2024-01-01T00:00:00Z',
     };
 
     const allChildren = [
@@ -218,8 +218,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-1', 
           addedBy: 'user-1', 
           addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
-        }]
+          group: { id: 'group-1', name: 'Test Group' }, 
+        }],
       },
       {
         id: 'child-2',
@@ -233,8 +233,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-2', 
           addedBy: 'user-1', 
           addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
-        }]
+          group: { id: 'group-1', name: 'Test Group' }, 
+        }],
       },
       {
         id: 'child-3',
@@ -248,33 +248,33 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-3', 
           addedBy: 'user-1', 
           addedAt: '2024-01-01T00:00:00Z', 
-          group: { id: 'group-1', name: 'Test Group' } 
-        }]
-      }
+          group: { id: 'group-1', name: 'Test Group' }, 
+        }],
+      },
     ];
 
     mockClient.GET.mockImplementation((path) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: allChildren },
-          error: undefined
+          error: undefined,
         });
       }
       if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: partialCapacitySlot },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: null },
-        error: { message: `Not implemented: ${path}` }
+        error: { message: `Not implemented: ${path}` },
       });
     });
 
     renderModal({ 
       scheduleSlot: partialCapacitySlot,
-      preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+      preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
     });
 
     await waitFor(() => {
@@ -295,7 +295,7 @@ describe('ChildAssignmentModal Capacity Tests', () => {
   it('preserves vehicle selection after adding child in vehicle-specific mode', async () => {
     const mockAssignChild = vi.fn().mockResolvedValue({
       data: { success: true },
-      error: undefined
+      error: undefined,
     });
     mockClient.PATCH.mockImplementation((path) => {
       if (path === '/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}') {
@@ -303,7 +303,7 @@ describe('ChildAssignmentModal Capacity Tests', () => {
       }
       return Promise.resolve({
         data: { data: null },
-        error: { message: `Not implemented: ${path}` }
+        error: { message: `Not implemented: ${path}` },
       });
     });
 
@@ -317,14 +317,14 @@ describe('ChildAssignmentModal Capacity Tests', () => {
         id: 'vehicle-assignment-1',
         scheduleSlotId: 'slot-1',
         vehicleId: 'vehicle-1',
-        vehicle: { id: 'vehicle-1', name: 'Test Bus', capacity: 3 }
+        vehicle: { id: 'vehicle-1', name: 'Test Bus', capacity: 3 },
       }],
       childAssignments: [{
         vehicleAssignmentId: 'vehicle-assignment-1',
-        child: { id: 'child-1', name: 'Alice' }
+        child: { id: 'child-1', name: 'Alice' },
       }],
       createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z'
+      updatedAt: '2024-01-01T00:00:00Z',
     };
 
     const allChildren = [
@@ -340,8 +340,8 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-1',
           addedBy: 'user-1',
           addedAt: '2024-01-01T00:00:00Z',
-          group: { id: 'group-1', name: 'Test Group' }
-        }]
+          group: { id: 'group-1', name: 'Test Group' },
+        }],
       },
       {
         id: 'child-2',
@@ -355,33 +355,33 @@ describe('ChildAssignmentModal Capacity Tests', () => {
           childId: 'child-2',
           addedBy: 'user-1',
           addedAt: '2024-01-01T00:00:00Z',
-          group: { id: 'group-1', name: 'Test Group' }
-        }]
-      }
+          group: { id: 'group-1', name: 'Test Group' },
+        }],
+      },
     ];
 
     mockClient.GET.mockImplementation((path) => {
       if (path === '/api/v1/children') {
         return Promise.resolve({
           data: { data: allChildren },
-          error: undefined
+          error: undefined,
         });
       }
       if (path === '/api/v1/schedule-slots/{scheduleSlotId}') {
         return Promise.resolve({
           data: { data: vehicleSlot },
-          error: undefined
+          error: undefined,
         });
       }
       return Promise.resolve({
         data: { data: null },
-        error: { message: `Not implemented: ${path}` }
+        error: { message: `Not implemented: ${path}` },
       });
     });
 
     renderModal({
       scheduleSlot: vehicleSlot,
-      preSelectedVehicleAssignmentId: 'vehicle-assignment-1'
+      preSelectedVehicleAssignmentId: 'vehicle-assignment-1',
     });
 
     await waitFor(() => {
@@ -398,7 +398,7 @@ describe('ChildAssignmentModal Capacity Tests', () => {
     await waitFor(() => {
       expect(mockClient.PATCH).toHaveBeenCalledWith('/api/v1/schedule-slots/{scheduleSlotId}/vehicles/{vehicleAssignmentId}', {
         params: { path: { scheduleSlotId: 'slot-1', vehicleAssignmentId: 'vehicle-assignment-1' } },
-        body: { addChildIds: ['child-2'] }
+        body: { addChildIds: ['child-2'] },
       });
     });
 

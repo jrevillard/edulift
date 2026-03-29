@@ -123,7 +123,7 @@ export const getISOWeekYear = (datetime: Date | string, timezone: string): numbe
 export const getDateFromISOWeek = (
   year: number,
   week: number,
-  timezone: string
+  timezone: string,
 ): Date => {
   // Create a date in the target year, in the user's timezone
   // We start with January 4th which is always in week 1
@@ -162,7 +162,7 @@ export const getDateFromISOWeek = (
  */
 export const getWeekBoundaries = (
   datetime: Date | string,
-  timezone: string
+  timezone: string,
 ): { weekStart: Date; weekEnd: Date } => {
   let dt: dayjs.Dayjs;
 
@@ -183,7 +183,7 @@ export const getWeekBoundaries = (
 
   return {
     weekStart: weekStart.utc().toDate(),
-    weekEnd: weekEnd.utc().toDate()
+    weekEnd: weekEnd.utc().toDate(),
   };
 };
 
@@ -196,7 +196,7 @@ export const getWeekBoundaries = (
  */
 export const formatISOWeek = (
   datetime: Date | string,
-  timezone: string
+  timezone: string,
 ): string => {
   const week = getISOWeekNumber(datetime, timezone);
   const year = getISOWeekYear(datetime, timezone);
@@ -214,7 +214,7 @@ export const formatISOWeek = (
 export const isSameISOWeek = (
   datetime1: Date | string,
   datetime2: Date | string,
-  timezone: string
+  timezone: string,
 ): boolean => {
   const week1 = getISOWeekNumber(datetime1, timezone);
   const year1 = getISOWeekYear(datetime1, timezone);
@@ -278,7 +278,7 @@ export const formatWeekRange = (weekString: string): string => {
   const formatOptions: Intl.DateTimeFormatOptions = {
     weekday: 'short',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   };
 
   const startFormatted = startDate.toLocaleDateString(undefined, formatOptions);
@@ -315,10 +315,10 @@ export const generateWeekdays = (weekString: string) => {
       key: date.toLocaleDateString(locale, { weekday: 'long' }).toUpperCase(),
       label: date.toLocaleDateString(locale, { weekday: 'long' }),
       shortLabel: date.toLocaleDateString(locale, { weekday: 'short' }),
-      date: date,
+      date,
       dayOfMonth: date.getDate(),
       month: date.getMonth(),
-      dateString: date.toISOString().split('T')[0] // YYYY-MM-DD
+      dateString: date.toISOString().split('T')[0], // YYYY-MM-DD
     });
   }
 

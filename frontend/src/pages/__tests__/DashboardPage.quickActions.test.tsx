@@ -44,13 +44,13 @@ vi.mock('../../contexts/FamilyContext', () => ({
       id: 'family-1',
       name: 'Test Family',
       members: [
-        { id: 'member-1', role: 'ADMIN', user: { id: 'user-123', name: 'John Doe', email: 'john@example.com', timezone: 'UTC' } }
+        { id: 'member-1', role: 'ADMIN', user: { id: 'user-123', name: 'John Doe', email: 'john@example.com', timezone: 'UTC' } },
       ],
       children: [
-        { id: 'child-1', name: 'Test Child', age: 8 }
+        { id: 'child-1', name: 'Test Child', age: 8 },
       ],
       vehicles: [
-        { id: 'vehicle-1', name: 'Test Vehicle', capacity: 5 }
+        { id: 'vehicle-1', name: 'Test Vehicle', capacity: 5 },
       ],
     },
     userPermissions: {

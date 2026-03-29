@@ -1,12 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
-import { type ReactElement } from 'react'
-import { render, type RenderOptions } from '@testing-library/react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MemoryRouter } from 'react-router-dom'
-import { vi } from 'vitest'
-import { AuthProvider } from '../contexts/AuthContext'
-import { SocketProvider } from '../contexts/SocketContext'
-import { FamilyProvider } from '../contexts/FamilyContext'
+import { type ReactElement } from 'react';
+import { render, type RenderOptions } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { vi } from 'vitest';
+import { AuthProvider } from '../contexts/AuthContext';
+import { SocketProvider } from '../contexts/SocketContext';
+import { FamilyProvider } from '../contexts/FamilyContext';
 
 // Mock implementations for testing - removed unused mockAuthService
 
@@ -23,7 +23,7 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
         retry: false,
       },
     },
-  })
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -37,17 +37,17 @@ const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
         </SocketProvider>
       </AuthProvider>
     </QueryClientProvider>
-  )
-}
+  );
+};
 
 const customRender = (
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options })
+  options?: Omit<RenderOptions, 'wrapper'>,
+) => render(ui, { wrapper: AllTheProviders, ...options });
 
 // Re-export everything
-export * from '@testing-library/react'
-export { customRender as render }
+export * from '@testing-library/react';
+export { customRender as render };
 
 // Helper function to create a test QueryClient
 export const createTestQueryClient = () => {
@@ -61,8 +61,8 @@ export const createTestQueryClient = () => {
         retry: false,
       },
     },
-  })
-}
+  });
+};
 
 // Mock user data for testing
 export const mockUser = {
@@ -70,7 +70,7 @@ export const mockUser = {
   email: 'test@example.com',
   name: 'Test User',
   timezone: 'UTC' as string | null, // Explicitly typed to match User type from OpenAPI
-}
+};
 
 // Mock group data for testing
 export const mockGroup = {
@@ -85,10 +85,10 @@ export const mockGroup = {
     name: 'Test Family',
     members: [{
       user: mockUser,
-      role: 'ADMIN'
-    }]
-  }
-}
+      role: 'ADMIN',
+    }],
+  },
+};
 
 // Mock child data for testing
 export const mockChild = {
@@ -99,7 +99,7 @@ export const mockChild = {
   userId: 'user-1',
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
-}
+};
 
 // Mock vehicle data for testing
 export const mockVehicle = {
@@ -109,7 +109,7 @@ export const mockVehicle = {
   userId: 'user-1',
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
-}
+};
 
 // Mock family data for testing
 export const mockFamily = {
@@ -120,8 +120,8 @@ export const mockFamily = {
   updatedAt: '2024-01-01T00:00:00Z',
   members: [],
   children: [],
-  vehicles: []
-}
+  vehicles: [],
+};
 
 // Mock family invitation for testing
 export const mockInvitation = {
@@ -131,8 +131,8 @@ export const mockInvitation = {
   role: 'MEMBER' as const,
   status: 'PENDING' as const,
   createdAt: '2024-01-01T00:00:00Z',
-  expiresAt: '2024-01-08T00:00:00Z'
-}
+  expiresAt: '2024-01-08T00:00:00Z',
+};
 
 // Comprehensive OpenAPI client mock factory
 export const createMockOpenAPIClient = () => {
@@ -151,12 +151,12 @@ export const createMockOpenAPIClient = () => {
       case '/api/v1/children':
         return Promise.resolve({
           data: { data: [mockChild], success: true },
-          error: undefined
+          error: undefined,
         });
       case '/api/v1/vehicles':
         return Promise.resolve({
           data: { data: [mockVehicle], success: true },
-          error: undefined
+          error: undefined,
         });
       case '/api/v1/schedule-slots/{scheduleSlotId}':
         return Promise.resolve({
@@ -170,33 +170,33 @@ export const createMockOpenAPIClient = () => {
               childAssignments: [],
               vehicleAssignments: [],
               totalCapacity: 0,
-              availableSeats: 0
+              availableSeats: 0,
             },
-            success: true
+            success: true,
           },
-          error: undefined
+          error: undefined,
         });
       default:
         return Promise.resolve({
           data: { data: null, success: false },
-          error: { message: 'Not implemented in test mock' }
+          error: { message: 'Not implemented in test mock' },
         });
     }
   });
 
   mockClient.POST.mockResolvedValue({
     data: { data: null, success: true },
-    error: undefined
+    error: undefined,
   });
 
   mockClient.PUT.mockResolvedValue({
     data: { data: null, success: true },
-    error: undefined
+    error: undefined,
   });
 
   mockClient.DELETE.mockResolvedValue({
     data: { data: null, success: true },
-    error: undefined
+    error: undefined,
   });
 
   return mockClient;
@@ -222,12 +222,12 @@ export const createMockApiService = () => ({
       admin: {
         id: 'user-1',
         name: 'Test User',
-        email: 'test@example.com'
+        email: 'test@example.com',
       },
       _count: {
-        members: 1
-      }
-    }
+        members: 1,
+      },
+    },
   }]),
   createGroup: vi.fn().mockResolvedValue(mockGroup),
   updateGroup: vi.fn().mockResolvedValue(mockGroup),
@@ -251,16 +251,16 @@ export const createMockApiService = () => ({
       groups: { value: 'None', direction: 'neutral', period: 'current' },
       children: { value: 'None', direction: 'neutral', period: 'current' },
       vehicles: { value: 'None', direction: 'neutral', period: 'current' },
-      trips: { value: 'None', direction: 'neutral', period: 'this week' }
-    }
+      trips: { value: 'None', direction: 'neutral', period: 'this week' },
+    },
   }),
   getDashboardWeeklySchedule: vi.fn().mockResolvedValue({
     upcomingTrips: [],
     weekDates: {
       start: '2024-01-01',
       end: '2024-01-07',
-      days: []
-    }
+      days: [],
+    },
   }),
   getTodaySchedule: vi.fn().mockResolvedValue({ upcomingTrips: [] }),
   getRecentActivity: vi.fn().mockResolvedValue({ activities: [] }),
@@ -271,8 +271,8 @@ export const createMockApiService = () => ({
     weekDates: {
       start: '2024-01-01',
       end: '2024-01-07',
-      days: []
-    }
+      days: [],
+    },
   }),
   getScheduleSlotDetails: vi.fn().mockResolvedValue({
     id: 'slot-1',
@@ -283,7 +283,7 @@ export const createMockApiService = () => ({
     childAssignments: [],
     vehicleAssignments: [],
     totalCapacity: 0,
-    availableSeats: 0
+    availableSeats: 0,
   }),
   assignChildToScheduleSlot: vi.fn().mockResolvedValue(undefined),
 
@@ -294,8 +294,8 @@ export const createMockApiService = () => ({
   removeGroupMember: vi.fn().mockResolvedValue(undefined),
 
   // Default catch-all for any missing methods
-  [Symbol.for('defaultMethod')]: vi.fn().mockResolvedValue(undefined)
-})
+  [Symbol.for('defaultMethod')]: vi.fn().mockResolvedValue(undefined),
+});
 
 // Family API service mock factory
 export const createMockFamilyApiService = () => ({
@@ -318,9 +318,9 @@ export const createMockFamilyApiService = () => ({
   cancelInvitation: vi.fn().mockResolvedValue(undefined),
   validateInviteCode: vi.fn().mockResolvedValue({
     valid: true,
-    family: mockFamily
+    family: mockFamily,
   }),
-})
+});
 
 // Auth service mock factory
 export const createMockAuthService = () => ({
@@ -337,7 +337,7 @@ export const createMockAuthService = () => ({
   resetPassword: vi.fn().mockResolvedValue({ user: mockUser, token: 'mock-token' }),
   ensureInitialized: vi.fn().mockResolvedValue(undefined),
   ready: vi.fn().mockReturnValue(true),
-})
+});
 
 // Connection store mock factory
 export const createMockConnectionStore = () => ({
@@ -351,9 +351,9 @@ export const createMockConnectionStore = () => ({
     isConnected: true,
     hasConnectionIssues: vi.fn(() => false),
     setApiStatus: vi.fn(),
-    setConnected: vi.fn()
-  }))
-})
+    setConnected: vi.fn(),
+  })),
+});
 
 // Family context mock factory
 export const createMockFamilyContext = () => ({
@@ -371,4 +371,4 @@ export const createMockFamilyContext = () => ({
   generateInviteCode: vi.fn().mockResolvedValue('FAM123'),
   cancelInvitation: vi.fn().mockResolvedValue(undefined),
   getPendingInvitations: vi.fn().mockResolvedValue([]),
-})
+});

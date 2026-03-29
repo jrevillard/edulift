@@ -3,7 +3,6 @@ import { UniversalAuthHelper } from '../fixtures/universal-auth-helper';
 import { E2EEmailHelper } from '../fixtures/e2e-email-helper';
 import { SharedTestPatterns } from '../fixtures/shared-test-patterns';
 import { STANDARD_USER_ROLES } from '../fixtures/common-user-roles';
-import { TestDataGenerator } from '../fixtures/test-data-generator';
 import { OnboardingFlowHelper } from '../fixtures/onboarding-helper';
 import { TestCleanupHelper } from '../fixtures/test-cleanup-helper';
 
@@ -215,7 +214,7 @@ test.describe('User Authentication Journey', () => {
           page,
           '[data-testid="LoginPage-Input-email"]',
           authHelper.getFileSpecificEmail('valid.test'),
-          'invalid-email-format'
+          'invalid-email-format',
         );
       });
 
@@ -525,7 +524,7 @@ test.describe('User Authentication Journey', () => {
       const authHelper = UniversalAuthHelper.forCurrentFile(page);
       const timestamp = Date.now();
       const memberEmail = authHelper.getFileSpecificEmail(`family.member.${timestamp}`);
-      const memberName = `Family Member User ${timestamp}`;
+      const _memberName = `Family Member User ${timestamp}`;
       let memberPage: Page;
       let memberContext: import('playwright').BrowserContext;
 
@@ -533,7 +532,7 @@ test.describe('User Authentication Journey', () => {
         await authHelper.setupAdminUser(
           'admin.for.member.test',
           `Admin User ${timestamp}`,
-          `Member Test Family ${timestamp}`
+          `Member Test Family ${timestamp}`,
         );
         console.log('✅ Admin created and family setup complete');
       });

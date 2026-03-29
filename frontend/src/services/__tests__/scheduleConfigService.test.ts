@@ -31,23 +31,23 @@ describe('ScheduleConfigService', () => {
           'TUESDAY': ['08:00'],
           'WEDNESDAY': [],
           'THURSDAY': ['15:00'],
-          'FRIDAY': ['16:00']
+          'FRIDAY': ['16:00'],
         },
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        isDefault: false
+        isDefault: false,
       };
 
       vi.mocked(api.GET).mockResolvedValue({
         data: { success: true, data: mockConfig },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       const result = await scheduleConfigService.getGroupScheduleConfig('group-1');
 
       expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config', {
-        params: { path: { groupId: 'group-1' } }
+        params: { path: { groupId: 'group-1' } },
       });
       expect(result).toEqual(mockConfig);
     });
@@ -60,7 +60,7 @@ describe('ScheduleConfigService', () => {
         .rejects.toThrow('Network error');
 
       expect(api.GET).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config', {
-        params: { path: { groupId: 'group-1' } }
+        params: { path: { groupId: 'group-1' } },
       });
     });
   });
@@ -72,7 +72,7 @@ describe('ScheduleConfigService', () => {
         'TUESDAY': ['08:00', '08:30'],
         'WEDNESDAY': [],
         'THURSDAY': ['15:00', '15:30'],
-        'FRIDAY': ['16:00', '16:30']
+        'FRIDAY': ['16:00', '16:30'],
       };
 
       const mockUpdatedConfig: GroupScheduleConfig = {
@@ -81,13 +81,13 @@ describe('ScheduleConfigService', () => {
         scheduleHours,
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-02T00:00:00Z',
-        isDefault: false
+        isDefault: false,
       };
 
       vi.mocked(api.PUT).mockResolvedValue({
         data: { success: true, data: mockUpdatedConfig },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', scheduleHours);
@@ -96,8 +96,8 @@ describe('ScheduleConfigService', () => {
         '/api/v1/groups/{groupId}/schedule-config',
         {
           params: { path: { groupId: 'group-1' } },
-          body: { scheduleHours }
-        }
+          body: { scheduleHours },
+        },
       );
       expect(result).toEqual(mockUpdatedConfig);
     });
@@ -108,7 +108,7 @@ describe('ScheduleConfigService', () => {
         'TUESDAY': [],
         'WEDNESDAY': [],
         'THURSDAY': [],
-        'FRIDAY': []
+        'FRIDAY': [],
       };
 
       const error = new Error('Time slots must be at least 15 minutes apart');
@@ -121,8 +121,8 @@ describe('ScheduleConfigService', () => {
         '/api/v1/groups/{groupId}/schedule-config',
         {
           params: { path: { groupId: 'group-1' } },
-          body: { scheduleHours: invalidScheduleHours }
-        }
+          body: { scheduleHours: invalidScheduleHours },
+        },
       );
     });
 
@@ -132,7 +132,7 @@ describe('ScheduleConfigService', () => {
         'TUESDAY': [],
         'WEDNESDAY': [],
         'THURSDAY': [],
-        'FRIDAY': []
+        'FRIDAY': [],
       };
 
       const mockUpdatedConfig: GroupScheduleConfig = {
@@ -141,13 +141,13 @@ describe('ScheduleConfigService', () => {
         scheduleHours: emptyScheduleHours,
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-02T00:00:00Z',
-        isDefault: false
+        isDefault: false,
       };
 
       vi.mocked(api.PUT).mockResolvedValue({
         data: { success: true, data: mockUpdatedConfig },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', emptyScheduleHours);
@@ -166,23 +166,23 @@ describe('ScheduleConfigService', () => {
           'TUESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
           'WEDNESDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
           'THURSDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
-          'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30']
+          'FRIDAY': ['07:00', '07:30', '08:00', '08:30', '15:00', '15:30', '16:00', '16:30'],
         },
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-02T00:00:00Z',
-        isDefault: true
+        isDefault: true,
       };
 
       vi.mocked(api.POST).mockResolvedValue({
         data: { success: true, data: mockDefaultConfig },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       const result = await scheduleConfigService.resetGroupScheduleConfig('group-1');
 
       expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
-        params: { path: { groupId: 'group-1' } }
+        params: { path: { groupId: 'group-1' } },
       });
       expect(result).toEqual(mockDefaultConfig);
       expect(result.isDefault).toBe(true);
@@ -196,7 +196,7 @@ describe('ScheduleConfigService', () => {
         .rejects.toThrow('Failed to reset configuration');
 
       expect(api.POST).toHaveBeenCalledWith('/api/v1/groups/{groupId}/schedule-config/reset', {
-        params: { path: { groupId: 'group-1' } }
+        params: { path: { groupId: 'group-1' } },
       });
     });
   });
@@ -216,7 +216,7 @@ describe('ScheduleConfigService', () => {
         'TUESDAY': [],
         'WEDNESDAY': [],
         'THURSDAY': [],
-        'FRIDAY': []
+        'FRIDAY': [],
       };
 
       const error = new Error('Invalid time format');
@@ -262,22 +262,22 @@ describe('ScheduleConfigService', () => {
           'TUESDAY': [],
           'WEDNESDAY': [],
           'THURSDAY': [],
-          'FRIDAY': []
+          'FRIDAY': [],
         },
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        isDefault: false
+        isDefault: false,
       };
 
       vi.mocked(api.GET).mockResolvedValue({
         data: { success: true, data: mockConfig },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       // Make multiple rapid calls
       const promises = Array.from({ length: 5 }, () =>
-        scheduleConfigService.getGroupScheduleConfig('group-1')
+        scheduleConfigService.getGroupScheduleConfig('group-1'),
       );
 
       const results = await Promise.all(promises);
@@ -295,20 +295,20 @@ describe('ScheduleConfigService', () => {
       // Create a large schedule with many time slots
       const largeScheduleHours: ScheduleHours = {
         'MONDAY': Array.from({ length: 20 }, (_, i) =>
-          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
         ),
         'TUESDAY': Array.from({ length: 20 }, (_, i) =>
-          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
         ),
         'WEDNESDAY': Array.from({ length: 20 }, (_, i) =>
-          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
         ),
         'THURSDAY': Array.from({ length: 20 }, (_, i) =>
-          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
+          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
         ),
         'FRIDAY': Array.from({ length: 20 }, (_, i) =>
-          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`
-        )
+          `${String(6 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 === 0 ? '00' : '30'}`,
+        ),
       };
 
       const mockConfig: GroupScheduleConfig = {
@@ -317,13 +317,13 @@ describe('ScheduleConfigService', () => {
         scheduleHours: largeScheduleHours,
         createdAt: '2024-01-01T00:00:00Z',
         updatedAt: '2024-01-01T00:00:00Z',
-        isDefault: false
+        isDefault: false,
       };
 
       vi.mocked(api.PUT).mockResolvedValue({
         data: { success: true, data: mockConfig },
         error: undefined,
-        response: new Response()
+        response: new Response(),
       });
 
       const result = await scheduleConfigService.updateGroupScheduleConfig('group-1', largeScheduleHours);
