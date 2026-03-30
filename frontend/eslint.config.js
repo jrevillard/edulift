@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { noApiRoutesInNavigate } from './eslint-rules/no-api-routes-in-navigate.js'
 
 export default tseslint.config(
-  { ignores: ['dist'] },
+  { ignores: ['dist', 'src/generated'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],

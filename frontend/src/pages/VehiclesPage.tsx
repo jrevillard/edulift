@@ -8,16 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingState, ErrorState, EmptyVehicles } from '@/components/ui/empty-states';
 import { PageLayout, PageHeader, ModernButton, ModernCard } from '@/components/ui/page-layout';
 import { Plus, Edit2, Trash2, Car, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
+import { useFamily } from '../contexts/FamilyContext';
 
 const VehiclesPage: React.FC = () => {
   const navigate = useNavigate();
+  const { userPermissions } = useFamily();
+  const canModifyVehicles = !!userPermissions?.canModifyVehicles;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [formData, setFormData] = useState({ name: '', capacity: '' });
@@ -87,6 +90,7 @@ const VehiclesPage: React.FC = () => {
       // Invalidate schedule queries (they depend on vehicles but aren't part of Family object)
       queryClient.invalidateQueries({ queryKey: ['weekly-schedule'] });
       queryClient.invalidateQueries({ queryKey: ['schedule-slot'] });
+      setIsFormOpen(false);
       setEditingVehicle(null);
       setFormData({ name: '', capacity: '' });
       setFormError('');
@@ -239,12 +243,12 @@ const VehiclesPage: React.FC = () => {
             subtitle-testid="VehiclesPage-Description-pageDescription"
             data-testid="VehiclesPage-Title-pageTitle"
           >
-        <Dialog open={isFormOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogTrigger asChild>
-            <ModernButton icon={<Plus className="h-5 w-5" />} data-testid="VehiclesPage-Button-addVehicle">
+        {canModifyVehicles && (
+        <ModernButton icon={<Plus className="h-5 w-5" />} data-testid="VehiclesPage-Button-addVehicle" onClick={() => handleDialogOpenChange(true)}>
               Add Vehicle
             </ModernButton>
-          </DialogTrigger>
+        )}
+        <Dialog open={isFormOpen} onOpenChange={handleDialogOpenChange}>
             <DialogContent className="sm:max-w-[425px]" data-testid="VehiclesPage-Container-dialogContainer">
               <DialogHeader>
                 <DialogTitle data-testid="VehiclesPage-Title-vehicleModalTitle">{editingVehicle ? 'Edit Vehicle' : 'Add New Vehicle'}</DialogTitle>
@@ -339,6 +343,8 @@ const VehiclesPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    {canModifyVehicles && (
+                    <>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -359,6 +365,8 @@ const VehiclesPage: React.FC = () => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    </>
+                    )}
                   </div>
                 </CardHeader>
               </ModernCard>

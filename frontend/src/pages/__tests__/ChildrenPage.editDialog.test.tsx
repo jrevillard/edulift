@@ -78,6 +78,11 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         members: [],
         vehicles: [],
       },
+      userPermissions: {
+        canModifyChildren: true,
+        canModifyVehicles: true,
+        canManageMembers: true,
+      },
     });
 
     vi.mocked(mockApi.GET).mockImplementation((path: string) => {
@@ -93,7 +98,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
       });
     });
 
-    vi.mocked(mockApi.PATCH).mockResolvedValue({
+    vi.mocked(mockApi.PUT).mockResolvedValue({
       data: { data: mockChildren[0], success: true },
       error: undefined,
     });
@@ -167,7 +172,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
 
     // Verify API call
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
+      expect(mockApi.PUT).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: 'child-1' } },
         body: {
           name: 'Alice Updated',
@@ -247,6 +252,11 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         members: [],
         vehicles: [],
       },
+      userPermissions: {
+        canModifyChildren: true,
+        canModifyVehicles: true,
+        canManageMembers: true,
+      },
     });
 
     render(
@@ -272,13 +282,13 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
 
     // Verify API call was made (React Query handles cache invalidation automatically)
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalled();
+      expect(mockApi.PUT).toHaveBeenCalled();
     });
   });
 
   it('should prevent duplicate submissions during update', async () => {
     // Mock a slow API response
-    vi.mocked(mockApi.PATCH).mockImplementation(() =>
+    vi.mocked(mockApi.PUT).mockImplementation(() =>
       new Promise(resolve => setTimeout(() => resolve({ data: { data: mockChildren[0], success: true }, error: undefined }), 1000)),
     );
 
@@ -320,7 +330,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     // Note: Currently the component allows multiple rapid clicks
     // This could be improved with duplicate submission prevention
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledTimes(3);
+      expect(mockApi.PUT).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -337,6 +347,11 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
         children: mockChildren,
         members: [],
         vehicles: [],
+      },
+      userPermissions: {
+        canModifyChildren: true,
+        canModifyVehicles: true,
+        canManageMembers: true,
       },
     });
 
@@ -378,7 +393,7 @@ describe('ChildrenPage - Edit Dialog Functionality', () => {
     expect(screen.queryByText('Add New Child')).not.toBeInTheDocument();
 
     // Step 5: Verify API was called with correct data
-    expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
+    expect(mockApi.PUT).toHaveBeenCalledWith('/api/v1/children/{childId}', {
       params: { path: { childId: 'child-1' } },
       body: {
         name: 'Alice Updated',

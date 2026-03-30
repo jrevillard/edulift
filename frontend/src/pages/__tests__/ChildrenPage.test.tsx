@@ -327,7 +327,7 @@ describe('ChildrenPage', () => {
       shouldShowError: false,
       shouldShowEmpty: false,
     });
-    vi.mocked(mockApi.PATCH).mockResolvedValueOnce({
+    vi.mocked(mockApi.PUT).mockResolvedValueOnce({
       data: { data: { ...mockChild, name: 'Updated Child' }, success: true },
       error: undefined,
     });
@@ -349,7 +349,7 @@ describe('ChildrenPage', () => {
     await user.click(updateButton);
 
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
+      expect(mockApi.PUT).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: mockChild.id } },
         body: { name: 'Updated Child', age: mockChild.age },
       });

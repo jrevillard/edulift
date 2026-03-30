@@ -145,11 +145,13 @@ const apiProxy = new Proxy(client, {
 client.use({
   async onRequest({ request }: { request: Request }) {
     try {
-      // Get token from authService (single source of truth)
-      // authService ensures initialization before returning the token
+      // Get token directly from in-memory authService.
+      // AuthContext.ensureInitialized() already ran during app startup,
+      // so the token is always available in memory after login.
+      // Avoid await ensureInitialized() here — it adds an unnecessary
+      // async yield point that can stall requests when concurrent
+      // middleware calls race on the microtask queue.
       const { authService } = await import('./authService');
-      await authService.ensureInitialized();
-
       const token = authService.getToken();
 
       if (token) {

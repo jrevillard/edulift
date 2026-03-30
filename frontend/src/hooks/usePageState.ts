@@ -3,7 +3,9 @@
  * Mutualizes the logic for handling loading, error, and empty states across all pages
  */
 export const usePageState = <T>(query: { data?: T[]; isLoading: boolean; error: Error | null }) => {
-  const { data = [], isLoading, error } = query;
+  const rawData = query.data;
+  const data = Array.isArray(rawData) ? rawData : [] as unknown as T[];
+  const { isLoading, error } = query;
 
   return {
     data,

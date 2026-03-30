@@ -360,6 +360,11 @@ export const createMockFamilyContext = () => ({
   family: mockFamily,
   isLoading: false,
   error: null,
+  userPermissions: {
+    canModifyChildren: true,
+    canModifyVehicles: true,
+    canManageMembers: true,
+  },
   refreshFamily: vi.fn().mockResolvedValue(undefined),
   createFamily: vi.fn().mockResolvedValue(mockFamily),
   joinFamily: vi.fn().mockResolvedValue(mockFamily),

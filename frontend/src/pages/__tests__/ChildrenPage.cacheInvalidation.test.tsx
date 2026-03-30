@@ -104,7 +104,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
       });
     });
 
-    vi.mocked(mockApi.PATCH).mockResolvedValue({
+    vi.mocked(mockApi.PUT).mockResolvedValue({
       data: { data: { ...testChild, name: 'Updated Name' }, success: true },
       error: undefined,
     });
@@ -154,7 +154,7 @@ describe('ChildrenPage - Cache Invalidation', () => {
 
     // Wait for mutation to complete
     await waitFor(() => {
-      expect(mockApi.PATCH).toHaveBeenCalledWith('/api/v1/children/{childId}', {
+      expect(mockApi.PUT).toHaveBeenCalledWith('/api/v1/children/{childId}', {
         params: { path: { childId: 'child-1' } },
         body: {
           name: 'Updated Name',

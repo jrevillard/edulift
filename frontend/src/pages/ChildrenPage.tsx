@@ -17,9 +17,12 @@ import { LoadingState, ErrorState, EmptyChildren } from '@/components/ui/empty-s
 import { PageLayout, PageHeader, ModernButton, ModernCard } from '@/components/ui/page-layout';
 import { Plus, Edit2, Trash2, Users, Baby, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useFamily } from '../contexts/FamilyContext';
 
 const ChildrenPage: React.FC = () => {
   const navigate = useNavigate();
+  const { userPermissions } = useFamily();
+  const canModifyChildren = !!userPermissions?.canModifyChildren;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingChild, setEditingChild] = useState<Child | null>(null);
   const [formData, setFormData] = useState({ name: '', age: '' });
@@ -94,11 +97,9 @@ const ChildrenPage: React.FC = () => {
     },
     retry: false, // Disable automatic retries to prevent duplicates
     onSuccess: async (response) => {
-      // Backend now returns complete Family (rich response pattern)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const family = (response as any).data?.data;
-      if (family) {
-        queryClient.setQueryData(['current-family'], family);
+      // mutationFn returns result.data?.data which is the Family object directly
+      if (response) {
+        queryClient.setQueryData(['current-family'], response);
       }
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
@@ -131,7 +132,7 @@ const ChildrenPage: React.FC = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name?: string; age?: number } }) => {
-      const result = await api.PATCH('/api/v1/children/{childId}', {
+      const result = await api.PUT('/api/v1/children/{childId}', {
         params: { path: { childId: id } },
         body: data,
       });
@@ -144,11 +145,8 @@ const ChildrenPage: React.FC = () => {
       return child;
     },
     onSuccess: async (response) => {
-      // Backend now returns complete Family (rich response pattern)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const family = (response as any).data?.data;
-      if (family) {
-        queryClient.setQueryData(['current-family'], family);
+      if (response) {
+        queryClient.setQueryData(['current-family'], response);
       }
       queryClient.invalidateQueries({ queryKey: ['children'] });
       // Invalidate schedule-related queries since child data is embedded in schedule slots
@@ -200,23 +198,23 @@ const ChildrenPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Prevent multiple submissions
     if (createMutation.isPending || updateMutation.isPending) {
       return;
     }
-    
+
     const age = formData.age ? parseInt(formData.age) : undefined;
-    
+
     if (editingChild) {
       await updateMutation.mutateAsync({
         id: editingChild.id,
         data: { name: formData.name, age },
       });
     } else {
-      await createMutation.mutateAsync({ 
-        name: formData.name, 
-        age, 
+      await createMutation.mutateAsync({
+        name: formData.name,
+        age,
         groupIds: assignedGroups, // All assigned groups
       });
     }
@@ -323,7 +321,8 @@ const ChildrenPage: React.FC = () => {
             data-testid="ChildrenPage-Title-pageTitle"
             subtitle-testid="ChildrenPage-Description-pageDescription"
           >
-        <ModernButton 
+        {canModifyChildren && (
+        <ModernButton
           icon={<Plus className="h-5 w-5" />}
           onClick={() => {
             setEditingChild(null);
@@ -336,6 +335,7 @@ const ChildrenPage: React.FC = () => {
         >
           Add Child
         </ModernButton>
+        )}
       </PageHeader>
         </div>
       </div>
@@ -482,10 +482,10 @@ const ChildrenPage: React.FC = () => {
 
         {/* Warning for children without groups */}
         <div className="mb-6">
-          <GroupMembershipWarning 
-            children={children} 
-            variant="children-page" 
-            showDismiss={false} 
+          <GroupMembershipWarning
+            children={Array.isArray(children) ? children : []}
+            variant="children-page"
+            showDismiss={false}
           />
         </div>
 
@@ -493,7 +493,7 @@ const ChildrenPage: React.FC = () => {
           <EmptyChildren onAddChild={() => setIsFormOpen(true)} data-testid="ChildrenPage-Container-emptyState" />
         ) : (
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3" data-testid="ChildrenPage-List-childrenList">
-            {children.map((child) => (
+            {Array.isArray(children) && children.map((child) => (
               <ModernCard key={child.id} data-testid={`child-card-${child.id}`}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <div className="flex items-center gap-3">
@@ -508,6 +508,8 @@ const ChildrenPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex space-x-2">
+                    {canModifyChildren && (
+                    <>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -528,6 +530,8 @@ const ChildrenPage: React.FC = () => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    </>
+                    )}
                   </div>
                 </CardHeader>
                 <div className="px-6 pb-4">
