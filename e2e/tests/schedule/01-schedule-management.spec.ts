@@ -16,19 +16,85 @@ test.describe('Schedule Management E2E', () => {
   test.setTimeout(150000);
 
   // ===========================================================================
-  // Helper: navigate to schedule page via UI (groups → click group card)
+  // Helper: navigate to groups page via nav link
+  // ===========================================================================
+  async function navigateToGroupsPage(page: import('@playwright/test').Page) {
+    const groupsLink = page.getByRole('link', { name: 'Groups' });
+    await expect(groupsLink).toBeVisible({ timeout: 10000 });
+    await groupsLink.click();
+    await page.waitForURL(/\/groups/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+  }
+
+  // ===========================================================================
+  // Helper: navigate to family manage page via nav link
+  // ===========================================================================
+  async function navigateToFamilyManagePage(page: import('@playwright/test').Page) {
+    const manageFamilyLink = page.getByRole('link', { name: 'Manage Family' });
+    await expect(manageFamilyLink).toBeVisible({ timeout: 10000 });
+    await manageFamilyLink.click();
+    await page.waitForURL(/\/family\/manage/, { timeout: 10000 });
+    await page.waitForLoadState('networkidle');
+  }
+
+  // ===========================================================================
+  // Helper: create a group through the UI (must be on groups page)
+  // ===========================================================================
+  async function createGroupViaUI(
+    page: import('@playwright/test').Page,
+    groupName: string,
+  ) {
+    const createButton = page.locator('[data-testid="GroupsPage-Button-createGroup"]');
+    await expect(createButton).toBeVisible({ timeout: 10000 });
+    await createButton.click();
+
+    const groupNameInput = page.locator('[data-testid="CreateGroupModal-Input-groupName"]');
+    await expect(groupNameInput).toBeVisible({ timeout: 5000 });
+    await groupNameInput.fill(groupName);
+
+    const submitButton = page.locator('[data-testid="CreateGroupModal-Button-submit"]');
+    await expect(submitButton).toBeVisible({ timeout: 5000 });
+    await submitButton.click();
+
+    // Wait for group creation and redirect back to groups page
+    await page.waitForURL(/\/groups/, { timeout: 10000 }).catch(() => {});
+    await page.waitForLoadState('networkidle');
+  }
+
+  // ===========================================================================
+  // Helper: navigate to schedule page via nav link and select a group
+  // The schedule page uses a different React Query key ('my-groups') than the
+  // groups page ('user-groups'), so a reload is needed to populate the cache.
+  //
+  // NOTE: ModernCard component does not forward data-testid, so 'schedule-grid'
+  // testid does not exist in the DOM. We use 'week-range-header' instead to
+  // verify the schedule loaded with a group selected.
   // ===========================================================================
   async function navigateToSchedulePage(page: import('@playwright/test').Page) {
-    // Navigate to groups page first, then click on a group card to access schedule
-    await page.goto('/groups');
-    await page.waitForLoadState('networkidle');
-
-    const viewScheduleBtn = page.locator('[data-testid="GroupCard-Button-viewSchedule"]').first();
-    await expect(viewScheduleBtn).toBeVisible({ timeout: 10000 });
-    await viewScheduleBtn.click();
-
+    const scheduleLink = page.getByRole('link', { name: 'Schedule' });
+    await expect(scheduleLink).toBeVisible({ timeout: 10000 });
+    await scheduleLink.click();
     await page.waitForURL(/\/schedule/, { timeout: 10000 });
     await page.waitForLoadState('networkidle');
+
+    // Reload to bust React Query cache (schedule page uses 'my-groups' key
+    // which is not populated by the groups page's 'user-groups' key)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // Wait for groups to load and group selection page to appear
+    const subtitle = page.getByText('Choose a group to view its weekly schedule');
+    await expect(subtitle).toBeVisible({ timeout: 15000 });
+
+    // Click on the first group card to select it
+    const groupCard = page.locator('.grid .cursor-pointer').first();
+    await expect(groupCard).toBeVisible({ timeout: 5000 });
+    await groupCard.click();
+
+    // Wait for schedule to load (week-range-header is inside the schedule view,
+    // only rendered when a group is selected and schedule config is loaded)
+    const weekHeader = page.locator('[data-testid="week-range-header"]');
+    await expect(weekHeader).toBeVisible({ timeout: 15000 });
   }
 
   // ===========================================================================
@@ -39,7 +105,8 @@ test.describe('Schedule Management E2E', () => {
     vehicleName: string,
     vehicleCapacity: string,
   ) {
-    // Navigate to vehicles page via UI: family/manage → manage vehicles button
+    await navigateToFamilyManagePage(page);
+
     const manageVehiclesButton = page.locator('[data-testid="ManageFamilyPage-Button-manageVehicles"]');
     await expect(manageVehiclesButton).toBeVisible({ timeout: 10000 });
     await manageVehiclesButton.click();
@@ -74,7 +141,8 @@ test.describe('Schedule Management E2E', () => {
     childName: string,
     childAge: string,
   ) {
-    // Navigate to children page via UI: family/manage → manage children button
+    await navigateToFamilyManagePage(page);
+
     const manageChildrenButton = page.locator('[data-testid="ManageFamilyPage-Button-manageChildren"]');
     await expect(manageChildrenButton).toBeVisible({ timeout: 10000 });
     await manageChildrenButton.click();
@@ -108,6 +176,7 @@ test.describe('Schedule Management E2E', () => {
     test('[P0] schedule page loads and displays weekly grid', async ({ page }) => {
       const testAuthHelper = UniversalAuthHelper.forCurrentFile(page);
       const timestamp = Date.now();
+      const groupName = `ScheduleView Group ${timestamp}`;
 
       await test.step('Setup: authenticate admin with family and group', async () => {
         await testAuthHelper.setupAdminUser(
@@ -117,24 +186,25 @@ test.describe('Schedule Management E2E', () => {
         );
       });
 
-      await test.step('Navigate to schedule page', async () => {
-        await navigateToSchedulePage(page);
-
-        // Page should load (either empty state or schedule grid)
-        const pageHeader = page.locator('[data-testid="SchedulePage-Header-weeklySchedule"]');
-        await expect(pageHeader).toBeVisible({ timeout: 10000 });
+      await test.step('Create a group via UI', async () => {
+        await navigateToGroupsPage(page);
+        await createGroupViaUI(page, groupName);
       });
 
-      await test.step('Verify schedule grid or empty state is displayed', async () => {
-        // Either the schedule grid is shown (if user has groups) or empty state
-        const scheduleGrid = page.locator('[data-testid="schedule-grid"]');
-        const emptyState = page.locator('[data-testid="SchedulePage-EmptyState-noGroups"]');
+      await test.step('Navigate to schedule page and select group', async () => {
+        await navigateToSchedulePage(page);
+      });
 
-        const hasGrid = await scheduleGrid.isVisible({ timeout: 5000 }).catch(() => false);
-        const hasEmpty = await emptyState.isVisible({ timeout: 5000 }).catch(() => false);
+      await test.step('Verify schedule header and week range are displayed', async () => {
+        const pageTitle = page.locator('[data-testid="SchedulePage-Title-weeklySchedule"]');
+        await expect(pageTitle).toBeVisible({ timeout: 10000 });
 
-        // At least one should be visible
-        expect(hasGrid || hasEmpty).toBeTruthy();
+        const weekHeader = page.locator('[data-testid="week-range-header"]');
+        await expect(weekHeader).toBeVisible({ timeout: 5000 });
+
+        // Verify week range contains date info
+        const weekText = await weekHeader.textContent();
+        expect(weekText).toBeTruthy();
       });
     });
   });
@@ -143,6 +213,7 @@ test.describe('Schedule Management E2E', () => {
     test('[P0] admin can add a vehicle to a schedule slot', async ({ page }) => {
       const testAuthHelper = UniversalAuthHelper.forCurrentFile(page);
       const timestamp = Date.now();
+      const groupName = `ScheduleCreate Group ${timestamp}`;
       const vehicleName = `ScheduleVan_${timestamp}`;
       const vehicleCapacity = '5';
 
@@ -154,25 +225,17 @@ test.describe('Schedule Management E2E', () => {
         );
       });
 
-      await test.step('Add a vehicle for scheduling', async () => {
+      await test.step('Add a vehicle and create a group', async () => {
         await addVehicleViaUI(page, vehicleName, vehicleCapacity);
+        await navigateToGroupsPage(page);
+        await createGroupViaUI(page, groupName);
       });
 
-      await test.step('Navigate to schedule page and add vehicle to slot', async () => {
+      await test.step('Navigate to schedule and add vehicle to slot', async () => {
         await navigateToSchedulePage(page);
-
-        // Wait for schedule grid to load
-        const scheduleGrid = page.locator('[data-testid="schedule-grid"]');
-        await expect(scheduleGrid).toBeVisible({ timeout: 10000 });
-
-        // Verify week range header is displayed
-        const weekHeader = page.locator('[data-testid="week-range-header"]');
-        await expect(weekHeader).toBeVisible({ timeout: 5000 });
 
         // Find an available time slot (not in the past)
         const addVehicleBtn = page.locator('[data-testid="add-vehicle-btn"]').first();
-
-        // If user has groups, there should be add vehicle buttons
         const hasAddBtn = await addVehicleBtn.isVisible({ timeout: 5000 }).catch(() => false);
 
         if (hasAddBtn) {
@@ -213,6 +276,7 @@ test.describe('Schedule Management E2E', () => {
     test('[P1] admin can assign a child to a schedule slot', async ({ page }) => {
       const testAuthHelper = UniversalAuthHelper.forCurrentFile(page);
       const timestamp = Date.now();
+      const groupName = `ChildAssign Group ${timestamp}`;
       const vehicleName = `ChildAssignVan_${timestamp}`;
       const childName = `ChildAssign_${timestamp}`;
 
@@ -224,16 +288,15 @@ test.describe('Schedule Management E2E', () => {
         );
       });
 
-      await test.step('Add vehicle and child', async () => {
+      await test.step('Add vehicle, child, and create group', async () => {
         await addVehicleViaUI(page, vehicleName, '5');
         await addChildViaUI(page, childName, '8');
+        await navigateToGroupsPage(page);
+        await createGroupViaUI(page, groupName);
       });
 
       await test.step('Navigate to schedule and assign child to slot', async () => {
         await navigateToSchedulePage(page);
-
-        const scheduleGrid = page.locator('[data-testid="schedule-grid"]');
-        await expect(scheduleGrid).toBeVisible({ timeout: 10000 });
 
         // Find a schedule slot that has a vehicle assignment (manage-vehicles-btn)
         const manageVehiclesBtn = page.locator('[data-testid="manage-vehicles-btn"]').first();
@@ -259,6 +322,7 @@ test.describe('Schedule Management E2E', () => {
     test('[P1] admin can remove a vehicle assignment from a schedule slot', async ({ page }) => {
       const testAuthHelper = UniversalAuthHelper.forCurrentFile(page);
       const timestamp = Date.now();
+      const groupName = `RemoveVehicle Group ${timestamp}`;
       const vehicleName = `RemoveVan_${timestamp}`;
 
       await test.step('Setup: authenticate admin and add vehicle', async () => {
@@ -267,14 +331,16 @@ test.describe('Schedule Management E2E', () => {
           `Admin Schedule Remove ${timestamp}`,
           `ScheduleRemove Family ${timestamp}`,
         );
-        await addVehicleViaUI(page, vehicleName, '5');
       });
 
-      await test.step('Navigate to schedule and remove vehicle', async () => {
-        await navigateToSchedulePage(page);
+      await test.step('Add vehicle and create group', async () => {
+        await addVehicleViaUI(page, vehicleName, '5');
+        await navigateToGroupsPage(page);
+        await createGroupViaUI(page, groupName);
+      });
 
-        const scheduleGrid = page.locator('[data-testid="schedule-grid"]');
-        await expect(scheduleGrid).toBeVisible({ timeout: 10000 });
+      await test.step('Navigate to schedule and check vehicle slot', async () => {
+        await navigateToSchedulePage(page);
 
         // If vehicle is assigned, there should be a vehicle in the slot
         const scheduleVehicle = page.locator('[data-testid="schedule-vehicle-"]').first();
@@ -293,6 +359,7 @@ test.describe('Schedule Management E2E', () => {
     test('[P1] user can navigate between weeks on the schedule', async ({ page }) => {
       const testAuthHelper = UniversalAuthHelper.forCurrentFile(page);
       const timestamp = Date.now();
+      const groupName = `WeekNav Group ${timestamp}`;
 
       await test.step('Setup: authenticate admin', async () => {
         await testAuthHelper.setupAdminUser(
@@ -302,16 +369,19 @@ test.describe('Schedule Management E2E', () => {
         );
       });
 
+      await test.step('Create a group via UI', async () => {
+        await navigateToGroupsPage(page);
+        await createGroupViaUI(page, groupName);
+      });
+
       await test.step('Navigate to schedule and check week navigation', async () => {
         await navigateToSchedulePage(page);
 
         const weekHeader = page.locator('[data-testid="week-range-header"]');
         await expect(weekHeader).toBeVisible({ timeout: 10000 });
 
-        // Store initial week range
-        const initialWeekText = await weekHeader.textContent();
-
         // Verify the week range header is present and contains date info
+        const initialWeekText = await weekHeader.textContent();
         expect(initialWeekText).toBeTruthy();
       });
     });
@@ -331,15 +401,16 @@ test.describe('Schedule Management E2E', () => {
       });
 
       await test.step('Navigate to schedule and verify empty state', async () => {
-        await navigateToSchedulePage(page);
+        // Navigate to schedule page via nav link
+        const scheduleLink = page.getByRole('link', { name: 'Schedule' });
+        await expect(scheduleLink).toBeVisible({ timeout: 10000 });
+        await scheduleLink.click();
+        await page.waitForURL(/\/schedule/, { timeout: 10000 });
+        await page.waitForLoadState('networkidle');
 
         // Should show empty state since no groups exist
         const emptyState = page.locator('[data-testid="SchedulePage-EmptyState-noGroups"]');
         await expect(emptyState).toBeVisible({ timeout: 10000 });
-
-        // Schedule grid should NOT be visible
-        const scheduleGrid = page.locator('[data-testid="schedule-grid"]');
-        await expect(scheduleGrid).not.toBeVisible({ timeout: 5000 });
       });
     });
   });
