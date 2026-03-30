@@ -1,14 +1,14 @@
 ---
-stepsCompleted: ['step-01-preflight-and-context', 'step-02-identify-targets', 'step-03-generate-migrate-tests']
-lastStep: 'step-03-generate-migrate-tests'
-lastSaved: '2026-03-29'
+stepsCompleted: ['step-01-preflight-and-context', 'step-02-identify-targets', 'step-03-generate-migrate-tests', 'step-04-validate-and-summarize']
+lastStep: 'step-04-validate-and-summarize'
+lastSaved: '2026-03-30'
 ---
 
-# Test Automation Summary - EduLift Group E2E Tests
+# Test Automation Summary - EduLift E2E Tests
 
 ## Context
 
-- **Objective**: Migrate existing group E2E tests to follow auth/family patterns (real auth via magic link, no DB manipulation)
+- **Objective**: Expand E2E test coverage for children, vehicles, groups, dashboard, and profile features; fix root causes of flaky tests in frontend
 - **Stack**: Frontend E2E (Playwright, React/TypeScript)
 - **Framework**: Playwright with `@playwright/test`
 - **Mode**: Standalone (no BMad artifacts, source code only)
@@ -16,92 +16,125 @@ lastSaved: '2026-03-29'
 
 ## Execution Mode
 
-**Standalone** - Existing test files in `e2e/tests/group/` need migration to use correct authentication patterns.
+**Standalone** - Source code analysis and test generation without BMad story artifacts.
 
 ## Coverage Plan
 
-### Existing Test Files (6 files)
+### Features Covered by Priority
 
-| File | Original Lines | Migrated Lines | Status | Action |
-|------|---------------|----------------|--------|--------|
-| 01-group-creation.spec.ts | 447 | ~230 | Migrated | Auth migrated, expectations fixed |
-| 02-group-invitations.spec.ts | 457 | ~170 | Migrated | Auth migrated, re-enabled, speculative removed |
-| 03-group-scheduling.spec.ts | 575 | ~200 | Migrated | Auth migrated, speculative removed |
-| 04-group-coordination.spec.ts | 720 | ~210 | Migrated | Auth migrated, speculative removed |
-| 05-group-lifecycle.spec.ts | 860 | ~220 | Migrated | Auth migrated, speculative removed |
-| 05-group-schedule-configuration.spec.ts | 532 | ~280 | Migrated | Auth migrated (best structured) |
+| Priority | Feature | Tests | File |
+|----------|---------|-------|------|
+| P0 | Add child | 1 | tests/family/05-children-management.spec.ts |
+| P0 | Edit child | 1 | tests/family/05-children-management.spec.ts |
+| P0 | Delete child | 1 | tests/family/05-children-management.spec.ts |
+| P0 | Add vehicle | 1 | tests/family/06-vehicles-management.spec.ts |
+| P0 | Edit vehicle | 1 | tests/family/06-vehicles-management.spec.ts |
+| P0 | Delete vehicle | 1 | tests/family/06-vehicles-management.spec.ts |
+| P1 | Children empty state | 1 | tests/family/05-children-management.spec.ts |
+| P1 | Children member role access | 1 | tests/family/05-children-management.spec.ts |
+| P1 | Vehicles empty state | 1 | tests/family/06-vehicles-management.spec.ts |
+| P1 | Vehicles member role access | 1 | tests/family/06-vehicles-management.spec.ts |
+| P1 | Dashboard family overview | 1 | tests/dashboard/01-dashboard-quick-actions.spec.ts |
+| P1 | Dashboard quick actions (x3) | 3 | tests/dashboard/01-dashboard-quick-actions.spec.ts |
+| P1 | Dashboard empty state | 1 | tests/dashboard/01-dashboard-quick-actions.spec.ts |
+| P1 | Profile view | 1 | tests/profile/01-profile-management.spec.ts |
+| P1 | Profile edit | 1 | tests/profile/01-profile-management.spec.ts |
+| P1 | Profile cancel | 1 | tests/profile/01-profile-management.spec.ts |
+| P1 | Profile navigate back | 1 | tests/profile/01-profile-management.spec.ts |
+| P2 | Group families listing | 1 | tests/group/06-group-family-removal.spec.ts |
+| P2 | Group family removal | 1 | tests/group/06-group-family-removal.spec.ts |
+| P2 | Group last family cannot be removed | 1 | tests/group/06-group-family-removal.spec.ts |
 
-### Anti-Patterns to Fix (all files)
+### Priority Breakdown
 
-1. Replace `createUsersInDatabase()` + `createFamilyInDatabase()` + `directUserSetup()` with real magic link auth
-2. Add `E2EEmailHelper`, `TestCleanupHelper`, `SharedTestPatterns`, `OnboardingFlowHelper`
-3. Add `test.beforeEach` for email cleanup
-4. Replace text-based selectors with `data-testid`
-5. Remove logical OR in expectations
+| Priority | Count |
+|----------|-------|
+| P0 | 6 |
+| P1 | 11 |
+| P2 | 3 |
+| **Total** | **20** |
 
-### Existing Frontend Features (confirmed via source analysis)
+### Files Created
 
-**Pages:**
-- `/groups` - GroupsPage (listing)
-- `/groups/:groupId/manage` - ManageGroupPage
-- `/groups/join` - UnifiedGroupInvitationPage
+| File | Lines | Priority Tags |
+|------|-------|---------------|
+| tests/family/05-children-management.spec.ts | 411 | 3x P0, 2x P1 |
+| tests/family/06-vehicles-management.spec.ts | 428 | 3x P0, 2x P1 |
+| tests/group/06-group-family-removal.spec.ts | 443 | 3x P2 |
+| tests/dashboard/01-dashboard-quick-actions.spec.ts | 225 | 5x P1 |
+| tests/profile/01-profile-management.spec.ts | 318 | 4x P1 |
+| **Total** | **1825** | |
 
-**Components with data-testid:**
-- GroupsPage, GroupCard, CreateGroupModal, ManageGroupPage
-- GroupScheduleConfigModal, JoinGroupModal, FamilySearchInvitation
-- UnifiedGroupInvitationPage
+### Frontend Root Cause Fixes
 
-**API Endpoints:**
-- GET /api/v1/groups/my-groups
-- POST /api/v1/groups
-- PATCH /api/v1/groups/{groupId}
-- DELETE /api/v1/groups/{groupId}
-- POST /api/v1/groups/join
-- POST /api/v1/groups/{groupId}/leave
-- GET/PATCH /api/v1/groups/{groupId}/families
-- GET/PATCH /api/v1/groups/{groupId}/schedule-config
-- POST /api/v1/groups/{groupId}/search-families
-- POST /api/v1/groups/{groupId}/invite
+| File | Fix |
+|------|-----|
+| frontend/src/pages/ChildrenPage.tsx | PATCH -> PUT (matching OpenAPI types) |
+| frontend/src/pages/ChildrenPage.tsx | onSuccess double-unwrap removed |
+| frontend/src/pages/ChildrenPage.tsx | Permission checks added |
+| frontend/src/pages/VehiclesPage.tsx | Permission checks added |
+| frontend/src/services/api.ts | Redundant ensureInitialized() removed |
+| frontend/eslint.config.js | src/generated excluded from lint |
 
-### Features to Test (prioritized)
+### Unit Test Fixes
 
-**P0 - Critical:**
-- Group creation via CreateGroupModal
-- Group listing on GroupsPage
-- Group management page access
+| File | Fix |
+|------|-----|
+| frontend/src/test/test-utils.tsx | userPermissions added to mock factory |
+| frontend/src/pages/__tests__/ChildrenPage.*.test.tsx (x3) | PATCH -> PUT in mock assertions |
 
-**P1 - High:**
-- Edit group name/description (admin only)
-- Invite families via FamilySearchInvitation
-- Schedule configuration via GroupScheduleConfigModal
-- Join group via invite code
-- Role-based permissions (admin vs member)
-- Leave group
+## Validation Results
 
-**P2 - Medium:**
-- Delete group (admin only)
-- Form validation
+### Quality Checks
 
-### Features NOT in App (remove from tests)
+| Check | Status |
+|-------|--------|
+| TypeScript compilation (E2E) | Pass |
+| TypeScript compilation (Frontend) | Pass |
+| ESLint (Frontend, 928 tests) | Pass |
+| data-testid selectors | 182 in new files |
+| Hard waits (waitForTimeout) | 0 |
+| Priority tags | 20/20 tagged |
+| fixme/skip/only | 0 in new files |
+| Pre-commit hooks | Pass |
 
-- Analytics/Statistics/Reports
-- Cost sharing/Expense tracking
-- Calendar export/integration
-- Emergency coordination
-- Announcements/Notifications
-- Private messaging
-- Real-time updates
-- Activity log
-- Archive group
-- Admin transfer
-- Data export
-- Optimization suggestions
+### Test Execution (E2E)
 
-### Migration Order
+- Children management: 5/5 pass (3 consecutive runs)
+- Frontend unit tests: 928/928 pass
 
-1. 01-group-creation.spec.ts
-2. 05-group-schedule-configuration.spec.ts
-3. 02-group-invitations.spec.ts (re-enable)
-4. 05-group-lifecycle.spec.ts (clean up)
-5. 03-group-scheduling.spec.ts (clean up)
-6. 04-group-coordination.spec.ts (clean up)
+## Infrastructure
+
+### Package.json Scripts Added
+
+| Script | Purpose |
+|--------|---------|
+| `e2e:test:p0` | Run P0 (critical) tests only |
+| `e2e:test:p1` | Run P0 + P1 tests |
+| `e2e:test:p2` | Run P0 + P1 + P2 tests |
+| `e2e:test:family` | Run family management tests |
+| `e2e:test:group` | Run group tests |
+| `e2e:test:auth` | Run auth tests |
+
+### Existing Fixtures Used
+
+- `UniversalAuthHelper` - PKCE magic link authentication
+- `E2EEmailHelper` - MailPit email retrieval
+- `TestDataGenerator` - Unique test data generation
+
+## Key Assumptions
+
+- Docker-based E2E environment (frontend + backend + MailPit + PostgreSQL)
+- Each test generates unique data via timestamps (isolation > determinism)
+- Real authentication flow (no DB bypass, no API mocking)
+
+## Risks
+
+- Group family removal tests require multi-context browser setup (complex isolation)
+- Dashboard quick actions depend on specific UI button labels (brittle if UI text changes)
+
+## Next Steps
+
+1. Run full E2E suite to validate all new tests pass together
+2. Consider `bmad-testarch-automate` for schedule E2E coverage expansion
+3. Consider `bmad-testarch-review` for quality review of existing tests
