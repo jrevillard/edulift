@@ -10,6 +10,7 @@ import {
   getWeekBoundaries,
   formatISOWeek,
   isSameISOWeek,
+  getScheduleSlotDatetime,
   // Legacy functions
   getISOWeekNumberLegacy,
   getWeekStartDate,
@@ -568,6 +569,43 @@ describe('Week Calculations Utilities - Legacy Functions', () => {
       expect(weekdays[0].dateString).toBe('2025-06-23'); // Monday (corrected)
       expect(weekdays[4].dateString).toBe('2025-06-27'); // Friday (corrected)
       expect(formatted).toMatch(/Jun.*23.*Jun.*27/); // formatWeekRange correctly shows business week
+    });
+  });
+
+  describe('getScheduleSlotDatetime', () => {
+    it('should convert week/day/time in Europe/Paris (CET) to UTC', () => {
+      // Winter: Europe/Paris is UTC+1
+      // Tuesday week 5 of 2025 at 07:00 Paris = 06:00 UTC
+      const result = getScheduleSlotDatetime('2025-05', 'TUESDAY', '07:00', 'Europe/Paris');
+      expect(result).toBe('2025-01-28T06:00:00.000Z');
+    });
+
+    it('should convert week/day/time in Europe/Paris (CEST) to UTC', () => {
+      // Summer: Europe/Paris is UTC+2
+      // Tuesday week 14 of 2026 at 07:00 Paris = 05:00 UTC
+      const result = getScheduleSlotDatetime('2026-14', 'TUESDAY', '07:00', 'Europe/Paris');
+      expect(result).toBe('2026-03-31T05:00:00.000Z');
+    });
+
+    it('should handle America/Los_Angeles (PST) correctly', () => {
+      // Winter: America/Los_Angeles is UTC-8
+      // Monday week 5 of 2025 at 08:00 LA = 16:00 UTC
+      const result = getScheduleSlotDatetime('2025-05', 'MONDAY', '08:00', 'America/Los_Angeles');
+      expect(result).toBe('2025-01-27T16:00:00.000Z');
+    });
+
+    it('should handle Asia/Tokyo (JST) correctly', () => {
+      // Asia/Tokyo is UTC+9 year-round
+      // Wednesday week 14 of 2026 at 08:30 Tokyo = 23:30 UTC (previous day)
+      const result = getScheduleSlotDatetime('2026-14', 'WEDNESDAY', '08:30', 'Asia/Tokyo');
+      expect(result).toBe('2026-03-31T23:30:00.000Z');
+    });
+
+    it('should handle Friday at end of day in UTC-negative timezone', () => {
+      // America/New_York is UTC-5 (EST)
+      // Friday week 5 of 2025 at 23:00 NY = Saturday 04:00 UTC
+      const result = getScheduleSlotDatetime('2025-05', 'FRIDAY', '23:00', 'America/New_York');
+      expect(result).toBe('2025-02-01T04:00:00.000Z');
     });
   });
 });

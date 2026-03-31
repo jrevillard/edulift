@@ -144,6 +144,50 @@ export const getDateFromISOWeek = (
 };
 
 /**
+ * Convert schedule slot parameters (week, day, time) to an ISO 8601 UTC datetime string.
+ * Handles timezone conversion correctly — the resulting datetime is in UTC
+ * but represents the specified local time in the user's timezone.
+ *
+ * @param week - ISO week string (e.g., "2026-14")
+ * @param day - Day name (e.g., "TUESDAY")
+ * @param time - Local time string (e.g., "07:00")
+ * @param timezone - IANA timezone string (e.g., "Europe/Paris")
+ * @returns ISO 8601 UTC datetime string (e.g., "2026-03-31T05:00:00.000Z")
+ *
+ * @example
+ * getScheduleSlotDatetime("2026-14", "TUESDAY", "07:00", "Europe/Paris")
+ * // → "2026-03-31T05:00:00.000Z" (07:00 Paris CEST = 05:00 UTC)
+ */
+export const getScheduleSlotDatetime = (
+  week: string,
+  day: string,
+  time: string,
+  timezone: string,
+): string => {
+  const [year, weekNum] = week.split('-').map(Number);
+  const weekStart = getDateFromISOWeek(year, weekNum, timezone);
+
+  const dayOffsets: Record<string, number> = {
+    MONDAY: 0, TUESDAY: 1, WEDNESDAY: 2, THURSDAY: 3,
+    FRIDAY: 4, SATURDAY: 5, SUNDAY: 6,
+  };
+  const dayOffset = dayOffsets[day.toUpperCase()] ?? 0;
+  const targetDate = new Date(weekStart);
+  targetDate.setUTCDate(targetDate.getUTCDate() + dayOffset);
+
+  const [hours, minutes] = time.split(':').map(Number);
+
+  return dayjs(targetDate)
+    .tz(timezone)
+    .hour(hours)
+    .minute(minutes)
+    .second(0)
+    .millisecond(0)
+    .utc()
+    .toISOString();
+};
+
+/**
  * Get week boundaries (Monday 00:00 to Sunday 23:59:59.999) in user's timezone
  * Returns UTC dates representing the boundaries
  *

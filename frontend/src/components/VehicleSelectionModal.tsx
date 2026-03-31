@@ -94,6 +94,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { VEHICLE_CONSTRAINTS } from '../constants/vehicle';
 import { SOCKET_EVENTS } from '../shared/events';
+import { getScheduleSlotDatetime } from '../utils/weekCalculations';
 
 interface VehicleSelectionModalProps {
   isOpen: boolean;
@@ -180,16 +181,20 @@ const VehicleSelectionModal: React.FC<VehicleSelectionModalProps> = ({
 
   // Create schedule slot with vehicle mutation
   const createScheduleSlotWithVehicleMutation = useMutation({
-    mutationFn: ({ vehicleId, seatOverride }: { vehicleId: string; seatOverride?: number }) =>
-      api.POST('/api/v1/groups/{groupId}/schedule-slots', {
+    mutationFn: ({ vehicleId, seatOverride }: { vehicleId: string; seatOverride?: number }) => {
+      const userTimezone = user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const utcDateTime = getScheduleSlotDatetime(week, day, time, userTimezone);
+
+      return api.POST('/api/v1/groups/{groupId}/schedule-slots', {
         params: { path: { groupId } },
         body: {
-          datetime: `${week}T${time}:00`,
+          datetime: utcDateTime,
           vehicleId,
           driverId: user!.id,
           seatOverride,
         },
-      }),
+      });
+    },
     onSuccess: async () => {
       // Invalidate and refetch ALL weekly schedule queries for this group
       await queryClient.invalidateQueries({ queryKey: ['weekly-schedule', groupId] });

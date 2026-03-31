@@ -44,6 +44,7 @@ import {
   getISOWeekNumber,
   getISOWeekYear,
   getDateFromISOWeek,
+  getScheduleSlotDatetime,
 } from '../utils/weekCalculations';
 import {
   getWeekdayInTimezone,
@@ -348,43 +349,8 @@ const SchedulePage: React.FC = () => {
   // MIGRATED: Use OpenAPI client
   const createScheduleSlotWithVehicleMutation = useMutation({
     mutationFn: async (data: { day: string; time: string; vehicleId: string; driverId?: string }) => {
-      // Convert day/week/time to UTC datetime string using proper ISO week calculation
-      const [year, weekNum] = currentWeek.split('-').map(Number);
       const userTimezone = user?.timezone || dayjs.tz.guess();
-
-      // Calculate the Monday of the specified ISO week (proper ISO calculation)
-      const jan4 = new Date(year, 0, 4);
-      const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Convert to Monday=0, Tuesday=1, etc.
-      const weekStart = new Date(jan4);
-      weekStart.setDate(jan4.getDate() - jan4DayOfWeek + (weekNum - 1) * 7);
-
-      // Map day names to offsets
-      const dayOffsets: Record<string, number> = {
-        'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
-        'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6,
-      };
-
-      const dayOffset = dayOffsets[data.day.toUpperCase()];
-      if (dayOffset === undefined) {
-        throw new Error(`Invalid day name: ${data.day}`);
-      }
-
-      // Calculate target date
-      const targetDate = new Date(weekStart);
-      targetDate.setDate(weekStart.getDate() + dayOffset);
-
-      // Parse time - this is in the user's timezone
-      const [hours, minutes] = data.time.split(':').map(Number);
-
-      // Create datetime in user timezone, then convert to UTC
-      const localDateTime = dayjs(targetDate)
-        .tz(userTimezone)
-        .hour(hours)
-        .minute(minutes)
-        .second(0)
-        .millisecond(0);
-
-      const utcDateTime = localDateTime.utc().toISOString();
+      const utcDateTime = getScheduleSlotDatetime(currentWeek, data.day, data.time, userTimezone);
 
       const { data: result, error } = await api.POST('/api/v1/groups/{groupId}/schedule-slots', {
         params: {
@@ -869,26 +835,13 @@ const SchedulePage: React.FC = () => {
                   <button
                     onClick={() => {
                       // Create a pseudo schedule slot for the modal to handle vehicle selection
-                      // Calculate datetime from day/time/week using proper ISO week calculation
-                      const [year, weekNum] = currentWeek.split('-').map(Number);
-                      const jan4 = new Date(year, 0, 4);
-                      const jan4DayOfWeek = (jan4.getDay() + 6) % 7; // Convert to Monday=0, Tuesday=1, etc.
-                      const weekStart = new Date(jan4);
-                      weekStart.setDate(jan4.getDate() - jan4DayOfWeek + (weekNum - 1) * 7);
-
-                      const dayOffsets: Record<string, number> = {
-                        'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3, 'FRIDAY': 4,
-                      };
-                      const dayOffset = dayOffsets[weekday.key] || 0;
-                      const targetDate = new Date(weekStart);
-                      targetDate.setDate(weekStart.getDate() + dayOffset);
-                      const [hours, minutes] = time.split(':').map(Number);
-                      targetDate.setHours(hours, minutes, 0, 0);
+                      const userTimezone = user?.timezone || dayjs.tz.guess();
+                      const datetime = getScheduleSlotDatetime(currentWeek, weekday.key, time, userTimezone);
 
                       setSelectedScheduleSlot({
                         id: '',
                         groupId: selectedGroup,
-                        datetime: targetDate.toISOString(),
+                        datetime,
                         // Keep legacy fields for backward compatibility
                         day: weekday.key,
                         time,

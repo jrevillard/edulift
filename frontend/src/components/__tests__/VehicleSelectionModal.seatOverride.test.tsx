@@ -227,7 +227,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         expect.objectContaining({
           params: { path: { groupId: 'group-1' } },
           body: {
-            datetime: '2024-01T08:00:00',
+            datetime: '2024-01-01T08:00:00.000Z',
             vehicleId: 'vehicle-1',
             driverId: 'user-1',
             seatOverride: 15,
@@ -373,7 +373,7 @@ describe('VehicleSelectionModal - Seat Override', () => {
         expect.objectContaining({
           params: { path: { groupId: 'group-1' } },
           body: {
-            datetime: '2024-01T08:00:00',
+            datetime: '2024-01-01T08:00:00.000Z',
             vehicleId: 'vehicle-1',
             driverId: 'user-1',
             seatOverride: undefined,
